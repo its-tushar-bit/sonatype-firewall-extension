@@ -51,6 +51,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
@@ -74,6 +75,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
@@ -146,6 +149,10 @@ public class ReportResource
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
+  private final AsyncReevaluationService asyncReevaluationService;
+
+  private final PolicyEvaluateService policyEvaluateService;
+
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   private final ApiReportDataServiceV2 reportDataService;
@@ -176,6 +183,8 @@ public class ReportResource
       final OrganizationDAO organizationDAO,
       final ReportService reportService,
       final ScanPolicyEvaluator scanPolicyEvaluator,
+      final AsyncReevaluationService asyncReevaluationService,
+      final PolicyEvaluateService policyEvaluateService,
       final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       final InsightWork work,
       final BaseUrl baseUrl,
@@ -190,6 +199,8 @@ public class ReportResource
     this.organizationDAO = organizationDAO;
     this.reportService = reportService;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
+    this.asyncReevaluationService = asyncReevaluationService;
+    this.policyEvaluateService = policyEvaluateService;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.work = work;
     this.baseUrl = baseUrl;
@@ -346,19 +357,37 @@ public class ReportResource
   /**
    * Re-evaluates the policy for a scan. The policy must have been evaluated for the given scan at least once. This
    * method should not send policy evaluation notifications.
+   * <p>
+   * By default re-evaluation runs synchronously on the request thread and the response is returned only once the HDS
+   * report regeneration and policy evaluation complete (legacy behavior). Because that can occupy the request thread
+   * for the full HDS report regeneration window, callers may opt into asynchronous handling with
+   * {@code ?async=true}: the request returns {@code 202 Accepted} immediately with a {@link PolicyEvaluationReceipt}
+   * and the work runs on a background thread. The caller then polls
+   * {@link #reevaluatePolicyStatus(String, String) the status endpoint} with the receipt's status id until
+   * the result is {@code COMPLETED} or {@code FAILED}.
+   * <p>
+   * Note: {@code async=true} is ignored for hosted scans, which always re-evaluate synchronously and return
+   * {@code 200 OK} with an empty body (no {@link PolicyEvaluationReceipt}). API consumers that rely on the
+   * {@code 202} status code to choose a polling strategy must account for this.
+   * <p>
+   * Note: {@code skipAutoWaivers} is also silently ignored for hosted scans — the hosted re-evaluation path
+   * ({@code RepositoryPolicyEvaluator#evaluate}) does not support it, so auto-waivers are always applied for hosted
+   * scans regardless of this flag.
    */
   @POST
   @Path("{scanId}/reevaluatePolicy")
+  @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public Response reevaluatePolicy(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId,
       @DefaultValue("false") @QueryParam("skipAutoWaivers") final Boolean skipAutoWaivers,
+      @DefaultValue("false") @QueryParam("async") final Boolean async,
       @Context HttpServletRequest request) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    Organization organization = organizationDAO.getById(application.getOrganizationId());
+    Organization organization = organizationDAO.getByIdNotNull(application.getOrganizationId());
 
     String clientUserAgent = HdsClient.getClientUserAgent(request);
     if (reportService.isHostedScan(scanId, application.getId())) {
@@ -367,17 +396,64 @@ public class ReportResource
       reportService.reevaluateHostedComponent(application.getId(), scanId);
       return Response.ok().build();
     }
-    if (organization.getRelatedRepositoryId() == null) {
+    boolean rmBacked = organization.getRelatedRepositoryId() != null;
+    if (!rmBacked) {
       checkEvaluateApplicationPermission(application);
     }
     else {
       checkEvaluateComponentPermission(application);
     }
+
+    if (Boolean.TRUE.equals(async)) {
+      // The status endpoint enforces the container-image license/feature for RM-backed apps, so gate the async
+      // trigger the same way rather than issuing a 202 the caller could not then poll. Only the async path is gated;
+      // the synchronous path below does not require this feature.
+      if (rmBacked) {
+        policyEvaluateService.validateContainerImageEvaluationEnabled();
+      }
+      PolicyEvaluationReceipt receipt =
+          asyncReevaluationService.startReevaluation(application, scanId, skipAutoWaivers, clientUserAgent);
+      return Response.status(Status.ACCEPTED).entity(receipt).build();
+    }
+
     PolicyEvaluation policyEvaluation = reportService.reUploadScanToHds(application.getId(), scanId, clientUserAgent);
     Stage stage = new Stage(policyEvaluation.getStageTypeId());
     scanPolicyEvaluator.evaluate(application, scanId, stage, policyEvaluation.getScanTriggerType(),
         policyEvaluation.getClientScanType(), skipAutoWaivers);
     return Response.ok().build();
+  }
+
+  /**
+   * Polls the status of an asynchronous re-evaluation started via {@code reevaluatePolicy?async=true}. Returns the
+   * current {@link PolicyEvaluationPollingResultDTO} carrying {@code PENDING}, {@code COMPLETED}, or {@code FAILED}
+   * status (and the evaluation result on completion).
+   * <p>
+   * The path carries no {@code scanId} (it would be decorative — the lookup never uses one). The status row is still
+   * scoped to the application: {@link PolicyEvaluateService#pollEvaluationResult} loads it by
+   * {@code (applicationId, statusId)} (a non-matching pair yields {@code 404}) and applies the same
+   * evaluate-application
+   * / evaluate-component permission check (and license enforcement) as the re-evaluate endpoint, scoped to
+   * {@code applicationPublicId}. So a {@code statusId} belonging to another application cannot be read through this
+   * path. Intentionally not {@code @Audited}: this is a high-frequency read-only poll
+   * (mirroring {@code ApplicationEvaluationResource}'s status endpoint); the re-evaluation itself is audited at the
+   * triggering {@code reevaluatePolicy} call.
+   * <p>
+   * For RM-backed / container applications this poll additionally enforces
+   * {@link LicensedFeature#CONTAINER_IMAGES_EVALUATION} and the {@code CONTAINER_IMAGES_EVAL_ENABLED} feature flag (see
+   * {@link PolicyEvaluateService#validateContainerImageEvaluationEnabled}). The triggering {@code reevaluatePolicy}
+   * call applies the same gate up front on its {@code async=true} path, so a caller on such an application with the
+   * feature disabled is rejected at the trigger and never receives a {@code 202} whose status it could not poll. (Only
+   * the {@code async=true} path is gated; the synchronous path does not require this feature.)
+   */
+  @GET
+  @Path("reevaluatePolicy/status/{statusId}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
+  public PolicyEvaluationPollingResultDTO reevaluatePolicyStatus(
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+      @PathParam("statusId") final String statusId)
+  {
+    return policyEvaluateService.pollEvaluationResult(applicationPublicId, statusId);
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)

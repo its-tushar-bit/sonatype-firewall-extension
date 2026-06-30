@@ -634,12 +634,18 @@ describe('applicationReportActions', function () {
   });
 
   describe('reevaluateReport', function () {
-    it('fires REEVALUATE_REPORT_FAILED action if the reevaluation request fails', function (done) {
+    // Reset the module-level cancellation token between tests so a chain left in flight by one test
+    // can't leak its active token into the next.
+    afterEach(function () {
+      SpecUtil.mockReduxStore({}).dispatch(applicationReportActions.reevaluateReportCancelled());
+    });
+
+    it('fires REEVALUATE_REPORT_FAILED action if the async reevaluation request fails', function (done) {
       const store = SpecUtil.mockReduxStore(createMockState(false));
 
       mockAxiosCalls({
         post: {
-          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: () =>
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: () =>
             Promise.reject({ status: 500, data: 'test error' }),
         },
       });
@@ -657,16 +663,77 @@ describe('applicationReportActions', function () {
       });
     });
 
-    it('loads the report after reevaluation', function (done) {
+    it('fires REEVALUATE_REPORT_FAILED with the reason when the async status reports FAILED', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false));
+
+      mockAxiosCalls({
+        post: {
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+            data: { statusId: 'status-1' },
+          }),
+        },
+        get: {
+          [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: Promise.resolve({
+            data: { status: 'FAILED', reason: 'reevaluation blew up' },
+          }),
+        },
+      });
+
+      store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
+        expect(store.getActions()[1]).toEqual({
+          type: 'REEVALUATE_REPORT_FAILED',
+          payload: 'reevaluation blew up',
+        });
+        done();
+      });
+    });
+
+    it('fires REEVALUATE_REPORT_FAILED when the async status reports an unrecognised value', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false));
+
+      mockAxiosCalls({
+        post: {
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+            data: { statusId: 'status-1' },
+          }),
+        },
+        get: {
+          [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: Promise.resolve({
+            data: { status: 'CANCELLED' },
+          }),
+        },
+      });
+
+      store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
+        expect(store.getActions()[1]).toEqual({
+          type: 'REEVALUATE_REPORT_FAILED',
+          payload: 'Unexpected re-evaluation status: CANCELLED',
+        });
+        done();
+      });
+    });
+
+    it('polls the async status then loads the report after reevaluation', function (done) {
       const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
 
       mockAxiosCalls({
         post: {
-          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: Promise.resolve({ data: '' }),
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+            data: { statusId: 'status-1' },
+          }),
         },
       });
 
-      expectCommonDataCalls(true, expectReportDataCalls(true));
+      expectCommonDataCalls(true, {
+        ...expectReportDataCalls(true),
+        [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: Promise.resolve({
+          data: { status: 'COMPLETED' },
+        }),
+      });
 
       store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
         const actions = store.getActions();
@@ -738,11 +805,18 @@ describe('applicationReportActions', function () {
 
       mockAxiosCalls({
         post: {
-          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: Promise.resolve({ data: '' }),
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+            data: { statusId: 'status-1' },
+          }),
         },
       });
 
-      expectCommonDataCalls(true, expectReportDataCalls(false));
+      expectCommonDataCalls(true, {
+        ...expectReportDataCalls(false),
+        [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: Promise.resolve({
+          data: { status: 'COMPLETED' },
+        }),
+      });
 
       store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
         expect(store.getActions().length).toBe(5);
@@ -772,14 +846,274 @@ describe('applicationReportActions', function () {
 
       expect(store.getActions().length).toBe(1);
     });
+
+    it('keeps polling while the async status is PENDING and loads the report once COMPLETED', async function () {
+      // Fake timers so the inter-poll delay (floored to 1s) does not cost real wall-clock time.
+      jest.useFakeTimers();
+      try {
+        const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
+        let pollCount = 0;
+
+        mockAxiosCalls({
+          post: {
+            [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+              data: { statusId: 'status-1' },
+            }),
+          },
+        });
+
+        expectCommonDataCalls(true, {
+          ...expectReportDataCalls(true),
+          [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: () => {
+            pollCount += 1;
+            // PENDING on the first poll, COMPLETED after, so the retry/setTimeout branch is exercised.
+            return Promise.resolve({
+              data: pollCount < 2 ? { status: 'PENDING', nextPollingIntervalInSeconds: 0 } : { status: 'COMPLETED' },
+            });
+          },
+        });
+
+        const dispatchPromise = store.dispatch(applicationReportActions.reevaluateReport());
+        // Advance past the single PENDING poll's delay (flushing the interleaved promise microtasks).
+        await jest.advanceTimersByTimeAsync(1000);
+        await dispatchPromise;
+
+        const actions = store.getActions();
+        expect(pollCount).toBeGreaterThanOrEqual(2);
+        expect(actions[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
+        expect(actions.some((action) => action.type === 'REEVALUATE_REPORT_FULFILLED')).toBe(true);
+        expect(actions.some((action) => action.type === 'LOAD_REPORT_FULFILLED')).toBe(true);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('loads the report without polling when the response carries no status id (synchronous hosted scan)', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
+      let statusPolls = 0;
+
+      mockAxiosCalls({
+        post: {
+          // Hosted/repository-manager scans return an empty 200 with no status id.
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({ data: '' }),
+        },
+      });
+
+      expectCommonDataCalls(true, {
+        ...expectReportDataCalls(true),
+        [CLMLocation.getReportReevaluateStatusUrl('appId', 'undefined')]: () => {
+          statusPolls += 1;
+          return Promise.resolve({ data: { status: 'COMPLETED' } });
+        },
+      });
+
+      store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
+        const actions = store.getActions();
+        expect(statusPolls).toBe(0);
+        expect(actions.some((action) => action.type === 'REEVALUATE_REPORT_FULFILLED')).toBe(true);
+        expect(actions.some((action) => action.type === 'LOAD_REPORT_FULFILLED')).toBe(true);
+        done();
+      });
+    });
+
+    it('fires REEVALUATE_REPORT_FAILED when polling exceeds the deadline', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false));
+
+      // Each Date.now() call jumps far ahead, so the deadline computed at poll start is already
+      // exceeded by the first deadline check — the timeout trips without any real waiting, and the
+      // increasing-by-1e12 sequence is robust to any intervening Date.now() calls.
+      let nowCall = 0;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => nowCall++ * 1e12);
+
+      mockAxiosCalls({
+        post: {
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+            data: { statusId: 'status-1' },
+          }),
+        },
+        get: {
+          [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: Promise.resolve({
+            data: { status: 'PENDING', nextPollingIntervalInSeconds: 0 },
+          }),
+        },
+      });
+
+      store.dispatch(applicationReportActions.reevaluateReport()).then(
+        () => {
+          try {
+            const actions = store.getActions();
+            expect(actions[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
+            expect(actions[actions.length - 1]).toEqual({
+              type: 'REEVALUATE_REPORT_FAILED',
+              payload: 'Timed out waiting for re-evaluation to complete',
+            });
+            done();
+          } finally {
+            dateNowSpy.mockRestore();
+          }
+        },
+        (err) => {
+          dateNowSpy.mockRestore();
+          done(err);
+        }
+      );
+    });
+
+    it('retries past transient (5xx) poll failures and loads the report once COMPLETED', async function () {
+      // Fake timers so the inter-poll retry delay (floored to 1s) does not cost real wall-clock time.
+      jest.useFakeTimers();
+      try {
+        const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
+        let pollCount = 0;
+
+        mockAxiosCalls({
+          post: {
+            [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+              data: { statusId: 'status-1' },
+            }),
+          },
+        });
+
+        expectCommonDataCalls(true, {
+          ...expectReportDataCalls(true),
+          [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: () => {
+            pollCount += 1;
+            // 503 on the first two polls, COMPLETED on the third, exercising the transient-retry branch.
+            return pollCount < 3
+              ? Promise.reject({ response: { status: 503 } })
+              : Promise.resolve({ data: { status: 'COMPLETED' } });
+          },
+        });
+
+        const dispatchPromise = store.dispatch(applicationReportActions.reevaluateReport());
+        // Advance past the two transient-retry delays (flushing the interleaved promise microtasks).
+        await jest.advanceTimersByTimeAsync(2000);
+        await dispatchPromise;
+
+        const actions = store.getActions();
+        expect(pollCount).toBe(3);
+        expect(actions[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
+        expect(actions.some((action) => action.type === 'REEVALUATE_REPORT_FULFILLED')).toBe(true);
+        expect(actions.some((action) => action.type === 'LOAD_REPORT_FULFILLED')).toBe(true);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('fires REEVALUATE_REPORT_FAILED once transient poll failures exhaust the retry budget', async function () {
+      jest.useFakeTimers();
+      try {
+        const store = SpecUtil.mockReduxStore(createMockState(false));
+        let pollCount = 0;
+
+        mockAxiosCalls({
+          post: {
+            [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+              data: { statusId: 'status-1' },
+            }),
+          },
+          get: {
+            [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: () => {
+              pollCount += 1;
+              // Always transient: the first poll plus 3 retries all fail, so the budget is exhausted.
+              return Promise.reject({ response: { status: 503 } });
+            },
+          },
+        });
+
+        const dispatchPromise = store.dispatch(applicationReportActions.reevaluateReport());
+        // Advance past the 3 retry delays so the final (4th) failure trips the budget.
+        await jest.advanceTimersByTimeAsync(3000);
+        await dispatchPromise;
+
+        const actions = store.getActions();
+        // Initial poll + REEVALUATE_MAX_TRANSIENT_POLL_ERRORS retries.
+        expect(pollCount).toBe(4);
+        expect(actions[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
+        expect(actions[actions.length - 1].type).toEqual('REEVALUATE_REPORT_FAILED');
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('fires REEVALUATE_REPORT_FAILED immediately on a non-transient (4xx) poll failure without retrying', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false));
+      let pollCount = 0;
+
+      mockAxiosCalls({
+        post: {
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+            data: { statusId: 'status-1' },
+          }),
+        },
+        get: {
+          [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: () => {
+            pollCount += 1;
+            return Promise.reject({ response: { status: 403 } });
+          },
+        },
+      });
+
+      store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
+        const actions = store.getActions();
+        // A 4xx aborts on the first poll — no retries.
+        expect(pollCount).toBe(1);
+        expect(actions[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
+        expect(actions[actions.length - 1].type).toEqual('REEVALUATE_REPORT_FAILED');
+        done();
+      });
+    });
   });
 
   describe('reevaluateReportCancelled', function () {
-    it('returns a REEVALUATE_REPORT_CANCELLED action with no payload', function () {
-      const action = applicationReportActions.reevaluateReportCancelled();
+    it('dispatches a REEVALUATE_REPORT_CANCELLED action with no payload', function () {
+      const store = SpecUtil.mockReduxStore(createMockState(false));
 
+      store.dispatch(applicationReportActions.reevaluateReportCancelled());
+
+      const action = store.getActions()[0];
       expect(action.type).toBe('REEVALUATE_REPORT_CANCELLED');
       expect(action.payload).not.toBeDefined();
+    });
+
+    it('stops the in-flight poll chain so no REEVALUATE_REPORT_FULFILLED or report reload is dispatched', async function () {
+      jest.useFakeTimers();
+      try {
+        const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
+
+        mockAxiosCalls({
+          post: {
+            [CLMLocation.getReportReevaluateUrl('appId', 'scanId') + '?async=true']: Promise.resolve({
+              data: { statusId: 'status-1' },
+            }),
+          },
+        });
+
+        // Always PENDING: without cancellation the chain would poll until the deadline.
+        expectCommonDataCalls(true, {
+          ...expectReportDataCalls(true),
+          [CLMLocation.getReportReevaluateStatusUrl('appId', 'status-1')]: () =>
+            Promise.resolve({ data: { status: 'PENDING', nextPollingIntervalInSeconds: 0 } }),
+        });
+
+        const dispatchPromise = store.dispatch(applicationReportActions.reevaluateReport());
+        // Let the POST + first PENDING poll resolve, then cancel mid-chain.
+        await jest.advanceTimersByTimeAsync(1000);
+        store.dispatch(applicationReportActions.reevaluateReportCancelled());
+        // Advance well past further poll intervals to prove the chain has stopped.
+        await jest.advanceTimersByTimeAsync(5000);
+        await dispatchPromise;
+
+        const actions = store.getActions();
+        expect(actions[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
+        expect(actions.some((action) => action.type === 'REEVALUATE_REPORT_CANCELLED')).toBe(true);
+        // The cancelled chain must not resolve into the store.
+        expect(actions.some((action) => action.type === 'REEVALUATE_REPORT_FULFILLED')).toBe(false);
+        expect(actions.some((action) => action.type === 'REEVALUATE_REPORT_FAILED')).toBe(false);
+        expect(actions.some((action) => action.type === 'LOAD_REPORT_FULFILLED')).toBe(false);
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 

@@ -49,7 +49,7 @@ public class PolicyEvaluateServiceMetrics
   }
 
   public void emitEndPolicyEvaluation(final Sample sample) {
-    if (meterRegistry == null) {
+    if (meterRegistry == null || sample == null) {
       return;
     }
 

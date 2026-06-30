@@ -22,6 +22,7 @@ import {
   getReportPartialMatchedUrl,
   getReportPolicyThreatsUrl,
   getReportReevaluateUrl,
+  getReportReevaluateStatusUrl,
   getReportSecurityUrl,
   getReportUnknownJsUrl,
 } from '../util/CLMLocation';
@@ -432,6 +433,90 @@ export function setExactValueFilter(fieldName, allowedValues) {
 export const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
 export const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
 
+// Floor applied to the server-supplied polling interval so a value of 0
+// (used to disable the interval in tests) does not spin in a tight loop.
+const REEVALUATE_MIN_POLL_INTERVAL_MS = 1000;
+
+// Safety net so a never-terminating PENDING status (e.g. the node that returned 202 died before
+// finishing) does not poll forever, holding a live promise/dispatch reference. Set comfortably above
+// the worst-case HDS regeneration time observed for a legitimate re-evaluation (~3.4h) so we don't
+// abandon a still-running job; the evaluation continues server-side and its result persists, so the
+// report can be reloaded later regardless. The deadline also bounds the recursive poll chain.
+const REEVALUATE_POLL_TIMEOUT_MS = 5 * 60 * 60 * 1000;
+
+// Tolerate a few consecutive transient poll failures (proxy 5xx, network blips) before giving up,
+// since the server-side job keeps running; a non-transient error (4xx) aborts immediately.
+const REEVALUATE_MAX_TRANSIENT_POLL_ERRORS = 3;
+
+// Sentinel the poll chain rejects with when the re-evaluation is cancelled; reevaluateReport swallows it
+// (the REEVALUATE_REPORT_CANCELLED action was already dispatched) rather than surfacing it as a failure.
+const REEVALUATION_CANCELLED = Symbol('reevaluation-cancelled');
+
+// Identifies the in-flight re-evaluation so a cancellation (user clicks Cancel, or the modal/report unmounts)
+// can stop the recursive poll chain instead of letting it run to the multi-hour deadline and then dispatch a
+// stale REEVALUATE_REPORT_FULFILLED + loadReport into a view the user has navigated away from. Each new
+// reevaluateReport() takes a fresh token; reevaluateReportCancelled() clears it, and the poll chain bails out
+// once the token it captured is no longer the active one.
+let activeReevaluationToken = null;
+
+/**
+ * Polls the asynchronous re-evaluation status endpoint until the work reaches a terminal state.
+ * Resolves on COMPLETED, rejects with the failure reason on FAILED, rejects once the overall poll
+ * deadline is exceeded, rejects if the re-evaluation was cancelled, retries past transient (5xx/network)
+ * poll errors, and otherwise waits the server-supplied interval before polling again.
+ */
+function pollReevaluationStatus(appId, statusId, token) {
+  const statusUrl = getReportReevaluateStatusUrl(appId, statusId);
+  const deadline = Date.now() + REEVALUATE_POLL_TIMEOUT_MS;
+  let transientErrors = 0;
+
+  const scheduleNextPoll = (delayMs) => {
+    if (token !== activeReevaluationToken) {
+      return Promise.reject(REEVALUATION_CANCELLED);
+    }
+    if (Date.now() >= deadline) {
+      return Promise.reject('Timed out waiting for re-evaluation to complete');
+    }
+    return new Promise((resolve) => setTimeout(resolve, delayMs)).then(() => {
+      if (token !== activeReevaluationToken) {
+        return Promise.reject(REEVALUATION_CANCELLED);
+      }
+      return poll();
+    });
+  };
+
+  const poll = () =>
+    axios.get(statusUrl).then(
+      ({ data }) => {
+        transientErrors = 0;
+        if (data?.status === 'COMPLETED') {
+          return data;
+        }
+        if (data?.status === 'FAILED') {
+          return Promise.reject(data.reason || 'Re-evaluation failed');
+        }
+        // Only PENDING means "keep polling". Reject on any other (unrecognised) status so a future server
+        // value we don't handle fails fast instead of silently polling until the multi-hour deadline.
+        if (data?.status !== 'PENDING') {
+          return Promise.reject(`Unexpected re-evaluation status: ${data?.status}`);
+        }
+        const delayMs = Math.max((data?.nextPollingIntervalInSeconds || 0) * 1000, REEVALUATE_MIN_POLL_INTERVAL_MS);
+        return scheduleNextPoll(delayMs);
+      },
+      (error) => {
+        const status = error?.response?.status;
+        const isTransient = status === undefined || status >= 500;
+        transientErrors += 1;
+        if (!isTransient || transientErrors > REEVALUATE_MAX_TRANSIENT_POLL_ERRORS) {
+          return Promise.reject(error);
+        }
+        return scheduleNextPoll(REEVALUATE_MIN_POLL_INTERVAL_MS);
+      }
+    );
+
+  return poll();
+}
+
 export function reevaluateReport(skipAutoWaivers = false) {
   return (dispatch, getState) => {
     const state = getState();
@@ -442,23 +527,54 @@ export function reevaluateReport(skipAutoWaivers = false) {
       type: REEVALUATE_REPORT_REQUESTED,
     });
 
-    const reevaluateUrl = getReportReevaluateUrl(appId, scanId) + (skipAutoWaivers ? '?skipAutoWaivers=true' : '');
+    // Mint a fresh cancellation token for this run; the poll chain captures it and bails out if it is
+    // superseded (a newer run) or cleared (reevaluateReportCancelled on cancel/unmount).
+    const token = {};
+    activeReevaluationToken = token;
+
+    const params = new URLSearchParams({ async: 'true' });
+    if (skipAutoWaivers) {
+      params.set('skipAutoWaivers', 'true');
+    }
+    const reevaluateUrl = `${getReportReevaluateUrl(appId, scanId)}?${params}`;
 
     return axios
       .post(reevaluateUrl)
+      .then(({ data }) => {
+        // A statusId means the re-evaluation runs asynchronously and we poll for its result; its absence
+        // (an empty 200) means it already completed synchronously, so there is nothing to poll.
+        if (data && data.statusId) {
+          return pollReevaluationStatus(appId, data.statusId, token);
+        }
+        return undefined;
+      })
       .then(() => {
+        // Don't reload the report into a view the user may have left after cancelling.
+        if (token !== activeReevaluationToken) {
+          return undefined;
+        }
         dispatch(reevaluateReportFulfilled());
         return dispatch(loadReport(true));
       })
       .catch((error) => {
-        dispatch(reevaluateReportFailed(error));
+        // A cancelled poll chain already dispatched REEVALUATE_REPORT_CANCELLED; don't surface it as a failure.
+        if (error === REEVALUATION_CANCELLED) {
+          return undefined;
+        }
+        return dispatch(reevaluateReportFailed(error));
       });
   };
 }
 
 const reevaluateReportFulfilled = noPayloadActionCreator(REEVALUATE_REPORT_FULFILLED);
 const reevaluateReportFailed = httpErrorMessageActionCreator(REEVALUATE_REPORT_FAILED);
-export const reevaluateReportCancelled = noPayloadActionCreator(REEVALUATE_REPORT_CANCELLED);
+
+// Clears the active cancellation token so the in-flight poll chain stops, then dispatches the
+// REEVALUATE_REPORT_CANCELLED action that resets the reevaluating UI flag.
+export const reevaluateReportCancelled = () => (dispatch) => {
+  activeReevaluationToken = null;
+  return dispatch({ type: REEVALUATE_REPORT_CANCELLED });
+};
 
 export const openInnerSourceProducerReportModal = noPayloadActionCreator(OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL);
 export const closeInnerSourceProducerReportModal = noPayloadActionCreator(CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL);

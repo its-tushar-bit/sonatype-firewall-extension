@@ -728,6 +728,12 @@ export function getReportReevaluateUrl(applicationPublicId, scanId) {
   return `${getBaseReportUrl(applicationPublicId, scanId)}/reevaluatePolicy`;
 }
 
+export function getReportReevaluateStatusUrl(applicationPublicId, statusId) {
+  // No scanId in the path (the backend lookup never uses one); the backend still scopes the status
+  // row to the application, looking it up by (applicationId, statusId).
+  return uriTemplate`/rest/report/${applicationPublicId}/reevaluatePolicy/status/${statusId}`;
+}
+
 /**
  * @param waiverScope {string} application|organization
  * @param ownerId {string}

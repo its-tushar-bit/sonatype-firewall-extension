@@ -13,9 +13,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -27,26 +29,36 @@ import jakarta.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
@@ -61,14 +73,19 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
+import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -80,6 +97,7 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.FileUtils;
 import org.asynchttpclient.uri.Uri;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import com.sonatype.insight.brain.test.MailboxTestUtil;
@@ -124,7 +142,17 @@ public class ReportResourceTest
     applicationDAO = lookup(ApplicationDAO.class);
     policyViolationDAO = lookup(PolicyViolationDAO.class);
 
+    MailboxTestUtil.clearAll();
+
     app = tempEntity.newApplicationWithParent("ReportResourceTest_AppId");
+  }
+
+  @After
+  public void resetAsyncPollingFlag() {
+    // The AsyncReevaluationService singleton (and this flag) is shared across the class via the static test server,
+    // so reset it after each test that flipped it for fast polling, to avoid leaking the testing interval into a
+    // later test that relies on the production polling interval.
+    lookup(AsyncReevaluationService.class).disablePollingIntervalForTesting = false;
   }
 
   private HttpRequest restRequest(String appId, String scanId) {
@@ -758,6 +786,353 @@ public class ReportResourceTest
     assertThat(policyEvaluation.isReevaluation()).isFalse();
 
     assertNotifications(notifications, 1, 5000);
+  }
+
+  @Test
+  public void testReevaluateReport_async() throws Exception {
+    configureMail();
+
+    String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/report");
+    // Mock the HDS report for the re-uploaded scan
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
+
+    // Avoid the polling-interval back-off so the background task completes quickly under test.
+    lookup(AsyncReevaluationService.class).disablePollingIntervalForTesting = true;
+    PolicyEvaluationHelper policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
+
+    final Constraint constraint = new Constraint("C1", "async reeval constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    final Policy policy = new Policy("P1", "async reeval policy");
+    policy.setOwnerId(app.getId());
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint);
+    policy.getNotifications().add(new UserNotification("manager@test.corp", Stage.ID_BUILD));
+    tempEntity.newPolicy(policy);
+    final Stage stage = new Stage(Stage.ID_BUILD);
+
+    List<Message> notifications = MailboxTestUtil.get("manager@test.corp");
+
+    // Initial (synchronous) evaluation so there is something to re-evaluate; this one DOES notify.
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(stage)
+        .post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation.isReevaluation()).isFalse();
+
+    assertNotifications(notifications, 1, 5000);
+    notifications.clear();
+
+    // Asynchronous re-evaluation returns 202 Accepted immediately with a status id.
+    response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
+        .query("async", "true")
+        .post();
+    assertResponseStatus(202, response);
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getStatusId()).isNotNull();
+
+    // The background task transitions the polling result to COMPLETED.
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    HttpResponse statusResponse = restRequest().path(ReportResource.RESOURCE_PATH)
+        .path("reevaluatePolicy/status/{statusId}")
+        .parameter(app.getPublicId(), receipt.getStatusId())
+        .get();
+    assertResponseStatus(200, statusResponse);
+    PolicyEvaluationPollingResultDTO pollingResult = statusResponse.getBody(PolicyEvaluationPollingResultDTO.class);
+    assertThat(pollingResult.status).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(pollingResult.reason).isNull();
+    assertThat(pollingResult.result).isNotNull();
+
+    // The re-evaluation actually ran on the background thread and was persisted.
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyReEvaluation.isReevaluation()).isTrue();
+    assertThat(policyReEvaluation.getTime().getTime())
+        .isGreaterThanOrEqualTo(policyEvaluation.getTime().getTime());
+
+    // Re-evaluation must not send policy notifications (unlike the initial evaluation above).
+    assertNotifications(notifications, 0, 5000);
+  }
+
+  @Test
+  public void testReevaluateReport_async_failed() throws Exception {
+    String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
+
+    lookup(AsyncReevaluationService.class).disablePollingIntervalForTesting = true;
+    PolicyEvaluationHelper policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
+
+    // No prior policy evaluation exists for this scan, so the background reUploadScanToHds fails and
+    // the polling result must transition to FAILED with a reason rather than throwing on the request thread.
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
+        .query("async", "true")
+        .post();
+    assertResponseStatus(202, response);
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getStatusId()).isNotNull();
+
+    policyEvaluationHelper.awaitEvaluationFailed(app.getId(), receipt.getStatusId());
+
+    HttpResponse statusResponse = restRequest().path(ReportResource.RESOURCE_PATH)
+        .path("reevaluatePolicy/status/{statusId}")
+        .parameter(app.getPublicId(), receipt.getStatusId())
+        .get();
+    assertResponseStatus(200, statusResponse);
+    PolicyEvaluationPollingResultDTO pollingResult = statusResponse.getBody(PolicyEvaluationPollingResultDTO.class);
+    assertThat(pollingResult.status).isEqualTo(PolicyEvaluationStatus.FAILED);
+    assertThat(pollingResult.reason).isNotBlank();
+
+    // The failed re-evaluation must not have persisted a policy evaluation for the scan.
+    assertThat(policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId)).isNull();
+  }
+
+  @Test
+  public void testReevaluateReport_async_containerImageEvaluationDisabled_rejectedAtTrigger() throws Exception {
+    // Make the application RM-backed (container) so the status endpoint's container-image gate would apply, then
+    // disable that feature. The trigger must reject up front with the same InvalidLicenseException (402) the status
+    // endpoint enforces, so the caller never receives a 202 whose status it could not poll.
+    OrganizationDAO organizationDAO = lookup(OrganizationDAO.class);
+    Organization organization = organizationDAO.getById(app.getOrganizationId());
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+
+    String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
+
+    boolean originalEnabled = SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+      HttpResponse response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
+          .query("async", "true")
+          .post();
+
+      // 402 from InvalidLicenseException, not a 202 with a receipt.
+      assertResponseStatus(402, response);
+
+      // No polling-result row should have been created for a rejected trigger.
+      assertThat(policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId)).isNull();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(originalEnabled);
+    }
+  }
+
+  @Test
+  public void testReevaluateReport_sync_containerImageEvaluationDisabled_stillAllowed() throws Exception {
+    // Regression guard: the container-image gate applies only to the async path. A synchronous re-evaluation
+    // (async omitted) for an RM-backed app with the feature disabled must still succeed (200) — the gate must not
+    // expand to the sync path.
+    OrganizationDAO organizationDAO = lookup(OrganizationDAO.class);
+    Organization organization = organizationDAO.getById(app.getOrganizationId());
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+
+    String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/report");
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
+
+    final Constraint constraint = new Constraint("C1", "sync ungated constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    final Policy policy = new Policy("P1", "sync ungated policy");
+    policy.setOwnerId(app.getId());
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+    final Stage stage = new Stage(Stage.ID_BUILD);
+
+    boolean originalEnabled = SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+      // Initial evaluation so there is a scan to re-evaluate.
+      HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+          .parameter(app.getPublicId())
+          .query("scanId", scanId)
+          .body(stage)
+          .post();
+      assertResponseStatus(200, response);
+
+      // Synchronous re-evaluation (no async flag) must NOT be gated by the container-image feature.
+      response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy").post();
+      assertResponseStatus(200, response);
+
+      PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+      assertThat(policyReEvaluation.isReevaluation()).isTrue();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(originalEnabled);
+    }
+  }
+
+  @Test
+  public void testReevaluatePolicyStatus_statusIdScopedToApplication_otherAppGets404() throws Exception {
+    String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/report");
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
+
+    lookup(AsyncReevaluationService.class).disablePollingIntervalForTesting = true;
+
+    final Constraint constraint = new Constraint("C1", "cross-app isolation constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    final Policy policy = new Policy("P1", "cross-app isolation policy");
+    policy.setOwnerId(app.getId());
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+    final Stage stage = new Stage(Stage.ID_BUILD);
+
+    // Initial evaluation so there is a scan to re-evaluate, then trigger an async re-evaluation on app A.
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(stage)
+        .post();
+    assertResponseStatus(200, response);
+
+    response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
+        .query("async", "true")
+        .post();
+    assertResponseStatus(202, response);
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    assertThat(receipt.getStatusId()).isNotNull();
+
+    // App A can read its own status.
+    HttpResponse ownStatus = restRequest().path(ReportResource.RESOURCE_PATH)
+        .path("reevaluatePolicy/status/{statusId}")
+        .parameter(app.getPublicId(), receipt.getStatusId())
+        .get();
+    assertResponseStatus(200, ownStatus);
+
+    // A different application cannot read app A's statusId: the (applicationId, statusId) lookup yields 404.
+    Application otherApp = tempEntity.newApplicationWithParent("ReportResourceTest_OtherAppId");
+    HttpResponse crossAppStatus = restRequest().path(ReportResource.RESOURCE_PATH)
+        .path("reevaluatePolicy/status/{statusId}")
+        .parameter(otherApp.getPublicId(), receipt.getStatusId())
+        .get();
+    assertResponseStatus(404, crossAppStatus);
+  }
+
+  @Test
+  public void testReevaluateReport_async_containerImageEvaluationEnabled_completes() throws Exception {
+    // RM-backed (container) app with the container-image feature enabled: the async happy path. The trigger passes
+    // the container gate, returns 202, and the status poll resolves through the EVALUATE_COMPONENT /
+    // pollEvaluationResultCheckEvaluateComponent path (distinct from the plain-application path).
+    OrganizationDAO organizationDAO = lookup(OrganizationDAO.class);
+    Organization organization = organizationDAO.getById(app.getOrganizationId());
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+
+    String scanId = "ReportResourceTest_ScanId";
+    mockReport(scanId, "/ReportResourceTest/report");
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
+
+    lookup(AsyncReevaluationService.class).disablePollingIntervalForTesting = true;
+    PolicyEvaluationHelper policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
+
+    final Constraint constraint = new Constraint("C1", "container async constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    final Policy policy = new Policy("P1", "container async policy");
+    policy.setOwnerId(app.getId());
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+    final Stage stage = new Stage(Stage.ID_BUILD);
+
+    boolean originalEnabled = SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+      // Initial (synchronous) evaluation so there is a scan to re-evaluate.
+      HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+          .parameter(app.getPublicId())
+          .query("scanId", scanId)
+          .body(stage)
+          .post();
+      assertResponseStatus(200, response);
+
+      // Async re-evaluation returns 202 (the container gate passes because the feature is enabled).
+      response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
+          .query("async", "true")
+          .post();
+      assertResponseStatus(202, response);
+      PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+      assertThat(receipt.getStatusId()).isNotNull();
+
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+      // The status poll resolves to COMPLETED through the EVALUATE_COMPONENT path for RM-backed apps.
+      HttpResponse statusResponse = restRequest().path(ReportResource.RESOURCE_PATH)
+          .path("reevaluatePolicy/status/{statusId}")
+          .parameter(app.getPublicId(), receipt.getStatusId())
+          .get();
+      assertResponseStatus(200, statusResponse);
+      PolicyEvaluationPollingResultDTO pollingResult = statusResponse.getBody(PolicyEvaluationPollingResultDTO.class);
+      assertThat(pollingResult.status).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+      assertThat(pollingResult.result).isNotNull();
+
+      PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+      assertThat(policyReEvaluation.isReevaluation()).isTrue();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(originalEnabled);
+    }
+  }
+
+  @Test
+  public void testReevaluateReport_async_hostedScan_ignoresAsyncAndReturns200() throws Exception {
+    // Hosted scans re-evaluate synchronously regardless of async=true: reevaluatePolicy returns at the
+    // isHostedScan early-return (before the async branch), so the response is 200 OK with an empty body and no
+    // statusId. This guards that guard order against future reordering.
+    RepositoryComponentDAO repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+
+    String scanId = "ReportResourceTest_HostedScanId";
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId());
+    // isHostedScan(scanId) resolves the component by scanId, so bind this component to the scan under test.
+    component.setScanId(scanId);
+    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      repositoryComponentDAO.update(tx, component);
+      tx.commit();
+    }
+
+    // A real report file must exist for the scan so the synchronous hosted re-evaluation's saveOverlayFiles can
+    // read bom.json back out.
+    mockReport(scanId, "/ReportResourceTest/report");
+    createScanFile(app.getId(), scanId);
+    createReportFile(app.getId(), scanId, "/ReportResourceTest/report");
+
+    // The hosted re-evaluation calls the repository policy evaluator, which fetches component details from HDS.
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    ComponentEvaluationData hdsComponent = new ComponentEvaluationData();
+    hdsComponent.hash = component.getHash();
+    hdsComponent.matchState = MatchState.EXACT.getId();
+    hdsComponent.declaredLicenses = new HashSet<>();
+    hdsComponent.observedLicenses = new HashSet<>();
+    hdsResult.components.add(hdsComponent);
+    getHdsServer().respondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
+
+    // async=true must be ignored: a hosted scan returns 200 (not 202) with an empty body (no receipt/statusId).
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
+        .query("async", "true")
+        .post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).isNullOrEmpty();
   }
 
   @Test

@@ -261,7 +261,12 @@ public class ResourceLicensedFeatureTest
           String.class,
           String.class,
           Boolean.class,
+          Boolean.class,
           HttpServletRequest.class), LicensedFeature.APPLICATION_EVALUATION);
+      map.put(ReportResource.class.getDeclaredMethod(
+          "reevaluatePolicyStatus",
+          String.class,
+          String.class), LicensedFeature.APPLICATION_EVALUATION);
       map.put(ReportResource.class.getDeclaredMethod(
           "printReport",
           String.class,

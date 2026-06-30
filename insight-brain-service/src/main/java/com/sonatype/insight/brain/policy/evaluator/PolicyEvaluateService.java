@@ -534,11 +534,10 @@ public class PolicyEvaluateService
       String statusId)
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    Organization organization = organizationDAO.getById(app.getOrganizationId());
+    Organization organization = organizationDAO.getByIdNotNull(app.getOrganizationId());
 
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-        persistedPolicyEvaluationPollingResultDAO
-            .getByApplicationIdAndStatusId(applicationDAO.getByPublicId(applicationPublicId).getId(), statusId);
+        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), statusId);
     if (persistedPolicyEvaluationPollingResult == null) {
       throw new NotFoundException(String
           .format("Policy evaluation status with id %s for public application id %s was not found.", statusId,
@@ -567,12 +566,16 @@ public class PolicyEvaluateService
       @SuppressWarnings("unused") @AuthzContext(Key.APPLICATION) Application application,
       PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
   {
+    validateContainerImageEvaluationEnabled();
+    return toPolicyEvaluationPollingResultDTO(persistedPolicyEvaluationPollingResult);
+  }
+
+  public void validateContainerImageEvaluationEnabled() {
     if (!productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
         || !SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled())
     {
       throw new InvalidLicenseException();
     }
-    return toPolicyEvaluationPollingResultDTO(persistedPolicyEvaluationPollingResult);
   }
 
   /**

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   NxButton,
   NxTooltip,
@@ -38,6 +38,20 @@ const ReevaluationModal = () => {
 
   const dispatch = useDispatch();
   const [showDialog, setShowDialog] = useState(false);
+
+  // Cancel an in-flight re-evaluation if the report (and this modal) unmounts mid-poll, so the long-running
+  // poll chain doesn't resolve and reload the report into a view the user has navigated away from. A ref keeps
+  // the latest reevaluating flag available to the unmount-only effect without re-running it on every change.
+  const reevaluatingRef = useRef(reevaluating);
+  reevaluatingRef.current = reevaluating;
+  useEffect(
+    () => () => {
+      if (reevaluatingRef.current) {
+        dispatch(reevaluateReportCancelled());
+      }
+    },
+    [dispatch]
+  );
 
   const handleButtonClick = () => {
     isAutoWaiverEnabled ? setShowDialog(true) : handleReevaluate();

@@ -74,7 +74,7 @@ describe('ReevaluationModal', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Re-Evaluate Report' }));
 
       expect(axiosMock.history.post).toHaveLength(1);
-      expect(axiosMock.history.post[0].url).toEqual('/rest/report/appId/scan-id/reevaluatePolicy');
+      expect(axiosMock.history.post[0].url).toEqual('/rest/report/appId/scan-id/reevaluatePolicy?async=true');
     });
   });
 
@@ -99,7 +99,9 @@ describe('ReevaluationModal', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Quick Re-Evaluate' }));
 
       expect(axiosMock.history.post).toHaveLength(1);
-      expect(axiosMock.history.post[0].url).toEqual('/rest/report/appId/scan-id/reevaluatePolicy?skipAutoWaivers=true');
+      expect(axiosMock.history.post[0].url).toEqual(
+        '/rest/report/appId/scan-id/reevaluatePolicy?async=true&skipAutoWaivers=true'
+      );
     });
 
     it('handles full re-evaluate', () => {
@@ -109,7 +111,7 @@ describe('ReevaluationModal', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Re-Evaluate' }));
 
       expect(axiosMock.history.post).toHaveLength(1);
-      expect(axiosMock.history.post[0].url).toEqual('/rest/report/appId/scan-id/reevaluatePolicy');
+      expect(axiosMock.history.post[0].url).toEqual('/rest/report/appId/scan-id/reevaluatePolicy?async=true');
     });
 
     it('handles modal cancel', () => {

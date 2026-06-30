@@ -80,6 +80,12 @@ describe('clmLocation.js', function () {
       );
     });
 
+    it('should return the correct URL for the report reevaluation status (keyed by statusId, no scanId)', () => {
+      expect(clmLocation.getReportReevaluateStatusUrl('foo', 'baz')).toBe(
+        'http://localhost/rest/report/foo/reevaluatePolicy/status/baz'
+      );
+    });
+
     it('should return the correct URL for the SBOM report', () => {
       expect(clmLocation.getExportCycloneDxUrl('foo', 'bar')).toBe(
         'http://localhost/ui/links/cycloneDx/foo/reports/bar'

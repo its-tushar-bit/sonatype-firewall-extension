@@ -64,6 +64,8 @@ describe('FirewallMetrics', () => {
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
 
     const { container } = render(<FirewallMetrics {...metrics} />);
+
+    expect(hrefSpyForReactRouterLinks).toHaveBeenCalledWith('firewall.waivers');
     const headings = screen.getAllByRole('heading', { level: 3 });
 
     expect(headings[0]).toHaveTextContent('Supply chain attacks blocked');

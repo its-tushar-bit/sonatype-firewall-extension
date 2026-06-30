@@ -71,7 +71,7 @@ export default function FirewallMetrics(props) {
 
   const uiRouterState = useRouterState();
   const componentsAutoReleasedLink = uiRouterState.href('firewall.firewallAutoUnquarantinePage');
-  const waivedComponentsLink = uiRouterState.href('firewall.firewallPage.components.waivers');
+  const waivedComponentsLink = uiRouterState.href('firewall.waivers');
 
   return (
     <NxTile id="firewall-metrics" className="nx-grid iq-firewall-metrics">

@@ -32,7 +32,6 @@
   "hashSuffixLow": "l",
   "sortHashFormat": "h%02dv%s",
   "paginationViolationCount": 101,
-  "paginationWaitForResultsMs": 30000,
   "violationUrlPattern": ".*#/violation/(?:[a-f0-9]{32}|policyViolationId\\d+).*",
   "dashboardViolationsUrlFragment": "/dashboard/violations",
   "navigationTimeoutMs": 15000,

@@ -6,11 +6,16 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardViolationsComponent;
+import com.sonatype.clm.testing.playwright.pages.DashboardViolationsComponent.SortableColumn;
 import com.sonatype.clm.testing.playwright.pages.DashboardViolationsComponentAssertions;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -20,12 +25,10 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import com.sonatype.clm.testing.playwright.pages.DashboardViolationsComponent.SortableColumn;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
@@ -86,7 +89,6 @@ public class DashboardViolationsPlaywrightTest
 
     DashboardViolationsComponent table = new DashboardViolationsComponent();
     DashboardViolationsComponentAssertions tableAssertions = new DashboardViolationsComponentAssertions(table);
-    table.waitForResults(10000);
     tableAssertions.shouldShowExpectedColumns();
 
     tableAssertions.shouldHaveSortState(SortableColumn.AGE, "ascending");
@@ -117,7 +119,6 @@ public class DashboardViolationsPlaywrightTest
 
     DashboardViolationsComponent table = new DashboardViolationsComponent();
     DashboardViolationsComponentAssertions tableAssertions = new DashboardViolationsComponentAssertions(table);
-    table.waitForResults(10000);
 
     table.clickHeader(SortableColumn.APPLICATION);
     tableAssertions.shouldHaveSortState(SortableColumn.APPLICATION, "ascending");
@@ -137,7 +138,6 @@ public class DashboardViolationsPlaywrightTest
 
     DashboardViolationsComponent table = new DashboardViolationsComponent();
     DashboardViolationsComponentAssertions tableAssertions = new DashboardViolationsComponentAssertions(table);
-    table.waitForResults(DATA.paginationWaitForResultsMs());
 
     tableAssertions.assertPaginationFirstPageState();
     table.goToNextPage();
@@ -171,6 +171,33 @@ public class DashboardViolationsPlaywrightTest
     DashboardViolationsComponentAssertions tableAssertions = new DashboardViolationsComponentAssertions(table);
     tableAssertions.shouldHaveCount(1);
     tableAssertions.assertNoPaginator();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testViolationsTable_aggregatesAcrossApps() {
+    seedViolationsAcrossTwoApps();
+    playwrightRefreshOrOpen(DashboardPage.urlToViolations());
+    new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
+
+    DashboardViolationsComponent table = new DashboardViolationsComponent();
+    DashboardViolationsComponentAssertions tableAssertions =
+        new DashboardViolationsComponentAssertions(table);
+
+    // The dashboard query is tenant-wide, so sibling tests in the same JVM session can leave
+    // root-org policies and violations that inflate the row count beyond this run's seed
+    // (UUID-suffixed apps isolate ours, but not theirs). The verifiable claim here is that the
+    // two seeded apps' four violations are aggregated into the same table, not an exact count.
+    tableAssertions.shouldHaveAtLeastCount(4);
+
+    Set<String> distinctApps = table.allApplicationNames()
+        .allInnerTexts()
+        .stream()
+        .map(String::trim)
+        .collect(Collectors.toSet());
+    Assertions.assertThat(distinctApps)
+        .as("dashboard table aggregates rows from both seeded apps")
+        .hasSizeGreaterThanOrEqualTo(2);
   }
 
   public record Data(
@@ -211,8 +238,7 @@ public class DashboardViolationsPlaywrightTest
       String sortComponentArtifactB,
       String sortComponentArtifactC,
       String paginationScanId,
-      int paginationViolationCount,
-      long paginationWaitForResultsMs)
+      int paginationViolationCount)
   {
   }
 

@@ -357,6 +357,17 @@ public class PolicyEditorPage
     firstConstraintName().waitFor();
   }
 
+  public Locator deleteConstraintButton(int constraintIdx) {
+    return constraintsSection()
+        .getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Delete constraint"))
+        .nth(constraintIdx);
+  }
+
+  /** Constraint cards in the read-only render of an existing policy. */
+  public Locator readOnlyConstraints() {
+    return constraintsSection().getByTestId("read-only-constraint");
+  }
+
   /**
    * Click the "Create"/"Update" submit button rendered by {@code NxStatefulForm}.
    *

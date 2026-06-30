@@ -8,6 +8,8 @@ package com.sonatype.clm.testing.playwright.pages;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
 public class WaiverConfigurationPage
     extends BasePage
 {
@@ -24,8 +26,10 @@ public class WaiverConfigurationPage
     super();
   }
 
+  public static final String URL_FRAGMENT = "/waiverConfiguration";
+
   public static String url(String appPublicId, String scanId) {
-    return "/assets/index.html#/applicationReport/" + appPublicId + "/" + scanId + "/waiverConfiguration";
+    return "/assets/index.html#/applicationReport/" + appPublicId + "/" + scanId + URL_FRAGMENT;
   }
 
   public Locator container() {
@@ -64,6 +68,26 @@ public class WaiverConfigurationPage
 
   public Locator commentsTextarea() {
     return container().getByRole(AriaRole.TEXTBOX);
+  }
+
+  public void selectFirstAvailableScope() {
+    selectFirstNonPlaceholderOption(scopeDropdown());
+  }
+
+  public void selectFirstAvailableReason() {
+    selectFirstNonPlaceholderOption(reasonSelect());
+  }
+
+  /**
+   * Placeholder is rendered with {@code value=""}; pick the first real option past it.
+   * {@code <option>} elements aren't "visible" in Playwright's sense (they're hidden until the
+   * native dropdown opens), so we assert attached rather than visible — gives a clear failure
+   * if the select renders without any real options.
+   */
+  private void selectFirstNonPlaceholderOption(Locator combobox) {
+    Locator real = combobox.locator("option[value]:not([value=''])").first();
+    assertThat(real).isAttached();
+    combobox.selectOption(real.getAttribute("value"));
   }
 
   public Locator confirmationPageContainer() {

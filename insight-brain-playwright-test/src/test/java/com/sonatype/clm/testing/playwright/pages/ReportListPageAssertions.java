@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.playwright.pages;
 import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.options.AriaRole;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -58,6 +59,21 @@ public class ReportListPageAssertions
   public void shouldShowNoViolationsText(Locator stageCell) {
     assertThat(page.noViolationsTextIn(stageCell)).isVisible();
   }
+
+  public void shouldShowThreatCounterIn(Locator stageCell) {
+    assertThat(page.stageCellThreatCounters(stageCell).first()).isVisible();
+  }
+
+  public void shouldShowEmptyStageCell(Locator stageCell) {
+    assertThat(page.stageCellThreatCounters(stageCell)).hasCount(0);
+    // Scope the link search to the stage cell directly — buildReportLinkOf(row)
+    // resolves the Build cell from the row, so passing a stage-cell locator would have
+    // it call getByRole(CELL) on a cell, returning empty and trivially passing hasCount(0).
+    assertThat(stageCell.getByRole(AriaRole.LINK,
+        new Locator.GetByRoleOptions().setName(REPORT_LINK_NAME_PATTERN))).hasCount(0);
+  }
+
+  private static final Pattern REPORT_LINK_NAME_PATTERN = Pattern.compile("^(View )?Report$");
 
   public void shouldShowBothReportAndPrioritiesLinks(Locator row) {
     assertThat(page.buildReportLinkOf(row)).isVisible();

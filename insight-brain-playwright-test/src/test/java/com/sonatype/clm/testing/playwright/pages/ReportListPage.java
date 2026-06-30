@@ -44,6 +44,14 @@ public class ReportListPage
 
   private static final String DEVELOPER_PRIORITIES_LINK_NAME = "View Priorities";
 
+  private static final String SOURCE_COLUMN_NAME = "Source";
+
+  private static final String BUILD_COLUMN_NAME = "Build";
+
+  private static final String STAGE_RELEASE_COLUMN_NAME = "Stage Release";
+
+  private static final String RELEASE_COLUMN_NAME = "Release";
+
   public ReportListPage() {
     super();
   }
@@ -96,6 +104,14 @@ public class ReportListPage
     return rows().first();
   }
 
+  /**
+   * Prefer over {@link #firstRow()} when the test needs a specific app — {@code firstRow()}
+   * after a fresh {@link #typeFilter} can briefly match the previously-visible row.
+   */
+  public Locator rowForApp(String appPublicId) {
+    return rows().filter(new Locator.FilterOptions().setHasText(appPublicId));
+  }
+
   public Locator emptyMessage() {
     return table().getByText(EMPTY_TABLE_MESSAGE);
   }
@@ -146,11 +162,24 @@ public class ReportListPage
   }
 
   public Locator buildCellOf(Locator row) {
-    return stageCellByName(row, "Build");
+    return stageCellByName(row, BUILD_COLUMN_NAME);
+  }
+
+  public Locator stageReleaseCellOf(Locator row) {
+    return stageCellByName(row, STAGE_RELEASE_COLUMN_NAME);
+  }
+
+  public Locator releaseCellOf(Locator row) {
+    return stageCellByName(row, RELEASE_COLUMN_NAME);
   }
 
   public Locator sourceCellOf(Locator row) {
-    return stageCellByName(row, "Source");
+    return stageCellByName(row, SOURCE_COLUMN_NAME);
+  }
+
+  /** {@code NxSmallThreatCounter} is style-only with no anchoring ARIA role — CSS exception. */
+  public Locator stageCellThreatCounters(Locator stageCell) {
+    return stageCell.locator(".nx-small-threat-counter");
   }
 
   /** Accessible name is "View Report" or "Report" depending on developer-dashboard state. */

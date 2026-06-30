@@ -23,6 +23,15 @@ public class DashboardViolationsComponentAssertions
     assertThat(page.violations()).hasCount(expected);
   }
 
+  /**
+   * Web-first lower-bound assertion: auto-retries until the {@code expected}-th row mounts.
+   * Use for dashboard queries that span the whole tenant — exact counts are flaky because
+   * sibling tests may leave root-org violations that inflate the row count.
+   */
+  public void shouldHaveAtLeastCount(int expected) {
+    assertThat(page.violations().nth(expected - 1)).isVisible();
+  }
+
   public void shouldShowViolationRow(int index, String componentArtifactId, String policyName, String appName) {
     assertThat(page.componentName(index)).containsText(componentArtifactId);
     assertThat(page.policyName(index)).containsText(policyName);

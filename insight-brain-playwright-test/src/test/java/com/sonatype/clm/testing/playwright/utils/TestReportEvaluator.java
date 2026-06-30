@@ -13,8 +13,11 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import org.junit.rules.TemporaryFolder;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -83,6 +86,21 @@ public class TestReportEvaluator
     ScanHelper.createDummyScanFile(workStorage, app.getId(), scanId);
     addTestReport();
     evaluatePolicyForScanId();
+  }
+
+  /** Zip the canned report and submit it for evaluation against {@code app} at {@code stageId}. */
+  public static void seedEvaluation(
+      Application app,
+      String scanId,
+      String reportClasspathDir,
+      TemporaryFolder tempDir,
+      String brainBaseUrl,
+      InsightWork workStorage,
+      String stageId) throws IOException
+  {
+    URL zippedReport = ReportHelper.zipReport(reportClasspathDir, tempDir);
+    new TestReportEvaluator(app, scanId, zippedReport, brainBaseUrl, workStorage, stageId)
+        .evaluatePolicy();
   }
 
   public void reevaluatePolicy() throws IOException {

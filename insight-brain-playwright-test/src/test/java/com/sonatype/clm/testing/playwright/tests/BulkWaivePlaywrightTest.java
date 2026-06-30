@@ -8,19 +8,22 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.List;
 
 import com.microsoft.playwright.Locator;
-import com.sonatype.clm.testing.playwright.categories.RegressionTest;
-import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.BulkWaivePage;
 import com.sonatype.clm.testing.playwright.pages.BulkWaivePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.WaiverConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.WaiverConfigurationPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.WaiverConfirmationPage;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
+import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -28,12 +31,13 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import org.assertj.core.api.Assertions;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -87,6 +91,12 @@ public class BulkWaivePlaywrightTest
 
     seedDb();
     playwrightLoginAdminAt(BulkWaivePage.url(application.getPublicId(), DATA.scanId()));
+  }
+
+  /** Restore feature set so {@code setMissingFeature} calls don't leak across the JVM session. */
+  @After
+  public void restoreFeatures() {
+    setFeatures(LicensedFeature.values());
   }
 
   @Test
@@ -235,6 +245,43 @@ public class BulkWaivePlaywrightTest
 
     threatHeader.click();
     assertThat(threatHeader).hasAttribute("aria-sort", "descending");
+  }
+
+  /**
+   * Full bulk-waive submission: select all → Next → fill scope/expiry/reason → Next →
+   * Submit. Waivers only take effect on the next evaluation, so the strongest immediate UI
+   * signal of success is the redirect away from {@code /waiverConfirmation}.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testBulkWaive_completeWaiverFormAndSubmit() {
+    assertions.shouldBeVisible();
+    assertThat(bulkWaivePage.violationRows()).not().hasCount(0);
+
+    bulkWaivePage.selectAllCheckbox().click();
+    assertions.shouldHaveSelectAllChecked(true);
+    assertions.shouldHaveNextButtonEnabled();
+    bulkWaivePage.nextButton().click();
+    page.waitForURL("**" + WaiverConfigurationPage.URL_FRAGMENT);
+    configAssertions.shouldBeVisible();
+
+    configPage.selectFirstAvailableScope();
+    configPage.expirySelect().selectOption("never");
+    configPage.selectFirstAvailableReason();
+    configPage.commentsTextarea().fill("automated bulk-waive smoke");
+
+    configAssertions.shouldHaveNextButtonEnabled();
+    configPage.nextButton().click();
+
+    page.waitForURL("**" + WaiverConfirmationPage.URL_FRAGMENT);
+    new WaiverConfirmationPage().submitButton().click();
+
+    page.waitForURL(url -> !url.contains(WaiverConfirmationPage.URL_FRAGMENT));
+
+    List<PolicyWaiver> waivers = lookup(PolicyWaiverDAO.class).getByOwnerId(application.getId());
+    Assertions.assertThat(waivers)
+        .as("Bulk waive should have persisted at least one waiver for the application")
+        .isNotEmpty();
   }
 
   private void seedDb() throws IOException {

@@ -15,6 +15,7 @@ import com.microsoft.playwright.options.WaitForSelectorState;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
@@ -120,6 +121,24 @@ public class TransitiveViolationsPlaywrightTest
     tvPage.componentWaiversDeleteButtons().first().click();
     tvPage.deleteWaiverConfirmButton().click();
     assertThat(tvPage.componentWaiversDeleteButtons()).hasCount(0);
+  }
+
+  /**
+   * Badge renders only when aggregate-by-component is ON and the component is innerSource —
+   * both hold for the seeded direct component (aggregation defaults to ON).
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_aggregatedRowShowsTransitiveCountBadge() {
+    playwrightRefreshOrOpen(ApplicationReportPage.url(appPublicId, DATA.scanId()));
+
+    ApplicationReportPage report = new ApplicationReportPage();
+    assertThat(report.appReportMain()).isVisible();
+
+    assertThat(report.aggregateByComponentToggleInput()).isChecked();
+    Locator directRow = report.violationRowForComponent(DATA.directComponentDisplayName());
+    assertThat(report.transitiveViolationsBadgeIn(directRow)).isVisible();
+    assertThat(report.transitiveViolationsBadgeIn(directRow)).containsText("transitive violation");
   }
 
   @Test

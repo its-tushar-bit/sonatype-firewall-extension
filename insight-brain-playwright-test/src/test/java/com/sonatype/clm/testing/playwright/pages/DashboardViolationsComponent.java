@@ -85,6 +85,14 @@ public class DashboardViolationsComponent
     return violation(index).locator("td:nth-child(3)");
   }
 
+  /**
+   * Atomic snapshot of all application-name cells — use with {@code allInnerTexts()} to avoid
+   * the TOCTOU race of a per-row {@link #applicationName(int)} loop.
+   */
+  public Locator allApplicationNames() {
+    return violations().locator("td:nth-child(3)");
+  }
+
   public Locator reportTime(int index) {
     return violation(index).locator("td:nth-child(5)");
   }

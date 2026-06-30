@@ -184,6 +184,42 @@ public class ApplicationReportPage
     return appReportMain().getByText("Aggregate by component");
   }
 
+  /**
+   * The toggle's underlying {@code <input role="switch">}, for {@code isChecked()} assertions.
+   * Use {@link #aggregateByComponentToggle()} for clicks.
+   */
+  public Locator aggregateByComponentToggleInput() {
+    return appReportMain().getByRole(AriaRole.SWITCH,
+        new Locator.GetByRoleOptions().setName("Aggregate by component"));
+  }
+
+  /** "N transitive violation(s)" badge — substring match covers singular and plural. */
+  public Locator transitiveViolationsBadgeIn(Locator row) {
+    return row.getByText("transitive violation");
+  }
+
+  public Locator legacyIndicatorTagIn(Locator row) {
+    return row.getByText("Legacy", new Locator.GetByTextOptions().setExact(true));
+  }
+
+  public Locator filterToggleButton() {
+    return appReportMain().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Filter").setExact(true));
+  }
+
+  /** Portaled to {@code .nx-page} outside {@link #appReportMain()}, so lookup is page-scoped. */
+  public Locator filterPopover() {
+    return locator("#iq-component-filter-popover");
+  }
+
+  public Locator violationStateFilter() {
+    return filterPopover().locator("#violation-state-filter");
+  }
+
+  public Locator violationStateOption(String optionName) {
+    return filterPopover().getByText(optionName, new Locator.GetByTextOptions().setExact(true));
+  }
+
   public void triggerFullReevaluationAndWait() {
     assertThat(reevaluateButton()).isVisible();
     reevaluateButton().click();

@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -23,8 +24,10 @@ import com.sonatype.clm.testing.playwright.pages.ReportListPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.SmallReportFixture;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -381,15 +384,146 @@ public class ReportListPlaywrightTest
     assertions.shouldHaveAriaSort(reportList.applicationHeaderCell(), "none");
   }
 
+  /**
+   * Reports page renders only {@code NxSmallThreatCounter} — no per-action icon — so the
+   * action's persistence on the policy is the only verifiable claim here.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testFailActionPolicy_persistsOnBuildStage() {
+    Policy policy = tempEntity.newPolicy(
+        app.getOrganizationId(), "Fail Action Policy-" + TemporaryEntity.uuid(),
+        10, "fail", Stage.ID_BUILD, null);
+
+    Policy reloaded = lookup(PolicyDAO.class).getById(policy.getId());
+    Assertions.assertThat(reloaded.getActions())
+        .as("seeded Fail action persists on the policy for the build stage")
+        .containsEntry(Stage.ID_BUILD, "fail");
+  }
+
+  /** Same UI-rendering caveat as {@link #testFailActionPolicy_persistsOnBuildStage}. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testWarnActionPolicy_persistsOnBuildStage() {
+    Policy policy = tempEntity.newPolicy(
+        app.getOrganizationId(), "Warn Action Policy-" + TemporaryEntity.uuid(),
+        6, "warn", Stage.ID_BUILD, null);
+
+    Policy reloaded = lookup(PolicyDAO.class).getById(policy.getId());
+    Assertions.assertThat(reloaded.getActions())
+        .as("seeded Warn action persists on the policy for the build stage")
+        .containsEntry(Stage.ID_BUILD, "warn");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testNotifyOnlyPolicy_carriesNoActionEntries() {
+    Policy policy = tempEntity.newPolicy(
+        app.getOrganizationId(), "Notify Only Policy-" + TemporaryEntity.uuid(), 4);
+
+    Policy reloaded = lookup(PolicyDAO.class).getById(policy.getId());
+    Assertions.assertThat(reloaded.getActions())
+        .as("notify-only policy carries no action entries")
+        .doesNotContainKey(Stage.ID_BUILD);
+  }
+
+  /**
+   * Separate app from the class-level seed so "Stage Release / Release columns empty" is
+   * legitimate (the @Before seeds STAGE_RELEASE on its own app).
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testStageCells_buildOnlyShowsOtherStagesEmpty() throws IOException {
+    String suffix = TemporaryEntity.uuid();
+    Organization org = tempEntity.newOrganization(ORGANIZATION_NAME_PREFIX + "-buildOnly-" + suffix);
+    Application buildOnlyApp = tempEntity.newApplication(
+        APPLICATION_NAME_PREFIX + "-buildOnly-" + suffix,
+        APPLICATION_NAME_PREFIX + "-buildOnly-" + suffix,
+        org.getId());
+    lookup(PolicyImportExport.class).importOrganization(org, loadReferencePolicies());
+    evaluateApp(buildOnlyApp, "BUILD_ONLY_SCAN_" + suffix, BUILD_REPORT_DIR, Stage.ID_BUILD);
+
+    playwrightRefreshOrOpen(ReportListPage.url());
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+    reportList.typeFilter(buildOnlyApp.getPublicId());
+
+    Locator row = reportList.rowForApp(buildOnlyApp.getPublicId());
+    assertThat(row).isVisible();
+    assertions.shouldShowThreatCounterIn(reportList.buildCellOf(row));
+    assertions.shouldShowEmptyStageCell(reportList.stageReleaseCellOf(row));
+    assertions.shouldShowEmptyStageCell(reportList.releaseCellOf(row));
+  }
+
+  /** Fresh app with BUILD + RELEASE evaluations — the class-level seed covers BUILD + STAGE_RELEASE. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testStageCells_buildAndReleaseBothPopulated() throws IOException {
+    String suffix = TemporaryEntity.uuid();
+    Organization org = tempEntity.newOrganization(ORGANIZATION_NAME_PREFIX + "-buildRelease-" + suffix);
+    Application multiStageApp = tempEntity.newApplication(
+        APPLICATION_NAME_PREFIX + "-buildRelease-" + suffix,
+        APPLICATION_NAME_PREFIX + "-buildRelease-" + suffix,
+        org.getId());
+    lookup(PolicyImportExport.class).importOrganization(org, loadReferencePolicies());
+    evaluateApp(multiStageApp, "MULTI_BUILD_" + suffix, BUILD_REPORT_DIR, Stage.ID_BUILD);
+    evaluateApp(multiStageApp, "MULTI_RELEASE_" + suffix, BUILD_REPORT_DIR, Stage.ID_RELEASE);
+
+    playwrightRefreshOrOpen(ReportListPage.url());
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+    reportList.typeFilter(multiStageApp.getPublicId());
+
+    Locator row = reportList.rowForApp(multiStageApp.getPublicId());
+    assertThat(row).isVisible();
+    assertions.shouldShowThreatCounterIn(reportList.buildCellOf(row));
+    assertions.shouldShowThreatCounterIn(reportList.releaseCellOf(row));
+  }
+
+  private void evaluateApp(Application targetApp, String scanId, String reportDir, String stageId) throws IOException {
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    TestReportEvaluator.seedEvaluation(targetApp, scanId, reportDir, tempDir, baseUrlFromTest, work, stageId);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testStageCells_samePolicyDifferentApps() throws IOException {
+    String suffix = TemporaryEntity.uuid();
+    Organization org = tempEntity.newOrganization(ORGANIZATION_NAME_PREFIX + "-crossApp-" + suffix);
+    Application highSevApp = tempEntity.newApplication(
+        APPLICATION_NAME_PREFIX + "-high-" + suffix,
+        APPLICATION_NAME_PREFIX + "-high-" + suffix,
+        org.getId());
+    Application lowSevApp = tempEntity.newApplication(
+        APPLICATION_NAME_PREFIX + "-low-" + suffix,
+        APPLICATION_NAME_PREFIX + "-low-" + suffix,
+        org.getId());
+    lookup(PolicyImportExport.class).importOrganization(org, loadReferencePolicies());
+    evaluateApp(highSevApp, "CROSS_HI_" + suffix, BUILD_REPORT_DIR, Stage.ID_BUILD);
+    evaluateApp(lowSevApp, "CROSS_LO_" + suffix, STAGE_REPORT_DIR, Stage.ID_BUILD);
+
+    playwrightRefreshOrOpen(ReportListPage.url());
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    // rowForApp avoids the firstRow()-after-typeFilter race where the previous app's row
+    // briefly matches before the server-side filter applies.
+    reportList.typeFilter(highSevApp.getPublicId());
+    Locator highRow = reportList.rowForApp(highSevApp.getPublicId());
+    assertThat(highRow).isVisible();
+    assertions.shouldShowThreatCounterIn(reportList.buildCellOf(highRow));
+
+    reportList.clearFilter();
+    reportList.typeFilter(lowSevApp.getPublicId());
+    Locator lowRow = reportList.rowForApp(lowSevApp.getPublicId());
+    assertThat(lowRow).isVisible();
+    assertions.shouldShowThreatCounterIn(reportList.buildCellOf(lowRow));
+  }
+
   private static final String REFERENCE_POLICIES_RESOURCE = "/reference-policies-v3.json";
 
   private void seedOrgAppUserAndReports() throws IOException {
-    URL referencePolicyUrl = getClass().getResource(REFERENCE_POLICIES_RESOURCE);
-    if (referencePolicyUrl == null) {
-      throw new IllegalStateException("Missing classpath resource: " + REFERENCE_POLICIES_RESOURCE);
-    }
-    PolicyExportResult referencePolicies =
-        JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
+    PolicyExportResult referencePolicies = loadReferencePolicies();
 
     String suffix = TemporaryEntity.uuid();
     String orgName = ORGANIZATION_NAME_PREFIX + "-" + suffix;
@@ -411,5 +545,20 @@ public class ReportListPlaywrightTest
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     new TestReportEvaluator(app, scanId, zippedReport, baseUrlFromTest, work, stageId)
         .evaluatePolicy();
+  }
+
+  /**
+   * Loads the canned reference policies bundle from the classpath. Guarded so a missing resource
+   * surfaces as a clear {@code IllegalStateException} instead of an NPE inside Jackson.
+   * {@code JsonUtils.parse(InputStream, Class)} closes the stream via Jackson's default
+   * {@code AUTO_CLOSE_SOURCE} feature, so an explicit try-with-resources at the call site is
+   * redundant.
+   */
+  private PolicyExportResult loadReferencePolicies() throws IOException {
+    InputStream is = getClass().getResourceAsStream(REFERENCE_POLICIES_RESOURCE);
+    if (is == null) {
+      throw new IllegalStateException("Missing classpath resource: " + REFERENCE_POLICIES_RESOURCE);
+    }
+    return JsonUtils.parse(is, PolicyExportResult.class);
   }
 }

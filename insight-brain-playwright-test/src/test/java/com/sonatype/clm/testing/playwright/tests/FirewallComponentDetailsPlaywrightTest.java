@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.FirewallPage;
@@ -240,6 +241,23 @@ public class FirewallComponentDetailsPlaywrightTest
 
     assertThat(detailsPage.securityTabPolicyViolationsTable()).isVisible();
     assertThat(detailsPage.securityTabPolicyViolationRows()).hasCount(2);
+  }
+
+  /**
+   * Distinct from {@link #testSecurityTab_policyViolationsTable_renders} — that targets the
+   * Security tab's secondary table; this targets the primary Policy Violations tab.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testPolicyViolationsTab_rendersPoliciesViolatedByComponent() {
+    RepositoryComponent component = seedComponentWithSecurityViolations();
+    playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+
+    FirewallComponentDetailsPage detailsPage = new FirewallComponentDetailsPage();
+    PlaywrightWaitUtils.waitForVisible(detailsPage.container(), PlaywrightTiming.ELEMENT_TIMEOUT_MS,
+        PlaywrightTiming.POLL_INTERVAL_MS);
+    assertThat(detailsPage.policyViolationsTable()).isVisible();
+    assertThat(detailsPage.policyViolationRows()).hasCount(2);
   }
 
   @Test

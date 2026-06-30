@@ -170,6 +170,7 @@
     <module>insight-brain-functional-test-common</module>
     <module>insight-brain-java-functional-test</module>
     <module>insight-brain-playwright-test</module>
+    <module>insight-brain-api-regression-test</module>
     <module>keycloak-server</module>
     <module>vendored-keycloak-saml-servlet-filter-adapter</module>
     <module>gitlab-server</module>

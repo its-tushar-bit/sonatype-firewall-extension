@@ -50,12 +50,16 @@ locator("#advanced-search-button")
 
 ## Test category: Sanity vs Regression
 
-Every test method must carry exactly one of:
+Every test method (or class) must carry exactly one of:
 
 ```java
-@Category(SanityTest.class)    // PR pre-merge gate — fast, focused
-@Category(RegressionTest.class) // Nightly run — broader coverage
+@Category(SanityTest.class)     // PR pre-merge gate, fast, focused
+@Category(RegressionTest.class) // Broader coverage
 ```
+
+REST API regression tests live in a separate module
+(`insight-brain-api-regression-test`) and use their own `ApiRegressionTest` category —
+they are not in this module.
 
 ### Decision guide
 

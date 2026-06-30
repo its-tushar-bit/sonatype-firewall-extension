@@ -1,0 +1,269 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.205.0-SNAPSHOT</version>
+    <!-- Required when this folder is opened alone so Maven / Java LS resolve the reactor and dependencyManagement. -->
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>insight-brain-api-regression-test</artifactId>
+
+  <description>
+    REST API regression tests for Nexus IQ Server. Boots the embedded IQ Server via
+    AbstractResourceTest (from insight-brain-service test-jar) and hits REST endpoints
+    directly — no browser, no Playwright. Run with:
+    mvn verify -pl insight-brain-api-regression-test -Papi-regression
+  </description>
+
+  <properties>
+    <!--
+      Opt-in by default: skipTests=true makes Failsafe a no-op for this module
+      unless someone explicitly activates -Papi-regression (which flips skipTests
+      back to false). This keeps the suite out of Jenkinsfile.build's PR partitions
+      without requiring any Jenkinsfile change — the opt-in semantics are enforced
+      entirely inside this module.
+    -->
+    <skipTests>true</skipTests>
+    <skip.functional.tests>false</skip.functional.tests>
+    <clm.skip>true</clm.skip>
+    <it.includes>**/*Test.*</it.includes>
+    <!--
+      0.5C is a safe parallel-fork ceiling, but the api-regression profile pins forkCount=1
+      so the embedded server boots once per suite run (the suite is small today).
+    -->
+    <failsafe.forkCount>0.5C</failsafe.forkCount>
+    <!--
+      JUnit 4 @Category filtering, surfaced through Maven so CI can target specific suites
+      (see com.sonatype.clm.testing.api.categories.ApiRegressionTest). Empty = no filtering.
+    -->
+    <failsafe.groups></failsafe.groups>
+    <failsafe.excludedGroups></failsafe.excludedGroups>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>${it.includes}</include>
+          </includes>
+          <groups>${failsafe.groups}</groups>
+          <excludedGroups>${failsafe.excludedGroups}</excludedGroups>
+          <trimStackTrace>false</trimStackTrace>
+          <skip>false</skip>
+          <skipITs>${skip.functional.tests}</skipITs>
+          <reuseForks>true</reuseForks>
+          <!-- 5min is generous for the current suite (~15 tests, ~15s wall-time + embedded-server boot). -->
+          <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
+          <forkCount>${failsafe.forkCount}</forkCount>
+          <!--
+            Inline add-opens from jvm.options (omit enable-native-access: crashes JDK 25 forks).
+            No @{argLine}: API regression forks are excluded from JaCoCo coverage.
+          -->
+          <argLine>
+            --add-opens=java.base/java.lang=ALL-UNNAMED
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/java.security=ALL-UNNAMED
+            --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+            --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+            --add-opens=java.base/sun.security.util=ALL-UNNAMED
+            --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+            --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=${project.build.directory}/
+          </argLine>
+          <systemPropertyVariables>
+            <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!--
+    Dependency set was forked from insight-brain-playwright-test and trimmed to the minimum
+    required to (a) compile the API regression tests and (b) boot the embedded IQ Server via
+    AbstractResourceTest. Each dep below is verified by removal (see commit history): if a
+    dep was removable without breaking the suite, it is gone. Add back only with a comment
+    explaining what required it.
+  -->
+  <dependencies>
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.javacrumbs.json-unit</groupId>
+      <artifactId>json-unit-assertj</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- The app to test against -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>hds-mock-server</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--
+      Explicit version: the parent's dependencyManagement entry covers the compile artifact
+      of insight-brain-tenancy but not the `tests` classifier, so we pin the reactor version
+      here. Drop the <version> if the parent ever manages the tests classifier directly.
+    -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>docker-registry</id>
+      <activation>
+        <property>
+          <name>docker.registry</name>
+        </property>
+      </activation>
+      <properties>
+        <docker.image.registry>${docker.registry}/</docker.image.registry>
+      </properties>
+    </profile>
+    <profile>
+      <id>docker-functional-tests</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <skip.functional.tests>false</skip.functional.tests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <!-- Profile replaces base argLine (child-wins merge); repeat add-opens + UTC. -->
+              <argLine>
+                --add-opens=java.base/java.lang=ALL-UNNAMED
+                --add-opens=java.base/java.util=ALL-UNNAMED
+                --add-opens=java.base/java.security=ALL-UNNAMED
+                --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+                --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+                --add-opens=java.base/sun.security.util=ALL-UNNAMED
+                --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+                --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+                -Duser.timezone=UTC
+                -XX:+HeapDumpOnOutOfMemoryError
+                -XX:HeapDumpPath=${project.build.directory}/
+              </argLine>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!--
+      Allows build of this module to be disabled; required for build-automation optimizations.
+    -->
+    <profile>
+      <id>exclude-functional-test</id>
+      <activation>
+        <property>
+          <name>skip-functional-test</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <!--
+      Activate with:  mvn verify -pl insight-brain-api-regression-test -Papi-regression
+
+      - Selects @Category(ApiRegressionTest.class) only. Today this category covers every
+        test in this module; the profile is in place so future categories can be added
+        without changing the CI invocation.
+      - Pins forkCount=1: the suite is small enough that a single fork (= single embedded
+        IQ Server boot) is faster than parallel forks paying boot cost N times. Revisit
+        once the suite grows past a few hundred tests.
+    -->
+    <profile>
+      <id>api-regression</id>
+      <properties>
+        <!-- Opt-in flip: enable tests when the profile is activated. -->
+        <skipTests>false</skipTests>
+        <failsafe.forkCount>1</failsafe.forkCount>
+        <failsafe.groups>com.sonatype.clm.testing.api.categories.ApiRegressionTest</failsafe.groups>
+      </properties>
+    </profile>
+  </profiles>
+</project>

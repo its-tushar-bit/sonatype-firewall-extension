@@ -538,6 +538,37 @@ public class ReportService
     return getReport(applicationDAO.getByIdNotNull(appId), scanId);
   }
 
+  /**
+   * Returns the application's stored report only if it already exists, without the {@link #getReport} recovery path.
+   * <p>
+   * {@link #getReport} re-fetches the application by id and, when the report is missing on disk, issues per-application
+   * {@code policy_evaluation} and {@code repository_component} lookups and may trigger an HDS re-download. Running that
+   * per matched application reintroduced an N+1 in the bulk component search dependency-data path (CLM-41473). This
+   * method is the best-effort, read-only alternative for callers that enrich a result when a report happens to be
+   * present and otherwise skip it: it issues no DB queries and performs no recovery -- only a single report existence
+   * check (a filesystem stat, or one object-store lookup in S3-backed deployments) per call.
+   * <p>
+   * The existence check is inherently subject to a time-of-check/time-of-use race: the report may be removed (e.g. by
+   * a data-retention purge) between this method returning a non-null report and a caller reading its entries. Callers
+   * must tolerate a subsequently-unreadable report -- {@code ApiSearchServiceV2.loadComponentsByHash} does so by
+   * catching the failure and treating it as absent dependency data.
+   *
+   * @return the existing report, or {@code null} if no report is stored for the given application and scan.
+   */
+  @Trace
+  @WithSpan
+  public ApplicationReport getReportIfPresent(final Application app, final String scanId) {
+    Objects.requireNonNull(app, "app must not be null");
+    Objects.requireNonNull(scanId, "scanId must not be null");
+    ApplicationReport applicationReport = reportDataStore.getApplicationReport(app, scanId);
+    try {
+      return applicationReport.exists() ? applicationReport : null;
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   public ApplicationReport getReport(final Application app, final String scanId) {
     ApplicationReport applicationReport = reportDataStore.getApplicationReport(app, scanId);
 

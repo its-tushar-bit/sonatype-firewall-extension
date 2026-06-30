@@ -6,26 +6,19 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 public class ApiSearchServiceV2AuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
   private ApiSearchServiceV2 searchService;
-
-  @Mock
-  private ReportService reportServiceMock;
 
   @Before
   public void before() {
@@ -39,7 +32,8 @@ public class ApiSearchServiceV2AuthzTest
     String scanId = "search-test";
     tempEntity.newPolicyEvaluation(app.getId(), stage, scanId);
     tempEntity.newApplicationComponent(app.getId(), stage, hash, null);
-    when(reportServiceMock.getReport(app.getId(), scanId)).thenThrow(NotFoundException.class);
+    // No report is stored on disk for this app, so ReportService.getReportIfPresent returns null, exercising the
+    // no-report path: the component still matches from the DB while dependency-data enrichment is skipped (CLM-41473).
 
     ApiSearchResultsDTOV2 results = searchService.searchComponent(stage, hash, null, null);
     assertThat(results).isNotNull();

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
@@ -141,6 +142,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -1196,6 +1198,42 @@ public class ReportServiceTest
     PolicyThreats policyThreats = reportService.getPolicyThreats(app.getPublicId(), scanId);
     assertThat(policyThreats).isNotNull();
     validatePolicyValidationOwner(policyThreats.aaData);
+  }
+
+  @Test
+  public void testGetReportIfPresent_returnsReport_whenReportExists() throws Exception {
+    final ReportService reportService = createReportService();
+    ApplicationReport applicationReport = mock(ApplicationReport.class);
+    doReturn(true).when(applicationReport).exists();
+    doReturn(applicationReport).when(reportDataStoreSpy)
+        .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
+
+    assertThat(reportService.getReportIfPresent(app, scanId)).isSameAs(applicationReport);
+  }
+
+  @Test
+  public void testGetReportIfPresent_returnsNull_whenReportDoesNotExist() throws Exception {
+    final ReportService reportService = createReportService();
+    ApplicationReport applicationReport = mock(ApplicationReport.class);
+    doReturn(false).when(applicationReport).exists();
+    doReturn(applicationReport).when(reportDataStoreSpy)
+        .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
+
+    assertThat(reportService.getReportIfPresent(app, scanId)).isNull();
+  }
+
+  @Test
+  public void testGetReportIfPresent_wrapsIOExceptionAsUncheckedIOException() throws Exception {
+    final ReportService reportService = createReportService();
+    ApplicationReport applicationReport = mock(ApplicationReport.class);
+    IOException cause = new IOException("boom");
+    doThrow(cause).when(applicationReport).exists();
+    doReturn(applicationReport).when(reportDataStoreSpy)
+        .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
+
+    assertThatExceptionOfType(UncheckedIOException.class)
+        .isThrownBy(() -> reportService.getReportIfPresent(app, scanId))
+        .withCause(cause);
   }
 
   private void assertThatReportFilesContains(

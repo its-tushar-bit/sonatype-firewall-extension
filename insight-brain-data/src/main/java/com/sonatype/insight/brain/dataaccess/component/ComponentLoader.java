@@ -790,6 +790,59 @@ public class ComponentLoader
     return result;
   }
 
+  /**
+   * Returns the components from the BOM report data with their dependency-graph / InnerSource attributes
+   * ({@code directDependency}, {@code innerSource}, {@code innerSourceData}, {@code parentComponentPurls}) resolved,
+   * but WITHOUT the per-owner database enrichment that {@link #getAll(byte[], boolean, byte[], byte[], byte[])}
+   * performs (license threat groups, component labels, vulnerability groups, license/vulnerability overrides).
+   * <p>
+   * Those InnerSource/dependency fields are parsed purely from the BOM and dependency JSON, so the enrichment -- which
+   * issues several per-owner DAO queries ({@code ownerDAO.getOwnerIds}, {@code licenseThreatGroupDAO}/
+   * {@code licenseThreatGroupLicenseDAO}/{@code componentLabelDAO}/{@code vulnerabilityGroupDAO}{@code .getByOwnerIds},
+   * {@code licenseOverrideDAO.getByOwnerId}) -- is pure overhead here and is discarded. Skipping it avoids an N+1 of
+   * per-owner queries when this is called once per application (CLM-41473, the bulk component-search dependency-data
+   * path). The component-list construction and {@code directDependency} resolution below intentionally mirror
+   * {@code getAll} so the returned list (and first-/last-match-by-hash behavior) is identical.
+   *
+   * @see #getAll(byte[], boolean, byte[], byte[], byte[])
+   */
+  public List<Component> getDependencyComponents(final byte[] bomData, final byte[] dependencyData) {
+    BomData bomComponents = getAll(bomData);
+
+    final Map<ComponentIdentifier, List<Component>> componentsByIdentifier = new LinkedHashMap<>();
+    final Map<String, Component> componentsByHash = new LinkedHashMap<>();
+    final List<Component> unhashedComponents = new ArrayList<>();
+    for (Component component : bomComponents.components) {
+      componentsByIdentifier.computeIfAbsent(component.getComponentIdentifier(), k -> new ArrayList<>()).add(component);
+      String hash = component.getHash();
+      if (hash != null) {
+        componentsByHash.put(hash, component);
+      }
+      else {
+        unhashedComponents.add(component);
+      }
+    }
+
+    if (bomComponents.dependenciesResolved == null || !bomComponents.dependenciesResolved) {
+      JsonNode dependencyJson = loadJson(dependencyData);
+      if (dependencyJson != null) {
+        Map<ComponentIdentifier, Boolean> componentDependencyType = getDependencyTypes(dependencyJson);
+        for (Entry<ComponentIdentifier, List<Component>> entry : componentsByIdentifier.entrySet()) {
+          for (Component component : entry.getValue()) {
+            // get(...) may return null when the identifier is absent from the dependency graph; setDirectDependency
+            // accepts a null Boolean, mirroring getAll's behavior (leaving directDependency unset).
+            component.setDirectDependency(componentDependencyType.get(entry.getKey()));
+          }
+        }
+      }
+    }
+
+    final List<Component> result = new ArrayList<>();
+    result.addAll(componentsByHash.values());
+    result.addAll(unhashedComponents);
+    return result;
+  }
+
   private void loadVulnerabilityGroupVulnerabilities(final Component component) {
     var vulnGroupData = getVulnerabilityGroupVulnerabilities();
     if (!vulnGroupData.isEmpty()) {

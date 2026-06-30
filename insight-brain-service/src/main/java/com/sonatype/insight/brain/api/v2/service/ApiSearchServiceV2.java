@@ -334,20 +334,35 @@ public class ApiSearchServiceV2
   }
 
   /**
-   * Loads and parses the application's report once, returning its components keyed by hash. On any failure (e.g. a
-   * missing report) an empty map is returned so the result is cached and the report is not re-fetched for sibling
+   * Loads and parses the application's report once, returning its components keyed by hash. If the report is not
+   * stored on disk an empty map is returned; any failure while loading or parsing a present report is logged and also
+   * yields an empty map. Either way the (empty) result is cached so the report is not re-fetched for sibling
    * components of the same application.
+   * <p>
+   * Uses {@link ReportService#getReportIfPresent} rather than {@code getReport} so a matched application whose report
+   * is not stored on disk costs only a single report existence check (a filesystem stat, or one object-store lookup in
+   * S3-backed deployments), not the per-application {@code policy_evaluation} / {@code repository_component} recovery
+   * queries (and possible HDS re-download) that previously ran once per matched application and reintroduced an N+1
+   * (CLM-41473). Dependency data is best-effort enrichment, so skipping an absent report rather than attempting
+   * recovery during a bulk search is the intended behavior.
    */
   private Map<String, Component> loadComponentsByHash(final Application app, final PolicyEvaluation eval) {
     try {
-      ApplicationReport applicationReport = reportService.getReport(app.getId(), eval.getScanId());
+      ApplicationReport applicationReport = reportService.getReportIfPresent(app, eval.getScanId());
+      if (applicationReport == null) {
+        return Map.of();
+      }
       final ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
       final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
 
       if (bomReportEntry != null && dependenciesReportEntry != null) {
+        // getDependencyComponents (not getAll) parses only the dependency-graph / InnerSource fields this path reads,
+        // skipping getAll's per-owner license/label/vulnerability-group enrichment -- that enrichment issues several
+        // per-owner DAO queries that would otherwise run once per matched application (a second N+1 on top of the
+        // report-load one), and none of it feeds the InnerSource data extracted below (CLM-41473).
         List<Component> components =
             componentLoaderFactory.createComponentLoader(app)
-                .getAll(null, null, bomReportEntry.buf, dependenciesReportEntry.buf);
+                .getDependencyComponents(bomReportEntry.buf, dependenciesReportEntry.buf);
 
         Map<String, Component> componentsByHash = new HashMap<>(components.size());
         for (Component component : components) {

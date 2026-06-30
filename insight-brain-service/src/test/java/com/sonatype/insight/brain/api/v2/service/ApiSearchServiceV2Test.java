@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -35,9 +37,12 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -204,8 +209,152 @@ public class ApiSearchServiceV2Test
       verify(spyPolicyViolationDAO, never())
           .getActiveByApplicationIdAndStageIdAndHash(anyString(), anyString(), anyString());
 
-      // Each application's report is loaded exactly once even though two of its components matched.
-      verify(spyReportService, times(2)).getReport(anyString(), anyString());
+      // Each application's report is loaded exactly once even though two of its components matched, via the
+      // no-recovery getReportIfPresent path; neither recovery getReport overload is used (CLM-41473).
+      verify(spyReportService, times(2)).getReportIfPresent(any(Application.class), anyString());
+      verify(spyReportService, never()).getReport(anyString(), anyString());
+      verify(spyReportService, never()).getReport(any(Application.class), anyString());
+    }
+    finally {
+      SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(originalInnerSourceEnabled);
+    }
+  }
+
+  /**
+   * CLM-41473 regression: when a matched application's report is not stored on disk (the SaaS norm, where reports are
+   * purged), the dependency-data path must not fall back to the per-application recovery {@code getReport(appId,
+   * scanId)} -- which issued ~4 DB queries per matched application ({@code application}, two {@code policy_evaluation}
+   * and {@code repository_component}) and reintroduced an N+1 that scaled with the number of results. It must use the
+   * no-recovery {@code getReportIfPresent} path and return empty dependency data.
+   */
+  @Test
+  public void testSearchComponent_missingReports_skipsPerApplicationRecovery() throws Exception {
+    boolean originalInnerSourceEnabled =
+        SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.isEnabled();
+    SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(true);
+    try {
+      // Two evaluated applications with matched components but no report stored on disk.
+      newAppWithTwoComponentsNoReport();
+      newAppWithTwoComponentsNoReport();
+
+      ReportService spyReportService = spy(reportService);
+      ApiSearchServiceV2 service = new ApiSearchServiceV2(baseUrl, applicationDAO, policyEvaluationDAO,
+          applicationComponentDAO, policyViolationDAO, spyReportService, componentLoaderFactory);
+
+      ApiSearchResultsDTOV2 result = service.searchComponent(BuildStageType.ID, null,
+          ComponentIdentifier.createMavenCoordinates("", "", ""), null);
+
+      // Results are still returned; only the dependency-data enrichment is skipped when no report is present.
+      assertThat(result.results).hasSize(4);
+      assertThat(result.results).allSatisfy(r -> {
+        assertThat(r.dependencyData).isNotNull();
+        assertThat(r.dependencyData.innerSourceData).isNull();
+        assertThat(r.dependencyData.parentComponentPurls).isNull();
+        assertThat(r.dependencyData.directDependency).isNull();
+      });
+
+      // The report is probed once per matched application via the no-recovery path...
+      verify(spyReportService, times(2)).getReportIfPresent(any(Application.class), anyString());
+      // ...and neither recovery overload (the ~4-query-per-app N+1) is ever taken.
+      verify(spyReportService, never()).getReport(anyString(), anyString());
+      verify(spyReportService, never()).getReport(any(Application.class), anyString());
+    }
+    finally {
+      SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(originalInnerSourceEnabled);
+    }
+  }
+
+  /**
+   * CLM-41473: a mix of matched applications -- one whose report is present on disk and one whose report is absent --
+   * must enrich the present application's results from its report while returning empty (but present) dependency data
+   * for the absent one, all without taking the per-application recovery {@code getReport} path.
+   */
+  @Test
+  public void testSearchComponent_mixedReportPresence_enrichesPresentSkipsAbsent() throws Exception {
+    boolean originalInnerSourceEnabled =
+        SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.isEnabled();
+    SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(true);
+    try {
+      Application withReport = newAppWithTwoComponentsAndReport();
+      Application withoutReport = newAppWithTwoComponentsNoReport();
+
+      ReportService spyReportService = spy(reportService);
+      ApiSearchServiceV2 service = new ApiSearchServiceV2(baseUrl, applicationDAO, policyEvaluationDAO,
+          applicationComponentDAO, policyViolationDAO, spyReportService, componentLoaderFactory);
+
+      ApiSearchResultsDTOV2 result = service.searchComponent(BuildStageType.ID, null,
+          ComponentIdentifier.createMavenCoordinates("", "", ""), null);
+
+      assertThat(result.results).hasSize(4);
+      // The application whose report exists is enriched from it...
+      assertThat(result.results)
+          .filteredOn(r -> r.applicationId.equals(withReport.getPublicId()))
+          .hasSize(2)
+          .allSatisfy(r -> assertThat(r.dependencyData.parentComponentPurls).isNotEmpty());
+      // ...while the application with no report yields present-but-empty dependency data (no recovery).
+      assertThat(result.results)
+          .filteredOn(r -> r.applicationId.equals(withoutReport.getPublicId()))
+          .hasSize(2)
+          .allSatisfy(r -> {
+            assertThat(r.dependencyData).isNotNull();
+            assertThat(r.dependencyData.parentComponentPurls).isNull();
+          });
+
+      // One no-recovery probe per matched application; the per-application recovery overloads are never used.
+      verify(spyReportService, times(2)).getReportIfPresent(any(Application.class), anyString());
+      verify(spyReportService, never()).getReport(anyString(), anyString());
+      verify(spyReportService, never()).getReport(any(Application.class), anyString());
+    }
+    finally {
+      SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(originalInnerSourceEnabled);
+    }
+  }
+
+  /**
+   * CLM-41473: when reports ARE present on disk, the dependency-data path must parse them via the DB-free
+   * {@code getDependencyComponents} rather than {@code ComponentLoader.getAll}. {@code getAll} performs per-owner
+   * license/label/vulnerability-group enrichment (several DAO queries) that is discarded here, and a new
+   * {@code ComponentLoader} is built per matched application -- so using {@code getAll} re-ran that enrichment once
+   * per result (a second N+1 on top of the report-load one). This verifies the heavy {@code getAll} overloads are
+   * never invoked while the InnerSource dependency data is still resolved correctly.
+   */
+  @Test
+  public void testSearchComponent_reportsPresent_usesDbFreeDependencyParseNotGetAll() throws Exception {
+    boolean originalInnerSourceEnabled =
+        SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.isEnabled();
+    SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(true);
+    try {
+      newAppWithTwoComponentsAndReport();
+      newAppWithTwoComponentsAndReport();
+
+      // Spy every ComponentLoader the factory hands out so the parse method actually used can be verified.
+      List<ComponentLoader> createdLoaders = new ArrayList<>();
+      ComponentLoaderFactory spyFactory = spy(componentLoaderFactory);
+      doAnswer(invocation -> {
+        ComponentLoader loader = spy((ComponentLoader) invocation.callRealMethod());
+        createdLoaders.add(loader);
+        return loader;
+      }).when(spyFactory).createComponentLoader(any());
+
+      ApiSearchServiceV2 service = new ApiSearchServiceV2(baseUrl, applicationDAO, policyEvaluationDAO,
+          applicationComponentDAO, policyViolationDAO, reportService, spyFactory);
+
+      ApiSearchResultsDTOV2 result = service.searchComponent(BuildStageType.ID, null,
+          ComponentIdentifier.createMavenCoordinates("", "", ""), null);
+
+      // Dependency data is still resolved from each present report.
+      assertThat(result.results).hasSize(4);
+      assertThat(result.results).allSatisfy(r -> assertThat(r.dependencyData).isNotNull());
+      assertThat(result.results).anySatisfy(r -> assertThat(r.dependencyData.parentComponentPurls).isNotEmpty());
+
+      // One ComponentLoader per matched application, each used only via the DB-free getDependencyComponents path;
+      // neither heavy getAll overload (which issues the per-owner enrichment queries) is ever invoked.
+      assertThat(createdLoaders).hasSize(2);
+      for (ComponentLoader loader : createdLoaders) {
+        verify(loader, times(1)).getDependencyComponents(any(), any());
+        verify(loader, never()).getAll(any(), any(), any(), any());
+        verify(loader, never()).getAll(any(), anyBoolean(), any(), any(), any());
+      }
     }
     finally {
       SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(originalInnerSourceEnabled);
@@ -249,14 +398,19 @@ public class ApiSearchServiceV2Test
   }
 
   private Application newAppWithTwoComponentsAndReport() throws URISyntaxException, IOException {
+    Application application = newAppWithTwoComponentsNoReport();
+    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report-1", tempDir),
+        insightWork);
+    return application;
+  }
+
+  private Application newAppWithTwoComponentsNoReport() {
     Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
     tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",
         ComponentIdentifier.createMavenCoordinates("xmlpull", "xmlpull", "1.1.3.1"));
     tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "e3fd8ced1f52c7574af9",
         ComponentIdentifier.createMavenCoordinates("org.apache.httpcomponents", "httpcore", "4.4.6"));
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
-    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report-1", tempDir),
-        insightWork);
     return application;
   }
 }

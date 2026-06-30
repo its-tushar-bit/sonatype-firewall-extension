@@ -170,10 +170,19 @@ describe('When the WaiverDetailsPage', function () {
           name: 'waiver.details',
         },
       },
+      waiverDetails: {
+        waiverDetails: null,
+        loading: false,
+        loadError: null,
+        hasWaivePermission: true,
+      },
     };
 
     expectedWaiverDetailsUrl = getWaiverDetailsUrl(ownerType, ownerId, waiverId);
     expectedDeleteWaiverUrl = deleteWaiverUrl('organization', waiverDetails.scopeOwnerId, waiverDetails.policyWaiverId);
+    // By default, grant WAIVE_POLICY_VIOLATIONS so the Delete button renders.
+    // Individual tests can override with axiosMock.onPut(...).replyOnce(...).
+    axiosMock.onPut(/\/rest\/user\/permissions\//).reply(200, ['WAIVE_POLICY_VIOLATIONS']);
     // Ensure render function includes the router currentParams we will need
     renderComponent = (preloadedState = initialState) => render(<WaiverDetails />, { preloadedState });
   });
@@ -460,6 +469,46 @@ describe('When the WaiverDetailsPage', function () {
       const blockquote = document.querySelector('.nx-blockquote');
       const entries = blockquote.querySelectorAll('.iq-waiver-comment-entry__text');
       expect(entries[0]).toHaveTextContent('-');
+    });
+  });
+
+  describe('WAIVE_POLICY_VIOLATIONS permission gating', () => {
+    it('renders the Delete Waiver button when WAIVE_POLICY_VIOLATIONS is granted', async () => {
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
+      renderComponent();
+
+      expect(await screen.findByRole('button', { name: 'Delete Waiver' })).toBeVisible();
+    });
+
+    it('renders the container Delete Waiver button when WAIVE_POLICY_VIOLATIONS is granted', async () => {
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, containerWaiverDetails);
+      renderComponent();
+
+      expect(await screen.findByRole('button', { name: 'Delete Waiver for All Policy Violations' })).toBeVisible();
+    });
+
+    it('hides the Delete Waiver button when WAIVE_POLICY_VIOLATIONS is not granted', async () => {
+      // Override the default-granting permission mock with a denial.
+      axiosMock.reset();
+      axiosMock.onPut(/\/rest\/user\/permissions\//).reply(200, []);
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
+      renderComponent();
+
+      // Wait for the load to complete by asserting any post-load content.
+      expect(await screen.findByText('test policy')).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Delete Waiver' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Delete Waiver for All Policy Violations' })).not.toBeInTheDocument();
+    });
+
+    it('hides the Renew Waiver button when WAIVE_POLICY_VIOLATIONS is not granted in standalone firewall', async () => {
+      jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
+      axiosMock.reset();
+      axiosMock.onPut(/\/rest\/user\/permissions\//).reply(200, []);
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
+      renderComponent();
+
+      expect(await screen.findByText('test policy')).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Renew Waiver' })).not.toBeInTheDocument();
     });
   });
 

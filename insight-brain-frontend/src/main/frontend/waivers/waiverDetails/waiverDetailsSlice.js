@@ -32,12 +32,11 @@ const loadWaiver = createAsyncThunk(`${REDUCER_NAME}/loadWaiver`, async (_, { ge
   const ownerType = mapWaiverOwnerType[ownerTypeRaw] || ownerTypeRaw;
   try {
     const waiverDetails = await axios.get(getWaiverDetailsUrl(ownerType, ownerId, waiverId)).then(prop('data'));
-    const isRepositoryScope = ownerTypeRaw !== 'root_organization' && ownerTypeRaw !== 'all_repositories';
-    const permOwnerType = isRepositoryScope ? 'repository' : 'global';
-    const permOwnerId = isRepositoryScope ? ownerId : 'global';
-    const hasWaivePermission = await checkPermissions(['WAIVE_POLICY_VIOLATIONS'], permOwnerType, permOwnerId)
-      .then(() => true)
-      .catch(() => false);
+    const isGlobalScope = ownerTypeRaw === 'root_organization' || ownerTypeRaw === 'all_repositories';
+    const permissionCheck = isGlobalScope
+      ? checkPermissions(['WAIVE_POLICY_VIOLATIONS'])
+      : checkPermissions(['WAIVE_POLICY_VIOLATIONS'], ownerTypeRaw, ownerId);
+    const hasWaivePermission = await permissionCheck.then(() => true).catch(() => false);
     return { waiverDetails, hasWaivePermission };
   } catch (error) {
     return rejectWithValue(error);

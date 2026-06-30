@@ -28,6 +28,7 @@ import {
   selectWaiverDetailsLoading,
   selectWaiverDetailsError,
   selectWaiverToDelete,
+  selectWaiverDetailsHasWaivePermission,
 } from './waiverDetailsSelectors';
 import { actions } from './waiverDetailsSlice';
 import {
@@ -41,7 +42,6 @@ import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import { faSitemap, faTerminal } from '@fortawesome/pro-solid-svg-icons';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectIsStandaloneFirewall, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectWaiverDetailsHasWaivePermission } from './waiverDetailsSelectors';
 
 const CONTAINER_IMAGE_WAIVER_INFO =
   "Details of all the specific policies waived aren't displayed on this page. " +
@@ -164,9 +164,11 @@ export default function WaiverDetails() {
               Renew Waiver
             </NxButton>
           )}
-          <NxButton variant="tertiary" onClick={handleDeleteWaiverButtonClick}>
-            {forContainerImageWaiver ? `Delete Waiver for All Policy Violations` : `Delete Waiver`}
-          </NxButton>
+          {hasWaivePermission && (
+            <NxButton variant="tertiary" onClick={handleDeleteWaiverButtonClick}>
+              {forContainerImageWaiver ? `Delete Waiver for All Policy Violations` : `Delete Waiver`}
+            </NxButton>
+          )}
         </NxTile.HeaderActions>
       </NxTile.Header>
       <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={getDetails}>

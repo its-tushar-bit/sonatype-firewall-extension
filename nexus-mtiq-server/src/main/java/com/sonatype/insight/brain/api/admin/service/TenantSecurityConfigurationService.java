@@ -113,6 +113,18 @@ public class TenantSecurityConfigurationService
     membershipMappingService.grantMembershipMappingsForGlobalContextNoAuthz(roleToMembers);
   }
 
+  /**
+   * Returns the distinct admin emails (global-role {@code USER} members) for a tenant.
+   *
+   * @param tenantSlug the tenant slug
+   * @return the tenant's admin emails (possibly empty)
+   */
+  public List<String> getAdminEmails(final String tenantSlug) {
+    validateCurrentTenant(tenantSlug);
+
+    return membershipMappingService.getAdminEmailsForGlobalContextNoAuthz();
+  }
+
   private void validateCurrentTenant(final String tenantSlug) {
     /*
      * Proper validations for the tenant name were executed as part of the AdminTenantFilter.

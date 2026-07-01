@@ -112,6 +112,40 @@ public class TenantSecurityConfigurationResourceTest
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
+  @Test
+  public void shouldGetAdminEmails() throws Exception {
+    String tenantSlug = generateTestTenantName();
+    provisionTenant(tenantSlug);
+    grantAdminPermissionForAdmins(tenantSlug).put(); // seed admin@local.com
+
+    HttpResponse response = getAdminEmails(tenantSlug).get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("admin@local.com");
+  }
+
+  @Test
+  public void getAdminEmails_shouldSend400_whenTenantIsGlobal() throws Exception {
+    HttpResponse response = getAdminEmails("global").get();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+  }
+
+  @Test
+  public void getAdminEmails_shouldSend404_whenTenantDoesntExist() throws Exception {
+    HttpResponse response = getAdminEmails("tenant7").get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
+  }
+
+  private HttpRequest getAdminEmails(String tenant) throws Exception {
+    return adminRestRequest(
+        ADMIN_TENANT_SECURITY_CONFIG_PATH + TenantSecurityConfigurationResource.GRANT_ADMIN_PERMISSIONS_PATH)
+            .parameter(tenant)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt("local/"));
+  }
+
   private HttpRequest updateSamlConfigurationAndGrantAdminPermissions(String tenant) throws Exception {
     HttpRequest request = adminRestRequest(ADMIN_TENANT_SECURITY_CONFIG_PATH)
         .parameter(tenant)

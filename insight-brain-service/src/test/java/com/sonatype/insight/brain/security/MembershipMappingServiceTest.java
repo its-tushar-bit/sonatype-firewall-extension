@@ -127,6 +127,27 @@ public class MembershipMappingServiceTest
   }
 
   @Test
+  public void getAdminEmailsForGlobalContextNoAuthz_returnsDistinctGlobalUserEmailsExcludingGroups() {
+    Member adminUser = new Member(MemberType.USER, "admin@local.com", "admin@local.com");
+    Member group = new Member(MemberType.GROUP, "admins-group", "admins-group");
+
+    // Grant the same admin user to EVERY global role (exactly what the admin PUT does),
+    // plus a GROUP member, so we can assert distinct-across-roles and USER-only filtering.
+    Map<String, List<Member>> roleToMembers = new HashMap<>();
+    for (Role role : roleDAO.getGlobalRoles()) {
+      roleToMembers.put(role.getId(), Arrays.asList(adminUser));
+    }
+    roleToMembers.put(SYSTEM_ADMIN_ROLE_ID, Arrays.asList(adminUser, group));
+    membershipMappingService.grantMembershipMappingsForGlobalContextNoAuthz(roleToMembers);
+
+    List<String> emails = membershipMappingService.getAdminEmailsForGlobalContextNoAuthz();
+
+    assertThat(emails).contains("admin@local.com");
+    assertThat(emails).doesNotContain("admins-group");
+    assertThat(emails.stream().filter("admin@local.com"::equals).count()).isEqualTo(1L);
+  }
+
+  @Test
   public void testLoadMembersByRoleForNonGlobalContext_GlobalContext() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> membershipMappingService.loadMembersByRoleForNonGlobalContext(OwnerType.GLOBAL, "ownerId",

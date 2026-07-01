@@ -154,6 +154,29 @@ public class MembershipMappingDAO
     }
   }
 
+  /**
+   * Gets the distinct member names for a given context and member type that are mapped to any of the
+   * given roles. Filtering is performed in SQL rather than in memory.
+   */
+  public List<String> getDistinctMemberNamesByContextIdAndMemberTypeAndRoleIds(
+      String contextId,
+      MemberType memberType,
+      Set<String> roleIds)
+  {
+    if (roleIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectDistinct(MEMBERSHIP_MAPPING.MEMBER_NAME)
+          .from(MEMBERSHIP_MAPPING)
+          .where(MEMBERSHIP_MAPPING.CONTEXT_ID.eq(contextId)
+              .and(MEMBERSHIP_MAPPING.MEMBER_TYPE.eq(memberType.name()))
+              .and(MEMBERSHIP_MAPPING.ROLE_ID.in(roleIds)))
+          .fetch(MEMBERSHIP_MAPPING.MEMBER_NAME);
+    }
+  }
+
   List<MembershipMapping> getByContextIdAndUser(String contextId, String username) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()

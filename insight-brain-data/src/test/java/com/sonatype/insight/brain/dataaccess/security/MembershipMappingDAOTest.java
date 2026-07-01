@@ -242,6 +242,39 @@ public class MembershipMappingDAOTest
   }
 
   @Test
+  public void testGetDistinctMemberNamesByContextIdAndMemberTypeAndRoleIds() {
+    String adminUser = "admin@local.com";
+
+    Role globalRole1 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Role globalRole2 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Role otherRole = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+
+    // Same user granted to two target roles -> returned once (distinct)
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, globalRole1.getId(), adminUser);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, globalRole2.getId(), adminUser);
+    // GROUP member of a target role -> excluded by the member-type filter
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, globalRole1.getId(), "admins-group",
+        MemberType.GROUP);
+    // USER mapped to a non-target role -> excluded by the role filter
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, otherRole.getId(), "other-user");
+    // USER with a target role but in a different (non-global) context -> excluded by the context filter
+    tempEntity.newMembershipMapping(application.getId(), globalRole1.getId(), "app-user");
+
+    Set<String> roleIds = ImmutableSet.of(globalRole1.getId(), globalRole2.getId());
+
+    List<String> memberNames = membershipDAO.getDistinctMemberNamesByContextIdAndMemberTypeAndRoleIds(
+        MembershipMapping.GLOBAL_CONTEXT_ID, MemberType.USER, roleIds);
+
+    assertThat(memberNames).containsExactly(adminUser);
+  }
+
+  @Test
+  public void getDistinctMemberNamesByContextIdAndMemberTypeAndRoleIds_returnsEmpty_whenNoRoleIds() {
+    assertThat(membershipDAO.getDistinctMemberNamesByContextIdAndMemberTypeAndRoleIds(
+        MembershipMapping.GLOBAL_CONTEXT_ID, MemberType.USER, Collections.emptySet())).isEmpty();
+  }
+
+  @Test
   public void testGetById() {
     Role role = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
     MembershipMapping membership = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(),

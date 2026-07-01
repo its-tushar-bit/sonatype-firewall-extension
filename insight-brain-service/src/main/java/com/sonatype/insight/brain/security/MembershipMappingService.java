@@ -678,6 +678,21 @@ public class MembershipMappingService
     grantMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
   }
 
+  /**
+   * Reads the distinct admin emails (global-context {@link MemberType#USER} members of global roles)
+   * without an authorization check. Mirrors the NoAuthz access pattern used by
+   * {@link #grantMembershipMappingsForGlobalContextNoAuthz}: the MTIQ admin endpoint that calls this
+   * runs without a Shiro subject holding {@code CONFIGURE_SYSTEM}.
+   */
+  public List<String> getAdminEmailsForGlobalContextNoAuthz() {
+    Set<String> globalRoleIds = roleDAO.getGlobalRoles()
+        .stream()
+        .map(Role::getId)
+        .collect(Collectors.toSet());
+    return membershipMappingDAO.getDistinctMemberNamesByContextIdAndMemberTypeAndRoleIds(
+        MembershipMapping.GLOBAL_CONTEXT_ID, MemberType.USER, globalRoleIds);
+  }
+
   private void grantMembershipMappingsForRoles(
       OwnerType ownerType,
       String internalOwnerId,

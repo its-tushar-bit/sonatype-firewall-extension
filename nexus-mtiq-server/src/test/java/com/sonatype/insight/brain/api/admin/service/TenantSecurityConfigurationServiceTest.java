@@ -203,6 +203,55 @@ public class TenantSecurityConfigurationServiceTest
     });
   }
 
+  @Test
+  public void shouldGetAdminEmails() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(membershipMappingService.getAdminEmailsForGlobalContextNoAuthz())
+          .thenReturn(Arrays.asList("admin@local.com"));
+
+      List<String> emails = underTest.getAdminEmails(tenant.tenantSlug);
+
+      assertThat(emails).containsExactly("admin@local.com");
+      verify(membershipMappingService).getAdminEmailsForGlobalContextNoAuthz();
+    });
+  }
+
+  @Test
+  public void getAdminEmails_shouldReturnEmptyList_whenNoAdminsConfigured() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(membershipMappingService.getAdminEmailsForGlobalContextNoAuthz()).thenReturn(List.of());
+
+      List<String> emails = underTest.getAdminEmails(tenant.tenantSlug);
+
+      assertThat(emails).isEmpty();
+      verify(membershipMappingService).getAdminEmailsForGlobalContextNoAuthz();
+    });
+  }
+
+  @Test
+  public void getAdminEmails_shouldThrowNotFound_whenTenantDoesntExist() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      assertThatThrownBy(() -> underTest.getAdminEmails(tenant.tenantSlug))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessageContaining("Tenant doesn't exist");
+
+      verify(membershipMappingService, never()).getAdminEmailsForGlobalContextNoAuthz();
+    });
+  }
+
+  @Test
+  public void getAdminEmails_shouldThrowBadRequest_whenUsingGlobalTenant() {
+    testAsGlobalTenant(tenant -> {
+      assertThatThrownBy(() -> underTest.getAdminEmails(tenant.tenantSlug))
+          .isInstanceOf(BadRequestException.class)
+          .hasMessageContaining("Invalid tenant");
+    });
+  }
+
   private String getEncodedIdPMetadata(String identityProviderXml) {
     return Base64.getEncoder().encodeToString(identityProviderXml.getBytes(StandardCharsets.UTF_8));
   }

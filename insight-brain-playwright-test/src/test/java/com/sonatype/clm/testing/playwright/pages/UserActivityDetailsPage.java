@@ -35,4 +35,9 @@ public class UserActivityDetailsPage
     return page.getByRole(AriaRole.HEADING,
         new Page.GetByRoleOptions().setName("Activity Details").setExact(true));
   }
+
+  public Locator exportActivityButton() {
+    return page.getByRole(AriaRole.BUTTON,
+        new Page.GetByRoleOptions().setName("Export Activity"));
+  }
 }

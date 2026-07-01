@@ -19,4 +19,12 @@ public class UserActivityDetailsPageAssertions
     assertThat(page.pageHeading(username)).isVisible();
     assertThat(page.detailsTable()).isVisible();
   }
+
+  public void shouldShowExportActivityDisabled() {
+    assertThat(page.exportActivityButton()).isDisabled();
+  }
+
+  public void shouldShowEmptyState() {
+    assertThat(page.detailsTable()).containsText("No activity found for the selected criteria.");
+  }
 }

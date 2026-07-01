@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import java.io.IOException;
+import java.net.URL;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -14,22 +16,34 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.pages.AddWaiverPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardWaiversComponent;
 import com.sonatype.clm.testing.playwright.pages.DashboardWaiversComponentAssertions;
+import com.sonatype.clm.testing.playwright.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
+import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.policy.PolicyExportResult;
+import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.After;
@@ -174,6 +188,52 @@ public class DashboardWaiversPlaywrightTest
         .first()
         .waitFor();
     afterDeleteAssertions.shouldHaveWaiverCount(DATA.expectedWaiversCount() - 1);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testWaiverCreatedViaUi_appearsInDashboardWaiversTab() throws IOException {
+    URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
+    PolicyExportResult referencePolicies =
+        JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
+
+    String suffix = TemporaryEntity.uuid();
+    Organization org = tempEntity.newOrganization("DashWaiverUiTestOrg-" + suffix);
+    lookup(PolicyImportExport.class).importOrganization(org, referencePolicies);
+    Application waiverTestApp = tempEntity.newApplication(
+        "DashWaiverUiTestApp-" + suffix, "DashWaiverUiTestApp-" + suffix, org.getId());
+
+    String reportScanId = "e16caf35769f4b3186a7e416d34c2797";
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    new TestReportEvaluator(waiverTestApp, reportScanId, zippedReport, baseUrlFromTest,
+        work, Stage.ID_BUILD).evaluatePolicy();
+
+    PolicyViolationDAO violationDAO = lookup(PolicyViolationDAO.class);
+    PolicyViolation firstViolation = violationDAO.getByApplicationId(waiverTestApp.getId())
+        .stream()
+        .filter(v -> v.getId() != null)
+        .findFirst()
+        .orElseThrow();
+
+    playwrightRefreshOrOpen(ViolationDetailsPage.url(firstViolation.getId()));
+    ViolationDetailsPage violationPage = new ViolationDetailsPage();
+    assertThat(violationPage.container()).isVisible();
+    violationPage.addWaiverButton().click();
+    playwrightWaitUntilUrlContains("/addWaiver/");
+
+    AddWaiverPage addWaiver = new AddWaiverPage();
+    addWaiver.container().waitFor();
+    addWaiver.fillComment("regression check");
+    addWaiver.submit();
+    playwrightWaitUntilUrlContains("/violation/");
+
+    playwrightRefreshOrOpen(DashboardPage.urlToWaivers());
+    new DashboardPage().waitUntilSpinnersGone();
+    DashboardWaiversComponent table = new DashboardWaiversComponent();
+    table.waivers().first().waitFor();
+    new DashboardWaiversComponentAssertions(table).shouldShowScope(0,
+        "Application - DashWaiverUiTestApp-" + suffix);
   }
 
   private void assertClickNavigatesToWaiverDetail(int rowIndex) {

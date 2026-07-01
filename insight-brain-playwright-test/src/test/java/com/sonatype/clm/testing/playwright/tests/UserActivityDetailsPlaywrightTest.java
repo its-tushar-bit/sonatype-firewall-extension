@@ -40,4 +40,21 @@ public class UserActivityDetailsPlaywrightTest
 
     detailsAssertions.shouldRenderPageLayoutFor(user.getUsername());
   }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testUserActivityDetails_freshUserShowsDisabledExportAndEmptyState() {
+    lookup(SystemConfigurationPropertyDAO.class).set(SystemConfigurationProperty.USER_ACTIVITY_TRACKING, "true");
+    User user = tempEntity.newUser();
+
+    playwrightRefreshOrOpen(UserActivityDetailsPage.url(user.getUsername()));
+    playwrightLogin();
+
+    UserActivityDetailsPage detailsPage = new UserActivityDetailsPage();
+    UserActivityDetailsPageAssertions detailsAssertions = new UserActivityDetailsPageAssertions(detailsPage);
+
+    detailsAssertions.shouldRenderPageLayoutFor(user.getUsername());
+    detailsAssertions.shouldShowExportActivityDisabled();
+    detailsAssertions.shouldShowEmptyState();
+  }
 }

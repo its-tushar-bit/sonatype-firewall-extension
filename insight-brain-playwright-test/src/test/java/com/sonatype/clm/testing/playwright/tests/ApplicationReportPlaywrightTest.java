@@ -11,15 +11,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.Route;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.DashboardPage;
+import com.sonatype.clm.testing.playwright.pages.DashboardWaiversComponent;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
+import com.sonatype.clm.testing.playwright.pages.WaiverDetailsPage;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -37,12 +38,14 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HdsMockServer;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Route;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
 public class ApplicationReportPlaywrightTest
     extends AbstractIqUiTest
@@ -330,6 +333,83 @@ public class ApplicationReportPlaywrightTest
     assertThat(reportPage.backButton()).isVisible();
   }
 
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_orgLevelWaiverAppliesToAllAppsInOrg() throws IOException {
+    String suffix = TemporaryEntity.uuid();
+    String app2Name = DATA.applicationNamePrefix() + "-2-" + suffix;
+    String orgId = app.getOrganizationId();
+    Application app2 = tempEntity.newApplication(app2Name, app2Name, orgId);
+
+    URL zippedReport2 = ReportHelper.zipReport(DATA.reportDir(), tempDir);
+    InsightWork work2 = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    String scanId2 = TemporaryEntity.uuid().replace("-", "").substring(0, 32);
+    TestReportEvaluator evaluator2 = new TestReportEvaluator(app2, scanId2, zippedReport2,
+        baseUrlFromTest, work2, Stage.ID_BUILD);
+    evaluator2.evaluatePolicy();
+
+    PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
+    List<PolicyViolation> violations = dao.getByApplicationId(app.getId());
+    PolicyViolation target = violations.stream()
+        .filter(v -> v.getHash() != null && v.getPolicyId() != null)
+        .findFirst()
+        .orElseThrow();
+    dao.loadConstraintFacts(Collections.singletonList(target));
+
+    tempEntity.newWaiver(new PolicyWaiver()
+        .setHash(target.getHash())
+        .setPolicyId(target.getPolicyId())
+        .setOwnerId(orgId)
+        .setConstraintFacts(target.getConstraintFacts())
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("Org-level waiver regression check"));
+
+    evaluator.reevaluatePolicy();
+    evaluator2.reevaluatePolicy();
+
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app, DATA.scanId()));
+    ApplicationReportPage reportA = new ApplicationReportPage();
+    new ApplicationReportPageAssertions(reportA).shouldBeVisible();
+    assertThat(reportA.firstWaivedViolationsIndicator()).isVisible();
+
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app2, scanId2));
+    ApplicationReportPage reportB = new ApplicationReportPage();
+    new ApplicationReportPageAssertions(reportB).shouldBeVisible();
+    assertThat(reportB.firstWaivedViolationsIndicator()).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_deleteWaiverRestoresViolation() throws IOException {
+    seedWaiverForFirstViolationAndReevaluate();
+
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app, DATA.scanId()));
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+    reportAssertions.shouldBeVisible();
+    reportAssertions.shouldShowWaivedViolationsIndicator();
+
+    playwrightRefreshOrOpen(DashboardPage.urlToWaivers());
+    new DashboardPage().waitUntilSpinnersGone();
+    DashboardWaiversComponent waiversTable = new DashboardWaiversComponent();
+    waiversTable.waivers().first().waitFor();
+    waiversTable.waiver(0).click();
+    playwrightWaitUntilUrlContains("/waiver/");
+    WaiverDetailsPage detailsPage = new WaiverDetailsPage();
+    assertThat(detailsPage.container()).isVisible();
+    detailsPage.deleteWaiverAndConfirm();
+
+    evaluator.reevaluatePolicy();
+
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app, DATA.scanId()));
+    ApplicationReportPage reportAfterDelete = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAfterDeleteAssertions =
+        new ApplicationReportPageAssertions(reportAfterDelete);
+    reportAfterDeleteAssertions.shouldBeVisible();
+    reportAfterDeleteAssertions.shouldShowViolationRows();
+    assertThat(reportAfterDelete.waivedViolationsIndicator()).hasCount(0);
+  }
+
   private void stubReevaluationEndpoint() throws IOException {
     URL zippedReport = ReportHelper.zipReport(DATA.reportDir(), tempDir);
     testCLMServer.getHdsServer()
@@ -406,26 +486,15 @@ public class ApplicationReportPlaywrightTest
       String componentFilterTerm,
       int expectedFilteredViolationRowCount,
       int expectedFilteredTotalRowCount,
-      String policyTabLabel,
-      String dependencyTreeTabLabel,
-      String vulnerabilitiesTabLabel,
-      String rawDataTabLabel,
       String backButtonDefaultText,
       String unscannableAlertText,
       String unscannableModalHeaderText,
       String policyTypeFilterWarningText,
       String oldReportWarningText,
       String insufficientPermissionsError,
-      String genericReevaluationError,
-      String backButtonFromPriorities,
-      String backButtonFromFirewallDashboard,
-      String backButtonFromRepositoryResults,
       String dependencyTreeUrlFragment,
       String vulnerabilitiesUrlFragment,
-      String rawDataUrlFragment,
-      String vulnerabilityCustomizeUrlFragment,
-      String reportMetadataRestPattern,
-      String reevaluateRestPath)
+      String rawDataUrlFragment)
   {
   }
 }

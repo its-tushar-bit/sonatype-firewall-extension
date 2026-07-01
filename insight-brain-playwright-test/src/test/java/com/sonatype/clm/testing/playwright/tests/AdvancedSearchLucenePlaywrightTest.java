@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.playwright.pages.AdvancedSearchPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.ComponentDetailsPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -231,6 +232,38 @@ public class AdvancedSearchLucenePlaywrightTest
     assertions.shouldHaveQueryBuilderEmptyState();
     assertions.shouldHaveEmptyQuery();
     assertions.shouldHaveSearchButtonDisabled();
+  }
+
+  /** Field-validity check; seeded fixture has no violations so count is legitimately zero. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testLuceneSearch_PolicyNameQuery_FieldIsSearchable() {
+    advancedSearch.runKeywordSearch("policyName:*");
+
+    assertions.shouldShowSearchResultCount();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testLuceneSearch_VulnerabilitySeverityRange_ReturnsResults() {
+    // Expects the canned report to contain at least one component whose vulnerabilitySeverity
+    // is in [7, 10] — verified against fixtures in src/test/resources/reportWithComponentRef
+    // on 2026-06-30. If this assertion starts failing after a fixture change, regenerate the
+    // expected component list rather than weakening the assertion.
+    advancedSearch.runKeywordSearch("vulnerabilitySeverity:[7 TO 10]");
+
+    assertions.shouldShowSearchResultCount();
+    assertions.shouldHaveAtLeastOneResult();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testLuceneSearch_NonsenseQuery_ShowsNoResults() {
+    advancedSearch.runKeywordSearch(
+        "applicationName:nonexistent-app-name-" + TemporaryEntity.uuid());
+
+    assertions.shouldShowSearchResultCount();
+    assertions.shouldHaveNoResults();
   }
 
   // afterTest() calls standby() which pauses new firings but does not interrupt in-flight jobs;

@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import java.util.regex.Pattern;
+
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.WaitForSelectorState;
@@ -23,6 +25,7 @@ import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
  */
 public class ComponentLabelEditorPage
     extends BasePage
+    implements TierGatedEditorPage
 {
   /** URL fragment that identifies the create-label route. */
   public static final String CREATE_LABEL_URL_FRAGMENT = "/label";
@@ -44,13 +47,44 @@ public class ComponentLabelEditorPage
     return locator("#owner-pill-comp-labels");
   }
 
+  /** Add-a-Label tile button; name regex matches both Enterprise and Pro-preview text. */
+  public Locator addLabelButton() {
+    return componentLabelsTile().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName(Pattern.compile("^(Preview )?Add a Label$")));
+  }
+
+  public Locator readOnlyView() {
+    return page.getByTestId("component-labels-readonly-view");
+  }
+
+  public Locator readOnlyLabelName() {
+    return readOnlyView().getByTestId("label-name");
+  }
+
+  // --- TierGatedEditorPage ---
+
+  @Override
+  public Locator addEntityButton() {
+    return addLabelButton();
+  }
+
+  @Override
+  public Locator readOnlyEntityView() {
+    return readOnlyView();
+  }
+
+  @Override
+  public Locator readOnlyEntityName() {
+    return readOnlyLabelName();
+  }
+
   /**
    * Clicks the "Add a Label" button ({@code id="add-label-button"}) in the Component Labels tile.
    * Dispatches the Redux {@code goToCreateLabel} action, navigating the SPA to {@code …/label}.
    * After calling this, wait for the URL to change before interacting with the editor.
    */
   public void clickAddLabelButton() {
-    componentLabelsTile().locator("#add-label-button").click();
+    addLabelButton().click();
   }
 
   /**
@@ -128,6 +162,7 @@ public class ComponentLabelEditorPage
    * locator always resolves to exactly one element (the editor form's button) even while the
    * delete modal is simultaneously open on the page.
    */
+  @Override
   public Locator submitButton() {
     return locator(".nx-tile .nx-form__submit-btn");
   }
@@ -137,6 +172,7 @@ public class ComponentLabelEditorPage
    * Only present in edit mode when {@code custom-component-labels} feature is enabled
    * ({@code !isFeatureGated && labelId} condition in {@code CreateComponentLabel.jsx}).
    */
+  @Override
   public Locator deleteButton() {
     return locator("#delete-label-button");
   }

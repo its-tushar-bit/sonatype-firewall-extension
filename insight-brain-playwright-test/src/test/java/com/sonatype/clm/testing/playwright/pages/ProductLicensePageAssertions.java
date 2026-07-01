@@ -34,6 +34,15 @@ public class ProductLicensePageAssertions
     assertThat(page.licenseTier()).isVisible();
   }
 
+  public void shouldShowLicenseTierWithText(String expectedText) {
+    assertThat(page.licenseTier()).hasText(expectedText);
+  }
+
+  public void shouldNotShowLicenseTier() {
+    // Tier row absent for Legacy / non-tier-gated licenses.
+    assertThat(page.licenseTier()).hasCount(0);
+  }
+
   public void shouldShowLicenseTypes() {
     assertThat(page.licenseTypes().first()).isVisible();
   }
@@ -56,5 +65,9 @@ public class ProductLicensePageAssertions
 
   public void shouldShowEulaDeclineButton() {
     assertThat(page.eulaDeclineButton()).isVisible();
+  }
+
+  public void shouldShowInstallError() {
+    assertThat(page.installError()).isVisible();
   }
 }

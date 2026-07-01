@@ -12,6 +12,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
@@ -129,6 +130,22 @@ public class SbomManagerBomPlaywrightTest
     assertThat(page.originalBomViewerTitle())
         .containsText(ORIGINAL_BOM_VIEWER_TITLE,
             new LocatorAssertions.ContainsTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testOriginalBom_searchProducesMatchCountForHitsAndZeroForNoMatch() {
+    SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
+    page.clickOriginalBomTab();
+    assertThat(page.originalBomViewerTitle()).containsText(ORIGINAL_BOM_VIEWER_TITLE);
+
+    // "components" is a top-level key in every spec-conformant CycloneDX BOM.
+    page.originalBomSearchInput().fill("components");
+    assertThat(page.originalBomSearchResultsCount())
+        .hasText(Pattern.compile("[1-9][0-9]* results? found"));
+
+    page.originalBomSearchInput().fill("zzz-nonsense-" + TemporaryEntity.uuid());
+    assertThat(page.originalBomSearchResultsCount()).hasText("0 results found");
   }
 
   @Test

@@ -93,6 +93,19 @@ public class AdvancedSearchPageAssertions
     assertThat(page.resultCountHeading()).isVisible();
   }
 
+  /** Asserts the result-count heading reads "Results: {expected}". */
+  public void shouldHaveResultCount(int expected) {
+    assertThat(page.resultCountHeading()).containsText("Results: " + expected);
+  }
+
+  public void shouldHaveNoResults() {
+    shouldHaveResultCount(0);
+  }
+
+  public void shouldHaveAtLeastOneResult() {
+    assertThat(page.resultCountHeading()).containsText(Pattern.compile("Results: [1-9]"));
+  }
+
   /** Asserts the "Add Rule" button is visible in the query builder. */
   public void shouldHaveAddSearchItemVisible() {
     assertThat(page.addSearchItemButton()).isVisible();

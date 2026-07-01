@@ -31,6 +31,7 @@ import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnersTreePage;
 import com.sonatype.clm.testing.playwright.pages.OwnersTreePageAssertions;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -89,6 +90,8 @@ public class OrganizationRegressionPlaywrightTest
 
   private static final String CREATE_COMPONENT_LABEL_ORG_NAME = "Component Label Create Test Org";
 
+  private static final String COMPONENT_LABEL_TIER_GATE_ORG_NAME = "Component Label Tier Gate Test Org";
+
   private static final String CREATE_COMPONENT_LABEL_NAME = "pw-test-label";
 
   private static final String CREATE_COMPONENT_LABEL_COLOR = "turquoise";
@@ -126,6 +129,12 @@ public class OrganizationRegressionPlaywrightTest
   private static final String DELETE_LTG_ORG_NAME = "LTG Delete Test Org";
 
   private static final String DELETE_LTG_GROUP_NAME = "pw-delete-ltg";
+
+  private static final String LTG_TIER_GATE_ORG_NAME = "LTG Tier Gate Test Org";
+
+  private static final String LTG_TIER_GATE_GROUP_NAME = "pw-tier-gate-ltg";
+
+  private static final String APP_CATEGORY_TIER_GATE_ORG_NAME = "App Category Tier Gate Test Org";
 
   private static final String CREATE_CATEGORY_ORG_NAME = "App Category Create Test Org";
 
@@ -193,6 +202,17 @@ public class OrganizationRegressionPlaywrightTest
     ownersTreeAssertions = new OwnersTreePageAssertions(ownersTree);
     header = new HeaderComponent();
     headerAssertions = new HeaderComponentAssertions(header);
+  }
+
+  /**
+   * Helper for the 6 new tier-gate tests: navigates to an org owner summary, waits for the page
+   * to render, then opens the named owner-summary section via the nav pills.
+   */
+  private void navigateToOrgSection(Organization org, String ownerPill) {
+    navigateAndWaitForUrl(OwnerSummaryPage.url(org.getId()), OwnerSummaryPage.ORG_URL_FRAGMENT);
+    playwrightRefresh();
+    assertions.shouldBeVisible();
+    ownerSummary.openOwnerSummarySectionFromNavPills(ownerPill);
   }
 
   private void assertRootOrgOwnerSummaryVisible() {
@@ -403,6 +423,55 @@ public class OrganizationRegressionPlaywrightTest
     assertions.shouldShowRepositoryUrl(APP_REPO_URL);
   }
 
+  /** Tier gate: under Enterprise license, Add-Label renders in normal (non-preview) mode. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testComponentLabelsTile_addLabelButtonInEnterpriseMode() {
+    Organization org =
+        tempEntity.newOrganization(COMPONENT_LABEL_TIER_GATE_ORG_NAME + "-enterprise-" + TemporaryEntity.uuid());
+
+    navigateAndWaitForUrl(OwnerSummaryPage.url(org.getId()), OwnerSummaryPage.ORG_URL_FRAGMENT);
+    playwrightRefresh();
+    assertions.shouldBeVisible();
+    ownerSummary.openOwnerSummarySectionFromNavPills(OwnerSummaryPage.OWNER_PILL_COMPONENT_LABELS);
+
+    ComponentLabelEditorPage editor = new ComponentLabelEditorPage();
+    new ComponentLabelEditorPageAssertions(editor).shouldShowAddLabelButtonInEnterpriseMode();
+  }
+
+  /** Tier gate: under Pro license, Add-Label renders in preview mode (locked). */
+  @Test
+  @Category(RegressionTest.class)
+  public void testComponentLabelsTile_addLabelButtonInPreviewModeUnderProLicense() {
+    Organization org = tempEntity.newOrganization(COMPONENT_LABEL_TIER_GATE_ORG_NAME + "-" + TemporaryEntity.uuid());
+
+    setMissingFeature(LicensedFeature.CUSTOM_COMPONENT_LABELS);
+
+    navigateToOrgSection(org, OwnerSummaryPage.OWNER_PILL_COMPONENT_LABELS);
+
+    ComponentLabelEditorPage editor = new ComponentLabelEditorPage();
+    new ComponentLabelEditorPageAssertions(editor).shouldShowAddLabelButtonInPreviewMode();
+  }
+
+  /** Tier gate: under Pro license, the edit URL renders the read-only view (no form, no buttons). */
+  @Test
+  @Category(RegressionTest.class)
+  public void testComponentLabelEditor_readOnlyViewUnderProLicense() {
+    Organization org =
+        tempEntity.newOrganization(COMPONENT_LABEL_TIER_GATE_ORG_NAME + " Edit-" + TemporaryEntity.uuid());
+    tempEntity.newLabel(org.getId(), CREATE_COMPONENT_LABEL_NAME, null, Color.orange);
+
+    setMissingFeature(LicensedFeature.CUSTOM_COMPONENT_LABELS);
+
+    navigateToOrgSection(org, OwnerSummaryPage.OWNER_PILL_COMPONENT_LABELS);
+
+    ComponentLabelEditorPage editor = new ComponentLabelEditorPage();
+    editor.clickLabelInTile(CREATE_COMPONENT_LABEL_NAME);
+    playwrightWaitUntilUrlContains(ComponentLabelEditorPage.EDIT_LABEL_URL_FRAGMENT);
+
+    new ComponentLabelEditorPageAssertions(editor).shouldShowReadOnlyViewWithLabelName(CREATE_COMPONENT_LABEL_NAME);
+  }
+
   /**
    * Verify the full Create Component Label flow.
    * <p>
@@ -555,6 +624,53 @@ public class OrganizationRegressionPlaywrightTest
     editorAssertions.shouldNotHaveLocalComponentLabel(DELETE_COMPONENT_LABEL_NAME);
   }
 
+  /** Tier gate: under Enterprise license, Add-Threat-Group renders in normal (non-preview) mode. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testLicenseThreatGroupsTile_addButtonInEnterpriseMode() {
+    Organization org = tempEntity.newOrganization(LTG_TIER_GATE_ORG_NAME + "-enterprise-" + TemporaryEntity.uuid());
+
+    navigateAndWaitForUrl(OwnerSummaryPage.url(org.getId()), OwnerSummaryPage.ORG_URL_FRAGMENT);
+    playwrightRefresh();
+    assertions.shouldBeVisible();
+    ownerSummary.openOwnerSummarySectionFromNavPills(OwnerSummaryPage.OWNER_PILL_LICENSE_THREAT_GROUPS);
+
+    LicenseThreatGroupEditorPage editor = new LicenseThreatGroupEditorPage();
+    new LicenseThreatGroupEditorPageAssertions(editor).shouldShowAddThreatGroupButtonInEnterpriseMode();
+  }
+
+  /** Tier gate: under Pro license, Add-Threat-Group renders in preview mode (locked). */
+  @Test
+  @Category(RegressionTest.class)
+  public void testLicenseThreatGroupsTile_addButtonInPreviewModeUnderProLicense() {
+    Organization org = tempEntity.newOrganization(LTG_TIER_GATE_ORG_NAME + "-" + TemporaryEntity.uuid());
+
+    setMissingFeature(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS);
+
+    navigateToOrgSection(org, OwnerSummaryPage.OWNER_PILL_LICENSE_THREAT_GROUPS);
+
+    LicenseThreatGroupEditorPage editor = new LicenseThreatGroupEditorPage();
+    new LicenseThreatGroupEditorPageAssertions(editor).shouldShowAddThreatGroupButtonInPreviewMode();
+  }
+
+  /** Tier gate: under Pro license, the edit URL renders the read-only view (no form, no buttons). */
+  @Test
+  @Category(RegressionTest.class)
+  public void testLicenseThreatGroupEditor_readOnlyViewUnderProLicense() {
+    Organization org = tempEntity.newOrganization(LTG_TIER_GATE_ORG_NAME + " Edit-" + TemporaryEntity.uuid());
+    tempEntity.newLicenseThreatGroup(org.getId(), LTG_TIER_GATE_GROUP_NAME, 5);
+
+    setMissingFeature(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS);
+
+    navigateToOrgSection(org, OwnerSummaryPage.OWNER_PILL_LICENSE_THREAT_GROUPS);
+
+    LicenseThreatGroupEditorPage editor = new LicenseThreatGroupEditorPage();
+    editor.clickLtgRowInTile(LTG_TIER_GATE_GROUP_NAME);
+    playwrightWaitUntilUrlContains(LicenseThreatGroupEditorPage.EDIT_LTG_URL_FRAGMENT);
+
+    new LicenseThreatGroupEditorPageAssertions(editor).shouldShowReadOnlyViewWithGroupName(LTG_TIER_GATE_GROUP_NAME);
+  }
+
   /**
    * Verify the full Edit License Threat Group flow.
    * <p>
@@ -649,6 +765,54 @@ public class OrganizationRegressionPlaywrightTest
     navigateAndWaitForUrl(OwnerSummaryPage.url(org.getId()), OwnerSummaryPage.ORG_URL_FRAGMENT);
     ownerSummary.openOwnerSummarySectionFromNavPills(OwnerSummaryPage.OWNER_PILL_LICENSE_THREAT_GROUPS);
     editorAssertions.shouldNotHaveLocalThreatGroup(DELETE_LTG_GROUP_NAME);
+  }
+
+  /** Tier gate: under Enterprise license, Add-Category renders in normal (non-preview) mode. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationCategoriesTile_addCategoryButtonInEnterpriseMode() {
+    Organization org =
+        tempEntity.newOrganization(APP_CATEGORY_TIER_GATE_ORG_NAME + "-enterprise-" + TemporaryEntity.uuid());
+
+    navigateAndWaitForUrl(OwnerSummaryPage.url(org.getId()), OwnerSummaryPage.ORG_URL_FRAGMENT);
+    playwrightRefresh();
+    assertions.shouldBeVisible();
+    ownerSummary.openOwnerSummarySectionFromNavPills(OwnerSummaryPage.OWNER_PILL_APP_CATEGORIES);
+
+    ApplicationCategoryEditorPage editor = new ApplicationCategoryEditorPage();
+    new ApplicationCategoryEditorPageAssertions(editor).shouldShowAddCategoryButtonInEnterpriseMode();
+  }
+
+  /** Tier gate: under Pro license, Add-Category renders in preview mode (locked). */
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationCategoriesTile_addCategoryButtonInPreviewModeUnderProLicense() {
+    Organization org = tempEntity.newOrganization(APP_CATEGORY_TIER_GATE_ORG_NAME + "-" + TemporaryEntity.uuid());
+
+    setMissingFeature(LicensedFeature.CUSTOM_APPLICATION_CATEGORIES);
+
+    navigateToOrgSection(org, OwnerSummaryPage.OWNER_PILL_APP_CATEGORIES);
+
+    ApplicationCategoryEditorPage editor = new ApplicationCategoryEditorPage();
+    new ApplicationCategoryEditorPageAssertions(editor).shouldShowAddCategoryButtonInPreviewMode();
+  }
+
+  /** Tier gate: under Pro license, the edit URL renders the read-only view (no form, no buttons). */
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationCategoryEditor_readOnlyViewUnderProLicense() {
+    Organization org = tempEntity.newOrganization(APP_CATEGORY_TIER_GATE_ORG_NAME + " Edit-" + TemporaryEntity.uuid());
+    tempEntity.newTag(org.getId(), CREATE_CATEGORY_NAME, "Test description", Color.orange);
+
+    setMissingFeature(LicensedFeature.CUSTOM_APPLICATION_CATEGORIES);
+
+    navigateToOrgSection(org, OwnerSummaryPage.OWNER_PILL_APP_CATEGORIES);
+
+    ApplicationCategoryEditorPage editor = new ApplicationCategoryEditorPage();
+    editor.clickCategoryInTile(CREATE_CATEGORY_NAME);
+    playwrightWaitUntilUrlContains(ApplicationCategoryEditorPage.EDIT_CATEGORY_URL_FRAGMENT);
+
+    new ApplicationCategoryEditorPageAssertions(editor).shouldShowReadOnlyViewWithCategoryName(CREATE_CATEGORY_NAME);
   }
 
   /**

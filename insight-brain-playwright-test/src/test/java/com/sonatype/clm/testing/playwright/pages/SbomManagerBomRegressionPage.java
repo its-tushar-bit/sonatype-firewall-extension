@@ -102,6 +102,18 @@ public class SbomManagerBomRegressionPage
     return locator(".iq-original-bom-viewer");
   }
 
+  /** Search is debounced (~300 ms); callers rely on web-first waiting on the results count. */
+  public Locator originalBomSearchInput() {
+    return originalBomViewer().getByRole(AriaRole.TEXTBOX,
+        new Locator.GetByRoleOptions().setName("Search SBOM components and attributes"));
+  }
+
+  /** Visible only when search input is non-empty; renders "N result(s) found". */
+  public Locator originalBomSearchResultsCount() {
+    return originalBomViewer().getByRole(AriaRole.STATUS)
+        .filter(new Locator.FilterOptions().setHasText("found"));
+  }
+
   /**
    * The {@code
    *

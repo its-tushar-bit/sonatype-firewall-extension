@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -267,6 +268,29 @@ public class AddWaiverPlaywrightTest
     addWaiverPage.container().waitFor();
     addWaiverPage.allVersionsRadio().waitFor();
     new AddWaiverPageAssertions(addWaiverPage).shouldShowAllVersionsRadioDisabled();
+  }
+
+  /** Guards against accidentally adding a tier gate to manual waiver creation. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSubmit_createsWaiverUnderProLicense() {
+    setMissingFeature(LicensedFeature.AUTO_WAIVER_MANAGEMENT);
+    playwrightRefreshOrOpen(AddWaiverPage.url(primaryViolation.getId()));
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.container().waitFor();
+    addWaiverPage.selectScope(scopeAppLabel);
+    addWaiverPage.selectComponentRadio(0);
+    addWaiverPage.fillComment(DATA.comment());
+    addWaiverPage.submit();
+    playwrightWaitUntilUrlContains("/violation/");
+
+    playwrightRefreshOrOpen(ViolationDetailsPage.url(primaryViolation.getId()));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    new ViolationDetailsPageAssertions(violationDetailsPage).shouldBeVisible();
+    violationDetailsPage.applicableWaiversTab().click();
+    assertThat(violationDetailsPage.applicableWaiversTile()).containsText(DATA.policy1Name());
+    assertThat(violationDetailsPage.applicableWaiversTile()).containsText(DATA.comment());
   }
 
   private record Data(

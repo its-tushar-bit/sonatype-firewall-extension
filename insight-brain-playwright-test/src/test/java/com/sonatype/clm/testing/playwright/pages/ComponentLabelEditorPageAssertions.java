@@ -50,4 +50,16 @@ public class ComponentLabelEditorPageAssertions
   public void shouldShowDeleteModal() {
     assertThat(page.deleteModal()).isVisible();
   }
+
+  public void shouldShowAddLabelButtonInPreviewMode() {
+    TierGatedEditorAssertions.shouldShowAddButtonInPreviewMode(page, "Label");
+  }
+
+  public void shouldShowAddLabelButtonInEnterpriseMode() {
+    TierGatedEditorAssertions.shouldShowAddButtonInEnterpriseMode(page, "Label");
+  }
+
+  public void shouldShowReadOnlyViewWithLabelName(String expectedName) {
+    TierGatedEditorAssertions.shouldShowReadOnlyViewWithName(page, expectedName);
+  }
 }

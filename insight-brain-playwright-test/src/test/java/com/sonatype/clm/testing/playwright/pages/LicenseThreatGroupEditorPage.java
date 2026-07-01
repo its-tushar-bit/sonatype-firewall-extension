@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import java.util.regex.Pattern;
+
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.WaitForSelectorState;
@@ -23,6 +25,7 @@ import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
  */
 public class LicenseThreatGroupEditorPage
     extends BasePage
+    implements TierGatedEditorPage
 {
   /** URL fragment that identifies the create-LTG route. */
   public static final String CREATE_LTG_URL_FRAGMENT = "/licenseThreatGroup";
@@ -54,6 +57,12 @@ public class LicenseThreatGroupEditorPage
         .click();
   }
 
+  /** Add-a-Threat-Group tile button; name regex matches both Enterprise and Pro-preview text. */
+  public Locator addThreatGroupButton() {
+    return ltgTile().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName(Pattern.compile("^(Preview )?Add a Threat Group$")));
+  }
+
   /**
    * Clicks the "Add a Threat Group" button ({@code id="add-ltg-button"}) in the LTG tile.
    * Dispatches the Redux {@code goToCreateLTG} action, navigating the SPA to
@@ -61,7 +70,32 @@ public class LicenseThreatGroupEditorPage
    * interacting with the editor.
    */
   public void clickAddThreatGroupButton() {
-    ltgTile().locator("#add-ltg-button").click();
+    addThreatGroupButton().click();
+  }
+
+  public Locator readOnlyView() {
+    return page.getByTestId("license-threat-group-readonly-view");
+  }
+
+  public Locator readOnlyGroupName() {
+    return readOnlyView().getByTestId("ltg-name");
+  }
+
+  // --- TierGatedEditorPage ---
+
+  @Override
+  public Locator addEntityButton() {
+    return addThreatGroupButton();
+  }
+
+  @Override
+  public Locator readOnlyEntityView() {
+    return readOnlyView();
+  }
+
+  @Override
+  public Locator readOnlyEntityName() {
+    return readOnlyGroupName();
   }
 
   /**
@@ -132,6 +166,7 @@ public class LicenseThreatGroupEditorPage
    * The delete confirmation modal also contains a {@code .nx-form__submit-btn}; scoping to
    * the editor tile ID ensures this locator always resolves to exactly one element.
    */
+  @Override
   public Locator submitButton() {
     return locator("#license-threat-group-editor .nx-form__submit-btn");
   }
@@ -140,6 +175,7 @@ public class LicenseThreatGroupEditorPage
    * Delete button in the editor form footer ({@code id="delete-ltg-button"}).
    * Only present in edit mode ({@code ltgId} is set in the Redux state).
    */
+  @Override
   public Locator deleteButton() {
     return locator("#delete-ltg-button");
   }

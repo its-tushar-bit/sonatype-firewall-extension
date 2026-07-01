@@ -23,6 +23,7 @@ import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
  */
 public class ApplicationCategoryEditorPage
     extends BasePage
+    implements TierGatedEditorPage
 {
   /** URL fragment that identifies the create-category route. */
   public static final String CREATE_CATEGORY_URL_FRAGMENT = "/category";
@@ -51,13 +52,53 @@ public class ApplicationCategoryEditorPage
   }
 
   /**
+   * Tile action button. Three rendered texts: "Add a Category" (org view, Enterprise),
+   * "Preview Add a Category" (org view, Pro tier), "Assign a Category" (application view).
+   * Each state is a literal accessible-name match — no regex needed.
+   */
+  public Locator addCategoryButton() {
+    Locator enterprise = categoriesTile().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Add a Category").setExact(true));
+    Locator pro = categoriesTile().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Preview Add a Category").setExact(true));
+    Locator assign = categoriesTile().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Assign a Category").setExact(true));
+    return enterprise.or(pro).or(assign);
+  }
+
+  /**
    * Clicks the "Add a Category" button ({@code id="add-category-button"}) in the tile.
    * Dispatches the Redux {@code goToCreateCategory} action, navigating the SPA to
    * {@code …/category}. After calling this, wait for the URL to change before interacting
    * with the editor.
    */
   public void clickAddCategoryButton() {
-    categoriesTile().locator("#add-category-button").click();
+    addCategoryButton().click();
+  }
+
+  public Locator readOnlyView() {
+    return page.getByTestId("application-category-readonly-view");
+  }
+
+  public Locator readOnlyCategoryName() {
+    return readOnlyView().getByTestId("category-name");
+  }
+
+  // --- TierGatedEditorPage ---
+
+  @Override
+  public Locator addEntityButton() {
+    return addCategoryButton();
+  }
+
+  @Override
+  public Locator readOnlyEntityView() {
+    return readOnlyView();
+  }
+
+  @Override
+  public Locator readOnlyEntityName() {
+    return readOnlyCategoryName();
   }
 
   /**
@@ -110,6 +151,7 @@ public class ApplicationCategoryEditorPage
    * The delete confirmation modal also contains a {@code .nx-form__submit-btn}; scoping to
    * the form ID ensures this locator always resolves to exactly one element.
    */
+  @Override
   public Locator submitButton() {
     return locator("#create-edit-category .nx-form__submit-btn");
   }
@@ -119,6 +161,7 @@ public class ApplicationCategoryEditorPage
    * Only present in edit mode when {@code custom-application-categories} feature is enabled
    * ({@code categoryId && !isFeatureGated} condition in {@code CreateEditApplicationCategory.jsx}).
    */
+  @Override
   public Locator deleteButton() {
     return locator("#delete-category-button");
   }

@@ -9,16 +9,25 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.pages.DashboardPage;
+import com.sonatype.clm.testing.playwright.pages.GettingStartedPage;
+import com.sonatype.clm.testing.playwright.pages.GettingStartedPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.LdapPage;
 import com.sonatype.clm.testing.playwright.pages.LdapPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ProductLicensePage;
 import com.sonatype.clm.testing.playwright.pages.ProductLicensePageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.microsoft.playwright.assertions.PlaywrightAssertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,6 +49,10 @@ public class ProductLicenseAndLdapPlaywrightTest
 
   private ProductLicensePageAssertions licenseAssertions;
 
+  private GettingStartedPage gettingStartedPage;
+
+  private GettingStartedPageAssertions gettingStartedAssertions;
+
   private LdapPage ldapPage;
 
   private LdapPageAssertions ldapAssertions;
@@ -58,8 +71,25 @@ public class ProductLicenseAndLdapPlaywrightTest
 
     licensePage = new ProductLicensePage();
     licenseAssertions = new ProductLicensePageAssertions(licensePage);
+    gettingStartedPage = new GettingStartedPage();
+    gettingStartedAssertions = new GettingStartedPageAssertions(gettingStartedPage);
     ldapPage = new LdapPage();
     ldapAssertions = new LdapPageAssertions(ldapPage);
+  }
+
+  // Split into two independent @After methods so a failure in one does not suppress the other —
+  // JUnit 4 runs each @After regardless of the other's outcome.
+
+  @After
+  public void restoreLicenseState() {
+    // uninstallLicense() in any test leaks "no license" state into the shared JVM session,
+    // breaking subsequent license-gated assertions. installLicense() is idempotent.
+    installLicense();
+  }
+
+  @After
+  public void clearLifecycleTier() {
+    lookup(SystemConfigurationPropertyDAO.class).set(SystemConfigurationProperty.LIFECYCLE_TIER, null);
   }
 
   @Test
@@ -82,6 +112,115 @@ public class ProductLicenseAndLdapPlaywrightTest
     licenseAssertions.shouldShowEulaHeading();
     licenseAssertions.shouldShowEulaAcceptButton();
     licenseAssertions.shouldShowEulaDeclineButton();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testProductLicensePage_showsProTierForProLifecycleLicense() {
+    seedLifecycleTier("Pro");
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+
+    playwrightRefreshOrOpen(ProductLicensePage.url());
+    licenseAssertions.shouldShowLicenseTierWithText("Pro");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testProductLicensePage_showsEnterpriseTierForEnterpriseLifecycleLicense() {
+    seedLifecycleTier("Enterprise");
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+
+    playwrightRefreshOrOpen(ProductLicensePage.url());
+    licenseAssertions.shouldShowLicenseTierWithText("Enterprise");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testProductLicensePage_omitsTierRowForLegacyLifecycleLicense() {
+    // No LIFECYCLE_TIER set → productEdition is "Lifecycle" (legacy); the Tier row only
+    // renders for "Lifecycle Pro" / "Lifecycle Enterprise".
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+
+    playwrightRefreshOrOpen(ProductLicensePage.url());
+    licenseAssertions.shouldShowPageHeading();
+    licenseAssertions.shouldNotShowLicenseTier();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testFreshInstall_unlicensedDashboardShowsLicenseRequiredError() {
+    uninstallLicense();
+    playwrightRefreshOrOpen(DashboardPage.url());
+    // SPA's exact surface varies with bootstrap state — both regex branches handle it.
+    PlaywrightAssertions.assertThat(page.locator("body"))
+        .containsText(Pattern.compile("No valid product license installed|No product licenses to display"));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testFreshInstall_dismissingEulaModalKeepsServerUnlicensed() {
+    uninstallLicense();
+    playwrightRefreshOrOpen(ProductLicensePage.url());
+    licenseAssertions.shouldShowInstallButton();
+
+    licensePage.licenseFileInput().setInputFiles(createTempLicenseFile());
+    licenseAssertions.shouldShowEulaModal();
+
+    licensePage.eulaDeclineButton().click();
+    PlaywrightAssertions.assertThat(licensePage.eulaModal()).isHidden();
+    licenseAssertions.shouldShowInstallButton();
+  }
+
+  /**
+   * Diverges from manual row 7 ("no EULA modal appears"): the modal opens client-side
+   * regardless of file content; validation is server-side after Accept.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testFreshInstall_invalidLicenseFileShowsErrorAfterEulaAccept() {
+    uninstallLicense();
+    playwrightRefreshOrOpen(ProductLicensePage.url());
+
+    licensePage.licenseFileInput().setInputFiles(createTempLicenseFile());
+    licenseAssertions.shouldShowEulaModal();
+    licensePage.eulaAcceptButton().click();
+
+    PlaywrightAssertions.assertThat(licensePage.eulaModal()).isHidden();
+    licenseAssertions.shouldShowInstallError();
+    licenseAssertions.shouldShowInstallButton();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testGettingStartedPage_rendersAllAlwaysPresentSections() {
+    playwrightRefreshOrOpen(GettingStartedPage.url());
+    gettingStartedAssertions.shouldShowAllAlwaysPresentSections();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testGettingStartedPage_productLicenseSummaryTileShowsLicenseDetails() {
+    playwrightRefreshOrOpen(GettingStartedPage.url());
+    gettingStartedAssertions.shouldShowProductLicenseSummaryTile();
+    gettingStartedAssertions.shouldShowLicenseSummaryDetails();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testProductLicensePage_uninstallReturnsToUnlicensedState() {
+    playwrightRefreshOrOpen(ProductLicensePage.url());
+    licensePage.uninstallLicenseButton().click();
+    licensePage.uninstallConfirmSubmitButton().click();
+
+    licenseAssertions.shouldShowInstallButton();
+
+    playwrightRefreshOrOpen(DashboardPage.url());
+    PlaywrightAssertions.assertThat(page.locator("body"))
+        .containsText(Pattern.compile("No valid product license installed|No product licenses to display"));
+  }
+
+  private void seedLifecycleTier(String tier) {
+    lookup(SystemConfigurationPropertyDAO.class).set(SystemConfigurationProperty.LIFECYCLE_TIER, tier);
   }
 
   private Path createTempLicenseFile() {

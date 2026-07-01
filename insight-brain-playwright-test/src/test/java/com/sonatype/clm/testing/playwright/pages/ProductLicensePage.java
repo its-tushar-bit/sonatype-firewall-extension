@@ -75,4 +75,26 @@ public class ProductLicensePage
     return eulaModal().getByRole(AriaRole.BUTTON,
         new Locator.GetByRoleOptions().setName("I Decline"));
   }
+
+  /** Install-error alert scoped to the product-license footer (avoids unrelated page-level alerts). */
+  // TODO: switch to data-testid when frontend team adds one (CLM-XXXXX); CSS-module rename breaks this silently.
+  public Locator installError() {
+    return locator("[class*='iq-product-license-details-footer']").getByRole(AriaRole.ALERT);
+  }
+
+  public Locator uninstallLicenseButton() {
+    return page.getByRole(AriaRole.BUTTON,
+        new Page.GetByRoleOptions().setName("Uninstall License"));
+  }
+
+  /** Dialog has no aria-labelledby, so filter by heading text to disambiguate from the EULA dialog. */
+  public Locator uninstallConfirmModal() {
+    return byRole(AriaRole.DIALOG)
+        .filter(new Locator.FilterOptions().setHasText("Uninstall License"));
+  }
+
+  public Locator uninstallConfirmSubmitButton() {
+    return uninstallConfirmModal().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Uninstall"));
+  }
 }

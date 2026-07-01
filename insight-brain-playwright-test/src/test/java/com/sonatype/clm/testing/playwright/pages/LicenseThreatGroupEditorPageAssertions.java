@@ -58,4 +58,16 @@ public class LicenseThreatGroupEditorPageAssertions
   public void shouldNotHaveLocalThreatGroup(String groupName) {
     assertThat(page.ltgCellInTile(groupName)).isHidden();
   }
+
+  public void shouldShowAddThreatGroupButtonInPreviewMode() {
+    TierGatedEditorAssertions.shouldShowAddButtonInPreviewMode(page, "Threat Group");
+  }
+
+  public void shouldShowAddThreatGroupButtonInEnterpriseMode() {
+    TierGatedEditorAssertions.shouldShowAddButtonInEnterpriseMode(page, "Threat Group");
+  }
+
+  public void shouldShowReadOnlyViewWithGroupName(String expectedName) {
+    TierGatedEditorAssertions.shouldShowReadOnlyViewWithName(page, expectedName);
+  }
 }

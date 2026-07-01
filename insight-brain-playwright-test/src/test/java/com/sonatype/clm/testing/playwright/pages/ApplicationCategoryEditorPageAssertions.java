@@ -63,4 +63,16 @@ public class ApplicationCategoryEditorPageAssertions
   public void shouldNotHaveLocalCategory(String categoryName) {
     assertThat(page.categoryLocalListItem(categoryName)).isHidden();
   }
+
+  public void shouldShowAddCategoryButtonInPreviewMode() {
+    TierGatedEditorAssertions.shouldShowAddButtonInPreviewMode(page, "Category");
+  }
+
+  public void shouldShowAddCategoryButtonInEnterpriseMode() {
+    TierGatedEditorAssertions.shouldShowAddButtonInEnterpriseMode(page, "Category");
+  }
+
+  public void shouldShowReadOnlyViewWithCategoryName(String expectedName) {
+    TierGatedEditorAssertions.shouldShowReadOnlyViewWithName(page, expectedName);
+  }
 }

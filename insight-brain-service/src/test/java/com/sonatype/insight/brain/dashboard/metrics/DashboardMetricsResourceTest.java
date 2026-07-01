@@ -51,6 +51,8 @@ public class DashboardMetricsResourceTest
     DashboardMetricsDTO metrics = response.getBody(DashboardMetricsDTO.class);
     assertThat(metrics.applications.total).isGreaterThanOrEqualTo(1);
     assertThat(metrics.applications.source).isEqualTo("index");
+    assertThat(metrics.violations).isNotNull();
+    assertThat(metrics.violations.source).isEqualTo("index");
   }
 
   @Test

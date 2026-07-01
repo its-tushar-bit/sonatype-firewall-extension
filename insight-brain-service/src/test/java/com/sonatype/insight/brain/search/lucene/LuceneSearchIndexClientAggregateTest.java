@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import jakarta.inject.Inject;
 import org.junit.Before;
@@ -187,6 +188,110 @@ public class LuceneSearchIndexClientAggregateTest
 
     assertThat(result.total).isEqualTo(4);
     assertThat(result.buckets).containsEntry("critical", 2L);
+  }
+
+  @Test
+  public void testAggregateCountByField_PolicyViolationAllThreatLevelBandsInSingleReader() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation =
+        newAppReport(app.getId(), Stage.ID_BUILD, "aggAllBandsReport", "/IndexSearchingTest/policyViolationReport");
+
+    Policy pCrit = tempEntity.newPolicy(org.getId(), "Security - Critical");
+    Policy pSev = tempEntity.newPolicy(org.getId(), "Security - Severe");
+    Policy pMod = tempEntity.newPolicy(org.getId(), "Legal - Moderate");
+    Policy pLow = tempEntity.newPolicy(org.getId(), "Quality - Low");
+
+    tempEntity.newPolicyViolation(evaluation, pCrit, 10, PolicyThreatCategory.SECURITY,
+        "com.crit", "crit10", "1.0", "hashCrit10000000000");
+    tempEntity.newPolicyViolation(evaluation, pCrit, 8, PolicyThreatCategory.SECURITY,
+        "com.crit", "crit8", "1.0", "hashCrit800000000000");
+    tempEntity.newPolicyViolation(evaluation, pSev, 5, PolicyThreatCategory.SECURITY,
+        "com.sev", "sev", "1.0", "hashSev000000000000");
+    tempEntity.newPolicyViolation(evaluation, pMod, 3, PolicyThreatCategory.LICENSE,
+        "com.mod", "mod", "1.0", "hashMod000000000000");
+    tempEntity.newPolicyViolation(evaluation, pLow, 1, PolicyThreatCategory.QUALITY,
+        "com.low", "low", "1.0", "hashLow000000000000");
+
+    luceneSearchIndexClient.populateIndex();
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByField(
+        "itemType:" + ItemType.POLICY_VIOLATION.searchFieldName(),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    assertThat(result.total).isEqualTo(5);
+    assertThat(result.buckets.keySet()).containsExactlyElementsOf(ThreatLevel.searchAggregationBands().keySet());
+    assertThat(result.buckets).containsEntry("critical", 2L);
+    assertThat(result.buckets).containsEntry("severe", 1L);
+    assertThat(result.buckets).containsEntry("moderate", 1L);
+    assertThat(result.buckets).containsEntry("low", 1L);
+  }
+
+  @Test
+  public void testAggregateCountByField_PolicyViolationEmptyResult() throws Exception {
+    luceneSearchIndexClient.populateIndex();
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByField(
+        "itemType:" + ItemType.POLICY_VIOLATION.searchFieldName(),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    assertThat(result.total).isZero();
+    assertThat(result.buckets.keySet()).containsExactlyElementsOf(ThreatLevel.searchAggregationBands().keySet());
+    assertThat(result.buckets.values()).containsOnly(0L);
+  }
+
+  @Test
+  public void testAggregateCountByField_PolicyViolationPartialBands() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation =
+        newAppReport(app.getId(), Stage.ID_BUILD, "aggPartialBandsReport", "/IndexSearchingTest/policyViolationReport");
+
+    Policy pCrit = tempEntity.newPolicy(org.getId(), "Security - Critical");
+    Policy pLow = tempEntity.newPolicy(org.getId(), "Quality - Low");
+
+    tempEntity.newPolicyViolation(evaluation, pCrit, 10, PolicyThreatCategory.SECURITY,
+        "com.crit", "crit", "1.0", "hashCrit00000000000");
+    tempEntity.newPolicyViolation(evaluation, pLow, 0, PolicyThreatCategory.QUALITY,
+        "com.low", "low", "1.0", "hashLow000000000000");
+
+    luceneSearchIndexClient.populateIndex();
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByField(
+        "itemType:" + ItemType.POLICY_VIOLATION.searchFieldName(),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    assertThat(result.total).isEqualTo(2);
+    assertThat(result.buckets).containsEntry("critical", 1L);
+    assertThat(result.buckets).containsEntry("low", 1L);
+    assertThat(result.buckets).containsEntry("moderate", 0L);
+    assertThat(result.buckets).containsEntry("severe", 0L);
+  }
+
+  @Test
+  public void testAggregateCountByField_PolicyViolationOutOfRangeThreatLevelIncludedInTotal() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation =
+        newAppReport(app.getId(), Stage.ID_BUILD, "aggOutOfRangeReport", "/IndexSearchingTest/policyViolationReport");
+
+    Policy policy = tempEntity.newPolicy(org.getId(), "Security - Critical");
+    tempEntity.newPolicyViolation(evaluation, policy, 15, PolicyThreatCategory.SECURITY,
+        "com.crit", "crit", "1.0", "hCritOutOfRange15");
+
+    luceneSearchIndexClient.populateIndex();
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByField(
+        "itemType:" + ItemType.POLICY_VIOLATION.searchFieldName(),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    assertThat(result.total).isEqualTo(1);
+    assertThat(result.buckets).containsEntry("critical", 1L);
+    assertThat(result.buckets.values().stream().mapToLong(Long::longValue).sum()).isEqualTo(result.total);
   }
 
   @Test

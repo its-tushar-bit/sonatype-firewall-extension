@@ -371,7 +371,8 @@ public class LuceneSearchIndexClient
   @Override
   public long count(final String metricQuery) {
     // Opens its own Directory/IndexReader per call. Sharing a reader with
-    // aggregateCountByField is tracked for CLM-40927 follow-up (Violations metric PR).
+    // aggregateCountByField is unnecessary — aggregateCountByField already reuses one reader
+    // for the total and all bucket counts in a single request.
     updateMaxQueryClauseCount();
 
     try (Directory directory = openSearchIndex();

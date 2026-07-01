@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -14,19 +15,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
+import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
@@ -70,6 +77,126 @@ public class DashboardMetricsServiceTest
     DashboardMetricsTestSupport.resetTenantExecutor(lookup(DocumentBuilderHelper.class), "evalExecutors");
     DashboardMetricsTestSupport.resetTenantExecutor(lookup(DocumentBuilderHelper.class), "componentExecutors");
     DashboardMetricsTestSupport.clearDashboardMetricsCache(dashboardMetricsService);
+  }
+
+  @Test
+  public void testGetMetrics_ViolationsCountAndBreakdownFromIndex() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "violationsMetricsReport");
+    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+        ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
+
+    Policy pCrit = tempEntity.newPolicy(org.getId(), "Security - Critical");
+    Policy pSev = tempEntity.newPolicy(org.getId(), "Security - Severe");
+    Policy pMod = tempEntity.newPolicy(org.getId(), "Legal - Moderate");
+    Policy pLow = tempEntity.newPolicy(org.getId(), "Quality - Low");
+
+    tempEntity.newPolicyViolation(evaluation, pCrit, 10, PolicyThreatCategory.SECURITY,
+        "com.crit", "crit10", "1.0", "hashCrit10000000000");
+    tempEntity.newPolicyViolation(evaluation, pCrit, 8, PolicyThreatCategory.SECURITY,
+        "com.crit", "crit8", "1.0", "hashCrit800000000000");
+    tempEntity.newPolicyViolation(evaluation, pSev, 5, PolicyThreatCategory.SECURITY,
+        "com.sev", "sev", "1.0", "hashSev000000000000");
+    tempEntity.newPolicyViolation(evaluation, pMod, 3, PolicyThreatCategory.LICENSE,
+        "com.mod", "mod", "1.0", "hashMod000000000000");
+    tempEntity.newPolicyViolation(evaluation, pLow, 1, PolicyThreatCategory.QUALITY,
+        "com.low", "low1", "1.0", "hashLow1000000000000");
+
+    User reader = tempEntity.newUser("metrics-violations-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.organizationIds = Set.of(org.getId());
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(request);
+
+    assertThat(metrics.violations.total).isEqualTo(5);
+    assertThat(metrics.violations.source).isEqualTo("index");
+    assertThat(metrics.violations.breakdown).containsEntry("critical", 2L);
+    assertThat(metrics.violations.breakdown).containsEntry("severe", 1L);
+    assertThat(metrics.violations.breakdown).containsEntry("moderate", 1L);
+    assertThat(metrics.violations.breakdown).containsEntry("low", 1L);
+  }
+
+  @Test
+  public void testGetMetrics_ViolationsOrganizationFilterHierarchyInclusive() throws Exception {
+    Organization parentOrg = tempEntity.newOrganization("violations-parent-org");
+    Organization childOrg = tempEntity.newOrganization("violations-child-org", parentOrg);
+    Organization siblingOrg = tempEntity.newOrganization("violations-sibling-org");
+
+    Application childApp = tempEntity.newApplication(childOrg.getId());
+    Application siblingApp = tempEntity.newApplication(siblingOrg.getId());
+
+    seedPolicyViolation(childOrg, childApp, "childViolationReport", 10);
+    seedPolicyViolation(childOrg, childApp, "childViolationReport2", 5);
+    seedPolicyViolation(siblingOrg, siblingApp, "siblingViolationReport", 8);
+
+    User reader = tempEntity.newUser("violations-hierarchy-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsRequestDTO filterByChild = new DashboardMetricsRequestDTO();
+    filterByChild.organizationIds = Set.of(childOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterByChild).violations.total).isEqualTo(2);
+
+    DashboardMetricsRequestDTO filterByParent = new DashboardMetricsRequestDTO();
+    filterByParent.organizationIds = Set.of(parentOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterByParent).violations.total).isEqualTo(2);
+
+    DashboardMetricsRequestDTO filterBySibling = new DashboardMetricsRequestDTO();
+    filterBySibling.organizationIds = Set.of(siblingOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterBySibling).violations.total).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetMetrics_ViolationsBreakdownSumMatchesTotalForOutOfRangeThreatLevel() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    seedPolicyViolation(org, app, "outOfRangeViolationReport", 15);
+
+    User reader = tempEntity.newUser("violations-out-of-range-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertThat(metrics.violations.total).isEqualTo(1);
+    assertThat(metrics.violations.breakdown).containsEntry("critical", 1L);
+    assertThat(metrics.violations.breakdown.values().stream().mapToLong(Long::longValue).sum())
+        .isEqualTo(metrics.violations.total);
+  }
+
+  @Test
+  public void testGetMetrics_ViolationsFailsClosed_UserWithNoReadContexts() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    seedPolicyViolation(org, app, "noPermViolationReport", 10);
+
+    User userWithNoPermissions = tempEntity.newUser("violations-no-permissions");
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(userWithNoPermissions);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertThat(metrics.violations.total).isZero();
+    assertThat(metrics.violations.source).isEqualTo("index");
+    assertThat(metrics.violations.breakdown).containsEntry("critical", 0L);
+    assertThat(metrics.violations.breakdown).containsEntry("severe", 0L);
+    assertThat(metrics.violations.breakdown).containsEntry("moderate", 0L);
+    assertThat(metrics.violations.breakdown).containsEntry("low", 0L);
   }
 
   @Test
@@ -135,13 +262,9 @@ public class DashboardMetricsServiceTest
   @Test
   public void testGetMetrics_OrganizationFilterRejectsOversizedExpansion() {
     OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    List<Organization> expandedOrgs = new java.util.ArrayList<>();
-    for (int i = 0; i < 6; i++) {
-      Organization org = mock(Organization.class);
-      when(org.getId()).thenReturn("expanded-org-" + i);
-      expandedOrgs.add(org);
-    }
-    when(organizationDAO.getAllChildOrganizations("big-org")).thenReturn(expandedOrgs);
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("big-org")))
+        .thenReturn(Set.of("expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4",
+            "expanded-org-5"));
 
     Configuration configuration = mock(Configuration.class);
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(5);
@@ -169,13 +292,8 @@ public class DashboardMetricsServiceTest
   @Test
   public void testGetMetrics_OrganizationFilterAcceptsExpansionAtMaxClauseCount() {
     OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
-    List<Organization> expandedOrgs = new java.util.ArrayList<>();
-    for (int i = 0; i < 5; i++) {
-      Organization org = mock(Organization.class);
-      when(org.getId()).thenReturn("expanded-org-" + i);
-      expandedOrgs.add(org);
-    }
-    when(organizationDAO.getAllChildOrganizations("max-org")).thenReturn(expandedOrgs);
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("max-org")))
+        .thenReturn(Set.of("expanded-org-0", "expanded-org-1", "expanded-org-2", "expanded-org-3", "expanded-org-4"));
 
     Configuration configuration = mock(Configuration.class);
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(5);
@@ -186,6 +304,7 @@ public class DashboardMetricsServiceTest
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.count(anyString())).thenReturn(1L);
+    stubEmptyViolationsAggregation(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     DashboardMetricsService service =
@@ -200,6 +319,39 @@ public class DashboardMetricsServiceTest
     request.organizationIds = Set.of("max-org");
 
     assertThat(service.getMetrics(request).applications.total).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetMetrics_OrganizationExpansionComputedOncePerRequest() {
+    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("parent-org")))
+        .thenReturn(Set.of("child-org"));
+
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    stubEmptyViolationsAggregation(searchIndexClient);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
+
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
+
+    DashboardMetricsService service =
+        new DashboardMetricsService(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            organizationDAO,
+            configuration,
+            currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.organizationIds = Set.of("parent-org");
+    service.getMetrics(request);
+
+    verify(organizationDAO, times(1)).getAllChildOrganizationIds(Set.of("parent-org"));
   }
 
   @Test
@@ -223,6 +375,8 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.applications.total).isEqualTo(3);
     assertThat(metrics.applications.source).isEqualTo("index");
     assertThat(metrics.applications.breakdown).isNull();
+    assertThat(metrics.violations).isNotNull();
+    assertThat(metrics.violations.source).isEqualTo("index");
     assertThat(metrics.lastUpdatedAt).isNotNull();
   }
 
@@ -266,6 +420,7 @@ public class DashboardMetricsServiceTest
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("cache-test-user", "cache-test-user", User.INTERNAL_REALM_ID));
     when(searchIndexClient.count(anyString())).thenReturn(7L);
+    stubEmptyViolationsAggregation(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(99_000L);
 
     DashboardMetricsService service =
@@ -283,6 +438,7 @@ public class DashboardMetricsServiceTest
     assertThat(first.applications.total).isEqualTo(7);
     assertThat(second.applications.total).isEqualTo(7);
     verify(searchIndexClient, times(1)).count(anyString());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
 
@@ -290,6 +446,7 @@ public class DashboardMetricsServiceTest
   public void testGetMetrics_CacheKeyDifferentiatesNullRealmFromExplicitRealm() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.count(anyString())).thenReturn(3L, 11L);
+    stubEmptyViolationsAggregation(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     UserPrincipal nullRealmPrincipal = new UserPrincipal("shared-user", "shared-user", null);
@@ -317,12 +474,14 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
 
     verify(searchIndexClient, times(2)).count(anyString());
+    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
   @Test
   public void testGetMetrics_CacheKeyDifferentiatesSameUsernameDifferentRealm() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.count(anyString())).thenReturn(5L, 9L);
+    stubEmptyViolationsAggregation(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     UserPrincipal internalPrincipal =
@@ -351,6 +510,7 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
 
     verify(searchIndexClient, times(2)).count(anyString());
+    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
   @Test
@@ -360,6 +520,7 @@ public class DashboardMetricsServiceTest
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
     when(searchIndexClient.count(anyString())).thenReturn(2L);
+    stubEmptyViolationsAggregation(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     DashboardMetricsService service =
@@ -380,6 +541,31 @@ public class DashboardMetricsServiceTest
     service.getMetrics(requestB);
 
     verify(searchIndexClient, times(1)).count(anyString());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
+  }
+
+  private static void stubEmptyViolationsAggregation(SearchIndexClient searchIndexClient) {
+    when(searchIndexClient.aggregateCountByField(anyString(), anyString(), any())).thenReturn(
+        new MetricAggregationResult(0L, Map.of("critical", 0L, "severe", 0L, "moderate", 0L, "low", 0L)));
+  }
+
+  private void seedPolicyViolation(
+      Organization org,
+      Application app,
+      String scanId,
+      int threatLevel) throws Exception
+  {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+        ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
+    Policy policy = tempEntity.newPolicy(org.getId(), "Security - Critical " + scanId);
+    tempEntity.newPolicyViolation(evaluation, policy, threatLevel, PolicyThreatCategory.SECURITY,
+        "com.example", "artifact", "1.0", violationComponentHash(scanId));
+  }
+
+  private static String violationComponentHash(String scanId) {
+    String hash = "h" + Integer.toHexString(scanId.hashCode());
+    return hash.length() <= 20 ? hash : hash.substring(0, 20);
   }
 
   private static void assertIndexSourcedMetric(DashboardMetricsDTO metrics) {

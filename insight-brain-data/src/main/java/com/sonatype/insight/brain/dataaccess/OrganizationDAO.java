@@ -556,6 +556,29 @@ public class OrganizationDAO
     }
   }
 
+  /**
+   * Returns distinct organization ids for all descendants of any of the specified ancestor ids.
+   */
+  public Set<String> getAllChildOrganizationIds(Collection<String> ownerIds) {
+    if (ownerIds == null || ownerIds.isEmpty()) {
+      return Set.of();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAllChildOrganizationIds(tx, ownerIds);
+    }
+  }
+
+  public Set<String> getAllChildOrganizationIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (ownerIds == null || ownerIds.isEmpty()) {
+      return Set.of();
+    }
+    return Set.copyOf(tx.dsl()
+        .selectDistinct(ORGANIZATION_ANCESTOR.ORGANIZATION_ID)
+        .from(ORGANIZATION_ANCESTOR)
+        .where(ORGANIZATION_ANCESTOR.ANCESTOR_ID.in(ownerIds))
+        .fetch(ORGANIZATION_ANCESTOR.ORGANIZATION_ID));
+  }
+
   private void insertOrganizationAncestors(TransactionContext tx, Organization org) {
     String orgId = org.getId();
     int i = 0;

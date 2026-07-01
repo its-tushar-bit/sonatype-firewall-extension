@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.dashboard.metrics;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -20,11 +20,14 @@ import jakarta.ws.rs.BadRequestException;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
+import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -35,6 +38,8 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 public class DashboardMetricsService
 {
   static final String METRIC_SOURCE_INDEX = "index";
+
+  static final Map<String, int[]> VIOLATIONS_THREAT_LEVEL_BANDS = ThreatLevel.searchAggregationBands();
 
   /**
    * Sentinel org id for a filter that must match zero APPLICATION docs. Valid under
@@ -83,7 +88,8 @@ public class DashboardMetricsService
    * Returns RBAC-scoped dashboard metrics, optionally narrowed by request filters.
    * <p>
    * Request-supplied {@code organizationIds}/{@code applicationIds} cannot widen the caller's
-   * readable scope: {@link SearchIndexClient#count} always ANDs the user's allowed contexts with
+   * readable scope: {@link SearchIndexClient#count} and
+   * {@link SearchIndexClient#aggregateCountByField} always AND the user's allowed contexts with
    * the server-built metric query, so ids the caller cannot read match zero documents rather than
    * leaking foreign counts.
    */
@@ -102,35 +108,60 @@ public class DashboardMetricsService
     }
   }
 
+  /**
+   * Loads each metric independently against the search index. {@code count} and
+   * {@code aggregateCountByField} each open their own reader/snapshot today, so applications and
+   * violations are not guaranteed to come from the same point-in-time view (acceptable behind the
+   * 5s coalescing cache). A batched {@link SearchIndexClient} entry point (e.g. OpenSearch
+   * multi-search) is planned when additional KPIs land.
+   */
   private DashboardMetricsDTO loadMetrics(DashboardMetricsRequestDTO request) {
-    String metricQuery = buildApplicationsMetricQuery(request);
-    long applications = searchIndexClient.count(metricQuery);
+    MetricFilterContext filterContext = buildMetricFilterContext(request);
+
+    long applications = searchIndexClient.count(
+        buildFilteredMetricQuery(ItemType.APPLICATION, filterContext));
+
+    MetricAggregationResult violationsAggregation = searchIndexClient.aggregateCountByField(
+        buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        VIOLATIONS_THREAT_LEVEL_BANDS);
     Long lastUpdatedAt = searchIndexClient.getLastIndexTime();
 
     MetricValueDTO applicationsMetric = new MetricValueDTO(applications, null, METRIC_SOURCE_INDEX);
-    return new DashboardMetricsDTO(applicationsMetric, lastUpdatedAt);
+    MetricValueDTO violationsMetric = new MetricValueDTO(
+        violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
+    return new DashboardMetricsDTO(applicationsMetric, violationsMetric, lastUpdatedAt);
+  }
+
+  private MetricFilterContext buildMetricFilterContext(DashboardMetricsRequestDTO request) {
+    return new MetricFilterContext(
+        buildOrganizationFilterClause(request.organizationIds),
+        buildApplicationFilterClause(request.applicationIds));
   }
 
   /**
-   * Builds the applications metric query. RBAC scopes to the user's readable contexts inside
-   * {@link SearchIndexClient#count}.
+   * Builds a metric query for the given item type. RBAC scopes to the user's readable contexts inside
+   * {@link SearchIndexClient#count} / {@link SearchIndexClient#aggregateCountByField}.
    * <p>
    * APPLICATION index documents store only the <em>direct</em> owning org in
    * {@code parentOrganizationId} (see {@code DocumentBuilder#setOwner}) — they are not
-   * ancestor-denormalized. Hierarchy-inclusive org filtering therefore depends on expanding each
-   * requested org to its descendant ids via {@link OrganizationDAO#getAllChildOrganizations}
-   * before matching on {@code organizationId} (rewritten to {@code parentOrganizationId} at query
-   * time). No index schema change or re-index is required.
+   * ancestor-denormalized today. Hierarchy-inclusive org filtering therefore expands requested org
+   * ids to descendant ids via {@link OrganizationDAO#getAllChildOrganizationIds} before matching on
+   * {@code organizationId} (rewritten to {@code parentOrganizationId} at query time). Index
+   * ancestor denormalization is tracked separately; this path remains until that data is complete.
+   * <p>
+   * POLICY_VIOLATION documents carry {@code organizationId}, {@code parentOrganizationId}, and
+   * {@code applicationId}, so the same filter clauses narrow violations consistently with applications.
    * <p>
    * When both {@code organizationIds} and {@code applicationIds} are present, the dimension
    * clauses are combined with {@code OR}, matching Classic dashboard resolution in
    * {@link com.sonatype.insight.brain.organization.ApplicationService#getAppsByIds} (union of
    * apps in selected org subtrees plus explicitly selected apps).
    */
-  private String buildApplicationsMetricQuery(DashboardMetricsRequestDTO request) {
-    String baseQuery = "itemType:" + ItemType.APPLICATION.searchFieldName();
-    String organizationClause = buildOrganizationFilterClause(request.organizationIds);
-    String applicationClause = buildApplicationFilterClause(request.applicationIds);
+  private static String buildFilteredMetricQuery(ItemType itemType, MetricFilterContext filterContext) {
+    String baseQuery = "itemType:" + itemType.searchFieldName();
+    String organizationClause = filterContext.organizationClause();
+    String applicationClause = filterContext.applicationClause();
 
     if (organizationClause == null && applicationClause == null) {
       return baseQuery;
@@ -153,12 +184,7 @@ public class DashboardMetricsService
     if (organizationIds.contains(Organization.ROOT_ORGANIZATION_ID)) {
       return null;
     }
-    Set<String> expandedOrgIds = new HashSet<>();
-    for (String organizationId : organizationIds) {
-      for (Organization organization : organizationDAO.getAllChildOrganizations(organizationId)) {
-        expandedOrgIds.add(organization.getId());
-      }
-    }
+    Set<String> expandedOrgIds = organizationDAO.getAllChildOrganizationIds(organizationIds);
     if (expandedOrgIds.isEmpty()) {
       return "organizationId:(" + NO_MATCH_ORGANIZATION_FILTER_ID + ")";
     }
@@ -193,5 +219,9 @@ public class DashboardMetricsService
       return List.of();
     }
     return ids.stream().sorted().toList();
+  }
+
+  private record MetricFilterContext(String organizationClause, String applicationClause)
+  {
   }
 }

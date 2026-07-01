@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,6 +67,12 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.HitsMetadata;
+import org.opensearch.client.opensearch.core.search.TotalHits;
+import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
+import org.opensearch.client.opensearch._types.aggregations.Aggregate;
+import org.opensearch.client.opensearch._types.aggregations.Buckets;
+import org.opensearch.client.opensearch._types.aggregations.RangeAggregate;
+import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
 
 /**
  * No-cluster unit tests for the security-critical metric query / RBAC construction in
@@ -313,6 +320,63 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     assertThat(band).isNotNull();
     // (long) MAX_VALUE + 1 must not overflow to a negative value.
     assertThat(band.path("to").asText()).isEqualTo("2147483648");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAggregateCountByField_AllThreatLevelBandsFromResponse() throws Exception {
+    grantGlobalAccess();
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    HitsMetadata<Map> hits = mock(HitsMetadata.class);
+    when(response.hits()).thenReturn(hits);
+    when(hits.total()).thenReturn(TotalHits.of(t -> t.value(5).relation(TotalHitsRelation.Eq)));
+
+    RangeBucket criticalBucket = mock(RangeBucket.class);
+    when(criticalBucket.key()).thenReturn("critical");
+    when(criticalBucket.docCount()).thenReturn(2L);
+    RangeBucket severeBucket = mock(RangeBucket.class);
+    when(severeBucket.key()).thenReturn("severe");
+    when(severeBucket.docCount()).thenReturn(1L);
+    RangeBucket moderateBucket = mock(RangeBucket.class);
+    when(moderateBucket.key()).thenReturn("moderate");
+    when(moderateBucket.docCount()).thenReturn(1L);
+    RangeBucket lowBucket = mock(RangeBucket.class);
+    when(lowBucket.key()).thenReturn("low");
+    when(lowBucket.docCount()).thenReturn(1L);
+
+    Buckets<RangeBucket> rangeBuckets = mock(Buckets.class);
+    when(rangeBuckets.array()).thenReturn(List.of(criticalBucket, severeBucket, moderateBucket, lowBucket));
+
+    RangeAggregate rangeAggregate = mock(RangeAggregate.class);
+    when(rangeAggregate.buckets()).thenReturn(rangeBuckets);
+
+    Aggregate aggregate = mock(Aggregate.class);
+    when(aggregate.isRange()).thenReturn(true);
+    when(aggregate.range()).thenReturn(rangeAggregate);
+
+    when(response.aggregations()).thenReturn(Map.of("metricBuckets", aggregate));
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    MetricAggregationResult result = client.aggregateCountByField(
+        "itemType:" + ItemType.POLICY_VIOLATION.name(),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    assertThat(result.total).isEqualTo(5);
+    assertThat(result.buckets.keySet()).containsExactlyElementsOf(ThreatLevel.searchAggregationBands().keySet());
+    assertThat(result.buckets).containsEntry("critical", 2L);
+    assertThat(result.buckets).containsEntry("severe", 1L);
+    assertThat(result.buckets).containsEntry("moderate", 1L);
+    assertThat(result.buckets).containsEntry("low", 1L);
+    assertThat(result.buckets.values().stream().mapToLong(Long::longValue).sum()).isEqualTo(result.total);
+
+    JsonNode root = toJsonTree(captor.getValue());
+    JsonNode aggs = root.has("aggregations") ? root.path("aggregations") : root.path("aggs");
+    JsonNode ranges = aggs.path("metricBuckets").path("range").path("ranges");
+    assertThat(ranges).hasSize(4);
   }
 
   private static Map<String, List<String>> collectTerms(JsonNode shouldArray) {

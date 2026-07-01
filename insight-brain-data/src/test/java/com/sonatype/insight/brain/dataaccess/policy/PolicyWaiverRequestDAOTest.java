@@ -532,6 +532,48 @@ public class PolicyWaiverRequestDAOTest
   }
 
   @Test
+  public void testDeleteIfStatusEquals_StatusMatches_DeletesAndReturnsTrue() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiverRequest req = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
+        .setPolicyId(policy.getId())
+        .setOwnerId(application.getId())
+        .setPolicyViolationId("policyViolationId")
+        .setStatus(REQUESTED));
+
+    assertThat(dao.deleteIfStatusEquals(req.getId(), REQUESTED)).isTrue();
+    assertThat(dao.getById(req.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteIfStatusEquals_StatusMismatch_ReturnsFalseAndPreservesRow() {
+    // Closes the TOCTOU window in ApiPolicyWaiverRequestService.withdrawPolicyWaiverRequest:
+    // if a concurrent reviewer transitions REQUESTED -> APPROVED between the service's
+    // status check and the delete, the row must NOT be removed (otherwise the just-created
+    // PolicyWaiver would point at nothing).
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiverRequest req = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
+        .setPolicyId(policy.getId())
+        .setOwnerId(application.getId())
+        .setPolicyViolationId("policyViolationId")
+        .setStatus(REQUESTED));
+
+    // Simulate the concurrent reviewer: flip the row to APPROVED out-of-band.
+    req.setStatus(PolicyWaiverRequestStatus.APPROVED);
+    dao.update(req);
+
+    // Caller — who still thinks the request is REQUESTED — must observe a no-op.
+    assertThat(dao.deleteIfStatusEquals(req.getId(), REQUESTED)).isFalse();
+    PolicyWaiverRequest persisted = dao.getById(req.getId());
+    assertThat(persisted).isNotNull();
+    assertThat(persisted.getStatus()).isEqualTo(PolicyWaiverRequestStatus.APPROVED);
+  }
+
+  @Test
+  public void testDeleteIfStatusEquals_NonExistentId_ReturnsFalse() {
+    assertThat(dao.deleteIfStatusEquals("does-not-exist", REQUESTED)).isFalse();
+  }
+
+  @Test
   public void testGetByOwnerHierarchyAndPolicyId() {
     Date now = new Date();
     Policy policy = tempEntity.newPolicy(organization);

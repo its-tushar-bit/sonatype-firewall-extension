@@ -640,4 +640,200 @@ public class ApiPolicyWaiverRequestResourceTest
     testUpdatePolicyWaiverRequest(repositoryManager, policy, policyViolation,
         apiPolicyWaiverRequestDTO.policyWaiverRequestId);
   }
+
+  // CLM-41741: requester-only withdraw of pending waiver requests.
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdApp");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String policyWaiverRequestId = submitWaiverRequest(app.getType(), app.getId(), policyViolation.getId());
+    // sanity: the request exists before we withdraw it
+    assertThat(policyWaiverRequestDAO.getById(policyWaiverRequestId)).isNotNull();
+
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(app.getType(), app.getId(), policyWaiverRequestId)
+        .delete();
+
+    assertResponseStatus(204, response);
+    // The row is hard-deleted; the audit log retains who withdrew which request.
+    assertThat(policyWaiverRequestDAO.getById(policyWaiverRequestId)).isNull();
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_Organization() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdOrg");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String policyWaiverRequestId = submitWaiverRequest(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId());
+
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(OwnerType.ORGANIZATION, org.getId(), policyWaiverRequestId)
+        .delete();
+
+    assertResponseStatus(204, response);
+    assertThat(policyWaiverRequestDAO.getById(policyWaiverRequestId)).isNull();
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_DifferentUser_ReturnsNotFound() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdOther");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String policyWaiverRequestId = submitWaiverRequest(app.getType(), app.getId(), policyViolation.getId());
+
+    // A different user with READ permission on the application but no relationship to the waiver request.
+    // The caller must reach the service code (so they need READ) — at which point ownership is checked.
+    User otherUser = tempEntity.newUser("otherUsername", "Other", "User", "other@example.com");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(app.getId(), readRole.getId(), otherUser.getUsername());
+
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(app.getType(), app.getId(), policyWaiverRequestId)
+        .auth(otherUser)
+        .delete();
+
+    // 404 (not 403) — must not leak existence of waiver requests the caller didn't create.
+    assertResponseStatus(404, response);
+    // The request is intact.
+    PolicyWaiverRequest persisted = policyWaiverRequestDAO.getById(policyWaiverRequestId);
+    assertThat(persisted).isNotNull();
+    assertThat(persisted.getStatus()).isEqualTo(REQUESTED);
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_AlreadyApproved_ReturnsBadRequest() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdApp");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String policyWaiverRequestId = submitWaiverRequest(app.getType(), app.getId(), policyViolation.getId());
+    approveAsReviewer(app.getType(), app.getId(), policyWaiverRequestId);
+
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(app.getType(), app.getId(), policyWaiverRequestId)
+        .delete();
+
+    assertResponseStatus(400, response);
+    assertThat(policyWaiverRequestDAO.getById(policyWaiverRequestId).getStatus()).isEqualTo(APPROVED);
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_AlreadyRejected_ReturnsBadRequest() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdApp");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String policyWaiverRequestId = submitWaiverRequest(app.getType(), app.getId(), policyViolation.getId());
+    rejectAsReviewer(app.getType(), app.getId(), policyWaiverRequestId);
+
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(app.getType(), app.getId(), policyWaiverRequestId)
+        .delete();
+
+    assertResponseStatus(400, response);
+    assertThat(policyWaiverRequestDAO.getById(policyWaiverRequestId).getStatus()).isEqualTo(REJECTED);
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_SecondCall_ReturnsNotFound() throws Exception {
+    // After a successful withdraw the row is gone; a second withdraw on the same id is 404.
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdApp");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String policyWaiverRequestId = submitWaiverRequest(app.getType(), app.getId(), policyViolation.getId());
+
+    HttpResponse first = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(app.getType(), app.getId(), policyWaiverRequestId)
+        .delete();
+    assertResponseStatus(204, first);
+
+    HttpResponse second = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(app.getType(), app.getId(), policyWaiverRequestId)
+        .delete();
+    assertResponseStatus(404, second);
+    assertThat(policyWaiverRequestDAO.getById(policyWaiverRequestId)).isNull();
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_AllowsResubmissionForSameViolation() throws Exception {
+    // Submit, withdraw, then re-submit the same (component+policy). The second submit must
+    // succeed because hard-deleting the original leaves no active request to collide with
+    // the duplicate-detection query in PolicyWaiverRequestDAO.
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdApp");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String firstId = submitWaiverRequest(app.getType(), app.getId(), policyViolation.getId());
+    HttpResponse withdraw = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(app.getType(), app.getId(), firstId)
+        .delete();
+    assertResponseStatus(204, withdraw);
+
+    String secondId = submitWaiverRequest(app.getType(), app.getId(), policyViolation.getId());
+
+    assertThat(secondId).isNotEqualTo(firstId);
+    assertThat(policyWaiverRequestDAO.getById(firstId)).isNull();
+    assertThat(policyWaiverRequestDAO.getById(secondId).getStatus()).isEqualTo(REQUESTED);
+  }
+
+  private String submitWaiverRequest(OwnerType ownerType, String ownerId, String policyViolationId) throws Exception {
+    ApiPolicyWaiverRequestOptionsDTO dto = new ApiPolicyWaiverRequestOptionsDTO();
+    dto.comment = "waiver comment";
+    dto.expiryTime = DateUtils.addDays(new Date(), 1);
+    dto.matcherStrategy = ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+    HttpResponse response = restRequest().path(POLICY_VIOLATION_ID_PATH)
+        .parameter(ownerType, ownerId, policyViolationId)
+        .body(dto, MediaType.APPLICATION_JSON)
+        .post();
+    assertResponseStatus(200, response);
+    return response.getBody(ApiPolicyWaiverRequestDTO.class).policyWaiverRequestId;
+  }
+
+  private void approveAsReviewer(OwnerType ownerType, String ownerId, String policyWaiverRequestId) throws Exception {
+    User reviewer = tempEntity.newUser("reviewerForWithdraw_" + policyWaiverRequestId.substring(0, 8),
+        "reviewerFirstName", "reviewerLastName",
+        "reviewer-" + policyWaiverRequestId.substring(0, 8) + "@example.com");
+    Role role = tempEntity.newRole(false /* global */, Permission.WAIVE_POLICY_VIOLATIONS);
+    tempEntity.newMembershipMapping(ownerId, role.getId(), reviewer.getUsername());
+    ApiPolicyWaiverRequestReviewDTO reviewDTO = new ApiPolicyWaiverRequestReviewDTO();
+    reviewDTO.status = APPROVED.name();
+    reviewDTO.matcherStrategy = ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_REVIEW_PATH)
+        .parameter(ownerType, ownerId, policyWaiverRequestId)
+        .body(reviewDTO, MediaType.APPLICATION_JSON)
+        .auth(reviewer)
+        .post();
+    assertResponseStatus(200, response);
+  }
+
+  private void rejectAsReviewer(OwnerType ownerType, String ownerId, String policyWaiverRequestId) throws Exception {
+    User reviewer = tempEntity.newUser("reviewerForReject_" + policyWaiverRequestId.substring(0, 8),
+        "reviewerFirstName", "reviewerLastName",
+        "rejecter-" + policyWaiverRequestId.substring(0, 8) + "@example.com");
+    Role role = tempEntity.newRole(false /* global */, Permission.WAIVE_POLICY_VIOLATIONS);
+    tempEntity.newMembershipMapping(ownerId, role.getId(), reviewer.getUsername());
+    ApiPolicyWaiverRequestReviewDTO reviewDTO = new ApiPolicyWaiverRequestReviewDTO();
+    reviewDTO.status = REJECTED.name();
+    reviewDTO.rejectionReason = "test rejection";
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_REVIEW_PATH)
+        .parameter(ownerType, ownerId, policyWaiverRequestId)
+        .body(reviewDTO, MediaType.APPLICATION_JSON)
+        .auth(reviewer)
+        .post();
+    assertResponseStatus(200, response);
+  }
 }

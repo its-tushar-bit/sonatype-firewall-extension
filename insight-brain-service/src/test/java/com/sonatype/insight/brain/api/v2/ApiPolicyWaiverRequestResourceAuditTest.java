@@ -629,4 +629,51 @@ public class ApiPolicyWaiverRequestResourceAuditTest
     testUpdatePolicyWaiverRequest_Unauthorized(RepositoryContainer.SINGLETON,
         apiPolicyWaiverRequestDTO.policyWaiverRequestId);
   }
+
+  // CLM-41741: requester-only withdraw of pending waiver requests.
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_Application() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdWAudit");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    testWithdrawPolicyWaiverRequest(app, policyViolation);
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_Organization() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdWAudit");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    testWithdrawPolicyWaiverRequest(org, policyViolation);
+  }
+
+  private void testWithdrawPolicyWaiverRequest(Owner owner, AbstractPolicyViolation policyViolation) throws Exception {
+    // Submit a request first so we have something to withdraw.
+    HttpResponse submit = restRequest().path(POLICY_VIOLATION_ID_PATH)
+        .parameter(owner.getType(), owner.getId(), policyViolation.getId())
+        .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+            ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+        .post();
+    assertResponseStatus(200, submit);
+    ApiPolicyWaiverRequestDTO created = submit.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    // Capture the entity BEFORE delete so we can assert against its fields after withdrawal
+    // (the row is hard-deleted and assertPolicyWaiverRequestData(auditDTO) without a 2nd arg
+    // would otherwise try to look it up by id and fail).
+    PolicyWaiverRequest snapshot = policyWaiverRequestDAO.getByIdNotNull(created.policyWaiverRequestId);
+
+    HttpResponse withdraw = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(owner.getType(), owner.getId(), created.policyWaiverRequestId)
+        .delete();
+    assertResponseStatus(204, withdraw);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.WITHDRAW_WAIVER_REQUEST, null);
+    assertPolicyWaiverRequestData(auditDTO, snapshot);
+    assertOwnerData(auditDTO, owner);
+  }
 }

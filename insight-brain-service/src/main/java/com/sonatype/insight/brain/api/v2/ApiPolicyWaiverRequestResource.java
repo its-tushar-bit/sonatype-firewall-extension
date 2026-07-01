@@ -10,6 +10,7 @@ import java.util.List;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -214,5 +215,44 @@ public class ApiPolicyWaiverRequestResource
   {
     return apiPolicyWaiverRequestService.updatePolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId,
         apiPolicyWaiverRequestOptionsDTO);
+  }
+
+  @DELETE
+  @Path(POLICY_WAIVER_REQUEST_ID_PATH)
+  @Audited(AuditEvent.WITHDRAW_WAIVER_REQUEST)
+  @RequiresEntitlement(LicensedFeature.WAIVER_REQUEST_WORKFLOW)
+  @Operation(
+      description = "Use this method to withdraw a pending policy waiver request that you originally submitted."
+          + "\n" //
+          + "\n" //
+          + "The request row is removed; this is intended for cleaning up requests created by mistake "
+          + "(wrong scope, wrong rationale, etc.). The action is recorded in the audit log so the "
+          + "withdrawal remains traceable. Only the original requester may withdraw, and only while "
+          + "the request is in the REQUESTED state. Once a request has been APPROVED or REJECTED, "
+          + "withdraw is rejected — those terminal states must be handled by a reviewer through the "
+          + "review endpoint." //
+          + "\n" //
+          + "\n" //
+          + "Permissions required: View IQ Elements (the caller must also be the requester of the "
+          + "waiver request; other callers receive 404).",
+      responses = {
+        @ApiResponse(responseCode = "204",
+            description = "The policy waiver request was withdrawn."),
+        @ApiResponse(responseCode = "400",
+            description = "The policy waiver request is not in the REQUESTED state."),
+        @ApiResponse(responseCode = "404",
+            description = "The policy waiver request does not exist or the caller is not its requester.")
+      })
+  public void withdrawPolicyWaiverRequest(
+      @Parameter(
+          description = "The scope of the policy waiver request. Possible values are application, "
+              + "organization, repository, repository_manager, repository_container.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "The id for the ownerType provided above. E.g. applicationId if the "
+          + "ownerType is application.", required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(description = "The id of the policy waiver request to be withdrawn.",
+          required = true) @PathParam("policyWaiverRequestId") String policyWaiverRequestId)
+  {
+    apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId);
   }
 }

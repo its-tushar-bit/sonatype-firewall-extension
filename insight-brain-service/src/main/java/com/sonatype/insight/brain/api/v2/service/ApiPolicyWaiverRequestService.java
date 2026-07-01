@@ -630,6 +630,109 @@ public class ApiPolicyWaiverRequestService
     auditPolicyWaiverRequest(policyWaiverRequest);
   }
 
+  /**
+   * Withdraw a pending policy waiver request as the original requester.
+   *
+   * The request row is hard-deleted: this endpoint is intended for cleaning up requests
+   * that were created by mistake (wrong scope, wrong rationale, etc.), so we don't keep
+   * a soft-state record around. The audit log (see {@link AuditEvent#WITHDRAW_WAIVER_REQUEST})
+   * still captures who withdrew which request and when, so the action is fully traceable.
+   *
+   * Authorization is ownership-based: only the user whose username matches the request's
+   * {@code requesterId} may withdraw. Any other authenticated caller — whether they lack
+   * read access to the owner, lack the {@link Permission#WAIVE_POLICY_VIOLATIONS} permission,
+   * or simply aren't the requester — receives a {@link NotFoundException} so as not to leak
+   * existence of requests they don't own. That permission's flow is the existing
+   * {@link #reviewPolicyWaiverRequest review} endpoint, which handles already-decided
+   * requests (APPROVED / REJECTED).
+   *
+   * Only requests in the {@link PolicyWaiverRequestStatus#REQUESTED} state may be withdrawn;
+   * already-acted-on requests produce a {@link BadRequestException}.
+   */
+  public void withdrawPolicyWaiverRequest(
+      OwnerType ownerType,
+      String ownerId,
+      String policyWaiverRequestId)
+  {
+    log.debug(
+        "Received request to withdraw policy waiver request for ownerType {}, ownerId {}, "
+            + "policy waiver request ID {}",
+        ownerType, ownerId, policyWaiverRequestId);
+
+    if (!SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.isEnabled()) {
+      throw new UnauthorizedException("Waiver requests are disabled by system property "
+          + SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getPropertyName());
+    }
+
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    // The withdraw flow is ownership-based: a caller who can't read the owner is — by
+    // definition — not the requester, so collapse that 403 into a 404 to avoid leaking
+    // the existence of requests under owners the caller can't see. The 401 path
+    // (UnauthenticatedException from the AuditFilter chain before we get here) still
+    // surfaces normally.
+    try {
+      checkReadPermission(ownerType, internalOwnerId);
+    }
+    catch (UnauthorizedException e) {
+      throw new NotFoundException(
+          "Cannot find a policy waiver request with ID " + policyWaiverRequestId + ".");
+    }
+
+    // Throws NotFoundException if not found under this owner — the same code path
+    // is used to hide non-owned requests from the caller.
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getByIdAndOwnerIdNotNull(policyWaiverRequestId, internalOwnerId);
+
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+    if (!userPrincipal.getUsername().equals(policyWaiverRequest.getRequesterId())) {
+      // 404 (not 403) so callers can't probe other users' requests by ID.
+      throw new NotFoundException(
+          "Cannot find a policy waiver request with ID " + policyWaiverRequestId + ".");
+    }
+
+    if (!PolicyWaiverRequestStatus.REQUESTED.equals(policyWaiverRequest.getStatus())) {
+      throw new BadRequestException(
+          "Cannot withdraw a policy waiver request that is already "
+              + policyWaiverRequest.getStatus() + ".");
+    }
+
+    // Resolve telemetry inputs from the in-memory request before delete so the post-delete
+    // telemetry call has them in hand. The lookups tolerate a missing underlying violation
+    // or reason (e.g., the violation has been re-evaluated away) — null falls through
+    // sendTelemetryForPolicyWaiverRequest's early return.
+    AbstractPolicyViolation abstractPolicyViolation =
+        policyViolationDAO.getByIdWithConstraintFacts(policyWaiverRequest.getPolicyViolationId());
+    if (abstractPolicyViolation == null) {
+      abstractPolicyViolation =
+          repositoryPolicyViolationDAO.getByIdWithConstraintFacts(policyWaiverRequest.getPolicyViolationId());
+    }
+    PolicyWaiverReason policyWaiverReason = policyWaiverRequest.getWaiverReasonId() != null
+        ? policyWaiverReasonDAO.getById(policyWaiverRequest.getWaiverReasonId())
+        : null;
+
+    // Atomic conditional delete closes the TOCTOU window between the status check above
+    // and the delete: if a concurrent reviewer transitions REQUESTED -> APPROVED in this
+    // window, deleteIfStatusEquals returns false rather than deleting an approved row
+    // (which would leave the just-created PolicyWaiver pointing at nothing).
+    if (!policyWaiverRequestDAO.deleteIfStatusEquals(policyWaiverRequestId,
+        PolicyWaiverRequestStatus.REQUESTED))
+    {
+      throw new BadRequestException(
+          "Cannot withdraw a policy waiver request that was concurrently modified. "
+              + "Please refresh and try again.");
+    }
+
+    // Audit after the delete succeeds. AuditData captures the entity's in-memory fields
+    // (policyId, comment, hash, constraintFacts, status); the @Audited interceptor on the
+    // resource method writes the audit log entry after the method returns normally.
+    auditPolicyWaiverRequest(policyWaiverRequest);
+
+    // Mirror the create/update telemetry path so dashboards counting waiver request
+    // activity see withdrawals too. The helper no-ops on non-PolicyViolation (e.g., null
+    // or RepositoryPolicyViolation).
+    sendTelemetryForPolicyWaiverRequest(abstractPolicyViolation, policyWaiverReason);
+  }
+
   public List<ApiPolicyWaiverRequestDTO> getPolicyWaiverRequests(
       OwnerType ownerType,
       String ownerId,

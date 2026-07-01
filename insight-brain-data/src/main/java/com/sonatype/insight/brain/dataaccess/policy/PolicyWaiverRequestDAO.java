@@ -234,6 +234,37 @@ public class PolicyWaiverRequestDAO
     }
   }
 
+  /**
+   * Atomically delete a policy waiver request only if its current status matches the expected value.
+   *
+   * <p>
+   * The current row is re-read under {@code SELECT … FOR UPDATE} to close the TOCTOU window
+   * between the caller's status check and the delete: if a concurrent reviewer transitions the
+   * request to APPROVED or REJECTED, this method returns {@code false} without deleting. Without
+   * this guard, a concurrent approve + withdraw could leave a {@code PolicyWaiver} pointing at a
+   * deleted {@code PolicyWaiverRequest}, breaking the historical trail.
+   *
+   * @return {@code true} if the row was deleted, {@code false} if it does not exist or its status
+   *         did not match {@code expected}
+   */
+  public boolean deleteIfStatusEquals(String policyWaiverRequestId, PolicyWaiverRequestStatus expected) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      PolicyWaiverRequest current = toEntity(tx.dsl()
+          .selectFrom(POLICY_WAIVER_REQUEST)
+          .where(POLICY_WAIVER_REQUEST.POLICY_WAIVER_REQUEST_ID.eq(policyWaiverRequestId))
+          .forUpdate()
+          .fetchOne());
+      if (current == null || !expected.equals(current.getStatus())) {
+        tx.commit();
+        return false;
+      }
+      delete(tx, current);
+      tx.commit();
+      return true;
+    }
+  }
+
   public PolicyWaiverRequest getByIdAndOwnerIdNotNull(String policyWaiverRequestId, String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       PolicyWaiverRequest policyWaiverRequest = toEntity(tx.dsl()

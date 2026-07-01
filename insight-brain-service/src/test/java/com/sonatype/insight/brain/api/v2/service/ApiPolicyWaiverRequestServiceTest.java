@@ -1730,4 +1730,55 @@ public class ApiPolicyWaiverRequestServiceTest
       SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.setEnabled(true);
     }
   }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testWithdrawPolicyWaiverRequest_DisableWorkflowFeatureEnabled() {
+    // Create a waiver request while the feature is enabled, then disable the kill-switch
+    // and confirm that withdraw rejects the call with UnauthorizedException — mirrors the
+    // add-endpoint pattern above.
+    ApiPolicyWaiverRequestDTO created = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+            policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("test comment", EXACT_COMPONENT, null, null, false));
+
+    try {
+      SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.setEnabled(false);
+      apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(
+          OwnerType.APPLICATION, app.getId(), created.policyWaiverRequestId);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.setEnabled(true);
+    }
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_ConcurrentlyModified_ReturnsBadRequest() {
+    // Exercises the TOCTOU guard in withdrawPolicyWaiverRequest: the in-memory status
+    // check passes (REQUESTED) but a concurrent reviewer wins the race and transitions
+    // the row to a terminal state before our delete fires. deleteIfStatusEquals returns
+    // false, and the service must surface that as a 400 — never as a successful 204
+    // that would orphan the just-created PolicyWaiver.
+    ApiPolicyWaiverRequestDTO created = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+            policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("test comment", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequestDAO spyDao = spy(policyWaiverRequestDAO);
+    doReturn(false).when(spyDao).deleteIfStatusEquals(created.policyWaiverRequestId, REQUESTED);
+    applyBeanFieldOverride(ApiPolicyWaiverRequestService.class, "policyWaiverRequestDAO", spyDao);
+
+    try {
+      assertThatThrownBy(() -> apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(
+          OwnerType.APPLICATION, app.getId(), created.policyWaiverRequestId))
+              .isInstanceOf(BadRequestException.class)
+              .hasMessageContaining("concurrently modified");
+    }
+    finally {
+      // Restore the real DAO so subsequent tests in this class see normal behavior.
+      applyBeanFieldOverride(ApiPolicyWaiverRequestService.class, "policyWaiverRequestDAO", policyWaiverRequestDAO);
+    }
+
+    // Row is preserved — the guard didn't accidentally delete the just-approved waiver request.
+    assertThat(policyWaiverRequestDAO.getById(created.policyWaiverRequestId)).isNotNull();
+  }
 }

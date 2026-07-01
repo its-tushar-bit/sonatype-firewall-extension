@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -363,5 +364,66 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
   public void testUpdatePolicyWaiverRequest_AppPublicId_Unauthorized() {
     login();
     updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getPublicId(), null);
+  }
+
+  // CLM-41741: requester-only withdraw of pending waiver requests.
+
+  private PolicyWaiverRequest createPolicyWaiverRequestOwnedByCurrentUser(String ownerId) {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanIdAuthz");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    return tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
+        .setPolicyId(policy.getId())
+        .setOwnerId(ownerId)
+        .setPolicyViolationId(policyViolation.getId())
+        // Match the username used by AbstractServiceAuthzTest.login() so the ownership check passes.
+        .setRequesterId(user.getUsername())
+        .setRequesterName(user.getUsername()));
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_Authorized() {
+    grantPermission(app.getId(), Permission.READ);
+    PolicyWaiverRequest req = createPolicyWaiverRequestOwnedByCurrentUser(app.getId());
+    apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getId(), req.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testWithdrawPolicyWaiverRequest_Unauthenticated() {
+    apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getId(), "any-id");
+  }
+
+  // 404 (not 403): the withdraw flow is ownership-based, so a caller who lacks READ on
+  // the owner is — by definition — not the requester. Collapsing that into NotFoundException
+  // avoids leaking the existence of waiver requests under owners the caller can't see.
+  @Test(expected = NotFoundException.class)
+  public void testWithdrawPolicyWaiverRequest_Unauthorized() {
+    login();
+    apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getId(), "any-id");
+  }
+
+  @Test
+  public void testWithdrawPolicyWaiverRequest_AppPublicId_Authorized() {
+    grantPermission(app.getId(), Permission.READ);
+    PolicyWaiverRequest req = createPolicyWaiverRequestOwnedByCurrentUser(app.getId());
+    apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getPublicId(), req.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testWithdrawPolicyWaiverRequest_AppPublicId_Unauthenticated() {
+    apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getPublicId(), "any-id");
+  }
+
+  // See note on testWithdrawPolicyWaiverRequest_Unauthorized — same 404-not-403 rationale.
+  @Test(expected = NotFoundException.class)
+  public void testWithdrawPolicyWaiverRequest_AppPublicId_Unauthorized() {
+    login();
+    apiPolicyWaiverRequestService.withdrawPolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getPublicId(), "any-id");
   }
 }

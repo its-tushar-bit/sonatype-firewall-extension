@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import com.microsoft.playwright.Download;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 
@@ -346,5 +347,10 @@ public class SbomManagerBomRegressionPage
   /** Click "Additional Export Options" in the open export dropdown to open the modal. */
   public void clickAdditionalExportOptions() {
     exportDropdownAdditionalExportOptions().click();
+  }
+
+  /** Click the primary Export button and wait for the browser download event. */
+  public Download clickExportPrimaryAndWaitForDownload() {
+    return page.waitForDownload(() -> exportButtonPrimary().click());
   }
 }

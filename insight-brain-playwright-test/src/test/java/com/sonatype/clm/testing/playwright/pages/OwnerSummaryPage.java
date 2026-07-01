@@ -166,6 +166,16 @@ public class OwnerSummaryPage
   }
 
   /**
+   * "Import" button on the SBOMs tile of an application's OwnerSummary. Scoped through
+   * {@link #sbomsTile()} so the role+name selector targets only the tile-local button and
+   * cannot collide with the same-named "Import" submit button inside the Import Policies modal.
+   */
+  public Locator importSbomButton() {
+    return sbomsTile().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Import"));
+  }
+
+  /**
    * Policies tile on organization/application owner summary ({@code PoliciesTile.jsx},
    * {@code data-testid="policies-tile"}).
    */

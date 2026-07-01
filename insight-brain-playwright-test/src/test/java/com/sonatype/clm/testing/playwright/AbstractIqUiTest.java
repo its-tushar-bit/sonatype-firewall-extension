@@ -93,6 +93,7 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.mock.hds.HdsMockServer;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -535,6 +536,17 @@ public abstract class AbstractIqUiTest
     testCLMServer.getHdsServer()
         .respondWith(zippedReport)
         .atUri("rest/application/analysis/" + scanId);
+  }
+
+  /**
+   * Stubs the HDS endpoints exercised by an SBOM import + eval: {@code HdsMockServer} always
+   * returns the fixed scan ID {@link HdsMockServer.RestServlet#SCAN_ID} on upload, so the
+   * post-upload report-download is the call that needs a stub. Version-scoring is already
+   * stubbed by {@code @Before}. Other HDS lookups (component-details, vulnerabilities) fall
+   * through to the mock server's default 404, which the eval pipeline tolerates.
+   */
+  protected void mockHdsForSbomImport() {
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
   }
 
   /**

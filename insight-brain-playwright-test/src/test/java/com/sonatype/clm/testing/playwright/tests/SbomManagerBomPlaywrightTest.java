@@ -35,8 +35,11 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
+import com.microsoft.playwright.Download;
 import com.microsoft.playwright.Route;
 import com.microsoft.playwright.assertions.LocatorAssertions;
+
+import org.assertj.core.api.Assertions;
 
 import org.apache.commons.io.FileUtils;
 
@@ -193,6 +196,30 @@ public class SbomManagerBomPlaywrightTest
     page.clickExportButtonDropdownToggle();
     assertThat(page.exportDropdownAdditionalExportOptions()).isDisabled();
     assertThat(page.exportDropdownPdfLink()).isDisabled();
+  }
+
+  /**
+   * Uses the {@code SBOM_VERSION_ID_INVALID} seed so the primary button maps to
+   * {@code downloadOriginalSbomFile} (direct GET) rather than {@code downloadLatestSbomFile}
+   * (async Redux thunk + back-end job).
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testExportSbom_downloadFiresAndProducesNonEmptyFile() throws IOException {
+    playwrightRefreshOrOpen(SbomManagerBomRegressionPage.url(seedApp.getPublicId(), SBOM_VERSION_ID_INVALID));
+    SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
+    assertThat(page.exportButton()).isVisible(VISIBLE_OPTS);
+
+    Download download = page.clickExportPrimaryAndWaitForDownload();
+    Assertions.assertThat(download.suggestedFilename())
+        .as("download has a suggested filename")
+        .isNotBlank();
+
+    Path savedPath = tempDir.newFile("exported-sbom").toPath();
+    download.saveAs(savedPath);
+    Assertions.assertThat(savedPath.toFile().length())
+        .as("exported SBOM file is non-empty")
+        .isGreaterThan(0);
   }
 
   /**

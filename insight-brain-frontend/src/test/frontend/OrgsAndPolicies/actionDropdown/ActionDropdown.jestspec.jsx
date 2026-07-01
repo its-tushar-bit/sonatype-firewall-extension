@@ -8,6 +8,7 @@ import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdo
 import { render, screen, axiosMockAdapter, fireEvent, within } from 'TestRoot/SpecUtil';
 
 import { getApplicationSummaryUrl, getPermissionContextTestUrl } from 'MainRoot/util/CLMLocation';
+import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('ActionDropdown', () => {
   let axiosMock, defaultPreloadedState;
@@ -112,6 +113,20 @@ describe('ActionDropdown', () => {
     axiosMock
       .onPut(getPermissionContextTestUrl('application', 'a28'), permissions)
       .reply(200, ['WRITE', 'EVALUATE_APPLICATION']);
+
+    jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue({
+      href: jest.fn((stateName, params = {}) => {
+        if (stateName === 'firewall.repository-report') {
+          return `#/firewall/repository/${params.repositoryId}/result`;
+        }
+        if (stateName === 'firewall.containerRepositoryResults') {
+          return `#/firewall/container/repository/${params.repositoryId}/results`;
+        }
+        return '#/mocked-default-href';
+      }),
+      get: jest.fn(),
+      includes: jest.fn(),
+    });
   });
 
   let renderComponent = (preloadedState) =>
@@ -474,12 +489,41 @@ describe('ActionDropdown', () => {
       const actionButton = screen.getByRole('button', { name: 'Actions' });
       fireEvent.click(actionButton);
 
-      const link = screen.getByText('View repository Results');
+      const link = screen.getByRole('link', { name: 'View repository Results' });
       expect(link).toBeInTheDocument();
       expect(link.textContent).toBe('View repository Results');
+      expect(link.getAttribute('href')).toContain('/repository/0b9a675da0a14deabe26ad90df74a0cf/result');
+      expect(link.getAttribute('href')).not.toContain('/container/');
 
       expect(axiosMock.history.put.length).toBe(0);
       expect(axiosMock.history.get.length).toBe(0);
+    });
+
+    it('on Repository level points Docker proxies to the container repository results page', async () => {
+      renderComponent({
+        router: {
+          currentParams: { '#': null, repositoryId: 'repositoryId' },
+          currentState: {
+            name: 'management.view.repository',
+            url: '/repository/{repositoryId}',
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: 'docker-repo-id',
+              name: 'docker-proxy',
+              format: 'docker',
+            },
+          },
+        },
+      });
+      const actionButton = screen.getByRole('button', { name: 'Actions' });
+      fireEvent.click(actionButton);
+
+      const link = screen.getByRole('link', { name: 'View repository Results' });
+      expect(link).toBeInTheDocument();
+      expect(link.getAttribute('href')).toContain('/container/repository/docker-repo-id/results');
     });
   });
 

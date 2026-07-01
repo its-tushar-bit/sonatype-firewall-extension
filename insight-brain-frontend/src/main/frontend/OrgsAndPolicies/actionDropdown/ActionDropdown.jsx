@@ -160,7 +160,9 @@ const ActionDropdown = () => {
 
   const dropdownOptions = () => {
     if (isRepository) {
-      const repositoryResultUrl = `${uiRouterState.href('firewall.repository-report', {
+      const repositoryResultStateName =
+        owner.format === 'docker' ? 'firewall.containerRepositoryResults' : 'firewall.repository-report';
+      const repositoryResultUrl = `${uiRouterState.href(repositoryResultStateName, {
         repositoryId: owner.id,
       })}?hideBackButton=true`;
       return (

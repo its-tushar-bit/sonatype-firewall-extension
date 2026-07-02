@@ -13,7 +13,11 @@
 #   sonatype.repo.sonatype.app/docker-all/mtiq:latest
 ARG SONATYPE_PRIVATE_REGISTRY=sonatype.repo.sonatype.app/docker-all
 
-FROM $SONATYPE_PRIVATE_REGISTRY/ubuntu:24.04 AS builder
+# Temporary fix: pinning to a specific ubuntu image (by hash) while we determine how to address the fact that the new
+# image at the desired tag has been quarantined by Firewall
+ARG UBUNTU_BASE_IMAGE=ubuntu:24.04@sha256:786a8b558f7be160c6c8c4a54f9a57274f3b4fb1491cf65146521ae77ff1dc54
+
+FROM $SONATYPE_PRIVATE_REGISTRY/$UBUNTU_BASE_IMAGE AS builder
 ARG TARGETPLATFORM
 ARG IQ_SERVER_VERSION
 
@@ -33,7 +37,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
 RUN rm /opt/sonatype/nexus-mtiq-server-${IQ_SERVER_VERSION}-linux-*.tgz
 RUN mv /opt/sonatype/nexus-mtiq-server-${IQ_SERVER_VERSION}-linux-* /opt/sonatype/nexus-iq-server
 
-FROM $SONATYPE_PRIVATE_REGISTRY/ubuntu:24.04
+FROM $SONATYPE_PRIVATE_REGISTRY/$UBUNTU_BASE_IMAGE
 
 LABEL vendor=Sonatype \
   maintainer="MTIQ Team <mtiq-dev@sonatype.com>" \

@@ -91,6 +91,14 @@
     <opensearch-client.version>2.26.0</opensearch-client.version>
     <!-- Used transitively by various dependencies. OpenSearch requires it to be declared. -->
     <apache.httpclient5.version>5.4.4</apache.httpclient5.version>
+    <!--
+      Overrides the httpcore5 version pinned by the spring-boot-dependencies BOM.
+      Spring Boot 4.0.7 pins 5.3.6 and 4.1.0 pins 5.4.2, both of which carry
+      CVE-2026-54399 (CVSS 8.7) and CVE-2026-54428 (CVSS 7.5). The fixes only
+      landed in httpcore5 5.4.3. Drop this override once the Spring Boot BOM
+      pins httpcore5 >= 5.4.3.
+    -->
+    <apache.httpcore5.version>5.4.3</apache.httpcore5.version>
     <netty-version>4.2.15.Final</netty-version>
 
     <!--
@@ -1309,6 +1317,26 @@
         <groupId>org.apache.httpcomponents.client5</groupId>
         <artifactId>httpclient5</artifactId>
         <version>${apache.httpclient5.version}</version>
+      </dependency>
+      <!--
+        Pull httpcore5 forward off of the version pinned by spring-boot-dependencies
+        (see comment on apache.httpcore5.version above). Includes -h2 and -reactive
+        so the whole core5 module set stays on one aligned version.
+      -->
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>${apache.httpcore5.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${apache.httpcore5.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-reactive</artifactId>
+        <version>${apache.httpcore5.version}</version>
       </dependency>
       <!-- Used to collect and push custom DataDog metrics -->
       <dependency>

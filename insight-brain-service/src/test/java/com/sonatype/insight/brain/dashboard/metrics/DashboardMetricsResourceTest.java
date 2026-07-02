@@ -53,6 +53,8 @@ public class DashboardMetricsResourceTest
     assertThat(metrics.applications.source).isEqualTo("index");
     assertThat(metrics.violations).isNotNull();
     assertThat(metrics.violations.source).isEqualTo("index");
+    assertThat(metrics.components).isNotNull();
+    assertThat(metrics.components.source).isEqualTo("index");
   }
 
   @Test

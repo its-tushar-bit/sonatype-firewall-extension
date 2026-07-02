@@ -17,16 +17,20 @@ public class DashboardMetricsDTO
 
   public final MetricValueDTO violations;
 
+  public final MetricValueDTO components;
+
   public final Long lastUpdatedAt;
 
   @JsonCreator
   public DashboardMetricsDTO(
       @JsonProperty("applications") MetricValueDTO applications,
       @JsonProperty("violations") MetricValueDTO violations,
+      @JsonProperty("components") MetricValueDTO components,
       @JsonProperty("lastUpdatedAt") Long lastUpdatedAt)
   {
     this.applications = applications;
     this.violations = violations;
+    this.components = components;
     this.lastUpdatedAt = lastUpdatedAt;
   }
 }

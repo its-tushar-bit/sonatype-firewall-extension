@@ -200,6 +200,79 @@ public class DashboardMetricsServiceTest
   }
 
   @Test
+  public void testGetMetrics_ScannedComponents_VulnerableComponentWithMultipleCvesCountsOnce() throws Exception {
+    // componentsMetricReport indexes 1 clean component and 3 vulnerable components where one has 2 CVEs
+    // (4 SECURITY_VULNERABILITY docs). distinct(clean)=1 + distinct(vulnerable)=3 => 4 scanned components.
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    seedComponentsReport(app, "componentsMetricsReport");
+
+    User reader = tempEntity.newUser("metrics-components-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.organizationIds = Set.of(org.getId());
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(request);
+
+    assertThat(metrics.components.total).isEqualTo(4);
+    assertThat(metrics.components.source).isEqualTo("index");
+    assertThat(metrics.components.breakdown).isNull();
+  }
+
+  @Test
+  public void testGetMetrics_ScannedComponents_OrganizationFilterHierarchyInclusive() throws Exception {
+    Organization parentOrg = tempEntity.newOrganization("components-parent-org");
+    Organization childOrg = tempEntity.newOrganization("components-child-org", parentOrg);
+    Organization siblingOrg = tempEntity.newOrganization("components-sibling-org");
+
+    Application childApp = tempEntity.newApplication(childOrg.getId());
+    Application siblingApp = tempEntity.newApplication(siblingOrg.getId());
+    seedComponentsReport(childApp, "componentsChildReport");
+    seedComponentsReport(siblingApp, "componentsSiblingReport");
+
+    User reader = tempEntity.newUser("components-hierarchy-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsRequestDTO filterByChild = new DashboardMetricsRequestDTO();
+    filterByChild.organizationIds = Set.of(childOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterByChild).components.total).isEqualTo(4);
+
+    DashboardMetricsRequestDTO filterByParent = new DashboardMetricsRequestDTO();
+    filterByParent.organizationIds = Set.of(parentOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterByParent).components.total).isEqualTo(4);
+
+    DashboardMetricsRequestDTO filterBySibling = new DashboardMetricsRequestDTO();
+    filterBySibling.organizationIds = Set.of(siblingOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterBySibling).components.total).isEqualTo(4);
+  }
+
+  @Test
+  public void testGetMetrics_ScannedComponents_FailsClosed_UserWithNoReadContexts() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    seedComponentsReport(app, "componentsFailClosedReport");
+
+    User userWithNoPermissions = tempEntity.newUser("components-no-permissions");
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(userWithNoPermissions);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertThat(metrics.components.total).isZero();
+    assertThat(metrics.components.source).isEqualTo("index");
+  }
+
+  @Test
   public void testGetMetrics_OrganizationFilterHierarchyInclusive() {
     Organization parentOrg = tempEntity.newOrganization("metrics-parent-org");
     Organization childOrg = tempEntity.newOrganization("metrics-child-org", parentOrg);
@@ -304,7 +377,7 @@ public class DashboardMetricsServiceTest
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.count(anyString())).thenReturn(1L);
-    stubEmptyViolationsAggregation(searchIndexClient);
+    stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     DashboardMetricsService service =
@@ -329,7 +402,7 @@ public class DashboardMetricsServiceTest
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.count(anyString())).thenReturn(1L);
-    stubEmptyViolationsAggregation(searchIndexClient);
+    stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     Configuration configuration = mock(Configuration.class);
@@ -420,7 +493,7 @@ public class DashboardMetricsServiceTest
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("cache-test-user", "cache-test-user", User.INTERNAL_REALM_ID));
     when(searchIndexClient.count(anyString())).thenReturn(7L);
-    stubEmptyViolationsAggregation(searchIndexClient);
+    stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(99_000L);
 
     DashboardMetricsService service =
@@ -437,7 +510,9 @@ public class DashboardMetricsServiceTest
 
     assertThat(first.applications.total).isEqualTo(7);
     assertThat(second.applications.total).isEqualTo(7);
+    // loadMetrics runs once (coalesced): count() for applications, countDistinct() twice (clean + vulnerable).
     verify(searchIndexClient, times(1)).count(anyString());
+    verify(searchIndexClient, times(2)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
@@ -446,7 +521,7 @@ public class DashboardMetricsServiceTest
   public void testGetMetrics_CacheKeyDifferentiatesNullRealmFromExplicitRealm() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.count(anyString())).thenReturn(3L, 11L);
-    stubEmptyViolationsAggregation(searchIndexClient);
+    stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     UserPrincipal nullRealmPrincipal = new UserPrincipal("shared-user", "shared-user", null);
@@ -474,6 +549,7 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
 
     verify(searchIndexClient, times(2)).count(anyString());
+    verify(searchIndexClient, times(4)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -481,7 +557,7 @@ public class DashboardMetricsServiceTest
   public void testGetMetrics_CacheKeyDifferentiatesSameUsernameDifferentRealm() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.count(anyString())).thenReturn(5L, 9L);
-    stubEmptyViolationsAggregation(searchIndexClient);
+    stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     UserPrincipal internalPrincipal =
@@ -510,6 +586,7 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
 
     verify(searchIndexClient, times(2)).count(anyString());
+    verify(searchIndexClient, times(4)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -520,7 +597,7 @@ public class DashboardMetricsServiceTest
     when(currentUser.getUserPrincipal()).thenReturn(
         new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
     when(searchIndexClient.count(anyString())).thenReturn(2L);
-    stubEmptyViolationsAggregation(searchIndexClient);
+    stubEmptySearchIndexResults(searchIndexClient);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     DashboardMetricsService service =
@@ -540,13 +617,22 @@ public class DashboardMetricsServiceTest
     service.getMetrics(requestA);
     service.getMetrics(requestB);
 
+    // loadMetrics runs once (coalesced): count() for applications + clean components, countDistinct() once.
     verify(searchIndexClient, times(1)).count(anyString());
+    verify(searchIndexClient, times(2)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
   }
 
-  private static void stubEmptyViolationsAggregation(SearchIndexClient searchIndexClient) {
+  private static void stubEmptySearchIndexResults(SearchIndexClient searchIndexClient) {
     when(searchIndexClient.aggregateCountByField(anyString(), anyString(), any())).thenReturn(
         new MetricAggregationResult(0L, Map.of("critical", 0L, "severe", 0L, "moderate", 0L, "low", 0L)));
+    when(searchIndexClient.countDistinct(anyString(), any())).thenReturn(0L);
+  }
+
+  private void seedComponentsReport(Application app, String scanId) throws Exception {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+        ReportTestUtils.zipReportDir("/IndexSearchingTest/componentsMetricReport", tempDir), lookup(InsightWork.class));
   }
 
   private void seedPolicyViolation(

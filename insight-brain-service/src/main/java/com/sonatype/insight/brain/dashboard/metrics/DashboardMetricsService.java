@@ -109,11 +109,11 @@ public class DashboardMetricsService
   }
 
   /**
-   * Loads each metric independently against the search index. {@code count} and
-   * {@code aggregateCountByField} each open their own reader/snapshot today, so applications and
-   * violations are not guaranteed to come from the same point-in-time view (acceptable behind the
-   * 5s coalescing cache). A batched {@link SearchIndexClient} entry point (e.g. OpenSearch
-   * multi-search) is planned when additional KPIs land.
+   * Loads each metric independently against the search index. {@code count}, {@code countDistinct}, and
+   * {@code aggregateCountByField} each open their own reader/snapshot today, so applications, components, and
+   * violations are not guaranteed to come from the same point-in-time view (acceptable behind the 5s coalescing
+   * cache). A batched {@link SearchIndexClient} entry point (e.g. OpenSearch multi-search) may consolidate these
+   * round-trips later.
    */
   private DashboardMetricsDTO loadMetrics(DashboardMetricsRequestDTO request) {
     MetricFilterContext filterContext = buildMetricFilterContext(request);
@@ -125,12 +125,36 @@ public class DashboardMetricsService
         buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
         FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
         VIOLATIONS_THREAT_LEVEL_BANDS);
+
+    long components = countScannedComponents(filterContext);
     Long lastUpdatedAt = searchIndexClient.getLastIndexTime();
 
     MetricValueDTO applicationsMetric = new MetricValueDTO(applications, null, METRIC_SOURCE_INDEX);
     MetricValueDTO violationsMetric = new MetricValueDTO(
         violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
-    return new DashboardMetricsDTO(applicationsMetric, violationsMetric, lastUpdatedAt);
+    MetricValueDTO componentsMetric = new MetricValueDTO(components, null, METRIC_SOURCE_INDEX);
+    return new DashboardMetricsDTO(applicationsMetric, violationsMetric, componentsMetric, lastUpdatedAt);
+  }
+
+  /**
+   * Counts each scanned component once per {@code (applicationId, componentHash)}. A clean component may be indexed
+   * as one {@link ItemType#NON_VULNERABLE_COMPONENT} document per stage, and a vulnerable component as one
+   * {@link ItemType#SECURITY_VULNERABILITY} document per CVE; naive {@link SearchIndexClient#count(String)} on
+   * either item type over-counts. The total is therefore {@code countDistinct(NON_VULNERABLE_COMPONENT, …) +
+   * countDistinct(SECURITY_VULNERABILITY, …)} with the same composite key fields. Both sub-queries reuse
+   * {@link #buildFilteredMetricQuery} so request-level org/app filters (including org-hierarchy descendant
+   * expansion) and the RBAC filter apply consistently.
+   */
+  private long countScannedComponents(MetricFilterContext filterContext) {
+    List<String> compositeKeyFields =
+        List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label);
+    long distinctCleanComponents = searchIndexClient.countDistinct(
+        buildFilteredMetricQuery(ItemType.NON_VULNERABLE_COMPONENT, filterContext),
+        compositeKeyFields);
+    long distinctVulnerableComponents = searchIndexClient.countDistinct(
+        buildFilteredMetricQuery(ItemType.SECURITY_VULNERABILITY, filterContext),
+        compositeKeyFields);
+    return distinctCleanComponents + distinctVulnerableComponents;
   }
 
   private MetricFilterContext buildMetricFilterContext(DashboardMetricsRequestDTO request) {
@@ -141,7 +165,8 @@ public class DashboardMetricsService
 
   /**
    * Builds a metric query for the given item type. RBAC scopes to the user's readable contexts inside
-   * {@link SearchIndexClient#count} / {@link SearchIndexClient#aggregateCountByField}.
+   * {@link SearchIndexClient#count}, {@link SearchIndexClient#aggregateCountByField}, and
+   * {@link SearchIndexClient#countDistinct}.
    * <p>
    * APPLICATION index documents store only the <em>direct</em> owning org in
    * {@code parentOrganizationId} (see {@code DocumentBuilder#setOwner}) — they are not

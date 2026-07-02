@@ -43,8 +43,10 @@ import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -511,6 +513,12 @@ public class ContainerResultsHandlerTest
     assertThat(coordinateSecurity.getAttackVector()).isEqualTo(vector);
     assertThat(coordinateSecurity.getRecommendations()).isEqualTo(recommendation);
     assertThat(coordinateSecurity.getFixedBy()).isEqualTo(fixedBy);
+    // The stored rating method must match the CVSS version encoded in the vector — this is the
+    // regression guard for the CVSS-method fix: if the method were dropped, getValidRating would
+    // reject the rating and severity would silently become 0.0.
+    Rating.Method expectedMethod =
+        StringUtils.startsWith(vector, "CVSS:3.1") ? Rating.Method.CVSSV31 : Rating.Method.CVSSV3;
+    assertThat(Rating.Method.fromString(coordinateSecurity.getRatingMethod())).isEqualTo(expectedMethod);
   }
 
   @Test

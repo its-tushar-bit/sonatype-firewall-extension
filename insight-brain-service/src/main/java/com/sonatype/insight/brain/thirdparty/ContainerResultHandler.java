@@ -217,6 +217,7 @@ public class ContainerResultHandler
             cycloneDxVulnerability.setDescription(vulnerability.getDescription());
 
             Rating rating = new Rating();
+            rating.setMethod(cvssV3MethodFromVector(vulnerability.getVectors_v3()));
             rating.setScore((double) vulnerability.getScore_v3());
             rating.setSeverity(Severity.fromString(vulnerability.getSeverity().toLowerCase(Locale.ROOT)));
             rating.setVector(vulnerability.getVectors_v3());
@@ -279,6 +280,16 @@ public class ContainerResultHandler
       log.debug(e.getMessage(), e);
     }
     return null;
+  }
+
+  /**
+   * Derives the CVSS rating method from a NeuVector v3 vector string. A {@code CVSS:3.1/...} prefix
+   * maps to {@link Rating.Method#CVSSV31}; anything else (including a {@code CVSS:3.0} prefix, a
+   * blank vector, or an unrecognised value) maps to {@link Rating.Method#CVSSV3}, since the
+   * accompanying {@code score_v3} field is always a CVSS v3-family score.
+   */
+  private static Rating.Method cvssV3MethodFromVector(final String vector) {
+    return StringUtils.startsWith(vector, "CVSS:3.1") ? Rating.Method.CVSSV31 : Rating.Method.CVSSV3;
   }
 
   private ComponentIdentifier getCorrespondingComponentIdentifier(

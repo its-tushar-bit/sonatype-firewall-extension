@@ -92,7 +92,6 @@ import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
-import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.model.vulnerability.Vulnerability10;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Advisory;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Source;
@@ -817,63 +816,65 @@ public class SbomResultHandler
       final String fileCoordinateId)
   {
     List<Vulnerability.Rating> ratingsElements = vulnerability.getRatings();
-    if (CollectionUtils.isNotEmpty(ratingsElements)) {
+    boolean hasScoredRating =
+        ratingsElements != null && ratingsElements.stream().anyMatch(r -> r.getScore() != null);
+    if (hasScoredRating) {
       ThirdPartyCoordinateSecurity coordinateSecurity = new ThirdPartyCoordinateSecurity();
 
-      Vulnerability.Rating rating = getValidRating(ratingsElements);
-      if (rating == null) {
-        rating = ratingsElements.get(0);
-      }
-
-      if (rating != null) {
-        Double baseScore = rating.getScore();
-        if (baseScore != null) {
-          coordinateSecurity.setSeverity(baseScore);
-          if (rating.getVector() != null) {
-            coordinateSecurity.setAttackVector(getTruncatedAttackVector(rating.getVector()));
-          }
-          if (rating.getMethod() != null) {
-            coordinateSecurity.setRatingMethod(getTruncatedRatingMethod(rating.getMethod().getMethodName()));
-          }
-          if (rating.getSeverity() != null) {
-            coordinateSecurity
-                .setSeverityDescription(getTruncatedSeverityDescription(rating.getSeverity().getSeverityName()));
-          }
-          coordinateSecurity.setFileCoordinateId(fileCoordinateId);
-          if (vulnerability.getCwes() != null) {
-            coordinateSecurity.setCwes(vulnerability.getCwes()
-                .stream()
-                .filter(Objects::nonNull)
-                .map(Object::toString)
-                .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
-          }
-          if (vulnerability.getRecommendation() != null) {
-            coordinateSecurity.setRecommendations(StringUtils.normalizeSpace(vulnerability.getRecommendation()));
-          }
-          if (vulnerability.getAdvisories() != null) {
-            String advisory = vulnerability.getAdvisories()
-                .stream()
-                .map(adv -> adv.getTitle() + ThirdPartyVulnerabilityDataAdapter.ADVISORY_SEPARATOR + adv.getUrl())
-                .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR));
-            coordinateSecurity.setAdvisories(advisory);
-          }
-          Vulnerability.Source source = vulnerability.getSource();
-          if (source != null) {
-            coordinateSecurity.setVulnerabilitySource(getTruncatedVulnerabilitySource(source.getName()));
-            if (source.getUrl() != null) {
-              coordinateSecurity.setLink(getTruncatedLink(source.getUrl()));
-            }
-          }
-          coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
-          coordinateSecurity.setResearchType(getResearchTypeForThirdPartyVulnerability(
-              coordinateSecurity.getVulnerabilitySource(), coordinateSecurity.getRefId()));
-          coordinateSecurity.setDetectionType(OTHER.getId());
-          coordinateSecurity.setDescription(StringUtils.normalizeSpace(vulnerability.getDescription()));
-          coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
-          persistAliasIdsFromReferences(coordinateSecurity, vulnerability);
-          return coordinateSecurity;
+      // The CVSS rating supplies the stored severity. When none is present (e.g. an EPSS-only
+      // vulnerability whose only score is a 0-1 probability), the vulnerability is still recorded
+      // but severity stays at its default 0.0 rather than absorbing the EPSS probability.
+      Vulnerability.Rating cvssRating = getValidRating(ratingsElements);
+      if (cvssRating != null) {
+        coordinateSecurity.setSeverity(cvssRating.getScore());
+        if (cvssRating.getVector() != null) {
+          coordinateSecurity.setAttackVector(getTruncatedAttackVector(cvssRating.getVector()));
+        }
+        if (cvssRating.getMethod() != null) {
+          coordinateSecurity.setRatingMethod(getTruncatedRatingMethod(cvssRating.getMethod().getMethodName()));
+        }
+        if (cvssRating.getSeverity() != null) {
+          coordinateSecurity
+              .setSeverityDescription(getTruncatedSeverityDescription(cvssRating.getSeverity().getSeverityName()));
         }
       }
+      else {
+        log.debug("Vulnerability {} has scored ratings but no CVSS rating (e.g. EPSS-only); "
+            + "severity defaults to 0.0", vulnerability.getId());
+      }
+      coordinateSecurity.setFileCoordinateId(fileCoordinateId);
+      if (vulnerability.getCwes() != null) {
+        coordinateSecurity.setCwes(vulnerability.getCwes()
+            .stream()
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
+      }
+      if (vulnerability.getRecommendation() != null) {
+        coordinateSecurity.setRecommendations(StringUtils.normalizeSpace(vulnerability.getRecommendation()));
+      }
+      if (vulnerability.getAdvisories() != null) {
+        String advisory = vulnerability.getAdvisories()
+            .stream()
+            .map(adv -> adv.getTitle() + ThirdPartyVulnerabilityDataAdapter.ADVISORY_SEPARATOR + adv.getUrl())
+            .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR));
+        coordinateSecurity.setAdvisories(advisory);
+      }
+      Vulnerability.Source source = vulnerability.getSource();
+      if (source != null) {
+        coordinateSecurity.setVulnerabilitySource(getTruncatedVulnerabilitySource(source.getName()));
+        if (source.getUrl() != null) {
+          coordinateSecurity.setLink(getTruncatedLink(source.getUrl()));
+        }
+      }
+      coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
+      coordinateSecurity.setResearchType(getResearchTypeForThirdPartyVulnerability(
+          coordinateSecurity.getVulnerabilitySource(), coordinateSecurity.getRefId()));
+      coordinateSecurity.setDetectionType(OTHER.getId());
+      coordinateSecurity.setDescription(StringUtils.normalizeSpace(vulnerability.getDescription()));
+      coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
+      persistAliasIdsFromReferences(coordinateSecurity, vulnerability);
+      return coordinateSecurity;
     }
     else {
       log.debug("Vulnerability with ID {} does not have a valid rating, it can't be parsed", vulnerability.getId());
@@ -917,23 +918,54 @@ public class SbomResultHandler
     return vex;
   }
 
+  /**
+   * Selects the rating whose score represents the CVSS severity. A vulnerability can carry several
+   * ratings (e.g. a CVSS rating plus an EPSS rating with method {@code other}, whose score is a 0-1
+   * probability, not a severity). Only CVSS ratings are eligible; among them the highest-fidelity
+   * method wins (CVSSv3.1/v4/v3 over the legacy CVSSv2), with an NVD source breaking ties. Among
+   * ratings of equal rank the first one encountered wins (strict {@code >}). Returns {@code null}
+   * when no scored CVSS rating is present.
+   */
   Vulnerability.Rating getValidRating(List<Vulnerability.Rating> ratings) {
     Vulnerability.Rating validRating = null;
+    int bestRank = Integer.MIN_VALUE;
     for (Vulnerability.Rating rating : ratings) {
-      if (rating.getScore() != null) {
-        Vulnerability.Source source = rating.getSource();
-        if (source != null && StringUtils.isNotBlank(source.getName())) {
-          validRating = rating;
-          if (source.getName().toLowerCase(Locale.ROOT).equals("nvd") &&
-              (rating.getMethod() == Method.CVSSV31 || rating.getMethod() == Method.CVSSV3 ||
-                  rating.getMethod() == Method.CVSSV4))
-          {
-            break;
-          }
-        }
+      if (rating.getScore() == null) {
+        continue;
+      }
+      int rank = ratingRank(rating);
+      if (rank > bestRank) {
+        bestRank = rank;
+        validRating = rating;
       }
     }
     return validRating;
+  }
+
+  /**
+   * Higher is better. Non-CVSS ratings (e.g. EPSS {@code other}) are never selectable. Modern CVSS
+   * methods outrank the legacy CVSSv2, and an NVD source is preferred within the same method.
+   */
+  private static int ratingRank(Vulnerability.Rating rating) {
+    if (rating.getMethod() == null) {
+      return Integer.MIN_VALUE;
+    }
+    int methodRank;
+    switch (rating.getMethod()) {
+      case CVSSV31:
+      case CVSSV4:
+      case CVSSV3:
+        methodRank = 2;
+        break;
+      case CVSSV2:
+        methodRank = 1;
+        break;
+      default:
+        return Integer.MIN_VALUE;
+    }
+    Vulnerability.Source source = rating.getSource();
+    boolean nvd = source != null && "nvd".equals(StringUtils.lowerCase(source.getName(), Locale.ROOT));
+    return methodRank * 2 + (nvd ? 1 : 0);
   }
 
   private Double getBaseScore(final Rating rating) {

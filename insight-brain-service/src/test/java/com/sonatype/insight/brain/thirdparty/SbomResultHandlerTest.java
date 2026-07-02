@@ -2977,6 +2977,156 @@ public class SbomResultHandlerTest
     return parser.parse(new StringReader(content));
   }
 
+  private static Vulnerability.Rating newRating(Method method, Double score, String sourceName) {
+    Vulnerability.Rating rating = new Vulnerability.Rating();
+    rating.setMethod(method);
+    rating.setScore(score);
+    if (sourceName != null) {
+      Vulnerability.Source source = new Vulnerability.Source();
+      source.setName(sourceName);
+      rating.setSource(source);
+    }
+    return rating;
+  }
+
+  // CLM-42069: Grype/Debian SBOMs attach a CVSS rating (no source) and an EPSS rating
+  // (method "other", source "FIRST"). The CVSS score must win regardless of source presence
+  // or ordering, otherwise the EPSS probability (e.g. 0.00461) is stored and displays as 0.
+  @Test
+  public void testGetValidRating_prefersCvssOverEpss_whenCvssRatingHasNoSource() {
+    Vulnerability.Rating cvss = newRating(Method.CVSSV31, 7.5, null);
+    Vulnerability.Rating epss = newRating(Method.OTHER, 0.00461, "FIRST");
+
+    Vulnerability.Rating selected = sbomResultHandler.getValidRating(Arrays.asList(cvss, epss));
+
+    assertThat(selected).isSameAs(cvss);
+    assertThat(selected.getScore()).isEqualTo(7.5);
+  }
+
+  @Test
+  public void testGetValidRating_prefersCvss_regardlessOfOrder() {
+    Vulnerability.Rating epss = newRating(Method.OTHER, 0.00461, "FIRST");
+    Vulnerability.Rating cvss = newRating(Method.CVSSV31, 7.5, null);
+
+    Vulnerability.Rating selected = sbomResultHandler.getValidRating(Arrays.asList(epss, cvss));
+
+    assertThat(selected).isSameAs(cvss);
+  }
+
+  @Test
+  public void testGetValidRating_neverSelectsEpss_whenOnlyOtherRatingsPresent() {
+    Vulnerability.Rating epss = newRating(Method.OTHER, 0.00461, "FIRST");
+
+    Vulnerability.Rating selected = sbomResultHandler.getValidRating(List.of(epss));
+
+    assertThat(selected).isNull();
+  }
+
+  @Test
+  public void testGetValidRating_prefersNvdSourcedCvss_asTiebreaker() {
+    Vulnerability.Rating osvCvss = newRating(Method.CVSSV31, 6.1, "OSV");
+    Vulnerability.Rating nvdCvss = newRating(Method.CVSSV31, 7.5, "nvd");
+
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(osvCvss, nvdCvss))).isSameAs(nvdCvss);
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(nvdCvss, osvCvss))).isSameAs(nvdCvss);
+  }
+
+  @Test
+  public void testGetValidRating_matchesNvdSourceCaseInsensitively() {
+    Vulnerability.Rating osvCvss = newRating(Method.CVSSV31, 6.1, "OSV");
+    Vulnerability.Rating nvdCvss = newRating(Method.CVSSV31, 7.5, "NVD");
+
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(osvCvss, nvdCvss))).isSameAs(nvdCvss);
+  }
+
+  @Test
+  public void testGetValidRating_firstWinsAmongEqualRankRatings() {
+    Vulnerability.Rating first = newRating(Method.CVSSV31, 7.5, "NVD");
+    Vulnerability.Rating second = newRating(Method.CVSSV31, 9.8, "NVD");
+
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(first, second))).isSameAs(first);
+  }
+
+  @Test
+  public void testGetValidRating_prefersModernCvss_overLegacyCvssV2_regardlessOfOrder() {
+    Vulnerability.Rating cvssV2 = newRating(Method.CVSSV2, 5.0, "NVD");
+    Vulnerability.Rating cvssV31 = newRating(Method.CVSSV31, 9.8, "NVD");
+
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(cvssV2, cvssV31))).isSameAs(cvssV31);
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(cvssV31, cvssV2))).isSameAs(cvssV31);
+  }
+
+  @Test
+  public void testGetValidRating_fallsBackToCvssV2_whenNoModernCvssPresent() {
+    Vulnerability.Rating cvssV2 = newRating(Method.CVSSV2, 5.0, "NVD");
+    Vulnerability.Rating epss = newRating(Method.OTHER, 0.00461, "FIRST");
+
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(epss, cvssV2))).isSameAs(cvssV2);
+  }
+
+  @Test
+  public void testGetValidRating_methodRankOutranksSource_modernCvssWithoutSourceBeatsNvdCvssV2() {
+    Vulnerability.Rating cvssV2Nvd = newRating(Method.CVSSV2, 5.0, "NVD");
+    Vulnerability.Rating cvssV31NoSource = newRating(Method.CVSSV31, 9.8, null);
+
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(cvssV2Nvd, cvssV31NoSource)))
+        .isSameAs(cvssV31NoSource);
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(cvssV31NoSource, cvssV2Nvd)))
+        .isSameAs(cvssV31NoSource);
+  }
+
+  @Test
+  public void testGetValidRating_returnsNull_forEmptyList() {
+    assertThat(sbomResultHandler.getValidRating(List.of())).isNull();
+  }
+
+  @Test
+  public void testGetValidRating_ignoresRatingWithNullMethod() {
+    Vulnerability.Rating nullMethod = newRating(null, 7.5, "NVD");
+    Vulnerability.Rating cvss = newRating(Method.CVSSV31, 9.8, "NVD");
+
+    assertThat(sbomResultHandler.getValidRating(List.of(nullMethod))).isNull();
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(nullMethod, cvss))).isSameAs(cvss);
+    assertThat(sbomResultHandler.getValidRating(Arrays.asList(cvss, nullMethod))).isSameAs(cvss);
+  }
+
+  // CLM-42069: An EPSS-only vulnerability (no CVSS rating) is still recorded, but its EPSS
+  // probability must NOT be stored as the CVSS severity. getValidRating returns null, so the
+  // severity stays at its default 0.0 rather than absorbing the 0-1 EPSS probability.
+  @Test
+  public void testParseVulnerability_epssOnly_recordsVulnerabilityWithoutEpssAsSeverity() {
+    Vulnerability vulnerability = new Vulnerability();
+    vulnerability.setId("CVE-2024-0001");
+    vulnerability.setDescription("EPSS-only vulnerability");
+    vulnerability.setRatings(List.of(newRating(Method.OTHER, 0.00461, "FIRST")));
+
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        sbomResultHandler.parseVulnerability(vulnerability, "coordinateId");
+
+    assertThat(coordinateSecurity).isNotNull();
+    assertThat(coordinateSecurity.getRefId()).isEqualTo("CVE-2024-0001");
+    assertThat(coordinateSecurity.getDescription()).isEqualTo("EPSS-only vulnerability");
+    assertThat(coordinateSecurity.getSeverity()).isEqualTo(0.0);
+    assertThat(coordinateSecurity.getRatingMethod()).isNull();
+    assertThat(coordinateSecurity.getSeverityDescription()).isNull();
+  }
+
+  // When both a CVSS and an EPSS rating are present, the CVSS score is stored as severity even
+  // when the EPSS rating is listed first.
+  @Test
+  public void testParseVulnerability_cvssAndEpss_storesCvssScoreAsSeverity() {
+    Vulnerability vulnerability = new Vulnerability();
+    vulnerability.setId("CVE-2024-0002");
+    vulnerability.setRatings(
+        Arrays.asList(newRating(Method.OTHER, 0.00461, "FIRST"), newRating(Method.CVSSV31, 7.5, null)));
+
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        sbomResultHandler.parseVulnerability(vulnerability, "coordinateId");
+
+    assertThat(coordinateSecurity).isNotNull();
+    assertThat(coordinateSecurity.getSeverity()).isEqualTo(7.5);
+  }
+
   private void assertThirdPartyFileCoordinate(
       Component component,
       ThirdPartyFile thirdPartyFile,

@@ -44,10 +44,11 @@ public class WebhookDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final Webhook webhook) {
+  public int insert(final TransactionContext tx, final Webhook webhook) {
     validate(webhook);
-    super.insert(tx, webhook);
+    int inserted = super.insert(tx, webhook);
     insertEventTypes(tx, webhook.getId(), webhook.getEventTypes());
+    return inserted;
   }
 
   @Override

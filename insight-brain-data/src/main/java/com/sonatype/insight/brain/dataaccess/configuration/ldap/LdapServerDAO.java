@@ -70,14 +70,14 @@ public class LdapServerDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final LdapServer config) {
+  public int insert(final TransactionContext tx, final LdapServer config) {
     NameHelper.validate(config.getName());
     if (getByName(tx, config.getName()) != null) {
       throw new InvalidNameException(config.getName() + " is already used as a name.");
     }
     int priority = getNextPriority(tx);
     config.setPriority(priority);
-    super.insert(tx, config);
+    return super.insert(tx, config);
   }
 
   @Override

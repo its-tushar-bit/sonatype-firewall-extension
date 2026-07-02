@@ -54,9 +54,9 @@ public class RelayConfigurationDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final RelayConfiguration entity) {
+  public int insert(final TransactionContext tx, final RelayConfiguration entity) {
     entity.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

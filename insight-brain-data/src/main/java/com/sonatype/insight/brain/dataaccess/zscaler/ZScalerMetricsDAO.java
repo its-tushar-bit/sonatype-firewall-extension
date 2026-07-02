@@ -43,10 +43,10 @@ public class ZScalerMetricsDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ZScalerMetrics zScalerMetrics) {
+  public int insert(TransactionContext tx, ZScalerMetrics zScalerMetrics) {
     zScalerMetrics.setId(SINGLETON_ENTITY_ID);
     zScalerMetrics.setUpdatedAt(new Date());
-    super.insert(tx, zScalerMetrics);
+    return super.insert(tx, zScalerMetrics);
   }
 
   @Override

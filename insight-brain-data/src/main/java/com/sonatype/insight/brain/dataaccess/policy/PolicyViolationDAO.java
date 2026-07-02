@@ -95,15 +95,15 @@ public class PolicyViolationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, PolicyViolation entity) {
+  public int insert(TransactionContext tx, PolicyViolation entity) {
     storeConstraints(entity);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override
-  public void insert(TransactionContext tx, PolicyViolation entity, boolean ignoreDuplicateKey) {
+  public int insert(TransactionContext tx, PolicyViolation entity, boolean ignoreDuplicateKey) {
     storeConstraints(entity);
-    super.insert(tx, entity, ignoreDuplicateKey);
+    return super.insert(tx, entity, ignoreDuplicateKey);
   }
 
   @Override
@@ -113,13 +113,13 @@ public class PolicyViolationDAO
   }
 
   @Override
-  public void insertBatch(TransactionContext tx, List<PolicyViolation> entities, boolean ignoreDuplicateKey) {
+  public int insertBatch(TransactionContext tx, List<PolicyViolation> entities, boolean ignoreDuplicateKey) {
     // On H2, the fallback calls insert(tx, entity, ignoreDuplicateKey) per entity which already
     // handles storeConstraints via our insert() override.
     if (tx.dsl().dialect() != SQLDialect.H2) {
       storeConstraintsBatch(entities);
     }
-    super.insertBatch(tx, entities, ignoreDuplicateKey);
+    return super.insertBatch(tx, entities, ignoreDuplicateKey);
   }
 
   @Override

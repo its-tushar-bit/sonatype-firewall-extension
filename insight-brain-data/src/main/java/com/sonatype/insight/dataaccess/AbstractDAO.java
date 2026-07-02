@@ -10,6 +10,7 @@ package com.sonatype.insight.dataaccess;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.sql.Statement;
 import java.util.List;
 
 import com.sonatype.insight.model.HasStringId;
@@ -22,11 +23,15 @@ import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.UpdatableRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.jooq.exception.SQLStateClass.C23_INTEGRITY_CONSTRAINT_VIOLATION;
 
 public abstract class AbstractDAO<T>
 {
+  private static final Logger log = LoggerFactory.getLogger(AbstractDAO.class);
+
   protected abstract TransactionContext createTransactionContext();
 
   protected TransactionContext createReadOnlyTransactionContext() {
@@ -176,8 +181,10 @@ public abstract class AbstractDAO<T>
    * @param tx the transaction context
    * @param entity the entity to insert
    * @param ignoreDuplicateKey whether to ignore duplicate key errors during insert
+   * @return the number of rows inserted: {@code 1} if the row was inserted, or {@code 0} if {@code ignoreDuplicateKey}
+   *         is {@code true} and an existing duplicate caused the insert to be skipped
    */
-  public void insert(TransactionContext tx, T entity, boolean ignoreDuplicateKey) {
+  public int insert(TransactionContext tx, T entity, boolean ignoreDuplicateKey) {
     Table<?> table = getJooqTable();
     UpdatableRecord<?> record = (UpdatableRecord<?>) tx.dsl().newRecord(table);
 
@@ -196,6 +203,7 @@ public abstract class AbstractDAO<T>
       // H2 1.4.196 doesn't support jOOQ onDuplicateKeyIgnore (translated to MERGE INTO) or onConflictDoNothing
       // use savepoints in the transaction instead
       if (dialect == SQLDialect.H2) {
+        int[] inserted = {0};
         tx.dsl().connection(conn -> {
           Savepoint savepoint = conn.setSavepoint();
           try (PreparedStatement ps = conn.prepareStatement(
@@ -203,6 +211,7 @@ public abstract class AbstractDAO<T>
           {
             ps.execute();
             conn.releaseSavepoint(savepoint);
+            inserted[0] = 1;
           }
           catch (SQLException e) {
             conn.rollback(savepoint);
@@ -211,83 +220,121 @@ public abstract class AbstractDAO<T>
             }
           }
         });
+        return inserted[0];
       }
-      else {
-        insertSetMoreStep.onDuplicateKeyIgnore().execute();
-      }
+      return insertSetMoreStep.onDuplicateKeyIgnore().execute();
     }
-    else {
-      insertSetMoreStep.execute();
-    }
+    return insertSetMoreStep.execute();
   }
 
-  public void insert(T entity, boolean ignoreDuplicateKey) {
+  public int insert(T entity, boolean ignoreDuplicateKey) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      insert(tx, entity, ignoreDuplicateKey);
+      int inserted = insert(tx, entity, ignoreDuplicateKey);
       tx.commit();
+      return inserted;
     }
   }
 
-  public void insert(TransactionContext tx, T entity) {
-    insert(tx, entity, false);
+  public int insert(TransactionContext tx, T entity) {
+    return insert(tx, entity, false);
   }
 
-  public void insert(T entity) {
+  public int insert(T entity) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      insert(tx, entity);
+      int inserted = insert(tx, entity);
       tx.commit();
+      return inserted;
     }
   }
 
-  public void insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
+  /**
+   * Batch-inserts the entities.
+   *
+   * @param tx the transaction context
+   * @param entities the entities to insert
+   * @param ignoreDuplicateKey whether to ignore duplicate key errors during insert
+   * @return the number of rows actually inserted. When {@code ignoreDuplicateKey} is {@code true}, rows whose duplicate
+   *         already existed are skipped and not counted, so the result can be less than {@code entities.size()}.
+   */
+  public int insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
     if (CollectionUtils.isEmpty(entities)) {
-      return;
+      return 0;
     }
     Table<?> table = getJooqTable();
     SQLDialect dialect = tx.dsl().dialect();
     if (dialect == SQLDialect.H2) {
+      int inserted = 0;
       for (T entity : entities) {
-        insert(tx, entity, ignoreDuplicateKey);
+        inserted += insert(tx, entity, ignoreDuplicateKey);
+      }
+      return inserted;
+    }
+    var steps = entities.stream()
+        .map(entity -> {
+          UpdatableRecord<?> record = (UpdatableRecord<?>) tx.dsl().newRecord(table);
+          // Set ID field if entity has one
+          if (entity instanceof HasStringId hasStringId) {
+            record.set(getIdField(table), hasStringId.getId());
+          }
+          fromEntity(record, entity);
+          // Use insertInto().set() instead of record.insert() to avoid
+          // jOOQ's RETURNING clause emulation which doesn't work well with H2
+          InsertSetMoreStep<?> insertSetMoreStep = tx.dsl().insertInto(table).set(record);
+          return ignoreDuplicateKey ? insertSetMoreStep.onDuplicateKeyIgnore() : insertSetMoreStep;
+        })
+        .toList();
+    return countInsertedRows(tx.dsl().batch(steps).execute());
+  }
+
+  /**
+   * Sums the per-statement affected-row counts returned by a jOOQ batch execute into a total inserted-row count.
+   * <p>
+   * This relies on the driver returning a real per-statement count (0 for a skipped {@code ON CONFLICT DO NOTHING}, 1
+   * for an insert). If PostgreSQL's {@code reWriteBatchedInserts} were enabled the driver would coalesce the inserts
+   * and return {@link Statement#SUCCESS_NO_INFO} ({@code -2}) per statement, which would silently under-report the
+   * count. {@code insertBatch} does not enable that option, so we log loudly if we ever see {@code SUCCESS_NO_INFO}
+   * rather than let the count silently collapse.
+   */
+  static int countInsertedRows(int[] batchResult) {
+    int inserted = 0;
+    int unknown = 0;
+    for (int count : batchResult) {
+      if (count > 0) {
+        inserted += count;
+      }
+      else if (count == Statement.SUCCESS_NO_INFO) {
+        unknown++;
       }
     }
-    else {
-      var steps = entities.stream()
-          .map(entity -> {
-            UpdatableRecord<?> record = (UpdatableRecord<?>) tx.dsl().newRecord(table);
-            // Set ID field if entity has one
-            if (entity instanceof HasStringId hasStringId) {
-              record.set(getIdField(table), hasStringId.getId());
-            }
-            fromEntity(record, entity);
-            // Use insertInto().set() instead of record.insert() to avoid
-            // jOOQ's RETURNING clause emulation which doesn't work well with H2
-            InsertSetMoreStep<?> insertSetMoreStep = tx.dsl().insertInto(table).set(record);
-            return ignoreDuplicateKey ? insertSetMoreStep.onDuplicateKeyIgnore() : insertSetMoreStep;
-          })
-          .toList();
-      tx.dsl().batch(steps).execute();
+    if (unknown > 0) {
+      log.warn("Batch insert returned no affected-row count for {} of {} statements (SUCCESS_NO_INFO); inserted count "
+          + "under-reported as {}. This is only expected if PostgreSQL 'reWriteBatchedInserts' is enabled, which "
+          + "insertBatch does not support.", unknown, batchResult.length, inserted);
+    }
+    return inserted;
+  }
+
+  public int insertBatch(List<T> entities, boolean ignoreDuplicateKey) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      int inserted = insertBatch(tx, entities, ignoreDuplicateKey);
+      tx.commit();
+      return inserted;
     }
   }
 
-  public void insertBatch(List<T> entities, boolean ignoreDuplicateKey) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      insertBatch(tx, entities, ignoreDuplicateKey);
-      tx.commit();
-    }
+  public int insertBatch(TransactionContext tx, List<T> entities) {
+    return insertBatch(tx, entities, false);
   }
 
-  public void insertBatch(TransactionContext tx, List<T> entities) {
-    insertBatch(tx, entities, false);
-  }
-
-  public void insertBatch(List<T> entities) {
+  public int insertBatch(List<T> entities) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      insertBatch(tx, entities);
+      int inserted = insertBatch(tx, entities);
       tx.commit();
+      return inserted;
     }
   }
 

@@ -243,17 +243,18 @@ public class SystemConfigurationPropertyDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SystemConfigurationProperty entity) {
+  public int insert(TransactionContext tx, SystemConfigurationProperty entity) {
     if (entity.getId() == null) {
       entity.setId(UUID.randomUUID().toString());
     }
-    tx.dsl()
+    int inserted = tx.dsl()
         .insertInto(SYSTEM_CONFIGURATION_PROPERTY)
         .set(SYSTEM_CONFIGURATION_PROPERTY.SYSTEM_CONFIGURATION_PROPERTY_ID, entity.getId())
         .set(SYSTEM_CONFIGURATION_PROPERTY.NAME, entity.getName())
         .set(SYSTEM_CONFIGURATION_PROPERTY.VALUE, entity.getValue())
         .execute();
     tx.afterCommit(this::invalidateCache);
+    return inserted;
   }
 
   @Override

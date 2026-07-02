@@ -81,9 +81,9 @@ public class SamlConfigurationInternalDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final SamlConfigurationInternal entity) {
+  public int insert(final TransactionContext tx, final SamlConfigurationInternal entity) {
     generateKeyStore(entity);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

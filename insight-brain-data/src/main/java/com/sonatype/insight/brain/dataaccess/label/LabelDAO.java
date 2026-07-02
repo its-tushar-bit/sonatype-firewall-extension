@@ -183,13 +183,13 @@ public class LabelDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, Label label) {
+  public int insert(TransactionContext tx, Label label) {
     validateLabelText(label.getLabel());
     validateLabelUnique(tx, label, false);
     validateLabelDescription(label.getDescription());
     validateLabelColor(label.getColor());
 
-    super.insert(tx, label);
+    return super.insert(tx, label);
   }
 
   private void validateLabelDescription(String description) {

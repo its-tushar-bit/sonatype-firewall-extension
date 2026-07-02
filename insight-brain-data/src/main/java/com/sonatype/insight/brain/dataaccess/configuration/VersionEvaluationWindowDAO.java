@@ -74,9 +74,9 @@ public class VersionEvaluationWindowDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final VersionEvaluationWindow entity) {
+  public int insert(final TransactionContext tx, final VersionEvaluationWindow entity) {
     validate(entity);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

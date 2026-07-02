@@ -44,7 +44,7 @@ public class SystemNoticeDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final SystemNotice entity) {
+  public int insert(final TransactionContext tx, final SystemNotice entity) {
     throw new UnsupportedOperationException();
   }
 

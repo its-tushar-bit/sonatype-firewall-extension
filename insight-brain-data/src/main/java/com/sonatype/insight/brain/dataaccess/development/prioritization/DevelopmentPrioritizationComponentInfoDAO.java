@@ -116,13 +116,14 @@ public class DevelopmentPrioritizationComponentInfoDAO
 
   // Batch insert to avoid multiple round trips to the DB when we want to insert multiple rows at the same time
   // https://github.com/sonatype/insight-brain/pull/11563#discussion_r1628538103
-  public void insertBatch(
+  @Override
+  public int insertBatch(
       TransactionContext tx,
       List<DevelopmentPrioritizationComponentInfo> developmentPrioritizationComponentInfoCollection)
   {
     if (CollectionUtils.isEmpty(developmentPrioritizationComponentInfoCollection)) {
       log.info("No rows to insert in the bath. Batch skipped.");
-      return;
+      return 0;
     }
     List<List<DevelopmentPrioritizationComponentInfo>> sizeSafeBatches =
         Lists.partition(developmentPrioritizationComponentInfoCollection, BATCH_INSERT_SIZE_LIMIT);
@@ -132,10 +133,14 @@ public class DevelopmentPrioritizationComponentInfoDAO
           sizeSafeBatches.size());
     }
 
-    sizeSafeBatches.forEach(sizeSafeBatch -> executeBatch(tx, sizeSafeBatch));
+    int inserted = 0;
+    for (List<DevelopmentPrioritizationComponentInfo> sizeSafeBatch : sizeSafeBatches) {
+      inserted += executeBatch(tx, sizeSafeBatch);
+    }
+    return inserted;
   }
 
-  private void executeBatch(TransactionContext tx, List<DevelopmentPrioritizationComponentInfo> batch) {
+  private int executeBatch(TransactionContext tx, List<DevelopmentPrioritizationComponentInfo> batch) {
     BatchBindStep batchInsert = tx.dsl()
         .batch(
             tx.dsl()
@@ -172,15 +177,21 @@ public class DevelopmentPrioritizationComponentInfoDAO
           componentInfo.getStageReleaseStatus(),
           componentInfo.getReleaseStatus());
     }
-    batchInsert.execute();
+    int inserted = 0;
+    for (int count : batchInsert.execute()) {
+      if (count > 0) {
+        inserted += count;
+      }
+    }
+    return inserted;
   }
 
   @Override
-  public void insert(TransactionContext tx, DevelopmentPrioritizationComponentInfo entity) {
+  public int insert(TransactionContext tx, DevelopmentPrioritizationComponentInfo entity) {
     if (StringUtils.isBlank(entity.getId())) {
       entity.setId(UUID.randomUUID().toString().replace("-", ""));
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

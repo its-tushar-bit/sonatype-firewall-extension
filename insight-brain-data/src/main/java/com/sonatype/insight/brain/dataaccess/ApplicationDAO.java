@@ -586,7 +586,7 @@ public class ApplicationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, Application application) {
+  public int insert(TransactionContext tx, Application application) {
     validate(application);
     validatePublicId(application.getPublicId());
 
@@ -614,7 +614,7 @@ public class ApplicationDAO
     }
 
     // jOOQ insert
-    tx.dsl()
+    int inserted = tx.dsl()
         .insertInto(APPLICATION)
         .set(APPLICATION.APPLICATION_ID, application.getId())
         .set(APPLICATION.PUBLIC_ID, application.getPublicId())
@@ -632,6 +632,7 @@ public class ApplicationDAO
     if (shouldAddSearchIndexChange(tx, application)) {
       insertSearchIndexChange(tx, newSearchIndexChangeForInsert(application));
     }
+    return inserted;
   }
 
   @Override

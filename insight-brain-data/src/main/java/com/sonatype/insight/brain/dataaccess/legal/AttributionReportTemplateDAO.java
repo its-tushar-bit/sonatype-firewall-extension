@@ -41,12 +41,12 @@ public class AttributionReportTemplateDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, AttributionReportTemplate entity) {
+  public int insert(TransactionContext tx, AttributionReportTemplate entity) {
     checkAttributionReportTemplateNameLength(entity);
     if (entity.getLastUpdatedAt() == null) {
       entity.setLastUpdatedAt(new Date());
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

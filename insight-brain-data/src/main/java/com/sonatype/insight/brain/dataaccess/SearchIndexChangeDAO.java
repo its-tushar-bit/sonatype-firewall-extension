@@ -30,12 +30,13 @@ public class SearchIndexChangeDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SearchIndexChange entity) {
+  public int insert(TransactionContext tx, SearchIndexChange entity) {
     if (SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.isEnabled() &&
         SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled())
     {
-      super.insert(tx, entity);
+      return super.insert(tx, entity);
     }
+    return 0;
   }
 
   @Override

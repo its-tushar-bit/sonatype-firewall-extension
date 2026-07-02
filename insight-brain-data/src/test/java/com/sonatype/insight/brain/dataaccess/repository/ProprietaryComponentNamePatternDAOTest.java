@@ -91,6 +91,61 @@ public class ProprietaryComponentNamePatternDAOTest
   }
 
   @Test
+  public void testInsertBatch_IgnoreDuplicateKey() {
+    assertInsertBatchIgnoresDuplicateKey();
+  }
+
+  /**
+   * Postgres variant of {@link #testInsertBatch_IgnoreDuplicateKey()}. On H2 the {@code ignoreDuplicateKey} path falls
+   * back to per-entity inserts with savepoints, whereas Postgres uses jOOQ's native
+   * {@code batch(INSERT ... ON CONFLICT DO NOTHING)}. This exercises that native batch path end-to-end.
+   */
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertBatch_IgnoreDuplicateKey_Postgres() {
+    assertInsertBatchIgnoresDuplicateKey();
+  }
+
+  private void assertInsertBatchIgnoresDuplicateKey() {
+    ProprietaryComponentNamePattern existing = tempEntity.newProprietaryComponentNamePattern(repo, "@sonatype", null);
+
+    // A batch of entirely new patterns (no collision) inserts every row, so the count equals the batch size.
+    int freshInserted = dao.insertBatch(List.of(
+        new ProprietaryComponentNamePattern(repo.getId(), ComponentIdentifier.FORMAT_NPM).withNamespacePattern("@new1"),
+        new ProprietaryComponentNamePattern(repo.getId(), ComponentIdentifier.FORMAT_NPM)
+            .withNamespacePattern("@new2")),
+        true);
+    assertThat(freshInserted).isEqualTo(2);
+
+    // Batch contains a duplicate of the existing pattern plus a genuinely new one.
+    ProprietaryComponentNamePattern duplicate =
+        new ProprietaryComponentNamePattern(repo.getId(), ComponentIdentifier.FORMAT_NPM).withNamespacePattern(
+            "@sonatype");
+    ProprietaryComponentNamePattern fresh =
+        new ProprietaryComponentNamePattern(repo.getId(), ComponentIdentifier.FORMAT_NPM).withNamespacePattern(
+            "@example");
+
+    // ignoreDuplicateKey=true: the duplicate is silently skipped and the new pattern is inserted, no exception thrown.
+    // The return value counts only the rows actually written, so the skipped duplicate is excluded (1, not 2).
+    int inserted = dao.insertBatch(List.of(duplicate, fresh), true);
+    assertThat(inserted).isEqualTo(1);
+
+    assertThat(dao.getByFormat(ComponentIdentifier.FORMAT_NPM))
+        .extracting(ProprietaryComponentNamePattern::getNamespacePattern)
+        .containsExactlyInAnyOrder("@sonatype", "@example", "@new1", "@new2");
+    // The pre-existing row is untouched (the duplicate did not overwrite it).
+    assertThat(dao.getById(existing.getId())).isNotNull();
+
+    // A batch of only duplicates inserts nothing and returns 0.
+    int reinserted = dao.insertBatch(List.of(
+        new ProprietaryComponentNamePattern(repo.getId(), ComponentIdentifier.FORMAT_NPM)
+            .withNamespacePattern("@example")),
+        true);
+    assertThat(reinserted).isEqualTo(0);
+  }
+
+  @Test
   public void testGetByFormat() {
     // Enabled npm pattern
     ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(repo, "@sonatype", null);

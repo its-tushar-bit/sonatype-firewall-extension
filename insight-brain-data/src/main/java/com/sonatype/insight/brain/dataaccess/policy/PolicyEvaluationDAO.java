@@ -318,7 +318,7 @@ public class PolicyEvaluationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, PolicyEvaluation policyEvaluation) {
+  public int insert(TransactionContext tx, PolicyEvaluation policyEvaluation) {
     validate(policyEvaluation);
 
     if (policyEvaluation.getTime() == null) {
@@ -329,10 +329,10 @@ public class PolicyEvaluationDAO
       policyEvaluation.setId(UUID.randomUUID().toString());
     }
 
-    super.insert(tx, policyEvaluation);
+    int inserted = super.insert(tx, policyEvaluation);
 
     if (policyEvaluation.isForObsoleteScan()) {
-      return;
+      return inserted;
     }
 
     // Update the last policy evaluation record
@@ -354,6 +354,8 @@ public class PolicyEvaluationDAO
       // Insert a new last policy evaluation record for this application and stage type
       lastPolicyEvaluationDAO.insert(tx, new LastPolicyEvaluation(policyEvaluation.getId(), appId, stageTypeId));
     }
+
+    return inserted;
   }
 
   /**

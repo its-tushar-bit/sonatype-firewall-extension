@@ -32,9 +32,9 @@ public class MultiLicenseLicenseInternalDAO
 
   @Override
   @SuppressWarnings("unchecked")
-  public void insert(final TransactionContext tx, final MultiLicenseLicenseInternal entity) {
+  public int insert(final TransactionContext tx, final MultiLicenseLicenseInternal entity) {
     UpdatableRecord<?> record = fromEntity(tx.dsl().newRecord(MULTI_LICENSE_LICENSE), entity);
-    tx.dsl().insertInto(MULTI_LICENSE_LICENSE).set(record).execute();
+    return tx.dsl().insertInto(MULTI_LICENSE_LICENSE).set(record).execute();
   }
 
   @Override

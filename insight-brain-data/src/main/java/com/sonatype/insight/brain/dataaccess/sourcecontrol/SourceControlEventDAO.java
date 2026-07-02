@@ -574,10 +574,10 @@ public class SourceControlEventDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SourceControlEvent entity) {
+  public int insert(TransactionContext tx, SourceControlEvent entity) {
     validateBranchName(entity.getBranchName());
     validateBranchName(entity.getBaseBranchName());
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

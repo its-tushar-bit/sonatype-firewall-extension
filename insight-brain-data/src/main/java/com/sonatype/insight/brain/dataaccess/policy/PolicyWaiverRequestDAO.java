@@ -50,7 +50,7 @@ public class PolicyWaiverRequestDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, PolicyWaiverRequest entity) {
+  public int insert(TransactionContext tx, PolicyWaiverRequest entity) {
     if (entity.getStatus() == null) {
       entity.setStatus(PolicyWaiverRequestStatus.REQUESTED);
     }
@@ -71,7 +71,7 @@ public class PolicyWaiverRequestDAO
       entity.setRequestTime(new Date());
     }
 
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   private void setComponentMatchStrategyIfNeeded(PolicyWaiverRequest entity) {

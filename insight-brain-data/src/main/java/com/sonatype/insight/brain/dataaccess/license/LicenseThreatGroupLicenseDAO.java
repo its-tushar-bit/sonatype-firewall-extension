@@ -89,7 +89,7 @@ public class LicenseThreatGroupLicenseDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, LicenseThreatGroupLicense entity) {
+  public int insert(TransactionContext tx, LicenseThreatGroupLicense entity) {
     licenseDAO.getByIdNotNull(entity.getLicenseId());
 
     LicenseThreatGroupLicense other = getByGroupIdAndLicenseId(tx, entity.getLicenseThreatGroupId(),
@@ -97,7 +97,7 @@ public class LicenseThreatGroupLicenseDAO
     if (other != null) {
       throw new InvalidLicenseThreatGroupLicenseException("The license is already in the license threat group");
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

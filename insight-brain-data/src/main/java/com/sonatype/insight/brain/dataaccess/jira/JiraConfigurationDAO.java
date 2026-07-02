@@ -113,10 +113,10 @@ public class JiraConfigurationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, JiraConfiguration jiraConfiguration) {
+  public int insert(TransactionContext tx, JiraConfiguration jiraConfiguration) {
     validate(jiraConfiguration);
     jiraConfiguration.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, jiraConfiguration);
+    return super.insert(tx, jiraConfiguration);
   }
 
   @Override

@@ -54,9 +54,9 @@ public class OAuth2ConfigurationDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final OAuth2Configuration configuration) {
+  public int insert(final TransactionContext tx, final OAuth2Configuration configuration) {
     validate(configuration);
-    super.insert(tx, configuration);
+    return super.insert(tx, configuration);
   }
 
   @Override

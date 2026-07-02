@@ -133,7 +133,7 @@ public class RepositoryManagerDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, RepositoryManager repositoryManager) {
+  public int insert(TransactionContext tx, RepositoryManager repositoryManager) {
     validateInstanceId(repositoryManager);
     validateName(repositoryManager);
 
@@ -148,7 +148,7 @@ public class RepositoryManagerDAO
       throw new InvalidNameException(repositoryManager.getName() + " is already used as a name.");
     }
 
-    super.insert(tx, repositoryManager);
+    return super.insert(tx, repositoryManager);
   }
 
   @Override

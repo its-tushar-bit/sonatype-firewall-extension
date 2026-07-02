@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -28,8 +29,6 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.db.jooq.DialectHelper.POSTGRES_UNIQUE_CONSTRAINT_VIOLATION;
-
 @Named
 @Singleton
 public class ProprietaryComponentNameDetector
@@ -40,6 +39,15 @@ public class ProprietaryComponentNameDetector
   private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
   private final TenantReference<ConcurrentMap<String, ComponentNameMatcher>> matchersByFormat =
+      new TenantReference<>(ConcurrentHashMap::new);
+
+  /**
+   * Matchers built from <em>all</em> patterns for a format (enabled and disabled), used only to deduplicate incoming
+   * patterns in {@link #addPatterns(String, Collection)}. This is distinct from {@link #matchersByFormat}, which holds
+   * enabled-only matchers used for matching in {@link #findProprietaryComponentName}. Cached with the same TTL so the
+   * high-volume add path does not reload all patterns from the database on every request.
+   */
+  private final TenantReference<ConcurrentMap<String, ComponentNameMatcher>> allPatternMatchersByFormat =
       new TenantReference<>(ConcurrentHashMap::new);
 
   private final TenantReference<ConcurrentMap<String, Object>> locksByFormat =
@@ -105,40 +113,81 @@ public class ProprietaryComponentNameDetector
     return false;
   }
 
-  private ComponentNameMatcher getMatcherWithDisabledPatterns(String format) {
-    ComponentNameMatcher componentNameMatcher =
-        new ComponentNameMatcher(format, proprietaryComponentNamePatternDAO.getByFormat(format));
-
-    return componentNameMatcher;
+  /**
+   * Returns the cached matcher built from all patterns (enabled and disabled) for the format, rebuilding it from the
+   * database when stale. Mirrors the caching of {@link #getMatcher(String)} but over the full pattern set so the
+   * high-volume add path does not reload all patterns from the database on every request.
+   * <p>
+   * The {@code HoldingLock} suffix encodes the precondition that callers must already hold the per-format lock from
+   * {@link #locksByFormat}: unlike {@link #getMatcher(String)}, this method does no double-checked locking of its own,
+   * so calling it without the lock could race two concurrent rebuilds.
+   */
+  private ComponentNameMatcher getOrBuildAllPatternMatcherHoldingLock(String format) {
+    ComponentNameMatcher matcher = allPatternMatchersByFormat.get().get(format);
+    if (isMatcherStale(matcher)) {
+      long start = System.currentTimeMillis();
+      Collection<ProprietaryComponentNamePattern> allPatterns =
+          proprietaryComponentNamePatternDAO.getByFormat(format);
+      matcher = new ComponentNameMatcher(format, allPatterns);
+      log.debug("Created all-pattern matcher for {} proprietary component names ({}) in {} ms", allPatterns.size(),
+          format, System.currentTimeMillis() - start);
+      allPatternMatchersByFormat.get().put(format, matcher);
+    }
+    return matcher;
   }
 
   /**
    * This method is intended to be called by NXRM/Artifactory when they push Namespace Confusion Protection patterns to
    * IQ. The patterns may already exists in IQ and they may be disabled.
    * This method should not change the enabled/disabled state of the existing patterns.
+   * <p>
+   * Deduplication (against the cached all-patterns matcher) and the insert run under the per-format lock so that, for a
+   * given format, "decide which patterns are new" and "persist them" are atomic with respect to concurrent
+   * {@link #addPatterns} calls. A concurrent {@link #removePatterns} deletes by repository, not format, so it is not
+   * serialized by this lock; it clears the caches so the read path always reloads from the database (the source of
+   * truth). Re-inserts never duplicate rows (database unique constraint + ignore-on-duplicate), though a re-push that
+   * races a delete may be treated as already-present until the cache is next rebuilt.
    *
-   * @return The number of new patterns added
+   * @return The number of patterns actually persisted to the database. A pattern that this node's stale cache
+   *         considered new but that another node had already persisted is silently skipped by the ignore-on-duplicate
+   *         insert and is <em>not</em> counted, so the result reflects DB-confirmed inserts rather than dedup guesses.
    */
   public int addPatterns(String format, Collection<ProprietaryComponentNamePattern> patterns) {
-    Collection<ProprietaryComponentNamePattern> newlyAdded = getMatcherWithDisabledPatterns(format).add(patterns);
-    log.debug("Adding {} new proprietary component names ({})", newlyAdded.size(), format);
-
-    int inserted = 0;
-    for (ProprietaryComponentNamePattern pattern : newlyAdded) {
+    int inserted;
+    // This is the same per-format lock used by getMatcher() on the read path. The read path only enters the lock when
+    // its own (enabled-only) matcher is stale, so in steady state there is no contention; the windows overlap only
+    // when a matcher is cold/just-invalidated while an add is in progress. Keep the critical section minimal: it must
+    // cover the dedup-then-insert so they are atomic, but cross-node invalidation is intentionally left outside it.
+    synchronized (locksByFormat.get().computeIfAbsent(format, key -> new Object())) {
       try {
-        proprietaryComponentNamePatternDAO.insert(pattern);
-        inserted++;
-      }
-      catch (org.jooq.exception.DataAccessException e) {
-        if (e.getCause() instanceof org.postgresql.util.PSQLException psqlEx
-            && POSTGRES_UNIQUE_CONSTRAINT_VIOLATION.equals(psqlEx.getSQLState()))
-        {
-          // another request/node was faster (unique constraint violation)
-          continue;
+        ComponentNameMatcher matcher = getOrBuildAllPatternMatcherHoldingLock(format);
+        // matcher.add() mutates the cached all-pattern matcher in place, and can throw partway through a batch (e.g.
+        // ComponentNameMatcher.add() rejects a format mismatch after recording earlier patterns). Keep it inside the
+        // try so any such throw evicts the matcher rather than leaving never-persisted patterns cached as "present".
+        Collection<ProprietaryComponentNamePattern> newlyAdded = matcher.add(patterns);
+        if (newlyAdded.isEmpty()) {
+          return 0;
         }
+        log.debug("Adding {} new proprietary component names ({})", newlyAdded.size(), format);
+
+        // ignoreDuplicateKey covers the race where another node (with a fresher view) already inserted a pattern that
+        // our cached matcher considered new; the duplicate is silently ignored at the database in a single round-trip.
+        // insertBatch returns the number of rows actually written, excluding any such silently-skipped duplicate.
+        inserted = proprietaryComponentNamePatternDAO.insertBatch(new ArrayList<>(newlyAdded), true);
+      }
+      catch (RuntimeException e) {
+        // The cached matcher may have been mutated to include patterns that did not persist (insert failure) or were
+        // recorded before a mid-batch throw. Drop it so the next add rebuilds from the database rather than treating
+        // the never-persisted patterns as already present.
+        allPatternMatchersByFormat.get().remove(format);
         throw e;
       }
     }
+    // Invalidate other nodes outside the per-format lock: it is a fire-and-forget cross-node notification that does
+    // its own database work (scheduling a Quartz task) and is not part of the dedup/insert atomicity invariant. Gate
+    // it on a confirmed insert so a stale-cache batch where the database skipped every row as a duplicate (another
+    // node already persisted them) does not trigger a spurious invalidation, and the resulting cache-rebuild thrash,
+    // on the other nodes.
     if (inserted > 0) {
       invalidateMatchersOnOtherNodes();
     }
@@ -163,6 +212,7 @@ public class ProprietaryComponentNameDetector
 
   void invalidateMatchers() {
     matchersByFormat.get().clear();
+    allPatternMatchersByFormat.get().clear();
   }
 
   @Override

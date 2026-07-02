@@ -555,7 +555,7 @@ public class PolicyWaiverDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, PolicyWaiver entity) {
+  public int insert(TransactionContext tx, PolicyWaiver entity) {
     setComponentMatchStrategyIfNeeded(entity);
 
     PolicyWaiver other = getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(),
@@ -572,7 +572,7 @@ public class PolicyWaiverDAO
       entity.setCreateTime(new Date());
     }
 
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   private void setComponentMatchStrategyIfNeeded(PolicyWaiver entity) {

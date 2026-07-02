@@ -56,11 +56,11 @@ public class PersistedScanTicketDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, PersistedScanTicket entity) {
+  public int insert(TransactionContext tx, PersistedScanTicket entity) {
     if (entity.getCreateTime() == null) {
       entity.setCreateTime(new Date());
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

@@ -79,7 +79,7 @@ public class RoleDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, Role entity) {
+  public int insert(TransactionContext tx, Role entity) {
     if (entity.isBuiltIn()) {
       throw new BadRequestException("Cannot add built-in role '" + entity.getName() + "'.");
     }
@@ -93,7 +93,7 @@ public class RoleDAO
     }
     DescriptionHelper.validate(entity.getDescription());
 
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

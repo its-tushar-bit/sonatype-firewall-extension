@@ -34,7 +34,7 @@ public class FirewallIgnorePatternsDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, FirewallIgnorePatterns firewallIgnorePatterns) {
+  public int insert(TransactionContext tx, FirewallIgnorePatterns firewallIgnorePatterns) {
     throw new UnsupportedOperationException("insert() is not supported for singleton entity FirewallIgnorePatterns");
   }
 

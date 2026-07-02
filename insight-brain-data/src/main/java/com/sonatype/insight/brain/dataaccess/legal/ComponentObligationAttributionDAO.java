@@ -257,11 +257,11 @@ public class ComponentObligationAttributionDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ComponentObligationAttribution componentObligationAttribution) {
+  public int insert(TransactionContext tx, ComponentObligationAttribution componentObligationAttribution) {
     if (componentObligationAttribution.getLastUpdatedAt() == null) {
       componentObligationAttribution.setLastUpdatedAt(new Date());
     }
-    super.insert(tx, componentObligationAttribution);
+    return super.insert(tx, componentObligationAttribution);
   }
 
   @Override

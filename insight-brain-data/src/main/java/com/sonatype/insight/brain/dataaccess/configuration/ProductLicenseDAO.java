@@ -35,9 +35,9 @@ public class ProductLicenseDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final ProductLicense productLicense) {
+  public int insert(final TransactionContext tx, final ProductLicense productLicense) {
     productLicense.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, productLicense);
+    return super.insert(tx, productLicense);
   }
 
   @Override

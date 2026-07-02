@@ -125,7 +125,7 @@ public class IntegrationStatusDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, Application entity) {
+  public int insert(TransactionContext tx, Application entity) {
     throw new UnsupportedOperationException(
         "IntegrationStatusDAO is a read-only DAO and does not support insert operations. " +
             "Use ApplicationDAO for Application entity management.");

@@ -494,10 +494,10 @@ public class SourceControlDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final SourceControl sourceControl) {
+  public int insert(final TransactionContext tx, final SourceControl sourceControl) {
     validate(tx, sourceControl);
     setDefaultsAsNecessary(sourceControl);
-    super.insert(tx, sourceControl);
+    return super.insert(tx, sourceControl);
   }
 
   public void updateWithoutValidation(final SourceControl sourceControl) {

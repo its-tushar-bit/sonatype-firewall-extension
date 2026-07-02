@@ -163,16 +163,17 @@ public class LicenseOverrideDAO
     }
   }
 
-  public void insert(TransactionContext tx, LicenseOverride entity) {
+  public int insert(TransactionContext tx, LicenseOverride entity) {
     validate(entity);
 
     LicenseOverrideInternal internal = toInternal(entity);
 
-    licenseOverrideInternalDAO.insert(tx, internal);
+    int inserted = licenseOverrideInternalDAO.insert(tx, internal);
 
     entity.setId(internal.getId());
 
     addLicenseOverrideLicenseInternals(tx, entity);
+    return inserted;
   }
 
   public void insert(LicenseOverride entity) {

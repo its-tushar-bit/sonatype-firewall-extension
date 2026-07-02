@@ -284,7 +284,7 @@ public class OrganizationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, Organization organization) {
+  public int insert(TransactionContext tx, Organization organization) {
     NameHelper.validate("Name", organization.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
 
     if (getByName(tx, organization.getName()) != null) {
@@ -308,9 +308,11 @@ public class OrganizationDAO
       organization.setId(newUUID());
     }
 
-    super.insert(tx, organization);
+    int inserted = super.insert(tx, organization);
 
     insertOrganizationAncestors(tx, organization);
+
+    return inserted;
   }
 
   @Override

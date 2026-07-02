@@ -66,9 +66,9 @@ public class RepositoryPolicyViolationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, RepositoryPolicyViolation entity) {
+  public int insert(TransactionContext tx, RepositoryPolicyViolation entity) {
     storeConstraints(entity);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

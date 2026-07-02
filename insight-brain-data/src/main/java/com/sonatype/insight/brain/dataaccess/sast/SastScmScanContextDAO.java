@@ -32,14 +32,14 @@ public class SastScmScanContextDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SastScmScanContext entity) {
+  public int insert(TransactionContext tx, SastScmScanContext entity) {
     try {
       GitBranchNameValidator.validate(entity.getBranchName());
     }
     catch (InvalidBranchNameException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

@@ -123,10 +123,10 @@ public class SourceControlConfigurationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SourceControlConfiguration configuration) {
+  public int insert(TransactionContext tx, SourceControlConfiguration configuration) {
     validate(configuration);
     configuration.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, configuration);
+    return super.insert(tx, configuration);
   }
 
   @Override

@@ -67,7 +67,7 @@ public class ComponentSourceLinkDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ComponentSourceLink componentSourceLink) {
+  public int insert(TransactionContext tx, ComponentSourceLink componentSourceLink) {
     if (getByOwnerIdAndComponentIdentifier(tx, componentSourceLink.getOwnerId(),
         componentSourceLink.getComponentIdentifier()) != null)
     {
@@ -78,7 +78,7 @@ public class ComponentSourceLinkDAO
     if (componentSourceLink.getLastUpdatedAt() == null) {
       componentSourceLink.setLastUpdatedAt(new Date());
     }
-    super.insert(tx, componentSourceLink);
+    return super.insert(tx, componentSourceLink);
   }
 
   @Override

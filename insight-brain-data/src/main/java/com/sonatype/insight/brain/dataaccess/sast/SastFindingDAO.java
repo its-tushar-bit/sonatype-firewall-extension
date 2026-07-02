@@ -34,10 +34,10 @@ public class SastFindingDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final SastFinding entity) {
+  public int insert(final TransactionContext tx, final SastFinding entity) {
     validateEnumOrdinalValue(SastFindingConfidence.class, entity.getConfidence());
     validateSeverityId(entity.getSeverityId());
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

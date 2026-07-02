@@ -40,11 +40,11 @@ public class UserTokenDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, UserToken userToken) {
+  public int insert(TransactionContext tx, UserToken userToken) {
     if (userToken.getCreateTime() == null) {
       userToken.setCreateTime(new Date());
     }
-    super.insert(tx, userToken);
+    return super.insert(tx, userToken);
   }
 
   @Override

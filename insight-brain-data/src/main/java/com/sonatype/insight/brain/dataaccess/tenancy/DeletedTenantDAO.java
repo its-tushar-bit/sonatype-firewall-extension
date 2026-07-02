@@ -53,7 +53,7 @@ public class DeletedTenantDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, DeletedTenant entity) {
+  public int insert(TransactionContext tx, DeletedTenant entity) {
     if (GLOBAL_TENANT.tenantSlug.equals(entity.getId())) {
       throw new IllegalArgumentException("Scheduling the global tenant for deletion is not allowed");
     }
@@ -61,7 +61,7 @@ public class DeletedTenantDAO
     // Note this log message is captured by a DataDog Monitor so should be edited with care
     log.warn("Tenant scheduled for deletion, {}", entity);
 
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   public DeletedTenant getTenantBySlug(String tenantSlug) {

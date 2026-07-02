@@ -66,7 +66,7 @@ public class ThirdPartyFileCoordinateDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ThirdPartyFileCoordinate entity) {
+  public int insert(TransactionContext tx, ThirdPartyFileCoordinate entity) {
     if (StringUtils.isBlank(entity.getDisplayName())) {
       entity.setDisplayName(
           FileCoordinateDisplayNameGenerator.generateDisplayName(entity.getPackageUrl(), entity.getFormat(),
@@ -75,7 +75,7 @@ public class ThirdPartyFileCoordinateDAO
     if (entity.getId() == null) {
       entity.setId(UUID.randomUUID().toString());
     }
-    tx.dsl()
+    return tx.dsl()
         .insertInto(FILE_COORDINATE)
         .set(FILE_COORDINATE.FILE_COORDINATE_ID, entity.getId())
         .set(FILE_COORDINATE.HASH, entity.getHash())

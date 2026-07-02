@@ -87,10 +87,10 @@ public class ReverseProxyAuthenticationConfigurationDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final ReverseProxyAuthenticationConfiguration configuration) {
+  public int insert(final TransactionContext tx, final ReverseProxyAuthenticationConfiguration configuration) {
     validate(configuration);
     configuration.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, configuration);
+    return super.insert(tx, configuration);
   }
 
   @Override

@@ -34,7 +34,7 @@ public class AutoUnquarantinePolicyConditionTypeDAO
   }
 
   @Override
-  public void insert(
+  public int insert(
       final TransactionContext tx,
       final AutoUnquarantinePolicyConditionType entity)
   {
@@ -49,7 +49,7 @@ public class AutoUnquarantinePolicyConditionTypeDAO
     if (retrievedEntity != null) {
       throw new BadRequestException("The condition type already exists: " + entity.getId());
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

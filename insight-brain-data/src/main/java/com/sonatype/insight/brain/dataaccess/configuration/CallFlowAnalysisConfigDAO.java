@@ -45,11 +45,11 @@ public class CallFlowAnalysisConfigDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final CallFlowAnalysisConfig entity) {
+  public int insert(final TransactionContext tx, final CallFlowAnalysisConfig entity) {
     if (getByOwnerId(tx, entity.getOwnerId()) != null) {
       throw new BadRequestException("A call flow analysis config already exists for owner id " + entity.getOwnerId());
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

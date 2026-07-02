@@ -29,9 +29,9 @@ public class MigrationTrackerDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, MigrationTracker entity) {
+  public int insert(TransactionContext tx, MigrationTracker entity) {
     Objects.requireNonNull(entity.getId(), "MigrationTracker entity cannot be inserted without an id!");
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

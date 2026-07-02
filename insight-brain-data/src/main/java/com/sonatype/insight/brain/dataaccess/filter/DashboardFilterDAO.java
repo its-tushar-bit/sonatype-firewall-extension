@@ -149,7 +149,7 @@ public class DashboardFilterDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, DashboardFilter dashboardFilter) {
+  public int insert(TransactionContext tx, DashboardFilter dashboardFilter) {
     validate(tx, dashboardFilter);
     DashboardFilter existingFilter = getByUsernameAndRealmIdAndName(tx, dashboardFilter.getUsername(),
         dashboardFilter.getRealmId(), dashboardFilter.getName());
@@ -159,7 +159,7 @@ public class DashboardFilterDAO
     if (existingFilter != null) {
       throw new InvalidNameException(dashboardFilter.getName() + " is already used as a name.");
     }
-    super.insert(tx, dashboardFilter);
+    return super.insert(tx, dashboardFilter);
   }
 
   @Override

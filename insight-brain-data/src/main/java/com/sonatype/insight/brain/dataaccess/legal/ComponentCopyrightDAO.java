@@ -156,7 +156,7 @@ public class ComponentCopyrightDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ComponentCopyright componentCopyright) {
+  public int insert(TransactionContext tx, ComponentCopyright componentCopyright) {
     if (getByOwnerIdAndComponentIdentifier(tx, componentCopyright.getOwnerId(),
         componentCopyright.getComponentIdentifier()) != null)
     {
@@ -167,7 +167,7 @@ public class ComponentCopyrightDAO
     if (componentCopyright.getLastUpdatedAt() == null) {
       componentCopyright.setLastUpdatedAt(new Date());
     }
-    super.insert(tx, componentCopyright);
+    return super.insert(tx, componentCopyright);
   }
 
   @Override

@@ -38,9 +38,9 @@ public class DataRetentionPolicyDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final DataRetentionPolicy entity) {
+  public int insert(final TransactionContext tx, final DataRetentionPolicy entity) {
     validate(entity);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

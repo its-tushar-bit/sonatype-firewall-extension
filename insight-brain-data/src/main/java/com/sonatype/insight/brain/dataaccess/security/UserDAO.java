@@ -201,14 +201,14 @@ public class UserDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, User user) {
+  public int insert(TransactionContext tx, User user) {
     validate(user);
 
     if (getByUsername(tx, user.getUsername()) != null) {
       throw new InvalidNameException(user.getUsername() + " is already used as a username.");
     }
 
-    super.insert(tx, user);
+    return super.insert(tx, user);
   }
 
   @Override

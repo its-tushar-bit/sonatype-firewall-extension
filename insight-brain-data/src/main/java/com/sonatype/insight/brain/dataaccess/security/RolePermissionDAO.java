@@ -88,10 +88,11 @@ public class RolePermissionDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, RolePermission entity) {
-    super.insert(tx, entity);
+  public int insert(TransactionContext tx, RolePermission entity) {
+    int inserted = super.insert(tx, entity);
     clearRolePermissionCache();
     clearRolePermissionCacheForAllOtherNodes.run();
+    return inserted;
   }
 
   @Override

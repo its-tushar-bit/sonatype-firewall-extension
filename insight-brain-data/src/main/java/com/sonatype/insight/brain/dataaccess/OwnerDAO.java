@@ -236,7 +236,7 @@ public class OwnerDAO
   }
 
   @Override
-  public void insertBatch(TransactionContext tx, List<Owner> entities, boolean ignoreDuplicateKey) {
+  public int insertBatch(TransactionContext tx, List<Owner> entities, boolean ignoreDuplicateKey) {
     throw new UnsupportedOperationException("OwnerDAO is a composite DAO and does not support batch operations");
   }
 
@@ -1156,21 +1156,17 @@ public class OwnerDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, Owner entity) {
+  public int insert(TransactionContext tx, Owner entity) {
     // OwnerDAO is a composite DAO - delegate to the appropriate DAO based on owner type
     switch (entity.getType()) {
       case ORGANIZATION:
-        orgDAO.insert(tx, (Organization) entity);
-        break;
+        return orgDAO.insert(tx, (Organization) entity);
       case APPLICATION:
-        appDAO.insert(tx, (Application) entity);
-        break;
+        return appDAO.insert(tx, (Application) entity);
       case REPOSITORY:
-        repoDAO.insert(tx, (Repository) entity);
-        break;
+        return repoDAO.insert(tx, (Repository) entity);
       case REPOSITORY_MANAGER:
-        repoManagerDAO.insert(tx, (RepositoryManager) entity);
-        break;
+        return repoManagerDAO.insert(tx, (RepositoryManager) entity);
       case REPOSITORY_CONTAINER:
         // RepositoryContainer.SINGLETON is immutable and cannot be inserted
         throw new UnsupportedOperationException("RepositoryContainer cannot be inserted");

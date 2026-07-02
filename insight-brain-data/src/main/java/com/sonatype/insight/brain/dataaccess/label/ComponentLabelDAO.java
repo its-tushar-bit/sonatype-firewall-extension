@@ -143,9 +143,9 @@ public class ComponentLabelDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ComponentLabel entity) {
+  public int insert(TransactionContext tx, ComponentLabel entity) {
     validate(tx, entity);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

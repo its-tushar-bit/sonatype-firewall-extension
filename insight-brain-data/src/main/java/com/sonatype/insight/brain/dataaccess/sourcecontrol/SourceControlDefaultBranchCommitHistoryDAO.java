@@ -180,7 +180,7 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SourceControlDefaultBranchCommitHistory entity) {
+  public int insert(TransactionContext tx, SourceControlDefaultBranchCommitHistory entity) {
     // Check for existing record with same (application_id, commit_hash) to handle unique constraint
     SourceControlDefaultBranchCommitHistory existing = toEntity(
         tx.dsl()
@@ -194,13 +194,13 @@ public class SourceControlDefaultBranchCommitHistoryDAO
       entity.setId(existing.getId());
       entity.setCreateTime(existing.getCreateTime());
       update(tx, entity);
-      return;
+      return 0;
     }
 
     if (entity.getCreateTime() == null) {
       entity.setCreateTime(new Date());
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

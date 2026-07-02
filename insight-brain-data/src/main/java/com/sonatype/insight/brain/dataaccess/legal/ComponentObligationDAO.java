@@ -318,7 +318,7 @@ public class ComponentObligationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ComponentObligation componentObligation) {
+  public int insert(TransactionContext tx, ComponentObligation componentObligation) {
     if (getByOwnerIdAndComponentIdentifierAndObligationName(tx, componentObligation.getOwnerId(),
         componentObligation.getComponentIdentifier(), componentObligation.getObligationName()) != null)
     {
@@ -330,7 +330,7 @@ public class ComponentObligationDAO
     if (componentObligation.getLastUpdatedAt() == null) {
       componentObligation.setLastUpdatedAt(new Date());
     }
-    super.insert(tx, componentObligation);
+    return super.insert(tx, componentObligation);
   }
 
   @Override

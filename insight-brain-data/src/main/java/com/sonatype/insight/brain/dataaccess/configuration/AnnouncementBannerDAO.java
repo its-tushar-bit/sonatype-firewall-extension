@@ -44,7 +44,7 @@ public class AnnouncementBannerDAO
   }
 
   @Override
-  public void insert(
+  public int insert(
       final TransactionContext tx,
       final AnnouncementBanner banner,
       final boolean ignoreDuplicateKey)
@@ -69,7 +69,7 @@ public class AnnouncementBannerDAO
   }
 
   @Override
-  public void insertBatch(
+  public int insertBatch(
       final TransactionContext tx,
       final List<AnnouncementBanner> banners,
       final boolean ignoreDuplicateKey)

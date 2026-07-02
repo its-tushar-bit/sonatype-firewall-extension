@@ -69,7 +69,7 @@ public class SuccessMetricsReportDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SuccessMetricsReport entity) {
+  public int insert(TransactionContext tx, SuccessMetricsReport entity) {
     NameHelper.validate(entity.getName());
     if (getByUsernameAndName(tx, entity.getUsername(), entity.getName()) != null) {
       throw new BadRequestException(entity.getName() + " is already used as a name.");
@@ -79,7 +79,7 @@ public class SuccessMetricsReportDAO
       entity.setCreateTime(new Date());
     }
 
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

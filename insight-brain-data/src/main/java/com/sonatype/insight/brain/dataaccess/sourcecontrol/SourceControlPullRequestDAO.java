@@ -155,11 +155,12 @@ public class SourceControlPullRequestDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SourceControlPullRequest entity) {
+  public int insert(TransactionContext tx, SourceControlPullRequest entity) {
     validateBranchName(entity.getBranchName());
     validateBranchName(entity.getBaseBranchName());
-    super.insert(tx, entity);
+    int inserted = super.insert(tx, entity);
     log.trace("Inserted SourceControlPullRequest: " + entity);
+    return inserted;
   }
 
   @Override

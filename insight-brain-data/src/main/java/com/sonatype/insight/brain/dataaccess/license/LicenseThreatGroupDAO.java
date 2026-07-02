@@ -230,7 +230,7 @@ public class LicenseThreatGroupDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
+  public int insert(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
     validateThreatLevel(licenseThreatGroup.getThreatLevel());
 
     validateName(tx, licenseThreatGroup);
@@ -238,7 +238,7 @@ public class LicenseThreatGroupDAO
       throw new InvalidLicenseThreatGroupException("A license threat group with the same name already exists.");
     }
 
-    super.insert(tx, licenseThreatGroup);
+    return super.insert(tx, licenseThreatGroup);
   }
 
   public LicenseThreatGroup getInheritedByName(

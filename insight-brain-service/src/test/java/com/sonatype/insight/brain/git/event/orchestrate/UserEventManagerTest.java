@@ -31,7 +31,7 @@ import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -258,7 +258,7 @@ public class UserEventManagerTest
 
     // capture the retry event we expect to be inserted into the DB
     ArgumentCaptor<SourceControlEvent> retryEventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
-    doNothing().when(mockSourceControlEventDAO).insert(retryEventCaptor.capture());
+    doReturn(1).when(mockSourceControlEventDAO).insert(retryEventCaptor.capture());
 
     // when: report an event error
     SourceControlEvent errorEvent =

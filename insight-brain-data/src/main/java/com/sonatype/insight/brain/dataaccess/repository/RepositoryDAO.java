@@ -204,7 +204,7 @@ public class RepositoryDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, Repository repository) {
+  public int insert(TransactionContext tx, Repository repository) {
     validateNotEmptyPublicId(repository.getPublicId());
 
     if (getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
@@ -218,7 +218,7 @@ public class RepositoryDAO
 
     generateIdIfNeeded(repository);
 
-    super.insert(tx, repository);
+    return super.insert(tx, repository);
   }
 
   @Override

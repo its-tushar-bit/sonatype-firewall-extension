@@ -54,10 +54,10 @@ public class ProxyServerConfigurationDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final ProxyServerConfiguration entity) {
+  public int insert(final TransactionContext tx, final ProxyServerConfiguration entity) {
     validate(entity);
     entity.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

@@ -199,7 +199,7 @@ public class SourceControlPullRequestCommentDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, SourceControlPullRequestComment entity) {
+  public int insert(TransactionContext tx, SourceControlPullRequestComment entity) {
     validateOwnership(tx, entity);
     if (entity.getId() == null) {
       entity.setId(UUID.randomUUID().toString());
@@ -207,7 +207,7 @@ public class SourceControlPullRequestCommentDAO
     if (entity.getCreateTime() == null) {
       entity.setCreateTime(new Date());
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

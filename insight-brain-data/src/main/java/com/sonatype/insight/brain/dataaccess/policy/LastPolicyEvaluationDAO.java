@@ -39,8 +39,8 @@ public class LastPolicyEvaluationDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final LastPolicyEvaluation entity) {
-    super.insert(tx, entity);
+  public int insert(final TransactionContext tx, final LastPolicyEvaluation entity) {
+    return super.insert(tx, entity);
   }
 
   public void insertIfPossibleLastPolicyEvaluation(

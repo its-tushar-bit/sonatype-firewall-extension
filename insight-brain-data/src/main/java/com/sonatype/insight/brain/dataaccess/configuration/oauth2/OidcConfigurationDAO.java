@@ -56,9 +56,9 @@ public class OidcConfigurationDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final OidcConfiguration configuration) {
+  public int insert(final TransactionContext tx, final OidcConfiguration configuration) {
     validate(configuration);
-    super.insert(tx, configuration);
+    return super.insert(tx, configuration);
   }
 
   @Override

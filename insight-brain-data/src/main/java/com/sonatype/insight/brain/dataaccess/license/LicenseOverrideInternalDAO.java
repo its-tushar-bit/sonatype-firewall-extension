@@ -131,11 +131,11 @@ public class LicenseOverrideInternalDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, LicenseOverrideInternal entity) {
+  public int insert(TransactionContext tx, LicenseOverrideInternal entity) {
     if (getByOwnerIdAndComponentIdentifier(tx, entity.getOwnerId(), entity.getComponentIdentifier()) != null) {
       throw new BadRequestException("LicenseOverride already exists for this ownerId and component");
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

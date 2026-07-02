@@ -224,7 +224,7 @@ public class TagDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, Tag entity) {
+  public int insert(TransactionContext tx, Tag entity) {
     NameHelper.validate(entity.getName());
     DescriptionHelper.validate(entity.getDescription());
     validateColor(entity.getColor());
@@ -234,7 +234,7 @@ public class TagDAO
     }
     validateNameWithinHierarchy(tx, entity.getOrganizationId(), entity.getName());
 
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

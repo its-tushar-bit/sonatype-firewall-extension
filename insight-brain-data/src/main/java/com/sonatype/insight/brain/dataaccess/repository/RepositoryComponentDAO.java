@@ -1270,9 +1270,9 @@ public class RepositoryComponentDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, RepositoryComponent entity) {
+  public int insert(TransactionContext tx, RepositoryComponent entity) {
     fillDisplayName(entity);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

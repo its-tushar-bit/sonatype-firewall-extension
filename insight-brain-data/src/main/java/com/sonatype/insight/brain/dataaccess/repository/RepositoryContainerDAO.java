@@ -82,7 +82,7 @@ public class RepositoryContainerDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, RepositoryContainer entity) {
+  public int insert(TransactionContext tx, RepositoryContainer entity) {
     throw new UnsupportedOperationException("RepositoryContainerDAO does not support insert");
   }
 

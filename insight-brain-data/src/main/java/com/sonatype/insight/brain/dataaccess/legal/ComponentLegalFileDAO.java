@@ -120,7 +120,7 @@ public class ComponentLegalFileDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ComponentLegalFile componentLegalFile) {
+  public int insert(TransactionContext tx, ComponentLegalFile componentLegalFile) {
     if (getByOwnerIdAndComponentIdentifierAndType(tx, componentLegalFile.getOwnerId(),
         componentLegalFile.getComponentIdentifier(), componentLegalFile.getType()) != null)
     {
@@ -135,7 +135,7 @@ public class ComponentLegalFileDAO
     if (componentLegalFile.getId() == null) {
       componentLegalFile.setId(UUID.randomUUID().toString());
     }
-    super.insert(tx, componentLegalFile);
+    return super.insert(tx, componentLegalFile);
   }
 
   @Override

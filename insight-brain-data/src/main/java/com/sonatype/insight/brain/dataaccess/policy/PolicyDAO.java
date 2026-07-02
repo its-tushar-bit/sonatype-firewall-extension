@@ -105,7 +105,7 @@ public class PolicyDAO
     }
   }
 
-  public void insert(TransactionContext tx, Policy policy) {
+  public int insert(TransactionContext tx, Policy policy) {
     String ownerId = policy.getOwnerId();
 
     ValidationResult validationResult = policyValidator.validate(tx, policy, ownerId);
@@ -132,8 +132,10 @@ public class PolicyDAO
     DroolsGenerator.generate(tx, policy);
 
     PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
-    policyInternalDAO.insert(tx, policyInternal);
+    int inserted = policyInternalDAO.insert(tx, policyInternal);
     policy.setId(policyInternal.getId());
+
+    return inserted;
   }
 
   public void update(Policy policy) {

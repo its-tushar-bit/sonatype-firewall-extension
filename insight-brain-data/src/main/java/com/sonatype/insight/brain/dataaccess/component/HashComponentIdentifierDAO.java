@@ -41,7 +41,7 @@ public class HashComponentIdentifierDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final HashComponentIdentifier entity) {
+  public int insert(final TransactionContext tx, final HashComponentIdentifier entity) {
     HashComponentIdentifier other = getByHash(tx, entity.getHash());
     if (other != null) {
       throw new BadRequestException("This component is already mapped to '"
@@ -52,7 +52,7 @@ public class HashComponentIdentifierDAO
       throw new BadRequestException("Another component is already mapped to '"
           + ComponentDisplayNameUtil.fromIdentifier(other.getComponentIdentifier()) + "'.");
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   public HashComponentIdentifier getByHashNotNull(final String hash) {

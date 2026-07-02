@@ -63,10 +63,10 @@ public class CrowdConfigurationDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final CrowdConfiguration entity) {
+  public int insert(final TransactionContext tx, final CrowdConfiguration entity) {
     entity.setId(SINGLETON_ENTITY_ID);
     validate(entity);
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

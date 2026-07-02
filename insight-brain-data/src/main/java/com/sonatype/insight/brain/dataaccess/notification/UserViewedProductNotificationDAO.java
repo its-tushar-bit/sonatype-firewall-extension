@@ -37,11 +37,11 @@ public class UserViewedProductNotificationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, UserViewedProductNotification entity) {
+  public int insert(TransactionContext tx, UserViewedProductNotification entity) {
     if (StringUtils.isBlank(entity.getRealmId())) {
       throw new BadRequestException("The realm ID is required.");
     }
-    super.insert(tx, entity);
+    return super.insert(tx, entity);
   }
 
   @Override

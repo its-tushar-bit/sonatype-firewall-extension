@@ -66,11 +66,11 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
    * @param entity the entity to insert
    */
   @Override
-  public void insert(TransactionContext tx, T entity, boolean ignoreDuplicateKey) {
+  public int insert(TransactionContext tx, T entity, boolean ignoreDuplicateKey) {
     generateIdIfNeeded(entity);
 
     // Call superclass to perform the actual insert
-    super.insert(tx, entity, ignoreDuplicateKey);
+    int inserted = super.insert(tx, entity, ignoreDuplicateKey);
 
     // Handle search index changes
     if (shouldAddSearchIndexChange(tx, entity)) {
@@ -83,11 +83,12 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       testEntityLeaksDetectionData.put(entity.getId(),
           new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
     }
+    return inserted;
   }
 
   @Override
-  public void insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
-    super.insertBatch(tx, entities, ignoreDuplicateKey);
+  public int insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
+    int inserted = super.insertBatch(tx, entities, ignoreDuplicateKey);
 
     // Only add search index changes and leak detection for the non-H2 path. The H2 fallback in
     // AbstractDAO.insertBatch calls insert(tx, entity) per entity, which already handles these
@@ -104,6 +105,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
         }
       }
     }
+    return inserted;
   }
 
   /**

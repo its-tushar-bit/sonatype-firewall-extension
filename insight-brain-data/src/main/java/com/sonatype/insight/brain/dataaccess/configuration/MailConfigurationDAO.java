@@ -97,10 +97,10 @@ public class MailConfigurationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, MailConfiguration mailConfiguration) {
+  public int insert(TransactionContext tx, MailConfiguration mailConfiguration) {
     validate(mailConfiguration);
     mailConfiguration.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, mailConfiguration);
+    return super.insert(tx, mailConfiguration);
   }
 
   @Override

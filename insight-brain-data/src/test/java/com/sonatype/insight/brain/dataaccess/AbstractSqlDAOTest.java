@@ -70,7 +70,7 @@ public class AbstractSqlDAOTest
     }
 
     @Override
-    public void insert(TransactionContext tx, MigrationTracker entity) {
+    public int insert(TransactionContext tx, MigrationTracker entity) {
       throw new UnsupportedOperationException("Not needed for this test");
     }
 

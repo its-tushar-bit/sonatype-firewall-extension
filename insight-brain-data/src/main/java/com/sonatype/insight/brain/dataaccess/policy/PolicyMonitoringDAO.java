@@ -105,7 +105,7 @@ public class PolicyMonitoringDAO
    * one for Lifecycle with any stage except compliance and another for SBOM Manager
    * with the compliance stage
    */
-  public void insert(TransactionContext tx, PolicyMonitoring entity) {
+  public int insert(TransactionContext tx, PolicyMonitoring entity) {
     if (entity.getId() == null) {
       entity.setId(UUID.randomUUID().toString());
     }
@@ -117,7 +117,7 @@ public class PolicyMonitoringDAO
     {
       throw new BadRequestException("This application/organization already has policy monitoring.");
     }
-    tx.dsl()
+    return tx.dsl()
         .insertInto(POLICY_MONITORING)
         .set(POLICY_MONITORING.POLICY_MONITORING_ID, entity.getId())
         .set(POLICY_MONITORING.OWNER_ID, entity.getOwnerId())

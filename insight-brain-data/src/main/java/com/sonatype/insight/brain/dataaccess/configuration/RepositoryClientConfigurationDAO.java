@@ -64,9 +64,9 @@ public class RepositoryClientConfigurationDAO
   }
 
   @Override
-  public void insert(final TransactionContext tx, final RepositoryClientConfiguration configuration) {
+  public int insert(final TransactionContext tx, final RepositoryClientConfiguration configuration) {
     configuration.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, configuration);
+    return super.insert(tx, configuration);
   }
 
   @Override

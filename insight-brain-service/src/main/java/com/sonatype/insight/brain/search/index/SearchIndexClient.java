@@ -86,4 +86,20 @@ public interface SearchIndexClient
    * int pair. Implemented in CLM-40927 PR1.
    */
   MetricAggregationResult aggregateCountByField(String metricQuery, String bucketField, Map<String, int[]> ranges);
+
+  /**
+   * RBAC-scoped count of <em>distinct</em> composite keys among the documents matching {@code metricQuery}.
+   * The composite key is the tuple of values of {@code compositeKeyFields} (e.g.
+   * {@code [applicationId, componentHash]}); documents sharing the same tuple count once. This powers the
+   * "Scanned Components" KPI, where a vulnerable component is indexed as one
+   * {@link ItemType#SECURITY_VULNERABILITY} document per CVE, so a naive {@link #count(String)} over-counts.
+   * Fails closed identically to {@link #count(String)}: callers with no readable contexts get 0. The same
+   * programmatic RBAC filter is applied internally (never string-concatenated). Implemented in CLM-40927 PR4.
+   * <p>
+   * Backend semantics differ at scale: the Lucene implementation counts exactly (in-memory {@code HashSet}); the
+   * OpenSearch implementation uses a {@code cardinality} aggregation (HyperLogLog++), which is approximate above
+   * {@code precision_threshold} (configured to 40000 for tighter error bounds). Dashboard KPIs tolerate this
+   * approximation; {@link HybridSearchIndexClient} falls back to the exact Lucene count when OpenSearch fails.
+   */
+  long countDistinct(String metricQuery, List<String> compositeKeyFields);
 }

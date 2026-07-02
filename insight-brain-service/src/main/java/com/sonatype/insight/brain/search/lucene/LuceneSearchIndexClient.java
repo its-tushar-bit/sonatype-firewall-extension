@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -60,8 +61,10 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.MergePolicy.MergeException;
 import org.apache.lucene.index.SegmentInfos;
+import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.index.TwoPhaseCommitTool.CommitFailException;
 import org.apache.lucene.index.TwoPhaseCommitTool.PrepareCommitFailException;
 import org.apache.lucene.search.IndexSearcher;
@@ -70,6 +73,8 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.MatchNoDocsQuery;
+import org.apache.lucene.search.ScoreMode;
+import org.apache.lucene.search.SimpleCollector;
 import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -382,17 +387,21 @@ public class LuceneSearchIndexClient
       return countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery());
     }
     catch (Exception e) {
-      if (e instanceof TooManyClauses) {
-        throw TOO_MANY_CLAUSES_EXCEPTION;
-      }
-      if (e instanceof BadRequestException badRequestException) {
-        throw badRequestException;
-      }
-      if (e instanceof ConflictException conflictException) {
-        throw conflictException;
-      }
-      throw new SearchIndexException(e);
+      throw mapSearchException(e);
     }
+  }
+
+  private RuntimeException mapSearchException(final Exception e) {
+    if (e instanceof TooManyClauses) {
+      return TOO_MANY_CLAUSES_EXCEPTION;
+    }
+    if (e instanceof BadRequestException badRequestException) {
+      return badRequestException;
+    }
+    if (e instanceof ConflictException conflictException) {
+      return conflictException;
+    }
+    return new SearchIndexException(e);
   }
 
   @Override
@@ -424,21 +433,89 @@ public class LuceneSearchIndexClient
       return new MetricAggregationResult(total, buckets);
     }
     catch (Exception e) {
-      if (e instanceof TooManyClauses) {
-        throw TOO_MANY_CLAUSES_EXCEPTION;
-      }
-      if (e instanceof BadRequestException badRequestException) {
-        throw badRequestException;
-      }
-      if (e instanceof ConflictException conflictException) {
-        throw conflictException;
-      }
-      throw new SearchIndexException(e);
+      throw mapSearchException(e);
+    }
+  }
+
+  @Override
+  public long countDistinct(final String metricQuery, final List<String> compositeKeyFields) {
+    validateCompositeKeyFields(compositeKeyFields);
+    checkFieldNames(new HashSet<>(compositeKeyFields));
+    updateMaxQueryClauseCount();
+
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+      Query rbac = buildRbacFilterQuery();
+      return countDistinctWithSearcher(indexSearcher, metricQuery, compositeKeyFields, rbac);
+    }
+    catch (Exception e) {
+      throw mapSearchException(e);
     }
   }
 
   private long countWithSearcher(
       final IndexSearcher indexSearcher,
+      final String metricQuery,
+      final Query extraFilter,
+      final Query rbac) throws Exception
+  {
+    return indexSearcher.count(buildRbacFilteredMetricQuery(metricQuery, extraFilter, rbac));
+  }
+
+  /**
+   * Counts distinct composite keys among the RBAC-filtered documents matching {@code metricQuery}. The matching
+   * documents are visited via a {@link SimpleCollector}; for each, the stored values of {@code compositeKeyFields}
+   * are joined into a single key accumulated in a {@link HashSet}, and the set size is returned. Reuses the same
+   * programmatic RBAC FILTER (and {@link MatchNoDocsQuery} fail-closed behavior) as {@link #countWithSearcher}.
+   * <p>
+   * Note (scale): this materializes one entry per distinct key in memory. At ~1M SECURITY_VULNERABILITY docs this
+   * is bounded by the number of distinct (applicationId, componentHash) pairs and is acceptable for current scale;
+   * F28 scale certification (CLM-40928) will validate this and switch to a streaming/docvalues approach if needed.
+   */
+  private long countDistinctWithSearcher(
+      final IndexSearcher indexSearcher,
+      final String metricQuery,
+      final List<String> compositeKeyFields,
+      final Query rbac) throws Exception
+  {
+    Query query = buildRbacFilteredMetricQuery(metricQuery, null, rbac);
+    Set<String> fieldsToLoad = new HashSet<>(compositeKeyFields);
+    StoredFields storedFields = indexSearcher.storedFields();
+    Set<String> distinctKeys = new HashSet<>();
+    indexSearcher.search(query, new SimpleCollector()
+    {
+      private int docBase;
+
+      @Override
+      protected void doSetNextReader(final LeafReaderContext context) {
+        this.docBase = context.docBase;
+      }
+
+      @Override
+      public void collect(final int doc) throws IOException {
+        Document document = storedFields.document(docBase + doc, fieldsToLoad);
+        StringBuilder key = new StringBuilder();
+        for (int i = 0; i < compositeKeyFields.size(); i++) {
+          if (i > 0) {
+            key.append('\u0000');
+          }
+          String value = document.get(compositeKeyFields.get(i));
+          key.append(value == null ? "" : value);
+        }
+        distinctKeys.add(key.toString());
+      }
+
+      @Override
+      public ScoreMode scoreMode() {
+        return ScoreMode.COMPLETE_NO_SCORES;
+      }
+    });
+    return distinctKeys.size();
+  }
+
+  private Query buildRbacFilteredMetricQuery(
       final String metricQuery,
       final Query extraFilter,
       final Query rbac) throws Exception
@@ -453,7 +530,7 @@ public class LuceneSearchIndexClient
     if (extraFilter != null) {
       combined.add(extraFilter, BooleanClause.Occur.FILTER);
     }
-    return indexSearcher.count(combined.build());
+    return combined.build();
   }
 
   private Query buildRbacFilterQuery() {

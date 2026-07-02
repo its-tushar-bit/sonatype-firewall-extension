@@ -163,6 +163,22 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     return captor.getValue();
   }
 
+  @SuppressWarnings("unchecked")
+  private SearchRequest captureCountDistinctRequest() throws Exception {
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(Collections.emptyMap());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    client.countDistinct(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+
+    verify(openSearchClient).search(any(SearchRequest.class), eq(Map.class));
+    return captor.getValue();
+  }
+
   private static JsonNode toJsonTree(SearchRequest request) throws Exception {
     JsonpMapper mapper = new JacksonJsonpMapper();
     StringWriter writer = new StringWriter();
@@ -377,6 +393,73 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     JsonNode aggs = root.has("aggregations") ? root.path("aggregations") : root.path("aggs");
     JsonNode ranges = aggs.path("metricBuckets").path("range").path("ranges");
     assertThat(ranges).hasSize(4);
+  }
+
+  @Test
+  public void testCountDistinct_FailClosed_UsesMatchNone() throws Exception {
+    when(permissionService.getContextIdsForUserWithPermission(any(), eq(Permission.READ)))
+        .thenReturn(Collections.emptySet());
+
+    JsonNode root = toJsonTree(captureCountDistinctRequest());
+
+    JsonNode bool = root.path("query").path("bool");
+    assertThat(bool.path("must").get(0).has("query_string")).isTrue();
+
+    JsonNode filter = bool.path("filter");
+    assertThat(filter.isArray()).isTrue();
+    assertThat(filter).hasSize(1);
+    assertThat(filter.get(0).has("match_none")).isTrue();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testCountDistinct_BuildsCardinalityAggregationWithCompositeKeyScriptAndRbacFilter() throws Exception {
+    // Restricted user with one application context: the distinct count must still apply the RBAC terms filter and
+    // count distinct (applicationId, componentHash) via a cardinality aggregation over a composite-key script.
+    String mixedCaseAppId = "App-MixedCase";
+    when(permissionService.getContextIdsForUserWithPermission(any(), eq(Permission.READ)))
+        .thenReturn(Set.of(mixedCaseAppId));
+
+    Owner appOwner = mock(Owner.class);
+    when(appOwner.getId()).thenReturn(mixedCaseAppId);
+    when(appOwner.getType()).thenReturn(OwnerType.APPLICATION);
+    when(ownerDAO.getById(mixedCaseAppId)).thenReturn(appOwner);
+    when(ownerDAO.walkChildren(any(Owner.class))).thenReturn(List.of());
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    // countDistinct reads only the cardinality aggregate; an empty aggregations map => 0.
+    when(response.aggregations()).thenReturn(Collections.emptyMap());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    long result = client.countDistinct(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+
+    // No cardinality aggregate in the mocked response => 0.
+    assertThat(result).isZero();
+
+    JsonNode root = toJsonTree(captor.getValue());
+    assertThat(root.path("size").asInt()).isZero();
+    assertThat(root.has("track_total_hits")).isFalse();
+
+    JsonNode rbac = root.path("query").path("bool").path("filter").get(0).path("bool");
+    assertThat(rbac.path("minimum_should_match").asText()).isEqualTo("1");
+    Map<String, List<String>> termsByField = collectTerms(rbac.path("should"));
+    assertThat(termsByField).containsEntry(FieldIdentifier.APPLICATION_ID.label, List.of("app-mixedcase"));
+
+    JsonNode aggs = root.has("aggregations") ? root.path("aggregations") : root.path("aggs");
+    JsonNode cardinality = aggs.path("distinctCompositeKeys").path("cardinality");
+    assertThat(cardinality.isMissingNode()).isFalse();
+    String scriptSource = cardinality.path("script").path("source").asText();
+    assertThat(scriptSource)
+        .contains("doc['" + FieldIdentifier.APPLICATION_ID.label + "'].size() > 0")
+        .contains("doc['" + FieldIdentifier.COMPONENT_HASH.label + "'].size() > 0");
+    assertThat(cardinality.path("precision_threshold").asInt()).isEqualTo(40_000);
+
+    // Composite-key cardinality must not be a plain single-field aggregation (would under/over-count pairs).
+    assertThat(cardinality.path("field").isMissingNode()).isTrue();
   }
 
   private static Map<String, List<String>> collectTerms(JsonNode shouldArray) {

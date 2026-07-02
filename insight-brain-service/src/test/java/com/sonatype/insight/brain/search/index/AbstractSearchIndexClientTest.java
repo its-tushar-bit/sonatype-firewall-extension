@@ -585,5 +585,10 @@ public class AbstractSearchIndexClientTest
     {
       return new MetricAggregationResult(0L, Map.of());
     }
+
+    @Override
+    public long countDistinct(String metricQuery, List<String> compositeKeyFields) {
+      return 0L;
+    }
   }
 }

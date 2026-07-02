@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -188,6 +189,66 @@ public class LuceneSearchIndexClientAggregateTest
 
     assertThat(result.total).isEqualTo(4);
     assertThat(result.buckets).containsEntry("critical", 2L);
+  }
+
+  @Test
+  public void testCountDistinct_VulnerableComponentWithMultipleCves_CountsComponentOnce() throws Exception {
+    // A vulnerable component is indexed as one SECURITY_VULNERABILITY doc per CVE.
+    // The componentsMetricReport has 3 vulnerable components (compA has 2 CVEs => 4 SV docs total). A naive
+    // count() over-counts (4); countDistinct on (applicationId, componentHash) must count each component once (3).
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    newAppReport(app.getId(), Stage.ID_BUILD, "componentsDistinctReport",
+        "/IndexSearchingTest/componentsMetricReport");
+
+    luceneSearchIndexClient.populateIndex();
+
+    long rawCount = luceneSearchIndexClient.count("itemType:" + ItemType.SECURITY_VULNERABILITY.name());
+    assertThat(rawCount).isEqualTo(4);
+
+    long distinct = luceneSearchIndexClient.countDistinct(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+
+    assertThat(distinct).isEqualTo(3);
+  }
+
+  @Test
+  public void testCountDistinct_CompositeKeyIncludesApplicationId() throws Exception {
+    // The same component hashes appear in two applications. The composite key (applicationId, componentHash)
+    // keeps the per-application components distinct: 3 components x 2 apps = 6, even though only 3 hashes exist.
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org.getId());
+    Application app2 = tempEntity.newApplication(org.getId());
+    newAppReport(app1.getId(), Stage.ID_BUILD, "compDistinctApp1", "/IndexSearchingTest/componentsMetricReport");
+    newAppReport(app2.getId(), Stage.ID_BUILD, "compDistinctApp2", "/IndexSearchingTest/componentsMetricReport");
+
+    luceneSearchIndexClient.populateIndex();
+
+    long distinct = luceneSearchIndexClient.countDistinct(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+
+    assertThat(distinct).isEqualTo(6);
+  }
+
+  @Test
+  public void testCountDistinct_FailsClosed_UserWithNoReadContextsCountsZero() throws Exception {
+    // A user with no readable contexts must get 0 distinct components, never an unscoped distinct count.
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    newAppReport(app.getId(), Stage.ID_BUILD, "componentsDistinctFailClosed",
+        "/IndexSearchingTest/componentsMetricReport");
+
+    luceneSearchIndexClient.populateIndex();
+
+    actAsUser("user-with-no-permissions");
+
+    long distinct = luceneSearchIndexClient.countDistinct(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label));
+
+    assertThat(distinct).isZero();
   }
 
   @Test

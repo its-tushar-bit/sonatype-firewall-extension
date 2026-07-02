@@ -1203,5 +1203,26 @@ public abstract class AbstractSearchIndexClient
     }
   }
 
+  protected static void validateCompositeKeyFields(final List<String> compositeKeyFields) {
+    if (compositeKeyFields == null || compositeKeyFields.isEmpty()) {
+      throw new IllegalArgumentException("compositeKeyFields must not be null or empty");
+    }
+  }
+
+  /**
+   * Resolves a composite-key field name to the canonical indexed label from {@link FieldIdentifier}, rather than
+   * interpolating caller-supplied strings into generated scripts.
+   */
+  protected String resolveCompositeKeyFieldLabel(final String fieldName) {
+    FieldIdentifier identifier = getFieldIdentifier(fieldName);
+    if (identifier == null) {
+      throw new BadRequestException("The search query contains invalid field names: " + fieldName);
+    }
+    return identifier.label;
+  }
+
+  @Override
+  public abstract long countDistinct(String metricQuery, List<String> compositeKeyFields);
+
   protected abstract void updateMaxQueryClauseCount() throws IOException;
 }

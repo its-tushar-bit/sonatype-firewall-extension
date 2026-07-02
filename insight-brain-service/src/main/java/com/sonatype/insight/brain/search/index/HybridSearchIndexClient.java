@@ -362,6 +362,34 @@ public class HybridSearchIndexClient
     }
   }
 
+  @Override
+  public long countDistinct(String metricQuery, List<String> compositeKeyFields) {
+    Exception primaryException = null;
+    try {
+      return primaryClient.countDistinct(metricQuery, compositeKeyFields);
+    }
+    catch (Exception e) {
+      log.warn("Failed to count distinct from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      long result = secondaryClient.countDistinct(metricQuery, compositeKeyFields);
+      log.debug("Distinct count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to count distinct from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Distinct count failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
   /**
    * Returns the primary search index client (typically OpenSearch).
    * This is useful for tests and diagnostic purposes.

@@ -128,6 +128,49 @@ public class HybridSearchIndexClientTest
   }
 
   @Test
+  public void testCountDistinct_DelegatesToPrimaryClient() {
+    long expectedCount = 42L;
+    String metricQuery = "itemType:SECURITY_VULNERABILITY";
+    List<String> compositeKeyFields = List.of("applicationId", "componentHash");
+    when(primaryClient.countDistinct(metricQuery, compositeKeyFields)).thenReturn(expectedCount);
+
+    long result = hybridClient.countDistinct(metricQuery, compositeKeyFields);
+
+    assertThat(result).isEqualTo(expectedCount);
+    verify(primaryClient, times(1)).countDistinct(metricQuery, compositeKeyFields);
+    verify(secondaryClient, never()).countDistinct(anyString(), anyList());
+  }
+
+  @Test
+  public void testCountDistinct_FallsBackToSecondary_WhenPrimaryFails() {
+    String metricQuery = "itemType:SECURITY_VULNERABILITY";
+    List<String> compositeKeyFields = List.of("applicationId", "componentHash");
+    when(primaryClient.countDistinct(metricQuery, compositeKeyFields))
+        .thenThrow(new RuntimeException("Primary client error"));
+    when(secondaryClient.countDistinct(metricQuery, compositeKeyFields)).thenReturn(7L);
+
+    long result = hybridClient.countDistinct(metricQuery, compositeKeyFields);
+
+    assertThat(result).isEqualTo(7L);
+    verify(primaryClient, times(1)).countDistinct(metricQuery, compositeKeyFields);
+    verify(secondaryClient, times(1)).countDistinct(metricQuery, compositeKeyFields);
+  }
+
+  @Test
+  public void testCountDistinct_ThrowsException_WhenBothFail() {
+    String metricQuery = "itemType:SECURITY_VULNERABILITY";
+    List<String> compositeKeyFields = List.of("applicationId", "componentHash");
+    when(primaryClient.countDistinct(metricQuery, compositeKeyFields))
+        .thenThrow(new RuntimeException("Primary client error"));
+    when(secondaryClient.countDistinct(metricQuery, compositeKeyFields))
+        .thenThrow(new RuntimeException("Secondary client error"));
+
+    assertThatThrownBy(() -> hybridClient.countDistinct(metricQuery, compositeKeyFields))
+        .isInstanceOf(SearchIndexException.class)
+        .hasMessageContaining("Distinct count failed on both primary and secondary clients");
+  }
+
+  @Test
   public void testSearchIndex_UsesPrimaryClient() {
     // Given
     SearchResultDTO expectedResult = new SearchResultDTO();

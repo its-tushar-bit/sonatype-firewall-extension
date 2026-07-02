@@ -10,6 +10,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -64,6 +65,7 @@ import org.opensearch.client.opensearch._types.ErrorCause;
 import org.opensearch.client.opensearch._types.FieldSort;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch._types.Script;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.AggregationRange;
 import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
@@ -788,6 +790,66 @@ public class OpenSearchSearchIndexClient
       // result.total/result.buckets. Fail closed by throwing instead.
       throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
     }
+  }
+
+  @Override
+  public long countDistinct(final String metricQuery, final List<String> compositeKeyFields) {
+    validateCompositeKeyFields(compositeKeyFields);
+    checkFieldNames(new HashSet<>(compositeKeyFields));
+    try {
+      String initialQuery = createInitialQuery(metricQuery, true);
+      Set<String> fieldNames = getFieldNames(initialQuery);
+      checkFieldNames(fieldNames);
+
+      Script compositeKeyScript = buildCompositeKeyScript(compositeKeyFields);
+
+      SearchRequest searchRequest = new SearchRequest.Builder()
+          .index(indexConfigProvider.getIndexConfig().getIndexName())
+          .size(0)
+          .query(buildMetricQuery(initialQuery))
+          .aggregations("distinctCompositeKeys", a -> a
+              .cardinality(c -> c
+                  .script(compositeKeyScript)
+                  // Max precision_threshold shrinks HLL++ error at ~320 KB/shard; still approximate above this.
+                  .precisionThreshold(40_000)))
+          .build();
+
+      SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
+      Aggregate aggregate = searchResponse.aggregations().get("distinctCompositeKeys");
+      if (aggregate != null && aggregate.isCardinality()) {
+        return aggregate.cardinality().value();
+      }
+      return 0L;
+    }
+    catch (Exception e) {
+      throwMetricSearchException(e);
+      // throwMetricSearchException always throws; this keeps the no-throw path structurally impossible so a
+      // future change can't make countDistinct() silently return an unscoped 0 (fail-open RBAC footgun).
+      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    }
+  }
+
+  /**
+   * Builds an inline painless script that concatenates the {@code compositeKeyFields} doc values into a single
+   * string key (NUL-separated), used as the source for a {@code cardinality} aggregation to count distinct
+   * composite keys (e.g. distinct {@code (applicationId, componentHash)} pairs). A script is required because no
+   * single indexed field holds the composite key.
+   */
+  private Script buildCompositeKeyScript(final List<String> compositeKeyFields) {
+    StringBuilder source = new StringBuilder();
+    for (int i = 0; i < compositeKeyFields.size(); i++) {
+      if (i > 0) {
+        source.append(" + '\\u0000' + ");
+      }
+      String fieldLabel = resolveCompositeKeyFieldLabel(compositeKeyFields.get(i));
+      source.append("(doc['")
+          .append(fieldLabel)
+          .append("'].size() > 0 ? doc['")
+          .append(fieldLabel)
+          .append("'].value : '')");
+    }
+    String painless = source.toString();
+    return Script.of(s -> s.inline(i -> i.lang("painless").source(painless)));
   }
 
   private Query buildMetricQuery(final String initialQuery) {

@@ -636,5 +636,59 @@ describe('useLookerDashboard', () => {
       });
       expect(result.current.iframeError).toBe(false);
     });
+
+    it('should not embed until filtersInitialized is true (Atruvia issue EI-1332)', async () => {
+      // Regression: On first load, embed starts when loadingAllFilters becomes false,
+      // but filtersInitialized is false. This causes "Trouble loading data" error.
+      // After refresh, filters are already initialized so it works.
+
+      const preloadedState = makePreloadedState(firewallDashboard);
+      preloadedState.enterpriseReportingFilter.loadingAllFilters = false;
+      preloadedState.enterpriseReportingFilter.filtersInitialized = false;
+      preloadedState.enterpriseReportingFilter.appliedFilter = null;
+      preloadedState.enterpriseReportingFilter.appliedFilterName = null;
+
+      const { store } = renderUseLookerDashboard(preloadedState);
+      await flushDebounce();
+
+      // Should NOT have started embed yet (waiting for filtersInitialized)
+      expect(mockConnectDeferreds.length).toBe(0);
+
+      // Simulate filter initialization completing
+      await act(async () => {
+        store.dispatch(filterActions.initializeFilters.fulfilled(null));
+      });
+      await flushDebounce();
+
+      // Now should have embedded because filtersInitialized is true
+      expect(mockConnectDeferreds.length).toBe(1);
+    });
+
+    it('should embed even when initializeFilters rejects (graceful degradation for EI-1332)', async () => {
+      // Regression guard: When initializeFilters fails (network error), the slice's
+      // initializeFiltersFailed handler sets filtersInitialized = true. The embed
+      // should proceed gracefully rather than hanging indefinitely.
+
+      const preloadedState = makePreloadedState(firewallDashboard);
+      preloadedState.enterpriseReportingFilter.loadingAllFilters = false;
+      preloadedState.enterpriseReportingFilter.filtersInitialized = false;
+      preloadedState.enterpriseReportingFilter.appliedFilter = null;
+      preloadedState.enterpriseReportingFilter.appliedFilterName = null;
+
+      const { store } = renderUseLookerDashboard(preloadedState);
+      await flushDebounce();
+
+      // Should NOT have started embed yet (waiting for filtersInitialized)
+      expect(mockConnectDeferreds.length).toBe(0);
+
+      // Simulate filter initialization failing (network error)
+      await act(async () => {
+        store.dispatch(filterActions.initializeFilters.rejected(null));
+      });
+      await flushDebounce();
+
+      // Should still embed because filtersInitialized becomes true even on error
+      expect(mockConnectDeferreds.length).toBe(1);
+    });
   });
 });

@@ -33,9 +33,14 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
 
   const baseUrl = useSelector(selectBaseUrl);
   const selectedDashboard = useSelector(selectSelectedDashboard);
-  const { appliedFilter, appliedFilterName, filterState, loadingAllFilters, savedFilters } = useSelector(
-    selectEnterpriseReportingFilter
-  );
+  const {
+    appliedFilter,
+    appliedFilterName,
+    filterState,
+    loadingAllFilters,
+    savedFilters,
+    filtersInitialized,
+  } = useSelector(selectEnterpriseReportingFilter);
 
   const [iframeError, setIframeError] = useState(false);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
@@ -240,7 +245,12 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
       // runLookerQuery for the same dashboardId, producing two iframes and a permanently stuck spinner.
       const alreadyEmbedded = supportsFilters && lastEmbeddedDashboardId.current === selectedDashboard.dashboardId;
 
-      if (!alreadyEmbedded && (!supportsFilters || !loadingAllFilters)) {
+      // EI-1332: Wait for filters to be ready before embedding on first load.
+      // appliedFilter is null initially and only set after dashboard loads. On refresh, it persists in Redux.
+      // Without this check, embed starts with empty filters causing "Trouble loading data" error.
+      const filtersReady = !supportsFilters || filtersInitialized;
+
+      if (!alreadyEmbedded && (!supportsFilters || !loadingAllFilters) && filtersReady) {
         // Only clear communication refs when actually replacing the embed; leaving them populated when
         // alreadyEmbedded is true preserves filter-send and dashboard:run:complete routing for the
         // still-active embed.
@@ -250,7 +260,7 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
         runLookerQuery();
       }
     }
-  }, [baseUrl, selectedDashboard, loadingAllFilters]);
+  }, [baseUrl, selectedDashboard, loadingAllFilters, filtersInitialized]);
 
   return { loadingDashboard, iframeError };
 }

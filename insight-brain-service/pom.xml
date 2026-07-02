@@ -1076,7 +1076,24 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
-                    <exclude>META-INF/maven/**</exclude>
+                    <!--
+                     Strip embedded pom.xml files but keep the tiny (3-line) pom.properties.
+
+                     The pom.xml exclusion covers two concerns that motivated the historical
+                     META-INF/maven/** blanket exclusion (f24533b755f, 2013):
+                       - our own insight-brain-service pom.xml contains internal structure
+                         and dependency detail that we don't want copied verbatim into a
+                         distributed uber JAR
+                       - transitive third-party pom.xml copies are large redundant boilerplate
+
+                     The kept META-INF/maven/<g>/<a>/pom.properties files (groupId/artifactId/
+                     version, ~150 bytes each) are used by Sonatype IQ's uber-jar constituent
+                     matcher (HDS-3645) as authoritative version tiebreakers when hash-matching
+                     bundled bytecode against the artifact index. Stripping them causes
+                     bytecode-similar older versions of shaded libraries (e.g. Jersey, HK2) to
+                     appear as ghost matches in policy scans.
+                     -->
+                    <exclude>META-INF/maven/**/pom.xml</exclude>
                     <exclude>module-info.class</exclude>
                     <!--
                      Versioned module-info.class files from multi-release dependency jars. None of

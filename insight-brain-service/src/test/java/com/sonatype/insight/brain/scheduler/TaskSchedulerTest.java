@@ -420,9 +420,11 @@ public class TaskSchedulerTest
   @Test
   public void testScheduleTask_NullScheduler() {
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
-    JobDetail job = JobBuilder.newJob(TestJob.class).withIdentity(jobKey).build();
 
-    assertThatNoException().isThrownBy(() -> taskScheduler.scheduleTask((Scheduler) null, job, null, null));
+    assertThatNoException()
+        .isThrownBy(() -> taskScheduler.scheduleTask((Scheduler) null, jobKey, () -> {
+          throw new AssertionError("builder must not run when scheduler is null");
+        }));
     logOutput.assertThat()
         .atWarnLevel()
         .contains(
@@ -501,6 +503,38 @@ public class TaskSchedulerTest
         .isEqualTo(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT);
     assertThat(simpleTrigger.getRepeatCount()).isEqualTo(SimpleTrigger.REPEAT_INDEFINITELY);
     assertThat(simpleTrigger.getRepeatInterval()).isEqualTo(intervalMillis);
+  }
+
+  /**
+   * Regression test for CLM-42076. Before that fix, {@code schedulePeriodicTask} built its trigger at enqueue time,
+   * baking in a {@code startTime} that was {@code DELAY_MILLIS} milliseconds stale by the time Quartz stored it. The
+   * {@link NeverPastCalendar} then treated the (past) startTime as excluded and shifted the first fire out by a full
+   * interval, meaning a daily task registered at startup would not actually fire until 24 hours later, and every
+   * restart would push the fire out again.
+   * <p>
+   * The fix makes the batching queue hold {@link java.util.function.Supplier}s of
+   * {@link com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService.BuiltJob}, invoked at flush time. So the
+   * trigger's {@code startTime} is set to "now" as of the flush moment, which is when Quartz stores it. First fire
+   * happens shortly after registration; subsequent fires follow at the requested interval.
+   */
+  @Test
+  public void testSchedulePeriodicTask_FiresShortlyAfterRegistration() throws Exception {
+    // A one-day interval means the only way for the job to execute inside this test window is if the first
+    // periodic fire lands at (or near) registration time. If NeverPastCalendar were still pushing the first fire
+    // out by one interval, this test would fail.
+    taskScheduler.start();
+    assertThat(TestJob.getExecutions()).isZero();
+
+    runTestAndWaitForReady(() -> {
+      taskScheduler.schedulePeriodicTask(testJob, Duration.ofDays(1));
+    });
+
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isOne());
+
+    // And the trigger's next execution time is roughly one interval out from registration — confirms the periodic
+    // schedule is correctly set up and that Quartz won't re-fire in the near future.
+    Date nextFireTime = taskScheduler.getNextExecutionTime(testJob);
+    assertThat(nextFireTime).isAfter(new Date(System.currentTimeMillis() + Duration.ofHours(23).toMillis()));
   }
 
   @Test

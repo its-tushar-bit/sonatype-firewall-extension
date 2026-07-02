@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.scheduler;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService.BuiltJob;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
@@ -17,14 +18,13 @@ import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 import java.util.List;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
@@ -161,10 +161,14 @@ public class MultiTenantTaskScheduler
   }
 
   @Override
-  protected void scheduleTask(InsightJob insightJob, JobDetail job, JobLogger jobLogger, Trigger... triggers) {
-    Scheduler scheduler = getSchedulerForJobType(job.getJobClass());
-
-    super.scheduleTask(scheduler, job, jobLogger, triggers);
+  protected void scheduleTask(InsightJob insightJob, Supplier<BuiltJob> builder) {
+    // Route to the correct scheduler (main vs. MTIQ batch) by AOP-normalized job class. The normalization here must
+    // match what TaskScheduler#newJob applies inside the supplier when it constructs the JobDetail; otherwise the
+    // scheduler we pick now would not match the JobDetail's job class at flush time. The old override that this
+    // replaces routed by JobDetail#getJobClass() (already-normalized by newJob), so this preserves that behavior.
+    Class<? extends Job> normalizedClass = normalizeJobClass(insightJob.getClass());
+    Scheduler scheduler = getSchedulerForJobType(normalizedClass);
+    super.scheduleTask(scheduler, toJobKey(insightJob), builder);
   }
 
   @Override

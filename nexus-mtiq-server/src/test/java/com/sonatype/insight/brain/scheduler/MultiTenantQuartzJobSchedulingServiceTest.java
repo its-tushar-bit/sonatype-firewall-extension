@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService.BuiltJob;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.test.LogOutput;
@@ -88,7 +89,8 @@ public class MultiTenantQuartzJobSchedulingServiceTest
         Trigger[] triggers = new Trigger[]{createTrigger(TEST_TRIGGER_NAME, tenant.tenantSlug)};
 
         // When
-        underTest.scheduleTask(mockQuartzScheduler, jobDetail, Set.of(triggers), mockJobLogger);
+        underTest.scheduleTask(mockQuartzScheduler, jobDetail.getKey(),
+            () -> new BuiltJob(jobDetail, Set.of(triggers), mockJobLogger));
         quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
 
         // Sleep for a short tick to ensure the timers execute in the correct order so we can verify that order

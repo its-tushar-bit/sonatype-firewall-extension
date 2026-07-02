@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService.BuiltJob;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.DailyTimeIntervalScheduleBuilder;
@@ -212,86 +214,94 @@ public class TaskScheduler
   }
 
   public void scheduleDailyTask(InsightJob insightJob, LocalTime localTime) {
-    CronScheduleBuilder schedule = CronScheduleBuilder.dailyAtHourAndMinute(localTime.getHour(), localTime.getMinute())
-        .withMisfireHandlingInstructionDoNothing();
-    JobDetail job = newJob(insightJob) //
-        .build();
-
-    Trigger trigger = TriggerBuilder.newTrigger() //
-        .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
-        .withSchedule(schedule) //
-        .build();
-
-    scheduleTask(insightJob, job, JobLogger.daily(this::getNextExecutionTime, insightJob, job.getKey()), trigger);
+    scheduleTask(insightJob, () -> {
+      CronScheduleBuilder schedule =
+          CronScheduleBuilder.dailyAtHourAndMinute(localTime.getHour(), localTime.getMinute())
+              .withMisfireHandlingInstructionDoNothing();
+      JobDetail job = newJob(insightJob) //
+          .build();
+      Trigger trigger = TriggerBuilder.newTrigger() //
+          .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
+          .withSchedule(schedule) //
+          .build();
+      return new BuiltJob(job, Set.of(trigger),
+          JobLogger.daily(this::getNextExecutionTime, insightJob, job.getKey()));
+    });
   }
 
   public void scheduleWeeklyTask(InsightJob insightJob, DayOfWeek dayOfWeek, LocalTime localTime) {
-    // DayOfWeek.getValue() returns 1 (Mon) – 7 (Sun); Calendar uses 1 (Sun) – 7 (Sat)
-    int calendarDay = (dayOfWeek.getValue() % 7) + 1;
-    CronScheduleBuilder schedule =
-        CronScheduleBuilder.weeklyOnDayAndHourAndMinute(calendarDay, localTime.getHour(), localTime.getMinute())
-            .withMisfireHandlingInstructionDoNothing();
-    JobDetail job = newJob(insightJob).build();
-    Trigger trigger = TriggerBuilder.newTrigger()
-        .withIdentity(job.getKey().getName(), job.getKey().getGroup())
-        .withSchedule(schedule)
-        .build();
-    scheduleTask(insightJob, job, JobLogger.weekly(this::getNextExecutionTime, insightJob, job.getKey()), trigger);
+    scheduleTask(insightJob, () -> {
+      // DayOfWeek.getValue() returns 1 (Mon) – 7 (Sun); Calendar uses 1 (Sun) – 7 (Sat)
+      int calendarDay = (dayOfWeek.getValue() % 7) + 1;
+      CronScheduleBuilder schedule =
+          CronScheduleBuilder.weeklyOnDayAndHourAndMinute(calendarDay, localTime.getHour(), localTime.getMinute())
+              .withMisfireHandlingInstructionDoNothing();
+      JobDetail job = newJob(insightJob).build();
+      Trigger trigger = TriggerBuilder.newTrigger()
+          .withIdentity(job.getKey().getName(), job.getKey().getGroup())
+          .withSchedule(schedule)
+          .build();
+      return new BuiltJob(job, Set.of(trigger),
+          JobLogger.weekly(this::getNextExecutionTime, insightJob, job.getKey()));
+    });
   }
 
   public void scheduleOneTimeTask(InsightJob insightJob) {
-    JobDetail job = newJob(insightJob)
-        .build();
-    Trigger trigger = TriggerBuilder.newTrigger()
-        .withIdentity(job.getKey().getName(), job.getKey().getGroup())
-        .startNow()
-        .build();
-
-    scheduleTask(insightJob, job, JobLogger.oneTime(this::getNextExecutionTime, insightJob, job.getKey()),
-        trigger);
+    scheduleTask(insightJob, () -> {
+      JobDetail job = newJob(insightJob).build();
+      Trigger trigger = TriggerBuilder.newTrigger()
+          .withIdentity(job.getKey().getName(), job.getKey().getGroup())
+          .startNow()
+          .build();
+      return new BuiltJob(job, Set.of(trigger),
+          JobLogger.oneTime(this::getNextExecutionTime, insightJob, job.getKey()));
+    });
   }
 
   public void scheduleOneTimeTask(InsightJob insightJob, Map<String, String> parameters) {
-    JobDetail job = newJob(insightJob)
-        .build();
-    JobDataMap jobDataMap = new JobDataMap(parameters);
-    Trigger trigger = TriggerBuilder.newTrigger()
-        .withIdentity(job.getKey().getName(), job.getKey().getGroup())
-        .usingJobData(jobDataMap)
-        .startNow()
-        .build();
-
-    scheduleTask(insightJob, job, JobLogger.oneTime(this::getNextExecutionTime, insightJob, job.getKey()),
-        trigger);
+    scheduleTask(insightJob, () -> {
+      JobDetail job = newJob(insightJob).build();
+      JobDataMap jobDataMap = new JobDataMap(parameters);
+      Trigger trigger = TriggerBuilder.newTrigger()
+          .withIdentity(job.getKey().getName(), job.getKey().getGroup())
+          .usingJobData(jobDataMap)
+          .startNow()
+          .build();
+      return new BuiltJob(job, Set.of(trigger),
+          JobLogger.oneTime(this::getNextExecutionTime, insightJob, job.getKey()));
+    });
   }
 
   public void scheduleOneTimeTask(InsightJob insightJob, LocalTime localTime) {
-    JobDetail job = newJob(insightJob) //
-        .build();
-    Trigger trigger = TriggerBuilder.newTrigger() //
-        .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
-        .withSchedule(DailyTimeIntervalScheduleBuilder.dailyTimeIntervalSchedule() //
-            .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(localTime.getHour(), localTime.getMinute())) //
-            .withRepeatCount(0) //
-            .withMisfireHandlingInstructionDoNothing()) //
-        .build();
-
-    scheduleTask(insightJob, job, JobLogger.oneTime(this::getNextExecutionTime, insightJob, job.getKey()),
-        trigger);
+    scheduleTask(insightJob, () -> {
+      JobDetail job = newJob(insightJob) //
+          .build();
+      Trigger trigger = TriggerBuilder.newTrigger() //
+          .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
+          .withSchedule(DailyTimeIntervalScheduleBuilder.dailyTimeIntervalSchedule() //
+              .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(localTime.getHour(), localTime.getMinute())) //
+              .withRepeatCount(0) //
+              .withMisfireHandlingInstructionDoNothing()) //
+          .build();
+      return new BuiltJob(job, Set.of(trigger),
+          JobLogger.oneTime(this::getNextExecutionTime, insightJob, job.getKey()));
+    });
   }
 
   public void scheduleOneTimeTask(InsightJob insightJob, LocalDateTime localTime) {
-    Date convertedDate = Date.from(localTime.atZone(ZoneId.systemDefault()).toInstant());
-
-    JobDetail job = newJob(insightJob) //
-        .build();
-    Trigger trigger = TriggerBuilder.newTrigger() //
-        .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
-        .withSchedule(SimpleScheduleBuilder.simpleSchedule().withRepeatCount(0).withMisfireHandlingInstructionFireNow())
-        .startAt(convertedDate)
-        .build();
-    scheduleTask(insightJob, job, JobLogger.oneTime(this::getNextExecutionTime, insightJob, job.getKey()),
-        trigger);
+    scheduleTask(insightJob, () -> {
+      Date convertedDate = Date.from(localTime.atZone(ZoneId.systemDefault()).toInstant());
+      JobDetail job = newJob(insightJob) //
+          .build();
+      Trigger trigger = TriggerBuilder.newTrigger() //
+          .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
+          .withSchedule(
+              SimpleScheduleBuilder.simpleSchedule().withRepeatCount(0).withMisfireHandlingInstructionFireNow())
+          .startAt(convertedDate)
+          .build();
+      return new BuiltJob(job, Set.of(trigger),
+          JobLogger.oneTime(this::getNextExecutionTime, insightJob, job.getKey()));
+    });
   }
 
   public boolean isJobTriggered(InsightJob insightJob, Map<String, Object> data) {
@@ -322,23 +332,25 @@ public class TaskScheduler
   }
 
   public void schedulePeriodicTask(InsightJob insightJob, Duration interval, Date startTime) {
-    JobDetail job = newJob(insightJob) //
-        .build();
-    TriggerBuilder<SimpleTrigger> triggerBuilder = TriggerBuilder.newTrigger() //
-        .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
-        .withSchedule(SimpleScheduleBuilder.simpleSchedule() //
-            .withIntervalInMilliseconds(interval.toMillis()) //
-            .repeatForever() //
-            .withMisfireHandlingInstructionNextWithRemainingCount()) //
-        .modifiedByCalendar(NeverPastCalendar.CALENDAR_NAME);
-
-    if (startTime != null) {
-      triggerBuilder.startAt(startTime);
-    }
-
-    Trigger trigger = triggerBuilder.build();
-    scheduleTask(insightJob, job, JobLogger.periodic(this::getNextExecutionTime, insightJob, job.getKey(), interval),
-        trigger);
+    scheduleTask(insightJob, () -> {
+      JobDetail job = newJob(insightJob) //
+          .build();
+      TriggerBuilder<SimpleTrigger> triggerBuilder = TriggerBuilder.newTrigger() //
+          .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
+          .withSchedule(SimpleScheduleBuilder.simpleSchedule() //
+              .withIntervalInMilliseconds(interval.toMillis()) //
+              .repeatForever() //
+              .withMisfireHandlingInstructionNextWithRemainingCount()) //
+          .modifiedByCalendar(NeverPastCalendar.CALENDAR_NAME);
+      // If startTime is null, TriggerBuilder.newTrigger() defaults it to "now" at build time — evaluated on the
+      // batching thread (see QuartzJobSchedulingService javadoc for why that matters vs. enqueue time).
+      if (startTime != null) {
+        triggerBuilder.startAt(startTime);
+      }
+      Trigger trigger = triggerBuilder.build();
+      return new BuiltJob(job, Set.of(trigger),
+          JobLogger.periodic(this::getNextExecutionTime, insightJob, job.getKey(), interval));
+    });
   }
 
   public void scheduleOneTimeTaskForAllOtherNodes(InsightJob insightJob) {
@@ -354,29 +366,30 @@ public class TaskScheduler
       return;
     }
 
-    JobDetail job = newJob(insightJob) //
-        // non-durable for automatic removal once last trigger is gone
-        // recovery/retry by another node doesn't make sense when binding execution to specific node
-        .build();
-    Set<Trigger> triggers = new HashSet<>();
-    SimpleScheduleBuilder rightNowSchedule =
-        // don't reschedule orphaned misfired triggers, somebody takes over ownership of them eventually
-        SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires();
-
-    // create one trigger for each node
-    for (String nodeId : otherNodeIds) {
-      JobDataMap jobDataMap = new JobDataMap(parameters);
-      jobDataMap.put(QUARTZ_NODE_ID, nodeId); // bind to node
-      Trigger trigger = TriggerBuilder.newTrigger() //
-          .withIdentity(job.getKey().getName() + "For" + nodeId, job.getKey().getGroup()) //
-          .usingJobData(jobDataMap)
-          .withSchedule(rightNowSchedule) //
-          .startNow() //
+    scheduleTask(insightJob, () -> {
+      JobDetail job = newJob(insightJob) //
+          // non-durable for automatic removal once last trigger is gone
+          // recovery/retry by another node doesn't make sense when binding execution to specific node
           .build();
-      triggers.add(trigger);
-    }
-    scheduleTask(insightJob, job, JobLogger.onOtherNodes(insightJob, job.getKey(), otherNodeIds),
-        triggers.toArray(new Trigger[0]));
+      Set<Trigger> triggers = new HashSet<>();
+      SimpleScheduleBuilder rightNowSchedule =
+          // don't reschedule orphaned misfired triggers, somebody takes over ownership of them eventually
+          SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires();
+
+      // create one trigger for each node
+      for (String nodeId : otherNodeIds) {
+        JobDataMap jobDataMap = new JobDataMap(parameters);
+        jobDataMap.put(QUARTZ_NODE_ID, nodeId); // bind to node
+        Trigger trigger = TriggerBuilder.newTrigger() //
+            .withIdentity(job.getKey().getName() + "For" + nodeId, job.getKey().getGroup()) //
+            .usingJobData(jobDataMap)
+            .withSchedule(rightNowSchedule) //
+            .startNow() //
+            .build();
+        triggers.add(trigger);
+      }
+      return new BuiltJob(job, triggers, JobLogger.onOtherNodes(insightJob, job.getKey(), otherNodeIds));
+    });
   }
 
   // Visible for testing
@@ -398,18 +411,24 @@ public class TaskScheduler
     return otherNodeIds;
   }
 
-  protected void scheduleTask(InsightJob insightJob, JobDetail job, JobLogger jobLogger, Trigger... triggers) {
+  /**
+   * Enqueues an {@link InsightJob} for batched scheduling. Returns as soon as the job is queued; the {@code builder}
+   * is invoked later on the shared scheduling thread. Callers may {@link #unscheduleTask(InsightJob)} immediately
+   * after this returns — the job key is captured eagerly, so the pending record can be dropped before the supplier
+   * ever runs. See {@link QuartzJobSchedulingService} for the batching rationale and the reason builds happen at
+   * flush time.
+   */
+  protected void scheduleTask(InsightJob insightJob, Supplier<BuiltJob> builder) {
     Scheduler scheduler = getScheduler(insightJob);
-
-    scheduleTask(scheduler, job, jobLogger, triggers);
+    scheduleTask(scheduler, toJobKey(insightJob), builder);
   }
 
-  protected void scheduleTask(Scheduler scheduler, JobDetail job, JobLogger jobLogger, Trigger... triggers) {
+  protected void scheduleTask(Scheduler scheduler, JobKey jobKey, Supplier<BuiltJob> builder) {
     if (scheduler != null) {
-      quartzJobSchedulingService.scheduleTask(scheduler, job, Set.of(triggers), jobLogger);
+      quartzJobSchedulingService.scheduleTask(scheduler, jobKey, builder);
     }
     else {
-      log.warn("Cannot schedule task, jobKey '{}' for tenant {} because a scheduler is not available.", job.getKey(),
+      log.warn("Cannot schedule task, jobKey '{}' for tenant {} because a scheduler is not available.", jobKey,
           TenantThreadLocal.getTenant(), new Exception("Scheduler is not available."));
     }
   }

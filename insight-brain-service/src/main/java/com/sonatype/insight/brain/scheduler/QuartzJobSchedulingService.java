@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
@@ -40,9 +41,25 @@ import org.slf4j.LoggerFactory;
  * degradation.
  * <p>
  * The approach in this class uses a per-tenant queue backed by a {@link ScheduledExecutorService}. Any time a job is
- * scheduled (for a tenant, even in single-tenant mode), it will store the job in the queue for the tenant, and schedule
- * a Runnable to execute in a few seconds. When additional jobs come in to be scheduled for the same tenant, they are
- * added to the queue and the Runnable reset.
+ * scheduled (for a tenant, even in single-tenant mode), a {@link Supplier} that will build the {@link JobDetail} /
+ * {@link Trigger}s at flush time is stored in the queue for the tenant, and a Runnable is scheduled to execute after
+ * a short delay. When additional jobs come in to be scheduled for the same tenant, they are added to the queue and the
+ * Runnable reset.
+ * <p>
+ * The supplier is invoked at flush time (immediately before the batched {@link Scheduler#scheduleJobs}), not at enqueue
+ * time. This matters for triggers whose fire schedule is relative to "now": if the trigger were built at enqueue time,
+ * the {@code startTime} it captures via {@code new Date()} would be {@link #DELAY_MILLIS} milliseconds stale by the
+ * time Quartz actually persists it. Concretely, {@link NeverPastCalendar} excludes any instant before {@code now -
+ * 1500ms} (its safety window against rapid catch-up firing after downtime); an enqueue-time {@code startTime} would
+ * fall in that excluded window on every startup and Quartz would advance the first fire by a full repeat interval to
+ * find a calendar-included instant — silently shifting daily triggers out by 24h. Building the trigger at flush time
+ * keeps {@code startTime} fresh and the first fire lands shortly after registration.
+ * See <a href="https://sonatype.atlassian.net/browse/CLM-42076">CLM-42076</a>.
+ * <p>
+ * The {@link JobKey} passed to {@link #scheduleTask} is held eagerly on the pending record (i.e. captured before the
+ * supplier is invoked). This means callers can {@link #unscheduleTask} immediately after {@code scheduleTask} returns,
+ * even during the batching window: {@code unscheduleTask} locates and drops the pending record by key without needing
+ * to materialize the supplier.
  *
  * @see <a href="https://sonatype.atlassian.net/browse/CLM-34837">CLM-34837</a>
  */
@@ -64,34 +81,33 @@ public class QuartzJobSchedulingService
   private final TenantReference<TenantQuartzJobs> tenantsQuartzJobs = new TenantReference<>(TenantQuartzJobs::new);
 
   /**
-   * Schedules a job with the given scheduler.
+   * Enqueues a job for scheduling with the given scheduler. The job is not scheduled immediately; it is batched with
+   * other jobs for the same tenant and scheduled all at once after a delay to reduce Quartz lock contention.
    * <p>
-   * The job is not scheduled immediately, but is batched with other jobs for the same tenant and scheduled all at once
-   * after a delay to reduce contention.
+   * The {@code builder} is invoked on the batched scheduling thread just before the {@link Scheduler#scheduleJobs}
+   * call, so any {@code new Date()} embedded in the built {@link Trigger}(s) reflects the actual scheduling time.
    *
    * @param scheduler the Quartz scheduler to use
-   * @param job the job to schedule
-   * @param triggers the triggers for the job
-   * @param jobLogger a log message to run after the job is actually scheduled with quartz. This is so that we can
-   *          determine the real next execution time from Quartz after the job is scheduled.
+   * @param jobKey the key of the job being scheduled. Held eagerly for identity/lookup (so
+   *          {@link #unscheduleTask} can locate the pending entry without materializing the supplier)
+   * @param builder produces the {@link JobDetail}, its trigger set, and the {@link JobLogger} that will report the
+   *          next execution time after scheduling completes. Invoked once, at flush time.
    */
   void scheduleTask(
       final Scheduler scheduler,
-      final JobDetail job,
-      final Set<Trigger> triggers,
-      final JobLogger jobLogger)
+      final JobKey jobKey,
+      final Supplier<BuiltJob> builder)
   {
-    log.info("Scheduling job {} with triggers {}", job.getKey(), triggers);
     TenantQuartzJobs tenantQuartzJobs = tenantsQuartzJobs.get();
     synchronized (tenantQuartzJobs) {
-      tenantQuartzJobs.addJob(scheduler, job, triggers, jobLogger);
+      tenantQuartzJobs.addJob(scheduler, jobKey, builder);
     }
   }
 
   Boolean unscheduleTask(final Scheduler scheduler, final JobKey jobKey) throws SchedulerException {
     TenantQuartzJobs tenantQuartzJobs = tenantsQuartzJobs.get();
     synchronized (tenantQuartzJobs) {
-      // first remove any job from the pending queue
+      // first remove any pending record from the queue
       tenantQuartzJobs.removeJob(scheduler, jobKey);
 
       // then actually remove the job from quartz
@@ -107,7 +123,15 @@ public class QuartzJobSchedulingService
     }
   }
 
-  record QuartzJobRecord(Scheduler scheduler, JobDetail jobDetail, Set<Trigger> triggers, JobLogger jobLogger)
+  /**
+   * The output of a {@link Supplier} passed into {@link #scheduleTask}: the JobDetail, the triggers to install for it,
+   * and the {@link JobLogger} that will log the actual next execution time after Quartz has persisted the schedule.
+   */
+  public record BuiltJob(JobDetail jobDetail, Set<? extends Trigger> triggers, JobLogger jobLogger)
+  {
+  }
+
+  record QuartzJobRecord(Scheduler scheduler, JobKey jobKey, Supplier<BuiltJob> builder)
   {
   }
 
@@ -126,13 +150,11 @@ public class QuartzJobSchedulingService
 
     void addJob(
         final Scheduler scheduler,
-        final JobDetail job,
-        final Set<Trigger> triggers,
-        final JobLogger jobLogger)
+        final JobKey jobKey,
+        final Supplier<BuiltJob> builder)
     {
-      log.debug("Adding job {}. Total pending tenant job count: {}", job.getKey(), jobsDeque.size() + 1);
-      QuartzJobRecord quartzJobRecord = new QuartzJobRecord(scheduler, job, triggers, jobLogger);
-      jobsDeque.add(quartzJobRecord);
+      log.debug("Adding job {}. Total pending tenant job count: {}", jobKey, jobsDeque.size() + 1);
+      jobsDeque.add(new QuartzJobRecord(scheduler, jobKey, builder));
 
       // Cancel any existing scheduled future for this tenant
       if (tenantScheduledFuture != null) {
@@ -148,7 +170,7 @@ public class QuartzJobSchedulingService
 
     public void removeJob(final Scheduler scheduler, final JobKey jobKey) {
       for (QuartzJobRecord quartzJobRecord : jobsDeque) {
-        if (quartzJobRecord.jobDetail.getKey().equals(jobKey) && quartzJobRecord.scheduler.equals(scheduler)) {
+        if (quartzJobRecord.jobKey.equals(jobKey) && quartzJobRecord.scheduler.equals(scheduler)) {
           log.debug("Removing job {}. Total pending tenant job count: {}", jobKey, jobsDeque.size() - 1);
           jobsDeque.remove(quartzJobRecord);
           break;
@@ -172,14 +194,27 @@ public class QuartzJobSchedulingService
       TenantQuartzJobs tenantQuartzJobs = tenantsQuartzJobs.get();
       synchronized (tenantQuartzJobs) {
 
-        // Take any jobs that have queued up and split them by their scheduler
+        // Materialize each pending record via its supplier and split them by their scheduler. Materialization happens
+        // here (not at addJob time) so any "now" embedded in the built triggers reflects actual scheduling time.
+        //
+        // A single throwing supplier is isolated: it's logged and skipped so the rest of the batch still lands. Without
+        // this guard, an exception in one supplier would propagate out of TenantRunnable.run(), silently discarding all
+        // records already drained from the deque (they've already been removeFirst()-ed) and losing the exception in
+        // the ScheduledFuture. See PR 16477 review feedback.
         Map<Scheduler, Map<JobDetail, Set<? extends Trigger>>> jobsByScheduler = new HashMap<>();
         List<JobLogger> jobLoggers = new ArrayList<>(tenantQuartzJobs.jobsDeque.size());
         while (tenantQuartzJobs.jobsDeque.peekFirst() != null) {
-          QuartzJobRecord quartzJobRecord = tenantQuartzJobs.jobsDeque.removeFirst();
-          jobsByScheduler.computeIfAbsent(quartzJobRecord.scheduler, k -> new HashMap<>())
-              .put(quartzJobRecord.jobDetail, quartzJobRecord.triggers);
-          jobLoggers.add(quartzJobRecord.jobLogger);
+          QuartzJobRecord rec = tenantQuartzJobs.jobsDeque.removeFirst();
+          try {
+            BuiltJob built = rec.builder.get();
+            log.info("Scheduling job {} with triggers {}", built.jobDetail.getKey(), built.triggers);
+            jobsByScheduler.computeIfAbsent(rec.scheduler, k -> new HashMap<>())
+                .put(built.jobDetail, built.triggers);
+            jobLoggers.add(built.jobLogger);
+          }
+          catch (Exception e) {
+            log.error("Skipping job {} on scheduler {}: builder threw {}", rec.jobKey, rec.scheduler, e.toString(), e);
+          }
         }
 
         // For each scheduler, schedule the jobs in one batch

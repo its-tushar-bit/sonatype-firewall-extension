@@ -8,7 +8,10 @@ package com.sonatype.insight.brain.scheduler;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService.BuiltJob;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -74,7 +77,7 @@ public class QuartzJobSchedulingServiceTest
     Set<Trigger> triggers = Set.of(createTrigger("testTrigger", "testGroup"));
 
     // When
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail, triggers, mockJobLogger);
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail.getKey(), builderFor(jobDetail, triggers));
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
 
     // Then
@@ -87,6 +90,65 @@ public class QuartzJobSchedulingServiceTest
         .contains("Scheduling 1 jobs on scheduler");
   }
 
+  /**
+   * Regression test for CLM-42076: verifies the {@code Supplier<BuiltJob>} runs on the batching thread (at flush
+   * time), not on the caller's thread. This is the property that makes {@code new Date()} inside a Supplier reflect
+   * the actual scheduling instant rather than the enqueue instant, which was the root-cause fix.
+   */
+  @Test
+  public void testScheduleTask_BuilderIsInvokedAtFlushTimeNotEnqueueTime() throws Exception {
+    JobDetail jobDetail = createJobDetail("lazyJob", "testGroup");
+    Set<Trigger> triggers = Set.of(createTrigger("lazyTrigger", "testGroup"));
+    Thread callingThread = Thread.currentThread();
+    AtomicReference<Thread> builderThread = new AtomicReference<>();
+    Supplier<BuiltJob> builder = () -> {
+      builderThread.set(Thread.currentThread());
+      return new BuiltJob(jobDetail, triggers, mockJobLogger);
+    };
+
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail.getKey(), builder);
+    // NOTE: no pre-flush assertion on builderThread — the QuartzJobSchedulingServiceRule sets DELAY_MILLIS to 10ms
+    // for tests, so the flush may already have completed by the time this line runs on a loaded runner. The
+    // meaningful guarantee is that the builder runs on a *different* thread than the caller, which is asserted
+    // below.
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
+
+    assertThat(builderThread.get()).isNotNull().isNotSameAs(callingThread);
+    verify(mockQuartzScheduler).scheduleJobs(anyMap(), eq(true));
+  }
+
+  /**
+   * A supplier that throws at flush time must not take down the rest of the batch: since suppliers are invoked after
+   * the record has already been {@code removeFirst()}-ed from the deque, without this guard the exception would
+   * propagate out of {@code TenantRunnable.run()} and silently discard every record already drained. Regression guard
+   * for PR 16477 review feedback.
+   */
+  @Test
+  public void testScheduleTask_ThrowingBuilderIsIsolatedFromRestOfBatch() throws Exception {
+    JobDetail goodJobBefore = createJobDetail("good1", "testGroup");
+    Set<Trigger> goodTriggersBefore = Set.of(createTrigger("goodTrigger1", "testGroup"));
+    JobDetail goodJobAfter = createJobDetail("good2", "testGroup");
+    Set<Trigger> goodTriggersAfter = Set.of(createTrigger("goodTrigger2", "testGroup"));
+    JobKey throwingKey = new JobKey("boom", "testGroup");
+    Supplier<BuiltJob> throwingBuilder = () -> {
+      throw new IllegalStateException("builder blew up at flush time");
+    };
+
+    // Enqueue: good, throwing, good
+    underTest.scheduleTask(mockQuartzScheduler, goodJobBefore.getKey(),
+        builderFor(goodJobBefore, goodTriggersBefore));
+    underTest.scheduleTask(mockQuartzScheduler, throwingKey, throwingBuilder);
+    underTest.scheduleTask(mockQuartzScheduler, goodJobAfter.getKey(), builderFor(goodJobAfter, goodTriggersAfter));
+
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
+
+    // The two good jobs are scheduled; the throwing one is dropped with an error log.
+    verifyJobs(List.of(Pair.of(goodJobBefore, goodTriggersBefore), Pair.of(goodJobAfter, goodTriggersAfter)));
+    assertThat(logOutput).atErrorLevel().contains("Skipping job").contains("boom");
+    // The two good job loggers still run after the batched scheduleJobs succeeds.
+    verify(mockJobLogger, times(2)).log();
+  }
+
   @Test
   public void testScheduleTask_MultipleJobs() throws Exception {
     // Given
@@ -97,8 +159,8 @@ public class QuartzJobSchedulingServiceTest
     Set<Trigger> triggers2 = Set.of(createTrigger("testTrigger2", "testGroup"));
 
     // When
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail1, triggers1, mockJobLogger);
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail2, triggers2, mockJobLogger);
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail1.getKey(), builderFor(jobDetail1, triggers1));
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail2.getKey(), builderFor(jobDetail2, triggers2));
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
 
     // Then
@@ -122,7 +184,7 @@ public class QuartzJobSchedulingServiceTest
     doThrow(new SchedulerException("Test exception")).when(mockQuartzScheduler).scheduleJobs(anyMap(), anyBoolean());
 
     // When
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail, triggers, mockJobLogger);
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail.getKey(), builderFor(jobDetail, triggers));
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
 
     // Then
@@ -149,8 +211,8 @@ public class QuartzJobSchedulingServiceTest
     Set<Trigger> triggers2 = Set.of(createTrigger("testTrigger2", "testGroup"));
 
     // When
-    underTest.scheduleTask(scheduler1, jobDetail1, triggers1, mockJobLogger);
-    underTest.scheduleTask(scheduler2, jobDetail2, triggers2, mockJobLogger);
+    underTest.scheduleTask(scheduler1, jobDetail1.getKey(), builderFor(jobDetail1, triggers1));
+    underTest.scheduleTask(scheduler2, jobDetail2.getKey(), builderFor(jobDetail2, triggers2));
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
 
     // Then
@@ -176,8 +238,8 @@ public class QuartzJobSchedulingServiceTest
     Set<Trigger> triggers2 = Set.of(createTrigger("testTrigger2", "testGroup"));
 
     // When
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail1, triggers1, mockJobLogger);
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail2, triggers2, mockJobLogger);
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail1.getKey(), builderFor(jobDetail1, triggers1));
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail2.getKey(), builderFor(jobDetail2, triggers2));
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
 
     // Then
@@ -198,8 +260,8 @@ public class QuartzJobSchedulingServiceTest
     JobDetail jobDetail4 = createJobDetail("testJob4", "testGroup");
     Set<Trigger> triggers4 = Set.of(createTrigger("testTrigger4", "testGroup"));
 
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail3, triggers3, mockJobLogger);
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail4, triggers4, mockJobLogger);
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail3.getKey(), builderFor(jobDetail3, triggers3));
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail4.getKey(), builderFor(jobDetail4, triggers4));
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
 
     // Then
@@ -220,7 +282,7 @@ public class QuartzJobSchedulingServiceTest
     Set<Trigger> triggers1 = Set.of(createTrigger("testTrigger1", "testGroup"));
 
     // When
-    underTest.scheduleTask(mockQuartzScheduler, jobDetail1, triggers1, mockJobLogger);
+    underTest.scheduleTask(mockQuartzScheduler, jobDetail1.getKey(), builderFor(jobDetail1, triggers1));
     underTest.unscheduleTask(mockQuartzScheduler, JobKey.jobKey("testJob1", "testGroup"));
     quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(underTest);
 
@@ -231,6 +293,10 @@ public class QuartzJobSchedulingServiceTest
         .contains("Adding job testGroup.testJob1. Total pending tenant job count: 1")
         .contains("Removing job testGroup.testJob1. Total pending tenant job count: 0")
         .doesNotContain("Scheduling 1 jobs on scheduler");
+  }
+
+  private Supplier<BuiltJob> builderFor(JobDetail jobDetail, Set<Trigger> triggers) {
+    return () -> new BuiltJob(jobDetail, triggers, mockJobLogger);
   }
 
   @SuppressWarnings("unchecked")

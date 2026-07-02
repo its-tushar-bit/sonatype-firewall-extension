@@ -9,6 +9,7 @@ import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.extractProperty;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -137,6 +138,7 @@ import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.hamcrest.MockitoHamcrest;
@@ -816,6 +818,229 @@ public class RepositoryPolicyEvaluatorTest
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.QUARANTINE),
             eq(Collections.emptyList()), any());
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+  }
+
+  /**
+   * Regression sentinel for CLM-40092 — the ignore-pattern branch must batch the per-component
+   * RepositoryComponent lookup into a single getByRepositoryIdAndPathnames call. This test
+   * exercises the batch path with N=4 matching components and asserts all are deleted while a
+   * non-matching component persists.
+   */
+  @Test
+  public void testEvaluate_IgnorablePattern_DeletesAllMatchingPreExistingComponents() {
+    Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager().getId(), "my_repo", "maven2");
+
+    // Four pre-existing RepositoryComponents whose pathnames end in "ignored" (matched by the pattern below)
+    // plus one whose pathname does not match — the non-matching one stays, all four matching ones must go.
+    RepositoryComponent ignorable1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "lib/foo/ignored", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), false);
+    RepositoryComponent ignorable2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "lib/bar/ignored", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"), false);
+    RepositoryComponent ignorable3 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "lib/baz/ignored", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3", "c3", "e3"), false);
+    RepositoryComponent ignorable4 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "lib/qux/ignored", ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4", "c4", "e4"), false);
+    tempEntity.newPolicy(repository.getId(), "some_policy", 9, Action.ID_FAIL, Stage.ID_PROXY, null);
+
+    FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
+    firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
+    firewallIgnorePatterns.regexpsByRepositoryFormat
+        .put(repository.getFormat(), Collections.singletonList(".*ignored"));
+    when(mockHdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
+        .thenReturn(firewallIgnorePatterns);
+
+    RepositoryComponentEvaluationDataRequestList requestList = new RepositoryComponentEvaluationDataRequestList();
+    requestList.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(),
+        ignorable1.getPathname(), ignorable1.getHash()));
+    requestList.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(),
+        ignorable2.getPathname(), ignorable2.getHash()));
+    requestList.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(),
+        ignorable3.getPathname(), ignorable3.getHash()));
+    requestList.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(),
+        ignorable4.getPathname(), ignorable4.getHash()));
+    RepositoryComponentEvaluationDataRequest normalRequest =
+        new RepositoryComponentEvaluationDataRequest(repository.getFormat(), "lib/normal/path", "h-normal");
+    requestList.components.add(normalRequest);
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components.add(createComponentEvaluationData(ignorable1.getComponentIdentifier(),
+        ignorable1.getHash(), MatchState.UNKNOWN, 0, null, null, null, 0));
+    hdsResult.components.add(createComponentEvaluationData(ignorable2.getComponentIdentifier(),
+        ignorable2.getHash(), MatchState.UNKNOWN, 1, null, null, null, 0));
+    hdsResult.components.add(createComponentEvaluationData(ignorable3.getComponentIdentifier(),
+        ignorable3.getHash(), MatchState.UNKNOWN, 2, null, null, null, 0));
+    hdsResult.components.add(createComponentEvaluationData(ignorable4.getComponentIdentifier(),
+        ignorable4.getHash(), MatchState.UNKNOWN, 3, null, null, null, 0));
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("gN", "aN", "vN", "cN", "eN"),
+        "h-normal", MatchState.UNKNOWN, 4, null, null, null, 1));
+
+    mockHdsRequest(requestList, hdsResult, true);
+
+    repositoryPolicyEvaluator.evaluate(repository, requestList, true /* withQuarantine */, null /* clientUserAgent */);
+
+    // All four ignore-pattern-matching pre-existing components were deleted in this single evaluate call.
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable1.getPathname()))
+        .isNull();
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable2.getPathname()))
+        .isNull();
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable3.getPathname()))
+        .isNull();
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable4.getPathname()))
+        .isNull();
+    // The non-matching component persists.
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), normalRequest.pathname))
+        .isNotNull();
+  }
+
+  /**
+   * Regression sentinel for CLM-40092 — the success-path sendRepositoryComponentTelemetry must
+   * receive the in-memory sorted violations list (newRepositoryPolicyViolations from persistPolicyViolations)
+   * instead of re-reading from the database. This test also verifies the wire-ordering sort
+   * (threat_level DESC, policy_id ASC).
+   */
+  @Test
+  public void testEvaluate_TelemetryReceivesInMemorySortedViolations() {
+    Repository repository = tempEntity.newRepository();
+
+    // Two policies with different threat levels to make the sort observable.
+    // Policy with threatLevel=9 (higher, should appear first in sorted list)
+    Policy policyHigh = tempEntity.newPolicy(repository.getId(), "High-Threat-Policy", 9);
+    // Policy with threatLevel=5 (lower, should appear second in sorted list)
+    Policy policyLow = tempEntity.newPolicy(repository.getId(), "Low-Threat-Policy", 5);
+
+    RepositoryComponentEvaluationDataRequestList requestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    requestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "path/to/component.jar", "hash1"));
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    // Component has vulnerabilities that will trigger both policies
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "hash1",
+        MatchState.EXACT, 0, null, null, createSecurityVulnerabilities(), 2));
+
+    mockHdsRequest(requestList, hdsResult, false);
+
+    repositoryPolicyEvaluator.evaluate(repository, requestList, false /* withQuarantine */, null);
+
+    // Capture the violations list passed to sendRepositoryComponentTelemetry
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<RepositoryPolicyViolation>> violationsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), violationsCaptor.capture(),
+            eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
+            eq(RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()), any(Component.class));
+
+    List<RepositoryPolicyViolation> captured = violationsCaptor.getValue();
+    assertThat(captured)
+        .extracting(RepositoryPolicyViolation::getThreatLevel, RepositoryPolicyViolation::getPolicyId)
+        .containsExactly(tuple(9, policyHigh.getId()), tuple(5, policyLow.getId()));
+
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+  }
+
+  /**
+   * Regression sentinel for CLM-40092 — the unquarantineComponent telemetry path must
+   * receive the in-memory filtered violations list (not-waived) instead of
+   * re-reading from the database. This test verifies:
+   * 1. The RELEASE_QUARANTINE telemetry receives violations filtered to not-waived.
+   * 2. The follow-up AUDIT telemetry receives the full violations list (includes waived).
+   * 3. Both lists are sorted correctly (threat_level DESC, policy_id ASC).
+   */
+  @Test
+  public void testEvaluate_UnquarantinePath_ReceivesInMemoryFilteredViolations() {
+    Repository repository = tempEntity.newRepository();
+
+    // Two policies: one will be waived, one will not. Both start with FAIL to cause initial quarantine.
+    Policy policyNotWaived =
+        tempEntity.newPolicy(repository.getId(), "Not-Waived-Policy", 9, Action.ID_FAIL, Stage.ID_PROXY, null);
+    Policy policyWaived =
+        tempEntity.newPolicy(repository.getId(), "Waived-Policy", 5, Action.ID_FAIL, Stage.ID_PROXY, null);
+
+    // Create a waiver for the second policy (repo-level waiver applies to all components)
+    tempEntity.newWaiver(policyWaived.getId(), repository.getId());
+
+    // Create a pre-existing quarantined component
+    RepositoryComponent quarantinedComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "path/to/quarantined.jar", new Date());
+    quarantinedComponent.setQuarantineTime(new Date());
+    repositoryComponentDAO.update(quarantinedComponent);
+
+    // Change the non-waived policy from FAIL to WARN so the component gets released
+    // (WARN actions don't trigger quarantine, and the waived violation is ignored for quarantine)
+    policyNotWaived.setAction(Stage.ID_PROXY, Action.ID_WARN);
+    policyDAO.update(policyNotWaived);
+
+    RepositoryComponentEvaluationDataRequestList requestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    requestList.components.add(new RepositoryComponentEvaluationDataRequest(
+        "maven2", quarantinedComponent.getPathname(), quarantinedComponent.getHash()));
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    // Component has vulnerabilities matching both policies
+    hdsResult.components.add(createComponentEvaluationData(
+        quarantinedComponent.getComponentIdentifier(), quarantinedComponent.getHash(),
+        MatchState.EXACT, 0, null, null, createSecurityVulnerabilities(), 2));
+
+    mockHdsRequest(requestList, hdsResult, true);
+
+    // Evaluate - component should be released because neither policy causes quarantine:
+    // - policyNotWaived now has WARN action (doesn't cause quarantine)
+    // - policyWaived is waived
+    repositoryPolicyEvaluator.evaluate(repository, requestList, true /* withQuarantine */, null);
+
+    // Verify component is no longer quarantined
+    RepositoryComponent updatedComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), quarantinedComponent.getPathname());
+    assertThat(updatedComponent).isNotNull();
+    assertThat(updatedComponent.isQuarantined()).isFalse();
+    assertThat(updatedComponent.getUnquarantineTime()).isNotNull();
+
+    // Verify telemetry calls in order
+    InOrder inOrder = inOrder(repositoryComponentTelemetryCreator);
+
+    // First call: RELEASE_QUARANTINE telemetry
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<RepositoryPolicyViolation>> releaseViolationsCaptor = ArgumentCaptor.forClass(List.class);
+    inOrder.verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), releaseViolationsCaptor.capture(),
+            eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
+            eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE),
+            any(ReleaseQuarantineType.class), any(String.class), eq(Collections.emptyList()));
+
+    List<RepositoryPolicyViolation> releaseViolations = releaseViolationsCaptor.getValue();
+
+    // RELEASE_QUARANTINE should have ONE violation (policyNotWaived), not the waived one:
+    // The filter is: !isWaived()
+
+    assertThat(releaseViolations).hasSize(1);
+    assertThat(releaseViolations.get(0).getPolicyId()).isEqualTo(policyNotWaived.getId());
+    assertThat(releaseViolations.get(0).isWaived()).isFalse();
+    // Sorted by threat_level DESC (policyNotWaived has threatLevel=9)
+    assertThat(releaseViolations.get(0).getThreatLevel()).isEqualTo(9);
+
+    // Second call: AUDIT telemetry after transaction commits
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<RepositoryPolicyViolation>> auditViolationsCaptor = ArgumentCaptor.forClass(List.class);
+    inOrder.verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), auditViolationsCaptor.capture(),
+            eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
+            eq(RepositoryComponentTelemetryEventType.AUDIT),
+            eq(Collections.emptyList()), any(Component.class));
+
+    List<RepositoryPolicyViolation> auditViolations = auditViolationsCaptor.getValue();
+
+    // AUDIT uses only the active filter (includes waived), so it has BOTH violations.
+    // This proves the two telemetry paths receive different filtered views of the same in-memory list.
+    assertThat(auditViolations).hasSize(2);
+    // Verify sorted by threat_level DESC, policy_id ASC
+    assertThat(auditViolations.get(0).getThreatLevel()).isEqualTo(9);
+    assertThat(auditViolations.get(0).getPolicyId()).isEqualTo(policyNotWaived.getId());
+    assertThat(auditViolations.get(1).getThreatLevel()).isEqualTo(5);
+    assertThat(auditViolations.get(1).getPolicyId()).isEqualTo(policyWaived.getId());
+
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 

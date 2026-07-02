@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -361,6 +362,22 @@ public class RepositoryPolicyEvaluator
     Map<String, NamedComponentDetails> namedComponentDetails =
         ComponentDetailsLoader.getComponentDetailsLocallyByHashes(hashes);
 
+    List<String> ignoredPathnames = componentEvaluationDataRequestList.components.stream()
+        .map(c -> c.pathname)
+        .filter(Objects::nonNull)
+        .filter(componentPathnameMatchesIgnorePattern)
+        .collect(Collectors.toList());
+    // (repository_id, pathname) is unique in the repository_component table, so duplicates are not expected.
+    // The merge function "keep last" matches the prior singular getByRepositoryIdAndPathname semantic (which
+    // returned a single row) and avoids a confusing IllegalStateException if a hypothetical data anomaly ever
+    // produced two rows for the same pathname.
+    Map<String, RepositoryComponent> existingRepositoryComponentsByPathname = ignoredPathnames.isEmpty()
+        ? Collections.emptyMap()
+        : repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), ignoredPathnames)
+            .stream()
+            .collect(toMap(RepositoryComponent::getPathname, Function.identity(),
+                (existing, replacement) -> replacement));
+
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);
@@ -371,8 +388,8 @@ public class RepositoryPolicyEvaluator
       // 2. Do not evaluate policies on it
       // 3. Do not persist it
       if (componentPathnameMatchesIgnorePattern.test(componentEvaluationRequest.pathname)) {
-        RepositoryComponent repositoryComponent = repositoryComponentDAO
-            .getByRepositoryIdAndPathname(repository.getId(), componentEvaluationRequest.pathname);
+        RepositoryComponent repositoryComponent =
+            existingRepositoryComponentsByPathname.get(componentEvaluationRequest.pathname);
         if (repositoryComponent != null) {
           repositoryComponentDeleteService.deleteComponent(repositoryComponent);
         }
@@ -695,15 +712,17 @@ public class RepositoryPolicyEvaluator
       allPolicyAlertsByComponent.addAll(waivedAlerts);
 
       // The order of the following calls are important and must not be changed. See: CLM-13853
-      persistPolicyViolations(tx, repository, evaluationTime, component, policies,
-          policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent);
+      List<RepositoryPolicyViolation> newRepositoryPolicyViolations =
+          persistPolicyViolations(tx, repository, evaluationTime, component, policies,
+              policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, forMonitoring, explicitReleaseReason, stageTypeId, activeAlerts);
+          canBeQuarantined, forMonitoring, explicitReleaseReason, stageTypeId, activeAlerts,
+          newRepositoryPolicyViolations);
 
       tx.commit();
 
       sendRepositoryComponentTelemetry(policyNotifications, repositoryComponent, repository,
-          isNotificationsToBeSent, component);
+          isNotificationsToBeSent, component, newRepositoryPolicyViolations);
       AuditData.get().commitSubEvents();
       policyViolationLogger.log();
     }
@@ -719,9 +738,14 @@ public class RepositoryPolicyEvaluator
       boolean forMonitoring,
       ReleaseReason explicitReleaseReason,
       String stageTypeId,
-      List<PolicyAlert> activeAlerts)
+      List<PolicyAlert> activeAlerts,
+      List<RepositoryPolicyViolation> newRepositoryPolicyViolations)
   {
     String pathname = component.getPathnames().get(0);
+    // TODO(CLM-42071): per-component DB read inside the cluster lock — still an N+1 across a 100-component batch.
+    // Safe to defer: read is inside the (repo,pathname) cluster lock and drives insert-vs-update semantics.
+    // The clean fix is `INSERT … ON CONFLICT (repository_id, pathname) DO UPDATE` (one round-trip, no race).
+    // See CLM-40092 PR description.
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
         repository.getId(), pathname);
     // Must be read before any mutation to repositoryComponent below.
@@ -777,8 +801,8 @@ public class RepositoryPolicyEvaluator
       if (repositoryComponent.isQuarantined() && !shouldQuarantine(activeAlerts, component)) {
         // The component is quarantined, but it doesn't have any policy violations/alerts that would quarantine it
         // anymore.
-        unquarantineComponent(tx, repository, repositoryComponent, evaluationTime, forMonitoring,
-            explicitReleaseReason);
+        unquarantineComponent(repository, repositoryComponent, evaluationTime, forMonitoring,
+            explicitReleaseReason, newRepositoryPolicyViolations);
       }
 
       repositoryComponentDAO.update(tx, repositoryComponent);
@@ -800,12 +824,12 @@ public class RepositoryPolicyEvaluator
   }
 
   private void unquarantineComponent(
-      TransactionContext tx,
       Repository repository,
       RepositoryComponent repositoryComponent,
       Date evaluationTime,
       boolean forMonitoring,
-      ReleaseReason explicitReleaseReason)
+      ReleaseReason explicitReleaseReason,
+      List<RepositoryPolicyViolation> newRepositoryPolicyViolations)
   {
     if (AuditData.get().getEvent() != null && !AuditData.get().getEvent().equals(AuditEvent.RELEASE_QUARANTINE)) {
       try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RELEASE_QUARANTINE, false)) {
@@ -823,9 +847,9 @@ public class RepositoryPolicyEvaluator
       repositoryComponent.setUnquarantineTimeForManualRelease(evaluationTime);
     }
 
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathnameAndWaived(tx, repository.getId(), repositoryComponent.getPathname(), false);
-    repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = newRepositoryPolicyViolations.stream()
+        .filter(violation -> !violation.isWaived())
+        .collect(Collectors.toList());
 
     ReleaseQuarantineType releaseQuarantineType =
         forMonitoring ? ReleaseQuarantineType.AUTO : ReleaseQuarantineType.MANUAL;
@@ -852,13 +876,11 @@ public class RepositoryPolicyEvaluator
       final RepositoryComponent repositoryComponent,
       final Repository repository,
       final boolean isNotificationsToBeSent,
-      final Component component)
+      final Component component,
+      final List<RepositoryPolicyViolation> newRepositoryPolicyViolations)
   {
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathname(repository.getId(), repositoryComponent.getPathname());
-    repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
     repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
-        repositoryPolicyViolations, repository.getRepositoryManagerId(), repository.getPublicId(),
+        newRepositoryPolicyViolations, repository.getRepositoryManagerId(), repository.getPublicId(),
         repositoryComponent.isQuarantined()
             ? RepositoryComponentTelemetryEventType.QUARANTINE
             : RepositoryComponentTelemetryEventType.AUDIT,
@@ -866,7 +888,7 @@ public class RepositoryPolicyEvaluator
         component);
   }
 
-  private void persistPolicyViolations(
+  private List<RepositoryPolicyViolation> persistPolicyViolations(
       TransactionContext tx,
       Repository repository,
       Date evaluationTime,
@@ -878,7 +900,10 @@ public class RepositoryPolicyEvaluator
       Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent)
   {
     String pathname = component.getPathnames().get(0);
-    // Get the persisted RepositoryPolicyViolations for this component
+    // TODO(CLM-40092): per-component DB read inside the cluster lock — still an N+1 across a 100-component batch.
+    // Safe to defer: read is inside the (repo,pathname) cluster lock so we see the latest committed state.
+    // Batching this requires a design conversation: either tolerate a small staleness window from a pre-lock
+    // prefetch, or widen the lock so we can prefetch under coverage. See CLM-40092 PR description.
     List<RepositoryPolicyViolation> oldPolicyViolations =
         repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
     repositoryPolicyViolationDAO.loadConstraintFacts(oldPolicyViolations);
@@ -903,6 +928,10 @@ public class RepositoryPolicyEvaluator
     }
 
     // Diff old and new
+    // TODO: CLM-42070
+    // We should batch these operations, as was done previously for application evaluation violations.
+    // Shared helpers already exist for batch inserts and batch updates; a batch delete helper does not yet exist as far
+    // as we know and would need to be added
     PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff =
         PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
 
@@ -952,6 +981,15 @@ public class RepositoryPolicyEvaluator
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
       }
     }
+
+    // Preserve the wire ordering previously provided by getActiveByRepositoryIdAndPathname's
+    // ORDER BY threat_level DESC, policy_id. Downstream telemetry consumers (event payloads emitted
+    // by repositoryComponentTelemetryCreator) may rely on highest-threat-first iteration.
+    newPolicyViolations.sort(Comparator
+        .comparingInt(RepositoryPolicyViolation::getThreatLevel)
+        .reversed()
+        .thenComparing(RepositoryPolicyViolation::getPolicyId, Comparator.nullsLast(Comparator.naturalOrder())));
+    return newPolicyViolations;
   }
 
   /**

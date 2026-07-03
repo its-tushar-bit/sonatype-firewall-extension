@@ -621,9 +621,9 @@ public class ApiSbomService
       @AuthzContext(Key.APPLICATION_ID) String applicationId,
       String importRequestId)
   {
+    Application application = applicationDAO.getByIdNotNull(applicationId);
     PolicyEvaluationPollingResultDTO dto =
-        policyEvaluateService.pollEvaluationResult(applicationDAO.getById(applicationId).getPublicId(),
-            importRequestId);
+        policyEvaluateService.pollEvaluationResult(application, importRequestId);
 
     switch (dto.status) {
       case COMPLETED:

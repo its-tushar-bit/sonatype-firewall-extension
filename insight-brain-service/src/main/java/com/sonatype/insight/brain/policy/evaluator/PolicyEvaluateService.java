@@ -78,6 +78,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.BadRequestException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
@@ -533,22 +534,39 @@ public class PolicyEvaluateService
       final String applicationPublicId,
       String statusId)
   {
-    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    Organization organization = organizationDAO.getByIdNotNull(app.getOrganizationId());
+    return pollEvaluationResult(applicationDAO.getByPublicIdNotNull(applicationPublicId), statusId);
+  }
+
+  /**
+   * Retrieve the {@link PolicyEvaluationPollingResult} for an existing polling request, reusing an
+   * already-loaded {@link Application} to avoid re-resolving it from the database on every poll.
+   *
+   * @param application the application the evaluation belongs to; must be a fully-populated,
+   *          DB-sourced entity — its {@code organizationId} drives eval-application vs
+   *          eval-component routing and downstream license checks
+   * @param statusId id from status, normally gotten from {@link PolicyEvaluationReceipt}
+   */
+  public PolicyEvaluationPollingResultDTO pollEvaluationResult(
+      final Application application,
+      String statusId)
+  {
+    Objects.requireNonNull(application, "application must not be null");
+    Organization organization = organizationDAO.getByIdNotNull(application.getOrganizationId());
 
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), statusId);
+        persistedPolicyEvaluationPollingResultDAO
+            .getByApplicationIdAndStatusId(application.getId(), statusId);
     if (persistedPolicyEvaluationPollingResult == null) {
       throw new NotFoundException(String
           .format("Policy evaluation status with id %s for public application id %s was not found.", statusId,
-              applicationPublicId));
+              application.getPublicId()));
     }
 
     if (organization.getRelatedRepositoryId() == null) {
-      return pollEvaluationResultCheckEvaluateApplication(app, persistedPolicyEvaluationPollingResult);
+      return pollEvaluationResultCheckEvaluateApplication(application, persistedPolicyEvaluationPollingResult);
     }
     else {
-      return pollEvaluationResultCheckEvaluateComponent(app, persistedPolicyEvaluationPollingResult);
+      return pollEvaluationResultCheckEvaluateComponent(application, persistedPolicyEvaluationPollingResult);
     }
   }
 

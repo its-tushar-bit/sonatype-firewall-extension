@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.api.v2.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -170,8 +172,9 @@ public class ApiThirdPartyScanServiceTest
     PolicyEvaluationPollingResultDTO policyEvaluationPollingResult = new PolicyEvaluationPollingResultDTO();
     policyEvaluationPollingResult.status = PolicyEvaluationStatus.PENDING;
 
-    when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), "scanId"))
-        .thenReturn(policyEvaluationPollingResult);
+    when(mockPolicyEvaluateService.pollEvaluationResult(
+        argThat((Application a) -> a != null && app.getId().equals(a.getId())), eq("scanId")))
+            .thenReturn(policyEvaluationPollingResult);
 
     assertThatThrownBy(() -> thirdPartyScanService.getScanStatus(app.getId(), "scanId"))
         .isInstanceOf(NotFoundException.class)
@@ -185,8 +188,9 @@ public class ApiThirdPartyScanServiceTest
     policyEvaluationPollingResult.status = PolicyEvaluationStatus.FAILED;
     policyEvaluationPollingResult.reason = "HDS Upload Failure!";
 
-    when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), "scanId"))
-        .thenReturn(policyEvaluationPollingResult);
+    when(mockPolicyEvaluateService.pollEvaluationResult(
+        argThat((Application a) -> a != null && app.getId().equals(a.getId())), eq("scanId")))
+            .thenReturn(policyEvaluationPollingResult);
 
     ApiThirdPartyScanResultDTO thirdPartyScanResult = thirdPartyScanService.getScanStatus(app.getId(), "scanId");
     assertThat(thirdPartyScanResult.isError).isTrue();
@@ -282,8 +286,9 @@ public class ApiThirdPartyScanServiceTest
     pollingResult.status = PolicyEvaluationStatus.COMPLETED;
     pollingResult.result = evaluationResult;
 
-    when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), scanId))
-        .thenReturn(pollingResult);
+    when(mockPolicyEvaluateService.pollEvaluationResult(
+        argThat((Application a) -> a != null && app.getId().equals(a.getId())), eq(scanId)))
+            .thenReturn(pollingResult);
 
     String bom = getBomFile(fileName);
 

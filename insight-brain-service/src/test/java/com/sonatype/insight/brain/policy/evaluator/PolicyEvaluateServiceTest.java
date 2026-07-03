@@ -20,6 +20,7 @@ import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryC
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -872,6 +873,84 @@ public class PolicyEvaluateServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> policyEvaluateService.pollEvaluationResult(app.getPublicId(), statusId))
         .withMessage("Your IQ Server license does not enable this feature.");
+  }
+
+  @Test
+  public void testPollEvaluationResult_ApplicationOverload_DoesNotRefetchApplicationByPublicId() {
+    // app + org + persisted polling result already created via tempEntity in this integration test
+    Application application = tempEntity.newApplicationWithParent();
+    String statusId = TemporaryEntity.uuid();
+    PolicyEvaluationPollingResult pollingResult = new PolicyEvaluationPollingResult();
+    pollingResult.setStatus(PolicyEvaluationStatus.PENDING);
+    persistedPolicyEvaluationPollingResultDAO
+        .insert(new PersistedPolicyEvaluationPollingResult(application.getId(), statusId, pollingResult));
+
+    // precondition: this test exercises the eval-application routing branch (no related repository)
+    assertThat(organizationDAO.getById(application.getOrganizationId()).getRelatedRepositoryId()).isNull();
+
+    ApplicationDAO spyApplicationDAO = spy(applicationDAO);
+    applyBeanFieldOverride(PolicyEvaluateService.class, "applicationDAO", spyApplicationDAO);
+
+    PolicyEvaluationPollingResultDTO dto =
+        policyEvaluateService.pollEvaluationResult(application, statusId);
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.status).isEqualTo(PolicyEvaluationStatus.PENDING);
+    // the overload must NOT re-resolve the application it was handed
+    verify(spyApplicationDAO, never()).getByPublicId(any());
+    verify(spyApplicationDAO, never()).getByPublicIdNotNull(any());
+    verify(spyApplicationDAO, never()).getById(any());
+  }
+
+  @Test
+  public void testPollEvaluationResult_ApplicationOverload_ContainerImageBranch_DoesNotRefetchApplicationByPublicId() {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application application = tempEntity.newApplication("app", organization.getId());
+
+    productLicenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION, LicensedFeature.CLI_INTEGRATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    String statusId = TemporaryEntity.uuid();
+    PolicyEvaluationPollingResult pollingResult = new PolicyEvaluationPollingResult();
+    pollingResult.setStatus(PolicyEvaluationStatus.PENDING);
+    persistedPolicyEvaluationPollingResultDAO
+        .insert(new PersistedPolicyEvaluationPollingResult(application.getId(), statusId, pollingResult));
+
+    // precondition: this test exercises the eval-component routing branch (container-image org)
+    assertThat(organizationDAO.getById(application.getOrganizationId()).getRelatedRepositoryId()).isNotNull();
+
+    ApplicationDAO spyApplicationDAO = spy(applicationDAO);
+    applyBeanFieldOverride(PolicyEvaluateService.class, "applicationDAO", spyApplicationDAO);
+
+    PolicyEvaluationPollingResultDTO dto =
+        policyEvaluateService.pollEvaluationResult(application, statusId);
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.status).isEqualTo(PolicyEvaluationStatus.PENDING);
+    // the overload must NOT re-resolve the application it was handed
+    verify(spyApplicationDAO, never()).getByPublicId(any());
+    verify(spyApplicationDAO, never()).getByPublicIdNotNull(any());
+    verify(spyApplicationDAO, never()).getById(any());
+  }
+
+  @Test
+  public void testPollEvaluationResult_ApplicationOverload_NullApplication_ThrowsNPE() {
+    assertThatNullPointerException()
+        .isThrownBy(() -> policyEvaluateService.pollEvaluationResult((Application) null, "anyId"))
+        .withMessage("application must not be null");
+  }
+
+  @Test
+  public void testPollEvaluationResult_ApplicationOverload_StatusNotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+    String unknownStatusId = TemporaryEntity.uuid();
+    // no persisted polling result inserted -> getByApplicationIdAndStatusId returns null -> NotFoundException
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> policyEvaluateService.pollEvaluationResult(application, unknownStatusId))
+        .withMessage("Policy evaluation status with id %s for public application id %s was not found.",
+            unknownStatusId, application.getPublicId());
   }
 
   private void insertPersistedPolicyEvaluationPollingResult(String statusId, String appId) {

@@ -210,10 +210,10 @@ public class ApiThirdPartyScanService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       String scanRequestId)
   {
-    Application application = applicationDAO.getById(applicationId);
+    Application application = applicationDAO.getByIdNotNull(applicationId);
 
     PolicyEvaluationPollingResultDTO dto =
-        policyEvaluateService.pollEvaluationResult(application.getPublicId(), scanRequestId);
+        policyEvaluateService.pollEvaluationResult(application, scanRequestId);
 
     switch (dto.status) {
       case COMPLETED:

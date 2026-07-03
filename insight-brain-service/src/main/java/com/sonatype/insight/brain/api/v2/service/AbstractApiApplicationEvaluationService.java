@@ -38,9 +38,9 @@ class AbstractApiApplicationEvaluationService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       String statusId)
   {
-    Application application = applicationDAO.getById(applicationId);
+    Application application = applicationDAO.getByIdNotNull(applicationId);
     PolicyEvaluationPollingResultDTO dto =
-        policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
+        policyEvaluateService.pollEvaluationResult(application, statusId);
 
     ApiApplicationEvaluationResultDTOV2 result = new ApiApplicationEvaluationResultDTOV2();
     result.status = dto.status.name();

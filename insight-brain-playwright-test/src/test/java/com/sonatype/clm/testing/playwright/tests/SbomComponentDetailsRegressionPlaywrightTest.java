@@ -23,7 +23,6 @@ import com.sonatype.clm.testing.playwright.pages.SbomComponentDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.SbomComponentDetailsPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SbomComponentDetailsRegressionPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -52,6 +51,9 @@ import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMet
 public class SbomComponentDetailsRegressionPlaywrightTest
     extends AbstractIqUiTest
 {
+  private static final LocatorAssertions.IsVisibleOptions VISIBLE_OPTS =
+      new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS);
+
   private static final String SBOM_VERSION_ID = "mockVersionId";
 
   private static final String COMPONENT_HASH = "mockComponentHash";
@@ -160,7 +162,7 @@ public class SbomComponentDetailsRegressionPlaywrightTest
     regressionPage.clickCopyAnnotationButton();
 
     assertThat(regressionPage.copyAnnotationModal())
-        .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+        .isVisible(VISIBLE_OPTS);
     assertThat(regressionPage.copyAnnotationModalTitle())
         .containsText(COPY_ANNOTATION_MODAL_TITLE);
   }
@@ -181,16 +183,14 @@ public class SbomComponentDetailsRegressionPlaywrightTest
     regressionPage.clickDeleteAnnotationButton();
 
     assertThat(regressionPage.deleteAnnotationModal())
-        .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+        .isVisible(VISIBLE_OPTS);
     assertThat(regressionPage.deleteAnnotationModalTitle())
         .containsText(DELETE_ANNOTATION_MODAL_TITLE);
   }
 
   private void seedComponentDetails() throws IOException {
-    Organization testOrganization = tempEntity.newOrganization("SbomCdRegrTest-" + TemporaryEntity.uuid());
-    String appSuffix = TemporaryEntity.uuid();
-    testApplication =
-        tempEntity.newApplication("testApp-" + appSuffix, "testApp-" + appSuffix, testOrganization.getId());
+    Organization testOrganization = tempEntity.newOrganization();
+    testApplication = tempEntity.newApplication(testOrganization.getId());
 
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(scannedFile);

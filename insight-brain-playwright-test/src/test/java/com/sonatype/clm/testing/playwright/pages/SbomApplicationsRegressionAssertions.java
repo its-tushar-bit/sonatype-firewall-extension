@@ -17,6 +17,7 @@ public class SbomApplicationsRegressionAssertions
 
   private static final int NAME_COLUMN_INDEX = 0;
 
+  // "vulnerabilities" lowercase: the NxSmallVulnerabilityCounter column renders no capitalised header text.
   private static final String[] COLUMN_NAMES =
       {"Name", "Latest Version", "Release Status", "Import Date", "vulnerabilities", "Violations"};
 

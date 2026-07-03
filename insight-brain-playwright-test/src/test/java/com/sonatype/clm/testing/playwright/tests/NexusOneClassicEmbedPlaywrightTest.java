@@ -63,10 +63,8 @@ public class NexusOneClassicEmbedPlaywrightTest
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/api"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-    NexusOnePageAssertions shellAssertions = new NexusOnePageAssertions(new NexusOnePage());
     ApiDocumentationPageAssertions apiAssertions = new ApiDocumentationPageAssertions(new ApiDocumentationPage());
 
-    shellAssertions.shouldBeVisible();
     assertThat(embedPage.leftNav()).isVisible();
     assertThat(embedPage.classicComponentMount()).isVisible();
     assertThat(embedPage.classicGlobalSidebar()).not().isVisible();

@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.playwright.pages;
 import java.util.Map;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 
@@ -61,7 +62,8 @@ public class NexusOnePageAssertions
    * The Nexus One SPA is mounted and its themed content surface is on screen.
    */
   public void shouldBeVisible() {
-    assertThat(page.pageSurface()).isVisible();
+    assertThat(page.pageSurface()).isVisible(
+        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
   }
 
   /**

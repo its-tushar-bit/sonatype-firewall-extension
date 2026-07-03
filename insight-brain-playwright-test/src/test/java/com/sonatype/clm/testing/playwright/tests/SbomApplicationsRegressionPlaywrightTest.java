@@ -55,6 +55,9 @@ import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 public class SbomApplicationsRegressionPlaywrightTest
     extends AbstractIqUiTest
 {
+  private static final LocatorAssertions.IsVisibleOptions VISIBLE_OPTS =
+      new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS);
+
   private static final int EXPECTED_FIRST_PAGE_ROW_COUNT = 50;
 
   private static final int EXPECTED_TOTAL_APP_COUNT = 75;
@@ -74,7 +77,7 @@ public class SbomApplicationsRegressionPlaywrightTest
   private ThirdPartyScan firstScan;
 
   @Before
-  public void seedAndOpenSbomApplicationsAsAdmin() {
+  public void seedAndOpenSbomApplicationsAsAdmin() throws Exception {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER);
     seedApplicationsWithSbomData();
@@ -83,6 +86,7 @@ public class SbomApplicationsRegressionPlaywrightTest
     new SbomApplicationsRegressionAssertions(new SbomApplicationsRegressionPage()).shouldBeLoaded();
   }
 
+  /** SBOM Applications table — columns have expected headers and sortability; Latest Version link navigates to BOM. */
   @Test
   @Category(RegressionTest.class)
   public void testTableColumns_sortabilityAndLatestVersionLinkNavigatesToBom() {
@@ -92,10 +96,12 @@ public class SbomApplicationsRegressionPlaywrightTest
     sbomApps.clickNameColumnSort();
     sbomApps.latestVersionLink(sbomApps.tableBodyRows().first()).click();
 
-    assertThat(new SbomManagerBomRegressionPage().reportTab())
-        .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(new SbomManagerBomRegressionPage().reportTab()).isVisible(VISIBLE_OPTS);
   }
 
+  /**
+   * SBOM Applications table — sort resets after filter narrows to one row; sort button hidden in single-match state.
+   */
   @Test
   @Category(RegressionTest.class)
   public void testSortBehavior_multiAppAndSingleApp() {
@@ -121,6 +127,7 @@ public class SbomApplicationsRegressionPlaywrightTest
     assertions.nameColumnSortButtonShouldBeHidden();
   }
 
+  /** SBOM Applications table — debounced name filter narrows rows; clearing restores full table. */
   @Test
   @Category(RegressionTest.class)
   public void testNameFilter_debounceAndClearRestoresFullTable() {
@@ -135,6 +142,10 @@ public class SbomApplicationsRegressionPlaywrightTest
     assertions.shouldHaveRowCount(EXPECTED_FIRST_PAGE_ROW_COUNT);
   }
 
+  /**
+   * SBOM Applications table — row cells show vulnerability/violations counters and relative import date; empty-state
+   * message when no rows match filter.
+   */
   @Test
   @Category(RegressionTest.class)
   public void testRowCells_showCountersRelativeDateAndEmptyMessageWhenNoMatch() {
@@ -158,7 +169,7 @@ public class SbomApplicationsRegressionPlaywrightTest
     assertions.shouldHaveRowCount(EXPECTED_FIRST_PAGE_ROW_COUNT);
   }
 
-  private void seedApplicationsWithSbomData() {
+  private void seedApplicationsWithSbomData() throws Exception {
     InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
     firstScan = tempEntity.newThirdPartyScan(scannedFile);
@@ -184,16 +195,10 @@ public class SbomApplicationsRegressionPlaywrightTest
         violationsApp = app;
       }
 
-      Path zippedBom;
-      try {
-        zippedBom = mockOriginalSbom(
-            SbomApplicationsRegressionPlaywrightTest.class,
-            "simple-bom.xml",
-            insightWork.getSbomDir(app.getId()).toPath());
-      }
-      catch (Exception e) {
-        throw new RuntimeException("Failed to mock SBOM for app " + i, e);
-      }
+      Path zippedBom = mockOriginalSbom(
+          SbomApplicationsRegressionPlaywrightTest.class,
+          "simple-bom.xml",
+          insightWork.getSbomDir(app.getId()).toPath());
 
       Instant date = Instant.now().minus(i + 1, ChronoUnit.DAYS);
       ThirdPartySbomMetadata metadata = tempEntity.newThirdPartySbomMetadata(

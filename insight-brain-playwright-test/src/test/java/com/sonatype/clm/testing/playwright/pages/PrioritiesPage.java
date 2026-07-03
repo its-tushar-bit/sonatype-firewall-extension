@@ -61,4 +61,9 @@ public class PrioritiesPage
     return row.locator("div.iq-priorities-table__recommendation");
   }
 
+  /** Button that opens the Create Pull Request modal for a component row. */
+  public Locator createPrTriggerButton() {
+    return byRole(AriaRole.BUTTON, "Create PR");
+  }
+
 }

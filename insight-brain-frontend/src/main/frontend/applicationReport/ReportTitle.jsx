@@ -76,9 +76,12 @@ export default function ReportTitle() {
   // When the user is viewing a hosted-repo report, forward the origin + repo params through
   // the Options dropdown links so the destination pages (and their back buttons) know how to
   // navigate back even after a hard refresh. scanId rides along too so the Latest Evaluations
-  // page can rebuild the report URL.
+  // page can rebuild the report URL. componentDisplayName forwards the friendly component
+  // name (CLM-42090) so destinations don't fall back to the synthetic application public id.
   const isHostedRepoFlow = origin === 'hostedRepoComponents';
-  const hostedRepoParams = isHostedRepoFlow ? { origin, repositoryManagerId, repositoryId, repositoryPublicId } : {};
+  const hostedRepoParams = isHostedRepoFlow
+    ? { origin, repositoryManagerId, repositoryId, repositoryPublicId, componentDisplayName }
+    : {};
   const hostedRepoLatestEvalParams = isHostedRepoFlow ? { scanId, ...hostedRepoParams } : {};
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);

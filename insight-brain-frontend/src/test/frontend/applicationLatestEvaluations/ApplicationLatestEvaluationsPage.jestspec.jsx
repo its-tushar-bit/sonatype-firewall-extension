@@ -334,6 +334,7 @@ describe('ApplicationLatestEvaluationsPage', () => {
           repositoryManagerId: 'rm-1',
           repositoryId: 'repo-1',
           repositoryPublicId: 'maven-releases',
+          componentDisplayName: 'ansible 2.8.0 (.tar.gz)',
         },
       },
     };
@@ -342,6 +343,8 @@ describe('ApplicationLatestEvaluationsPage', () => {
 
     const backBtn = await screen.findByRole('link', { name: /^Back to Repository Component Report$/ });
     expect(backBtn).toBeVisible();
+    // CLM-42090: componentDisplayName MUST be included so the destination report page renders
+    // the friendly component name instead of the synthetic application public id.
     expect(mockRouterState.href).toHaveBeenCalledWith('applicationReport.policy', {
       publicId: 'appPublicId',
       scanId: 'testScan',
@@ -349,7 +352,31 @@ describe('ApplicationLatestEvaluationsPage', () => {
       repositoryManagerId: 'rm-1',
       repositoryId: 'repo-1',
       repositoryPublicId: 'maven-releases',
+      componentDisplayName: 'ansible 2.8.0 (.tar.gz)',
     });
+  });
+
+  it('renders the H1 with componentDisplayName when the hosted-repo flow supplies it (CLM-42090)', async () => {
+    const stateWithHostedRepoOrigin = {
+      ...state,
+      router: {
+        ...state.router,
+        currentParams: {
+          ...state.router.currentParams,
+          scanId: 'testScan',
+          origin: 'hostedRepoComponents',
+          repositoryManagerId: 'rm-1',
+          repositoryId: 'repo-1',
+          repositoryPublicId: 'maven-releases',
+          componentDisplayName: 'ansible 2.8.0 (.tar.gz)',
+        },
+      },
+    };
+
+    renderComponent(stateWithHostedRepoOrigin);
+
+    // Friendly name replaces the synthetic application public id in the H1.
+    await screen.findByRole('heading', { name: 'ansible 2.8.0 (.tar.gz) Latest Evaluations' });
   });
 
   it('historical View Report links carry the hosted-repo context params so the next hop keeps the back chain intact', async () => {
@@ -364,13 +391,15 @@ describe('ApplicationLatestEvaluationsPage', () => {
           repositoryManagerId: 'rm-1',
           repositoryId: 'repo-1',
           repositoryPublicId: 'maven-releases',
+          componentDisplayName: 'ansible 2.8.0 (.tar.gz)',
         },
       },
     };
 
     renderComponent(stateWithHostedRepoOrigin);
 
-    await screen.findByRole('heading', { name: 'appName Latest Evaluations' });
+    // H1 uses componentDisplayName in the hosted-repo flow (CLM-42090).
+    await screen.findByRole('heading', { name: 'ansible 2.8.0 (.tar.gz) Latest Evaluations' });
     expect(mockRouterState.href).toHaveBeenCalledWith('applicationReport.policy', {
       publicId: 'appPublicId',
       scanId: 'someScanId',
@@ -378,6 +407,7 @@ describe('ApplicationLatestEvaluationsPage', () => {
       repositoryManagerId: 'rm-1',
       repositoryId: 'repo-1',
       repositoryPublicId: 'maven-releases',
+      componentDisplayName: 'ansible 2.8.0 (.tar.gz)',
     });
   });
 

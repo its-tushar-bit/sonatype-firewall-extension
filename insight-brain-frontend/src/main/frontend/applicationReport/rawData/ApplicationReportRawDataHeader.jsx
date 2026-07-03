@@ -5,14 +5,21 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { formatDate } from '../../util/dateUtils';
 
 export default function ApplicationReportRawDataHeader({ metadata }) {
+  const { origin, componentDisplayName } = useSelector(selectRouterCurrentParams);
+  // Prefer componentDisplayName over the synthetic application public id (CLM-42090).
+  const titleName =
+    origin === 'hostedRepoComponents' && componentDisplayName ? componentDisplayName : metadata.application.name;
+
   return (
     <div className="nx-page-title" id="raw-data-report-title">
       <h1 className="nx-h1">
-        Raw Data for {metadata.application.name} {metadata.reportTitle}
+        Raw Data for {titleName} {metadata.reportTitle}
       </h1>
       <div className="nx-page-title__description visual-testing-ignore">{formatDate(metadata.reportTime)}</div>
     </div>

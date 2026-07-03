@@ -20,7 +20,15 @@ export default function BackButton() {
   const uiRouterState = useRouterState();
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
   const currentParams = useSelector(selectRouterCurrentParams);
-  const { publicId, scanId, origin, repositoryManagerId, repositoryId, repositoryPublicId } = currentParams;
+  const {
+    publicId,
+    scanId,
+    origin,
+    repositoryManagerId,
+    repositoryId,
+    repositoryPublicId,
+    componentDisplayName,
+  } = currentParams;
   const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
   const prioritiesPageName = useSelector(selectPrioritiesPageName);
   const isDependencyTreePageFromPrioritiesPage = useSelector(selectIsDependencyTreePageFromPrioritiesPage);
@@ -38,6 +46,7 @@ export default function BackButton() {
   }
 
   // Hosted-repo flow: the URL carries origin + repo IDs, so refresh keeps the back link consistent.
+  // componentDisplayName forwards the friendly component name back to the report (CLM-42090).
   if (origin === 'hostedRepoComponents') {
     const hostedRepoReportHref = uiRouterState.href('applicationReport.policy', {
       publicId,
@@ -46,6 +55,7 @@ export default function BackButton() {
       repositoryManagerId,
       repositoryId,
       repositoryPublicId,
+      componentDisplayName,
     });
     return <MenuBarBackButton href={hostedRepoReportHref} text="Back to Repository Component Report" />;
   }

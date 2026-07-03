@@ -37,6 +37,7 @@ export default function ApplicationLatestEvaluationsPage() {
     repositoryManagerId,
     repositoryId,
     repositoryPublicId,
+    componentDisplayName,
   } = currentParams;
   const { loading, loadError, application, applicationReportHistory } = useSelector(
     selectApplicationLatestEvaluationsSlice
@@ -51,6 +52,7 @@ export default function ApplicationLatestEvaluationsPage() {
   };
 
   // Hosted-repo flow carries the report context as URL params, so the back link survives a refresh.
+  // componentDisplayName is forwarded (CLM-42090) so Back + View Report keep the friendly title.
   const isFromHostedRepoComponentReport = origin === 'hostedRepoComponents' && scanId;
   const isFromApplicationReport = prevState?.name === 'applicationReport.policy';
 
@@ -64,6 +66,7 @@ export default function ApplicationLatestEvaluationsPage() {
       repositoryManagerId,
       repositoryId,
       repositoryPublicId,
+      componentDisplayName,
     });
     backText = 'Back to Repository Component Report';
   } else if (isFromApplicationReport) {
@@ -73,6 +76,9 @@ export default function ApplicationLatestEvaluationsPage() {
     backHref = uiRouterState.href('violations');
     backText = 'All Reports';
   }
+
+  // Prefer componentDisplayName over the synthetic application public id (CLM-42090).
+  const titleName = isFromHostedRepoComponentReport && componentDisplayName ? componentDisplayName : application?.name;
 
   useEffect(load, []);
 
@@ -93,7 +99,7 @@ export default function ApplicationLatestEvaluationsPage() {
         {application && stageId && applicationReportHistory && (
           <>
             <NxPageTitle>
-              <NxH1>{application.name} Latest Evaluations</NxH1>
+              <NxH1>{titleName} Latest Evaluations</NxH1>
               <NxPageTitle.Description>
                 <span className="iq-application-latest-evaluations__stage-label">Stage:</span>{' '}
                 {capitalize(stageId.toLowerCase())}
@@ -151,7 +157,13 @@ export default function ApplicationLatestEvaluationsPage() {
                               publicId: application.publicId,
                               scanId: evaluation.scanId,
                               ...(isFromHostedRepoComponentReport
-                                ? { origin, repositoryManagerId, repositoryId, repositoryPublicId }
+                                ? {
+                                    origin,
+                                    repositoryManagerId,
+                                    repositoryId,
+                                    repositoryPublicId,
+                                    componentDisplayName,
+                                  }
                                 : {}),
                             })}
                           >

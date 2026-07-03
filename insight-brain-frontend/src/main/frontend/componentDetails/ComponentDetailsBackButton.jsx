@@ -65,6 +65,7 @@ export default function ComponentDetailsBackButton(props) {
 
   // Hosted-repo flow carries origin + repo IDs as URL params, so the back link survives a refresh.
   // Fall back to prevParams for older entry points where the params were only kept in router state.
+  // componentDisplayName forwards the friendly component name back to the report (CLM-42090).
   const isHostedRepoOrigin =
     currentParams?.origin === 'hostedRepoComponents' || prevParams?.origin === 'hostedRepoComponents';
   if (isHostedRepoOrigin) {
@@ -76,6 +77,7 @@ export default function ComponentDetailsBackButton(props) {
       repositoryManagerId: hostedRepoParams.repositoryManagerId,
       repositoryId: hostedRepoParams.repositoryId,
       repositoryPublicId: hostedRepoParams.repositoryPublicId,
+      componentDisplayName: hostedRepoParams.componentDisplayName,
     });
     return <MenuBarBackButton href={href} text="Back to Repository Component Report" />;
   }

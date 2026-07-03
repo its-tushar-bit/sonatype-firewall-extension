@@ -143,6 +143,7 @@ describe('ComponentDetailsBackButton', () => {
             repositoryManagerId: 'rm-1',
             repositoryId: 'repo-1',
             repositoryPublicId: 'maven-releases',
+            componentDisplayName: 'common 1 (.jar)',
           },
         },
       };
@@ -150,6 +151,8 @@ describe('ComponentDetailsBackButton', () => {
       renderComponent(null, routerPreloadedState);
 
       expect(screen.getByRole('link', { name: 'Back to Repository Component Report' })).toBeInTheDocument();
+      // CLM-42090: componentDisplayName MUST be forwarded so the destination report page
+      // renders the friendly component name instead of the synthetic application public id.
       expect(routerContextMock.href).toHaveBeenCalledWith('applicationReport.policy', {
         publicId: 'maven-releases_common_common_1_common-1.jar',
         scanId: 'bc50a9b4678c4442974aff5e68750034',
@@ -157,7 +160,34 @@ describe('ComponentDetailsBackButton', () => {
         repositoryManagerId: 'rm-1',
         repositoryId: 'repo-1',
         repositoryPublicId: 'maven-releases',
+        componentDisplayName: 'common 1 (.jar)',
       });
+    });
+
+    it('forwards componentDisplayName from prevParams when the current page did not receive it directly (CLM-42090)', () => {
+      const routerPreloadedState = {
+        router: {
+          currentParams: {
+            publicId: 'maven-releases_common_common_1_common-1.jar',
+            scanId: 'bc50a9b4678c4442974aff5e68750034',
+          },
+          prevParams: {
+            origin: 'hostedRepoComponents',
+            repositoryManagerId: 'rm-1',
+            repositoryId: 'repo-1',
+            repositoryPublicId: 'maven-releases',
+            componentDisplayName: 'common 1 (.jar)',
+          },
+        },
+      };
+
+      renderComponent(null, routerPreloadedState);
+
+      expect(screen.getByRole('link', { name: 'Back to Repository Component Report' })).toBeInTheDocument();
+      expect(routerContextMock.href).toHaveBeenCalledWith(
+        'applicationReport.policy',
+        expect.objectContaining({ componentDisplayName: 'common 1 (.jar)' })
+      );
     });
   });
 });

@@ -5,14 +5,21 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { formatDate } from '../../util/dateUtils';
 
 export default function ApplicationReportVulnerabilitiesHeader({ metadata }) {
+  const { origin, componentDisplayName } = useSelector(selectRouterCurrentParams);
+  // Prefer componentDisplayName over the synthetic application public id (CLM-42090).
+  const titleName =
+    origin === 'hostedRepoComponents' && componentDisplayName ? componentDisplayName : metadata.application.name;
+
   return (
     <div className="nx-tile-header">
       <div id="application-report-vulnerabilities-title" className="nx-tile-header__title">
         <h1 className="nx-h1">
-          Vulnerabilities for {metadata.application.name} {metadata.reportTitle}
+          Vulnerabilities for {titleName} {metadata.reportTitle}
         </h1>
       </div>
       <div className="nx-tile-header__subtitle visual-testing-ignore">{formatDate(metadata.reportTime)}</div>

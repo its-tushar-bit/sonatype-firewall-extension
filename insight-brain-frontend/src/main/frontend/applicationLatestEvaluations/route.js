@@ -8,8 +8,9 @@ import ApplicationLatestEvaluationsPage from 'MainRoot/applicationLatestEvaluati
 
 router.stateRegistry.register({
   name: 'applicationLatestEvaluations',
+  // componentDisplayName forwards the friendly hosted-repo component name (CLM-42090).
   url:
-    '/applicationLatestEvaluations/{applicationPublicId}/stage/{stageId}?scanId&origin&repositoryManagerId&repositoryId&repositoryPublicId',
+    '/applicationLatestEvaluations/{applicationPublicId}/stage/{stageId}?scanId&origin&repositoryManagerId&repositoryId&repositoryPublicId&componentDisplayName',
   component: ApplicationLatestEvaluationsPage,
   data: {
     title: 'Application Latest Evaluations',

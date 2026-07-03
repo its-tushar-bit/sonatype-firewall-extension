@@ -4,11 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { getRepositoryManagerUrl } from 'MainRoot/util/CLMLocation';
+import { getRepositoryManagerUrl, getRepositoryInfoUrl } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 import { omit } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('repositoriesConfigurationSliceActions', () => {
   let axiosMock, store, state;
@@ -167,6 +168,163 @@ describe('repositoriesConfigurationSliceActions', () => {
           params: { ...mockRouterParams, repositoryId: 'repositoryId' },
           options: undefined,
         },
+      });
+    });
+  });
+
+  describe('deleteRepository', () => {
+    beforeEach(() => {
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({ id: 'selectedOwnerId' });
+    });
+
+    it('dispatches appropriate actions when deleting a repository as a repository manager on management view route', (done) => {
+      const stateWithDeleteModal = {
+        ...state,
+        router: {
+          currentState: { name: 'management.view.repository' },
+        },
+        repositories: {
+          ...state.repositories,
+          deleteModalInfo: {
+            id: 'deletedRepositoryId',
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(stateWithDeleteModal);
+      axiosMock.onDelete(getRepositoryInfoUrl('deletedRepositoryId')).reply(200, {});
+
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectIncludesManagementView').mockReturnValue(true);
+      jest.useFakeTimers();
+
+      store.dispatch(actions.deleteRepository()).then(() => {
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.useRealTimers();
+
+        const dispatchedActions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(dispatchedActions).toHaveActionsInOrder([
+          { type: 'repositories/deleteRepository/pending' },
+          { type: 'repositories/deleteRepository/fulfilled' },
+          { type: 'repositories/resetSubmitMaskState' },
+          { type: 'repositories/setShowDeleteModal', payload: false },
+          { type: 'repositories/loadRepositoriesByManagerId/pending' },
+          { type: 'ownerSideNav/loadOwnerList/pending' },
+        ]);
+
+        // On the management view the forced reload is the source of truth, so the
+        // optimistic reducer is not dispatched.
+        const actionTypes = dispatchedActions.map((a) => a.type);
+        expect(actionTypes).not.toContain('ownerSideNav/removeRepositoryFromOwnerHierarchy');
+        done();
+      });
+    });
+
+    it('dispatches appropriate actions when deleting a repository as a container view', (done) => {
+      const stateWithDeleteModal = {
+        ...state,
+        router: {
+          currentState: { name: 'management.view.container' },
+        },
+        repositories: {
+          ...state.repositories,
+          deleteModalInfo: {
+            id: 'deletedRepositoryId',
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(stateWithDeleteModal);
+      axiosMock.onDelete(getRepositoryInfoUrl('deletedRepositoryId')).reply(200, {});
+
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(false);
+      jest.spyOn(routerSelectors, 'selectIncludesManagementView').mockReturnValue(false);
+      jest.useFakeTimers();
+
+      store.dispatch(actions.deleteRepository()).then(() => {
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.useRealTimers();
+
+        const dispatchedActions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(dispatchedActions).toHaveActionsInOrder([
+          { type: 'repositories/deleteRepository/pending' },
+          { type: 'repositories/deleteRepository/fulfilled' },
+          { type: 'repositories/resetSubmitMaskState' },
+          { type: 'repositories/setShowDeleteModal', payload: false },
+          { type: 'repositories/loadRepositories/pending' },
+          { type: 'ownerSideNav/loadOwnerList/pending' },
+        ]);
+
+        // In the container view the forced reload is the source of truth, so the
+        // optimistic reducer is not dispatched.
+        const actionTypes = dispatchedActions.map((a) => a.type);
+        expect(actionTypes).not.toContain('ownerSideNav/removeRepositoryFromOwnerHierarchy');
+        done();
+      });
+    });
+
+    it('dispatches appropriate actions when deleting a repository as a repository manager on non-management view route', (done) => {
+      const stateWithDeleteModal = {
+        ...state,
+        router: {
+          currentState: { name: 'management.repository' },
+        },
+        repositories: {
+          ...state.repositories,
+          deleteModalInfo: {
+            id: 'deletedRepositoryId',
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(stateWithDeleteModal);
+      axiosMock.onDelete(getRepositoryInfoUrl('deletedRepositoryId')).reply(200, {});
+
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectIncludesManagementView').mockReturnValue(false);
+      jest.useFakeTimers();
+
+      store.dispatch(actions.deleteRepository()).then(() => {
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.useRealTimers();
+
+        const dispatchedActions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(dispatchedActions).toHaveActionsInOrder([
+          { type: 'repositories/deleteRepository/pending' },
+          { type: 'repositories/deleteRepository/fulfilled' },
+          { type: 'repositories/resetSubmitMaskState' },
+          { type: 'repositories/setShowDeleteModal', payload: false },
+          { type: 'repositories/loadRepositoriesByManagerId/pending' },
+          { type: 'ownerSideNav/removeRepositoryFromOwnerHierarchy', payload: 'deletedRepositoryId' },
+        ]);
+
+        const actionTypes = dispatchedActions.map((a) => a.type);
+        expect(actionTypes).not.toContain('ownerSideNav/loadOwnerList/pending');
+        done();
+      });
+    });
+
+    it('dispatches a repositories/deleteRepository/rejected action after a failed request', (done) => {
+      const stateWithDeleteModal = {
+        ...state,
+        router: {
+          currentState: { name: 'management.view.repository' },
+        },
+        repositories: {
+          ...state.repositories,
+          deleteModalInfo: {
+            id: 'deletedRepositoryId',
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(stateWithDeleteModal);
+      const payload = 'someError';
+      axiosMock.onDelete(getRepositoryInfoUrl('deletedRepositoryId')).reply(500, payload);
+
+      store.dispatch(actions.deleteRepository()).then(() => {
+        const dispatchedActions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(dispatchedActions).toHaveActionTypesInOrder([
+          'repositories/deleteRepository/pending',
+          'repositories/deleteRepository/rejected',
+        ]);
+        done();
       });
     });
   });

@@ -263,25 +263,30 @@ const loadRepositories = createAsyncThunk(
 const deleteRepository = createAsyncThunk(
   `${REDUCER_NAME}/deleteRepository`,
   (_, { getState, rejectWithValue, dispatch }) => {
-    const { id } = selectDeleteModalInfo(getState());
+    const { id: deletedRepositoryId } = selectDeleteModalInfo(getState());
     return axios
-      .delete(getRepositoryInfoUrl(id))
+      .delete(getRepositoryInfoUrl(deletedRepositoryId))
       .then(() => {
         setTimeout(() => {
           const isRepositoryManager = selectIsRepositoryManager(getState());
-          const { id } = selectSelectedOwner(getState());
+          const { id: selectedOwnerId } = selectSelectedOwner(getState());
           const isManagementViewRoute = selectIncludesManagementView(getState());
 
           dispatch(actions.resetSubmitMaskState());
           dispatch(actions.setShowDeleteModal(false));
 
           if (isRepositoryManager) {
-            dispatch(loadRepositoriesByManagerId(id));
+            dispatch(loadRepositoriesByManagerId(selectedOwnerId));
             if (isManagementViewRoute) {
-              dispatch(ownerSideNavSliceActions.loadOwnerList());
+              // The forced reload is the source of truth for the sidebar count here.
+              dispatch(ownerSideNavSliceActions.loadOwnerList(true));
+            } else {
+              // No reload on this route, so the optimistic update is the source of truth.
+              dispatch(ownerSideNavSliceActions.removeRepositoryFromOwnerHierarchy(deletedRepositoryId));
             }
           } else {
             dispatch(loadRepositories(true));
+            dispatch(ownerSideNavSliceActions.loadOwnerList(true));
           }
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       })

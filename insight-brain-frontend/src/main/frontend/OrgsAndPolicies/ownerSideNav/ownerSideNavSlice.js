@@ -264,6 +264,24 @@ const removeOrganizationFromOwnerHierarchy = (state, { payload: organizationId }
   }
 };
 
+const removeRepositoryFromOwnerHierarchy = (state, { payload: repositoryId }) => {
+  const repository = state.ownersMap[repositoryId];
+  if (repository) {
+    const parent = state.ownersMap[repository.parentId];
+    state.ownersMap = omit([repositoryId])(state.ownersMap);
+    if (parent) {
+      state.ownersMap[parent.id] = {
+        ...parent,
+        repositoryIds: reject(equals(repositoryId))(parent.repositoryIds),
+      };
+      state.displayedOrganization = getDisplayedOrganization(state.ownersMap, state.topParentOrganizationId, {
+        repositoryManagerId: repository.parentId,
+      });
+    }
+    state.flattenEntries = flatEntries(state.ownersMap);
+  }
+};
+
 const removeRepositoryManagerFromOwnerHierarchy = (state, { payload: repositoryManagerId }) => {
   const repositoryManager = state.ownersMap[repositoryManagerId];
   if (repositoryManager) {
@@ -271,11 +289,15 @@ const removeRepositoryManagerFromOwnerHierarchy = (state, { payload: repositoryM
     collectOwnerIdsToDelete(state.ownersMap, [repositoryManagerId], ownerIdsToDelete);
     state.ownersMap = omit(ownerIdsToDelete)(state.ownersMap);
 
-    const repositoryContainer = state.ownersMap[repositoryManager.repositoryContainerId];
+    const repositoryContainer = state.ownersMap[repositoryManager.parentId];
     if (repositoryContainer) {
       const repositoryManagerIds = reject(equals(repositoryManagerId))(repositoryContainer.repositoryManagerIds);
-      state.ownersMap[repositoryContainer.id] = { ...repositoryContainer, organizationIds: repositoryManagerIds };
+      state.ownersMap[repositoryContainer.id] = { ...repositoryContainer, repositoryManagerIds };
+      state.displayedOrganization = getDisplayedOrganization(state.ownersMap, state.topParentOrganizationId, {
+        repositoryContainerId: repositoryContainer.id,
+      });
     }
+    state.flattenEntries = flatEntries(state.ownersMap);
   }
 };
 
@@ -285,6 +307,7 @@ function collectOwnerIdsToDelete(ownersMap, orgIds, acc) {
     const org = ownersMap[orgId];
     if (!org) continue;
     acc.push(...(org.applicationIds || []));
+    acc.push(...(org.repositoryIds || []));
     collectOwnerIdsToDelete(ownersMap, org.organizationIds || [], acc);
   }
 }
@@ -447,6 +470,7 @@ const ownerSideNavSlice = createSlice({
   reducers: {
     removeOrganizationFromOwnerHierarchy,
     removeApplicationFromOwnerHierarchy,
+    removeRepositoryFromOwnerHierarchy,
     removeRepositoryManagerFromOwnerHierarchy,
     toggleOrganizationsCollapse: toggleBooleanProp('toggleOrganizationsCheck'),
     toggleApplicationsCollapse: toggleBooleanProp('toggleApplicationsCheck'),

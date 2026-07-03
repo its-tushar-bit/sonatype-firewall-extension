@@ -384,6 +384,197 @@ describe('ownerSideNavSlice reducer', () => {
       });
     });
 
+    describe('ownerSideNav/removeRepositoryFromOwnerHierarchy', () => {
+      let repoState;
+      beforeEach(() => {
+        repoState = Object.freeze({
+          ownersMap: {
+            REPOSITORY_CONTAINER_ID: {
+              id: 'REPOSITORY_CONTAINER_ID',
+              type: 'repository_container',
+              repositoryManagerIds: ['repoManager1', 'repoManager2'],
+            },
+            repoManager1: {
+              id: 'repoManager1',
+              type: 'repository_manager',
+              parentId: 'REPOSITORY_CONTAINER_ID',
+              repositoryIds: ['repo1', 'repo2'],
+            },
+            repoManager2: {
+              id: 'repoManager2',
+              type: 'repository_manager',
+              parentId: 'REPOSITORY_CONTAINER_ID',
+              repositoryIds: [],
+            },
+            repo1: { id: 'repo1', type: 'repository', parentId: 'repoManager1' },
+            repo2: { id: 'repo2', type: 'repository', parentId: 'repoManager1' },
+          },
+          topParentOrganizationId: 'root',
+          displayedOrganization: null,
+        });
+      });
+
+      it('removes the repository from ownersMap', () => {
+        const { ownersMap } = reducer(repoState, {
+          type: 'ownerSideNav/removeRepositoryFromOwnerHierarchy',
+          payload: 'repo1',
+        });
+
+        expect(ownersMap.repo1).not.toBeDefined();
+        expect(ownersMap.repo2).toBeDefined();
+      });
+
+      it('removes the repository id from its parent repositoryIds', () => {
+        const { ownersMap } = reducer(repoState, {
+          type: 'ownerSideNav/removeRepositoryFromOwnerHierarchy',
+          payload: 'repo1',
+        });
+
+        expect(ownersMap.repoManager1.repositoryIds).toEqual(['repo2']);
+      });
+
+      it('updates displayedOrganization to reflect the parent repository manager', () => {
+        const { displayedOrganization } = reducer(repoState, {
+          type: 'ownerSideNav/removeRepositoryFromOwnerHierarchy',
+          payload: 'repo1',
+        });
+
+        expect(displayedOrganization.id).toBe('repoManager1');
+        expect(displayedOrganization.repositoryIds).toEqual(['repo2']);
+      });
+
+      it('does nothing if the repository is not in ownersMap', () => {
+        const { ownersMap } = reducer(repoState, {
+          type: 'ownerSideNav/removeRepositoryFromOwnerHierarchy',
+          payload: 'nonExistentRepo',
+        });
+
+        expect(ownersMap).toEqual(repoState.ownersMap);
+      });
+
+      it('refreshes flattenEntries so the deleted repository no longer appears in the sidebar index', () => {
+        const { flattenEntries } = reducer(repoState, {
+          type: 'ownerSideNav/removeRepositoryFromOwnerHierarchy',
+          payload: 'repo1',
+        });
+
+        expect(flattenEntries.repositories.map((r) => r.id)).not.toContain('repo1');
+        expect(flattenEntries.repositories.map((r) => r.id)).toContain('repo2');
+      });
+
+      it('removes the repository but does not update displayedOrganization when parent is missing from ownersMap', () => {
+        const orphanState = {
+          ...repoState,
+          ownersMap: {
+            ...repoState.ownersMap,
+            orphanRepo: { id: 'orphanRepo', type: 'repository', parentId: 'missingParent' },
+          },
+          displayedOrganization: { id: 'someOrg' },
+        };
+
+        const { ownersMap, displayedOrganization, flattenEntries } = reducer(orphanState, {
+          type: 'ownerSideNav/removeRepositoryFromOwnerHierarchy',
+          payload: 'orphanRepo',
+        });
+
+        expect(ownersMap.orphanRepo).not.toBeDefined();
+        expect(displayedOrganization).toEqual({ id: 'someOrg' });
+        expect(flattenEntries.repositories.map((r) => r.id)).not.toContain('orphanRepo');
+      });
+    });
+
+    describe('ownerSideNav/removeRepositoryManagerFromOwnerHierarchy', () => {
+      let repoManagerState;
+      beforeEach(() => {
+        repoManagerState = Object.freeze({
+          ownersMap: {
+            REPOSITORY_CONTAINER_ID: {
+              id: 'REPOSITORY_CONTAINER_ID',
+              type: 'repository_container',
+              repositoryManagerIds: ['repoManager1', 'repoManager2'],
+              parentId: 'root',
+            },
+            repoManager1: {
+              id: 'repoManager1',
+              type: 'repository_manager',
+              parentId: 'REPOSITORY_CONTAINER_ID',
+              repositoryIds: ['repo1', 'repo2'],
+            },
+            repoManager2: {
+              id: 'repoManager2',
+              type: 'repository_manager',
+              parentId: 'REPOSITORY_CONTAINER_ID',
+              repositoryIds: [],
+            },
+            repo1: { id: 'repo1', type: 'repository', parentId: 'repoManager1' },
+            repo2: { id: 'repo2', type: 'repository', parentId: 'repoManager1' },
+          },
+          topParentOrganizationId: 'root',
+          displayedOrganization: null,
+        });
+      });
+
+      it('removes the repository manager from ownersMap', () => {
+        const { ownersMap } = reducer(repoManagerState, {
+          type: 'ownerSideNav/removeRepositoryManagerFromOwnerHierarchy',
+          payload: 'repoManager1',
+        });
+
+        expect(ownersMap.repoManager1).not.toBeDefined();
+        expect(ownersMap.repoManager2).toBeDefined();
+      });
+
+      it('removes child repositories from ownersMap when the manager is deleted', () => {
+        const { ownersMap } = reducer(repoManagerState, {
+          type: 'ownerSideNav/removeRepositoryManagerFromOwnerHierarchy',
+          payload: 'repoManager1',
+        });
+
+        expect(ownersMap.repo1).not.toBeDefined();
+        expect(ownersMap.repo2).not.toBeDefined();
+      });
+
+      it('refreshes flattenEntries so the deleted manager and its child repositories no longer appear in the sidebar index', () => {
+        const { flattenEntries } = reducer(repoManagerState, {
+          type: 'ownerSideNav/removeRepositoryManagerFromOwnerHierarchy',
+          payload: 'repoManager1',
+        });
+
+        expect(flattenEntries.repositoryManagers.map((r) => r.id)).not.toContain('repoManager1');
+        expect(flattenEntries.repositoryManagers.map((r) => r.id)).toContain('repoManager2');
+        expect(flattenEntries.repositories.map((r) => r.id)).not.toContain('repo1');
+        expect(flattenEntries.repositories.map((r) => r.id)).not.toContain('repo2');
+      });
+
+      it('removes the repository manager id from the container repositoryManagerIds', () => {
+        const { ownersMap } = reducer(repoManagerState, {
+          type: 'ownerSideNav/removeRepositoryManagerFromOwnerHierarchy',
+          payload: 'repoManager1',
+        });
+
+        expect(ownersMap.REPOSITORY_CONTAINER_ID.repositoryManagerIds).toEqual(['repoManager2']);
+      });
+
+      it('updates displayedOrganization with the updated container', () => {
+        const { displayedOrganization } = reducer(repoManagerState, {
+          type: 'ownerSideNav/removeRepositoryManagerFromOwnerHierarchy',
+          payload: 'repoManager1',
+        });
+
+        expect(displayedOrganization.id).toBe('REPOSITORY_CONTAINER_ID');
+        expect(displayedOrganization.repositoryManagerIds).toEqual(['repoManager2']);
+      });
+
+      it('does nothing if the repository manager is not in ownersMap', () => {
+        const { ownersMap } = reducer(repoManagerState, {
+          type: 'ownerSideNav/removeRepositoryManagerFromOwnerHierarchy',
+          payload: 'nonExistentManager',
+        });
+
+        expect(ownersMap).toEqual(repoManagerState.ownersMap);
+      });
+    });
+
     describe('ownerSideNav/updateOwnersMapWithNewEntry', () => {
       it('updates app flattenEntries and app counters', () => {
         const { ownersMap, flattenEntries } = reducer(stateMock, {

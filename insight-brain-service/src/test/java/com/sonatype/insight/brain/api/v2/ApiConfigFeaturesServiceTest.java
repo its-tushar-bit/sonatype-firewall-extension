@@ -1522,6 +1522,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("consumptionReportingEnabled", false);
     expectedFeatureConfigMap.put("iqProxyEnabled", false);
     expectedFeatureConfigMap.put("scmRelayIntegration", false);
+    expectedFeatureConfigMap.put("sloViolationFeedEnabled", false);
 
     return expectedFeatureConfigMap;
   }

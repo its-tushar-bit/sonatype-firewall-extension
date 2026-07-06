@@ -406,6 +406,8 @@ public class SystemConfigurationProperty
 
   public static final String IQ_PROXY_ENABLED = "iqProxyEnabled";
 
+  public static final String SLO_VIOLATION_FEED_ENABLED = "sloViolationFeedEnabled";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

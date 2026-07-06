@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.migration;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -85,7 +83,7 @@ public class RepositoryComponentDedupKeysetIndexAsyncDbMigration
 
     try (Connection conn = operationalDataStore.getDataSource().getConnection()) {
       conn.setAutoCommit(true);
-      dropInvalidIndex(conn, schema);
+      dropInvalidIndexConcurrentlyIfPresent(conn, schema, INDEX_NAME);
 
       try (Statement stmt = conn.createStatement()) {
         log.info("Creating {} CONCURRENTLY for schema: {}", INDEX_NAME, schema);
@@ -101,27 +99,5 @@ public class RepositoryComponentDedupKeysetIndexAsyncDbMigration
     }
 
     return true;
-  }
-
-  private void dropInvalidIndex(final Connection conn, final String schema) throws SQLException {
-    try (PreparedStatement ps = conn.prepareStatement(
-        "SELECT 1 FROM pg_index i "
-            + "JOIN pg_class c ON c.oid = i.indexrelid "
-            + "JOIN pg_namespace n ON n.oid = c.relnamespace "
-            + "WHERE c.relname = ? "
-            + "AND n.nspname = ? "
-            + "AND NOT i.indisvalid"))
-    {
-      ps.setString(1, INDEX_NAME);
-      ps.setString(2, schema);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          log.info("Dropping invalid {} in schema: {}", INDEX_NAME, schema);
-          try (Statement stmt = conn.createStatement()) {
-            stmt.execute("DROP INDEX CONCURRENTLY " + schema + "." + INDEX_NAME);
-          }
-        }
-      }
-    }
   }
 }

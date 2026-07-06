@@ -196,6 +196,7 @@ public class SystemConfigurationPropertyFeatureTest
     assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED.isEnabled()).isFalse();
     assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW.isEnabled()).isFalse();
     assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK.isEnabled()).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.SLO_VIOLATION_FEED.isEnabled()).isFalse();
   }
 
   @Test

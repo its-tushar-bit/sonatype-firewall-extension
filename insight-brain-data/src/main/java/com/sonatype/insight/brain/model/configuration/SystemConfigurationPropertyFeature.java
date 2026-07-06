@@ -530,7 +530,14 @@ public enum SystemConfigurationPropertyFeature
    * config property defaults to the production CLM gateway (mirroring {@code hdsUrl}),
    * so flipping this flag on with no admin override targets the production relay.
    */
-  SCM_RELAY_INTEGRATION(SystemConfigurationProperty.SCM_RELAY_INTEGRATION, false);
+  SCM_RELAY_INTEGRATION(SystemConfigurationProperty.SCM_RELAY_INTEGRATION, false),
+
+  /**
+   * Gates the experimental internal SLO violation feed endpoint
+   * (rest/slo/{applicationId}/violations). Disabled by default; enable per-instance
+   * for SLO management / external reporting integrations (CLM-42077).
+   */
+  SLO_VIOLATION_FEED(SystemConfigurationProperty.SLO_VIOLATION_FEED_ENABLED, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

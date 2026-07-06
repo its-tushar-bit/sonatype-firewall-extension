@@ -2292,4 +2292,110 @@ public class PolicyViolationDAO
         .fetchOne(0, Integer.class);
     return count == null ? 0L : count.longValue();
   }
+
+  /**
+   * Counts violations in ALL states (open, fixed, waived) for a single application at a single stage, optionally
+   * limited to those changed since {@code updatedSince}. Backs the SLO violation feed
+   * ({@code GET rest/slo/{applicationId}/violations}). Single-application equality (not an IN-clause) avoids the H2
+   * IN-operator index pitfall. {@code applicationId} is the application internal id.
+   *
+   * @param applicationId the application internal id
+   * @param stageTypeId the stage type id (e.g. {@code release})
+   * @param updatedSince if non-null, only violations whose open/waive/fix/legacy time is at or after this cutoff are
+   *          counted. The cutoff is <b>inclusive</b> ({@code >=}); see {@link #updatedSinceCondition(Date)}.
+   * @return the number of matching violations
+   */
+  public long countByApplicationIdAndStage(
+      final String applicationId,
+      final String stageTypeId,
+      final Date updatedSince)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      Integer count = tx.dsl()
+          .selectCount()
+          .from(POLICY_VIOLATION)
+          .where(applicationStageCondition(applicationId, stageTypeId, updatedSince))
+          .fetchOne(0, Integer.class);
+      return count == null ? 0L : count.longValue();
+    }
+  }
+
+  /**
+   * Returns a page of violations in ALL states (open, fixed, waived) for a single application at a single stage,
+   * optionally limited to those changed since {@code updatedSince}. Ordered by update time (the greatest of
+   * open/waive/fix/legacy time) ascending, with {@code policy_violation_id} as a deterministic tiebreaker for rows
+   * that share an update time. {@code legacy_violation_time} participates in the ordering only so a retroactive
+   * legacy-marking or revoke moves the row for delta pollers; it is not an SLO-clock event. Backs the SLO violation
+   * feed ({@code GET rest/slo/{applicationId}/violations}).
+   *
+   * @param applicationId the application internal id
+   * @param stageTypeId the stage type id (e.g. {@code release})
+   * @param updatedSince if non-null, only violations whose open/waive/fix/legacy time is at or after this cutoff are
+   *          returned. The cutoff is <b>inclusive</b> ({@code >=}); a watermark poller should pass the last-seen
+   *          maximum update time and deduplicate by {@code violationId} on overlap (see
+   *          {@link #updatedSinceCondition(Date)}).
+   * @param offset the zero-based row offset
+   * @param limit the maximum number of rows to return
+   * @return the matching page of violations
+   */
+  public List<PolicyViolation> getByApplicationIdAndStagePaged(
+      final String applicationId,
+      final String stageTypeId,
+      final Date updatedSince,
+      final int offset,
+      final int limit)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      // Timezone-independent epoch sentinel. A bound/inline java.util.Date renders in the JVM default timezone, so
+      // on a non-UTC server it would NOT match the Postgres expression index literal (TIMESTAMP '1970-01-01
+      // 00:00:00'), causing the planner to bypass policy_violation_app_stage_updated_idx and full-sort the
+      // partition. A plain-SQL literal renders identically on H2 and Postgres regardless of JVM tz, keeping the
+      // ORDER BY expression byte-for-byte aligned with the index expression.
+      final org.jooq.Field<java.util.Date> epoch =
+          DSL.field("timestamp '1970-01-01 00:00:00'", POLICY_VIOLATION.OPEN_TIME.getDataType());
+      final org.jooq.Field<java.util.Date> updateTime = DSL.greatest(
+          DSL.coalesce(POLICY_VIOLATION.OPEN_TIME, epoch),
+          DSL.coalesce(POLICY_VIOLATION.WAIVE_TIME, epoch),
+          DSL.coalesce(POLICY_VIOLATION.FIX_TIME, epoch),
+          DSL.coalesce(POLICY_VIOLATION.LEGACY_VIOLATION_TIME, epoch));
+      return tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(applicationStageCondition(applicationId, stageTypeId, updatedSince))
+          .orderBy(updateTime.asc(), POLICY_VIOLATION.POLICY_VIOLATION_ID.asc())
+          .offset(offset)
+          .limit(limit)
+          .fetchInto(PolicyViolation.class);
+    }
+  }
+
+  private org.jooq.Condition applicationStageCondition(
+      final String applicationId,
+      final String stageTypeId,
+      final Date updatedSince)
+  {
+    org.jooq.Condition condition = POLICY_VIOLATION.APPLICATION_ID.eq(applicationId)
+        .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId));
+    if (updatedSince != null) {
+      condition = condition.and(updatedSinceCondition(updatedSince));
+    }
+    return condition;
+  }
+
+  /**
+   * Change-detection predicate for the SLO feed delta poll: a violation is "changed since {@code updatedSince}" if
+   * any of its open/waive/fix/legacy times is at or after the cutoff. The comparison is <b>inclusive</b> ({@code >=})
+   * so a watermark poller that stores the last-seen maximum update time and passes it back as the next
+   * {@code updatedSince} does not permanently skip same-millisecond ties (common when one batch evaluation opens many
+   * violations sharing the same {@code open_time}). Because the boundary overlaps between consecutive polls, callers
+   * should deduplicate by {@code violationId}; results are ordered by update-time then {@code violationId}, so the
+   * overlap is bounded and the dedup is idempotent. {@code legacy_violation_time} is included purely so a retroactive
+   * legacy-marking or revoke (the legacy label can flip without open/waive/fix changing) is delivered to pollers; it
+   * is a label change-detection signal only, NOT an SLO-suppression or SLO-clock event.
+   */
+  private org.jooq.Condition updatedSinceCondition(final Date updatedSince) {
+    return POLICY_VIOLATION.OPEN_TIME.ge(updatedSince)
+        .or(POLICY_VIOLATION.WAIVE_TIME.ge(updatedSince))
+        .or(POLICY_VIOLATION.FIX_TIME.ge(updatedSince))
+        .or(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.ge(updatedSince));
+  }
 }

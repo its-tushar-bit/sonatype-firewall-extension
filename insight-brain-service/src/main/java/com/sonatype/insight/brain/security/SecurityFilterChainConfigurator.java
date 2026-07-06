@@ -236,6 +236,10 @@ public class SecurityFilterChainConfigurator
     // client integrations don't have CSRF tokens and need access via explicit auth
     String filters = String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED);
     manager.createChain("/rest/ide/scan/**", filters);
+    // SLO violation feed (CLM-42077): internal integration endpoint consumed with explicit (API-token) auth, no
+    // CSRF token. Declared here so the auth intent is encoded in the security config rather than relying on the
+    // catch-all antiCsrf chain.
+    manager.createChain("/rest/slo/**", filters);
     manager.createChain("/rest/integration/repositories/**", filters);
     manager.createChain("/rest/integration/artifactory/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);

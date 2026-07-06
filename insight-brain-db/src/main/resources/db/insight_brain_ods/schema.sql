@@ -931,6 +931,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('RepositoryPolicyViol
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('DisplayNameForFileCoordinateAsyncDbMigration');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('PolicyViolationIndexAsyncDbMigration');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('RepositoryComponentDedupKeysetIndexAsyncDbMigration');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('SloViolationIndexAsyncDbMigration');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,

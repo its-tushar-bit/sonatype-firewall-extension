@@ -79,11 +79,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_DIRECT;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE_DIRECT;
-import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE_TRANSITIVE;
-import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_TRANSITIVE;
-import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_UNKNOWN;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static com.sonatype.insight.brain.report.InnerSourceUtils.createCompositeComparableVersion;
 
@@ -396,7 +392,7 @@ public class DevelopmentPrioritiesService
 
           return new UnprioritizedComponent(
               component,
-              getDependencyType(component),
+              ApiDependencyDataDTO.dependencyType(component.dependencyData),
               hasFailActionOnComponent(policyViolations),
               getAction(policyViolations),
               highestThreatLevel,
@@ -538,29 +534,6 @@ public class DevelopmentPrioritiesService
     }
 
     return unprioritizedComponent;
-  }
-
-  private String getDependencyType(ApiReportComponentDTOV2 reportBomComponent) {
-    final ApiDependencyDataDTO dependencyData = reportBomComponent.dependencyData;
-
-    if (dependencyData == null) {
-      return DEPENDENCY_TYPE_UNKNOWN;
-    }
-
-    if (dependencyData.innerSource != null && dependencyData.innerSource) {
-      if (dependencyData.directDependency != null && dependencyData.directDependency) {
-        return DEPENDENCY_TYPE_INNER_SOURCE_DIRECT;
-      }
-      else {
-        return DEPENDENCY_TYPE_INNER_SOURCE_TRANSITIVE;
-      }
-    }
-    else if (dependencyData.directDependency != null && dependencyData.directDependency) {
-      return DEPENDENCY_TYPE_DIRECT;
-    }
-    else {
-      return DEPENDENCY_TYPE_TRANSITIVE;
-    }
   }
 
   private String getAction(List<PolicyThreats.PolicyViolation> activeViolations) {
@@ -776,7 +749,7 @@ public class DevelopmentPrioritiesService
    */
   private Map<String, String> buildInnerSourceLatestVersionMap(final ApiReportRawDataDTOV2 raw) {
     List<ComponentIdentifier> candidates = raw.components.stream()
-        .filter(c -> DEPENDENCY_TYPE_INNER_SOURCE_DIRECT.equals(getDependencyType(c)))
+        .filter(c -> DEPENDENCY_TYPE_INNER_SOURCE_DIRECT.equals(ApiDependencyDataDTO.dependencyType(c.dependencyData)))
         .filter(c -> c.componentIdentifier != null)
         .map(c -> c.componentIdentifier.toComponentIdentifier())
         .filter(Objects::nonNull)

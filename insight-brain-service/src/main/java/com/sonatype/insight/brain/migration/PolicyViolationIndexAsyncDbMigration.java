@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.migration;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -53,7 +51,7 @@ public class PolicyViolationIndexAsyncDbMigration
 
     try (Connection conn = operationalDataStore.getDataSource().getConnection()) {
       conn.setAutoCommit(true);
-      dropInvalidIndex(conn, schema);
+      dropInvalidIndexConcurrentlyIfPresent(conn, schema, "policy_violation_app_stage_open_unfixed_idx");
 
       try (Statement stmt = conn.createStatement()) {
         log.info("Creating policy_violation_app_stage_open_unfixed_idx CONCURRENTLY for schema: {}", schema);
@@ -70,26 +68,5 @@ public class PolicyViolationIndexAsyncDbMigration
     }
 
     return true;
-  }
-
-  private void dropInvalidIndex(Connection conn, String schema) throws SQLException {
-    try (PreparedStatement ps = conn.prepareStatement(
-        "SELECT 1 FROM pg_index i "
-            + "JOIN pg_class c ON c.oid = i.indexrelid "
-            + "JOIN pg_namespace n ON n.oid = c.relnamespace "
-            + "WHERE c.relname = 'policy_violation_app_stage_open_unfixed_idx' "
-            + "AND n.nspname = ? "
-            + "AND NOT i.indisvalid"))
-    {
-      ps.setString(1, schema);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          log.info("Dropping invalid policy_violation_app_stage_open_unfixed_idx in schema: {}", schema);
-          try (Statement stmt = conn.createStatement()) {
-            stmt.execute("DROP INDEX CONCURRENTLY " + schema + ".policy_violation_app_stage_open_unfixed_idx");
-          }
-        }
-      }
-    }
   }
 }

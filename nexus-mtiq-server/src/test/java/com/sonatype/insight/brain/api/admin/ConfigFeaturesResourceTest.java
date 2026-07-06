@@ -157,6 +157,7 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.getId(),
         SystemConfigurationPropertyFeature.SCM_RELAY_INTEGRATION.getId(),
         SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.SLO_VIOLATION_FEED.getId(),
       })).toArray(String[]::new);
 
   @Before

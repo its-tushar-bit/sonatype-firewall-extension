@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -122,6 +123,14 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.violations.breakdown).containsEntry("severe", 1L);
     assertThat(metrics.violations.breakdown).containsEntry("moderate", 1L);
     assertThat(metrics.violations.breakdown).containsEntry("low", 1L);
+
+    assertThat(metrics.policies.total).isEqualTo(4);
+    assertThat(metrics.policies.source).isEqualTo("index");
+
+    assertThat(metrics.legal.source).isEqualTo("index");
+    assertThat(metrics.legal.breakdown).containsEntry("applications", 1L);
+    assertThat(metrics.legal.breakdown).containsEntry("components", 6L);
+    assertThat(metrics.legal.total).isEqualTo(7L);
   }
 
   @Test
@@ -222,6 +231,31 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.components.total).isEqualTo(4);
     assertThat(metrics.components.source).isEqualTo("index");
     assertThat(metrics.components.breakdown).isNull();
+
+    assertThat(metrics.vulnerabilities.total).isEqualTo(4);
+    assertThat(metrics.vulnerabilities.source).isEqualTo("index");
+    assertThat(metrics.vulnerabilities.breakdown).isNull();
+  }
+
+  @Test
+  public void testGetMetrics_Vulnerabilities_MultiStageEvaluationDoesNotDoubleCount() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    seedComponentsReport(app, Stage.ID_BUILD, "componentsBuildStage");
+    seedComponentsReport(app, ReleaseStageType.ID, "componentsReleaseStage");
+
+    User reader = tempEntity.newUser("metrics-vuln-multistage-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    // Same fixture indexed at Build + Release: 4 distinct (app, component, CVE) tuples, not 8 per-stage docs.
+    assertThat(metrics.vulnerabilities.total).isEqualTo(4);
+    assertThat(metrics.components.total).isEqualTo(4);
   }
 
   @Test
@@ -295,6 +329,7 @@ public class DashboardMetricsServiceTest
     DashboardMetricsDTO unfiltered = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
     assertThat(unfiltered.applications.total).isEqualTo(6);
     assertIndexSourcedMetric(unfiltered);
+    long readableOrganizationCount = unfiltered.organizations.total;
 
     DashboardMetricsRequestDTO filterByChild = new DashboardMetricsRequestDTO();
     filterByChild.organizationIds = Set.of(childOrg.getId());
@@ -321,6 +356,8 @@ public class DashboardMetricsServiceTest
     DashboardMetricsRequestDTO applicationOnly = new DashboardMetricsRequestDTO();
     applicationOnly.applicationIds = Set.of(siblingApp.getId());
     assertThat(dashboardMetricsService.getMetrics(applicationOnly).applications.total).isEqualTo(1);
+    assertThat(dashboardMetricsService.getMetrics(applicationOnly).organizations.total)
+        .isEqualTo(readableOrganizationCount);
 
     DashboardMetricsRequestDTO combinedOrgAndApp = new DashboardMetricsRequestDTO();
     combinedOrgAndApp.organizationIds = Set.of(parentOrg.getId());
@@ -430,7 +467,7 @@ public class DashboardMetricsServiceTest
   @Test
   public void testGetMetrics_ApplicationsCountFromIndex() {
     Organization org = tempEntity.newOrganization();
-    tempEntity.newApplication(org.getId());
+    Application app = tempEntity.newApplication(org.getId());
     tempEntity.newApplication(org.getId());
     tempEntity.newApplication(org.getId());
 
@@ -451,6 +488,15 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.violations).isNotNull();
     assertThat(metrics.violations.source).isEqualTo("index");
     assertThat(metrics.lastUpdatedAt).isNotNull();
+
+    assertThat(metrics.organizations.total).isEqualTo(1);
+    assertThat(metrics.organizations.source).isEqualTo("index");
+    assertThat(metrics.organizations.breakdown).isNull();
+
+    DashboardMetricsRequestDTO filterByApp = new DashboardMetricsRequestDTO();
+    filterByApp.applicationIds = Set.of(app.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterByApp).applications.total).isEqualTo(1);
+    assertThat(dashboardMetricsService.getMetrics(filterByApp).organizations.total).isEqualTo(1);
   }
 
   @Test
@@ -468,6 +514,33 @@ public class DashboardMetricsServiceTest
 
     assertThat(metrics.applications.total).isZero();
     assertThat(metrics.applications.source).isEqualTo("index");
+    assertThat(metrics.organizations.total).isZero();
+    assertThat(metrics.policies.total).isZero();
+    assertThat(metrics.vulnerabilities.total).isZero();
+    assertThat(metrics.legal.total).isZero();
+  }
+
+  @Test
+  public void testGetMetrics_PoliciesRespectApplicationFilterForAppScopedPolicies() {
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org.getId());
+    Application app2 = tempEntity.newApplication(org.getId());
+    tempEntity.newPolicy(org.getId(), "org-level-policy");
+    tempEntity.newPolicy(app1.getId(), "app1-policy");
+    tempEntity.newPolicy(app2.getId(), "app2-policy");
+
+    User reader = tempEntity.newUser("metrics-policy-filter-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    assertThat(dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO()).policies.total).isEqualTo(3);
+
+    DashboardMetricsRequestDTO filterByApp1 = new DashboardMetricsRequestDTO();
+    filterByApp1.applicationIds = Set.of(app1.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterByApp1).policies.total).isEqualTo(1);
   }
 
   @Test
@@ -510,9 +583,9 @@ public class DashboardMetricsServiceTest
 
     assertThat(first.applications.total).isEqualTo(7);
     assertThat(second.applications.total).isEqualTo(7);
-    // loadMetrics runs once (coalesced): count() for applications, countDistinct() twice (clean + vulnerable).
-    verify(searchIndexClient, times(1)).count(anyString());
-    verify(searchIndexClient, times(2)).countDistinct(anyString(), any());
+    // loadMetrics runs once (coalesced): count() x3, countDistinct() x6 (components, vulnerabilities, legal).
+    verify(searchIndexClient, times(3)).count(anyString());
+    verify(searchIndexClient, times(6)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
@@ -548,8 +621,8 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
     service.getMetrics(request);
 
-    verify(searchIndexClient, times(2)).count(anyString());
-    verify(searchIndexClient, times(4)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(6)).count(anyString());
+    verify(searchIndexClient, times(12)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -585,8 +658,8 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
     service.getMetrics(request);
 
-    verify(searchIndexClient, times(2)).count(anyString());
-    verify(searchIndexClient, times(4)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(6)).count(anyString());
+    verify(searchIndexClient, times(12)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -617,9 +690,9 @@ public class DashboardMetricsServiceTest
     service.getMetrics(requestA);
     service.getMetrics(requestB);
 
-    // loadMetrics runs once (coalesced): count() for applications + clean components, countDistinct() once.
-    verify(searchIndexClient, times(1)).count(anyString());
-    verify(searchIndexClient, times(2)).countDistinct(anyString(), any());
+    // Empty filter requests share one cache key => loadMetrics runs once (coalesced).
+    verify(searchIndexClient, times(3)).count(anyString());
+    verify(searchIndexClient, times(6)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -630,7 +703,11 @@ public class DashboardMetricsServiceTest
   }
 
   private void seedComponentsReport(Application app, String scanId) throws Exception {
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    seedComponentsReport(app, Stage.ID_BUILD, scanId);
+  }
+
+  private void seedComponentsReport(Application app, String stageId, String scanId) throws Exception {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageId, scanId);
     ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/componentsMetricReport", tempDir), lookup(InsightWork.class));
   }
@@ -646,12 +723,7 @@ public class DashboardMetricsServiceTest
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
     Policy policy = tempEntity.newPolicy(org.getId(), "Security - Critical " + scanId);
     tempEntity.newPolicyViolation(evaluation, policy, threatLevel, PolicyThreatCategory.SECURITY,
-        "com.example", "artifact", "1.0", violationComponentHash(scanId));
-  }
-
-  private static String violationComponentHash(String scanId) {
-    String hash = "h" + Integer.toHexString(scanId.hashCode());
-    return hash.length() <= 20 ? hash : hash.substring(0, 20);
+        "com.example", "artifact", "1.0", DashboardMetricsTestSupport.violationComponentHash(scanId));
   }
 
   private static void assertIndexSourcedMetric(DashboardMetricsDTO metrics) {

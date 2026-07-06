@@ -11,15 +11,22 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import jakarta.inject.Inject;
@@ -55,6 +62,12 @@ public class DashboardMetricsServiceAuthzTest
 
   private User userB;
 
+  private Application orgAApp;
+
+  private Application orgALegalApp;
+
+  private Policy orgAPolicy;
+
   @Before
   public void setUpClient() {
     applyBeanFieldOverride(AbstractSearchIndexClient.class, "shutdownHandler", mockShutdownHandler);
@@ -69,11 +82,15 @@ public class DashboardMetricsServiceAuthzTest
   protected void setUpSecurity() {
     orgA = tempEntity.newOrganization();
     orgB = tempEntity.newOrganization();
-    tempEntity.newApplication(orgA.getId());
-    tempEntity.newApplication(orgA.getId());
+    orgAApp = tempEntity.newApplication(orgA.getId());
+    orgALegalApp = tempEntity.newApplication(orgA.getId());
     tempEntity.newApplication(orgB.getId());
     tempEntity.newApplication(orgB.getId());
     tempEntity.newApplication(orgB.getId());
+
+    orgAPolicy = tempEntity.newPolicy(orgA.getId(), "org-a-policy");
+    tempEntity.newPolicy(orgB.getId(), "org-b-policy-1");
+    tempEntity.newPolicy(orgB.getId(), "org-b-policy-2");
 
     userA = tempEntity.newUser();
     userB = tempEntity.newUser();
@@ -89,18 +106,30 @@ public class DashboardMetricsServiceAuthzTest
   }
 
   @Test
-  public void testGetMetrics_RbacIsolation_ScopesCountsToReadableOrganizations() {
+  public void testGetMetrics_RbacIsolation_ScopesCountsToReadableOrganizations() throws Exception {
+    seedComponentsReport(orgAApp, "authzOrgAComponents");
+    seedPolicyViolation(orgALegalApp, orgAPolicy, "authzOrgALegal", 3);
     DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
 
     loginAs(userA);
     DashboardMetricsDTO metricsForUserA = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
     assertThat(metricsForUserA.applications.total).isEqualTo(2);
     assertThat(metricsForUserA.applications.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_INDEX);
+    assertThat(metricsForUserA.organizations.total).isEqualTo(1);
+    assertThat(metricsForUserA.policies.total).isEqualTo(1);
+    // orgAApp componentsMetricReport => 4 distinct CVEs; orgALegalApp policyViolationReport => +1 CVE.
+    assertThat(metricsForUserA.vulnerabilities.total).isEqualTo(5);
+    // policyViolationReport licenses => 7 distinct (app, component, license) obligations on orgALegalApp.
+    assertThat(metricsForUserA.legal.total).isEqualTo(7);
 
     loginAs(userB);
     DashboardMetricsDTO metricsForUserB = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
     assertThat(metricsForUserB.applications.total).isEqualTo(3);
     assertThat(metricsForUserB.applications.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_INDEX);
+    assertThat(metricsForUserB.organizations.total).isEqualTo(1);
+    assertThat(metricsForUserB.policies.total).isEqualTo(2);
+    assertThat(metricsForUserB.vulnerabilities.total).isZero();
+    assertThat(metricsForUserB.legal.total).isZero();
   }
 
   @Test
@@ -148,5 +177,24 @@ public class DashboardMetricsServiceAuthzTest
         .buildSubject();
     ThreadContext.bind(lookup(SecurityManager.class));
     ThreadContext.bind(subject);
+  }
+
+  private void seedComponentsReport(Application app, String scanId) throws Exception {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+        ReportTestUtils.zipReportDir("/IndexSearchingTest/componentsMetricReport", tempDir), lookup(InsightWork.class));
+  }
+
+  private void seedPolicyViolation(
+      Application app,
+      Policy policy,
+      String scanId,
+      int threatLevel) throws Exception
+  {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+        ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
+    tempEntity.newPolicyViolation(evaluation, policy, threatLevel, PolicyThreatCategory.SECURITY,
+        "com.example", "artifact", "1.0", DashboardMetricsTestSupport.violationComponentHash(scanId));
   }
 }

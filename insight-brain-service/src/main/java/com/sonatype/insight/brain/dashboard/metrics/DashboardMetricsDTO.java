@@ -19,6 +19,14 @@ public class DashboardMetricsDTO
 
   public final MetricValueDTO components;
 
+  public final MetricValueDTO organizations;
+
+  public final MetricValueDTO policies;
+
+  public final MetricValueDTO vulnerabilities;
+
+  public final MetricValueDTO legal;
+
   public final Long lastUpdatedAt;
 
   @JsonCreator
@@ -26,11 +34,19 @@ public class DashboardMetricsDTO
       @JsonProperty("applications") MetricValueDTO applications,
       @JsonProperty("violations") MetricValueDTO violations,
       @JsonProperty("components") MetricValueDTO components,
+      @JsonProperty("organizations") MetricValueDTO organizations,
+      @JsonProperty("policies") MetricValueDTO policies,
+      @JsonProperty("vulnerabilities") MetricValueDTO vulnerabilities,
+      @JsonProperty("legal") MetricValueDTO legal,
       @JsonProperty("lastUpdatedAt") Long lastUpdatedAt)
   {
     this.applications = applications;
     this.violations = violations;
     this.components = components;
+    this.organizations = organizations;
+    this.policies = policies;
+    this.vulnerabilities = vulnerabilities;
+    this.legal = legal;
     this.lastUpdatedAt = lastUpdatedAt;
   }
 }

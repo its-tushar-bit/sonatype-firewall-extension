@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard.metrics;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,28 @@ public class DashboardMetricsService
   static final String METRIC_SOURCE_INDEX = "index";
 
   static final Map<String, int[]> VIOLATIONS_THREAT_LEVEL_BANDS = ThreatLevel.searchAggregationBands();
+
+  /**
+   * Index item types with no {@code applicationId} field on indexed documents ({@link ItemType#ORGANIZATION} only
+   * today). {@link ItemType#POLICY} is intentionally <em>not</em> excluded: it can be org- or app-scoped via
+   * {@link DocumentBuilder#setOwner}, so an {@code applicationIds}-only request returns app-scoped policies only
+   * (org-level policies have no {@code applicationId} and are omitted) while the {@code organizations} tile still
+   * reflects all readable orgs.
+   */
+  private static final Set<ItemType> APPLICATION_FILTER_EXCLUDED_ITEM_TYPES = Set.of(ItemType.ORGANIZATION);
+
+  private static final List<String> APPLICATION_COMPONENT_KEY_FIELDS =
+      List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label);
+
+  private static final List<String> VULNERABILITY_KEY_FIELDS = List.of(
+      FieldIdentifier.APPLICATION_ID.label,
+      FieldIdentifier.COMPONENT_HASH.label,
+      FieldIdentifier.VULNERABILITY_ID.label);
+
+  private static final List<String> LEGAL_OBLIGATION_KEY_FIELDS = List.of(
+      FieldIdentifier.APPLICATION_ID.label,
+      FieldIdentifier.COMPONENT_HASH.label,
+      FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID.label);
 
   /**
    * Sentinel org id for a filter that must match zero APPLICATION docs. Valid under
@@ -112,7 +135,8 @@ public class DashboardMetricsService
    * Loads each metric independently against the search index. {@code count}, {@code countDistinct}, and
    * {@code aggregateCountByField} each open their own reader/snapshot today, so applications, components, and
    * violations are not guaranteed to come from the same point-in-time view (acceptable behind the 5s coalescing
-   * cache). A batched {@link SearchIndexClient} entry point (e.g. OpenSearch multi-search) may consolidate these
+   * cache). Cheap-tier metrics (organizations, policies, vulnerabilities, legal) add further independent
+   * round-trips. A batched {@link SearchIndexClient} entry point (e.g. OpenSearch multi-search) may consolidate these
    * round-trips later.
    */
   private DashboardMetricsDTO loadMetrics(DashboardMetricsRequestDTO request) {
@@ -133,7 +157,36 @@ public class DashboardMetricsService
     MetricValueDTO violationsMetric = new MetricValueDTO(
         violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
     MetricValueDTO componentsMetric = new MetricValueDTO(components, null, METRIC_SOURCE_INDEX);
-    return new DashboardMetricsDTO(applicationsMetric, violationsMetric, componentsMetric, lastUpdatedAt);
+
+    // Organizations / Policies / Vulnerabilities: index-native totals (CLM-40927 cheap-tier). Policy custom/system
+    // breakdown is not an indexed field; vulnerability severity uses decimal CVSS scores (not int-range buckets here).
+    MetricValueDTO organizationsMetric = new MetricValueDTO(
+        searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
+        null,
+        METRIC_SOURCE_INDEX);
+    MetricValueDTO policiesMetric = new MetricValueDTO(
+        searchIndexClient.count(buildFilteredMetricQuery(ItemType.POLICY, filterContext)),
+        null,
+        METRIC_SOURCE_INDEX);
+    MetricValueDTO vulnerabilitiesMetric = new MetricValueDTO(
+        countDistinctSecurityVulnerabilities(filterContext),
+        null,
+        METRIC_SOURCE_INDEX);
+
+    // Legal Obligations: stage-independent distinct keys align with the Scanned Components tile
+    // ([applicationId, componentHash]) and de-dupe multi-stage re-indexes. Documents without a componentHash
+    // field collapse to a single distinct bucket in countDistinct; real scan data always indexes a hash.
+    MetricValueDTO legalMetric = countLegalObligations(filterContext);
+
+    return new DashboardMetricsDTO(
+        applicationsMetric,
+        violationsMetric,
+        componentsMetric,
+        organizationsMetric,
+        policiesMetric,
+        vulnerabilitiesMetric,
+        legalMetric,
+        lastUpdatedAt);
   }
 
   /**
@@ -146,15 +199,42 @@ public class DashboardMetricsService
    * expansion) and the RBAC filter apply consistently.
    */
   private long countScannedComponents(MetricFilterContext filterContext) {
-    List<String> compositeKeyFields =
-        List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label);
     long distinctCleanComponents = searchIndexClient.countDistinct(
         buildFilteredMetricQuery(ItemType.NON_VULNERABLE_COMPONENT, filterContext),
-        compositeKeyFields);
+        APPLICATION_COMPONENT_KEY_FIELDS);
     long distinctVulnerableComponents = searchIndexClient.countDistinct(
         buildFilteredMetricQuery(ItemType.SECURITY_VULNERABILITY, filterContext),
-        compositeKeyFields);
+        APPLICATION_COMPONENT_KEY_FIELDS);
     return distinctCleanComponents + distinctVulnerableComponents;
+  }
+
+  /**
+   * Counts each indexed CVE once per {@code (applicationId, componentHash, vulnerabilityId)} so multi-stage
+   * evaluations do not inflate the tile (unlike raw {@link SearchIndexClient#count(String)} on
+   * {@link ItemType#SECURITY_VULNERABILITY} docs, which are stage-tagged).
+   */
+  private long countDistinctSecurityVulnerabilities(MetricFilterContext filterContext) {
+    return searchIndexClient.countDistinct(
+        buildFilteredMetricQuery(ItemType.SECURITY_VULNERABILITY, filterContext),
+        VULNERABILITY_KEY_FIELDS);
+  }
+
+  /**
+   * Legal total is distinct {@code (applicationId, componentHash, componentEffectiveLicenseId)} obligations;
+   * breakdown uses the same {@code [applicationId, componentHash]} key as {@link #countScannedComponents()}.
+   */
+  private MetricValueDTO countLegalObligations(MetricFilterContext filterContext) {
+    String legalQuery = buildFilteredMetricQuery(ItemType.LEGAL_VIOLATION, filterContext);
+    long legalApplications =
+        searchIndexClient.countDistinct(legalQuery, List.of(FieldIdentifier.APPLICATION_ID.label));
+    long legalComponents = searchIndexClient.countDistinct(legalQuery, APPLICATION_COMPONENT_KEY_FIELDS);
+    Map<String, Long> legalBreakdown = new LinkedHashMap<>();
+    legalBreakdown.put("applications", legalApplications);
+    legalBreakdown.put("components", legalComponents);
+    return new MetricValueDTO(
+        searchIndexClient.countDistinct(legalQuery, LEGAL_OBLIGATION_KEY_FIELDS),
+        legalBreakdown,
+        METRIC_SOURCE_INDEX);
   }
 
   private MetricFilterContext buildMetricFilterContext(DashboardMetricsRequestDTO request) {
@@ -182,11 +262,16 @@ public class DashboardMetricsService
    * clauses are combined with {@code OR}, matching Classic dashboard resolution in
    * {@link com.sonatype.insight.brain.organization.ApplicationService#getAppsByIds} (union of
    * apps in selected org subtrees plus explicitly selected apps).
+   * <p>
+   * {@link ItemType#ORGANIZATION} documents have no {@code applicationId} in the index. For that item type,
+   * only the organization clause is applied; {@code applicationIds} in the request are ignored so organization
+   * totals are not zeroed. {@link ItemType#POLICY} can be org- or app-scoped and keeps the application clause.
    */
   private static String buildFilteredMetricQuery(ItemType itemType, MetricFilterContext filterContext) {
     String baseQuery = "itemType:" + itemType.searchFieldName();
     String organizationClause = filterContext.organizationClause();
-    String applicationClause = filterContext.applicationClause();
+    String applicationClause =
+        APPLICATION_FILTER_EXCLUDED_ITEM_TYPES.contains(itemType) ? null : filterContext.applicationClause();
 
     if (organizationClause == null && applicationClause == null) {
       return baseQuery;

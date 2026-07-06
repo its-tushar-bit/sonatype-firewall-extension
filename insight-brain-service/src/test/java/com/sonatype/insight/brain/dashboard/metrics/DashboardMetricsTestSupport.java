@@ -76,4 +76,9 @@ final class DashboardMetricsTestSupport
       oldExecutor.shutdownNow();
     }
   }
+
+  static String violationComponentHash(String scanId) {
+    String hash = "h" + Integer.toHexString(scanId.hashCode());
+    return hash.length() <= 20 ? hash : hash.substring(0, 20);
+  }
 }

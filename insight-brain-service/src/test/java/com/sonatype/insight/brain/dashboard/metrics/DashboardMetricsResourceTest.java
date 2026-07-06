@@ -55,6 +55,15 @@ public class DashboardMetricsResourceTest
     assertThat(metrics.violations.source).isEqualTo("index");
     assertThat(metrics.components).isNotNull();
     assertThat(metrics.components.source).isEqualTo("index");
+    assertThat(metrics.organizations).isNotNull();
+    assertThat(metrics.organizations.source).isEqualTo("index");
+    assertThat(metrics.policies).isNotNull();
+    assertThat(metrics.policies.source).isEqualTo("index");
+    assertThat(metrics.vulnerabilities).isNotNull();
+    assertThat(metrics.vulnerabilities.source).isEqualTo("index");
+    assertThat(metrics.legal).isNotNull();
+    assertThat(metrics.legal.source).isEqualTo("index");
+    assertThat(metrics.legal.breakdown).containsKeys("applications", "components");
   }
 
   @Test

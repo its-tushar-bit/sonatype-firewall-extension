@@ -144,7 +144,9 @@ export default function RepositoryComponentsList() {
                     <NxTable.Cell className="iq-hosted-repos-components__col--name">
                       REPOSITORY COMPONENT NAME
                     </NxTable.Cell>
-                    <NxTable.Cell className="iq-hosted-repos-components__col--count">COMPONENTS</NxTable.Cell>
+                    <NxTable.Cell className="iq-hosted-repos-components__col--count nx-cell--num">
+                      COMPONENTS
+                    </NxTable.Cell>
                     <NxTable.Cell className="iq-hosted-repos-components__col--report">REPORT</NxTable.Cell>
                   </NxTable.Row>
                 </NxTable.Head>
@@ -161,7 +163,7 @@ export default function RepositoryComponentsList() {
                           <div className="nx-truncate-ellipsis">{component.displayName}</div>
                         </NxOverflowTooltip>
                       </NxTable.Cell>
-                      <NxTable.Cell className="iq-hosted-repos-components__col--count">
+                      <NxTable.Cell className="iq-hosted-repos-components__col--count nx-cell--num">
                         {component.componentCount ?? 0}
                       </NxTable.Cell>
                       <NxTable.Cell className="iq-hosted-repos-components__col--report">

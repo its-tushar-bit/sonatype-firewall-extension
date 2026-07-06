@@ -64,6 +64,8 @@ public class DashboardMetricsResourceTest
     assertThat(metrics.legal).isNotNull();
     assertThat(metrics.legal.source).isEqualTo("index");
     assertThat(metrics.legal.breakdown).containsKeys("applications", "components");
+    assertThat(metrics.waivers).isNotNull();
+    assertThat(metrics.waivers.source).isEqualTo("sql");
   }
 
   @Test

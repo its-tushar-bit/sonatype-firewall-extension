@@ -109,6 +109,7 @@ public class DashboardMetricsServiceAuthzTest
   public void testGetMetrics_RbacIsolation_ScopesCountsToReadableOrganizations() throws Exception {
     seedComponentsReport(orgAApp, "authzOrgAComponents");
     seedPolicyViolation(orgALegalApp, orgAPolicy, "authzOrgALegal", 3);
+    tempEntity.newWaiver("authzOrgAWaiver", orgAPolicy.getId(), orgAApp.getId());
     DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
 
     loginAs(userA);
@@ -121,6 +122,8 @@ public class DashboardMetricsServiceAuthzTest
     assertThat(metricsForUserA.vulnerabilities.total).isEqualTo(5);
     // policyViolationReport licenses => 7 distinct (app, component, license) obligations on orgALegalApp.
     assertThat(metricsForUserA.legal.total).isEqualTo(7);
+    assertThat(metricsForUserA.waivers.total).isEqualTo(1);
+    assertThat(metricsForUserA.waivers.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_SQL);
 
     loginAs(userB);
     DashboardMetricsDTO metricsForUserB = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
@@ -130,6 +133,8 @@ public class DashboardMetricsServiceAuthzTest
     assertThat(metricsForUserB.policies.total).isEqualTo(2);
     assertThat(metricsForUserB.vulnerabilities.total).isZero();
     assertThat(metricsForUserB.legal.total).isZero();
+    assertThat(metricsForUserB.waivers.total).isZero();
+    assertThat(metricsForUserB.waivers.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_SQL);
   }
 
   @Test

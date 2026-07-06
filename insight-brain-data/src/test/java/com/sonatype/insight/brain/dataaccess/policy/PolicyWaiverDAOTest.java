@@ -1509,6 +1509,20 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void testSelectCount_scopedToAccessibleOwners() {
+    Policy policy = tempEntity.newPolicy(organization);
+    Application app1 = tempEntity.newApplication("app1", organization.getId());
+    Application app2 = tempEntity.newApplication("app2", organization.getId());
+
+    tempEntity.newWaiver("hash1", policy.getId(), app1.getId());
+    tempEntity.newWaiver("hash2", policy.getId(), app1.getId());
+    tempEntity.newWaiver("hash3", policy.getId(), app2.getId());
+
+    assertThat(dao.selectCount(Set.of(app1.getId()))).isEqualTo(2);
+    assertThat(dao.selectCount(Collections.emptySet())).isZero();
+  }
+
+  @Test
   public void testGetAllContainerPolicyWaivers_paginationWithFiltering() {
     Application app1 = tempEntity.newApplication("app1", organization.getId());
     Application app2 = tempEntity.newApplication("app2", organization.getId());

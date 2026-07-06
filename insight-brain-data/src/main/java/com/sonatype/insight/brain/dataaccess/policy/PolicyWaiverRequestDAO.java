@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -231,6 +233,43 @@ public class PolicyWaiverRequestDAO
           .and(POLICY_WAIVER_REQUEST.EXPIRY_TIME.isNull()
               .or(POLICY_WAIVER_REQUEST.EXPIRY_TIME.greaterThan(new Date())))
           .fetch(this::toEntity);
+    }
+  }
+
+  /**
+   * Counts pending (REQUESTED) active waiver requests scoped to the given owners (CLM-40927).
+   * <p>
+   * {@code accessibleOwnerIds} is never {@code null} on the dashboard metrics path;
+   * {@code null} means unscoped (internal callers only).
+   */
+  public long selectCount(final Set<String> accessibleOwnerIds) {
+    if (accessibleOwnerIds != null && accessibleOwnerIds.isEmpty()) {
+      return 0L;
+    }
+    if (accessibleOwnerIds == null) {
+      return selectCountInternal(null);
+    }
+    return getListWithSqlInClause(
+        accessibleOwnerIds,
+        chunk -> List.of(selectCountInternal(new HashSet<>(chunk))))
+            .stream()
+            .mapToLong(Long::longValue)
+            .sum();
+  }
+
+  private long selectCountInternal(final Set<String> accessibleOwnerIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      var condition = POLICY_WAIVER_REQUEST.STATUS.eq(PolicyWaiverRequestStatus.REQUESTED.name())
+          .and(POLICY_WAIVER_REQUEST.EXPIRY_TIME.isNull()
+              .or(POLICY_WAIVER_REQUEST.EXPIRY_TIME.greaterThan(new Date())));
+      if (accessibleOwnerIds != null) {
+        condition = condition.and(POLICY_WAIVER_REQUEST.OWNER_ID.in(accessibleOwnerIds));
+      }
+      return tx.dsl()
+          .selectCount()
+          .from(POLICY_WAIVER_REQUEST)
+          .where(condition)
+          .fetchOne(0, Long.class);
     }
   }
 

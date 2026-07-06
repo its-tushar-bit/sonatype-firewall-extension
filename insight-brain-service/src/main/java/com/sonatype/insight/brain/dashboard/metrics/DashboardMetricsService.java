@@ -20,6 +20,8 @@ import jakarta.inject.Singleton;
 import jakarta.ws.rs.BadRequestException;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
@@ -39,6 +41,8 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 public class DashboardMetricsService
 {
   static final String METRIC_SOURCE_INDEX = "index";
+
+  static final String METRIC_SOURCE_SQL = "sql";
 
   static final Map<String, int[]> VIOLATIONS_THREAT_LEVEL_BANDS = ThreatLevel.searchAggregationBands();
 
@@ -85,6 +89,12 @@ public class DashboardMetricsService
 
   private final OrganizationDAO organizationDAO;
 
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final PolicyWaiverRequestDAO policyWaiverRequestDAO;
+
+  private final DashboardMetricsWaiverScopeService waiverScopeService;
+
   private final Configuration configuration;
 
   private final CurrentUser currentUser;
@@ -96,12 +106,18 @@ public class DashboardMetricsService
       SearchIndexClient searchIndexClient,
       MetricFilterValidator metricFilterValidator,
       OrganizationDAO organizationDAO,
+      PolicyWaiverDAO policyWaiverDAO,
+      PolicyWaiverRequestDAO policyWaiverRequestDAO,
+      DashboardMetricsWaiverScopeService waiverScopeService,
       Configuration configuration,
       CurrentUser currentUser)
   {
     this.searchIndexClient = searchIndexClient;
     this.metricFilterValidator = metricFilterValidator;
     this.organizationDAO = organizationDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.policyWaiverRequestDAO = policyWaiverRequestDAO;
+    this.waiverScopeService = waiverScopeService;
     this.configuration = configuration;
     this.currentUser = currentUser;
     this.caches = new TenantReference<>(this::createCache);
@@ -136,8 +152,9 @@ public class DashboardMetricsService
    * {@code aggregateCountByField} each open their own reader/snapshot today, so applications, components, and
    * violations are not guaranteed to come from the same point-in-time view (acceptable behind the 5s coalescing
    * cache). Cheap-tier metrics (organizations, policies, vulnerabilities, legal) add further independent
-   * round-trips. A batched {@link SearchIndexClient} entry point (e.g. OpenSearch multi-search) may consolidate these
-   * round-trips later.
+   * round-trips. Waivers use two SQL {@code selectCount} queries scoped via
+   * {@link DashboardMetricsWaiverScopeService}. A batched {@link SearchIndexClient} entry point (e.g. OpenSearch
+   * multi-search) may consolidate index round-trips later.
    */
   private DashboardMetricsDTO loadMetrics(DashboardMetricsRequestDTO request) {
     MetricFilterContext filterContext = buildMetricFilterContext(request);
@@ -178,6 +195,14 @@ public class DashboardMetricsService
     // field collapse to a single distinct bucket in countDistinct; real scan data always indexes a hash.
     MetricValueDTO legalMetric = countLegalObligations(filterContext);
 
+    Set<String> accessibleOwnerIds = waiverScopeService.resolveAccessibleOwnerIds(request);
+    long existingWaivers = policyWaiverDAO.selectCount(accessibleOwnerIds);
+    long requestedWaivers = policyWaiverRequestDAO.selectCount(accessibleOwnerIds);
+    MetricValueDTO waiversMetric = new MetricValueDTO(
+        existingWaivers + requestedWaivers,
+        Map.of("existing", existingWaivers, "requested", requestedWaivers),
+        METRIC_SOURCE_SQL);
+
     return new DashboardMetricsDTO(
         applicationsMetric,
         violationsMetric,
@@ -186,6 +211,7 @@ public class DashboardMetricsService
         policiesMetric,
         vulnerabilitiesMetric,
         legalMetric,
+        waiversMetric,
         lastUpdatedAt);
   }
 

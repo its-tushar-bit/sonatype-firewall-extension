@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -21,11 +22,15 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -78,6 +83,38 @@ public class DashboardMetricsServiceTest
     DashboardMetricsTestSupport.resetTenantExecutor(lookup(DocumentBuilderHelper.class), "evalExecutors");
     DashboardMetricsTestSupport.resetTenantExecutor(lookup(DocumentBuilderHelper.class), "componentExecutors");
     DashboardMetricsTestSupport.clearDashboardMetricsCache(dashboardMetricsService);
+  }
+
+  @Test
+  public void testGetMetrics_WaiversCountAndBreakdownFromSql() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Policy policy = tempEntity.newPolicy(org.getId());
+
+    tempEntity.newWaiver("hashExisting1", policy.getId(), app.getId());
+    tempEntity.newWaiver("hashExisting2", policy.getId(), app.getId());
+
+    PolicyWaiverRequest requested = new PolicyWaiverRequest("hashRequested", policy.getId(), app.getId(), "pending");
+    requested.setStatus(PolicyWaiverRequestStatus.REQUESTED);
+    tempEntity.newPolicyWaiverRequest(requested);
+
+    PolicyWaiverRequest approved = new PolicyWaiverRequest("hashApproved", policy.getId(), app.getId(), "approved");
+    approved.setStatus(PolicyWaiverRequestStatus.APPROVED);
+    tempEntity.newPolicyWaiverRequest(approved);
+
+    User reader = tempEntity.newUser("metrics-waivers-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertThat(metrics.waivers.total).isEqualTo(3);
+    assertThat(metrics.waivers.source).isEqualTo("sql");
+    assertThat(metrics.waivers.breakdown).containsEntry("existing", 2L);
+    assertThat(metrics.waivers.breakdown).containsEntry("requested", 1L);
   }
 
   @Test
@@ -206,6 +243,10 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.violations.breakdown).containsEntry("severe", 0L);
     assertThat(metrics.violations.breakdown).containsEntry("moderate", 0L);
     assertThat(metrics.violations.breakdown).containsEntry("low", 0L);
+    assertThat(metrics.waivers.total).isZero();
+    assertThat(metrics.waivers.source).isEqualTo("sql");
+    assertThat(metrics.waivers.breakdown).containsEntry("existing", 0L);
+    assertThat(metrics.waivers.breakdown).containsEntry("requested", 0L);
   }
 
   @Test
@@ -384,7 +425,7 @@ public class DashboardMetricsServiceTest
         new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
 
     DashboardMetricsService service =
-        new DashboardMetricsService(
+        newServiceWithMocks(
             mock(SearchIndexClient.class),
             new MetricFilterValidator(),
             organizationDAO,
@@ -418,7 +459,7 @@ public class DashboardMetricsServiceTest
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(
+        newServiceWithMocks(
             searchIndexClient,
             new MetricFilterValidator(),
             organizationDAO,
@@ -450,7 +491,7 @@ public class DashboardMetricsServiceTest
         new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
 
     DashboardMetricsService service =
-        new DashboardMetricsService(
+        newServiceWithMocks(
             searchIndexClient,
             new MetricFilterValidator(),
             organizationDAO,
@@ -518,6 +559,10 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.policies.total).isZero();
     assertThat(metrics.vulnerabilities.total).isZero();
     assertThat(metrics.legal.total).isZero();
+    assertThat(metrics.waivers.total).isZero();
+    assertThat(metrics.waivers.source).isEqualTo("sql");
+    assertThat(metrics.waivers.breakdown).containsEntry("existing", 0L);
+    assertThat(metrics.waivers.breakdown).containsEntry("requested", 0L);
   }
 
   @Test
@@ -570,7 +615,7 @@ public class DashboardMetricsServiceTest
     when(searchIndexClient.getLastIndexTime()).thenReturn(99_000L);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(
+        newServiceWithMocks(
             searchIndexClient,
             new MetricFilterValidator(),
             mock(OrganizationDAO.class),
@@ -606,7 +651,7 @@ public class DashboardMetricsServiceTest
         .thenReturn(nullRealmPrincipal, explicitRealmPrincipal, nullRealmPrincipal, explicitRealmPrincipal);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(
+        newServiceWithMocks(
             searchIndexClient,
             new MetricFilterValidator(),
             mock(OrganizationDAO.class),
@@ -643,7 +688,7 @@ public class DashboardMetricsServiceTest
         .thenReturn(internalPrincipal, ldapPrincipal, internalPrincipal, ldapPrincipal);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(
+        newServiceWithMocks(
             searchIndexClient,
             new MetricFilterValidator(),
             mock(OrganizationDAO.class),
@@ -674,7 +719,7 @@ public class DashboardMetricsServiceTest
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(
+        newServiceWithMocks(
             searchIndexClient,
             new MetricFilterValidator(),
             mock(OrganizationDAO.class),
@@ -734,6 +779,30 @@ public class DashboardMetricsServiceTest
 
   private static Configuration mockConfiguration() {
     return mock(Configuration.class);
+  }
+
+  private static DashboardMetricsService newServiceWithMocks(
+      SearchIndexClient searchIndexClient,
+      MetricFilterValidator metricFilterValidator,
+      OrganizationDAO organizationDAO,
+      Configuration configuration,
+      CurrentUser currentUser)
+  {
+    PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
+    lenient().when(waiverScopeService.resolveAccessibleOwnerIds(any())).thenReturn(Set.of("owner-1"));
+    lenient().when(policyWaiverDAO.selectCount(any())).thenReturn(0L);
+    lenient().when(policyWaiverRequestDAO.selectCount(any())).thenReturn(0L);
+    return new DashboardMetricsService(
+        searchIndexClient,
+        metricFilterValidator,
+        organizationDAO,
+        policyWaiverDAO,
+        policyWaiverRequestDAO,
+        waiverScopeService,
+        configuration,
+        currentUser);
   }
 
   private void loginAs(final User user) {

@@ -605,4 +605,23 @@ public class PolicyWaiverRequestDAOTest
         .containsExactlyInAnyOrder(noExpiryWaiverRequest.getId(), expiringWaiverRequest.getId(),
             expiredWaiverRequest.getId());
   }
+
+  @Test
+  public void testSelectCount_scopedToAccessibleOwners() {
+    Policy policy = tempEntity.newPolicy(organization);
+    Application app1 = tempEntity.newApplication("app1", organization.getId());
+    Application app2 = tempEntity.newApplication("app2", organization.getId());
+
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest("hash1", policy.getId(), app1.getId(), "requested")
+        .setStatus(REQUESTED));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest("hash2", policy.getId(), app1.getId(), "requested")
+        .setStatus(REQUESTED));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest("hash3", policy.getId(), app2.getId(), "requested")
+        .setStatus(REQUESTED));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest("hash4", policy.getId(), app1.getId(), "approved")
+        .setStatus(PolicyWaiverRequestStatus.APPROVED));
+
+    assertThat(dao.selectCount(java.util.Set.of(app1.getId()))).isEqualTo(2);
+    assertThat(dao.selectCount(java.util.Collections.emptySet())).isZero();
+  }
 }

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -844,6 +845,46 @@ public class PolicyWaiverDAO
 
   public List<PolicyContainerWaiverData> getAllContainerPolicyWaivers(final int page, final int pageSize) {
     return getAllContainerPolicyWaivers(page, pageSize, null);
+  }
+
+  /**
+   * Counts active dashboard policy waivers scoped to the given owners (CLM-40927).
+   * Excludes container-image-component waivers ({@code IS_FOR_CONTAINER_IMAGE_COMPONENT=true}),
+   * matching the classic dashboard waiver tab. Container-image group waivers
+   * ({@code IS_FOR_CONTAINER_IMAGE=true}) are included.
+   * <p>
+   * {@code accessibleOwnerIds} is never {@code null} on the dashboard metrics path;
+   * {@code null} means unscoped (internal callers only).
+   */
+  public long selectCount(final Set<String> accessibleOwnerIds) {
+    if (accessibleOwnerIds != null && accessibleOwnerIds.isEmpty()) {
+      return 0L;
+    }
+    if (accessibleOwnerIds == null) {
+      return selectCountInternal(null);
+    }
+    return getListWithSqlInClause(
+        accessibleOwnerIds,
+        chunk -> List.of(selectCountInternal(new HashSet<>(chunk))))
+            .stream()
+            .mapToLong(Long::longValue)
+            .sum();
+  }
+
+  private long selectCountInternal(final Set<String> accessibleOwnerIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      var condition = POLICY_WAIVER.IS_FOR_CONTAINER_IMAGE_COMPONENT.eq(false)
+          .and(POLICY_WAIVER.EXPIRY_TIME.isNull()
+              .or(POLICY_WAIVER.EXPIRY_TIME.gt(new Date())));
+      if (accessibleOwnerIds != null) {
+        condition = condition.and(POLICY_WAIVER.OWNER_ID.in(accessibleOwnerIds));
+      }
+      return tx.dsl()
+          .selectCount()
+          .from(POLICY_WAIVER)
+          .where(condition)
+          .fetchOne(0, Long.class);
+    }
   }
 
   public long getContainerPolicyWaiversCount(final Set<String> accessibleOwnerIds) {

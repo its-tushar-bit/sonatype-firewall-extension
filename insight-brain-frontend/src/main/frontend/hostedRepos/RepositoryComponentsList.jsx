@@ -168,7 +168,7 @@ export default function RepositoryComponentsList() {
                       </NxTable.Cell>
                       <NxTable.Cell className="iq-hosted-repos-components__col--report">
                         {component.scanId && (
-                          <div className="iq-hosted-repos-components__report-cell">
+                          <>
                             {(component.criticalViolationCount || 0) +
                               (component.severeViolationCount || 0) +
                               (component.moderateViolationCount || 0) >
@@ -179,65 +179,63 @@ export default function RepositoryComponentsList() {
                                 moderateCount={component.moderateViolationCount}
                               />
                             ) : (
-                              <span className="iq-hosted-repos-components__report-no-violations">No violations</span>
+                              <div className="iq-hosted-repos-components__report-no-violations">No violations</div>
                             )}
-                            <div className="iq-hosted-repos-components__report-meta">
-                              {(component.stageTypeId || component.lastEvaluationTime) && (
-                                <span className="iq-hosted-repos-components__report-stage">
-                                  {[
-                                    component.stageTypeId &&
-                                      component.stageTypeId.charAt(0).toUpperCase() +
-                                        component.stageTypeId.slice(1).toLowerCase(),
-                                    component.lastEvaluationTime && formatTimeAgo(component.lastEvaluationTime),
-                                  ]
-                                    .filter(Boolean)
-                                    .join(' | ')}
-                                </span>
-                              )}
-                              <span className="iq-hosted-repos-components__report-links">
-                                <button
-                                  className="nx-text-link iq-hosted-repos-components__report-link"
-                                  disabled={!component.applicationPublicId || !component.scanId}
-                                  title={
-                                    !component.applicationPublicId || !component.scanId
-                                      ? 'Evaluation pending — results not yet available'
-                                      : undefined
-                                  }
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    dispatch(
-                                      goToComponentReport(
-                                        component.applicationPublicId,
-                                        component.scanId,
-                                        repositoryManagerId,
-                                        repositoryId,
-                                        repositoryPublicId,
-                                        component.displayName
-                                      )
-                                    );
-                                  }}
-                                >
-                                  Report
-                                </button>
-                                {' | '}
-                                <button
-                                  className="nx-text-link iq-hosted-repos-components__report-link"
-                                  disabled={!component.applicationPublicId || !component.scanId}
-                                  title={
-                                    !component.applicationPublicId || !component.scanId
-                                      ? 'Evaluation pending — results not yet available'
-                                      : undefined
-                                  }
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    dispatch(goToComponentPriorities(component.applicationPublicId, component.scanId));
-                                  }}
-                                >
-                                  Priorities
-                                </button>
-                              </span>
+                            {(component.stageTypeId || component.lastEvaluationTime) && (
+                              <div className="iq-hosted-repos-components__report-stage">
+                                {[
+                                  component.stageTypeId &&
+                                    component.stageTypeId.charAt(0).toUpperCase() +
+                                      component.stageTypeId.slice(1).toLowerCase(),
+                                  component.lastEvaluationTime && formatTimeAgo(component.lastEvaluationTime),
+                                ]
+                                  .filter(Boolean)
+                                  .join(' | ')}
+                              </div>
+                            )}
+                            <div className="iq-hosted-repos-components__report-links">
+                              <button
+                                className="nx-text-link iq-hosted-repos-components__report-link"
+                                disabled={!component.applicationPublicId || !component.scanId}
+                                title={
+                                  !component.applicationPublicId || !component.scanId
+                                    ? 'Evaluation pending — results not yet available'
+                                    : undefined
+                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  dispatch(
+                                    goToComponentReport(
+                                      component.applicationPublicId,
+                                      component.scanId,
+                                      repositoryManagerId,
+                                      repositoryId,
+                                      repositoryPublicId,
+                                      component.displayName
+                                    )
+                                  );
+                                }}
+                              >
+                                Report
+                              </button>
+                              <span aria-hidden="true">|</span>
+                              <button
+                                className="nx-text-link iq-hosted-repos-components__report-link"
+                                disabled={!component.applicationPublicId || !component.scanId}
+                                title={
+                                  !component.applicationPublicId || !component.scanId
+                                    ? 'Evaluation pending — results not yet available'
+                                    : undefined
+                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  dispatch(goToComponentPriorities(component.applicationPublicId, component.scanId));
+                                }}
+                              >
+                                Priorities
+                              </button>
                             </div>
-                          </div>
+                          </>
                         )}
                       </NxTable.Cell>
                     </NxTable.Row>

@@ -1124,6 +1124,80 @@ public class ApiFirewallServiceTest
   }
 
   @Test
+  public void testEvaluateComponents_MultipleComponents_OrderingAndContent() {
+    // given: three components with distinct pathnames and mixed quarantine / violation state
+    Repository repository = tempEntity.newRepository();
+
+    // Component A: not quarantined, has one active policy violation
+    RepositoryComponent componentA =
+        tempEntity.newRepositoryComponent(repository.getId(), "/a", null, null);
+    RepositoryPolicyViolation violationA =
+        tempEntity.newRepositoryPolicyViolation(componentA, 7, false, "Policy A", null);
+
+    // Component B: quarantined, no active violations
+    Date quarantineTimeB = new Date();
+    RepositoryComponent componentB =
+        tempEntity.newRepositoryComponent(repository.getId(), "/b", quarantineTimeB, null);
+
+    // Component C: not quarantined, no active violations
+    RepositoryComponent componentC =
+        tempEntity.newRepositoryComponent(repository.getId(), "/c", null, null);
+
+    // Eval results arrive with requestIndex permuted from list position — response must map each
+    // result back to its request by requestIndex, not by position.
+    ApiRepositoryComponentEvaluationRequestList requestList =
+        new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_MAVEN;
+    requestList.components.add(
+        new ApiRepositoryComponentEvaluationRequest(componentA.getPathname(), componentA.getHash()));
+    requestList.components.add(
+        new ApiRepositoryComponentEvaluationRequest(componentB.getPathname(), componentB.getHash()));
+    requestList.components.add(
+        new ApiRepositoryComponentEvaluationRequest(componentC.getPathname(), componentC.getHash()));
+
+    RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult =
+        new RepositoryComponentEvaluationDataList();
+    RepositoryComponentEvaluationData rcedForC = new RepositoryComponentEvaluationData();
+    rcedForC.requestIndex = 2;
+    rcedForC.quarantine = false;
+    rcedForC.catalogDate = new Date();
+    RepositoryComponentEvaluationData rcedForA = new RepositoryComponentEvaluationData();
+    rcedForA.requestIndex = 0;
+    rcedForA.quarantine = false;
+    rcedForA.catalogDate = new Date();
+    RepositoryComponentEvaluationData rcedForB = new RepositoryComponentEvaluationData();
+    rcedForB.requestIndex = 1;
+    rcedForB.quarantine = true;
+    rcedForB.catalogDate = new Date();
+    repositoryServiceEvaluateResult.componentEvalResults.add(rcedForC);
+    repositoryServiceEvaluateResult.componentEvalResults.add(rcedForA);
+    repositoryServiceEvaluateResult.componentEvalResults.add(rcedForB);
+    doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
+        .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
+
+    ApiRepositoryComponentEvaluationResultList result =
+        apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList);
+
+    assertThat(result.results.size()).isEqualTo(3);
+
+    assertThat(result.results.get(0).component).isEqualTo(requestList.components.get(2));
+    assertThat(result.results.get(0).quarantined).isFalse();
+    assertThat(result.results.get(0).quarantineDate).isNull();
+    assertThat(result.results.get(0).policyViolations).isEmpty();
+
+    assertThat(result.results.get(1).component).isEqualTo(requestList.components.get(0));
+    assertThat(result.results.get(1).quarantined).isFalse();
+    assertThat(result.results.get(1).quarantineDate).isNull();
+    assertThat(result.results.get(1).policyViolations.size()).isEqualTo(1);
+    assertThat(result.results.get(1).policyViolations.get(0).policyId).isEqualTo(violationA.getPolicyId());
+
+    assertThat(result.results.get(2).component).isEqualTo(requestList.components.get(1));
+    assertThat(result.results.get(2).quarantined).isTrue();
+    assertThat(result.results.get(2).quarantineDate).isEqualTo(quarantineTimeB);
+    assertThat(result.results.get(2).policyViolations).isEmpty();
+  }
+
+  @Test
   public void testEvaluateComponents_PurlAndHash() {
     Repository repository = tempEntity.newRepository();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");

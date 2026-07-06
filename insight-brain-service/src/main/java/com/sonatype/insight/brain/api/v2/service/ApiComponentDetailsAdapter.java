@@ -8,9 +8,14 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -251,34 +256,73 @@ public class ApiComponentDetailsAdapter
     resultDTO.repositoryId = repository.getId();
     resultDTO.repositoryPublicId = repository.getPublicId();
     resultDTO.repositoryType = repository.getRepositoryType().name();
-    for (RepositoryComponentEvaluationData repositoryComponentEvaluationData : repositoryComponentEvaluationDataList.componentEvalResults) {
+
+    List<RepositoryComponentEvaluationData> evalResults =
+        repositoryComponentEvaluationDataList.componentEvalResults;
+
+    // Derive pathname per eval entry, preserving alignment with evalResults.
+    List<String> pathnamesInOrder = new ArrayList<>(evalResults.size());
+    for (RepositoryComponentEvaluationData d : evalResults) {
+      pathnamesInOrder.add(resolvePathname(
+          apiRepositoryComponentEvaluationRequestList.components.get(d.requestIndex)));
+    }
+
+    // Distinct non-null pathnames feed the IN-clause batch reads.
+    List<String> distinctPathnames = pathnamesInOrder.stream()
+        .filter(Objects::nonNull)
+        .distinct()
+        .collect(Collectors.toList());
+
+    Map<String, RepositoryComponent> componentByPathname = distinctPathnames.isEmpty()
+        ? Collections.emptyMap()
+        : repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), distinctPathnames)
+            .stream()
+            .collect(Collectors.toMap(RepositoryComponent::getPathname, Function.identity(), (a, b) -> a));
+
+    List<RepositoryPolicyViolation> allViolations = distinctPathnames.isEmpty()
+        ? Collections.emptyList()
+        : repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnames(repository.getId(), distinctPathnames);
+
+    Map<String, List<RepositoryPolicyViolation>> violationsByPathname = allViolations.stream()
+        .collect(Collectors.groupingBy(RepositoryPolicyViolation::getPathname));
+
+    if (!allViolations.isEmpty()) {
+      repositoryPolicyViolationDAO.loadConstraintFacts(allViolations);
+    }
+
+    for (int i = 0; i < evalResults.size(); i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData = evalResults.get(i);
       ApiRepositoryComponentEvaluationResult componentEvaluationResult =
           new ApiRepositoryComponentEvaluationResult();
-
-      int index = repositoryComponentEvaluationData.requestIndex;
       ApiRepositoryComponentEvaluationRequest apiRepositoryComponentEvaluationRequest =
-          apiRepositoryComponentEvaluationRequestList.components.get(index);
+          apiRepositoryComponentEvaluationRequestList.components.get(repositoryComponentEvaluationData.requestIndex);
 
       componentEvaluationResult.quarantined = repositoryComponentEvaluationData.quarantine;
-      String pathname = apiRepositoryComponentEvaluationRequest.pathname;
-      if (pathname == null && apiRepositoryComponentEvaluationRequest.packageUrl != null) {
-        pathname = RepositoryPathnameSerializer.toPathname(apiRepositoryComponentEvaluationRequest.packageUrl);
-      }
-      RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
-          pathname);
+      String pathname = pathnamesInOrder.get(i);
+      RepositoryComponent repositoryComponent = pathname == null ? null : componentByPathname.get(pathname);
       if (repositoryComponent != null) {
         componentEvaluationResult.quarantineDate = repositoryComponent.getQuarantineTime();
       }
       componentEvaluationResult.component = apiRepositoryComponentEvaluationRequest;
       componentEvaluationResult.catalogDate = repositoryComponentEvaluationData.catalogDate;
-      List<RepositoryPolicyViolation> repositoryPolicyViolations =
-          repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
-      repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
+      List<RepositoryPolicyViolation> repositoryPolicyViolations = pathname == null
+          ? Collections.emptyList()
+          : violationsByPathname.getOrDefault(pathname, Collections.emptyList());
       componentEvaluationResult.policyViolations.addAll(
           repositoryPolicyViolations.stream().map(this::convert).collect(Collectors.toList()));
       resultDTO.results.add(componentEvaluationResult);
     }
     return resultDTO;
+  }
+
+  private String resolvePathname(ApiRepositoryComponentEvaluationRequest request) {
+    if (request.pathname != null) {
+      return request.pathname;
+    }
+    if (request.packageUrl != null) {
+      return RepositoryPathnameSerializer.toPathname(request.packageUrl);
+    }
+    return null;
   }
 
   private ApiPolicyViolationDTOV2 convert(RepositoryPolicyViolation repositoryPolicyViolation) {

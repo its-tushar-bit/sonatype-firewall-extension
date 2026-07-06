@@ -82,13 +82,13 @@ public class ComponentSourceLinkDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ComponentSourceLink componentSourceLink) {
+  public int update(TransactionContext tx, ComponentSourceLink componentSourceLink) {
     if (getById(tx, componentSourceLink.getId()) == null) {
       throw new BadRequestException(
           "Cannot update component source link with id " + componentSourceLink.getId() + " because it does not exist.");
     }
     componentSourceLink.setLastUpdatedAt(new Date());
-    super.update(tx, componentSourceLink);
+    return super.update(tx, componentSourceLink);
   }
 
   @Override

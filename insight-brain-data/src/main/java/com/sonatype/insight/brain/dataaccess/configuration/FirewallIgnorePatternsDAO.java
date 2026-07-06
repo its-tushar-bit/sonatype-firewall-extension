@@ -39,9 +39,9 @@ public class FirewallIgnorePatternsDAO
   }
 
   @Override
-  public void update(TransactionContext tx, FirewallIgnorePatterns firewallIgnorePatterns) {
+  public int update(TransactionContext tx, FirewallIgnorePatterns firewallIgnorePatterns) {
     firewallIgnorePatterns.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, firewallIgnorePatterns);
+    return super.update(tx, firewallIgnorePatterns);
   }
 
   @Override

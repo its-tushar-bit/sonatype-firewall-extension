@@ -66,7 +66,7 @@ public class ApplicationComponentDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ApplicationComponent entity) {
+  public int update(TransactionContext tx, ApplicationComponent entity) {
     throw new UnsupportedOperationException("ApplicationComponent does not support update operations");
   }
 

@@ -52,11 +52,12 @@ public class WebhookDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final Webhook webhook) {
+  public int update(final TransactionContext tx, final Webhook webhook) {
     validate(webhook);
-    super.update(tx, webhook);
+    int updated = super.update(tx, webhook);
     deleteEventTypes(tx, webhook.getId());
     insertEventTypes(tx, webhook.getId(), webhook.getEventTypes());
+    return updated;
   }
 
   @Override

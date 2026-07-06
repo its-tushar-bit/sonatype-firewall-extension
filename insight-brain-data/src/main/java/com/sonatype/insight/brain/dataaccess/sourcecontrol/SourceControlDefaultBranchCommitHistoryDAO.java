@@ -204,7 +204,7 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   }
 
   @Override
-  public void update(
+  public int update(
       final TransactionContext tx,
       final SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory)
   {
@@ -212,7 +212,7 @@ public class SourceControlDefaultBranchCommitHistoryDAO
         defaultBranchCommitHistory.getId(), defaultBranchCommitHistory.getApplicationId());
 
     defaultBranchCommitHistory.setUpdateTime(new Date());
-    super.update(tx, defaultBranchCommitHistory);
+    return super.update(tx, defaultBranchCommitHistory);
   }
 
   public int deleteAllBeforeDate(final Date cutoffDate) {

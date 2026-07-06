@@ -31,7 +31,7 @@ public class ApplicationCountHistoryDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ApplicationCountHistory entity) {
+  public int update(TransactionContext tx, ApplicationCountHistory entity) {
     throw new UnsupportedOperationException("ApplicationCountHistory does not support update operations");
   }
 

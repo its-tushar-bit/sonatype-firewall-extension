@@ -38,9 +38,9 @@ public class SystemNoticeDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final SystemNotice entity) {
+  public int update(final TransactionContext tx, final SystemNotice entity) {
     entity.setId(SYSTEM_NOTICE_ID);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   @Override

@@ -171,13 +171,13 @@ public class ComponentCopyrightDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ComponentCopyright componentCopyright) {
+  public int update(TransactionContext tx, ComponentCopyright componentCopyright) {
     if (getById(tx, componentCopyright.getId()) == null) {
       throw new BadRequestException(
           "Cannot update component copyright with id " + componentCopyright.getId() + " because it does not exist.");
     }
     componentCopyright.setLastUpdatedAt(new Date());
-    super.update(tx, componentCopyright);
+    return super.update(tx, componentCopyright);
   }
 
   @Override

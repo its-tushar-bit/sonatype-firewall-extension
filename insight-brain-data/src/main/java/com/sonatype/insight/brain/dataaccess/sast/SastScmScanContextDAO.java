@@ -43,7 +43,7 @@ public class SastScmScanContextDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final SastScmScanContext entity) {
+  public int update(final TransactionContext tx, final SastScmScanContext entity) {
     throw new UnsupportedOperationException("The SastScmScanContext table does not support update operations");
   }
 

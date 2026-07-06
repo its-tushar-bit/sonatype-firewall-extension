@@ -33,7 +33,7 @@ public class AggregateFileDAO
   }
 
   @Override
-  public void update(TransactionContext tx, AggregateFile entity) {
+  public int update(TransactionContext tx, AggregateFile entity) {
     throw new UnsupportedOperationException("AggregateFile does not support update operations");
   }
 

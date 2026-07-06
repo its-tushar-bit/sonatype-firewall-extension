@@ -193,12 +193,12 @@ public class CopyrightOverrideDAO
   }
 
   @Override
-  public void update(TransactionContext tx, CopyrightOverride copyrightOverride) {
+  public int update(TransactionContext tx, CopyrightOverride copyrightOverride) {
     if (getById(tx, copyrightOverride.getId()) == null) {
       throw new BadRequestException(
           "Cannot update copyright override with id " + copyrightOverride.getId() + " because it does not exist.");
     }
-    super.update(tx, copyrightOverride);
+    return super.update(tx, copyrightOverride);
   }
 
   @Override

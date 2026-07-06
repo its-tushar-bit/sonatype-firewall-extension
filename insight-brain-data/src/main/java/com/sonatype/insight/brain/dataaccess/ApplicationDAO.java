@@ -636,11 +636,11 @@ public class ApplicationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, Application application) {
-    update(tx, application, false);
+  public int update(TransactionContext tx, Application application) {
+    return update(tx, application, false);
   }
 
-  public void update(TransactionContext tx, Application application, boolean changeParent) {
+  public int update(TransactionContext tx, Application application, boolean changeParent) {
     validate(application);
 
     Application existingApplication = getById(tx, application.getId());
@@ -681,7 +681,7 @@ public class ApplicationDAO
     }
 
     // jOOQ update
-    tx.dsl()
+    int updated = tx.dsl()
         .update(APPLICATION)
         .set(APPLICATION.PUBLIC_ID, application.getPublicId())
         .set(APPLICATION.PUBLIC_ID_LOWERCASE, application.getPublicIdLowercase())
@@ -699,6 +699,7 @@ public class ApplicationDAO
     if (shouldAddSearchIndexChange(tx, application)) {
       insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(application));
     }
+    return updated;
   }
 
   private void validate(Application application) {

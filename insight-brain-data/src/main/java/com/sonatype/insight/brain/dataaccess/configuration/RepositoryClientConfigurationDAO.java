@@ -70,9 +70,9 @@ public class RepositoryClientConfigurationDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final RepositoryClientConfiguration configuration) {
+  public int update(final TransactionContext tx, final RepositoryClientConfiguration configuration) {
     configuration.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, configuration);
+    return super.update(tx, configuration);
   }
 
   public void delete() {

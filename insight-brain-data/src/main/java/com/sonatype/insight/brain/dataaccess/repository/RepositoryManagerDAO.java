@@ -152,7 +152,7 @@ public class RepositoryManagerDAO
   }
 
   @Override
-  public void update(TransactionContext tx, RepositoryManager repositoryManager) {
+  public int update(TransactionContext tx, RepositoryManager repositoryManager) {
     validateInstanceId(repositoryManager);
     validateName(repositoryManager);
 
@@ -173,7 +173,7 @@ public class RepositoryManagerDAO
       }
     }
 
-    super.update(tx, repositoryManager);
+    return super.update(tx, repositoryManager);
   }
 
   public RepositoryManager getByName(TransactionContext tx, String name) {

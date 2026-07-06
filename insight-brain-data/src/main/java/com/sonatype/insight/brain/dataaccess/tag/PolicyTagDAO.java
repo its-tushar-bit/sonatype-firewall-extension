@@ -38,7 +38,7 @@ public class PolicyTagDAO
   }
 
   @Override
-  public void update(TransactionContext tx, PolicyTag entity) {
+  public int update(TransactionContext tx, PolicyTag entity) {
     throw new UnsupportedOperationException("The PolicyTag table does not support update operations");
   }
 

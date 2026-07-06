@@ -316,7 +316,7 @@ public class OrganizationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, Organization organization) {
+  public int update(TransactionContext tx, Organization organization) {
     NameHelper.validate("Name", organization.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(organization.getId())) {
@@ -338,11 +338,12 @@ public class OrganizationDAO
     Organization existingOrganizationById = getById(tx, organization.getId());
     String oldParentId = existingOrganizationById == null ? null : existingOrganizationById.getParentOwnerId();
 
-    super.update(tx, organization);
+    int updated = super.update(tx, organization);
 
     if (!Objects.equals(oldParentId, organization.getParentOwnerId())) {
       updateOrganizationAncestors(tx, organization);
     }
+    return updated;
   }
 
   @Override

@@ -83,7 +83,7 @@ public class SuccessMetricsReportDAO
   }
 
   @Override
-  public void update(TransactionContext tx, SuccessMetricsReport entity) {
+  public int update(TransactionContext tx, SuccessMetricsReport entity) {
     throw new UnsupportedOperationException("SuccessMetricsReport does not support update operations.");
   }
 

@@ -62,7 +62,7 @@ public class ApplicationComponentLicenseDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ApplicationComponentLicense entity) {
+  public int update(TransactionContext tx, ApplicationComponentLicense entity) {
     throw new UnsupportedOperationException("ApplicationComponentLicense does not support update operations");
   }
 

@@ -84,7 +84,7 @@ public class PolicyViolationConstraintFactsDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final PolicyViolationConstraintFacts entity) {
+  public int update(final TransactionContext tx, final PolicyViolationConstraintFacts entity) {
     throw new UnsupportedOperationException("Constraints are immutable");
   }
 

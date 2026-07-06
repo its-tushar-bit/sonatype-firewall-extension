@@ -60,9 +60,9 @@ public class RelayConfigurationDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final RelayConfiguration entity) {
+  public int update(final TransactionContext tx, final RelayConfiguration entity) {
     entity.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   public void delete() {

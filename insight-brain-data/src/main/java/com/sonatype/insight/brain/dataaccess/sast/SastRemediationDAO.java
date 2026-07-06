@@ -30,7 +30,7 @@ public class SastRemediationDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final SastRemediation entity) {
+  public int update(final TransactionContext tx, final SastRemediation entity) {
     throw new UnsupportedOperationException("The SastRemediation table does not support update operations");
   }
 

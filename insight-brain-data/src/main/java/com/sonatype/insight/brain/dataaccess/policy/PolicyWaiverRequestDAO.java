@@ -81,7 +81,7 @@ public class PolicyWaiverRequestDAO
   }
 
   @Override
-  public void update(TransactionContext tx, PolicyWaiverRequest entity) {
+  public int update(TransactionContext tx, PolicyWaiverRequest entity) {
     if (entity.getStatus() == null) {
       throw new BadRequestException("Cannot create a policy waiver request with null status.");
     }
@@ -105,7 +105,7 @@ public class PolicyWaiverRequestDAO
       throw new BadRequestException("Comment length must not exceed 1000 characters.");
     }
 
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   @Override

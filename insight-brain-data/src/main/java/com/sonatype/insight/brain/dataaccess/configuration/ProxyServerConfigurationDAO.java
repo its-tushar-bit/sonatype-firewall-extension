@@ -61,10 +61,10 @@ public class ProxyServerConfigurationDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final ProxyServerConfiguration entity) {
+  public int update(final TransactionContext tx, final ProxyServerConfiguration entity) {
     validate(entity);
     entity.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   public void delete() {

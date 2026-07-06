@@ -195,12 +195,12 @@ public class DevelopmentPrioritizationComponentInfoDAO
   }
 
   @Override
-  public void update(TransactionContext tx, DevelopmentPrioritizationComponentInfo entity) {
+  public int update(TransactionContext tx, DevelopmentPrioritizationComponentInfo entity) {
     // Special handling: set updatedAt to now if not provided
     if (entity.getUpdatedAt() == null) {
       entity.setUpdatedAt(new Date());
     }
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   public void deleteAllByScanId(final TransactionContext tx, final String scanId) {

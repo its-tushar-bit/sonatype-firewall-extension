@@ -94,10 +94,10 @@ public class ReverseProxyAuthenticationConfigurationDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final ReverseProxyAuthenticationConfiguration configuration) {
+  public int update(final TransactionContext tx, final ReverseProxyAuthenticationConfiguration configuration) {
     validate(configuration);
     configuration.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, configuration);
+    return super.update(tx, configuration);
   }
 
   public void delete() {

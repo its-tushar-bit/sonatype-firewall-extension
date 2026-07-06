@@ -68,12 +68,12 @@ public class LegalFileOverrideDAO
   }
 
   @Override
-  public void update(TransactionContext tx, LegalFileOverride legalFileOverride) {
+  public int update(TransactionContext tx, LegalFileOverride legalFileOverride) {
     if (getById(tx, legalFileOverride.getId()) == null) {
       throw new BadRequestException(
           "Cannot update legal file override with id " + legalFileOverride.getId() + " because it does not exist.");
     }
-    super.update(tx, legalFileOverride);
+    return super.update(tx, legalFileOverride);
   }
 
   public List<LegalFileOverride> getByComponentLegalFileId(TransactionContext tx, String componentLegalFileId) {

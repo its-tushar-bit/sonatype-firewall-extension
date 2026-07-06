@@ -139,13 +139,13 @@ public class ComponentLegalFileDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ComponentLegalFile componentLegalFile) {
+  public int update(TransactionContext tx, ComponentLegalFile componentLegalFile) {
     if (getById(tx, componentLegalFile.getId()) == null) {
       throw new BadRequestException(
           "Cannot update component legal file with id " + componentLegalFile.getId() + " because it does not exist.");
     }
     componentLegalFile.setLastUpdatedAt(new Date());
-    super.update(tx, componentLegalFile);
+    return super.update(tx, componentLegalFile);
   }
 
   @Override

@@ -41,7 +41,7 @@ public class SastFindingDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final SastFinding entity) {
+  public int update(final TransactionContext tx, final SastFinding entity) {
     throw new UnsupportedOperationException("The SastFinding table does not support update operations");
   }
 

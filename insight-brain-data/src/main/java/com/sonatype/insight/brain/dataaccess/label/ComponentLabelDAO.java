@@ -149,9 +149,9 @@ public class ComponentLabelDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ComponentLabel entity) {
+  public int update(TransactionContext tx, ComponentLabel entity) {
     validate(tx, entity);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   private void validate(TransactionContext tx, ComponentLabel entity) {

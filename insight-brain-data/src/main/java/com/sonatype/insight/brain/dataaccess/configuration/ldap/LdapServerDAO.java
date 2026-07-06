@@ -81,13 +81,13 @@ public class LdapServerDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final LdapServer config) {
+  public int update(final TransactionContext tx, final LdapServer config) {
     NameHelper.validate(config.getName());
     LdapServer existingConfig = getByName(tx, config.getName());
     if (existingConfig != null && !existingConfig.getId().equals(config.getId())) {
       throw new InvalidNameException(config.getName() + " is already used as a name.");
     }
-    super.update(tx, config);
+    return super.update(tx, config);
   }
 
   @Override

@@ -60,9 +60,9 @@ public class OAuth2ConfigurationDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final OAuth2Configuration configuration) {
+  public int update(final TransactionContext tx, final OAuth2Configuration configuration) {
     validate(configuration);
-    super.update(tx, configuration);
+    return super.update(tx, configuration);
   }
 
   private static void validate(final OAuth2Configuration config) {

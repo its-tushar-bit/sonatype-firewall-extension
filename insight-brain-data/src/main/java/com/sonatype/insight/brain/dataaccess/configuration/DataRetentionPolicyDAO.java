@@ -44,9 +44,9 @@ public class DataRetentionPolicyDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final DataRetentionPolicy entity) {
+  public int update(final TransactionContext tx, final DataRetentionPolicy entity) {
     validate(entity);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   @Override

@@ -238,7 +238,7 @@ public class TagDAO
   }
 
   @Override
-  public void update(TransactionContext tx, Tag entity) {
+  public int update(TransactionContext tx, Tag entity) {
     NameHelper.validate(entity.getName());
     DescriptionHelper.validate(entity.getDescription());
     validateColor(entity.getColor());
@@ -249,7 +249,7 @@ public class TagDAO
     }
     validateNameWithinHierarchy(tx, entity.getOrganizationId(), entity.getName());
 
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   private void validateNameWithinHierarchy(TransactionContext tx, String orgId, String name) {

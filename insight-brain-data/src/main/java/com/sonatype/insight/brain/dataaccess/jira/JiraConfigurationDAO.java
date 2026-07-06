@@ -120,14 +120,14 @@ public class JiraConfigurationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, JiraConfiguration jiraConfiguration) {
+  public int update(TransactionContext tx, JiraConfiguration jiraConfiguration) {
     validate(jiraConfiguration);
     jiraConfiguration.setId(SINGLETON_ENTITY_ID);
     if (getById(tx, SINGLETON_ENTITY_ID) == null) {
-      super.insert(tx, jiraConfiguration);
+      return super.insert(tx, jiraConfiguration);
     }
     else {
-      super.update(tx, jiraConfiguration);
+      return super.update(tx, jiraConfiguration);
     }
   }
 

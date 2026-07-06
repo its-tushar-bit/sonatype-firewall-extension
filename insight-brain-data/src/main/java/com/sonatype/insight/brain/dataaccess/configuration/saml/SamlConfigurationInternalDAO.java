@@ -87,12 +87,12 @@ public class SamlConfigurationInternalDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final SamlConfigurationInternal entity) {
+  public int update(final TransactionContext tx, final SamlConfigurationInternal entity) {
     // The keystore info cannot be updated and has to be retrieved from the existing SAML configuration.
     SamlConfigurationInternal currentEntity = get();
     entity.setKeystorePasswordObfuscated(currentEntity.getKeystorePasswordObfuscated());
     entity.setKeystore(currentEntity.getKeystore());
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   private void generateKeyStore(final SamlConfigurationInternal samlConfigurationInternal) {

@@ -581,10 +581,10 @@ public class SourceControlEventDAO
   }
 
   @Override
-  public void update(TransactionContext tx, SourceControlEvent entity) {
+  public int update(TransactionContext tx, SourceControlEvent entity) {
     validateBranchName(entity.getBranchName());
     validateBranchName(entity.getBaseBranchName());
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   private static void validateBranchName(String branchName) {

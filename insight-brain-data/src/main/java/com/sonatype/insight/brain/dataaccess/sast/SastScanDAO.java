@@ -40,7 +40,7 @@ public class SastScanDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final SastScan entity) {
+  public int update(final TransactionContext tx, final SastScan entity) {
     throw new UnsupportedOperationException("The SastScan table does not support update operations");
   }
 

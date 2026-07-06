@@ -40,7 +40,7 @@ public class SearchIndexChangeDAO
   }
 
   @Override
-  public void update(TransactionContext tx, SearchIndexChange entity) {
+  public int update(TransactionContext tx, SearchIndexChange entity) {
     throw new UnsupportedOperationException();
   }
 

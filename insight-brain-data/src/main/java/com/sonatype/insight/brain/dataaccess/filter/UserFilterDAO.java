@@ -65,7 +65,7 @@ public class UserFilterDAO
   }
 
   @Override
-  public void update(TransactionContext tx, UserFilter userFilter) {
+  public int update(TransactionContext tx, UserFilter userFilter) {
     validate(tx, userFilter);
     UserFilter existingFilter = getByUsernameAndRealmIdAndNameAndType(tx, userFilter.getUsername(),
         userFilter.getRealmId(), userFilter.getName(), userFilter.getType());
@@ -73,7 +73,7 @@ public class UserFilterDAO
       throw new InvalidNameException(
           userFilter.getName() + " is already used as a name for type " + userFilter.getType());
     }
-    super.update(tx, userFilter);
+    return super.update(tx, userFilter);
   }
 
   public void deleteByRealmId(TransactionContext tx, String realmId) {

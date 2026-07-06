@@ -273,13 +273,14 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
      * Override update to track tenant usage without falling back to global.
      */
     @Override
-    public void update(TransactionContext tx, SystemConfigurationProperty property) {
+    public int update(TransactionContext tx, SystemConfigurationProperty property) {
       // For update operations, use fetchForUpdate=true to prevent global fallback
       SystemConfigurationProperty existing = getByNameMock(property.getName(), true);
       if (existing == null) {
         throw new NotFoundException("A system configuration property '" + property.getName() + "' does not exist.");
       }
       // Don't need to actually update anything for this test
+      return 0;
     }
 
     private void recordTenantUsage(Tenant tenant) {

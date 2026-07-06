@@ -285,35 +285,7 @@ public abstract class AbstractDAO<T>
           return ignoreDuplicateKey ? insertSetMoreStep.onDuplicateKeyIgnore() : insertSetMoreStep;
         })
         .toList();
-    return countInsertedRows(tx.dsl().batch(steps).execute());
-  }
-
-  /**
-   * Sums the per-statement affected-row counts returned by a jOOQ batch execute into a total inserted-row count.
-   * <p>
-   * This relies on the driver returning a real per-statement count (0 for a skipped {@code ON CONFLICT DO NOTHING}, 1
-   * for an insert). If PostgreSQL's {@code reWriteBatchedInserts} were enabled the driver would coalesce the inserts
-   * and return {@link Statement#SUCCESS_NO_INFO} ({@code -2}) per statement, which would silently under-report the
-   * count. {@code insertBatch} does not enable that option, so we log loudly if we ever see {@code SUCCESS_NO_INFO}
-   * rather than let the count silently collapse.
-   */
-  static int countInsertedRows(int[] batchResult) {
-    int inserted = 0;
-    int unknown = 0;
-    for (int count : batchResult) {
-      if (count > 0) {
-        inserted += count;
-      }
-      else if (count == Statement.SUCCESS_NO_INFO) {
-        unknown++;
-      }
-    }
-    if (unknown > 0) {
-      log.warn("Batch insert returned no affected-row count for {} of {} statements (SUCCESS_NO_INFO); inserted count "
-          + "under-reported as {}. This is only expected if PostgreSQL 'reWriteBatchedInserts' is enabled, which "
-          + "insertBatch does not support.", unknown, batchResult.length, inserted);
-    }
-    return inserted;
+    return sumBatchResult(tx.dsl().batch(steps).execute());
   }
 
   public int insertBatch(List<T> entities, boolean ignoreDuplicateKey) {
@@ -351,10 +323,11 @@ public abstract class AbstractDAO<T>
    *
    * @param tx the transaction context
    * @param entity the entity to update
+   * @return the number of rows updated (typically {@code 1})
    * @throws IllegalStateException if the entity is not found
    */
   @SuppressWarnings("unchecked")
-  public void update(TransactionContext tx, T entity) {
+  public int update(TransactionContext tx, T entity) {
     Table<?> table = getJooqTable();
     Field<String> idField = getIdField(table);
 
@@ -376,14 +349,15 @@ public abstract class AbstractDAO<T>
 
     // Use explicit update instead of record.update() to avoid
     // jOOQ's RETURNING clause emulation which doesn't work well with H2
-    tx.dsl().update(table).set(record).where(idField.eq(entityId)).execute();
+    return tx.dsl().update(table).set(record).where(idField.eq(entityId)).execute();
   }
 
-  public void update(T entity) {
+  public int update(T entity) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      update(tx, entity);
+      int updated = update(tx, entity);
       tx.commit();
+      return updated;
     }
   }
 
@@ -394,40 +368,78 @@ public abstract class AbstractDAO<T>
    * Rows not found in the database are silently skipped rather than throwing.
    * The H2 path falls back to individual {@link #update(TransactionContext, Object)} calls.
    */
-  public void updateBatch(TransactionContext tx, List<T> entities) {
+  public int updateBatch(TransactionContext tx, List<T> entities) {
     if (CollectionUtils.isEmpty(entities)) {
-      return;
+      return 0;
     }
     Table<?> table = getJooqTable();
     Field<String> idField = getIdField(table);
     SQLDialect dialect = tx.dsl().dialect();
     if (dialect == SQLDialect.H2) {
+      int updated = 0;
       for (T entity : entities) {
-        update(tx, entity);
+        updated += update(tx, entity);
       }
+      return updated;
     }
-    else {
-      var steps = entities.stream()
-          .map(entity -> {
-            if (!(entity instanceof HasStringId hasStringId)) {
-              throw new IllegalArgumentException("updateBatch requires HasStringId entities");
-            }
-            UpdatableRecord<?> record = (UpdatableRecord<?>) tx.dsl().newRecord(table);
-            record.set(idField, hasStringId.getId());
-            fromEntity(record, entity);
-            return (Query) tx.dsl().update(table).set(record).where(idField.eq(record.get(idField)));
-          })
-          .toList();
-      tx.dsl().batch(steps).execute();
+    var steps = entities.stream()
+        .map(entity -> {
+          if (!(entity instanceof HasStringId hasStringId)) {
+            throw new IllegalArgumentException("updateBatch requires HasStringId entities");
+          }
+          UpdatableRecord<?> record = (UpdatableRecord<?>) tx.dsl().newRecord(table);
+          record.set(idField, hasStringId.getId());
+          fromEntity(record, entity);
+          return (Query) tx.dsl().update(table).set(record).where(idField.eq(record.get(idField)));
+        })
+        .toList();
+    return sumBatchResult(tx.dsl().batch(steps).execute());
+  }
+
+  public int updateBatch(List<T> entities) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      int updated = updateBatch(tx, entities);
+      tx.commit();
+      return updated;
     }
   }
 
-  public void updateBatch(List<T> entities) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      updateBatch(tx, entities);
-      tx.commit();
+  /**
+   * Sums the per-statement affected-row counts returned by a jOOQ batch execute into a total.
+   * <p>
+   * Used by both {@code insertBatch} and {@code updateBatch}. Relies on the driver returning a real per-statement
+   * count. If PostgreSQL's {@code reWriteBatchedInserts} were enabled the driver would coalesce statements and return
+   * {@link Statement#SUCCESS_NO_INFO} ({@code -2}) per statement, which would silently under-report the total; the
+   * batch methods here do not enable that option, so we log loudly if we ever see {@code SUCCESS_NO_INFO} rather than
+   * let the count silently collapse. A statement that failed reports {@link Statement#EXECUTE_FAILED} ({@code -3}) —
+   * jOOQ normally throws on batch failure rather than returning it, so this too is logged rather than silently dropped.
+   */
+  static int sumBatchResult(int[] batchResult) {
+    int total = 0;
+    int unknown = 0;
+    int failed = 0;
+    for (int count : batchResult) {
+      if (count > 0) {
+        total += count;
+      }
+      else if (count == Statement.SUCCESS_NO_INFO) {
+        unknown++;
+      }
+      else if (count == Statement.EXECUTE_FAILED) {
+        failed++;
+      }
     }
+    if (unknown > 0) {
+      log.warn("Batch returned no affected-row count for {} of {} statements (SUCCESS_NO_INFO); total under-reported "
+          + "as {}. This is only expected if PostgreSQL 'reWriteBatchedInserts' is enabled, which is not supported "
+          + "here.", unknown, batchResult.length, total);
+    }
+    if (failed > 0) {
+      log.warn("Batch reported {} of {} statements as EXECUTE_FAILED; total under-reported as {}. jOOQ normally throws "
+          + "on batch failure, so this is unexpected.", failed, batchResult.length, total);
+    }
+    return total;
   }
 
   /**

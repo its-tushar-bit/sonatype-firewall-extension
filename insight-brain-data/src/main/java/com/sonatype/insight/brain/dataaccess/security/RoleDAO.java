@@ -97,7 +97,7 @@ public class RoleDAO
   }
 
   @Override
-  public void update(TransactionContext tx, Role entity) {
+  public int update(TransactionContext tx, Role entity) {
     // NOTE: We can't trust the caller-supplied built-in flag
     Role current = getByIdNotNull(tx, entity.getId());
     if (current.isBuiltIn()) {
@@ -117,7 +117,7 @@ public class RoleDAO
     }
     DescriptionHelper.validate(entity.getDescription());
 
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   @Override

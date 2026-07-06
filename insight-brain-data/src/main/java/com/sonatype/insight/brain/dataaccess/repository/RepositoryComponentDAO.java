@@ -1276,9 +1276,9 @@ public class RepositoryComponentDAO
   }
 
   @Override
-  public void update(TransactionContext tx, RepositoryComponent entity) {
+  public int update(TransactionContext tx, RepositoryComponent entity) {
     fillDisplayName(entity);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   private void fillDisplayName(RepositoryComponent entity) {

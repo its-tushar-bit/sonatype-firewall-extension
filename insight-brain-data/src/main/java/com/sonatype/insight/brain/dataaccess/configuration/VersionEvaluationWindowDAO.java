@@ -80,9 +80,9 @@ public class VersionEvaluationWindowDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final VersionEvaluationWindow entity) {
+  public int update(final TransactionContext tx, final VersionEvaluationWindow entity) {
     validate(entity);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   public List<VersionEvaluationWindow> getByOwnerId(final String ownerId) {

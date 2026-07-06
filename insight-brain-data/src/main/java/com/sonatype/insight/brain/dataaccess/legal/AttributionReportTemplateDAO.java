@@ -50,7 +50,7 @@ public class AttributionReportTemplateDAO
   }
 
   @Override
-  public void update(TransactionContext tx, AttributionReportTemplate entity) {
+  public int update(TransactionContext tx, AttributionReportTemplate entity) {
     checkAttributionReportTemplateNameLength(entity);
     if (getById(tx, entity.getId()) == null) {
       throw new BadRequestException(
@@ -58,7 +58,7 @@ public class AttributionReportTemplateDAO
               " because it does not exist.");
     }
     entity.setLastUpdatedAt(new Date());
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   public void deleteById(String attributionReportId) {

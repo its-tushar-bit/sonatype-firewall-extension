@@ -87,7 +87,7 @@ public class RepositoryContainerDAO
   }
 
   @Override
-  public void update(TransactionContext tx, RepositoryContainer entity) {
+  public int update(TransactionContext tx, RepositoryContainer entity) {
     throw new UnsupportedOperationException("RepositoryContainerDAO does not support update");
   }
 

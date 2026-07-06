@@ -33,14 +33,14 @@ public class RepositoryIdentifiedComponentDAO
   }
 
   @Override
-  public void update(TransactionContext tx, RepositoryIdentifiedComponent entity) {
+  public int update(TransactionContext tx, RepositoryIdentifiedComponent entity) {
     // Use upsert semantics since RepositoryIdentifiedComponentCache.put() calls update() directly
     // without checking if row exists
     if (getById(tx, entity.getId()) == null) {
-      insert(tx, entity);
+      return insert(tx, entity);
     }
     else {
-      super.update(tx, entity);
+      return super.update(tx, entity);
     }
   }
 

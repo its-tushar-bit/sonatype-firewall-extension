@@ -230,16 +230,17 @@ public class SystemConfigurationPropertyDAO
   }
 
   @Override
-  public void update(TransactionContext tx, SystemConfigurationProperty property) {
+  public int update(TransactionContext tx, SystemConfigurationProperty property) {
     SystemConfigurationProperty existingProperty = getByNameNotNull(tx, property.getName(), true);
     property.setId(existingProperty.getId());
-    tx.dsl()
+    int updated = tx.dsl()
         .update(SYSTEM_CONFIGURATION_PROPERTY)
         .set(SYSTEM_CONFIGURATION_PROPERTY.NAME, property.getName())
         .set(SYSTEM_CONFIGURATION_PROPERTY.VALUE, property.getValue())
         .where(SYSTEM_CONFIGURATION_PROPERTY.SYSTEM_CONFIGURATION_PROPERTY_ID.eq(property.getId()))
         .execute();
     tx.afterCommit(this::invalidateCache);
+    return updated;
   }
 
   @Override

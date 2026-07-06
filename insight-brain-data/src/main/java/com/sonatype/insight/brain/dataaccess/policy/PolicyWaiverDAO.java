@@ -582,7 +582,7 @@ public class PolicyWaiverDAO
   }
 
   @Override
-  public void update(TransactionContext tx, PolicyWaiver entity) {
+  public int update(TransactionContext tx, PolicyWaiver entity) {
     setComponentMatchStrategyIfNeeded(entity);
 
     PolicyWaiver other = getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(),
@@ -595,7 +595,7 @@ public class PolicyWaiverDAO
       throw new BadRequestException("Comment length must not exceed 1000 characters.");
     }
 
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   /**

@@ -241,7 +241,7 @@ public class OwnerDAO
   }
 
   @Override
-  public void updateBatch(TransactionContext tx, List<Owner> entities) {
+  public int updateBatch(TransactionContext tx, List<Owner> entities) {
     throw new UnsupportedOperationException("OwnerDAO is a composite DAO and does not support batch operations");
   }
 
@@ -1176,21 +1176,17 @@ public class OwnerDAO
   }
 
   @Override
-  public void update(TransactionContext tx, Owner entity) {
+  public int update(TransactionContext tx, Owner entity) {
     // OwnerDAO is a composite DAO - delegate to the appropriate DAO based on owner type
     switch (entity.getType()) {
       case ORGANIZATION:
-        orgDAO.update(tx, (Organization) entity);
-        break;
+        return orgDAO.update(tx, (Organization) entity);
       case APPLICATION:
-        appDAO.update(tx, (Application) entity);
-        break;
+        return appDAO.update(tx, (Application) entity);
       case REPOSITORY:
-        repoDAO.update(tx, (Repository) entity);
-        break;
+        return repoDAO.update(tx, (Repository) entity);
       case REPOSITORY_MANAGER:
-        repoManagerDAO.update(tx, (RepositoryManager) entity);
-        break;
+        return repoManagerDAO.update(tx, (RepositoryManager) entity);
       case REPOSITORY_CONTAINER:
         // RepositoryContainer.SINGLETON is immutable and cannot be updated
         throw new UnsupportedOperationException("RepositoryContainer cannot be updated");

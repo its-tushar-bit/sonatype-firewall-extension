@@ -104,10 +104,10 @@ public class MailConfigurationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, MailConfiguration mailConfiguration) {
+  public int update(TransactionContext tx, MailConfiguration mailConfiguration) {
     validate(mailConfiguration);
     mailConfiguration.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, mailConfiguration);
+    return super.update(tx, mailConfiguration);
   }
 
   public void validate(MailConfiguration mailConfiguration) {

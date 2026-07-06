@@ -53,14 +53,14 @@ public class AnnouncementBannerDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final AnnouncementBanner banner) {
+  public int update(final TransactionContext tx, final AnnouncementBanner banner) {
     Objects.requireNonNull(banner, "Banner must not be null");
     banner.setId(SINGLETON_ENTITY_ID);
     banner.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
     if (banner.getSeverity() == null) {
       banner.setSeverity(DEFAULT_SEVERITY);
     }
-    super.update(tx, banner);
+    return super.update(tx, banner);
   }
 
   @Override
@@ -78,7 +78,7 @@ public class AnnouncementBannerDAO
   }
 
   @Override
-  public void updateBatch(final TransactionContext tx, final List<AnnouncementBanner> banners) {
+  public int updateBatch(final TransactionContext tx, final List<AnnouncementBanner> banners) {
     throw new UnsupportedOperationException("updateBatch() is not supported for singleton entity AnnouncementBanner");
   }
 

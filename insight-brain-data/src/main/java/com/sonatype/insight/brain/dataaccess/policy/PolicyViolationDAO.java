@@ -107,9 +107,9 @@ public class PolicyViolationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, PolicyViolation entity) {
+  public int update(TransactionContext tx, PolicyViolation entity) {
     storeConstraints(entity);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   @Override
@@ -123,13 +123,13 @@ public class PolicyViolationDAO
   }
 
   @Override
-  public void updateBatch(TransactionContext tx, List<PolicyViolation> entities) {
+  public int updateBatch(TransactionContext tx, List<PolicyViolation> entities) {
     // On H2, the fallback calls update(tx, entity) per entity which already handles storeConstraints
     // via our update() override.
     if (tx.dsl().dialect() != SQLDialect.H2) {
       storeConstraintsBatch(entities);
     }
-    super.updateBatch(tx, entities);
+    return super.updateBatch(tx, entities);
   }
 
   private final PolicyEvaluationDAO policyEvaluationDAO;

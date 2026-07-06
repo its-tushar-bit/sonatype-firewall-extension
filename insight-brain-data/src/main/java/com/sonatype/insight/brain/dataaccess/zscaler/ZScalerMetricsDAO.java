@@ -50,17 +50,17 @@ public class ZScalerMetricsDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ZScalerMetrics zScalerMetrics) {
+  public int update(TransactionContext tx, ZScalerMetrics zScalerMetrics) {
     zScalerMetrics.setId(SINGLETON_ENTITY_ID);
     zScalerMetrics.setUpdatedAt(new Date());
 
     // Use upsert semantics since set() calls update() directly without checking if row exists
     ZScalerMetrics existing = getById(tx, SINGLETON_ENTITY_ID);
     if (existing != null) {
-      super.update(tx, zScalerMetrics);
+      return super.update(tx, zScalerMetrics);
     }
     else {
-      super.insert(tx, zScalerMetrics);
+      return super.insert(tx, zScalerMetrics);
     }
   }
 

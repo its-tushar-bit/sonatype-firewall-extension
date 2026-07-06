@@ -397,7 +397,7 @@ public class PolicyEvaluationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, PolicyEvaluation entity) {
+  public int update(TransactionContext tx, PolicyEvaluation entity) {
     throw new UnsupportedOperationException("The PolicyEvaluation table does not support update operations");
   }
 

@@ -62,9 +62,9 @@ public class OidcConfigurationDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final OidcConfiguration configuration) {
+  public int update(final TransactionContext tx, final OidcConfiguration configuration) {
     validate(configuration);
-    super.update(tx, configuration);
+    return super.update(tx, configuration);
   }
 
   public OidcConfiguration get() {

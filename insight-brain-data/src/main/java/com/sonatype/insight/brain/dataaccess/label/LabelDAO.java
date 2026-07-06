@@ -297,7 +297,7 @@ public class LabelDAO
   }
 
   @Override
-  public void update(TransactionContext tx, Label label) {
+  public int update(TransactionContext tx, Label label) {
     // If the label text hasn't changed, don't validate it. This check is for older labels that may have had non-alpha
     // numeric characters.
     Label existingLabel = getById(tx, label.getId());
@@ -308,7 +308,7 @@ public class LabelDAO
     validateLabelDescription(label.getDescription());
     validateLabelColor(label.getColor());
 
-    super.update(tx, label);
+    return super.update(tx, label);
   }
 
   @Override

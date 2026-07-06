@@ -72,9 +72,9 @@ public class RepositoryPolicyViolationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, RepositoryPolicyViolation entity) {
+  public int update(TransactionContext tx, RepositoryPolicyViolation entity) {
     storeConstraints(entity);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {

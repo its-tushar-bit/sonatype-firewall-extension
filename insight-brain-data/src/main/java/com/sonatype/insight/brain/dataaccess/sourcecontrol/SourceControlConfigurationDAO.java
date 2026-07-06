@@ -130,10 +130,10 @@ public class SourceControlConfigurationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, SourceControlConfiguration configuration) {
+  public int update(TransactionContext tx, SourceControlConfiguration configuration) {
     validate(configuration);
     configuration.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, configuration);
+    return super.update(tx, configuration);
   }
 
   public void delete() {

@@ -41,15 +41,15 @@ public class ProductLicenseDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final ProductLicense productLicense) {
+  public int update(final TransactionContext tx, final ProductLicense productLicense) {
     productLicense.setId(SINGLETON_ENTITY_ID);
     // Use upsert semantics to match the old JPA merge() behavior
     // DatabasePreferences.putSpi() calls update() expecting it to create the row if it doesn't exist
     if (getById(tx, SINGLETON_ENTITY_ID) == null) {
-      insert(tx, productLicense);
+      return insert(tx, productLicense);
     }
     else {
-      super.update(tx, productLicense);
+      return super.update(tx, productLicense);
     }
   }
 

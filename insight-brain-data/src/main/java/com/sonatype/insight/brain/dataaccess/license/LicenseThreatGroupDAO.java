@@ -319,7 +319,7 @@ public class LicenseThreatGroupDAO
   }
 
   @Override
-  public void update(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
+  public int update(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
     validateThreatLevel(licenseThreatGroup.getThreatLevel());
 
     validateName(tx, licenseThreatGroup);
@@ -329,7 +329,7 @@ public class LicenseThreatGroupDAO
       throw new InvalidLicenseThreatGroupException("A license threat group with the same name already exists.");
     }
 
-    super.update(tx, licenseThreatGroup);
+    return super.update(tx, licenseThreatGroup);
   }
 
   private void validateThreatLevel(int threatLevel) {

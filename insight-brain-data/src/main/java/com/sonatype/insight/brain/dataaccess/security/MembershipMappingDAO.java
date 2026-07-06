@@ -285,7 +285,7 @@ public class MembershipMappingDAO
   }
 
   @Override
-  public void update(TransactionContext tx, MembershipMapping entity) {
+  public int update(TransactionContext tx, MembershipMapping entity) {
     throw new UnsupportedOperationException("Use setMembershipMappingsForContextAndRole() instead");
   }
 

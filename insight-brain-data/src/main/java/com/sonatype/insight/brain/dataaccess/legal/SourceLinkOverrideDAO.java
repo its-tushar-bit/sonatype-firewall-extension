@@ -176,12 +176,12 @@ public class SourceLinkOverrideDAO
   }
 
   @Override
-  public void update(TransactionContext tx, SourceLinkOverride entity) {
+  public int update(TransactionContext tx, SourceLinkOverride entity) {
     if (getById(tx, entity.getId()) == null) {
       throw new BadRequestException(
           "Cannot update source link override with id " + entity.getId() + " because it does not exist.");
     }
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   @Override

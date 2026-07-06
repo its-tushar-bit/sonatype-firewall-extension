@@ -119,19 +119,20 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
    * @throws IllegalStateException if the entity is not found
    */
   @Override
-  public void update(TransactionContext tx, T entity) {
+  public int update(TransactionContext tx, T entity) {
     // Call superclass to perform the actual update
-    super.update(tx, entity);
+    int updated = super.update(tx, entity);
 
     // Handle search index changes
     if (shouldAddSearchIndexChange(tx, entity)) {
       insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
     }
+    return updated;
   }
 
   @Override
-  public void updateBatch(TransactionContext tx, List<T> entities) {
-    super.updateBatch(tx, entities);
+  public int updateBatch(TransactionContext tx, List<T> entities) {
+    int updated = super.updateBatch(tx, entities);
 
     // Only add search index changes for the non-H2 path. The H2 fallback in AbstractDAO.updateBatch
     // calls update(tx, entity) per entity, which already handles search index changes via our
@@ -143,6 +144,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
         }
       }
     }
+    return updated;
   }
 
   /**

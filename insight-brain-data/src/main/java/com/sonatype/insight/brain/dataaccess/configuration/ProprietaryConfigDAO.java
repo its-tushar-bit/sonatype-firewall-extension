@@ -94,13 +94,13 @@ public class ProprietaryConfigDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final ProprietaryConfig entity) {
+  public int update(final TransactionContext tx, final ProprietaryConfig entity) {
     validateRegexes(entity.getRegexes());
     ProprietaryConfig existingConfigByOwner = getByOwnerId(tx, entity.getOwnerId());
     if (existingConfigByOwner != null && !existingConfigByOwner.getId().equals(entity.getId())) {
       throw new BadRequestException("A proprietary config already exists for owner id " + entity.getOwnerId());
     }
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   private void validateRegexes(final List<String> regexes) {

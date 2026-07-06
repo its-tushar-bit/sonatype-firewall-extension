@@ -211,10 +211,10 @@ public class SourceControlPullRequestCommentDAO
   }
 
   @Override
-  public void update(TransactionContext tx, SourceControlPullRequestComment entity) {
+  public int update(TransactionContext tx, SourceControlPullRequestComment entity) {
     validateOwnership(tx, entity);
     entity.setUpdateTime(new Date());
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   @Override

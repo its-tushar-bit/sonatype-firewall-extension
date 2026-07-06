@@ -75,7 +75,7 @@ public class AbstractSqlDAOTest
     }
 
     @Override
-    public void update(TransactionContext tx, MigrationTracker entity) {
+    public int update(TransactionContext tx, MigrationTracker entity) {
       throw new UnsupportedOperationException("Not needed for this test");
     }
 

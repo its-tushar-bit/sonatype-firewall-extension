@@ -48,7 +48,7 @@ public class UserTokenDAO
   }
 
   @Override
-  public void update(TransactionContext tx, UserToken userToken) {
+  public int update(TransactionContext tx, UserToken userToken) {
     UserToken stored = getByIdNotNull(tx, userToken.getId());
     if (!userToken.getUsername().equals(stored.getUsername())
         || !userToken.getUserCode().equals(stored.getUserCode())
@@ -58,7 +58,7 @@ public class UserTokenDAO
     {
       throw new UnsupportedOperationException("Cannot update anything except last access time.");
     }
-    super.update(tx, userToken);
+    return super.update(tx, userToken);
   }
 
   /**

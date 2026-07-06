@@ -222,7 +222,7 @@ public class RepositoryDAO
   }
 
   @Override
-  public void update(TransactionContext tx, Repository repository) {
+  public int update(TransactionContext tx, Repository repository) {
     validateNotEmptyPublicId(repository.getPublicId());
 
     Repository existingRepository = getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
@@ -249,7 +249,7 @@ public class RepositoryDAO
       }
     }
 
-    super.update(tx, repository);
+    return super.update(tx, repository);
   }
 
   public void validateUpdate(Repository existingRepository, Repository repository) {

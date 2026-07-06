@@ -164,11 +164,12 @@ public class SourceControlPullRequestDAO
   }
 
   @Override
-  public void update(TransactionContext tx, SourceControlPullRequest entity) {
+  public int update(TransactionContext tx, SourceControlPullRequest entity) {
     validateBranchName(entity.getBranchName());
     validateBranchName(entity.getBaseBranchName());
-    super.update(tx, entity);
+    int updated = super.update(tx, entity);
     log.trace("Updated SourceControlPullRequest: " + entity);
+    return updated;
   }
 
   public SourceControlPullRequest getByRepositoryUrlAndPullRequestId(String repositoryUrl, int pullRequestId) {

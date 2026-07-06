@@ -265,14 +265,14 @@ public class ComponentObligationAttributionDAO
   }
 
   @Override
-  public void update(TransactionContext tx, ComponentObligationAttribution componentObligationAttribution) {
+  public int update(TransactionContext tx, ComponentObligationAttribution componentObligationAttribution) {
     if (getById(tx, componentObligationAttribution.getId()) == null) {
       throw new BadRequestException(
           "Cannot update component obligation attribution with id " + componentObligationAttribution.getId() +
               " because it does not exist.");
     }
     componentObligationAttribution.setLastUpdatedAt(new Date());
-    super.update(tx, componentObligationAttribution);
+    return super.update(tx, componentObligationAttribution);
   }
 
   @Override

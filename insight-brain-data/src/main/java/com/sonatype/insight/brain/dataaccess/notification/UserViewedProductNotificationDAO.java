@@ -45,7 +45,7 @@ public class UserViewedProductNotificationDAO
   }
 
   @Override
-  public void update(TransactionContext tx, UserViewedProductNotification entity) {
+  public int update(TransactionContext tx, UserViewedProductNotification entity) {
     throw new UnsupportedOperationException(
         "The UserViewedProductNotification table does not support update operations");
   }

@@ -96,7 +96,7 @@ public class RolePermissionDAO
   }
 
   @Override
-  public void update(TransactionContext tx, RolePermission entity) {
+  public int update(TransactionContext tx, RolePermission entity) {
     throw new UnsupportedOperationException();
   }
 

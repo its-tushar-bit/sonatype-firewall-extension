@@ -70,10 +70,10 @@ public class CrowdConfigurationDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final CrowdConfiguration entity) {
+  public int update(final TransactionContext tx, final CrowdConfiguration entity) {
     entity.setId(SINGLETON_ENTITY_ID);
     validate(entity);
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   public void validate(final CrowdConfiguration crowdConfiguration) {

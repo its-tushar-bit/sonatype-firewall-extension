@@ -53,12 +53,12 @@ public class CallFlowAnalysisConfigDAO
   }
 
   @Override
-  public void update(final TransactionContext tx, final CallFlowAnalysisConfig entity) {
+  public int update(final TransactionContext tx, final CallFlowAnalysisConfig entity) {
     CallFlowAnalysisConfig existingConfigByOwner = getByOwnerId(tx, entity.getOwnerId());
     if (existingConfigByOwner != null && !existingConfigByOwner.getId().equals(entity.getId())) {
       throw new BadRequestException("A call flow analysis config already exists for owner id " + entity.getOwnerId());
     }
-    super.update(tx, entity);
+    return super.update(tx, entity);
   }
 
   @Override

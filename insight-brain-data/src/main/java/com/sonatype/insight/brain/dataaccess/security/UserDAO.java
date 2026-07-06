@@ -212,7 +212,7 @@ public class UserDAO
   }
 
   @Override
-  public void update(TransactionContext tx, User user) {
+  public int update(TransactionContext tx, User user) {
     validate(user);
 
     User existingUser = getByUsername(tx, user.getUsername());
@@ -220,7 +220,7 @@ public class UserDAO
       throw new InvalidNameException(user.getUsername() + " is already used as a username.");
     }
 
-    super.update(tx, user);
+    return super.update(tx, user);
   }
 
   @Override

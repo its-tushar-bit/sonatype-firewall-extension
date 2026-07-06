@@ -167,7 +167,11 @@ const RequestWaiversPage = () => {
   } = extractViolationDetails(violationDetails);
 
   const backButtonProps = {
-    violationId,
+    // On the requestWaiverUpdate route the page is keyed by policyWaiverRequestId and the URL has no
+    // violationId, so fall back to the loaded waiver request's policyViolationId. Otherwise the
+    // "Back to Violation Details" link points at the violation page with no id, which can't look up the
+    // violation ("...does not have a valid database identifier") (CLM-41118).
+    violationId: violationId || waiverRequestDetails?.policyViolationId,
     prevStateName: name,
     prevParams,
     isStandaloneDeveloper,

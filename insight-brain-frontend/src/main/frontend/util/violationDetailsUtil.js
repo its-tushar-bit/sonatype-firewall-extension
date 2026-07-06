@@ -23,7 +23,10 @@ export const extractViolationDetails = (violationDetails) => {
     violationVulnerabilityId,
   } = violationDetails;
 
-  const { constraintName, reasons } = constraintViolations[0],
+  // A waiver can outlive the violation data it was requested against: if the underlying CVE is later
+  // reclassified, the violation still resolves by id but with an empty (or missing) constraintViolations
+  // array. Guard the access so the waiver pages render instead of crashing (CLM-41118).
+  const { constraintName, reasons = [] } = constraintViolations?.[0] ?? {},
     vulnerabilityId = violationVulnerabilityId || path([0, 'reference', 'value'], reasons),
     threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
     componentName = derivedComponentName || getComponentName(violationDetails),

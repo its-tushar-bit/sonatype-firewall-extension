@@ -14,6 +14,7 @@ import {
   getPermissionContextTestUrl,
   getCreatePolicyWaiverRequestUrl,
   getOwnerContextHierarchyUrl,
+  getViewOrUpdatePolicyWaiverRequestUrl,
 } from 'MainRoot/util/CLMLocation';
 import { clone } from 'ramda';
 import { initialState } from 'MainRoot/waivers/requestWaiverSlice';
@@ -189,6 +190,35 @@ describe('RequestWaiverPage', function () {
       render(<RequestWaiverPage />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
+  // CLM-41118 (symptom #3): on the requestWaiverUpdate route the page is keyed by policyWaiverRequestId and
+  // there is no violationId in the URL. The "Back to Violation Details" link must therefore use the loaded
+  // waiver request's policyViolationId. Previously it used the empty route violationId, so the link pointed at
+  // the violation page with no id, which renders "The policy violation requested does not have a valid database
+  // identifier" instead of the violation.
+  describe('in update mode (no violationId in the route)', () => {
+    const policyWaiverRequestId = 'someWaiverRequestId';
+
+    const updateModeState = () => {
+      const preloadedState = clone(defaultPreloadedState);
+      preloadedState.router.currentParams = { ownerType, ownerId, policyWaiverRequestId };
+      preloadedState.router.prevState = { name: 'sidebarView.violation' };
+      return preloadedState;
+    };
+
+    beforeEach(() => {
+      mock
+        .onGet(getViewOrUpdatePolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId))
+        .reply(200, { policyViolationId: violationId, status: 'requested' });
+    });
+
+    it('builds the "Back to Violation Details" link from the waiver request policyViolationId', async () => {
+      renderComponent(updateModeState());
+
+      const backLink = await screen.findByRole('link', { name: /Back to Violation Details/ });
+      await waitFor(() => expect(backLink).toHaveAttribute('href', `#/violation/${violationId}`));
+    });
+  });
+
   describe('when neither policyWaiverRequestId or violationId is provided', () => {
     it('renders a LoadWrapper with an error message', async () => {
       const preloadedState = clone(defaultPreloadedState);
@@ -244,6 +274,21 @@ describe('RequestWaiverPage', function () {
       expect(errorAlert).toBeVisible();
       expect(errorAlert).toHaveTextContent('add waiver data failed');
     });
+  });
+
+  // CLM-41118: a waiver was requested against a CVE that the component's data no longer reports, so the
+  // violation resolves but with an empty constraintViolations array. The page must not crash.
+  it('renders without crashing when the violation has no constraint violations', async () => {
+    const preloadedState = clone(defaultPreloadedState);
+    preloadedState.violation.violationDetails = { ...violationDetails, constraintViolations: [] };
+    mock.onGet(fetchCrossStageViolation(violationId)).reply(200, preloadedState.violation.violationDetails);
+
+    renderComponent(preloadedState);
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).not.toBeInTheDocument());
+
+    // Previously the whole page crashed (TypeError in render); the requester must still see the form.
+    expect(screen.getByText('Submit')).toBeVisible();
   });
 
   it('renders the list of fields to show', async () => {

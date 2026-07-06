@@ -48,5 +48,40 @@ describe('violationDetailsUtil', function () {
         vulnerabilityId: 'vulnerabilityId',
       });
     });
+
+    it('returns defaults without throwing when constraintViolations is empty (e.g. CVE reclassified and removed)', function () {
+      const violationDetails = {
+        componentIdentifier: { format: 'maven', coordinates: null },
+        constraintViolations: [],
+        policyName: 'policyName',
+        policyViolationId: 'policyViolationId',
+        threatLevel: 10,
+      };
+
+      expect(() => extractViolationDetails(violationDetails)).not.toThrow();
+      expect(extractViolationDetails(violationDetails)).toEqual(
+        expect.objectContaining({
+          constraintName: undefined,
+          reasons: [],
+          vulnerabilityId: undefined,
+          policyName: 'policyName',
+          policyViolationId: 'policyViolationId',
+        })
+      );
+    });
+
+    it('returns defaults without throwing when constraintViolations is missing entirely', function () {
+      const violationDetails = {
+        componentIdentifier: { format: 'maven', coordinates: null },
+        policyName: 'policyName',
+        policyViolationId: 'policyViolationId',
+        threatLevel: 10,
+      };
+
+      expect(() => extractViolationDetails(violationDetails)).not.toThrow();
+      expect(extractViolationDetails(violationDetails)).toEqual(
+        expect.objectContaining({ constraintName: undefined, reasons: [] })
+      );
+    });
   });
 });

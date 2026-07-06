@@ -376,6 +376,25 @@ describe('RequestWaiverReviewPage', function () {
     });
   });
 
+  // CLM-41118: when the underlying CVE data changes after a waiver is requested, the violation can
+  // still resolve by id but with an empty constraintViolations array. The page must not crash.
+  it('renders without crashing when the violation has no constraint violations', async () => {
+    const preloadedState = clone(defaultPreloadedState);
+    preloadedState.violation.violationDetails = {
+      ...preloadedState.violation.violationDetails,
+      constraintViolations: [],
+    };
+    mock.onGet(fetchCrossStageViolation(violationId)).reply(200, preloadedState.violation.violationDetails);
+
+    renderComponent(preloadedState);
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).not.toBeInTheDocument());
+
+    // The whole page was previously unresponsive; the approver must still be able to Cancel/Approve.
+    expect(screen.getByRole('button', { name: /Cancel/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Approve/ })).toBeVisible();
+  });
+
   it('renders in read-only mode when the waiver request is already approved', async () => {
     const preloadedState = clone(defaultPreloadedState);
     preloadedState.requestWaiverDetails.waiverRequestDetails.status = waiverRequestStatus.APPROVED;

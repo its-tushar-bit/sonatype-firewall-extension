@@ -39,9 +39,15 @@ public class ApiAuditLogsResourceTest
 {
   private Path logDir;
 
+  private String originalSonatypeWork;
+
+  private String originalAuditLogFilename;
+
   @Before
   public void before() throws IOException {
     InsightConfig insightConfig = lookup(InsightConfig.class);
+    originalSonatypeWork = insightConfig.getSonatypeWork().getAbsolutePath();
+    originalAuditLogFilename = insightConfig.getAuditLogFilename();
     insightConfig.setSonatypeWork(tempDir.getRoot().getAbsolutePath());
     logDir = tempDir.getRoot().toPath().resolve("logs");
     Files.createDirectories(logDir);
@@ -51,6 +57,9 @@ public class ApiAuditLogsResourceTest
   @After
   public void after() throws IOException {
     deleteAuditLogs();
+    InsightConfig insightConfig = lookup(InsightConfig.class);
+    insightConfig.setSonatypeWork(originalSonatypeWork);
+    insightConfig.setAuditLogFilename(originalAuditLogFilename);
   }
 
   @Override

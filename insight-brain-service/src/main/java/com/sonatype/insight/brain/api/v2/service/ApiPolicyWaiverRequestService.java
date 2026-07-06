@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.api.v2.dto.containerimagewaiver.ApiContainerIm
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestReviewDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestsApplicableToViolationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -562,35 +563,80 @@ public class ApiPolicyWaiverRequestService
       ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO)
   {
     validatePolicyWaiverReasonId(apiPolicyWaiverRequestReviewDTO.waiverReasonId);
+    validateExpiryTime(apiPolicyWaiverRequestReviewDTO.expiryTime);
 
+    // ownerId is set to REPOSITORY_CONTAINER_ID by addContainerImagePolicyWaiverRequest. Only
+    // PolicyViolation (regular) anchors require the canonical container-image waiver set; a
+    // RepositoryPolicyViolation under this scope uses the single-waiver flow.
+    if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(policyWaiverRequest.getOwnerId())
+        && abstractPolicyViolation instanceof PolicyViolation)
+    {
+      approveContainerImagePolicyWaiverRequest(policyWaiverRequest, abstractPolicyViolation,
+          apiPolicyWaiverRequestReviewDTO);
+    }
+    else {
+      approveSinglePolicyWaiverRequest(owner, policyWaiverRequest, abstractPolicyViolation,
+          apiPolicyWaiverRequestReviewDTO);
+    }
+  }
+
+  private void approveContainerImagePolicyWaiverRequest(
+      PolicyWaiverRequest policyWaiverRequest,
+      AbstractPolicyViolation abstractPolicyViolation,
+      ApiPolicyWaiverRequestReviewDTO reviewDTO)
+  {
+    // The anchor violation lives under the container-image application (set by
+    // addContainerImagePolicyWaiverRequest), so its ownerId identifies the image to waive.
+    String containerImageApplicationId = abstractPolicyViolation.getOwnerId();
+
+    ApiWaiverOptionsDTO options = new ApiWaiverOptionsDTO(
+        reviewDTO.comment,
+        EXACT_COMPONENT, // helper overrides per pass
+        reviewDTO.expiryTime,
+        reviewDTO.waiverReasonId,
+        false);
+
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      tx.begin();
+      PolicyWaiver containerLevelWaiver =
+          apiPolicyWaiverService.applyContainerImageWaivers(containerImageApplicationId, options, tx);
+
+      policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
+      UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+      policyWaiverRequest.setReviewerId(userPrincipal.getUsername());
+      policyWaiverRequest.setReviewerName(userPrincipal.getDisplayName());
+      policyWaiverRequest.setReviewTime(new Date());
+      policyWaiverRequest.setPolicyWaiverId(containerLevelWaiver.getId());
+      policyWaiverRequestDAO.update(tx, policyWaiverRequest);
+      tx.commit();
+    }
+    // Per-waiver audit + telemetry already emitted from inside createPolicyWaiversInternal.
+    // The request-level audit (auditPolicyWaiverRequest) runs after the approve/reject switch
+    // in reviewPolicyWaiverRequest — covers both approval paths uniformly.
+  }
+
+  private void approveSinglePolicyWaiverRequest(
+      Owner owner,
+      PolicyWaiverRequest policyWaiverRequest,
+      AbstractPolicyViolation abstractPolicyViolation,
+      ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO)
+  {
     ComponentMatcherStrategyForWaiver matcherStrategy =
         apiPolicyWaiverRequestReviewDTO.matcherStrategy != null
             ? apiPolicyWaiverRequestReviewDTO.matcherStrategy
             : EXACT_COMPONENT;
 
-    validateExpiryTime(apiPolicyWaiverRequestReviewDTO.expiryTime);
-
     validateExpireWhenRemediationAvailable(apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable,
         matcherStrategy);
 
-    // Determine container image flags from the violation's component format
-    boolean isDockerComponent = abstractPolicyViolation.getComponentIdentifier() != null
-        && "docker".equalsIgnoreCase(abstractPolicyViolation.getComponentIdentifier().getFormat());
-
-    // Persist the policy waiver and the policy waiver request
     PolicyWaiver policyWaiver;
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
-      // Create the policy waiver
       policyWaiver = apiPolicyWaiverService.savePolicyWaiver(tx, owner.getId(), abstractPolicyViolation,
           apiPolicyWaiverRequestReviewDTO.comment, matcherStrategy, apiPolicyWaiverRequestReviewDTO.expiryTime,
           apiPolicyWaiverRequestReviewDTO.waiverReasonId,
-          apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable,
-          isDockerComponent, // isForContainerImageComponent
-          isDockerComponent // isForContainerImage
-      );
+          apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable);
 
-      // Update the policy waiver request
       policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
       UserPrincipal userPrincipal = currentUser.getUserPrincipal();
       policyWaiverRequest.setReviewerId(userPrincipal.getUsername());
@@ -601,14 +647,11 @@ public class ApiPolicyWaiverRequestService
       tx.commit();
     }
 
-    // Audit and send telemetry for the policy waiver.
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, true)) {
       AuditData.get().setOwner(owner);
       apiPolicyWaiverService.auditAndSendTelemetry(owner.getType(), owner.getId(), policyWaiver,
           abstractPolicyViolation);
     }
-
-    auditPolicyWaiverRequest(policyWaiverRequest);
   }
 
   private void rejectPolicyWaiverRequest(

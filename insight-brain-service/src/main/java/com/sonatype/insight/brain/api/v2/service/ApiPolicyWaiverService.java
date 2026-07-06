@@ -897,7 +897,7 @@ public class ApiPolicyWaiverService
     }
   }
 
-  private void createPolicyWaiversInternal(
+  private List<PolicyWaiver> createPolicyWaiversInternal(
       Owner owner,
       ApiWaiverOptionsDTO waiverDTO,
       List<PolicyViolation> policyViolations,
@@ -908,6 +908,7 @@ public class ApiPolicyWaiverService
     waiverDTO.matcherStrategy = waiverDTO.matcherStrategy != null ? waiverDTO.matcherStrategy : EXACT_COMPONENT;
     validateExistingPolicyWaiverReason(waiverDTO.waiverReasonId);
 
+    List<PolicyWaiver> created = new ArrayList<>();
     for (PolicyViolation policyViolation : policyViolations) {
       try {
         PolicyWaiver policyWaiver = savePolicyWaiverInternal(
@@ -921,6 +922,7 @@ public class ApiPolicyWaiverService
             waiverDTO.expireWhenRemediationAvailable,
             isForContainerImageComponent,
             isForContainerImage);
+        created.add(policyWaiver);
         policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(
             policyWaiver, owner.getType(), policyViolation);
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
@@ -928,12 +930,22 @@ public class ApiPolicyWaiverService
         }
       }
       catch (BadRequestException e) {
-        log.warn("Unable to add waiver for PolicyViolation ID {}", policyViolation.getId(), e);
+        // Failure on the image-level pass breaks the container-image contract — the helper will
+        // throw InternalServerException to roll back the transaction. Log at ERROR there.
+        // Other passes (per-component container-image, transitive-violation callers) treat a
+        // duplicate as a benign skip and log at WARN.
+        if (isForContainerImage) {
+          log.error("Unable to add waiver for PolicyViolation ID {}", policyViolation.getId(), e);
+        }
+        else {
+          log.warn("Unable to add waiver for PolicyViolation ID {}", policyViolation.getId(), e);
+        }
       }
     }
 
     AuditData.get().commitSubEvents();
     sendTelemetry(owner.getType(), owner.getPublicId());
+    return created;
   }
 
   private void createBulkWaiversInternal(
@@ -1275,6 +1287,62 @@ public class ApiPolicyWaiverService
         policyWaiver.getComponentMatchStrategy());
   }
 
+  /**
+   * Creates the canonical container-image waiver set: one EXACT_COMPONENT waiver per active
+   * proxy/fail violation in the image (with isForContainerImageComponent=true), plus a single
+   * ALL_COMPONENTS waiver at the image level (with isForContainerImage=true). Both kinds are
+   * required so {@link PolicyWaiverDAO#getAllForContainerImageByOwnerId(String)} returns the
+   * set and the matcher can re-apply it during re-evaluation.
+   *
+   * <p>
+   * Audits and telemetry for each individual waiver are emitted inside
+   * {@link #createPolicyWaiversInternal}. The caller owns the transaction so additional state
+   * changes (e.g. updating the originating {@code PolicyWaiverRequest}) can be bundled atomically.
+   *
+   * <p>
+   * The passed {@code waiverOptions} is mutated during execution: {@code matcherStrategy} ends up
+   * as {@code ALL_COMPONENTS} and {@code expireWhenRemediationAvailable} as {@code false}. Pass a
+   * fresh DTO; do not reuse it after this call.
+   *
+   * @return the image-level ({@code ALL_COMPONENTS}, {@code isForContainerImage=true}) waiver, so the
+   *         caller can link it from a {@code PolicyWaiverRequest}.
+   */
+  PolicyWaiver applyContainerImageWaivers(
+      String containerImageApplicationId,
+      ApiWaiverOptionsDTO waiverOptions,
+      TransactionContext tx)
+  {
+    validateContainerImageId(containerImageApplicationId);
+
+    Application application = applicationDAO.getById(containerImageApplicationId);
+    List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(
+        application.getId(), Stage.ID_PROXY, Action.ID_FAIL);
+
+    if (policyViolations.isEmpty()) {
+      throw new NotFoundException(
+          "No applicable policy violations found to waive for container image with the given ID");
+    }
+
+    policyViolationDAO.loadConstraintFacts(policyViolations);
+
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.expireWhenRemediationAvailable = false;
+    createPolicyWaiversInternal(application, waiverOptions, policyViolations, true, false, tx);
+
+    waiverOptions.matcherStrategy = ALL_COMPONENTS;
+    List<PolicyWaiver> containerLevel = createPolicyWaiversInternal(application, waiverOptions,
+        Collections.singletonList(policyViolations.get(0)), false, true, tx);
+
+    if (containerLevel.isEmpty()) {
+      // savePolicyWaiverInternal threw BadRequestException for the ALL_COMPONENTS pass — surfaced as
+      // a log warning inside createPolicyWaiversInternal but swallowed there. The container-image
+      // contract requires the image-level waiver; fail loud so the caller's transaction rolls back.
+      throw new InternalServerException(
+          "Failed to create container-image-level waiver for application " + application.getId());
+    }
+    return containerLevel.get(0);
+  }
+
   public void addContainerImageWaiver(
       String containerImageId,
       ApiContainerImageWaiverDTO waiverDTO)
@@ -1288,8 +1356,6 @@ public class ApiPolicyWaiverService
       @AuthzContext(Key.APPLICATION_ID) String internalOwnerId,
       ApiContainerImageWaiverDTO waiverDTO)
   {
-    validateContainerImageId(internalOwnerId);
-
     Date expiryTime = waiverDTO == null ? null : waiverDTO.expiryTime;
     String waiverReasonId = waiverDTO == null ? null : waiverDTO.waiverReasonId;
     String comment = waiverDTO == null ? null : waiverDTO.comment;
@@ -1297,30 +1363,12 @@ public class ApiPolicyWaiverService
     validateExpiryTime(expiryTime);
     validateExistingPolicyWaiverReason(waiverReasonId);
 
-    Application application = applicationDAO.getById(internalOwnerId);
-    List<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(application.getId(), Stage.ID_PROXY,
-            Action.ID_FAIL);
-
-    if (policyViolations.isEmpty()) {
-      throw new NotFoundException(
-          "No applicable policy violations found to waive for container image with the given ID");
-    }
-
-    ApiWaiverOptionsDTO apiWaiverOptionsDTO =
+    ApiWaiverOptionsDTO options =
         new ApiWaiverOptionsDTO(comment, EXACT_COMPONENT, expiryTime, waiverReasonId, false);
-
-    policyViolationDAO.loadConstraintFacts(policyViolations);
 
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
-      // Create waivers for all policy violations of all components in the container image
-      createPolicyWaiversInternal(application, apiWaiverOptionsDTO, policyViolations, true, false, tx);
-      // Create a policy waiver for the container image as a whole
-      apiWaiverOptionsDTO.matcherStrategy = ALL_COMPONENTS;
-      createPolicyWaiversInternal(application, apiWaiverOptionsDTO, Collections.singletonList(policyViolations.get(0)),
-          false, true, tx);
-
+      applyContainerImageWaivers(internalOwnerId, options, tx);
       tx.commit();
     }
   }
@@ -1402,7 +1450,13 @@ public class ApiPolicyWaiverService
 
   private void validateContainerImageId(String applicationId) {
     Application application = applicationDAO.getById(applicationId);
+    if (application == null) {
+      throw new NotFoundException("No container image was found with the given ID");
+    }
     Organization organization = organizationDAO.getById(application.getOrganizationId());
+    if (organization == null) {
+      throw new NotFoundException("No container image was found with the given ID");
+    }
 
     if (StringUtils.isAllBlank(organization.getRelatedRepositoryManagerId(), organization.getRelatedRepositoryId())) {
       throw new NotFoundException("No container image was found with the given ID");

@@ -19,15 +19,18 @@ import static org.mockito.Mockito.*;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestReviewDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestsApplicableToViolationDTO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -42,9 +45,12 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -66,6 +72,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
@@ -97,6 +104,12 @@ public class ApiPolicyWaiverRequestServiceTest
 
   @Inject
   private ApiPolicyWaiverRequestService apiPolicyWaiverRequestService;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   private Policy policy;
 
@@ -1731,6 +1744,136 @@ public class ApiPolicyWaiverRequestServiceTest
     }
   }
 
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_ContainerImage_CreatesBulkWaivers() {
+    Application containerImageApp = newContainerImageApplication();
+    Policy containerPolicy = tempEntity.newPolicy(containerImageApp.getId());
+    PolicyEvaluation proxyEvaluation =
+        tempEntity.newPolicyEvaluation(containerImageApp.getId(), ProxyStageType.ID, "scanIdContainer");
+
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(proxyEvaluation, containerPolicy, 5,
+        PolicyThreatCategory.SECURITY, "g1", "a1", "v1", "hashContainer1", FailActionType.ID);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(proxyEvaluation, containerPolicy, 7,
+        PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "hashContainer2", FailActionType.ID);
+
+    PolicyWaiverRequest containerRequest = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequest().setOwnerId(REPOSITORY_CONTAINER_ID)
+            .setPolicyId(containerPolicy.getId())
+            .setPolicyViolationId(violation1.getId())
+            .setHash(violation1.getHash())
+            .setConstraintFacts(violation1.getConstraintFacts())
+            .setComponentMatchStrategy(ALL_COMPONENTS)
+            .setStatus(REQUESTED));
+
+    Date expiryTime = DateUtils.addDays(new Date(), 7);
+    PolicyWaiverReason reason = policyWaiverReasonDAO.getAll().get(0);
+
+    // Pass expireWhenRemediationAvailable=true to exercise the container-image branch's
+    // override. The container-image flow forces this flag to false because the image-level
+    // (ALL_COMPONENTS) waiver cannot carry it (validateExpireWhenRemediationAvailable rejects
+    // ALL_COMPONENTS + true), and letting per-component waivers expire piecemeal while the
+    // image-level summary stays would desynchronize the matcher.
+    apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.REPOSITORY_CONTAINER,
+        REPOSITORY_CONTAINER_ID, containerRequest.getId(),
+        new ApiPolicyWaiverRequestReviewDTO("approval comment", ALL_COMPONENTS, expiryTime, reason.getId(),
+            /* expireWhenRemediationAvailable= */true, APPROVED.name()));
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(containerImageApp.getId());
+    assertThat(waivers).hasSize(3);
+    // Whole set: expireWhenRemediationAvailable=true from the review DTO must be forced to
+    // false on every persisted waiver (override-from-review check, covers all 3 rows).
+    assertThat(waivers).allSatisfy(w -> assertThat(w.isExpireWhenRemediationAvailable()).isFalse());
+
+    List<PolicyWaiver> perComponentWaivers = waivers.stream()
+        .filter(PolicyWaiver::isForContainerImageComponent)
+        .collect(Collectors.toList());
+    assertThat(perComponentWaivers).hasSize(2);
+    assertThat(perComponentWaivers).allSatisfy(w -> {
+      assertThat(w.isForContainerImageComponent()).isTrue();
+      assertThat(w.isForContainerImage()).isFalse();
+      assertThat(w.getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+      assertThat(w.getComment()).isEqualTo("approval comment");
+      assertThat(w.getExpiryTime()).isEqualTo(expiryTime);
+      assertThat(w.getWaiverReasonId()).isEqualTo(reason.getId());
+    });
+    assertThat(perComponentWaivers).extracting(PolicyWaiver::getHash)
+        .containsExactlyInAnyOrder(violation1.getHash(), violation2.getHash());
+
+    PolicyWaiver containerLevelWaiver = waivers.stream()
+        .filter(PolicyWaiver::isForContainerImage)
+        .findFirst()
+        .orElseThrow();
+    assertThat(containerLevelWaiver.isForContainerImage()).isTrue();
+    assertThat(containerLevelWaiver.isForContainerImageComponent()).isFalse();
+    assertThat(containerLevelWaiver.getComponentMatchStrategy()).isEqualTo(ALL_COMPONENTS);
+    assertThat(containerLevelWaiver.getHash()).isNull();
+    assertThat(containerLevelWaiver.getComment()).isEqualTo("approval comment");
+
+    PolicyWaiverRequest reviewedRequest = policyWaiverRequestDAO.getById(containerRequest.getId());
+    assertThat(reviewedRequest.getStatus()).isEqualTo(PolicyWaiverRequestStatus.APPROVED);
+    assertThat(reviewedRequest.getReviewerId()).isNotBlank();
+    assertThat(reviewedRequest.getReviewTime()).isNotNull();
+    assertThat(reviewedRequest.getPolicyWaiverId()).isEqualTo(containerLevelWaiver.getId());
+
+    assertThat(policyWaiverDAO.getAllForContainerImageByOwnerId(containerImageApp.getId()))
+        .extracting(PolicyWaiver::getId)
+        .containsExactlyInAnyOrderElementsOf(
+            waivers.stream().map(PolicyWaiver::getId).collect(Collectors.toList()));
+  }
+
+  /**
+   * The container-image waiver shape is structural, not user-configurable: per-component waivers
+   * MUST be EXACT_COMPONENT and the image-level waiver MUST be ALL_COMPONENTS, regardless of what
+   * the reviewer submitted. Honoring an arbitrary strategy would either break the matcher (no
+   * image-level row) or change the semantic (ALL_VERSIONS waivers escape the image scope). This
+   * test locks in the override so a future change cannot silently start honoring the review DTO.
+   */
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_ContainerImage_IgnoresReviewMatcherStrategy() {
+    for (ComponentMatcherStrategyForWaiver requested : new ComponentMatcherStrategyForWaiver[]{
+      EXACT_COMPONENT, ALL_VERSIONS, ALL_COMPONENTS})
+    {
+      Application containerImageApp = newContainerImageApplication();
+      Policy containerPolicy = tempEntity.newPolicy(containerImageApp.getId());
+      PolicyEvaluation proxyEvaluation = tempEntity.newPolicyEvaluation(containerImageApp.getId(),
+          ProxyStageType.ID, "scanIdContainerMatcher-" + requested);
+      PolicyViolation violation = tempEntity.newPolicyViolation(proxyEvaluation, containerPolicy, 5,
+          PolicyThreatCategory.SECURITY, "gmA", "amA", "vmA", "hM" + requested.ordinal(), FailActionType.ID);
+
+      PolicyWaiverRequest containerRequest = tempEntity.newPolicyWaiverRequest(
+          new PolicyWaiverRequest().setOwnerId(REPOSITORY_CONTAINER_ID)
+              .setPolicyId(containerPolicy.getId())
+              .setPolicyViolationId(violation.getId())
+              .setHash(violation.getHash())
+              .setConstraintFacts(violation.getConstraintFacts())
+              .setComponentMatchStrategy(ALL_COMPONENTS)
+              .setStatus(REQUESTED));
+
+      apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.REPOSITORY_CONTAINER,
+          REPOSITORY_CONTAINER_ID, containerRequest.getId(),
+          new ApiPolicyWaiverRequestReviewDTO("comment", requested, null, null, false, APPROVED.name()));
+
+      List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(containerImageApp.getId());
+      assertThat(waivers).as("requested strategy %s", requested).hasSize(2);
+
+      PolicyWaiver perComponent = waivers.stream()
+          .filter(PolicyWaiver::isForContainerImageComponent)
+          .findFirst()
+          .orElseThrow();
+      assertThat(perComponent.isForContainerImageComponent()).as("requested strategy %s", requested).isTrue();
+      assertThat(perComponent.isForContainerImage()).isFalse();
+      assertThat(perComponent.getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+
+      PolicyWaiver imageLevel = waivers.stream()
+          .filter(PolicyWaiver::isForContainerImage)
+          .findFirst()
+          .orElseThrow();
+      assertThat(imageLevel.isForContainerImage()).as("requested strategy %s", requested).isTrue();
+      assertThat(imageLevel.isForContainerImageComponent()).isFalse();
+      assertThat(imageLevel.getComponentMatchStrategy()).isEqualTo(ALL_COMPONENTS);
+    }
+  }
+
   @Test(expected = UnauthorizedException.class)
   public void testWithdrawPolicyWaiverRequest_DisableWorkflowFeatureEnabled() {
     // Create a waiver request while the feature is enabled, then disable the kill-switch
@@ -1749,6 +1892,157 @@ public class ApiPolicyWaiverRequestServiceTest
     finally {
       SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.setEnabled(true);
     }
+  }
+
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_ContainerImage_NoActiveViolations_Throws() {
+    Application containerImageApp = newContainerImageApplication();
+    Policy containerPolicy = tempEntity.newPolicy(containerImageApp.getId());
+    // Violation is at BUILD stage with FAIL action — won't match the proxy/fail query the
+    // container-image flow uses.
+    PolicyEvaluation buildEvaluation =
+        tempEntity.newPolicyEvaluation(containerImageApp.getId(), BuildStageType.ID, "scanIdNoActive");
+    PolicyViolation buildViolation = tempEntity.newPolicyViolation(buildEvaluation, containerPolicy, 5,
+        PolicyThreatCategory.SECURITY, "gn", "an", "vn", "hashNoActive", FailActionType.ID);
+
+    PolicyWaiverRequest containerRequest = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequest().setOwnerId(REPOSITORY_CONTAINER_ID)
+            .setPolicyId(containerPolicy.getId())
+            .setPolicyViolationId(buildViolation.getId())
+            .setHash(buildViolation.getHash())
+            .setConstraintFacts(buildViolation.getConstraintFacts())
+            .setComponentMatchStrategy(ALL_COMPONENTS)
+            .setStatus(REQUESTED));
+
+    assertThatThrownBy(() -> apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(
+        OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, containerRequest.getId(),
+        new ApiPolicyWaiverRequestReviewDTO("c", ALL_COMPONENTS, null, null, false, APPROVED.name())))
+            .isInstanceOf(NotFoundException.class);
+
+    PolicyWaiverRequest stillPending = policyWaiverRequestDAO.getById(containerRequest.getId());
+    assertThat(stillPending.getStatus()).isEqualTo(REQUESTED);
+    assertThat(stillPending.getPolicyWaiverId()).isNull();
+    // No partial waiver state should be visible — the failed approval must roll back cleanly.
+    assertThat(policyWaiverDAO.getActiveByOwnerId(containerImageApp.getId())).isEmpty();
+    assertThat(policyWaiverDAO.getAllForContainerImageByOwnerId(containerImageApp.getId())).isEmpty();
+  }
+
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_ContainerImage_NotAContainerImageAnymore_Throws() {
+    // Application's organization has no relatedRepositoryId — fails validateContainerImageId.
+    Organization plainOrg = tempEntity.newOrganization();
+    Application plainApp = tempEntity.newApplication(plainOrg.getId());
+    Policy somePolicy = tempEntity.newPolicy(plainApp.getId());
+    PolicyEvaluation proxyEvaluation =
+        tempEntity.newPolicyEvaluation(plainApp.getId(), ProxyStageType.ID, "scanIdNotContainer");
+    PolicyViolation proxyViolation = tempEntity.newPolicyViolation(proxyEvaluation, somePolicy, 5,
+        PolicyThreatCategory.SECURITY, "gp", "ap", "vp", "hashNotContainer", FailActionType.ID);
+
+    PolicyWaiverRequest brokenRequest = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequest().setOwnerId(REPOSITORY_CONTAINER_ID)
+            .setPolicyId(somePolicy.getId())
+            .setPolicyViolationId(proxyViolation.getId())
+            .setHash(proxyViolation.getHash())
+            .setConstraintFacts(proxyViolation.getConstraintFacts())
+            .setComponentMatchStrategy(ALL_COMPONENTS)
+            .setStatus(REQUESTED));
+
+    assertThatThrownBy(() -> apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(
+        OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, brokenRequest.getId(),
+        new ApiPolicyWaiverRequestReviewDTO("c", ALL_COMPONENTS, null, null, false, APPROVED.name())))
+            .isInstanceOf(NotFoundException.class);
+
+    PolicyWaiverRequest stillPending = policyWaiverRequestDAO.getById(brokenRequest.getId());
+    assertThat(stillPending.getStatus()).isEqualTo(REQUESTED);
+    assertThat(stillPending.getPolicyWaiverId()).isNull();
+    // Validation failure must not leave any partial waivers behind for this application.
+    assertThat(policyWaiverDAO.getActiveByOwnerId(plainApp.getId())).isEmpty();
+  }
+
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_Application_CreatesSingleWaiverWithBothFlagsFalse() {
+    ApiPolicyWaiverRequestDTO requestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("c", EXACT_COMPONENT, null, null, false));
+
+    apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+        requestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestReviewDTO("c", EXACT_COMPONENT, null, null, false, APPROVED.name()));
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(1);
+    PolicyWaiver waiver = waivers.get(0);
+    assertThat(waiver.isForContainerImageComponent()).isFalse();
+    assertThat(waiver.isForContainerImage()).isFalse();
+    assertThat(waiver.getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+
+    PolicyWaiverRequest reviewed = policyWaiverRequestDAO.getById(requestDTO.policyWaiverRequestId);
+    assertThat(reviewed.getPolicyWaiverId()).isEqualTo(waiver.getId());
+    assertThat(reviewed.getStatus()).isEqualTo(PolicyWaiverRequestStatus.APPROVED);
+  }
+
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_Organization_CreatesSingleWaiverWithBothFlagsFalse() {
+    ApiPolicyWaiverRequestDTO requestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("c", EXACT_COMPONENT, null, null, false));
+
+    apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.ORGANIZATION, org.getId(),
+        requestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestReviewDTO("c", EXACT_COMPONENT, null, null, false, APPROVED.name()));
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(org.getId());
+    assertThat(waivers).hasSize(1);
+    PolicyWaiver waiver = waivers.get(0);
+    assertThat(waiver.isForContainerImageComponent()).isFalse();
+    assertThat(waiver.isForContainerImage()).isFalse();
+
+    PolicyWaiverRequest reviewed = policyWaiverRequestDAO.getById(requestDTO.policyWaiverRequestId);
+    assertThat(reviewed.getPolicyWaiverId()).isEqualTo(waiver.getId());
+  }
+
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_Repository_CreatesSingleWaiverWithBothFlagsFalse() {
+    Repository repo = tempEntity.newRepository();
+    RepositoryPolicyViolation repoViolation =
+        tempEntity.newRepositoryPolicyViolation(repo.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiPolicyWaiverRequestDTO requestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.REPOSITORY, repo.getId(), repoViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("c", EXACT_COMPONENT, null, null, false));
+
+    apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.REPOSITORY, repo.getId(),
+        requestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestReviewDTO("c", EXACT_COMPONENT, null, null, false, APPROVED.name()));
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(repo.getId());
+    assertThat(waivers).hasSize(1);
+    PolicyWaiver waiver = waivers.get(0);
+    assertThat(waiver.isForContainerImageComponent()).isFalse();
+    assertThat(waiver.isForContainerImage()).isFalse();
+
+    PolicyWaiverRequest reviewed = policyWaiverRequestDAO.getById(requestDTO.policyWaiverRequestId);
+    assertThat(reviewed.getPolicyWaiverId()).isEqualTo(waiver.getId());
+  }
+
+  /**
+   * Creates an Application wired up like a real container image: its Organization has
+   * a relatedRepositoryId pointing to a docker proxy repository. Mirrors the production
+   * shape that {@link com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService#validateContainerImageId}
+   * checks for.
+   */
+  private Application newContainerImageApplication() {
+    Organization containerOrg = tempEntity.newOrganization();
+    Repository repository = tempEntity.newRepository(
+        tempEntity.newRepositoryManager(),
+        "docker-repo-" + containerOrg.getId(),
+        RepositoryType.proxy,
+        "docker");
+    repository.setRelatedOrganizationId(containerOrg.getId());
+    repositoryDAO.update(repository);
+    containerOrg.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(containerOrg);
+    return tempEntity.newApplication(containerOrg.getId());
   }
 
   @Test

@@ -5,9 +5,16 @@
  */
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Flex, Grid, Text } from '@radix-ui/themes';
+import { Box, Flex, Grid, Heading, Text } from '@radix-ui/themes';
+import { Card, tokens } from '@sonatype/nexus-one-components';
+import { DomainIcons } from 'MainRoot/nosc/icons';
 import { AsyncPageState } from 'MainRoot/nosc/components/AsyncPageState';
 import { usePreviewDashboardFilterGate } from 'MainRoot/nosc/dashboard/tabs/previewDashboardFilterGate';
+import {
+  dashboardApiHref,
+  dashboardEnterpriseReportingHref,
+  dashboardSuccessMetricsHref,
+} from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
 import { MetricCard } from './MetricCard';
 import { METRIC_CARD_DEFINITIONS } from './metricCardRegistry';
 import { selectDashboardMetricsScope } from './dashboardMetricsScope';
@@ -15,27 +22,15 @@ import { useDashboardMetrics } from './useDashboardMetrics';
 import { formatUpdatedAgo } from './freshness';
 import type { DashboardMetricsResponse } from './dashboardMetricsTypes';
 import type { DashboardMetricsStatus } from './useDashboardMetrics';
+import styles from './MetricCard.module.css';
 
 /**
  * Metric-card grid: the Nexus One preview dashboard landing (CLM-40905).
  *
- * Connects the active dashboard filter scope to a single `POST /rest/dashboard/metrics`
- * (via {@link useDashboardMetrics}) and renders the {@link METRIC_CARD_DEFINITIONS}
- * registry as a responsive grid. Every load state is explicit:
- *   - loading   → per-card skeletons (chrome visible immediately)
- *   - not-ready → friendly "metrics are building" panel + retry (409)
- *   - error     → inline error panel + retry when no stale data; otherwise stale cards
- *                 stay visible with a banner (failed refresh does not blank the grid)
- *   - ready     → available cards + a "Updated …" freshness line (zero totals render honestly)
- *
- * Metrics are not requested until the shared filter rail finishes loading (same gate as the
- * classic tab tables) so persisted filters are not preceded by an unscoped round-trip.
- *
- * This is themeless on purpose — the dashboard shell supplies the Radix `<Theme>`
- * and shell offsets, mirroring `DashboardOverviewContent`.
+ * Renders {@link METRIC_CARD_DEFINITIONS} plus a bottom quick-link row. Load states
+ * mirror #16359: filter-gated fetch, stale-data refresh banners, AsyncPageState panels.
  */
 
-// Breakpoint ramp pending UX sign-off (see PR #16359); `md` intentionally omitted for now.
 const GRID_COLUMNS = { initial: '1', sm: '2', lg: '3' } as const;
 
 function GridShell({ children }: { readonly children: React.ReactNode }): JSX.Element {
@@ -43,6 +38,62 @@ function GridShell({ children }: { readonly children: React.ReactNode }): JSX.El
     <Grid columns={GRID_COLUMNS} gap="4" align="stretch" data-testid="preview-dashboard-metrics-grid">
       {children}
     </Grid>
+  );
+}
+
+interface QuickLink {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly getHref: () => string;
+  readonly Icon: React.ComponentType<{ size?: number; 'aria-hidden'?: boolean }>;
+}
+
+const QUICK_LINKS: readonly QuickLink[] = [
+  // Intentionally always visible to match the Martha mockup quick-link row.
+  // LeftNav gates these behind license/feature flags (#16363); follow-up to align
+  // dashboard visibility once product confirms parity requirements.
+  {
+    id: 'success-metrics',
+    title: 'Success Metrics',
+    description: 'Track key performance indicators and improvement trends',
+    getHref: dashboardSuccessMetricsHref,
+    Icon: DomainIcons.SuccessMetrics,
+  },
+  {
+    id: 'enterprise-reporting',
+    title: 'Enterprise Reporting',
+    description: 'Comprehensive analytics and insights across your organization',
+    getHref: dashboardEnterpriseReportingHref,
+    Icon: DomainIcons.EnterpriseReporting,
+  },
+  {
+    id: 'api',
+    title: 'API',
+    description: 'Integrate security intelligence into your development workflow',
+    getHref: dashboardApiHref,
+    Icon: DomainIcons.Api,
+  },
+];
+
+function QuickLinkCard({ link }: { readonly link: QuickLink }): JSX.Element {
+  const { title, description, getHref, Icon } = link;
+  return (
+    <Card asChild className={styles.quickLinkCard}>
+      <a href={getHref()} className={styles.cardLink} data-testid={`dashboard-quicklink-${link.id}`}>
+        <Box p="4">
+          <Flex align="center" gap="3" mb="2">
+            <span className={styles.quickLinkIcon} aria-hidden>
+              <Icon size={tokens.icon.iconButtons} aria-hidden />
+            </span>
+            <Heading {...tokens.typography.cardHeading} as="h3" trim="start">
+              {title}
+            </Heading>
+          </Flex>
+          <Text {...tokens.typography.description}>{description}</Text>
+        </Box>
+      </a>
+    </Card>
   );
 }
 
@@ -58,6 +109,8 @@ function MetricCards({ data }: { readonly data: DashboardMetricsResponse }): JSX
             title={def.title}
             value={view.value}
             subMetrics={view.subMetrics}
+            dualHero={view.dualHero}
+            secondaryStat={view.secondaryStat}
             href={view.href}
             testId={def.testId}
           />
@@ -115,6 +168,16 @@ function RefreshBanner({
   return null;
 }
 
+function QuickLinksRow(): JSX.Element {
+  return (
+    <Grid columns={GRID_COLUMNS} gap="4" align="stretch" data-testid="dashboard-quicklinks">
+      {QUICK_LINKS.map((link) => (
+        <QuickLinkCard key={link.id} link={link} />
+      ))}
+    </Grid>
+  );
+}
+
 function ReadyGrid({
   data,
   status,
@@ -147,18 +210,18 @@ export function MetricCardGrid(): JSX.Element {
   const filterReady = !filterLoading && !needsAcknowledgement;
   const { status, data, retry } = useDashboardMetrics(scope, filterReady);
 
+  let content: React.ReactNode;
+
   if (!filterReady || (status === 'loading' && data == null)) {
-    return (
+    content = (
       <GridShell>
         {METRIC_CARD_DEFINITIONS.filter((def) => def.showWhileLoading).map((def) => (
           <MetricCard key={def.id} title={def.title} loading testId={def.testId} />
         ))}
       </GridShell>
     );
-  }
-
-  if (status === 'not-ready' && data == null) {
-    return (
+  } else if (status === 'not-ready' && data == null) {
+    content = (
       <AsyncPageState
         loading={false}
         error={null}
@@ -171,10 +234,8 @@ export function MetricCardGrid(): JSX.Element {
         onRetry={retry}
       />
     );
-  }
-
-  if (status === 'error' && data == null) {
-    return (
+  } else if (status === 'error' && data == null) {
+    content = (
       <AsyncPageState
         loading={false}
         error="Something went wrong fetching your metrics. The rest of the page is unaffected — you can retry."
@@ -183,14 +244,10 @@ export function MetricCardGrid(): JSX.Element {
         onRetry={retry}
       />
     );
-  }
-
-  if (data != null) {
-    return <ReadyGrid data={data} status={status} onRetry={retry} />;
-  }
-
-  // Defensive: axios should always populate `data` on a 200; kept for unexpected null bodies.
-  return (
+  } else if (data != null) {
+    content = <ReadyGrid data={data} status={status} onRetry={retry} />;
+  } else {
+    content = (
     <AsyncPageState
       loading={false}
       error="Something went wrong fetching your metrics. The rest of the page is unaffected — you can retry."
@@ -198,6 +255,14 @@ export function MetricCardGrid(): JSX.Element {
       errorTitle="Couldn’t load dashboard metrics"
       onRetry={retry}
     />
+    );
+  }
+
+  return (
+    <Flex direction="column" gap="3">
+      {content}
+      <QuickLinksRow />
+    </Flex>
   );
 }
 

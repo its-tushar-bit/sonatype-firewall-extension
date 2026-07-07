@@ -39,5 +39,7 @@ describe('nexusOneClassicEmbedRoutes', () => {
     expect(router.stateRegistry.get('dashboard.overview.violations')?.redirectTo).toBe(
       'nexusOneDashboard.violations',
     );
+    expect(router.stateRegistry.get('nexusOneViolations')?.redirectTo).toBe('nexusOneDashboard.violations');
+    expect(router.stateRegistry.get('nexusOneComponents')?.redirectTo).toBe('nexusOneDashboard.components');
   });
 });

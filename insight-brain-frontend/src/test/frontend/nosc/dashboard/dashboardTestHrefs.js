@@ -5,8 +5,8 @@
  */
 
 /** Expected in-bundle hash hrefs when tests run as the Nexus One SPA. */
-export const DASHBOARD_VIOLATIONS_HREF = '#/dashboard/violations';
-export const DASHBOARD_APPLICATIONS_HREF = '#/dashboard/applications';
+export const DASHBOARD_VIOLATIONS_HREF = '#/violations';
+export const DASHBOARD_APPLICATIONS_HREF = '#/applications';
 
 export function setupNexusOneBundleLocation() {
   window.history.replaceState(null, '', '/assets/nexus-one/index.html');

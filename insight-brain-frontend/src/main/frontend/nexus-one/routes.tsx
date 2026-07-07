@@ -93,6 +93,21 @@ router.stateRegistry.register({
   },
 } as ReactStateDeclaration);
 
+// Interim top-level aliases until native entity-list pages own these paths (CLM-40905).
+router.stateRegistry.register({
+  name: 'nexusOneViolations',
+  url: '/violations',
+  redirectTo: 'nexusOneDashboard.violations',
+  data: { title: 'Nexus One — Violations' },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneComponents',
+  url: '/components',
+  redirectTo: 'nexusOneDashboard.components',
+  data: { title: 'Nexus One — Components' },
+} as ReactStateDeclaration);
+
 router.stateRegistry.register({
   name: 'nexusOneWaiverDetail',
   // `?from` lets a caller (e.g. the Dashboard waivers tab) tell the detail page

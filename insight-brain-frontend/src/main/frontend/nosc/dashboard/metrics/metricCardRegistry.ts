@@ -6,29 +6,28 @@
 import {
   dashboardApplicationsHref,
   dashboardComponentsHref,
+  dashboardLegalHref,
+  dashboardOrgsAndPoliciesHref,
   dashboardViolationsHref,
+  dashboardVulnerabilitiesHref,
   dashboardWaiversHref,
 } from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
 import type { DashboardMetricsResponse } from './dashboardMetricsTypes';
-import type { SubMetric } from './MetricCard';
+import type { DualHeroStat, SecondaryStat, SubMetric } from './MetricCard';
 
 /**
  * Card registry for the preview dashboard metric grid (CLM-40905).
  *
+ * Ordered alphabetically by card title to match the Nexus One prototype.
  * The grid renders whatever this ordered list declares — adding a future card
- * (e.g. Components when the backend ships it) is registration-only: append a
- * definition here and the grid + hook need no changes. Each definition decides:
- *   - `isAvailable`: whether the metric is present in the response (so an absent
- *     `components` block is skipped rather than crashing the grid).
- *   - `showWhileLoading`: whether to reserve a skeleton card before the response
- *     (true for the always-present core metrics; false for optional ones whose
- *     presence is unknown until data arrives).
- *   - `select`: map the response to the card's value / breakdown / click-through.
+ * is registration-only: append a definition here and the grid + hook need no changes.
  */
 
 export interface MetricCardSelection {
-  readonly value: number;
+  readonly value?: number;
   readonly subMetrics?: readonly SubMetric[];
+  readonly dualHero?: readonly [DualHeroStat, DualHeroStat];
+  readonly secondaryStat?: SecondaryStat;
   readonly href?: string;
 }
 
@@ -48,14 +47,77 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-applications',
     showWhileLoading: true,
     isAvailable: (data) => data.applications != null,
+    select: (data) => {
+      const stages = data.applications?.breakdown?.stages;
+      return {
+        value: data.applications?.total ?? 0,
+        secondaryStat:
+          stages != null ? { value: stages, label: 'Stages' } : undefined,
+        href: dashboardApplicationsHref(),
+      };
+    },
+  },
+  {
+    id: 'legal',
+    title: 'Legal Obligations',
+    testId: 'metric-card-legal',
+    showWhileLoading: false,
+    isAvailable: (data) => data.legal != null,
+    select: (data) => {
+      const b = data.legal?.breakdown;
+      const dualHero: readonly [DualHeroStat, DualHeroStat] | undefined = b
+        ? [
+            {
+              value: b.applications,
+              label: b.applications === 1 ? 'Application' : 'Applications',
+            },
+            { value: b.components, label: b.components === 1 ? 'Component' : 'Components' },
+          ]
+        : undefined;
+      return {
+        // Dual-hero only when the countDistinct breakdown is present; otherwise
+        // fall back to the headline total so the card never renders a bare "0".
+        value: dualHero ? undefined : data.legal?.total ?? 0,
+        dualHero,
+        href: dashboardLegalHref(),
+      };
+    },
+  },
+  {
+    id: 'orgsAndPolicies',
+    title: 'Orgs and Policies',
+    testId: 'metric-card-orgs-and-policies',
+    showWhileLoading: false,
+    isAvailable: (data) => data.organizations != null && data.policies != null,
     select: (data) => ({
-      value: data.applications?.total ?? 0,
-      href: dashboardApplicationsHref(),
+      dualHero: [
+        { value: data.organizations?.total ?? 0, label: 'Organizations' },
+        { value: data.policies?.total ?? 0, label: 'Policies' },
+      ],
+      href: dashboardOrgsAndPoliciesHref(),
     }),
   },
   {
+    id: 'components',
+    title: 'Scanned Components',
+    testId: 'metric-card-components',
+    showWhileLoading: false,
+    isAvailable: (data) => data.components != null,
+    select: (data) => {
+      const relatedViolations = data.violations?.total;
+      return {
+        value: data.components?.total ?? 0,
+        secondaryStat:
+          relatedViolations != null
+            ? { value: relatedViolations, label: 'Total Policy Violations' }
+            : undefined,
+        href: dashboardComponentsHref(),
+      };
+    },
+  },
+  {
     id: 'violations',
-    title: 'Policy Violations',
+    title: 'Violations',
     testId: 'metric-card-violations',
     showWhileLoading: true,
     isAvailable: (data) => data.violations != null,
@@ -77,6 +139,29 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     },
   },
   {
+    id: 'vulnerabilities',
+    title: 'Vulnerabilities',
+    testId: 'metric-card-vulnerabilities',
+    showWhileLoading: false,
+    isAvailable: (data) => data.vulnerabilities != null,
+    select: (data) => {
+      const b = data.vulnerabilities?.breakdown;
+      const subMetrics: SubMetric[] | undefined = b
+        ? [
+            { label: 'Critical', value: b.critical, tone: 'critical' },
+            { label: 'High', value: b.high, tone: 'severe' },
+            { label: 'Medium', value: b.medium, tone: 'moderate' },
+            { label: 'Low', value: b.low, tone: 'low' },
+          ]
+        : undefined;
+      return {
+        value: data.vulnerabilities?.total ?? 0,
+        subMetrics,
+        href: dashboardVulnerabilitiesHref(),
+      };
+    },
+  },
+  {
     id: 'waivers',
     title: 'Waivers',
     testId: 'metric-card-waivers',
@@ -86,8 +171,8 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
       const b = data.waivers?.breakdown;
       const subMetrics: SubMetric[] | undefined = b
         ? [
-            { label: 'Existing', value: b.existing, tone: 'neutral' },
-            { label: 'Requested', value: b.requested, tone: 'neutral' },
+            { label: 'Existing Waivers', value: b.existing, variant: 'stat' },
+            { label: 'Requested Waivers', value: b.requested, variant: 'stat' },
           ]
         : undefined;
       return {
@@ -96,18 +181,5 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
         href: dashboardWaiversHref(),
       };
     },
-  },
-  {
-    // Optional: the backend may not ship `components` yet. Not reserved during
-    // loading (presence unknown); rendered only once it appears in the response.
-    id: 'components',
-    title: 'Components',
-    testId: 'metric-card-components',
-    showWhileLoading: false,
-    isAvailable: (data) => data.components != null,
-    select: (data) => ({
-      value: data.components?.total ?? 0,
-      href: dashboardComponentsHref(),
-    }),
   },
 ];

@@ -8,8 +8,8 @@
  * Wire types for `POST /rest/dashboard/metrics` (CLM-40905).
  *
  * The endpoint returns one envelope per KPI. Each entry carries a `total` plus an
- * optional `breakdown` whose shape depends on the metric. Metrics not rendered by
- * this grid slice (e.g. organizations, policies) may be present but are ignored here.
+ * optional `breakdown` whose shape depends on the metric. `components` may be absent
+ * entirely (added by a parallel backend PR) — every consumer MUST treat it as optional.
  */
 
 /** Per-severity breakdown for the Violations metric. */
@@ -26,6 +26,30 @@ export interface WaiversBreakdown {
   readonly requested: number;
 }
 
+/** Licensed dashboard stage count for the Applications metric (from StageTypeService). */
+export interface ApplicationsBreakdown {
+  readonly stages: number;
+}
+
+/** Applications-with-obligations vs components-with-obligations for the Legal metric. */
+export interface LegalBreakdown {
+  readonly applications: number;
+  readonly components: number;
+}
+
+/**
+ * Per-severity breakdown for the Vulnerabilities metric (distinct CVE counts).
+ * CVSS bands only (critical / high / medium / low) — no `none` bucket. Cheap-tier API
+ * ships `breakdown: null` today; unscored CVEs would be a backend bucketing decision
+ * when severity aggregation lands.
+ */
+export interface VulnerabilitiesBreakdown {
+  readonly critical: number;
+  readonly high: number;
+  readonly medium: number;
+  readonly low: number;
+}
+
 /** A single KPI entry: a headline `total` and an optional metric-specific breakdown. */
 export interface MetricEntry<TBreakdown = unknown> {
   readonly total: number;
@@ -36,10 +60,16 @@ export interface MetricEntry<TBreakdown = unknown> {
 
 /** Full `POST /rest/dashboard/metrics` 200 response body. */
 export interface DashboardMetricsResponse {
-  readonly applications?: MetricEntry<null>;
+  readonly applications?: MetricEntry<ApplicationsBreakdown>;
   readonly violations?: MetricEntry<ViolationsBreakdown>;
   readonly waivers?: MetricEntry<WaiversBreakdown>;
+  /** Optional — backend may not ship this yet. Render gracefully when absent. */
   readonly components?: MetricEntry<unknown>;
+  /** Index-native cheap-tier totals (CLM-40927). All optional; treat as absent-safe. */
+  readonly organizations?: MetricEntry<null>;
+  readonly policies?: MetricEntry<null>;
+  readonly vulnerabilities?: MetricEntry<VulnerabilitiesBreakdown>;
+  readonly legal?: MetricEntry<LegalBreakdown>;
   /** Epoch millis of the underlying data, or null when the backend can't determine it. */
   readonly lastUpdatedAt: number | null;
 }

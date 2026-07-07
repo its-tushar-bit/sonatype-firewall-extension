@@ -14,13 +14,11 @@ function renderCard(ui: React.ReactElement) {
 }
 
 describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
-  it('renders the title as a level-2 heading and the hero value as text', () => {
+  it('renders the title as a heading and the hero value', () => {
     renderCard(<MetricCard title="Applications" value={1234} testId="metric-card-applications" />);
 
-    const heading = screen.getByRole('heading', { level: 2, name: 'Applications' });
-    expect(heading).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Applications' })).toBeInTheDocument();
     expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('1,234');
-    expect(screen.queryByRole('heading', { name: '1,234' })).not.toBeInTheDocument();
   });
 
   it('renders a zero total honestly (not blank, not a dash)', () => {
@@ -28,10 +26,10 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
     expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('0');
   });
 
-  it('renders sub-metrics as a list with a text label AND value (severity not by color alone)', () => {
+  it('renders sub-metrics with a text label AND value (severity not by color alone)', () => {
     renderCard(
       <MetricCard
-        title="Policy Violations"
+        title="Violations"
         value={7}
         testId="metric-card-violations"
         subMetrics={[
@@ -44,7 +42,10 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
     );
 
     const breakdown = screen.getByTestId('metric-card-violations-breakdown');
+    // Severity breakdown stays a semantic list so screen readers announce it as
+    // a traversable "list of N items" (WCAG; AT-F16 / #16359 a11y contract).
     expect(breakdown.tagName).toBe('UL');
+    expect(within(breakdown).getAllByRole('listitem')).toHaveLength(4);
     expect(within(breakdown).getByText('Critical')).toBeInTheDocument();
     expect(within(breakdown).getByText('Severe')).toBeInTheDocument();
     expect(within(breakdown).getByText('Moderate')).toBeInTheDocument();
@@ -52,23 +53,23 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
     expect(screen.getByTestId('metric-card-violations-sub-critical-value')).toHaveTextContent('1');
   });
 
-  it('renders a hero click-through link with an explicit aria-label (title + total only)', () => {
+  it('renders a whole-tile click-through link whose accessible name includes the title', () => {
     renderCard(
       <MetricCard title="Applications" value={5} href="#/dashboard/applications" testId="metric-card-applications" />,
     );
 
-    const link = screen.getByRole('link', { name: 'Applications, 5 total, open list' });
+    const link = screen.getByRole('link', { name: /Applications/ });
     expect(link).toHaveAttribute('href', '#/dashboard/applications');
   });
 
-  it('is keyboard focusable when interactive', async () => {
+  it('is keyboard focusable with a visible focus target when interactive', async () => {
     const user = userEvent.setup();
     renderCard(
       <MetricCard title="Waivers" value={3} href="#/dashboard/waivers" testId="metric-card-waivers" />,
     );
 
     await user.tab();
-    expect(screen.getByRole('link', { name: 'Waivers, 3 total, open list' })).toHaveFocus();
+    expect(screen.getByRole('link', { name: /Waivers/ })).toHaveFocus();
   });
 
   it('renders a skeleton (no value) while loading', () => {
@@ -76,6 +77,39 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
 
     expect(screen.getByTestId('metric-card-applications-skeleton')).toBeInTheDocument();
     expect(screen.queryByTestId('metric-card-applications-value')).not.toBeInTheDocument();
+    // Chrome (the title) still renders immediately.
     expect(screen.getByRole('heading', { level: 2, name: 'Applications' })).toBeInTheDocument();
+  });
+
+  it('renders a dual-hero layout for Legal and Orgs cards (CLM-40937)', () => {
+    renderCard(
+      <MetricCard
+        title="Legal Obligations"
+        testId="metric-card-legal"
+        dualHero={[
+          { value: 5, label: 'Applications' },
+          { value: 12, label: 'Components' },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByTestId('metric-card-legal-value')).not.toBeInTheDocument();
+    expect(screen.getByTestId('metric-card-legal-dual-applications-value')).toHaveTextContent('5');
+    expect(screen.getByTestId('metric-card-legal-dual-components-value')).toHaveTextContent('12');
+  });
+
+  it('renders a secondary stat row below the hero (Applications stages, Components related violations)', () => {
+    renderCard(
+      <MetricCard
+        title="Applications"
+        value={42}
+        testId="metric-card-applications"
+        secondaryStat={{ value: 5, label: 'Stages' }}
+      />,
+    );
+
+    expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');
+    expect(screen.getByTestId('metric-card-applications-secondary-value')).toHaveTextContent('5');
+    expect(screen.getByText('Stages')).toBeInTheDocument();
   });
 });

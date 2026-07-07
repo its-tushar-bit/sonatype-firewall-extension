@@ -3,10 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* Click-through wrapper for a metric card. Fills the card and inherits color so
- * the whole tile is one large hit target. Focus styling lives here (not inline)
- * so keyboard users get a visible, theme-aware focus ring. */
-.cardLink {
+
+/* Click-through wrapper for a metric card. The whole tile is a bare <a>, so both
+ * the browser default link style AND the legacy `.nx-html a` rule (red, under-
+ * lined) would otherwise paint it and — because Radix typography inherits
+ * currentColor — bleed into the title, hero number and sub-metrics. The doubled
+ * class out-specifies `.nx-html a` (0,1,1) without depending on any ancestor
+ * class, so the tile never looks like a hyperlink in any bundle. Focus styling
+ * lives here (not inline) so keyboard users get a visible, theme-aware ring. */
+.cardLink.cardLink {
   display: block;
   text-decoration: none;
   color: inherit;
@@ -19,20 +24,82 @@
   outline-offset: 2px;
 }
 
-.breakdownList {
+/* Subtle hover lift so the whole tile reads as interactive without being noisy. */
+.cardLink:hover {
+  background-color: var(--gray-a2);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cardLink {
+    transition: background-color 120ms ease;
+  }
+}
+
+/* Sub-metric breakdown laid out as a compact two-column grid (matches the
+ * Nexus One prototype): severity cards become a tidy 2x2 and dual-stat cards
+ * sit side-by-side, which also equalises card heights across a row. */
+.breakdown {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+}
+
+.statRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.statStack {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
+.subMetric {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Value reads first ("106 Critical"), label trails in muted gray — the label
+ * is allowed to truncate so long names never break the grid. */
+.subLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Small severity/sub-metric swatch. Color is a SUPPLEMENT to the always-present
  * text label + value — never the sole signal (WCAG 1.4.1). */
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex: 0 0 auto;
+  align-self: center;
+}
+
+/* Quick-link cards: a left accent bar + tinted icon chip give the bottom row
+ * the same "call to action" weight as the prototype without extra chrome. */
+.quickLinkCard {
+  box-shadow: inset 3px 0 0 0 var(--accent-9);
+}
+
+.quickLinkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-2);
+  background-color: var(--accent-3);
+  color: var(--accent-11);
 }

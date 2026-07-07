@@ -4,79 +4,129 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { ReactNode, useId } from 'react';
-import { Box, Card, Flex, Heading, Text } from '@radix-ui/themes';
+import { Box, Flex, Grid, Heading, Text } from '@radix-ui/themes';
+import { Card, tokens } from '@sonatype/nexus-one-components';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import styles from './MetricCard.module.css';
 
 /**
  * Reusable metric card for the Nexus One preview dashboard grid (CLM-40905).
  *
- * Renders a titled tile with a hero number and an optional set of sub-metrics
- * (e.g. a severity breakdown). Optionally click-throughs to a destination.
- *
- * A11y (WCAG 2.2 AA):
- *   - One `<h2>` title per card; the hero value is styled text, not a heading.
- *   - The title sits outside the link; the link targets the hero number only and
- *     carries an explicit `aria-label` (title + total) so the breakdown list is
- *     not spoken as one run-on string.
- *   - Sub-metrics render as a traversable list beneath the link.
- *   - Sub-metric color is a swatch ALONGSIDE a text label + value — severity is
- *     never signaled by color alone.
- *   - Keyboard focus shows a visible ring (see MetricCard.module.css).
+ * Supports single-hero, dual-hero (Legal, Orgs & Policies), severity breakdown,
+ * and secondary stat rows. A11y: one h2 title per card; hero values are text,
+ * not headings; the link carries an explicit aria-label and sits below the title.
  */
 
 export type SubMetricTone = 'critical' | 'severe' | 'moderate' | 'low' | 'neutral';
+export type SubMetricVariant = 'severity' | 'stat';
 
 export interface SubMetric {
   readonly label: string;
   readonly value: number;
   readonly tone?: SubMetricTone;
+  readonly variant?: SubMetricVariant;
+}
+
+export interface DualHeroStat {
+  readonly value: number;
+  readonly label: string;
+}
+
+export interface SecondaryStat {
+  readonly value: number;
+  readonly label: string;
 }
 
 export interface MetricCardProps {
   readonly title: string;
-  /** Hero number. Omit while loading. */
   readonly value?: number;
   readonly subMetrics?: readonly SubMetric[];
-  /** Destination for the hero click-through. Omit for a non-interactive card. */
+  readonly dualHero?: readonly [DualHeroStat, DualHeroStat];
+  readonly secondaryStat?: SecondaryStat;
   readonly href?: string;
-  /** When true, renders chrome + a skeleton instead of the value. */
   readonly loading?: boolean;
-  /** Stable testid root; sub-elements derive from it (`{testId}-value`, …). */
   readonly testId?: string;
 }
 
 const TONE_TO_COLOR: Record<SubMetricTone, string> = {
-  critical: 'var(--crimson-9)',
-  severe: 'var(--red-9)',
-  moderate: 'var(--amber-9)',
-  low: 'var(--gray-9)',
-  neutral: 'var(--gray-8)',
+  critical: tokens.colors.severity.critical.css,
+  severe: tokens.colors.severity.high.css,
+  moderate: tokens.colors.severity.medium.css,
+  low: tokens.colors.severity.low.css,
+  neutral: tokens.colors.severity.none.css,
 };
 
-function cardLinkLabel(title: string, value: number | undefined): string {
+function slugLabel(label: string): string {
+  return label.toLowerCase().replace(/\s+/g, '-');
+}
+
+function cardLinkLabel(
+  title: string,
+  value: number | undefined,
+  dualHero: readonly [DualHeroStat, DualHeroStat] | undefined,
+): string {
+  if (dualHero?.length === 2) {
+    return `${title}, ${dualHero[0].value.toLocaleString()} ${dualHero[0].label}, ${dualHero[1].value.toLocaleString()} ${dualHero[1].label}, open list`;
+  }
   return `${title}, ${(value ?? 0).toLocaleString()} total, open list`;
 }
 
 function SubMetricRow({ sub, testId }: { readonly sub: SubMetric; readonly testId: string }): JSX.Element {
   return (
-    <Box asChild>
-      <li data-testid={testId}>
-        <Flex align="center" gap="2">
-          <span
-            aria-hidden
-            className={styles.dot}
-            style={{ backgroundColor: TONE_TO_COLOR[sub.tone ?? 'neutral'] }}
-          />
-          <Text size="2" color="gray">
-            {sub.label}
+    <li className={styles.subMetric} data-testid={testId}>
+      <span
+        aria-hidden
+        className={styles.dot}
+        style={{ backgroundColor: TONE_TO_COLOR[sub.tone ?? 'neutral'] }}
+      />
+      <Text {...tokens.typography.label} weight="bold" data-testid={`${testId}-value`}>
+        {sub.value.toLocaleString()}
+      </Text>
+      <Text {...tokens.typography.description} className={styles.subLabel} title={sub.label}>
+        {sub.label}
+      </Text>
+    </li>
+  );
+}
+
+function StatSubMetricRow({ sub, testId }: { readonly sub: SubMetric; readonly testId: string }): JSX.Element {
+  return (
+    <Flex align="baseline" gap="2" className={styles.statRow} data-testid={testId}>
+      <Text size="2" weight="bold" data-testid={`${testId}-value`}>
+        {sub.value.toLocaleString()}
+      </Text>
+      <Text size="2" color="gray">
+        {sub.label}
+      </Text>
+    </Flex>
+  );
+}
+
+function DualHeroBody({
+  dualHero,
+  testId,
+}: {
+  readonly dualHero: readonly DualHeroStat[];
+  readonly testId: string;
+}): JSX.Element {
+  return (
+    <Grid columns="2" gap="3" width="100%" data-testid={`${testId}-dual-hero`}>
+      {dualHero.map((hero) => (
+        <Flex direction="column" key={hero.label}>
+          <Text
+            as="div"
+            size="8"
+            weight="bold"
+            data-testid={`${testId}-dual-${slugLabel(hero.label)}-value`}
+          >
+            {hero.value.toLocaleString()}
           </Text>
-          <Text size="2" weight="medium" data-testid={`${testId}-value`}>
-            {sub.value.toLocaleString()}
+          <Text size="2" color="gray" mt="3">
+            {hero.label}
           </Text>
         </Flex>
-      </li>
-    </Box>
+      ))}
+    </Grid>
   );
 }
 
@@ -84,46 +134,70 @@ export function MetricCard({
   title,
   value,
   subMetrics,
+  dualHero,
+  secondaryStat,
   href,
   loading = false,
   testId = 'metric-card',
 }: MetricCardProps): JSX.Element {
   const headingId = useId();
+  const severitySubMetrics = subMetrics?.filter((sub) => (sub.variant ?? 'severity') === 'severity') ?? [];
+  const statSubMetrics = subMetrics?.filter((sub) => sub.variant === 'stat') ?? [];
 
-  const hero: ReactNode = loading ? (
+  const heroBody: ReactNode = loading ? (
     <LoadingSkeleton height={64} label={`Loading ${title}`} data-testid={`${testId}-skeleton`} />
+  ) : dualHero ? (
+    <DualHeroBody dualHero={dualHero} testId={testId} />
   ) : (
     <Text as="div" size="8" weight="bold" data-testid={`${testId}-value`}>
       {(value ?? 0).toLocaleString()}
     </Text>
   );
 
-  const breakdown =
-    !loading && subMetrics && subMetrics.length > 0 ? (
-      <Box asChild>
-        <ul className={styles.breakdownList} data-testid={`${testId}-breakdown`}>
-          {subMetrics.map((sub) => (
-            <SubMetricRow key={sub.label} sub={sub} testId={`${testId}-sub-${sub.label.toLowerCase()}`} />
+  const details: ReactNode = loading ? null : (
+    <>
+      {secondaryStat && (
+        <Flex align="baseline" gap="2" className={styles.statRow} data-testid={`${testId}-secondary-stat`}>
+          <Text size="2" weight="bold" data-testid={`${testId}-secondary-value`}>
+            {secondaryStat.value.toLocaleString()}
+          </Text>
+          <Text size="2" color="gray">
+            {secondaryStat.label}
+          </Text>
+        </Flex>
+      )}
+      {statSubMetrics.length > 0 && (
+        <Flex direction="column" gap="1" className={styles.statStack} data-testid={`${testId}-stat-rows`}>
+          {statSubMetrics.map((sub) => (
+            <StatSubMetricRow key={sub.label} sub={sub} testId={`${testId}-sub-${slugLabel(sub.label)}`} />
+          ))}
+        </Flex>
+      )}
+      {severitySubMetrics.length > 0 && (
+        <ul className={styles.breakdown} data-testid={`${testId}-breakdown`}>
+          {severitySubMetrics.map((sub) => (
+            <SubMetricRow key={sub.label} sub={sub} testId={`${testId}-sub-${slugLabel(sub.label)}`} />
           ))}
         </ul>
-      </Box>
-    ) : null;
+      )}
+    </>
+  );
 
-  const body = (
+  const interactiveBody = (
     <Flex direction="column" gap="3">
       {href && !loading ? (
         <a
           href={href}
           className={styles.cardLink}
           data-testid={`${testId}-link`}
-          aria-label={cardLinkLabel(title, value)}
+          aria-label={cardLinkLabel(title, value, dualHero)}
         >
-          {hero}
+          {heroBody}
         </a>
       ) : (
-        hero
+        heroBody
       )}
-      {breakdown}
+      {details}
     </Flex>
   );
 
@@ -131,10 +205,10 @@ export function MetricCard({
     <Card data-testid={testId}>
       <section aria-labelledby={headingId}>
         <Box p="4">
-          <Heading id={headingId} as="h2" size="3" trim="start" mb="3">
+          <Heading id={headingId} as="h2" {...tokens.typography.label} trim="start" mb="3">
             {title}
           </Heading>
-          {body}
+          {interactiveBody}
         </Box>
       </section>
     </Card>

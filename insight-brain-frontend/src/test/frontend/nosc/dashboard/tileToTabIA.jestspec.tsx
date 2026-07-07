@@ -13,11 +13,6 @@ import { getDashboardMetricsUrl } from 'MainRoot/util/CLMLocation';
 
 /**
  * CLM-40905: end-to-end IA wiring for the metric-card landing grid.
- *
- * The overview route (`nexusOneDashboard.overview`) renders {@link MetricCardGrid},
- * not the legacy {@code DashboardOverviewContent} tile grid. This spec is the
- * integration check that each card's click-through lands on the correct dashboard
- * tab URL when the cards are composed into the landing the user actually sees.
  */
 
 const METRICS_BODY = {
@@ -69,10 +64,10 @@ describe('Metric card → tab IA wire-up (CLM-40905)', () => {
   }
 
   it.each([
-    ['Applications', 42, '#/dashboard/applications'],
-    ['Policy Violations', 9, '#/dashboard/violations'],
-    ['Waivers', 5, '#/dashboard/waivers'],
-    ['Components', 137, '#/dashboard/components'],
+    ['Applications', 42, '#/applications'],
+    ['Violations', 9, '#/violations'],
+    ['Waivers', 5, '#/waivers'],
+    ['Scanned Components', 137, '#/components'],
   ])('card "%s" click-through → %s', async (cardName, total, expectedHref) => {
     renderGrid();
     await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
@@ -85,8 +80,8 @@ describe('Metric card → tab IA wire-up (CLM-40905)', () => {
     renderGrid();
     await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
 
-    const link = screen.getByRole('link', { name: 'Policy Violations, 9 total, open list' });
-    expect(link).toHaveAttribute('href', '#/dashboard/violations');
+    const link = screen.getByRole('link', { name: 'Violations, 9 total, open list' });
+    expect(link).toHaveAttribute('href', '#/violations');
     expect(link.getAttribute('href')).not.toContain('severity=');
   });
 });

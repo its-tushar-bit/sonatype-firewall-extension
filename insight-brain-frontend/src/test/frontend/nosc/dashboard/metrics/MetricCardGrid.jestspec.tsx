@@ -15,7 +15,7 @@ import { setupNexusOneBundleLocation } from 'TestRoot/nosc/dashboard/dashboardTe
 const LAST_UPDATED = 1_700_000_000_000;
 
 const FULL_BODY = {
-  applications: { total: 42, breakdown: null, source: 'index' },
+  applications: { total: 42, breakdown: { stages: 5 }, source: 'index' },
   violations: {
     total: 9,
     breakdown: { critical: 2, severe: 3, moderate: 3, low: 1 },
@@ -23,6 +23,20 @@ const FULL_BODY = {
   },
   waivers: { total: 5, breakdown: { existing: 4, requested: 1 }, source: 'sql' },
   lastUpdatedAt: LAST_UPDATED,
+};
+
+// FULL_BODY plus the CLM-40927 cheap-tier metrics (index-native; all optional in the contract).
+const CHEAP_TIER_BODY = {
+  ...FULL_BODY,
+  components: { total: 137, breakdown: null, source: 'index' },
+  vulnerabilities: {
+    total: 66,
+    breakdown: { critical: 5, high: 12, medium: 18, low: 7 },
+    source: 'index',
+  },
+  legal: { total: 32, breakdown: { applications: 5, components: 12 }, source: 'index' },
+  organizations: { total: 7, breakdown: null, source: 'index' },
+  policies: { total: 24, breakdown: null, source: 'index' },
 };
 
 function preloadedStateWithFilter(applied?: Record<string, Set<string>>) {
@@ -109,6 +123,8 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
 
     await waitFor(() => expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42'));
 
+    expect(screen.getByTestId('metric-card-applications-secondary-value')).toHaveTextContent('5');
+
     // Violations: total + severity breakdown.
     expect(screen.getByTestId('metric-card-violations-value')).toHaveTextContent('9');
     const vBreakdown = screen.getByTestId('metric-card-violations-breakdown');
@@ -116,15 +132,15 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     expect(screen.getByTestId('metric-card-violations-sub-critical-value')).toHaveTextContent('2');
     expect(screen.getByTestId('metric-card-violations-sub-low-value')).toHaveTextContent('1');
 
-    // Waivers: total + existing/requested.
+    // Waivers: total + existing/requested (stat rows, no severity dots).
     expect(screen.getByTestId('metric-card-waivers-value')).toHaveTextContent('5');
-    expect(screen.getByTestId('metric-card-waivers-sub-existing-value')).toHaveTextContent('4');
-    expect(screen.getByTestId('metric-card-waivers-sub-requested-value')).toHaveTextContent('1');
+    expect(screen.getByTestId('metric-card-waivers-sub-existing-waivers-value')).toHaveTextContent('4');
+    expect(screen.getByTestId('metric-card-waivers-sub-requested-waivers-value')).toHaveTextContent('1');
   });
 
   it('renders a zero total honestly (AT-F16: empty/zero state)', async () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
-      applications: { total: 0, breakdown: null, source: 'index' },
+      applications: { total: 0, breakdown: { stages: 5 }, source: 'index' },
       violations: { total: 0, breakdown: { critical: 0, severe: 0, moderate: 0, low: 0 }, source: 'index' },
       waivers: { total: 0, breakdown: { existing: 0, requested: 0 }, source: 'sql' },
       lastUpdatedAt: null,
@@ -173,45 +189,8 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     await waitFor(() => expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42'));
   });
 
-  it('keeps last-known-good cards visible when a refresh fails after a successful load', async () => {
-    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue({
-      status: 'error',
-      data: FULL_BODY,
-      error: new Error('refresh failed'),
-      retry: jest.fn(),
-    });
-    renderGrid();
-
-    expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');
-    expect(screen.getByTestId('dashboard-metrics-error')).toHaveTextContent(/last successful values/i);
-  });
-
-  it('shows a refreshing notice while stale cards are held during a scope refetch', async () => {
-    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue({
-      status: 'loading',
-      data: FULL_BODY,
-      error: null,
-      retry: jest.fn(),
-    });
-    renderGrid();
-
-    expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');
-    expect(screen.getByTestId('dashboard-metrics-refreshing')).toHaveTextContent(/refreshing metrics/i);
-  });
-
-  it('shows a building banner while stale cards are held on a 409 refresh', async () => {
-    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue({
-      status: 'not-ready',
-      data: FULL_BODY,
-      error: null,
-      retry: jest.fn(),
-    });
-    renderGrid();
-
-    expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');
-    expect(screen.getByTestId('dashboard-metrics-not-ready')).toHaveTextContent(/last successful values/i);
-  });
-
+  // #16359 regression guards: the filter gate and the stale-data refresh banners
+  // must survive the CLM-40927 card additions.
   it('does not POST metrics while the dashboard filter rail is still loading', () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
     render(
@@ -235,6 +214,45 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
 
     expect(axiosMock.history.post).toHaveLength(0);
     expect(screen.getByTestId('metric-card-applications-skeleton')).toBeInTheDocument();
+  });
+
+  it('keeps last-known-good cards visible when a refresh fails after a successful load', () => {
+    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue({
+      status: 'error',
+      data: FULL_BODY,
+      error: new Error('refresh failed'),
+      retry: jest.fn(),
+    });
+    renderGrid();
+
+    expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');
+    expect(screen.getByTestId('dashboard-metrics-error')).toHaveTextContent(/last successful values/i);
+  });
+
+  it('shows a refreshing notice while stale cards are held during a scope refetch', () => {
+    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue({
+      status: 'loading',
+      data: FULL_BODY,
+      error: null,
+      retry: jest.fn(),
+    });
+    renderGrid();
+
+    expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');
+    expect(screen.getByTestId('dashboard-metrics-refreshing')).toHaveTextContent(/refreshing metrics/i);
+  });
+
+  it('shows a building banner while stale cards are held on a 409 refresh', () => {
+    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue({
+      status: 'not-ready',
+      data: FULL_BODY,
+      error: null,
+      retry: jest.fn(),
+    });
+    renderGrid();
+
+    expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');
+    expect(screen.getByTestId('dashboard-metrics-not-ready')).toHaveTextContent(/last successful values/i);
   });
 
   it('derives a freshness label from lastUpdatedAt using a controlled clock (AT-F16: Updated Xs ago)', async () => {
@@ -262,8 +280,110 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     // Wait for the ready state (loading skeletons also render headings, so gate on a value).
     await waitFor(() => expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42'));
     expect(screen.getByRole('heading', { level: 2, name: 'Applications' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Policy Violations' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Violations' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Waivers' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Applications, 42 total, open list' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Applications/ })).toBeInTheDocument();
+  });
+
+  it('renders the cheap-tier cards (vulnerabilities, legal, orgs+policies, scanned components) from the response (CLM-40927)', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, CHEAP_TIER_BODY);
+    renderGrid();
+
+    await waitFor(() => expect(screen.getByTestId('metric-card-vulnerabilities-value')).toHaveTextContent('66'));
+
+    // Vulnerabilities: total + Critical/High/Medium/Low severity breakdown.
+    const vulnBreakdown = screen.getByTestId('metric-card-vulnerabilities-breakdown');
+    expect(within(vulnBreakdown).getByText('Critical')).toBeInTheDocument();
+    expect(within(vulnBreakdown).getByText('High')).toBeInTheDocument();
+    expect(within(vulnBreakdown).getByText('Medium')).toBeInTheDocument();
+    expect(within(vulnBreakdown).getByText('Low')).toBeInTheDocument();
+    expect(screen.getByTestId('metric-card-vulnerabilities-sub-critical-value')).toHaveTextContent('5');
+    expect(screen.getByTestId('metric-card-vulnerabilities-sub-high-value')).toHaveTextContent('12');
+    expect(screen.getByTestId('metric-card-vulnerabilities-sub-medium-value')).toHaveTextContent('18');
+    expect(screen.getByTestId('metric-card-vulnerabilities-sub-low-value')).toHaveTextContent('7');
+
+    // Legal Obligations: dual-hero Applications / Components (no single hero total).
+    expect(screen.queryByTestId('metric-card-legal-value')).not.toBeInTheDocument();
+    expect(screen.getByTestId('metric-card-legal-dual-applications-value')).toHaveTextContent('5');
+    expect(screen.getByTestId('metric-card-legal-dual-components-value')).toHaveTextContent('12');
+
+    // Orgs and Policies: dual-hero Organizations / Policies.
+    expect(screen.queryByTestId('metric-card-orgs-and-policies-value')).not.toBeInTheDocument();
+    expect(screen.getByTestId('metric-card-orgs-and-policies-dual-organizations-value')).toHaveTextContent('7');
+    expect(screen.getByTestId('metric-card-orgs-and-policies-dual-policies-value')).toHaveTextContent('24');
+
+    // Scanned Components: hero total + Total Policy Violations secondary stat.
+    expect(screen.getByRole('heading', { name: 'Scanned Components' })).toBeInTheDocument();
+    expect(screen.getByTestId('metric-card-components-value')).toHaveTextContent('137');
+    expect(screen.getByTestId('metric-card-components-secondary-value')).toHaveTextContent('9');
+  });
+
+  it('omits the cheap-tier cards when their metrics are absent (additive/graceful)', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
+    renderGrid();
+
+    await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
+    expect(screen.queryByTestId('metric-card-vulnerabilities')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('metric-card-legal')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('metric-card-orgs-and-policies')).not.toBeInTheDocument();
+  });
+
+  it('always renders the bottom quick-link row deep-linking to Classic (CLM-40927)', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
+    renderGrid();
+
+    await waitFor(() => expect(screen.getByTestId('dashboard-quicklinks')).toBeInTheDocument());
+    expect(screen.getByRole('heading', { name: 'Success Metrics' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Enterprise Reporting' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'API' })).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-quicklink-api').getAttribute('href')).toContain('/api');
+  });
+
+  it('still renders quick links when the initial metrics request fails (static navigation)', () => {
+    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue({
+      status: 'error',
+      data: null,
+      error: new Error('network'),
+      retry: jest.fn(),
+    });
+    renderGrid();
+
+    expect(screen.getByTestId('dashboard-metrics-error')).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-quicklinks')).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-quicklink-success-metrics')).toBeInTheDocument();
+  });
+
+  it('omits the components secondary stat when violations are absent', async () => {
+    const { violations: _omit, ...withoutViolations } = FULL_BODY;
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
+      ...withoutViolations,
+      components: { total: 137, breakdown: null, source: 'index' },
+    });
+    renderGrid();
+
+    await waitFor(() => expect(screen.getByTestId('metric-card-components-value')).toHaveTextContent('137'));
+    expect(screen.queryByTestId('metric-card-components-secondary-value')).not.toBeInTheDocument();
+  });
+
+  it('renders legal with headline total when breakdown is null', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
+      ...FULL_BODY,
+      legal: { total: 10, breakdown: null, source: 'index' },
+    });
+    renderGrid();
+
+    await waitFor(() => expect(screen.getByTestId('metric-card-legal-value')).toHaveTextContent('10'));
+    expect(screen.queryByTestId('metric-card-legal-dual-applications-value')).not.toBeInTheDocument();
+  });
+
+  it('omits orgs-and-policies when only one side of the pair is present', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
+      ...FULL_BODY,
+      policies: { total: 24, breakdown: null, source: 'index' },
+    });
+    renderGrid();
+
+    await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
+    expect(screen.queryByTestId('metric-card-orgs-and-policies')).not.toBeInTheDocument();
   });
 });

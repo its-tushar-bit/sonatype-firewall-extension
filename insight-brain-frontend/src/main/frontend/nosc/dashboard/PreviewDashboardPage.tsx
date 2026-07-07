@@ -154,6 +154,11 @@ export default function PreviewDashboardPage(): JSX.Element {
           return;
         }
         const active = activeTabRef.current;
+        // The landing grid does not render tab-strip badges — skip the four eager
+        // classic-tab result loads so landing issues one metrics POST, not five.
+        if (active === DEFAULT_TAB) {
+          return;
+        }
         if (active !== 'components') dispatch(loadComponentResults());
         if (active !== 'applications') dispatch(loadApplicationResults());
         if (active !== 'violations') dispatch(loadViolationResults());
@@ -166,6 +171,26 @@ export default function PreviewDashboardPage(): JSX.Element {
     if (!(TAB_IDS as readonly string[]).includes(next)) return;
     router.stateService.go(`${DASHBOARD_STATE_PREFIX}.${next}`);
   };
+
+  // The landing (overview) is the metric-card grid (CLM-40905) — a clean, tab-free view. The tab
+  // strip only renders for the classic tabbed tables (violations/components/applications/waivers),
+  // which stay reachable as a fallback. The child <UIView> still renders the active state's
+  // component either way; on the landing it's wrapped without the tab chrome.
+  const isLandingGrid = activeTab === DEFAULT_TAB;
+
+  const tabbedUiView = (
+    <ErrorBoundary
+      resetKeys={[activeTab]}
+      fallbackRender={({ error }) => (
+        <TabErrorFallback
+          tabId={activeTab}
+          message={error instanceof Error ? error.message : String(error)}
+        />
+      )}
+    >
+      <UIView />
+    </ErrorBoundary>
+  );
 
   return (
     <Theme
@@ -194,46 +219,38 @@ export default function PreviewDashboardPage(): JSX.Element {
             </Text>
           </Flex>
 
-          <Tabs.Root value={activeTab} onValueChange={handleTabChange} data-testid="nosc-dashboard-tabs">
-            <Tabs.List size="2">
-              <Tabs.Trigger value="overview" data-testid="nosc-dashboard-tab-overview">
-                Overview
-                {/* No badge: Overview is a tile grid (Apps Scanned, Severity, Legal Obligations, Top
-                 *  Policy Violations, Risk Over Time), not a violation list, so a violations count here
-                 *  is misleading. Re-add with an Overview-specific metric only if design asks. */}
-              </Tabs.Trigger>
-              <Tabs.Trigger value="violations" data-testid="nosc-dashboard-tab-violations">
-                Violations
-                <TabBadge label={violationsBadge} testId="nosc-dashboard-tab-badge-violations" />
-              </Tabs.Trigger>
-              <Tabs.Trigger value="components" data-testid="nosc-dashboard-tab-components">
-                Components
-                <TabBadge label={componentsBadge} testId="nosc-dashboard-tab-badge-components" />
-              </Tabs.Trigger>
-              <Tabs.Trigger value="applications" data-testid="nosc-dashboard-tab-applications">
-                Applications
-                <TabBadge label={applicationsBadge} testId="nosc-dashboard-tab-badge-applications" />
-              </Tabs.Trigger>
-              <Tabs.Trigger value="waivers" data-testid="nosc-dashboard-tab-waivers">
-                Waivers
-                <TabBadge label={waiversBadge} testId="nosc-dashboard-tab-badge-waivers" />
-              </Tabs.Trigger>
-            </Tabs.List>
+          {isLandingGrid ? (
+            tabbedUiView
+          ) : (
+            <Tabs.Root value={activeTab} onValueChange={handleTabChange} data-testid="nosc-dashboard-tabs">
+              <Tabs.List size="2">
+                <Tabs.Trigger value="overview" data-testid="nosc-dashboard-tab-overview">
+                  Overview
+                  {/* Overview is the metric-card grid landing (CLM-40905); no count badge here. */}
+                </Tabs.Trigger>
+                <Tabs.Trigger value="violations" data-testid="nosc-dashboard-tab-violations">
+                  Violations
+                  <TabBadge label={violationsBadge} testId="nosc-dashboard-tab-badge-violations" />
+                </Tabs.Trigger>
+                <Tabs.Trigger value="components" data-testid="nosc-dashboard-tab-components">
+                  Components
+                  <TabBadge label={componentsBadge} testId="nosc-dashboard-tab-badge-components" />
+                </Tabs.Trigger>
+                <Tabs.Trigger value="applications" data-testid="nosc-dashboard-tab-applications">
+                  Applications
+                  <TabBadge label={applicationsBadge} testId="nosc-dashboard-tab-badge-applications" />
+                </Tabs.Trigger>
+                <Tabs.Trigger value="waivers" data-testid="nosc-dashboard-tab-waivers">
+                  Waivers
+                  <TabBadge label={waiversBadge} testId="nosc-dashboard-tab-badge-waivers" />
+                </Tabs.Trigger>
+              </Tabs.List>
 
-            <Tabs.Content value={activeTab} data-testid={`nosc-dashboard-tab-content-${activeTab}`}>
-              <ErrorBoundary
-                resetKeys={[activeTab]}
-                fallbackRender={({ error }) => (
-                  <TabErrorFallback
-                    tabId={activeTab}
-                    message={error instanceof Error ? error.message : String(error)}
-                  />
-                )}
-              >
-                <UIView />
-              </ErrorBoundary>
-            </Tabs.Content>
-          </Tabs.Root>
+              <Tabs.Content value={activeTab} data-testid={`nosc-dashboard-tab-content-${activeTab}`}>
+                {tabbedUiView}
+              </Tabs.Content>
+            </Tabs.Root>
+          )}
         </Box>
       </div>
     </Theme>

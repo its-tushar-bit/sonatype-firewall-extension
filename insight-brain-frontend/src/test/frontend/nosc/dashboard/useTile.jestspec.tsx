@@ -75,8 +75,64 @@ describe('useTile', () => {
     const { unmount } = renderHook(() => useTile<{ value: number }>(URL));
     unmount();
 
-    // Wait long enough for the deferred response to fire; React would warn if
-    // we tried to setState on the unmounted hook. We just want no throw.
     await new Promise((r) => setTimeout(r, 100));
+  });
+
+  it('ignores stale responses when the request key changes before an earlier request settles', async () => {
+    let resolveSlow: (value: [number, { total: number }]) => void = () => {};
+    const slowPromise = new Promise<[number, { total: number }]>((resolve) => {
+      resolveSlow = resolve;
+    });
+
+    axiosMock.onPost('/rest/example/metrics').replyOnce(() => slowPromise);
+    axiosMock.onPost('/rest/example/metrics').reply(200, { total: 2 });
+
+    const { result, rerender } = renderHook(
+      ({ body }: { body: Record<string, string> }) =>
+        useTile<{ total: number }>('/rest/example/metrics', undefined, {
+          method: 'post',
+          body,
+        }),
+      { initialProps: { body: { scope: 'a' } } },
+    );
+
+    rerender({ body: { scope: 'b' } });
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+    expect(result.current.data).toEqual({ total: 2 });
+
+    resolveSlow([200, { total: 1 }]);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(result.current.data).toEqual({ total: 2 });
+  });
+
+  it('does not issue a request while enabled is false', async () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) =>
+        useTile<{ value: number }>(URL, undefined, { enabled }),
+      { initialProps: { enabled: false } },
+    );
+
+    expect(result.current.status).toBe('loading');
+    expect(axiosMock.history.get).toHaveLength(0);
+
+    axiosMock.onGet(URL).reply(200, { value: 9 });
+    rerender({ enabled: true });
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+    expect(result.current.data).toEqual({ value: 9 });
+  });
+
+  it('supports POST with a body and custom error status mapping', async () => {
+    axiosMock.onPost('/rest/example/metrics').reply(409, { message: 'building' });
+
+    const { result } = renderHook(() =>
+      useTile<{ total: number }>('/rest/example/metrics', undefined, {
+        method: 'post',
+        body: { organizationIds: ['org-1'] },
+        mapErrorStatus: (code) => (code === 409 ? 'not-ready' : 'error'),
+      }),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe('not-ready'));
+    expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ organizationIds: ['org-1'] });
   });
 });

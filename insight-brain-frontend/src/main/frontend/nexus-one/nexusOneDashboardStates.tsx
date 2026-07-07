@@ -5,7 +5,7 @@
  */
 import { ReactStateDeclaration } from '@uirouter/react';
 import PreviewDashboardPage from 'MainRoot/nosc/dashboard/PreviewDashboardPage';
-import DashboardOverviewContent from 'MainRoot/nosc/dashboard/DashboardOverviewContent';
+import MetricCardGrid from 'MainRoot/nosc/dashboard/metrics/MetricCardGrid';
 import PreviewViolationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewViolationsTab';
 import PreviewComponentsTab from 'MainRoot/nosc/dashboard/tabs/PreviewComponentsTab';
 import PreviewApplicationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewApplicationsTab';
@@ -33,11 +33,16 @@ export function nexusOneDashboardStates(): ReactStateDeclaration[] {
       component: PreviewDashboardPage,
       data: { title: DASHBOARD_TITLE },
     },
-    // Overview keeps the bare `/dashboard` URL (empty child url) so the default landing URL stays clean.
+    // The landing (bare `/dashboard`, empty child url) is the metric-card grid (CLM-40905). The shell
+    // suppresses the tab strip for this state so the grid is a clean, tab-free landing; the classic
+    // tabbed tables remain reachable as a fallback at their own child URLs (and via the card
+    // click-throughs / LeftNav). Access to the entire `nexus-one` bundle is gated upstream by
+    // `ensureNexusOneShellAccess` / `PREVIEW_NEXUS_ONE_UI` — this state is unconditional within
+    // that bundle.
     {
       name: 'nexusOneDashboard.overview',
       url: '',
-      component: DashboardOverviewContent,
+      component: MetricCardGrid,
       data: { title: DASHBOARD_TITLE },
     },
     {

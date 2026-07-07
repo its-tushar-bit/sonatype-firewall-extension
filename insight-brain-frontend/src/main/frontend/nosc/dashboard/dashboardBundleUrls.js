@@ -26,3 +26,11 @@ export function dashboardApplicationsHref() {
 export function dashboardViolationsHref() {
   return nexusOneDashboardHref('/dashboard/violations');
 }
+
+export function dashboardWaiversHref() {
+  return nexusOneDashboardHref('/dashboard/waivers');
+}
+
+export function dashboardComponentsHref() {
+  return nexusOneDashboardHref('/dashboard/components');
+}

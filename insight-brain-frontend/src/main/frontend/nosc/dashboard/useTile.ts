@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios, { AxiosRequestConfig } from 'axios';
 
 /**
@@ -18,7 +18,7 @@ import axios, { AxiosRequestConfig } from 'axios';
  * §9.1) deliberately does NOT include cache, refetch-on-focus, or stale-
  * while-revalidate. Those would be added in P1.5 if the tile count grows.
  */
-export type TileStatus = 'loading' | 'ready' | 'error';
+export type TileStatus = 'loading' | 'ready' | 'error' | 'not-ready';
 
 export interface UseTileResult<T> {
   status: TileStatus;
@@ -27,44 +27,69 @@ export interface UseTileResult<T> {
   retry: () => void;
 }
 
-export function useTile<T>(url: string, requestConfig?: AxiosRequestConfig): UseTileResult<T> {
+export interface UseTileOptions {
+  readonly method?: 'get' | 'post';
+  /** Request body for POST; also serialized into the refetch dependency key. */
+  readonly body?: unknown;
+  /** When false, no request is issued (status stays `loading` until enabled). */
+  readonly enabled?: boolean;
+  /** Maps HTTP status codes from failed responses to a terminal tile status. */
+  readonly mapErrorStatus?: (statusCode: number | undefined) => Extract<TileStatus, 'error' | 'not-ready'>;
+}
+
+function statusCodeOf(err: unknown): number | undefined {
+  if (axios.isAxiosError(err)) return err.response?.status;
+  return undefined;
+}
+
+export function useTile<T>(
+  url: string,
+  requestConfig?: AxiosRequestConfig,
+  options?: UseTileOptions,
+): UseTileResult<T> {
+  const method = options?.method ?? 'get';
+  const enabled = options?.enabled ?? true;
+  const bodyKey = useMemo(() => JSON.stringify(options?.body ?? null), [options?.body]);
   const [status, setStatus] = useState<TileStatus>('loading');
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const mountedRef = useRef(true);
 
   useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
+    if (!enabled) return;
 
-  useEffect(() => {
+    let cancelled = false;
     const controller = new AbortController();
     setStatus('loading');
     setError(null);
 
-    axios
-      .get<T>(url, { ...requestConfig, signal: controller.signal })
+    const request =
+      method === 'post'
+        ? axios.post<T>(url, options?.body ?? {}, { ...requestConfig, signal: controller.signal })
+        : axios.get<T>(url, { ...requestConfig, signal: controller.signal });
+
+    request
       .then((response) => {
-        if (!mountedRef.current) return;
+        if (cancelled) return;
         setData(response.data);
         setStatus('ready');
       })
       .catch((err) => {
-        if (!mountedRef.current) return;
-        if (axios.isCancel?.(err)) return;
+        if (cancelled || axios.isCancel?.(err)) return;
         const e = err instanceof Error ? err : new Error(String(err));
         setError(e);
-        setStatus('error');
+        const mapped = options?.mapErrorStatus?.(statusCodeOf(err)) ?? 'error';
+        setStatus(mapped);
       });
 
-    return () => controller.abort();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
     // requestConfig intentionally excluded — callers should memoize or pass
     // stable shape; including it would cause refetch on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, attempt]);
+  }, [url, attempt, method, bodyKey, enabled]);
 
   const retry = useCallback(() => {
     setAttempt((a) => a + 1);

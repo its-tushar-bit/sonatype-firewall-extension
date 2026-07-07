@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { FETCH_CURRENT_FILTER_FULFILLED } from 'MainRoot/dashboard/filter/dashboardFilterActions';
 import { LOAD_RESULTS_FULFILLED } from 'MainRoot/dashboard/results/dashboardResultsActions';
-import { getDashboardFilters } from 'MainRoot/util/CLMLocation';
+import { getDashboardFilters, getDashboardMetricsUrl } from 'MainRoot/util/CLMLocation';
 import { setupNexusOneBundleLocation } from 'TestRoot/nosc/dashboard/dashboardTestHrefs';
 import { renderNexusOneDashboard } from 'TestRoot/nosc/dashboard/renderNexusOneDashboard';
 
@@ -45,11 +45,16 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
   });
 
   describe('Router-driven tab state', () => {
-    it('renders Overview selected when the route is nexusOneDashboard.overview', async () => {
+    it('renders the metric-card grid landing with NO tab strip on nexusOneDashboard.overview (CLM-40905)', async () => {
       stubDashboardAxios(axiosMock);
       renderNexusOneDashboard('overview');
-      const overviewTab = await screen.findByTestId('nosc-dashboard-tab-overview');
-      await waitFor(() => expect(overviewTab.getAttribute('aria-selected')).toBe('true'));
+      // The landing is the metric-card grid (its chrome renders immediately, even before the
+      // POST resolves — here it never does, so it stays in the skeleton/loading shape).
+      expect(await screen.findByTestId('preview-dashboard-metrics-grid')).toBeInTheDocument();
+      // No in-dashboard tab strip on the landing view.
+      expect(screen.queryByTestId('nosc-dashboard-tabs')).not.toBeInTheDocument();
+      const page = screen.getByTestId('nosc-dashboard-page');
+      expect(page).toHaveAttribute('data-active-tab', 'overview');
     });
 
     // Each non-Overview tab is its own child route; landing on that route selects the trigger and
@@ -72,15 +77,16 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
 
     it('navigates the router (not the hash) when the user clicks a tab', async () => {
       stubDashboardAxios(axiosMock);
-      const { router } = renderNexusOneDashboard('overview');
+      // Start on a classic tab (the tab strip only renders for the non-landing tabs).
+      const { router } = renderNexusOneDashboard('violations');
       await screen.findByTestId('nosc-dashboard-page');
 
-      await userEvent.click(screen.getByTestId('nosc-dashboard-tab-violations'));
+      await userEvent.click(screen.getByTestId('nosc-dashboard-tab-components'));
 
-      await waitFor(() => expect(router.stateService.current.name).toBe('nexusOneDashboard.violations'));
-      const violationsTab = screen.getByTestId('nosc-dashboard-tab-violations');
-      await waitFor(() => expect(violationsTab.getAttribute('aria-selected')).toBe('true'));
-      expect(await screen.findByTestId('nosc-dashboard-violations-tab')).toBeInTheDocument();
+      await waitFor(() => expect(router.stateService.current.name).toBe('nexusOneDashboard.components'));
+      const componentsTab = screen.getByTestId('nosc-dashboard-tab-components');
+      await waitFor(() => expect(componentsTab.getAttribute('aria-selected')).toBe('true'));
+      expect(await screen.findByTestId('nosc-dashboard-components-tab')).toBeInTheDocument();
     });
 
     it('returns to the overview state when the user clicks the Overview tab', async () => {
@@ -94,29 +100,29 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
     });
   });
 
-  describe('Overview tab strip visibility (no standalone Dashboard overlay)', () => {
-    it('renders the tab strip with Overview selected and the inline overview content (not the standalone overlay)', async () => {
+  describe('Overview landing (metric-card grid, CLM-40905)', () => {
+    it('renders the metric-card grid landing and NOT the tab strip or the old tile-grid overview', async () => {
       stubDashboardAxios(axiosMock);
       renderNexusOneDashboard('overview');
 
-      const tabList = await screen.findByTestId('nosc-dashboard-tabs');
-      expect(tabList).toBeInTheDocument();
-      const overviewTab = screen.getByTestId('nosc-dashboard-tab-overview');
-      await waitFor(() => expect(overviewTab.getAttribute('aria-selected')).toBe('true'));
+      // New landing: the metric-card grid.
+      expect(await screen.findByTestId('preview-dashboard-metrics-grid')).toBeInTheDocument();
 
-      // The tile-grid body renders inline as the Overview tab's content.
-      expect(await screen.findByTestId('preview-dashboard-overview-content')).toBeInTheDocument();
+      // No in-dashboard tab strip on the landing.
+      expect(screen.queryByTestId('nosc-dashboard-tabs')).not.toBeInTheDocument();
 
-      // The standalone Dashboard.tsx overlay (its own `preview-dashboard-page` testid on a fixed-Theme
-      // <Box>) MUST NOT mount inside the Overview tab.
+      // The old tile-grid Overview content is no longer the landing.
+      expect(screen.queryByTestId('preview-dashboard-overview-content')).not.toBeInTheDocument();
+
+      // The standalone Dashboard.tsx overlay MUST NOT mount either.
       expect(screen.queryByTestId('preview-dashboard-page')).not.toBeInTheDocument();
     });
   });
 
   describe('Tab strip rendering', () => {
-    it('renders all 5 tab triggers in the canonical order', async () => {
+    it('renders all 5 tab triggers in the canonical order on a classic tab', async () => {
       stubDashboardAxios(axiosMock);
-      renderNexusOneDashboard('overview');
+      renderNexusOneDashboard('violations');
       await screen.findByTestId('nosc-dashboard-page');
 
       const expectedTestIds = [
@@ -158,6 +164,28 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       axiosMock.onAny().reply(() => new Promise(() => {}));
     }
 
+    /** Like {@link stubLoadFilterEndpoints} but lets the full loadFilter Promise.all settle. */
+    function stubResolvingFilterLoad(axiosMock: any): void {
+      axiosMock.onGet(getDashboardFilters()).reply(200, {
+        selected: null,
+        appliedFilter: null,
+        needsAcknowledgement: false,
+      });
+      axiosMock.onGet(/applications/).reply(200, []);
+      axiosMock.onGet(/organizations/).reply(200, []);
+      axiosMock.onGet(/applicationTags|applicationCategories/).reply(200, []);
+      axiosMock.onGet(/repositories/).reply(200, { repositories: [] });
+      axiosMock.onGet(/savedFilters/).reply(200, []);
+      axiosMock.onGet(/stageTypes/).reply(200, { dashboard: [] });
+      axiosMock.onGet(/waiverReasons/).reply(200, []);
+      axiosMock.onGet(/product\/features/).reply(200, []);
+      axiosMock.onPost(/newestRisks|componentRisks|applicationRisks|waivers/).reply(200, {
+        dashboardResults: [],
+        hasNextPage: false,
+      });
+      axiosMock.onAny().reply(200, {});
+    }
+
     it('dispatches loadFilter() on first mount (axios.get hits the dashboard-filters endpoint)', async () => {
       stubLoadFilterEndpoints(axiosMock);
       const axiosGetSpy = jest.spyOn(axios, 'get');
@@ -185,11 +213,28 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       expect(store.getState().dashboardFilter.loading).toBe(false);
     });
 
+    function classicTabResultPosts(axiosMock: any): any[] {
+      return axiosMock.history.post.filter(
+        (req: { url?: string }) =>
+          req.url != null &&
+          !req.url.includes(getDashboardMetricsUrl()) &&
+          /newestRisks|componentRisks|applicationRisks|waivers/i.test(req.url),
+      );
+    }
+
+    it('does not eager-load classic tab result sets on the overview landing', async () => {
+      stubResolvingFilterLoad(axiosMock);
+      const { store } = renderNexusOneDashboard('overview');
+      await waitFor(() => expect(store.getState().dashboardFilter.loading).toBe(false));
+      expect(classicTabResultPosts(axiosMock)).toHaveLength(0);
+    });
+
     it('only dispatches loadFilter() once per shell mount even across tab switches', async () => {
       stubLoadFilterEndpoints(axiosMock);
       const axiosGetSpy = jest.spyOn(axios, 'get');
       try {
-        renderNexusOneDashboard('overview');
+        // Start on a classic tab so the tab strip is present to click through.
+        renderNexusOneDashboard('violations');
         await waitFor(() => {
           expect(axiosGetSpy).toHaveBeenCalledWith(getDashboardFilters());
         });
@@ -198,7 +243,6 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
         ).length;
         // Switching tabs only swaps the child <UIView> — the parent shell stays mounted, so the
         // page-level loadFilter dispatch must NOT fire again.
-        await userEvent.click(screen.getByTestId('nosc-dashboard-tab-violations'));
         await userEvent.click(screen.getByTestId('nosc-dashboard-tab-components'));
         await userEvent.click(screen.getByTestId('nosc-dashboard-tab-applications'));
         await userEvent.click(screen.getByTestId('nosc-dashboard-tab-waivers'));
@@ -215,13 +259,14 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
   describe('Tab badges (live counts from the Redux slice)', () => {
     it('renders Components + Applications badges when their slices have results, hides when null', async () => {
       stubDashboardAxios(axiosMock);
-      const { store } = renderNexusOneDashboard('overview');
+      // Badges live in the tab strip, which renders on the classic tabs (not the grid landing).
+      const { store } = renderNexusOneDashboard('violations');
 
       // Wait for the shell + active tab content to finish mounting (the router transition is async,
       // and the tab content dispatches its own initial result loads). Dispatching our results before
       // that settles would let the child's reset clobber them.
       await screen.findByTestId('nosc-dashboard-page');
-      await screen.findByTestId('preview-dashboard-overview-content');
+      await screen.findByTestId('nosc-dashboard-violations-tab');
 
       // Initial state: results === null → no badge.
       expect(screen.queryByTestId('nosc-dashboard-tab-badge-components')).not.toBeInTheDocument();

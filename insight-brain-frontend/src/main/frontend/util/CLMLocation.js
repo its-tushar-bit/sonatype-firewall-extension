@@ -130,6 +130,15 @@ export function getNewestRisksUrl() {
   return uriTemplate`/rest/dashboard/policy/newestRisks`;
 }
 
+/**
+ * Aggregate KPI metrics for the Nexus One preview dashboard landing (CLM-40905).
+ * POST with an optional `{ organizationIds, applicationIds, stageIds, tagIds }` scope body;
+ * an empty body returns the default RBAC-scoped view.
+ */
+export function getDashboardMetricsUrl() {
+  return uriTemplate`/rest/dashboard/metrics`;
+}
+
 export function getNewestRisksExportUrl() {
   return uriTemplate`/rest/dashboard/export/newestRisks`;
 }

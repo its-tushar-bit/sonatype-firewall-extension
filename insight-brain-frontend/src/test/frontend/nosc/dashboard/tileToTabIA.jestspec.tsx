@@ -7,40 +7,32 @@ import React from 'react';
 import { Theme } from '@radix-ui/themes';
 import { screen, waitFor } from '@testing-library/react';
 import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
-import DashboardOverviewContent from 'MainRoot/nosc/dashboard/DashboardOverviewContent';
-import {
-  dashboardApplicationsHref,
-  dashboardViolationsHref,
-} from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
-import {
-  DASHBOARD_APPLICATIONS_HREF,
-  DASHBOARD_VIOLATIONS_HREF,
-  setupNexusOneBundleLocation,
-} from 'TestRoot/nosc/dashboard/dashboardTestHrefs';
-import {
-  getApplicationsUrl,
-  getDashboardLegalObligationsUrl,
-  getNewestRisksUrl,
-} from 'MainRoot/util/CLMLocation';
+import { MetricCardGrid } from 'MainRoot/nosc/dashboard/metrics/MetricCardGrid';
+import { setupNexusOneBundleLocation } from 'TestRoot/nosc/dashboard/dashboardTestHrefs';
+import { getDashboardMetricsUrl } from 'MainRoot/util/CLMLocation';
 
 /**
- * S2-PR-D-5 / CLM-39641 (F6 §9.3): end-to-end IA wiring assertions.
+ * CLM-40905: end-to-end IA wiring for the metric-card landing grid.
  *
- * Renders the entire `DashboardOverviewContent` tile grid with every
- * tile's underlying axios endpoint mocked so all five tiles can
- * reach `status='ready'`. Then asserts the 9 click-target hrefs from
- * the F6 §9.3 IA wire-up table against the rendered DOM.
- *
- * Why one test file for all 9 targets: the tiles each have their own
- * unit specs that exercise loading / error / retry states. This spec
- * is the single integration check that the IA contract — "click
- * THIS tile, land on THAT URL" — holds when the tiles are composed
- * into the Overview grid the user actually sees. A break here
- * means the Phase-1.5 IA promise broke; specific-tile breaks land
- * in the per-tile spec.
+ * The overview route (`nexusOneDashboard.overview`) renders {@link MetricCardGrid},
+ * not the legacy {@code DashboardOverviewContent} tile grid. This spec is the
+ * integration check that each card's click-through lands on the correct dashboard
+ * tab URL when the cards are composed into the landing the user actually sees.
  */
 
-describe('Tile → Tab IA wire-up (S2-PR-D-5 / F6 §9.3)', () => {
+const METRICS_BODY = {
+  applications: { total: 42, breakdown: null, source: 'index' },
+  violations: {
+    total: 9,
+    breakdown: { critical: 2, severe: 3, moderate: 3, low: 1 },
+    source: 'index',
+  },
+  waivers: { total: 5, breakdown: { existing: 4, requested: 1 }, source: 'sql' },
+  components: { total: 137, breakdown: null, source: 'index' },
+  lastUpdatedAt: 1_700_000_000_000,
+};
+
+describe('Metric card → tab IA wire-up (CLM-40905)', () => {
   let axiosMock: any;
 
   beforeAll(() => {
@@ -49,38 +41,7 @@ describe('Tile → Tab IA wire-up (S2-PR-D-5 / F6 §9.3)', () => {
 
   beforeEach(() => {
     setupNexusOneBundleLocation();
-    // AppsScanned hits /rest/application (GET array).
-    axiosMock.onGet(getApplicationsUrl()).reply(200, [
-      { id: 'a1', publicId: 'apple', name: 'Apple' },
-    ]);
-    // LegalObligations hits the new /rest/dashboard/legalObligations.
-    axiosMock.onGet(getDashboardLegalObligationsUrl()).reply(200, {
-      variant: 'ALP',
-      groups: [
-        { id: 'copyleft', name: 'Copyleft', reviewCount: 5, trendPct: 0 },
-      ],
-    });
-    // SeverityStrip + TopPolicyViolations + RiskOverTime all aggregate
-    // the same POST /rest/dashboard/policy/newestRisks payload, so a
-    // single mock with policyId + threatLevel + firstOccurrenceTime
-    // covers all three.
-    axiosMock.onPost(getNewestRisksUrl()).reply(200, {
-      dashboardResults: [
-        {
-          policyId: 'p-no-gpl',
-          policyName: 'No-GPL',
-          threatLevel: 9,
-          firstOccurrenceTime: Date.now(),
-        },
-        {
-          policyId: 'p-no-gpl',
-          policyName: 'No-GPL',
-          threatLevel: 6,
-          firstOccurrenceTime: Date.now() - 60_000,
-        },
-      ],
-      hasNextPage: false,
-    });
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, METRICS_BODY);
   });
 
   afterEach(() => {
@@ -90,89 +51,42 @@ describe('Tile → Tab IA wire-up (S2-PR-D-5 / F6 §9.3)', () => {
   function renderGrid() {
     return render(
       <Theme>
-        <DashboardOverviewContent />
+        <MetricCardGrid />
       </Theme>,
+      {
+        preloadedState: {
+          dashboardFilter: {
+            appliedFilter: {
+              organizations: new Set<string>(),
+              applications: new Set<string>(),
+              stages: new Set<string>(),
+              categories: new Set<string>(),
+            },
+          },
+        } as any,
+      },
     );
   }
 
-  it('row 1: AppsScanned tile body href → /preview/dashboard/applications', async () => {
-    renderGrid();
-    await waitFor(() => {
-      expect(screen.getByTestId('apps-scanned-tile-body')).toBeInTheDocument();
-    });
-    expect(screen.getByTestId('apps-scanned-tile-body')).toHaveAttribute(
-      'href',
-      dashboardApplicationsHref(),
-    );
-  });
-
   it.each([
-    ['critical', `${DASHBOARD_VIOLATIONS_HREF}?severity=critical`],
-    ['severe', `${DASHBOARD_VIOLATIONS_HREF}?severity=severe`],
-    ['moderate', `${DASHBOARD_VIOLATIONS_HREF}?severity=moderate`],
-    ['low', `${DASHBOARD_VIOLATIONS_HREF}?severity=low`],
-  ])(
-    'row 1: SeverityStrip "%s" card href → %s',
-    async (bucket, expectedHref) => {
-      renderGrid();
-      await waitFor(() => {
-        expect(screen.getByTestId(`severity-card-${bucket}`)).toBeInTheDocument();
-      });
-      expect(screen.getByTestId(`severity-card-${bucket}`)).toHaveAttribute(
-        'href',
-        expectedHref,
-      );
-    },
-  );
-
-  it('row 2: LegalObligations ALP row href → /preview/dashboard/violations (facet drill-down deferred)', async () => {
+    ['Applications', 42, '#/dashboard/applications'],
+    ['Policy Violations', 9, '#/dashboard/violations'],
+    ['Waivers', 5, '#/dashboard/waivers'],
+    ['Components', 137, '#/dashboard/components'],
+  ])('card "%s" click-through → %s', async (cardName, total, expectedHref) => {
     renderGrid();
-    await waitFor(() => {
-      expect(screen.getByTestId('legal-obligation-row-link')).toBeInTheDocument();
-    });
-    expect(screen.getByTestId('legal-obligation-row-link')).toHaveAttribute(
-      'href',
-      dashboardViolationsHref(),
-    );
+    await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
+    expect(
+      screen.getByRole('link', { name: `${cardName}, ${total.toLocaleString()} total, open list` }),
+    ).toHaveAttribute('href', expectedHref);
   });
 
-  it('row 2: LegalObligations non-ALP variant row href → /preview/dashboard/violations (facet drill-down deferred)', async () => {
-    // Re-mount with the non-ALP variant so we cover both legal click
-    // targets in the tile→tab table. This is the only test that
-    // remounts mid-run; the row-link selector is shared.
-    axiosMock.onGet(getDashboardLegalObligationsUrl()).reply(200, {
-      variant: 'TOP_LEGAL_VIOLATIONS',
-      violations: [{ policyId: 'p-no-gpl', policyName: 'No-GPL', openViolationCount: 1 }],
-    });
+  it('does not pre-filter the destination tab by severity — facet drill-down deferred', async () => {
     renderGrid();
-    await waitFor(() => {
-      expect(screen.getByTestId('legal-obligations-tile-body-top')).toBeInTheDocument();
-    });
-    expect(screen.getByTestId('legal-obligation-row-link')).toHaveAttribute(
-      'href',
-      dashboardViolationsHref(),
-    );
-  });
+    await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
 
-  it('row 2: TopPolicyViolations row href → /preview/dashboard/violations (facet drill-down deferred)', async () => {
-    renderGrid();
-    await waitFor(() => {
-      expect(screen.getByTestId('top-policy-row-link')).toBeInTheDocument();
-    });
-    expect(screen.getByTestId('top-policy-row-link')).toHaveAttribute(
-      'href',
-      dashboardViolationsHref(),
-    );
-  });
-
-  it('row 3: RiskOverTime tile body href → /preview/dashboard/violations (no filter)', async () => {
-    renderGrid();
-    await waitFor(() => {
-      expect(screen.getByTestId('risk-over-time-tile-body')).toBeInTheDocument();
-    });
-    expect(screen.getByTestId('risk-over-time-tile-body')).toHaveAttribute(
-      'href',
-      dashboardViolationsHref(),
-    );
+    const link = screen.getByRole('link', { name: 'Policy Violations, 9 total, open list' });
+    expect(link).toHaveAttribute('href', '#/dashboard/violations');
+    expect(link.getAttribute('href')).not.toContain('severity=');
   });
 });

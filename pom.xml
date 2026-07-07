@@ -558,7 +558,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.7.11</version>
+        <version>42.7.12</version>
       </dependency>
       <!--H2 1.4.197 cannot open a database created by version 1.3.174 twice in a row
       https://github.com/gitbucket/gitbucket/issues/2279

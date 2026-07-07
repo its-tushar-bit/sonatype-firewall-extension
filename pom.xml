@@ -41,7 +41,7 @@
     <slf4j.version>2.0.17</slf4j.version>
     <!-- logback 1.4.x requires Java 11 -->
     <logback.version>1.5.36</logback.version>
-    <jackson.version>2.21.4</jackson.version>
+    <jackson.version>2.21.5</jackson.version>
     <dropwizard-jackson.version>5.0.0</dropwizard-jackson.version>
     <jooq.version>3.19.29</jooq.version>
     <!-- Placeholder schema name stamped into jOOQ-generated classes by codegen (insight-brain-db/pom.xml).
@@ -781,6 +781,17 @@
         <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <!--
+       Override jackson-databind pinned by spring-boot-dependencies (jackson-2-bom)
+       to mitigate CVE-2026-54515. Drop this override once Spring Boot's Jackson 2.x
+       BOM catches up to ${jackson.version}.
+       -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
       </dependency>
 
       <dependency>

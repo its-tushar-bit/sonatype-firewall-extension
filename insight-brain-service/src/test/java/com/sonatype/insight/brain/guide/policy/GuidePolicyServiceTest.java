@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.PermissionService;
+import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
@@ -331,6 +332,31 @@ public class GuidePolicyServiceTest
     assertThat(attached.complianceLevel()).isEqualTo(GuidePolicyComplianceLevel.PASS);
     assertThat(attached.summary()).isNull();
     assertThat(attached.violations()).isNull();
+  }
+
+  // GUIDE-2821: programmatic cap on `limit` for the policy-enriched Guide search endpoints.
+  // Implemented as a static helper (rather than @Max on the resource method) because the
+  // resources implement contract interfaces from guide-api-contract and Hibernate Validator
+  // (HV000151) forbids an overriding method from redefining parameter constraints.
+
+  @Test
+  public void requireLimitWithinPolicyEnrichmentCap_overCap_throws400() {
+    assertThatThrownBy(() -> GuidePolicyService.requireLimitWithinPolicyEnrichmentCap(26))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("limit must not exceed 25");
+  }
+
+  @Test
+  public void requireLimitWithinPolicyEnrichmentCap_atCap_allowed() {
+    GuidePolicyService.requireLimitWithinPolicyEnrichmentCap(GuidePolicyService.MAX_POLICY_ENRICHED_LIMIT);
+    // no exception
+  }
+
+  @Test
+  public void requireLimitWithinPolicyEnrichmentCap_nullLimit_allowed() {
+    // Callers that omit `limit` get the upstream default; the cap only constrains explicit values.
+    GuidePolicyService.requireLimitWithinPolicyEnrichmentCap(null);
+    // no exception
   }
 
   @Test

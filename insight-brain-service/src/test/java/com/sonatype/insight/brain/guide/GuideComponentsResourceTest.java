@@ -140,23 +140,23 @@ public class GuideComponentsResourceTest
 
     HttpResponse response = restRequest()
         .path(SEARCH_PATH)
-        .parameter("query", "test",
-            "formats", "maven",
-            "categories", "library",
-            "severities", "critical",
-            "minCvss", "7.0",
-            "maxCvss", "10.0",
-            "minEpss", "0.5",
-            "maxEpss", "1.0",
-            "licenseFamilies", "apache",
-            "licenses", "Apache-2.0",
-            "minVersionScore", "50",
-            "maxVersionScore", "100",
-            "latestStable", "true",
-            "publishedWindow", "30d",
-            "hasMalware", "false",
-            "offset", "0",
-            "limit", "20")
+        .query("query", "test")
+        .query("formats", "maven")
+        .query("categories", "library")
+        .query("severities", "critical")
+        .query("minCvss", "7.0")
+        .query("maxCvss", "10.0")
+        .query("minEpss", "0.5")
+        .query("maxEpss", "1.0")
+        .query("licenseFamilies", "apache")
+        .query("licenses", "Apache-2.0")
+        .query("minVersionScore", "50")
+        .query("maxVersionScore", "100")
+        .query("latestStable", "true")
+        .query("publishedWindow", "30d")
+        .query("hasMalware", "false")
+        .query("offset", "0")
+        .query("limit", "20")
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
@@ -164,18 +164,20 @@ public class GuideComponentsResourceTest
 
   @Test
   public void withPagination_returns200() throws Exception {
+    // limit kept at the GUIDE-2821 cap (25) — values above are rejected by the cap check.
     GuideComponentSearchResponse hdsResponse = new GuideComponentSearchResponse(
-        List.of(), 0, 10, 50, null);
+        List.of(), 0, 10, 25, null);
     hdsRespondWith(hdsResponse).atUri("/rest/search/components");
 
     HttpResponse response = restRequest()
         .path(SEARCH_PATH)
-        .parameter("offset", "10", "limit", "50")
+        .query("offset", "10")
+        .query("limit", "25")
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
     assertThat(response.getBodyText()).contains("\"offset\":10");
-    assertThat(response.getBodyText()).contains("\"limit\":50");
+    assertThat(response.getBodyText()).contains("\"limit\":25");
   }
 
   @Test
@@ -336,6 +338,61 @@ public class GuideComponentsResourceTest
     assertThat(response.getStatusCode()).isEqualTo(200);
     assertThat(response.getBodyText()).contains("\"name\":\"log4j-api\"");
     assertThat(response.getBodyText()).contains("\"total\":1");
+  }
+
+  // The limit cap on the policy-enriched search endpoints (search, versions, dependencies) — see
+  // GuidePolicyService.MAX_POLICY_ENRICHED_LIMIT. The static helper rejects limit > 25 at the top
+  // of each resource method, so the request never reaches HDS or the Drools enrichment path. No
+  // hdsRespondWith() setup needed: a 400 fires before any downstream call. GUIDE-2821.
+
+  @Test
+  public void search_limitOver25_returns400() throws Exception {
+    HttpResponse response = restRequest()
+        .path(SEARCH_PATH)
+        .query("query", "log4j")
+        .query("limit", "26")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).contains("limit must not exceed 25");
+  }
+
+  @Test
+  public void search_limitAt25_isAccepted() throws Exception {
+    hdsRespondWith(new GuideComponentSearchResponse(List.of(), 0, 0, 25, null))
+        .atUri("/rest/search/components");
+
+    HttpResponse response = restRequest()
+        .path(SEARCH_PATH)
+        .query("query", "log4j")
+        .query("limit", "25")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+  }
+
+  @Test
+  public void getComponentVersions_limitOver25_returns400() throws Exception {
+    HttpResponse response = restRequest()
+        .path("api/v2/guide/components/versions")
+        .query("purl", LOG4J_CORE_PURL)
+        .query("limit", "26")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).contains("limit must not exceed 25");
+  }
+
+  @Test
+  public void getComponentDependencies_limitOver25_returns400() throws Exception {
+    HttpResponse response = restRequest()
+        .path("api/v2/guide/components/dependencies")
+        .query("purl", LOG4J_CORE_PURL)
+        .query("limit", "26")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).contains("limit must not exceed 25");
   }
 
   @Test

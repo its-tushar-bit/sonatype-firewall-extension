@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.PermissionService;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -80,6 +81,36 @@ public class GuidePolicyService
   private static final PolicyDetail COMPLIANT_ONLY = PolicyDetail.COMPLIANT_ONLY;
 
   private static final PolicyDetail FULL = PolicyDetail.FULL;
+
+  /**
+   * Stop-gap cap on the {@code limit} query parameter for Guide search endpoints whose hits feed
+   * policy enrichment. Each returned hit incurs one HDS fetch + one Drools session on the shared
+   * request thread; an unbounded {@code limit} would let an authenticated caller force a ~10k
+   * Drools run (OpenSearch's default {@code index.max_result_window}). 25 is deliberately
+   * conservative — raise based on customer feedback rather than start high. Kept here (next to the
+   * enrichment cost it bounds) rather than on the transport layer.
+   */
+  public static final int MAX_POLICY_ENRICHED_LIMIT = 25;
+
+  /**
+   * Reject {@code limit > 25} with HTTP 400. Done programmatically rather than via
+   * {@code @Max(25)} on the resource method because these resources implement contract interfaces
+   * from {@code guide-api-contract} and Hibernate Validator (HV000151) forbids an overriding
+   * method from redefining the parameter-constraint configuration of its supertype. Callers that
+   * omit {@code limit} are unaffected — null short-circuits. Uses the Sonatype
+   * {@link BadRequestException} (mapped via {@code @HttpStatusCode(400)}) for body-shape
+   * consistency with the rest of IQ's 400 responses.
+   */
+  public static void requireLimitWithinPolicyEnrichmentCap(Integer limit) {
+    if (limit != null && limit > MAX_POLICY_ENRICHED_LIMIT) {
+      // INFO (not WARN): caller-supplied value out of range, not a server problem. Logged so we
+      // can see frequency in prod — the cap's intentional stop-gap framing means we'll raise it
+      // if legitimate clients keep hitting it.
+      log.info("Guide search rejected: limit={} exceeds policy-enrichment cap of {}", limit, MAX_POLICY_ENRICHED_LIMIT);
+      throw new BadRequestException(
+          "limit must not exceed " + MAX_POLICY_ENRICHED_LIMIT + " for policy-enriched Guide search endpoints");
+    }
+  }
 
   private final GuidePolicyEvaluator guidePolicyEvaluator;
 

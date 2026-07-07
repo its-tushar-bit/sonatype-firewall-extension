@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.guide.api.resource;
 
+import static com.sonatype.insight.brain.guide.policy.GuidePolicyService.requireLimitWithinPolicyEnrichmentCap;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -60,6 +62,7 @@ public class GuideGlobalSearchResource
       @QueryParam("formats") List<String> formats,
       @QueryParam("publishedWindow") String publishedWindow) throws IOException
   {
+    requireLimitWithinPolicyEnrichmentCap(limit);
     GuideGlobalSearchRequest request = new GuideGlobalSearchRequest(
         query, offset, limit, sortField, sortOrder, latestStable, formats, publishedWindow);
     return guidePolicyService.enrichGlobalSearch(searchApiClient.globalSearch(request));

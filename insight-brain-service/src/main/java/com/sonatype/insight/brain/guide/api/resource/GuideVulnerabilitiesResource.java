@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.guide.api.resource;
 
+import static com.sonatype.insight.brain.guide.policy.GuidePolicyService.requireLimitWithinPolicyEnrichmentCap;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -106,6 +108,7 @@ public class GuideVulnerabilitiesResource
       @QueryParam("sortOrder") String sortOrder) throws IOException
   {
     requireNonBlankId(id);
+    requireLimitWithinPolicyEnrichmentCap(limit);
     GuideAffectedComponentVersionRequest request = new GuideAffectedComponentVersionRequest(
         id, query, offset, limit, sortField, sortOrder);
     return guidePolicyService.enrichAffectedSearch(

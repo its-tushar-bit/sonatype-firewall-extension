@@ -124,4 +124,18 @@ public class GuideVulnerabilitiesResourceTest
     assertThat(response.getStatusCode()).isEqualTo(502);
     assertThat(response.getBodyText()).contains("Bad Gateway");
   }
+
+  // GUIDE-2821: only /{id}/components (the policy-enriched affected-components endpoint) carries
+  // the @Max(25) cap. /search above returns vulnerabilities, not components, and is not capped.
+
+  @Test
+  public void getVulnerabilityAffectedComponents_limitOver25_returns400() throws Exception {
+    HttpResponse response = restRequest()
+        .path("api/v2/guide/vulnerabilities/CVE-2021-44228/components")
+        .query("limit", "26")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).contains("limit must not exceed 25");
+  }
 }

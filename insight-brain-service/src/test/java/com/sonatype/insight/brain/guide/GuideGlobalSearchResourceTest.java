@@ -239,12 +239,12 @@ public class GuideGlobalSearchResourceTest
 
     HttpResponse response = restRequest()
         .path(SEARCH_PATH)
-        .parameter("query", "spring",
-            "formats", "maven",
-            "latestStable", "true",
-            "publishedWindow", "30d",
-            "offset", "0",
-            "limit", "20")
+        .query("query", "spring")
+        .query("formats", "maven")
+        .query("latestStable", "true")
+        .query("publishedWindow", "30d")
+        .query("offset", "0")
+        .query("limit", "20")
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
@@ -252,18 +252,32 @@ public class GuideGlobalSearchResourceTest
 
   @Test
   public void withPagination_returns200() throws Exception {
+    // limit kept at the GUIDE-2821 cap (25) — values above are rejected by the cap check.
     GuideGlobalSearchResponse hdsResponse = new GuideGlobalSearchResponse(
-        List.of(), 0, 10, 50, null);
+        List.of(), 0, 10, 25, null);
     hdsRespondWith(hdsResponse).atUri("/rest/search/global");
 
     HttpResponse response = restRequest()
         .path(SEARCH_PATH)
-        .parameter("offset", "10", "limit", "50")
+        .query("offset", "10")
+        .query("limit", "25")
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
     assertThat(response.getBodyText()).contains("\"offset\":10");
-    assertThat(response.getBodyText()).contains("\"limit\":50");
+    assertThat(response.getBodyText()).contains("\"limit\":25");
+  }
+
+  @Test
+  public void globalSearch_limitOver25_returns400() throws Exception {
+    HttpResponse response = restRequest()
+        .path(SEARCH_PATH)
+        .query("query", "log4j")
+        .query("limit", "26")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).contains("limit must not exceed 25");
   }
 
   @Test

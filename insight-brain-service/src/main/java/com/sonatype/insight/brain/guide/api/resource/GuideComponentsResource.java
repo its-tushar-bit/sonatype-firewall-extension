@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.guide.api.resource;
 
+import static com.sonatype.insight.brain.guide.policy.GuidePolicyService.requireLimitWithinPolicyEnrichmentCap;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -82,6 +84,7 @@ public class GuideComponentsResource
       @QueryParam("hasMalware") Boolean hasMalware,
       @QueryParam("minDocCount") Integer minDocCount) throws IOException
   {
+    requireLimitWithinPolicyEnrichmentCap(limit);
     GuideComponentSearchRequest request = new GuideComponentSearchRequest(
         query, offset, limit, sortField, sortOrder, formats, categories, severities,
         minCvss, maxCvss, minEpss, maxEpss, licenseFamilies, licenses,
@@ -145,6 +148,7 @@ public class GuideComponentsResource
       @QueryParam("hasMalware") Boolean hasMalware,
       @QueryParam("isStable") Boolean isStable) throws IOException
   {
+    requireLimitWithinPolicyEnrichmentCap(limit);
     if (purl != null) {
       return getComponentVersionsByPurlQueryParam(
           purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore, maxVersionScore,
@@ -319,6 +323,7 @@ public class GuideComponentsResource
       @QueryParam("licenses") List<String> licenses,
       @QueryParam("latestStable") String latestStable) throws IOException
   {
+    requireLimitWithinPolicyEnrichmentCap(limit);
     if (purl != null) {
       return getComponentDependenciesByPurlQueryParam(
           purl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss, maxCvss,

@@ -8,12 +8,16 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for the TTL-based cache in {@link SystemConfigurationPropertyDAO}.
@@ -156,6 +160,38 @@ public class SystemConfigurationPropertyDAOCacheTest
     SystemConfigurationProperty fresh = dao.getByName("update-cache-test");
     assertThat(fresh).isNotNull();
     assertThat(fresh.getValue()).isEqualTo("after");
+  }
+
+  @Test
+  public void cacheIsSharedAcrossDaoInstancesOnSameDataStore() {
+    // Both DAOs exist before the cache is populated, so neither constructor's cache reset interferes below.
+    SystemConfigurationPropertyDAO otherDao = daoFactory.createSystemConfigurationPropertyDAO();
+    dao.set("coherence-prop", "shared");
+
+    // dao populates the data-store-scoped cache; otherDao must read the very same cached instance.
+    SystemConfigurationProperty viaDao = dao.getByName("coherence-prop");
+    SystemConfigurationProperty viaOtherDao = otherDao.getByName("coherence-prop");
+
+    // A per-instance cache would make otherDao load its own copy; the shared entry returns the same object.
+    assertThat(viaOtherDao).isSameAs(viaDao);
+  }
+
+  @Test
+  public void closedDataStoreEntryDoesNotPoisonAnotherDataStore() {
+    dao.set("isolation-prop", "live");
+
+    // A stopped test server whose data store is closed: any use throws, exactly like the reused-fork leak.
+    OperationalDataStore closedDataStore = mock(OperationalDataStore.class);
+    when(closedDataStore.getDataSource()).thenThrow(new IllegalStateException("Data source is closed"));
+    SystemConfigurationPropertyDAO daoOnClosedDataStore = new SystemConfigurationPropertyDAO(closedDataStore);
+
+    // Reading through the closed data store installs its own (poisoned) cache entry and fails, as a leaked thread
+    // would.
+    Throwable thrown = catchThrowable(() -> daoOnClosedDataStore.getByName("isolation-prop"));
+    assertThat(thrown).isNotNull().hasMessageContaining("Data source is closed");
+
+    // A DAO on a live data store reads its own entry, unaffected by the closed data store's poisoned entry.
+    assertThat(dao.getByName("isolation-prop").getValue()).isEqualTo("live");
   }
 
   @Test

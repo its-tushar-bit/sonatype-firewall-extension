@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.cache.CacheBuilder;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.SystemConfigurationProperty.SYSTEM_CONFIGURATION_PROPERTY;
@@ -42,32 +44,39 @@ public class SystemConfigurationPropertyDAO
   // configuration properties are rarely updated (admin operations only).
   private static final Duration CACHE_TTL = Duration.ofSeconds(30);
 
-  private static volatile TenantReference<ResettableExpiringMemoizingSupplier<Map<String, SystemConfigurationProperty>>> cacheRef =
-      new TenantReference<>();
+  // Keyed by the DAO's OperationalDataStore so every DAO sharing a data store shares one cache (invalidation on
+  // write stays coherent across instances), while a different data store gets a separate entry. This isolates
+  // servers that reuse the JVM (test forks): a stopped server's lingering thread can only poison its own closed
+  // data store's entry, never the entry a freshly started server reads. Weak keys let a discarded data store — and
+  // its cached supplier, which captures that data store — be collected once nothing else references it.
+  private static final ConcurrentMap<OperationalDataStore, TenantReference<ResettableExpiringMemoizingSupplier<Map<String, SystemConfigurationProperty>>>> cacheByDataStore =
+      CacheBuilder.newBuilder()
+          .weakKeys()
+          .<OperationalDataStore, TenantReference<ResettableExpiringMemoizingSupplier<Map<String, SystemConfigurationProperty>>>>build()
+          .asMap();
 
-  /**
-   * Creates a new DAO and invalidates the entire static cache.
-   * <p>
-   * The cache invalidation ensures that suppliers (which capture this instance's DataStore)
-   * are recreated. This is critical in tests where multiple DAO instances are created with
-   * different DataStores — stale suppliers would reference a closed DataStore and fail.
-   * In production, this constructor fires only once at startup (@Singleton).
-   * </p>
-   */
   @Inject
   public SystemConfigurationPropertyDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
-    invalidateEntireCache();
+    // Start this data store with a clean cache. Scoped to this data store so it never disturbs another server's
+    // entry. In production the @Singleton is built once; in tests each new DAO reloads its data store's properties.
+    cacheByDataStore.remove(operationalDataStore);
+  }
+
+  private TenantReference<ResettableExpiringMemoizingSupplier<Map<String, SystemConfigurationProperty>>> cacheForDataStore() {
+    return cacheByDataStore.computeIfAbsent(getDataStore(), _ -> new TenantReference<>());
   }
 
   private Map<String, SystemConfigurationProperty> getCachedProperties() {
-    var supplier = cacheRef.computeIfAbsent(
+    var supplier = cacheForDataStore().computeIfAbsent(
         _ -> new ResettableExpiringMemoizingSupplier<>(this::loadAllFromDb, CACHE_TTL));
     return supplier.get();
   }
 
   /**
-   * Invalidates the cache, causing the next read to fetch from the database.
+   * Invalidates this data store's cache so subsequent reads reload from the database. Propagation is best-effort
+   * within one {@link #CACHE_TTL}: a reader that already dereferenced the cache when this runs may still return the
+   * prior value, the same eventual-consistency bound noted on the TTL above.
    * <p>
    * In single-tenant or global-tenant context, replaces the entire cache reference
    * (invalidating all tenants) because tenant caches include merged global properties.
@@ -77,12 +86,12 @@ public class SystemConfigurationPropertyDAO
   public void invalidateCache() {
     var tenantUtil = new TenantUtil();
     if (tenantUtil.isSingleTenant() || tenantUtil.isGlobalTenant()) {
-      // Global change affects all tenants' merged views — replace the entire cache
-      cacheRef = new TenantReference<>();
+      // Global change affects all tenants' merged views — replace this data store's entire cache
+      cacheByDataStore.put(getDataStore(), new TenantReference<>());
     }
     else {
       // null means no supplier yet for this tenant — next getCachedProperties() will create one
-      var supplier = cacheRef.get();
+      var supplier = cacheForDataStore().get();
       if (supplier != null) {
         supplier.reset();
       }
@@ -90,12 +99,11 @@ public class SystemConfigurationPropertyDAO
   }
 
   /**
-   * Discards the entire static cache unconditionally. Use in test teardown to prevent
-   * stale suppliers (which capture a specific DAO instance's DataStore) from leaking
-   * between test classes.
+   * Discards every data store's cache unconditionally. Use in test teardown to drop cached values before the next
+   * test reads them.
    */
   public static void invalidateEntireCache() {
-    cacheRef = new TenantReference<>();
+    cacheByDataStore.clear();
   }
 
   public SystemConfigurationProperty getByNameNotNull(String name) {

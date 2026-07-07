@@ -233,6 +233,26 @@ public class PolicyMonitoringDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdWithHierarchy_returnsMonitoringAcrossAncestors() {
+    PolicyMonitoring orgMonitoring = new PolicyMonitoring(organization.getId(), Stage.ID_RELEASE);
+    dao.insert(orgMonitoring);
+    PolicyMonitoring appMonitoring = new PolicyMonitoring(application.getId(), Stage.ID_BUILD);
+    dao.insert(appMonitoring);
+
+    List<PolicyMonitoring> result = dao.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).extracting(PolicyMonitoring::getId)
+        .containsExactly(appMonitoring.getId(), orgMonitoring.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_emptyWhenNoMonitoring() {
+    List<PolicyMonitoring> result = dao.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
   public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_NullList() {
     Map<String, PolicyMonitoring> result = dao.getByOwnerIdsAndStageTypeIdsWithInheritance(null, Stage.ID_RELEASE);
 

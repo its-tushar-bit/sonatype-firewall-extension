@@ -33,6 +33,37 @@ public class ScmUserMappingsDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdWithHierarchy_returnsClosestAncestor() {
+    ScmUserMappings orgMappings =
+        tempEntity.createScmUserMappings(organization.getId(), getRandomMappings());
+    tempEntity.createScmUserMappings(organization.getParentOrganizationId(), getRandomMappings());
+
+    ScmUserMappings result = scmUserMappingsDAO.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(orgMappings.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_prefersSelfOrganizationOverAncestor() {
+    ScmUserMappings ownMappings =
+        tempEntity.createScmUserMappings(organization.getId(), getRandomMappings());
+    tempEntity.createScmUserMappings(organization.getParentOrganizationId(), getRandomMappings());
+
+    ScmUserMappings result = scmUserMappingsDAO.getByOwnerIdWithHierarchy(organization.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(ownMappings.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_returnsNullWhenNone() {
+    ScmUserMappings result = scmUserMappingsDAO.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).isNull();
+  }
+
+  @Test
   public void testGetByOrganizationId() {
     ScmUserMappings existingScmUserMappings = tempEntity.createScmUserMappings(organization.getId(),
         getRandomMappings());

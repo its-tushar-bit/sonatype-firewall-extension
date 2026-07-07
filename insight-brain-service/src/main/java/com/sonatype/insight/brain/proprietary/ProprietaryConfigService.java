@@ -7,8 +7,11 @@ package com.sonatype.insight.brain.proprietary;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -69,16 +72,17 @@ public class ProprietaryConfigService
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     ProprietaryConfigHierarchy proprietaryConfigHierarchy = new ProprietaryConfigHierarchy();
 
-    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(owner.getId());
+    List<Owner> owners = new ArrayList<>();
+    ownerDAO.walkHierarchy(internalOwnerId).forEach(owners::add);
+    Map<String, ProprietaryConfig> configsByOwnerId = proprietaryConfigDAO.getByOwnerIdWithHierarchy(internalOwnerId)
+        .stream()
+        .collect(Collectors.toMap(ProprietaryConfig::getOwnerId, Function.identity()));
 
-      if (proprietaryConfig == null) {
-        proprietaryConfig = new ProprietaryConfig(owner.getId(), null, null);
-      }
-
-      ProprietaryConfigByOwner proprietaryConfigByOwner = new ProprietaryConfigByOwner(owner.getId(), owner.getName(),
-          owner.getType(), proprietaryConfig);
-      proprietaryConfigHierarchy.proprietaryConfigByOwners.add(proprietaryConfigByOwner);
+    for (Owner owner : owners) {
+      ProprietaryConfig proprietaryConfig = configsByOwnerId.getOrDefault(
+          owner.getId(), new ProprietaryConfig(owner.getId(), null, null));
+      proprietaryConfigHierarchy.proprietaryConfigByOwners.add(
+          new ProprietaryConfigByOwner(owner.getId(), owner.getName(), owner.getType(), proprietaryConfig));
     }
     return proprietaryConfigHierarchy;
   }
@@ -167,24 +171,20 @@ public class ProprietaryConfigService
    */
   public com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(OwnerType ownerType, String ownerId) {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
-    return getProprietaryConfig(internalOwnerId, ownerDAO, proprietaryConfigDAO);
+    return getProprietaryConfig(internalOwnerId, proprietaryConfigDAO);
   }
 
   public com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(
       String internalOwnerId,
-      OwnerDAO ownerDAO,
       ProprietaryConfigDAO proprietaryConfigDAO)
   {
     com.sonatype.clm.dto.model.ProprietaryConfig result = new com.sonatype.clm.dto.model.ProprietaryConfig();
     result.setPackages(new ArrayList<>());
     result.setRegexes(new ArrayList<>());
 
-    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      ProprietaryConfig ownerConfig = proprietaryConfigDAO.getByOwnerId(owner.getId());
-      if (ownerConfig != null) {
-        result.getPackages().addAll(ownerConfig.getPackages());
-        result.getRegexes().addAll(ownerConfig.getRegexes());
-      }
+    for (ProprietaryConfig ownerConfig : proprietaryConfigDAO.getByOwnerIdWithHierarchy(internalOwnerId)) {
+      result.getPackages().addAll(ownerConfig.getPackages());
+      result.getRegexes().addAll(ownerConfig.getRegexes());
     }
 
     return result;
@@ -226,7 +226,7 @@ public class ProprietaryConfigService
 
   public Predicate<String> createIsProprietary(String internalOwnerId) {
     com.sonatype.clm.dto.model.ProprietaryConfig proprietaryConfig =
-        getProprietaryConfig(internalOwnerId, ownerDAO, proprietaryConfigDAO);
+        getProprietaryConfig(internalOwnerId, proprietaryConfigDAO);
     List<Selector> selectors = new ArrayList<>();
     if (!proprietaryConfig.getPackages().isEmpty()) {
       selectors.add(PathSelector.forProprietaryPackages(

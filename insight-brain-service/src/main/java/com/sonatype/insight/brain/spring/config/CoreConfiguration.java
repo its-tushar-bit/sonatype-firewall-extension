@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.dashboard.PostgresApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresComponentRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskService;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -367,7 +366,6 @@ public class CoreConfiguration
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       ComponentCategoryDAO componentCategoryDAO,
       LicenseDAO licenseDAO,
-      OwnerDAO ownerDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       LabelDAO labelDAO,
       VulnerabilityGroupDAO vulnerabilityGroupDAO,
@@ -388,7 +386,7 @@ public class CoreConfiguration
         new LabelConditionType(labelDAO),
         new LicenseConditionType(licenseDAO),
         new LicenseStatusConditionType(),
-        new LicenseThreatGroupConditionType(licenseThreatGroupDAO, licenseDAO, ownerDAO),
+        new LicenseThreatGroupConditionType(licenseThreatGroupDAO, licenseDAO),
         new LicenseThreatGroupLevelConditionType(),
         new RelativePopularityConditionType(),
         new MatchStateConditionType(),
@@ -409,7 +407,7 @@ public class CoreConfiguration
         new SecurityVulnerabilityCweConditionType(),
         new SecurityVulnerabilityCustomRemediationConditionType(),
         new IacControlConditionType(thirdPartyVulnerabilityDAO),
-        new VulnerabilityGroupConditionType(vulnerabilityGroupDAO, ownerDAO),
+        new VulnerabilityGroupConditionType(vulnerabilityGroupDAO),
         new SecurityVulnerabilityCustomCVSSVectorStringConditionType(),
         new ComponentEndOfLifeConditionType(),
         new DerivativeAiModelConditionType(),
@@ -421,7 +419,6 @@ public class CoreConfiguration
     ConditionValueTypes.injectConditionValueTypes(
         componentCategoryDAO,
         licenseDAO,
-        ownerDAO,
         licenseThreatGroupDAO,
         labelDAO,
         vulnerabilityGroupDAO);

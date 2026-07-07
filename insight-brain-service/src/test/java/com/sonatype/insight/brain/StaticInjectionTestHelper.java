@@ -91,8 +91,7 @@ public class StaticInjectionTestHelper
         new LabelConditionType(daoFactory.createLabelDAO()),
         new LicenseConditionType(daoFactory.createLicenseDAO()),
         new LicenseStatusConditionType(),
-        new LicenseThreatGroupConditionType(daoFactory.createLicenseThreatGroupDAO(), daoFactory.createLicenseDAO(),
-            daoFactory.createOwnerDAO()),
+        new LicenseThreatGroupConditionType(daoFactory.createLicenseThreatGroupDAO(), daoFactory.createLicenseDAO()),
         new LicenseThreatGroupLevelConditionType(),
         new RelativePopularityConditionType(),
         new MatchStateConditionType(),
@@ -113,7 +112,7 @@ public class StaticInjectionTestHelper
         new SecurityVulnerabilityCweConditionType(),
         new SecurityVulnerabilityCustomRemediationConditionType(),
         new IacControlConditionType(daoFactory.createThirdPartyVulnerabilityDAO()),
-        new VulnerabilityGroupConditionType(daoFactory.createVulnerabilityGroupDAO(), daoFactory.createOwnerDAO()),
+        new VulnerabilityGroupConditionType(daoFactory.createVulnerabilityGroupDAO()),
         new SecurityVulnerabilityCustomCVSSVectorStringConditionType(),
         new ComponentEndOfLifeConditionType(),
         new DerivativeAiModelConditionType(),
@@ -127,7 +126,6 @@ public class StaticInjectionTestHelper
     ConditionValueTypes.injectConditionValueTypes(
         daoFactory.createComponentCategoryDAO(),
         daoFactory.createLicenseDAO(),
-        daoFactory.createOwnerDAO(),
         daoFactory.createLicenseThreatGroupDAO(),
         daoFactory.createLabelDAO(),
         daoFactory.createVulnerabilityGroupDAO());

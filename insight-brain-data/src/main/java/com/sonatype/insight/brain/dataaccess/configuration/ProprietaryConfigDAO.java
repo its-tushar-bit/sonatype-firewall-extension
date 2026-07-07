@@ -27,6 +27,7 @@ import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.UpdatableRecord;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProprietaryConfig.PROPRIETARY_CONFIG;
 
 /**
@@ -82,6 +83,23 @@ public class ProprietaryConfigDAO
         .selectFrom(PROPRIETARY_CONFIG)
         .where(PROPRIETARY_CONFIG.OWNER_ID.eq(ownerId))
         .fetchOne());
+  }
+
+  public List<ProprietaryConfig> getByOwnerIdWithHierarchy(final TransactionContext tx, final String ownerId) {
+    return tx.dsl()
+        .select(PROPRIETARY_CONFIG.fields())
+        .from(PROPRIETARY_CONFIG)
+        .join(OWNER_ANCESTOR)
+        .on(PROPRIETARY_CONFIG.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE, PROPRIETARY_CONFIG.PROPRIETARY_CONFIG_ID)
+        .fetch(r -> toEntity(r.into(PROPRIETARY_CONFIG)));
+  }
+
+  public List<ProprietaryConfig> getByOwnerIdWithHierarchy(final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdWithHierarchy(tx, ownerId);
+    }
   }
 
   @Override

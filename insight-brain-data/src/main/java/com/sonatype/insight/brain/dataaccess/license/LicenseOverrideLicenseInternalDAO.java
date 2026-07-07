@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -38,6 +39,17 @@ public class LicenseOverrideLicenseInternalDAO
         .selectFrom(LICENSE_OVERRIDE_LICENSE)
         .where(LICENSE_OVERRIDE_LICENSE.LICENSE_OVERRIDE_ID.eq(licenseOverrideId))
         .fetch(this::toEntity);
+  }
+
+  public List<LicenseOverrideLicenseInternal> getByLicenseOverrideIds(
+      TransactionContext tx,
+      Collection<String> licenseOverrideIds)
+  {
+    return getListWithSqlInClause(licenseOverrideIds,
+        chunk -> tx.dsl()
+            .selectFrom(LICENSE_OVERRIDE_LICENSE)
+            .where(LICENSE_OVERRIDE_LICENSE.LICENSE_OVERRIDE_ID.in(chunk))
+            .fetch(this::toEntity));
   }
 
   List<LicenseOverrideLicenseInternal> getByOwnerId(TransactionContext tx, String ownerId) {

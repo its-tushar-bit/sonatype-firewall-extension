@@ -6,15 +6,16 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -28,11 +29,12 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Row2;
 import org.jooq.Table;
@@ -131,13 +133,27 @@ public class ComponentObligationAttributionDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
+    var coa = COMPONENT_OBLIGATION_ATTRIBUTION;
+    var oa = OWNER_ANCESTOR;
+
+    List<Field<?>> selectFields = new ArrayList<>(Arrays.asList(coa.fields()));
+    selectFields.add(oa.ANCESTOR_DISTANCE);
+
+    List<Record> rows = new ArrayList<>(tx.dsl()
+        .select(selectFields)
+        .from(coa)
+        .join(oa)
+        .on(coa.OWNER_ID.eq(oa.ANCESTOR_ID))
+        .where(oa.OWNER_ID.eq(ownerId))
+        .and(DSL.row(coa.COMPONENT_ID_FORMAT, coa.COMPONENT_ID_COORDINATES_JSON)
+            .eq(ComponentIdentifierAdapter.toComponentRow(componentIdentifier)))
+        .orderBy(oa.ANCESTOR_DISTANCE, coa.COMPONENT_OBLIGATION_ATTRIBUTION_ID)
+        .fetch());
+
     Map<String, ComponentObligationAttribution> obligationNameToAttribution = new HashMap<>();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      List<ComponentObligationAttribution> componentObligationAttributions =
-          getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
-      for (ComponentObligationAttribution attribution : componentObligationAttributions) {
-        obligationNameToAttribution.putIfAbsent(attribution.getObligationName(), attribution);
-      }
+    for (Record row : rows) {
+      obligationNameToAttribution.putIfAbsent(
+          row.get(coa.OBLIGATION_NAME), row.into(ComponentObligationAttribution.class));
     }
     return new ArrayList<>(obligationNameToAttribution.values());
   }
@@ -157,21 +173,58 @@ public class ComponentObligationAttributionDAO
       ComponentIdentifier componentIdentifier,
       Set<String> obligationNames)
   {
-    List<ComponentObligationAttribution> results = new ArrayList<>();
-    Set<String> missingObligations = new HashSet<>(obligationNames);
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      List<ComponentObligationAttribution> componentObligationAttributions =
-          getByOwnerIdAndComponentIdentifierAndObligationNames(tx, owner.getId(), componentIdentifier,
-              missingObligations);
-      results.addAll(componentObligationAttributions);
-      missingObligations.removeAll(componentObligationAttributions.stream()
-          .map(ComponentObligationAttribution::getObligationName)
-          .collect(Collectors.toSet()));
-      if (missingObligations.isEmpty()) {
-        break;
+    if (obligationNames.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    var coa = COMPONENT_OBLIGATION_ATTRIBUTION;
+    var oa = OWNER_ANCESTOR;
+
+    List<Field<?>> selectFields = new ArrayList<>(Arrays.asList(coa.fields()));
+    selectFields.add(oa.ANCESTOR_DISTANCE);
+
+    Function<Condition, List<Record>> fetchByObligationCondition = obligationCondition -> tx.dsl()
+        .select(selectFields)
+        .from(coa)
+        .join(oa)
+        .on(coa.OWNER_ID.eq(oa.ANCESTOR_ID))
+        .where(oa.OWNER_ID.eq(ownerId))
+        .and(DSL.row(coa.COMPONENT_ID_FORMAT, coa.COMPONENT_ID_COORDINATES_JSON)
+            .eq(ComponentIdentifierAdapter.toComponentRow(componentIdentifier)))
+        .and(obligationCondition)
+        .orderBy(oa.ANCESTOR_DISTANCE, coa.COMPONENT_OBLIGATION_ATTRIBUTION_ID)
+        .fetch();
+
+    Set<String> nonNullObligationNames = obligationNames.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    List<Record> rows = new ArrayList<>();
+    if (!nonNullObligationNames.isEmpty()) {
+      rows.addAll(getListWithSqlInClause(nonNullObligationNames,
+          chunk -> fetchByObligationCondition.apply(coa.OBLIGATION_NAME.in(chunk))));
+    }
+    if (obligationNames.contains(null)) {
+      rows.addAll(fetchByObligationCondition.apply(coa.OBLIGATION_NAME.isNull()));
+    }
+
+    Map<String, ClosestAncestorAccumulator> closestByName = new HashMap<>();
+    for (Record row : rows) {
+      int distance = row.get(oa.ANCESTOR_DISTANCE);
+      ClosestAncestorAccumulator accumulator = closestByName.get(row.get(coa.OBLIGATION_NAME));
+      if (accumulator == null) {
+        closestByName.put(row.get(coa.OBLIGATION_NAME), new ClosestAncestorAccumulator(distance, row));
+      }
+      else {
+        accumulator.merge(distance, row);
       }
     }
-    return results;
+
+    return closestByName.values()
+        .stream()
+        .flatMap(accumulator -> accumulator.rows.stream())
+        .map(row -> row.into(ComponentObligationAttribution.class))
+        .toList();
   }
 
   public List<ComponentObligationAttribution> getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
@@ -212,18 +265,10 @@ public class ComponentObligationAttributionDAO
           .map(ComponentIdentifierAdapter::toComponentRow)
           .toList();
       try (TransactionContext tx = createTransactionContext()) {
+        List<Field<?>> selectFields = new ArrayList<>(Arrays.asList(coa.fields()));
+        selectFields.add(oa.ANCESTOR_DISTANCE);
         return new ArrayList<>(tx.dsl()
-            .select(
-                coa.COMPONENT_OBLIGATION_ATTRIBUTION_ID,
-                coa.COMPONENT_ID_FORMAT,
-                coa.COMPONENT_ID_COORDINATES_JSON,
-                coa.OWNER_ID,
-                coa.OBLIGATION_NAME,
-                coa.CONTENT,
-                coa.LEGAL_CONTENT_HASH,
-                coa.LAST_UPDATED_BY_USERNAME,
-                coa.LAST_UPDATED_AT,
-                oa.ANCESTOR_DISTANCE)
+            .select(selectFields)
             .from(coa)
             .join(oa)
             .on(coa.OWNER_ID.eq(oa.ANCESTOR_ID))

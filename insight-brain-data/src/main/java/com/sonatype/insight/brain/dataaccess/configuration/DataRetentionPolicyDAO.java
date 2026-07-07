@@ -22,6 +22,7 @@ import jakarta.inject.Singleton;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.DataRetentionPolicy.DATA_RETENTION_POLICY;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -76,6 +77,21 @@ public class DataRetentionPolicyDAO
         .stream()
         .map(this::toEntity)
         .collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
+  }
+
+  public DataRetentionPolicy getByOwnerIdAndContextIdWithHierarchy(String ownerId, String contextId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .select(DATA_RETENTION_POLICY.fields())
+          .from(DATA_RETENTION_POLICY)
+          .join(OWNER_ANCESTOR)
+          .on(DATA_RETENTION_POLICY.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+          .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+          .and(DATA_RETENTION_POLICY.CONTEXT_ID.eq(contextId))
+          .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   public DataRetentionPolicy getByOwnerIdAndContextId(final String ownerId, final String contextId) {

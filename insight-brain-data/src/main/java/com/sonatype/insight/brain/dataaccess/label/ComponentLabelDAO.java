@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.label;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -17,7 +16,6 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -26,6 +24,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentLabel.COMPONENT_LABEL;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 @Named
 @Singleton
@@ -71,11 +70,17 @@ public class ComponentLabelDAO
   }
 
   public List<ComponentLabel> getByOwnerIdAndHashWithHierarchy(String ownerId, String hash) {
-    List<ComponentLabel> labels = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      labels.addAll(getByOwnerIdAndHash(owner.getId(), hash));
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(COMPONENT_LABEL.fields())
+          .from(COMPONENT_LABEL)
+          .join(OWNER_ANCESTOR)
+          .on(COMPONENT_LABEL.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+          .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+          .and(COMPONENT_LABEL.HASH.eq(hash))
+          .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+          .fetch(r -> toEntity(r.into(COMPONENT_LABEL)));
     }
-    return labels;
   }
 
   public List<ComponentLabel> getByOwnerId(String ownerId) {

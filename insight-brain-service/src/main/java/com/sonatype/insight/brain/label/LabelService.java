@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.label;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -134,15 +135,23 @@ public class LabelService
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId)
   {
-    ApplicableLabels result = new ApplicableLabels();
-
-    result.labelsByOwner = new ArrayList<>();
+    List<Owner> owners = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      owners.add(owner);
+    }
+    List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
+    Map<String, List<Label>> labelsByOwnerId = labelDAO.getByOwnerIds(ownerIds)
+        .stream()
+        .collect(Collectors.groupingBy(Label::getOwnerId));
+
+    ApplicableLabels result = new ApplicableLabels();
+    result.labelsByOwner = new ArrayList<>();
+    for (Owner owner : owners) {
       LabelsByOwner labelsByOwner = new LabelsByOwner();
       labelsByOwner.ownerId = owner.getId();
       labelsByOwner.ownerName = owner.getName();
       labelsByOwner.ownerType = owner.getType();
-      labelsByOwner.labels = labelDAO.getByOwnerId(owner.getId())
+      labelsByOwner.labels = labelsByOwnerId.getOrDefault(owner.getId(), Collections.emptyList())
           .stream()
           .map(label -> toDTO(label, owner.getType()))
           .collect(Collectors.toList());

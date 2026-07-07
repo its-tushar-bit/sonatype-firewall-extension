@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -538,6 +539,24 @@ public class PolicyWaiverService
       dtos.add(mapPolicyWaiverToDTO(waiver, policyNameLoader, policyWaiverReasonMap));
     }
     return dtos;
+  }
+
+  public Map<String, List<PolicyWaiverResource.PolicyWaiverDTO>> getExpiredWaiversByOwnerIds(
+      Collection<String> ownerIds,
+      String hash,
+      UnaryOperator<String> policyNameLoader,
+      ComponentIdentifier componentIdentifier,
+      Map<String, PolicyWaiverReason> policyWaiverReasonMap)
+  {
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    Map<String, List<PolicyWaiver>> waiversByOwnerId =
+        policyWaiverDAO.getExpiredToComponentIncludingAllVersionsByOwnerIds(ownerIds, hash, purl);
+
+    Map<String, List<PolicyWaiverResource.PolicyWaiverDTO>> dtosByOwnerId = new HashMap<>();
+    waiversByOwnerId.forEach((ownerId, waivers) -> dtosByOwnerId.put(ownerId, waivers.stream()
+        .map(waiver -> mapPolicyWaiverToDTO(waiver, policyNameLoader, policyWaiverReasonMap))
+        .collect(Collectors.toList())));
+    return dtosByOwnerId;
   }
 
   public PolicyWaiverResource.PolicyWaiverDTO mapPolicyWaiverToDTO(

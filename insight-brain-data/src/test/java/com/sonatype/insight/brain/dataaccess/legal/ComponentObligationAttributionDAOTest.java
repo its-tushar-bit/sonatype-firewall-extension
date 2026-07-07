@@ -303,6 +303,31 @@ public class ComponentObligationAttributionDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy_Null() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    ComponentObligationAttribution rootNull1 = tempEntity.newComponentObligationAttribution(componentIdentifier,
+        Organization.ROOT_ORGANIZATION_ID, null, "content1", "legalContentHash1");
+    ComponentObligationAttribution rootNull2 = tempEntity.newComponentObligationAttribution(componentIdentifier,
+        Organization.ROOT_ORGANIZATION_ID, null, "content2", "legalContentHash2");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, Organization.ROOT_ORGANIZATION_ID, "name",
+        "content3", "legalContentHash3");
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
+        componentIdentifier, Collections.singleton(null)))
+            .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .containsExactlyInAnyOrder(rootNull1, rootNull2);
+
+    ComponentObligationAttribution orgNull = tempEntity.newComponentObligationAttribution(componentIdentifier,
+        organization.getId(), null, "content4", "legalContentHash4");
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
+        componentIdentifier, Collections.singleton(null)))
+            .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .containsExactlyInAnyOrder(orgNull);
+  }
+
+  @Test
   public void testGetByOwnerIdAndComponentIdentifierWithHierarchy() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     String obligationName1 = "name1";

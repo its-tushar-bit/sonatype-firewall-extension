@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,7 +18,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -27,6 +27,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Row2;
 import org.jooq.Table;
@@ -99,14 +100,30 @@ public class CopyrightOverrideDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      List<CopyrightOverride> copyrightOverrides =
-          getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
-      if (!copyrightOverrides.isEmpty()) {
-        return copyrightOverrides;
-      }
-    }
-    return Collections.emptyList();
+    var cc = COMPONENT_COPYRIGHT;
+    var co = COPYRIGHT_OVERRIDE;
+    var oa = OWNER_ANCESTOR;
+
+    List<Field<?>> selectFields = new ArrayList<>(Arrays.asList(co.fields()));
+    selectFields.add(oa.ANCESTOR_DISTANCE);
+
+    List<Record> rows = new ArrayList<>(tx.dsl()
+        .select(selectFields)
+        .from(co)
+        .join(cc)
+        .on(co.COMPONENT_COPYRIGHT_ID.eq(cc.COMPONENT_COPYRIGHT_ID))
+        .join(oa)
+        .on(cc.OWNER_ID.eq(oa.ANCESTOR_ID))
+        .where(oa.OWNER_ID.eq(ownerId))
+        .and(DSL.row(cc.COMPONENT_ID_FORMAT, cc.COMPONENT_ID_COORDINATES_JSON)
+            .eq(ComponentIdentifierAdapter.toComponentRow(componentIdentifier)))
+        .orderBy(oa.ANCESTOR_DISTANCE)
+        .fetch());
+
+    return ClosestAncestorAccumulator.closest(rows, oa.ANCESTOR_DISTANCE)
+        .stream()
+        .map(row -> row.into(CopyrightOverride.class))
+        .toList();
   }
 
   public List<CopyrightOverride> getByOwnerIdAndComponentIdentifierWithHierarchy(

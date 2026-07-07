@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,36 +148,36 @@ public class PolicyWaiverResource
         .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     AppliedWaivers result = new AppliedWaivers();
+    List<Owner> owners = new ArrayList<>();
+    ownerDAO.walkHierarchy(ownerId).forEach(owners::add);
+
     ComponentIdentifier componentIdentifier = null;
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      if (componentIdentifier == null) {
-        componentIdentifier = getComponentIdentifierFromOwnerAndHash(owner, hash);
+    for (Owner owner : owners) {
+      componentIdentifier = getComponentIdentifierFromOwnerAndHash(owner, hash);
+      if (componentIdentifier != null) {
+        break;
       }
-      result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader, componentIdentifier,
-          policyWaiverReasonMap));
-      result.addExpired(owner, policyWaiverService.getExpiredWaivers(owner.getId(), hash, policyNameLoader,
-          componentIdentifier, policyWaiverReasonMap));
+    }
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
+
+    // Applicable and expired waivers are independent point-in-time reads for this read-only view; no snapshot across
+    // the two is required.
+    Map<String, List<PolicyWaiver>> applicableByOwnerId =
+        policyWaiverDAO.getApplicableToComponentIncludingAllVersionsByOwnerIds(ownerIds, hash, purl);
+    Map<String, List<PolicyWaiverDTO>> expiredByOwnerId = policyWaiverService.getExpiredWaiversByOwnerIds(
+        ownerIds, hash, policyNameLoader, componentIdentifier, policyWaiverReasonMap);
+
+    for (Owner owner : owners) {
+      List<PolicyWaiverDTO> applicableWaivers = applicableByOwnerId.getOrDefault(owner.getId(), List.of())
+          .stream()
+          .map(waiver -> policyWaiverService.mapPolicyWaiverToDTO(waiver, policyNameLoader, policyWaiverReasonMap))
+          .collect(Collectors.toList());
+      result.add(owner, applicableWaivers);
+      result.addExpired(owner, expiredByOwnerId.getOrDefault(owner.getId(), List.of()));
     }
 
     return result;
-  }
-
-  private List<PolicyWaiverDTO> getApplicableWaivers(
-      String ownerId,
-      String hash,
-      UnaryOperator<String> policyNameLoader,
-      ComponentIdentifier componentIdentifier,
-      Map<String, PolicyWaiverReason> policyWaiverReasonMap)
-  {
-    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-    List<PolicyWaiver> waivers =
-        policyWaiverDAO.getApplicableToComponentIncludingAllVersions(ownerId, hash, purl);
-    List<PolicyWaiverDTO> dtos = new ArrayList<>(waivers.size());
-    for (PolicyWaiver waiver : waivers) {
-      PolicyWaiverDTO dto = policyWaiverService.mapPolicyWaiverToDTO(waiver, policyNameLoader, policyWaiverReasonMap);
-      dtos.add(dto);
-    }
-    return dtos;
   }
 
   @GET

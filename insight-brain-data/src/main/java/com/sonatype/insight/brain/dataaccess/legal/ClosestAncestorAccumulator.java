@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.legal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jooq.Field;
 import org.jooq.Record;
 
 /**
@@ -37,5 +38,19 @@ final class ClosestAncestorAccumulator
       rows.add(candidateRow);
     }
     return this;
+  }
+
+  static List<Record> closest(List<Record> rows, Field<Integer> distanceField) {
+    ClosestAncestorAccumulator accumulator = null;
+    for (Record row : rows) {
+      int distance = row.get(distanceField);
+      if (accumulator == null) {
+        accumulator = new ClosestAncestorAccumulator(distance, row);
+      }
+      else {
+        accumulator.merge(distance, row);
+      }
+    }
+    return accumulator == null ? List.of() : List.copyOf(accumulator.rows);
   }
 }

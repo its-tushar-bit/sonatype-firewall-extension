@@ -5,19 +5,12 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -33,18 +26,14 @@ public class ApiCallFlowAnalysisConfigService
 {
   private final CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO;
 
-  private final OwnerDAO ownerDAO;
-
   private final IdUtils idUtils;
 
   @Inject
   public ApiCallFlowAnalysisConfigService(
       final CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO,
-      final OwnerDAO ownerDAO,
       final IdUtils idUtils)
   {
     this.callFlowAnalysisConfigDAO = callFlowAnalysisConfigDAO;
-    this.ownerDAO = ownerDAO;
     this.idUtils = idUtils;
   }
 
@@ -98,16 +87,11 @@ public class ApiCallFlowAnalysisConfigService
   }
 
   private ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfig(String ownerId) throws NotFoundException {
-    Iterable<Owner> ownersParents = ownerDAO.walkHierarchy(ownerId);
-    Stream<Owner> ownerStream = StreamSupport.stream(ownersParents.spliterator(), false /* parallel */);
-    Optional<ApiCallFlowAnalysisConfigDTO> optionalConfigDTO = ownerStream
-        .map(owner -> callFlowAnalysisConfigDAO.getByOwnerId(owner.getId()))
-        .filter(Objects::nonNull)
-        .map(this::buildApiCallFlowConfigDTO)
-        .findFirst();
-
-    return optionalConfigDTO.orElseThrow(
-        () -> new NotFoundException("Call Flow Analysis Config not found for ownerId " + ownerId));
+    CallFlowAnalysisConfig config = callFlowAnalysisConfigDAO.getByOwnerIdWithHierarchy(ownerId);
+    if (config == null) {
+      throw new NotFoundException("Call Flow Analysis Config not found for ownerId " + ownerId);
+    }
+    return buildApiCallFlowConfigDTO(config);
   }
 
   private void auditCallFlowAnalysisConfigUpdates(final ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig) {

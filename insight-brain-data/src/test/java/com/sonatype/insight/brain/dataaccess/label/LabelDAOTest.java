@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
@@ -548,6 +549,39 @@ public class LabelDAOTest
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LABEL);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(label.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndHash_groupedByComponentLabelOwner() {
+    Label label1 = tempEntity.newLabel(organization.getId());
+    Label label2 = tempEntity.newLabel(organization.getId());
+    String hash = "test-hash-abc";
+    String otherHash = "other-hash-xyz";
+
+    tempEntity.newComponentLabel(application.getId(), label1.getId(), hash);
+    tempEntity.newComponentLabel(application.getId(), label2.getId(), hash);
+    tempEntity.newComponentLabel(application.getId(), label1.getId(), otherHash);
+
+    String app2Id = tempEntity.newApplication(organization.getId()).getId();
+    tempEntity.newComponentLabel(app2Id, label1.getId(), hash);
+
+    Map<String, List<Label>> result =
+        labelDAO.getByOwnerIdsAndHash(Arrays.asList(application.getId(), app2Id), hash);
+
+    assertThat(result).containsOnlyKeys(application.getId(), app2Id);
+    assertThat(result.get(application.getId())).extracting(Label::getId)
+        .containsExactlyInAnyOrder(label1.getId(), label2.getId());
+    assertThat(result.get(app2Id)).extracting(Label::getId)
+        .containsExactlyInAnyOrder(label1.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndHash_emptyOwnerIdsReturnsEmptyMap() {
+    Map<String, List<Label>> emptyResult = labelDAO.getByOwnerIdsAndHash(Collections.emptyList(), "any-hash");
+    Map<String, List<Label>> nullResult = labelDAO.getByOwnerIdsAndHash(null, "any-hash");
+
+    assertThat(emptyResult).isEmpty();
+    assertThat(nullResult).isEmpty();
   }
 
   @Test

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import jakarta.inject.Singleton;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseOverride.LICENSE_OVERRIDE;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 /**
  * @since 1.13
@@ -89,6 +91,52 @@ public class LicenseOverrideInternalDAO
         .fetchOne());
   }
 
+  public LicenseOverrideInternal getByOwnerIdAndComponentIdentifierWithHierarchy(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    if (componentIdentifier == null) {
+      return null;
+    }
+    List<String> candidates = getCandidateCoordinateJsons(componentIdentifier);
+    return tx.dsl()
+        .select(LICENSE_OVERRIDE.fields())
+        .from(LICENSE_OVERRIDE)
+        .join(OWNER_ANCESTOR)
+        .on(LICENSE_OVERRIDE.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .and(LICENSE_OVERRIDE.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(LICENSE_OVERRIDE.COMPONENT_ID_COORDINATES_JSON.in(candidates))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE,
+            LICENSE_OVERRIDE.COMPONENT_ID_COORDINATES_JSON.sortAsc(candidates))
+        .limit(1)
+        .fetchOne(r -> toEntity(r.into(LICENSE_OVERRIDE)));
+  }
+
+  public List<LicenseOverrideInternal> getByOwnerIdsAndComponentIdentifier(
+      TransactionContext tx,
+      Collection<String> ownerIds,
+      ComponentIdentifier componentIdentifier)
+  {
+    if (componentIdentifier == null || ownerIds.isEmpty()) {
+      return List.of();
+    }
+    List<String> candidates = getCandidateCoordinateJsons(componentIdentifier);
+    List<LicenseOverrideInternal> results = getListWithSqlInClause(ownerIds,
+        chunk -> tx.dsl()
+            .selectFrom(LICENSE_OVERRIDE)
+            .where(LICENSE_OVERRIDE.OWNER_ID.in(chunk))
+            .and(LICENSE_OVERRIDE.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+            .and(LICENSE_OVERRIDE.COMPONENT_ID_COORDINATES_JSON.in(candidates))
+            .orderBy(LICENSE_OVERRIDE.COMPONENT_ID_COORDINATES_JSON.sortAsc(candidates))
+            .fetch(this::toEntity));
+    Set<String> seenOwners = new LinkedHashSet<>();
+    return results.stream()
+        .filter(r -> seenOwners.add(r.getOwnerId()))
+        .collect(Collectors.toList());
+  }
+
   public List<LicenseOverrideInternal> getByComponentIdentifier(
       final TransactionContext tx,
       final ComponentIdentifier componentIdentifier)
@@ -118,6 +166,17 @@ public class LicenseOverrideInternalDAO
         .selectFrom(LICENSE_OVERRIDE)
         .where(LICENSE_OVERRIDE.OWNER_ID.eq(ownerId))
         .fetch(this::toEntity);
+  }
+
+  public List<LicenseOverrideInternal> getByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
+    return tx.dsl()
+        .select(LICENSE_OVERRIDE.fields())
+        .from(LICENSE_OVERRIDE)
+        .join(OWNER_ANCESTOR)
+        .on(LICENSE_OVERRIDE.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE, LICENSE_OVERRIDE.LICENSE_OVERRIDE_ID)
+        .fetch(r -> toEntity(r.into(LICENSE_OVERRIDE)));
   }
 
   public List<LicenseOverrideInternal> getByOwnerId(String ownerId) {

@@ -15,7 +15,6 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.google.common.cache.CacheBuilderSpec;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -56,9 +55,6 @@ public class CoreConfigurationTest
 
   @Mock
   private LicenseDAO licenseDAO;
-
-  @Mock
-  private OwnerDAO ownerDAO;
 
   @Mock
   private LicenseThreatGroupDAO licenseThreatGroupDAO;
@@ -137,7 +133,6 @@ public class CoreConfigurationTest
         systemConfigurationPropertyDAO,
         componentCategoryDAO,
         licenseDAO,
-        ownerDAO,
         licenseThreatGroupDAO,
         labelDAO,
         vulnerabilityGroupDAO,

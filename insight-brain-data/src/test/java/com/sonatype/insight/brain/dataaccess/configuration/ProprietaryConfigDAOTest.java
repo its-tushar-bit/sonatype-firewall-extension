@@ -146,4 +146,22 @@ public class ProprietaryConfigDAOTest
     config.setRegexes(regexes);
     dao.update(config);
   }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_returnsConfigsAcrossAncestors() {
+    ProprietaryConfig orgConfig = tempEntity.newProprietaryConfig(organization.getId());
+    ProprietaryConfig appConfig = tempEntity.newProprietaryConfig(application.getId());
+
+    List<ProprietaryConfig> result = dao.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).extracting(ProprietaryConfig::getId)
+        .containsExactly(appConfig.getId(), orgConfig.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_emptyWhenNoConfigs() {
+    List<ProprietaryConfig> result = dao.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).isEmpty();
+  }
 }

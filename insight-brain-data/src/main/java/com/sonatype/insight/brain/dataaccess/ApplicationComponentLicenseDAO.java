@@ -217,22 +217,20 @@ public class ApplicationComponentLicenseDAO
 
       Set<ComponentIdentifier> componentsWithOverrides = new HashSet<>();
 
-      ownerDAO.walkHierarchy(tx, applicationId).forEach(owner -> {
-        for (LicenseOverride licenseOverride : licenseOverrideDAO.getByOwnerId(tx, owner.getId())) {
-          List<ApplicationComponentLicensesDTO> componentsWithLicenseOverride =
-              componentByComponentIdentifier.get(licenseOverride.getComponentIdentifier());
+      for (LicenseOverride licenseOverride : licenseOverrideDAO.getByOwnerIdWithHierarchy(tx, applicationId)) {
+        List<ApplicationComponentLicensesDTO> componentsWithLicenseOverride =
+            componentByComponentIdentifier.get(licenseOverride.getComponentIdentifier());
 
-          if (componentsWithLicenseOverride != null
-              && !componentsWithOverrides.contains(licenseOverride.getComponentIdentifier()))
-          {
-            if (CollectionUtils.isNotEmpty(licenseOverride.getLicenseIds())) {
-              componentsWithLicenseOverride
-                  .forEach(component -> component.setLicenses(licenseOverride.getLicenseIds()));
-            }
-            componentsWithOverrides.add(licenseOverride.getComponentIdentifier());
+        if (componentsWithLicenseOverride != null
+            && !componentsWithOverrides.contains(licenseOverride.getComponentIdentifier()))
+        {
+          if (CollectionUtils.isNotEmpty(licenseOverride.getLicenseIds())) {
+            componentsWithLicenseOverride
+                .forEach(component -> component.setLicenses(licenseOverride.getLicenseIds()));
           }
+          componentsWithOverrides.add(licenseOverride.getComponentIdentifier());
         }
-      });
+      }
 
       return componentLicenses;
     }

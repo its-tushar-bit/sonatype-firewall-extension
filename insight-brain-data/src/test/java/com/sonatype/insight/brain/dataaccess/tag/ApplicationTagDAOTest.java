@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -199,6 +200,22 @@ public class ApplicationTagDAOTest
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     ApplicationTag appTag = dao.getByApplicationIdAndTagId(application.getId(), tag.getId());
     assertAppTag(application.getId(), tag.getId(), appTag);
+  }
+
+  @Test
+  public void testGetByOrganizationIds_groupsByTagOrganization() {
+    ApplicationTag appTag = tempEntity.newApplicationTag(application.getId(), tag.getId());
+
+    Map<String, List<ApplicationTag>> result = dao.getByOrganizationIds(List.of(organization.getId()));
+
+    assertThat(result).containsOnlyKeys(organization.getId());
+    assertThat(result.get(organization.getId())).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(appTag);
+  }
+
+  @Test
+  public void testGetByOrganizationIds_emptyInputReturnsEmptyMap() {
+    assertThat(dao.getByOrganizationIds(Collections.emptyList())).isEmpty();
   }
 
   @Test

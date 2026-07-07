@@ -6,11 +6,9 @@
 package com.sonatype.insight.brain.successmetrics;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AdminTask;
@@ -53,8 +51,6 @@ public class SuccessMetricsPurger
 
   private final ApplicationDAO applicationDAO;
 
-  private final OwnerDAO ownerDAO;
-
   private final PolicyViolationDAO policyViolationDAO;
 
   private final TaskScheduler taskScheduler;
@@ -65,14 +61,12 @@ public class SuccessMetricsPurger
   public SuccessMetricsPurger(
       DataRetentionPolicyDAO dataRetentionPolicyDAO,
       ApplicationDAO applicationDAO,
-      OwnerDAO ownerDAO,
       PolicyViolationDAO policyViolationDAO,
       TaskScheduler taskScheduler)
   {
     super(PATH);
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
-    this.ownerDAO = ownerDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.taskScheduler = taskScheduler;
   }
@@ -149,14 +143,8 @@ public class SuccessMetricsPurger
   }
 
   private DataRetentionPolicy getDataRetentionPolicy(Application application) {
-    for (Owner owner : ownerDAO.walkHierarchy(application)) {
-      DataRetentionPolicy dataRetentionPolicy = dataRetentionPolicyDAO.getByOwnerIdAndContextId(owner.getId(),
-          DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
-      if (dataRetentionPolicy != null) {
-        return dataRetentionPolicy;
-      }
-    }
-    return null;
+    return dataRetentionPolicyDAO.getByOwnerIdAndContextIdWithHierarchy(
+        application.getId(), DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
   }
 
   private Date getCutoffDate(DataRetentionPolicy dataRetentionPolicy) {

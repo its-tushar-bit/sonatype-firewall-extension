@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -36,27 +34,22 @@ public class LicenseThreatGroupValueType
 
   private final String ownerId;
 
-  private final OwnerDAO ownerDAO;
-
   private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
   public LicenseThreatGroupValueType(
       String ownerId,
-      final OwnerDAO ownerDAO,
       final LicenseThreatGroupDAO licenseThreatGroupDAO)
   {
-    this(null, ownerId, ownerDAO, licenseThreatGroupDAO);
+    this(null, ownerId, licenseThreatGroupDAO);
   }
 
   public LicenseThreatGroupValueType(
       TransactionContext tx,
       String ownerId,
-      final OwnerDAO ownerDAO,
       final LicenseThreatGroupDAO licenseThreatGroupDAO)
   {
     this.tx = tx;
     this.ownerId = ownerId;
-    this.ownerDAO = ownerDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
   }
 
@@ -77,17 +70,9 @@ public class LicenseThreatGroupValueType
 
   @Override
   public List<LicenseThreatGroup> getAvailableValues() {
-    List<LicenseThreatGroup> result = new ArrayList<>();
-    if (tx != null) {
-      for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
-        result.addAll(licenseThreatGroupDAO.getByOwnerId(tx, owner.getId()));
-      }
-    }
-    else {
-      for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-        result.addAll(licenseThreatGroupDAO.getByOwnerId(owner.getId()));
-      }
-    }
+    List<LicenseThreatGroup> result = new ArrayList<>(tx != null
+        ? licenseThreatGroupDAO.getByOwnerIdWithHierarchy(tx, ownerId)
+        : licenseThreatGroupDAO.getByOwnerIdWithHierarchy(ownerId));
     result.add(UNASSIGNED_LICENSE_THREAT_GROUP);
     return result;
   }

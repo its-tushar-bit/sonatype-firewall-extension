@@ -13,7 +13,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -44,17 +43,13 @@ public class LicenseThreatGroupConditionType
 
   private final LicenseDAO licenseDAO;
 
-  private final OwnerDAO ownerDAO;
-
   @Inject
   public LicenseThreatGroupConditionType(
       final LicenseThreatGroupDAO licenseThreatGroupDAO,
-      final LicenseDAO licenseDAO,
-      final OwnerDAO ownerDAO)
+      final LicenseDAO licenseDAO)
   {
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.licenseDAO = licenseDAO;
-    this.ownerDAO = ownerDAO;
   }
 
   @Override
@@ -77,7 +72,7 @@ public class LicenseThreatGroupConditionType
 
     String licenseThreatGroupId = condition.getValue();
     LicenseThreatGroupValueType licenseThreatGroupValueType =
-        new LicenseThreatGroupValueType(tx, ownerId, ownerDAO, licenseThreatGroupDAO);
+        new LicenseThreatGroupValueType(tx, ownerId, licenseThreatGroupDAO);
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroupValueType.getAvailableValues()) {
       if (licenseThreatGroup.getId().equals(licenseThreatGroupId)) {
         return;

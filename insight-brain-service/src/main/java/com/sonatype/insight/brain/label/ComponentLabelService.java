@@ -6,7 +6,10 @@
 package com.sonatype.insight.brain.label;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -65,11 +68,18 @@ public class ComponentLabelService
     AuditData.get().setComponentHash(hash);
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    AppliedLabels result = new AppliedLabels();
-
+    List<Owner> owners = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      owners.add(owner);
+    }
+    List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
+    Map<String, List<Label>> labelsByOwnerId = labelDAO.getByOwnerIdsAndHash(ownerIds, hash);
+
+    AppliedLabels result = new AppliedLabels();
+    for (Owner owner : owners) {
       String restOwnerId = ownerType == OwnerType.APPLICATION ? owner.getPublicId() : owner.getId();
-      result.add(restOwnerId, owner.getName(), owner.getType(), labelDAO.getByOwnerIdAndHash(owner.getId(), hash));
+      result.add(restOwnerId, owner.getName(), owner.getType(),
+          labelsByOwnerId.getOrDefault(owner.getId(), Collections.emptyList()));
     }
 
     return result;

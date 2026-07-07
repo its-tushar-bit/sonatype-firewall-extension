@@ -783,6 +783,72 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void testGetApplicableToComponentIncludingAllVersionsByOwnerIds_groupsByOwnerMatchingSingleOwnerLookup() {
+    Application application = tempEntity.newApplication(organization.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+    String comment = "Just testing";
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar"));
+
+    PolicyWaiver orgExact = new PolicyWaiver(HASH, policy.getId(), organization.getId(), comment);
+    orgExact.setComponentMatchStrategy(EXACT_COMPONENT);
+    dao.insert(orgExact);
+    PolicyWaiver orgAllComponents = new PolicyWaiver(policy.getId(), organization.getId(), comment);
+    orgAllComponents.setComponentMatchStrategy(ALL_COMPONENTS);
+    dao.insert(orgAllComponents);
+    PolicyWaiver orgAllVersions = new PolicyWaiver(policy.getId(), organization.getId(), comment);
+    orgAllVersions.setComponentMatchStrategy(ALL_VERSIONS);
+    orgAllVersions.setAssociatedPackageUrl(purl.getPackageUrl());
+    dao.insert(orgAllVersions);
+    PolicyWaiver appExact = new PolicyWaiver(HASH, policy.getId(), application.getId(), comment);
+    appExact.setComponentMatchStrategy(EXACT_COMPONENT);
+    dao.insert(appExact);
+
+    Map<String, List<PolicyWaiver>> grouped = dao.getApplicableToComponentIncludingAllVersionsByOwnerIds(
+        List.of(application.getId(), organization.getId()), HASH, purl);
+    List<PolicyWaiver> orgSingle = dao.getApplicableToComponentIncludingAllVersions(organization.getId(), HASH, purl);
+    List<PolicyWaiver> appSingle = dao.getApplicableToComponentIncludingAllVersions(application.getId(), HASH, purl);
+    dao.delete(orgExact);
+    dao.delete(orgAllComponents);
+    dao.delete(orgAllVersions);
+    dao.delete(appExact);
+
+    assertThat(grouped.get(organization.getId())).extracting(PolicyWaiver::getId)
+        .containsExactlyInAnyOrderElementsOf(orgSingle.stream().map(PolicyWaiver::getId).toList());
+    assertThat(grouped.get(application.getId())).extracting(PolicyWaiver::getId)
+        .containsExactlyInAnyOrderElementsOf(appSingle.stream().map(PolicyWaiver::getId).toList());
+    assertThat(grouped.get(organization.getId())).extracting(PolicyWaiver::getId)
+        .contains(orgExact.getId(), orgAllComponents.getId(), orgAllVersions.getId());
+    assertThat(grouped.get(application.getId())).extracting(PolicyWaiver::getId).contains(appExact.getId());
+  }
+
+  @Test
+  public void testGetExpiredToComponentIncludingAllVersionsByOwnerIds_returnsOnlyExpiredGroupedByOwner() {
+    Application application = tempEntity.newApplication(organization.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+    Date yesterday = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
+    Date tomorrow = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+
+    PolicyWaiver orgExpired = new PolicyWaiver(HASH, policy.getId(), organization.getId(), "Just testing");
+    orgExpired.setComponentMatchStrategy(EXACT_COMPONENT);
+    orgExpired.setExpiryTime(yesterday);
+    dao.insert(orgExpired);
+    PolicyWaiver appActive = new PolicyWaiver(HASH, policy.getId(), application.getId(), "Just testing");
+    appActive.setComponentMatchStrategy(EXACT_COMPONENT);
+    appActive.setExpiryTime(tomorrow);
+    dao.insert(appActive);
+
+    Map<String, List<PolicyWaiver>> grouped = dao.getExpiredToComponentIncludingAllVersionsByOwnerIds(
+        List.of(application.getId(), organization.getId()), HASH, null);
+    dao.delete(orgExpired);
+    dao.delete(appActive);
+
+    assertThat(grouped).containsOnlyKeys(organization.getId());
+    assertThat(grouped.get(organization.getId())).extracting(PolicyWaiver::getId)
+        .containsExactly(orgExpired.getId());
+  }
+
+  @Test
   public void testGetApplicableToComponentOnlyAllVersions_noPurl() {
     Policy policy = tempEntity.newPolicy(organization);
 

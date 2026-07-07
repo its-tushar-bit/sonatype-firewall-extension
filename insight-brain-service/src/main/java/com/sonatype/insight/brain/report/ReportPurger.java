@@ -12,11 +12,9 @@ import static java.util.stream.Collectors.toSet;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -111,8 +109,6 @@ public class ReportPurger
 
   private final ApplicationDAO applicationDAO;
 
-  private final OwnerDAO ownerDAO;
-
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final List<String> contextIds;
@@ -132,7 +128,6 @@ public class ReportPurger
       final InsightWork work,
       final DataRetentionPolicyDAO dataRetentionPolicyDAO,
       final ApplicationDAO applicationDAO,
-      final OwnerDAO ownerDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final TaskScheduler taskScheduler,
       final Configuration configuration,
@@ -143,7 +138,6 @@ public class ReportPurger
     this.work = work;
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
-    this.ownerDAO = ownerDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.taskScheduler = taskScheduler;
     this.configuration = configuration;
@@ -302,14 +296,7 @@ public class ReportPurger
   }
 
   private DataRetentionPolicy getDataRetentionPolicy(Application application, String contextId) {
-    for (Owner owner : ownerDAO.walkHierarchy(application)) {
-      DataRetentionPolicy dataRetentionPolicy =
-          dataRetentionPolicyDAO.getByOwnerIdAndContextId(owner.getId(), contextId);
-      if (dataRetentionPolicy != null) {
-        return dataRetentionPolicy;
-      }
-    }
-    return null;
+    return dataRetentionPolicyDAO.getByOwnerIdAndContextIdWithHierarchy(application.getId(), contextId);
   }
 
   private Date getCutoffDate(int maxAgeInDays) {

@@ -27,13 +27,13 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentCopyright.COMPONENT_COPYRIGHT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 /**
  * @since 1.105
@@ -99,14 +99,18 @@ public class ComponentCopyrightDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      ComponentCopyright componentCopyright =
-          getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
-      if (componentCopyright != null) {
-        return componentCopyright;
-      }
-    }
-    return null;
+    return tx.dsl()
+        .select(COMPONENT_COPYRIGHT.fields())
+        .from(COMPONENT_COPYRIGHT)
+        .join(OWNER_ANCESTOR)
+        .on(COMPONENT_COPYRIGHT.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_COPYRIGHT.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_COPYRIGHT.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+        .limit(1)
+        .fetchOneInto(ComponentCopyright.class);
   }
 
   public ComponentCopyright getByOwnerIdAndComponentIdentifierWithHierarchy(

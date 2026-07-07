@@ -74,6 +74,23 @@ public class PolicyMonitoringDAO
         .fetchInto(PolicyMonitoring.class);
   }
 
+  public List<PolicyMonitoring> getByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
+    return tx.dsl()
+        .select(POLICY_MONITORING.fields())
+        .from(POLICY_MONITORING)
+        .join(OWNER_ANCESTOR)
+        .on(POLICY_MONITORING.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE, POLICY_MONITORING.STAGE_TYPE_ID)
+        .fetchInto(PolicyMonitoring.class);
+  }
+
+  public List<PolicyMonitoring> getByOwnerIdWithHierarchy(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdWithHierarchy(tx, ownerId);
+    }
+  }
+
   public PolicyMonitoring getByOwnerIdAndStageTypeId(String ownerId, String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndStageTypeId(tx, ownerId, stageTypeId);

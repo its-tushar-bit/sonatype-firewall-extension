@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +30,7 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.MembershipMapping.MEMBERSHIP_MAPPING;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 /**
  * @since 1.7
@@ -51,6 +54,28 @@ public class MembershipMappingDAO
   public List<MembershipMapping> getByContextId(String contextId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByContextId(tx, contextId);
+    }
+  }
+
+  /**
+   * Returns mappings for the given context IDs without any hierarchy scoping; callers must pass only context IDs
+   * already resolved from the caller's owner hierarchy.
+   */
+  public List<MembershipMapping> getByContextIds(Collection<String> contextIds) {
+    if (contextIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return getListWithSqlInClause(contextIds,
+          chunk -> tx.dsl()
+              .selectFrom(MEMBERSHIP_MAPPING)
+              .where(MEMBERSHIP_MAPPING.CONTEXT_ID.in(chunk))
+              .fetchInto(MembershipMapping.class))
+                  .stream()
+                  .sorted(Comparator
+                      .comparing(MembershipMapping::getRoleId, Comparator.nullsLast(Comparator.naturalOrder()))
+                      .thenComparing(MembershipMapping::getMemberName, Comparator.nullsLast(Comparator.naturalOrder())))
+                  .toList();
     }
   }
 
@@ -201,6 +226,28 @@ public class MembershipMappingDAO
   public List<MembershipMapping> getByContextIdAndRoleId(String contextId, String roleId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByContextIdAndRoleId(tx, contextId, roleId);
+    }
+  }
+
+  public List<MembershipMapping> getByContextIdAndRoleIdWithHierarchy(
+      TransactionContext tx,
+      String contextId,
+      String roleId)
+  {
+    return tx.dsl()
+        .select(MEMBERSHIP_MAPPING.fields())
+        .from(MEMBERSHIP_MAPPING)
+        .join(OWNER_ANCESTOR)
+        .on(MEMBERSHIP_MAPPING.CONTEXT_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(contextId))
+        .and(MEMBERSHIP_MAPPING.ROLE_ID.eq(roleId))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE, MEMBERSHIP_MAPPING.MEMBER_NAME)
+        .fetchInto(MembershipMapping.class);
+  }
+
+  public List<MembershipMapping> getByContextIdAndRoleIdWithHierarchy(String contextId, String roleId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByContextIdAndRoleIdWithHierarchy(tx, contextId, roleId);
     }
   }
 

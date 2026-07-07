@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -19,10 +18,8 @@ import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.UserMapping;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -51,8 +48,6 @@ public class ScmUserMappingService
 
   private final ScmUserMappingsDAO scmUserMappingsDAO;
 
-  private final OwnerDAO ownerDAO;
-
   private final TelemetrySender telemetrySender;
 
   @Inject
@@ -60,13 +55,11 @@ public class ScmUserMappingService
       final RoleDAO roleDAO,
       final IqForScmLicenseChecker licenseChecker,
       final ScmUserMappingsDAO scmUserMappingsDAO,
-      final OwnerDAO ownerDAO,
       final TelemetrySender telemetrySender)
   {
     this.roleDAO = roleDAO;
     this.licenseChecker = licenseChecker;
     this.scmUserMappingsDAO = scmUserMappingsDAO;
-    this.ownerDAO = ownerDAO;
     this.telemetrySender = telemetrySender;
   }
 
@@ -118,15 +111,7 @@ public class ScmUserMappingService
     if (!OwnerType.ORGANIZATION.equals(ownerType) && !OwnerType.APPLICATION.equals(ownerType)) {
       throw new BadRequestException("OwnerType not supported: " + ownerType);
     }
-    Iterator<Owner> ownersHierarchy = ownerDAO.walkHierarchy(ownerId, ownerType).iterator();
-    if (OwnerType.APPLICATION.equals(ownerType)) {
-      ownersHierarchy.next(); // skip first if ownerType is APPLICATION
-    }
-    ScmUserMappings scmUserMappings;
-    do {
-      scmUserMappings = scmUserMappingsDAO.getByOrganizationId(ownersHierarchy.next().getId());
-    }
-    while (scmUserMappings == null && ownersHierarchy.hasNext());
+    ScmUserMappings scmUserMappings = scmUserMappingsDAO.getByOwnerIdWithHierarchy(ownerId);
 
     if (scmUserMappings == null) {
       return null;

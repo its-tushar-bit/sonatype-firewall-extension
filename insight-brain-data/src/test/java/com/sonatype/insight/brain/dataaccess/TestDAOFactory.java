@@ -1042,11 +1042,9 @@ public class TestDAOFactory
 
   @Override
   public VulnerabilityCustomCvssSeverityDAO createVulnerabilityCustomCvssSeverityDAO() {
-    OwnerDAO ownerDAO = createOwnerDAO();
-    TagDAO tagDAO = createTagDAO();
     VulnerabilityCustomCvssSeverityTagDAO vulnerabilityCustomCvssSeverityTagDAO =
         createVulnerabilityCustomCvssSeverityTagDAO();
-    return new VulnerabilityCustomCvssSeverityDAO(dataStoreProvider.getOperationalDataStore(), ownerDAO, tagDAO,
+    return new VulnerabilityCustomCvssSeverityDAO(dataStoreProvider.getOperationalDataStore(),
         vulnerabilityCustomCvssSeverityTagDAO);
   }
 
@@ -1057,11 +1055,9 @@ public class TestDAOFactory
 
   @Override
   public VulnerabilityCustomCvssVectorDAO createVulnerabilityCustomCvssVectorDAO() {
-    OwnerDAO ownerDAO = createOwnerDAO();
-    TagDAO tagDAO = createTagDAO();
     VulnerabilityCustomCvssVectorTagDAO vulnerabilityCustomCvssVectorTagDAO =
         createVulnerabilityCustomCvssVectorTagDAO();
-    return new VulnerabilityCustomCvssVectorDAO(dataStoreProvider.getOperationalDataStore(), ownerDAO, tagDAO,
+    return new VulnerabilityCustomCvssVectorDAO(dataStoreProvider.getOperationalDataStore(),
         vulnerabilityCustomCvssVectorTagDAO);
   }
 
@@ -1072,10 +1068,8 @@ public class TestDAOFactory
 
   @Override
   public VulnerabilityCustomCweDAO createVulnerabilityCustomCweDAO() {
-    OwnerDAO ownerDAO = createOwnerDAO();
-    TagDAO tagDAO = createTagDAO();
     VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO = createVulnerabilityCustomCweTagDAO();
-    return new VulnerabilityCustomCweDAO(dataStoreProvider.getOperationalDataStore(), ownerDAO, tagDAO,
+    return new VulnerabilityCustomCweDAO(dataStoreProvider.getOperationalDataStore(),
         vulnerabilityCustomCweTagDAO);
   }
 
@@ -1086,11 +1080,9 @@ public class TestDAOFactory
 
   @Override
   public VulnerabilityCustomRemediationDAO createVulnerabilityCustomRemediationDAO() {
-    OwnerDAO ownerDAO = createOwnerDAO();
-    TagDAO tagDAO = createTagDAO();
     VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO =
         createVulnerabilityCustomRemediationTagDAO();
-    return new VulnerabilityCustomRemediationDAO(dataStoreProvider.getOperationalDataStore(), ownerDAO, tagDAO,
+    return new VulnerabilityCustomRemediationDAO(dataStoreProvider.getOperationalDataStore(),
         vulnerabilityCustomRemediationTagDAO);
   }
 

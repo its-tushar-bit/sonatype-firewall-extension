@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
@@ -28,6 +27,7 @@ import jakarta.inject.Singleton;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentLegalFile.COMPONENT_LEGAL_FILE;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 /**
  * @since 1.105
@@ -99,14 +99,22 @@ public class ComponentLegalFileDAO
       ComponentIdentifier componentIdentifier,
       LegalFileType legalFileType)
   {
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      ComponentLegalFile componentLegalFile =
-          getByOwnerIdAndComponentIdentifierAndType(tx, owner.getId(), componentIdentifier, legalFileType);
-      if (componentLegalFile != null) {
-        return componentLegalFile;
-      }
+    var query = tx.dsl()
+        .select(COMPONENT_LEGAL_FILE.fields())
+        .from(COMPONENT_LEGAL_FILE)
+        .join(OWNER_ANCESTOR)
+        .on(COMPONENT_LEGAL_FILE.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_LEGAL_FILE.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_LEGAL_FILE.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())));
+    if (legalFileType != null) {
+      query = query.and(COMPONENT_LEGAL_FILE.TYPE.eq(legalFileType.name()));
     }
-    return null;
+    return query
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+        .limit(1)
+        .fetchOne(this::toEntity);
   }
 
   public ComponentLegalFile getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(

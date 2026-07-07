@@ -234,6 +234,60 @@ public class PolicyTagDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdWithHierarchy_collectsFromAncestorOrgs() {
+    Policy policyAtOrg = tempEntity.newPolicy(organization.getId());
+    Tag tagAtOrg = tempEntity.newTag(organization.getId());
+    PolicyTag ptAtOrg = tempEntity.newPolicyTag(policyAtOrg.getId(), tagAtOrg.getId());
+
+    Policy policyAtRoot = tempEntity.newPolicy(organization.getParentOrganizationId());
+    Tag tagAtRoot = tempEntity.newTag(organization.getParentOrganizationId());
+    PolicyTag ptAtRoot = tempEntity.newPolicyTag(policyAtRoot.getId(), tagAtRoot.getId());
+
+    Organization otherOrg = tempEntity.newOrganization("other-hierarchy-org");
+    PolicyTag ptAtOther = tempEntity.newPolicyTag(tempEntity.newPolicy(otherOrg.getId()).getId(),
+        tempEntity.newTag(otherOrg.getId()).getId());
+
+    List<PolicyTag> result = dao.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).extracting(PolicyTag::getId)
+        .containsExactly(ptAtOrg.getId(), ptAtRoot.getId())
+        .doesNotContain(ptAtOther.getId());
+  }
+
+  @Test
+  public void testGetByOrganizationIdsGrouped_keyedByOrgId() {
+    Organization org2 = tempEntity.newOrganization("grouped-org2");
+
+    Policy policy1 = tempEntity.newPolicy(organization.getId());
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    PolicyTag pt1 = tempEntity.newPolicyTag(policy1.getId(), tag1.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    PolicyTag pt2 = tempEntity.newPolicyTag(policy1.getId(), tag2.getId());
+
+    Policy policy2 = tempEntity.newPolicy(org2.getId());
+    Tag tag3 = tempEntity.newTag(org2.getId());
+    PolicyTag pt3 = tempEntity.newPolicyTag(policy2.getId(), tag3.getId());
+
+    Map<String, List<PolicyTag>> result =
+        dao.getByOrganizationIdsGrouped(Arrays.asList(organization.getId(), org2.getId()));
+
+    assertThat(result).containsOnlyKeys(organization.getId(), org2.getId());
+    assertThat(result.get(organization.getId())).extracting(PolicyTag::getId)
+        .containsExactlyInAnyOrder(pt1.getId(), pt2.getId());
+    assertThat(result.get(org2.getId())).extracting(PolicyTag::getId)
+        .containsExactlyInAnyOrder(pt3.getId());
+  }
+
+  @Test
+  public void testGetByOrganizationIdsGrouped_emptyOrNullReturnsEmptyMap() {
+    Map<String, List<PolicyTag>> emptyResult = dao.getByOrganizationIdsGrouped(Collections.emptyList());
+    Map<String, List<PolicyTag>> nullResult = dao.getByOrganizationIdsGrouped(null);
+
+    assertThat(emptyResult).isEmpty();
+    assertThat(nullResult).isEmpty();
+  }
+
+  @Test
   public void testIsPolicyApplicable() {
     Policy policy = tempEntity.newPolicy(organization);
 

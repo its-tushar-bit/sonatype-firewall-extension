@@ -9,6 +9,9 @@ import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -191,9 +194,15 @@ public class LicenseThreatGroupService
   {
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
+    List<Owner> owners = new ArrayList<>();
+    ownerDAO.walkHierarchy(ownerId).forEach(owners::add);
+    Map<String, List<LicenseThreatGroupWithLicenses>> licenseThreatGroupsByOwnerId =
+        loadLicenseThreatGroupsByOwnerIds(owners.stream().map(Owner::getId).collect(Collectors.toList()));
+
     ApplicableLicenseThreatGroups result = new ApplicableLicenseThreatGroups();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      result.add(owner.getId(), owner.getName(), owner.getType(), loadLicenseThreatGroups(owner.getId()));
+    for (Owner owner : owners) {
+      result.add(owner.getId(), owner.getName(), owner.getType(),
+          licenseThreatGroupsByOwnerId.getOrDefault(owner.getId(), new ArrayList<>()));
     }
     return result;
   }
@@ -328,17 +337,36 @@ public class LicenseThreatGroupService
     return copies;
   }
 
-  private List<LicenseThreatGroupWithLicenses> loadLicenseThreatGroups(final String ownerId) {
-    List<LicenseThreatGroupWithLicenses> results = new ArrayList<>();
-    for (LicenseThreatGroup ltg : licenseThreatGroupDAO.getByOwnerId(ownerId)) {
-      LicenseThreatGroupWithLicenses ltgwl = new LicenseThreatGroupWithLicenses();
-      ltgwl.id = ltg.getId();
-      ltgwl.name = ltg.getName();
-      ltgwl.threatLevel = ltg.getThreatLevel();
-      ltgwl.licenses = licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
-      results.add(ltgwl);
-    }
-    return results;
+  private Map<String, List<LicenseThreatGroupWithLicenses>> loadLicenseThreatGroupsByOwnerIds(List<String> ownerIds) {
+    Map<String, List<LicenseThreatGroup>> threatGroupsByOwnerId = licenseThreatGroupDAO.getByOwnerIds(ownerIds)
+        .stream()
+        .collect(Collectors.groupingBy(LicenseThreatGroup::getOwnerId));
+
+    Set<String> threatGroupIds = threatGroupsByOwnerId.values()
+        .stream()
+        .flatMap(List::stream)
+        .map(LicenseThreatGroup::getId)
+        .collect(Collectors.toSet());
+    Map<String, List<LicenseThreatGroupLicense>> licensesByThreatGroupId = threatGroupIds.isEmpty()
+        ? Map.of()
+        : licenseThreatGroupLicenseDAO.getByLicenseThreatGroupIds(threatGroupIds)
+            .stream()
+            .collect(Collectors.groupingBy(LicenseThreatGroupLicense::getLicenseThreatGroupId));
+
+    Map<String, List<LicenseThreatGroupWithLicenses>> result = new HashMap<>();
+    threatGroupsByOwnerId.forEach((ownerId, threatGroups) -> {
+      List<LicenseThreatGroupWithLicenses> withLicenses = new ArrayList<>();
+      for (LicenseThreatGroup ltg : threatGroups) {
+        LicenseThreatGroupWithLicenses ltgwl = new LicenseThreatGroupWithLicenses();
+        ltgwl.id = ltg.getId();
+        ltgwl.name = ltg.getName();
+        ltgwl.threatLevel = ltg.getThreatLevel();
+        ltgwl.licenses = licensesByThreatGroupId.getOrDefault(ltg.getId(), new ArrayList<>());
+        withLicenses.add(ltgwl);
+      }
+      result.put(ownerId, withLicenses);
+    });
+    return result;
   }
 
   private void auditLicenseThreatGroup(LicenseThreatGroup licenseThreatGroup) {

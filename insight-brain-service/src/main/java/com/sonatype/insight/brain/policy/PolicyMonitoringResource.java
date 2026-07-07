@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.policy;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.Consumes;
@@ -108,10 +111,16 @@ public class PolicyMonitoringResource
     ApplicablePolicyMonitors results = new ApplicablePolicyMonitors();
     results.policyMonitoringByOwner = new ArrayList<>();
 
+    Map<String, List<PolicyMonitoring>> monitoringsByOwnerId = policyMonitoringDAO
+        .getByOwnerIdWithHierarchy(internalOwnerId)
+        .stream()
+        .collect(Collectors.groupingBy(PolicyMonitoring::getOwnerId));
+
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
       PolicyMonitoringByOwner policyMonitoringByOwner = new PolicyMonitoringByOwner();
       policyMonitoringByOwner.ownerName = owner.getName();
-      policyMonitoringByOwner.policyMonitorings.addAll(policyMonitoringDAO.getByOwnerId(owner.getId()));
+      policyMonitoringByOwner.policyMonitorings
+          .addAll(monitoringsByOwnerId.getOrDefault(owner.getId(), Collections.emptyList()));
       results.policyMonitoringByOwner.add(policyMonitoringByOwner);
     }
 

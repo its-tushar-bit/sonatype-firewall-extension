@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -311,6 +312,109 @@ public class PolicyWaiverDAO
     waivers.addAll(getExpiredByOwnerIdAndHash(tx, ownerId, null, ALL_COMPONENTS));
     waivers.addAll(getExpiredByOwnerIdAndPurl(tx, ownerId, purl));
     return waivers;
+  }
+
+  /**
+   * Groups applicable waivers by owner ID. No hierarchy scoping is applied here; callers must pass only owner IDs
+   * already resolved from the caller's owner hierarchy.
+   */
+  public Map<String, List<PolicyWaiver>> getApplicableToComponentIncludingAllVersionsByOwnerIds(
+      TransactionContext tx,
+      Collection<String> ownerIds,
+      String hash,
+      PackageUrlIdentifier purl)
+  {
+    if (ownerIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    List<PolicyWaiver> waivers = new ArrayList<>(getActiveByOwnerIdsAndHash(tx, ownerIds, hash, EXACT_COMPONENT));
+    waivers.addAll(getActiveByOwnerIdsAndHash(tx, ownerIds, null, ALL_COMPONENTS));
+    waivers.addAll(keepMatchingWildcardPurl(getActiveByOwnerIdsAndHash(tx, ownerIds, null, ALL_VERSIONS), purl));
+    return waivers.stream().collect(Collectors.groupingBy(PolicyWaiver::getOwnerId));
+  }
+
+  public Map<String, List<PolicyWaiver>> getApplicableToComponentIncludingAllVersionsByOwnerIds(
+      Collection<String> ownerIds,
+      String hash,
+      PackageUrlIdentifier purl)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getApplicableToComponentIncludingAllVersionsByOwnerIds(tx, ownerIds, hash, purl);
+    }
+  }
+
+  /**
+   * Groups expired waivers by owner ID. No hierarchy scoping is applied here; callers must pass only owner IDs
+   * already resolved from the caller's owner hierarchy.
+   */
+  public Map<String, List<PolicyWaiver>> getExpiredToComponentIncludingAllVersionsByOwnerIds(
+      TransactionContext tx,
+      Collection<String> ownerIds,
+      String hash,
+      PackageUrlIdentifier purl)
+  {
+    if (ownerIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    List<PolicyWaiver> waivers = new ArrayList<>(getExpiredByOwnerIdsAndHash(tx, ownerIds, hash, EXACT_COMPONENT));
+    waivers.addAll(getExpiredByOwnerIdsAndHash(tx, ownerIds, null, ALL_COMPONENTS));
+    waivers.addAll(keepMatchingWildcardPurl(getExpiredByOwnerIdsAndHash(tx, ownerIds, null, ALL_VERSIONS), purl));
+    return waivers.stream().collect(Collectors.groupingBy(PolicyWaiver::getOwnerId));
+  }
+
+  public Map<String, List<PolicyWaiver>> getExpiredToComponentIncludingAllVersionsByOwnerIds(
+      Collection<String> ownerIds,
+      String hash,
+      PackageUrlIdentifier purl)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getExpiredToComponentIncludingAllVersionsByOwnerIds(tx, ownerIds, hash, purl);
+    }
+  }
+
+  private List<PolicyWaiver> keepMatchingWildcardPurl(List<PolicyWaiver> allVersionWaivers, PackageUrlIdentifier purl) {
+    if (purl == null) {
+      return Collections.emptyList();
+    }
+    ComponentIdentifier wildcardComponentIdentifier = purl.toComponentIdentifier().createAlternativeVersion("*");
+    return allVersionWaivers.stream()
+        .filter(waiver -> waiver.getComponentIdentifier()
+            .createAlternativeVersion("*")
+            .equals(wildcardComponentIdentifier))
+        .collect(Collectors.toList());
+  }
+
+  private List<PolicyWaiver> getActiveByOwnerIdsAndHash(
+      TransactionContext tx,
+      Collection<String> ownerIds,
+      String hash,
+      ComponentMatcherStrategyForWaiver matcherStrategy)
+  {
+    return getListWithSqlInClause(ownerIds,
+        chunk -> tx.dsl()
+            .selectFrom(POLICY_WAIVER)
+            .where(POLICY_WAIVER.OWNER_ID.in(chunk))
+            .and(hash != null ? POLICY_WAIVER.HASH.eq(hash) : POLICY_WAIVER.HASH.isNull())
+            .and(POLICY_WAIVER.EXPIRY_TIME.isNull()
+                .or(POLICY_WAIVER.EXPIRY_TIME.gt(new Date())))
+            .and(POLICY_WAIVER.COMPONENT_MATCH_STRATEGY.eq(matcherStrategy.name()))
+            .fetch(this::toEntity));
+  }
+
+  private List<PolicyWaiver> getExpiredByOwnerIdsAndHash(
+      TransactionContext tx,
+      Collection<String> ownerIds,
+      String hash,
+      ComponentMatcherStrategyForWaiver matcherStrategy)
+  {
+    return getListWithSqlInClause(ownerIds,
+        chunk -> tx.dsl()
+            .selectFrom(POLICY_WAIVER)
+            .where(POLICY_WAIVER.OWNER_ID.in(chunk))
+            .and(hash != null ? POLICY_WAIVER.HASH.eq(hash) : POLICY_WAIVER.HASH.isNull())
+            .and(POLICY_WAIVER.EXPIRY_TIME.lt(new Date()))
+            .and(POLICY_WAIVER.COMPONENT_MATCH_STRATEGY.eq(matcherStrategy.name()))
+            .fetch(this::toEntity));
   }
 
   public List<PolicyWaiver> getApplicableToComponentOnlyAllVersions(

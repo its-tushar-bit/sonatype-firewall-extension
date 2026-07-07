@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.tag;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -110,12 +112,19 @@ public class TagService
       @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    List<Owner> owners = new ArrayList<>();
+    ownerDAO.walkHierarchy(internalOwnerId).forEach(owners::add);
+    List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
+    Map<String, List<ApiApplicationCategoryDTO>> tagsByOrgId = tagDAO.getByOrganizationIds(ownerIds)
+        .stream()
+        .collect(Collectors.groupingBy(
+            Tag::getOrganizationId,
+            Collectors.mapping(TagService::toDTO, Collectors.toList())));
     ApplicableTagsDTO tags = new ApplicableTagsDTO();
     tags.applicationCategoriesByOwner = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      TagsByOwnerDTO tagsByOwner = new TagsByOwnerDTO(owner,
-          tagDAO.getByOrganizationId(owner.getId()).stream().map(TagService::toDTO).collect(Collectors.toList()));
-      tags.applicationCategoriesByOwner.add(tagsByOwner);
+    for (Owner owner : owners) {
+      tags.applicationCategoriesByOwner.add(new TagsByOwnerDTO(owner,
+          tagsByOrgId.getOrDefault(owner.getId(), Collections.emptyList())));
     }
 
     return tags;
@@ -193,12 +202,15 @@ public class TagService
 
   @Authorize(permission = Permission.READ)
   public AppliedTagsDTO getAppliedTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
+    List<Owner> owners = new ArrayList<>();
+    ownerDAO.walkHierarchy(organizationId).forEach(owners::add);
+    List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
+    Map<String, List<ApplicationTag>> appTagsByOrgId = applicationTagDAO.getByOrganizationIds(ownerIds);
     AppliedTagsDTO entities = new AppliedTagsDTO();
     entities.applicationTagsByOwner = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
-      ApplicationTagsByOwnerDTO appTags =
-          new ApplicationTagsByOwnerDTO(owner, applicationTagDAO.getByOrganizationId(owner.getId()));
-      entities.applicationTagsByOwner.add(appTags);
+    for (Owner owner : owners) {
+      entities.applicationTagsByOwner.add(new ApplicationTagsByOwnerDTO(owner,
+          appTagsByOrgId.getOrDefault(owner.getId(), Collections.emptyList())));
     }
 
     return entities;
@@ -297,12 +309,7 @@ public class TagService
 
   @Authorize(permission = Permission.READ)
   public List<PolicyTag> getAppliedPolicyTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
-    List<PolicyTag> policyTags = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
-      policyTags.addAll(policyTagDAO.getByOrganizationId(owner.getId()));
-    }
-
-    return policyTags;
+    return policyTagDAO.getByOwnerIdWithHierarchy(organizationId);
   }
 
   @Authorize(permission = Permission.READ)

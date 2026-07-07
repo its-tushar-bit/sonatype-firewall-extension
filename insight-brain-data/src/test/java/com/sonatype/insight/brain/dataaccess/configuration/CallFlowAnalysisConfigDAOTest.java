@@ -69,6 +69,35 @@ public class CallFlowAnalysisConfigDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdWithHierarchy_returnsClosestAncestor() {
+    CallFlowAnalysisConfig configAtOrg = tempEntity.newCallFlowAnalysisConfig(organization.getId(), 2);
+    tempEntity.newCallFlowAnalysisConfig(organization.getParentOrganizationId(), 4);
+
+    CallFlowAnalysisConfig result = dao.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(configAtOrg.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_returnsNullWhenNone() {
+    CallFlowAnalysisConfig result = dao.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_prefersSelfOverAncestor() {
+    CallFlowAnalysisConfig configAtApp = tempEntity.newCallFlowAnalysisConfig(application.getId(), 2);
+    tempEntity.newCallFlowAnalysisConfig(organization.getId(), 4);
+
+    CallFlowAnalysisConfig result = dao.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(configAtApp.getId());
+  }
+
+  @Test
   public void testInsert_ownerIdExist() {
     Organization owner = tempEntity.newOrganization();
     CallFlowAnalysisConfig callFlowAnalysisConfig = tempEntity.newCallFlowAnalysisConfig(owner.getId(), 3);

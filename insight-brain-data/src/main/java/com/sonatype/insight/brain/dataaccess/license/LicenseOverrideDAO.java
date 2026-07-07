@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -85,14 +88,70 @@ public class LicenseOverrideDAO
       Owner owner,
       ComponentIdentifier componentIdentifier)
   {
-    for (Owner anOwner : ownerDAO.walkHierarchy(owner)) {
-      LicenseOverride override = getByOwnerIdAndComponentIdentifier(tx, anOwner.getId(), componentIdentifier);
-      if (override != null) {
-        return override;
-      }
+    LicenseOverrideInternal internal = licenseOverrideInternalDAO
+        .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, owner.getId(), componentIdentifier);
+    if (internal == null) {
+      return null;
+    }
+    return new LicenseOverride(internal, getLicenseIds(tx, internal.getId()));
+  }
+
+  /**
+   * Returns license overrides keyed by owner ID. No hierarchy scoping is applied here; callers must pass only owner
+   * IDs already resolved from the caller's owner hierarchy.
+   */
+  public Map<String, LicenseOverride> getByOwnerIdsAndComponentIdentifier(
+      TransactionContext tx,
+      Collection<String> ownerIds,
+      ComponentIdentifier componentIdentifier)
+  {
+    List<LicenseOverrideInternal> internals =
+        licenseOverrideInternalDAO.getByOwnerIdsAndComponentIdentifier(tx, ownerIds, componentIdentifier);
+    if (internals.isEmpty()) {
+      return Collections.emptyMap();
     }
 
-    return null;
+    List<String> overrideIds = internals.stream().map(LicenseOverrideInternal::getId).collect(Collectors.toList());
+    Map<String, Set<String>> licenseIdsByOverrideId = licenseOverrideLicenseInternalDAO
+        .getByLicenseOverrideIds(tx, overrideIds)
+        .stream()
+        .collect(Collectors.groupingBy(LicenseOverrideLicenseInternal::getLicenseOverrideId, Collectors.mapping(
+            LicenseOverrideLicenseInternal::getLicenseId, Collectors.toCollection(LinkedHashSet::new))));
+
+    Map<String, LicenseOverride> overridesByOwnerId = new HashMap<>();
+    for (LicenseOverrideInternal internal : internals) {
+      overridesByOwnerId.put(internal.getOwnerId(),
+          new LicenseOverride(internal, licenseIdsByOverrideId.getOrDefault(internal.getId(), new LinkedHashSet<>())));
+    }
+    return overridesByOwnerId;
+  }
+
+  public Map<String, LicenseOverride> getByOwnerIdsAndComponentIdentifier(
+      Collection<String> ownerIds,
+      ComponentIdentifier componentIdentifier)
+  {
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      return getByOwnerIdsAndComponentIdentifier(tx, ownerIds, componentIdentifier);
+    }
+  }
+
+  public List<LicenseOverride> getByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
+    List<LicenseOverrideInternal> internals = licenseOverrideInternalDAO.getByOwnerIdWithHierarchy(tx, ownerId);
+    if (internals.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<String> overrideIds = internals.stream().map(LicenseOverrideInternal::getId).collect(Collectors.toList());
+    Map<String, Set<String>> licenseIdsByOverrideId = licenseOverrideLicenseInternalDAO
+        .getByLicenseOverrideIds(tx, overrideIds)
+        .stream()
+        .collect(Collectors.groupingBy(LicenseOverrideLicenseInternal::getLicenseOverrideId, Collectors.mapping(
+            LicenseOverrideLicenseInternal::getLicenseId, Collectors.toCollection(LinkedHashSet::new))));
+
+    return internals.stream()
+        .map(internal -> new LicenseOverride(internal,
+            licenseIdsByOverrideId.getOrDefault(internal.getId(), new LinkedHashSet<>())))
+        .collect(Collectors.toList());
   }
 
   public LicenseOverride getByOwnerIdAndComponentIdentifier(String ownerId, ComponentIdentifier componentIdentifier) {

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
@@ -31,6 +31,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Row2;
 
@@ -119,14 +120,35 @@ public class LegalFileOverrideDAO
       ComponentIdentifier componentIdentifier,
       LegalFileType type)
   {
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      List<LegalFileOverride> legalFileOverrides =
-          getByOwnerIdAndComponentIdentifierAndType(tx, owner.getId(), componentIdentifier, type);
-      if (!legalFileOverrides.isEmpty()) {
-        return legalFileOverrides;
-      }
+    var clf = COMPONENT_LEGAL_FILE;
+    var lfo = LEGAL_FILE_OVERRIDE;
+    var oa = OWNER_ANCESTOR;
+
+    var condition = oa.OWNER_ID.eq(ownerId)
+        .and(DSL.row(clf.COMPONENT_ID_FORMAT, clf.COMPONENT_ID_COORDINATES_JSON)
+            .eq(ComponentIdentifierAdapter.toComponentRow(componentIdentifier)));
+    if (type != null) {
+      condition = condition.and(clf.TYPE.eq(type.name()));
     }
-    return Collections.emptyList();
+
+    List<Field<?>> selectFields = new ArrayList<>(Arrays.asList(lfo.fields()));
+    selectFields.add(oa.ANCESTOR_DISTANCE);
+
+    List<Record> rows = new ArrayList<>(tx.dsl()
+        .select(selectFields)
+        .from(lfo)
+        .join(clf)
+        .on(lfo.COMPONENT_LEGAL_FILE_ID.eq(clf.COMPONENT_LEGAL_FILE_ID))
+        .join(oa)
+        .on(clf.OWNER_ID.eq(oa.ANCESTOR_ID))
+        .where(condition)
+        .orderBy(oa.ANCESTOR_DISTANCE)
+        .fetch());
+
+    return ClosestAncestorAccumulator.closest(rows, oa.ANCESTOR_DISTANCE)
+        .stream()
+        .map(row -> row.into(LegalFileOverride.class))
+        .toList();
   }
 
   public List<LegalFileOverride> getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(

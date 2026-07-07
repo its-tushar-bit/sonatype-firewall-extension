@@ -391,6 +391,11 @@ public class LicenseThreatGroupDAOTest
   }
 
   @Test
+  public void testGetLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy_nullLicenseId_returnsNull() {
+    assertThat(licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(application, null)).isNull();
+  }
+
+  @Test
   public void testGetLicenseThreatLevelsByApplication() {
     tempEntity.newLicenseThreatGroup(application.getId(), "My group 1", 0, "Apache-2.0", "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
@@ -461,6 +466,22 @@ public class LicenseThreatGroupDAOTest
           .map(LicenseThreatGroup::getName)
           .collect(Collectors.toList()))
               .containsExactlyInAnyOrder("Group 1", "Group 2", "Group 3");
+    }
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_OrdersByDistanceThenName() {
+    tempEntity.newLicenseThreatGroup(application.getId(), "Zebra", 0);
+    tempEntity.newLicenseThreatGroup(application.getId(), "Alpha", 0);
+    tempEntity.newLicenseThreatGroup(application.getId(), "Mango", 0);
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Beta", 0);
+
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      assertThat(licenseThreatGroupDAO.getByOwnerIdWithHierarchy(tx, application.getId())
+          .stream()
+          .map(LicenseThreatGroup::getName)
+          .collect(Collectors.toList()))
+              .containsExactly("Alpha", "Mango", "Zebra", "Beta");
     }
   }
 
@@ -870,5 +891,23 @@ public class LicenseThreatGroupDAOTest
     // LTG x license fanout); a component matching multiple LTGs/licenses would yield more candidate rows.
     assertThat(result.candidates()).hasSize(scaleComponentCount);
     assertThat(elapsedMillis).isLessThan(wallClockCeilingMillis);
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_returnsGroupsAcrossAncestors() {
+    LicenseThreatGroup orgGroup = tempEntity.newLicenseThreatGroup(organization.getId(), "Org LTG", 4);
+    LicenseThreatGroup appGroup = tempEntity.newLicenseThreatGroup(application.getId(), "App LTG", 4);
+
+    List<LicenseThreatGroup> result = licenseThreatGroupDAO.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).extracting(LicenseThreatGroup::getId)
+        .containsExactly(appGroup.getId(), orgGroup.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_emptyWhenNoGroups() {
+    List<LicenseThreatGroup> result = licenseThreatGroupDAO.getByOwnerIdWithHierarchy(application.getId());
+
+    assertThat(result).isEmpty();
   }
 }

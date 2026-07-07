@@ -17,6 +17,7 @@ import jakarta.inject.Singleton;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.CallFlowAnalysisConfig.CALL_FLOW_ANALYSIS_CONFIG;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 /**
  * @since 1.172
@@ -29,6 +30,24 @@ public class CallFlowAnalysisConfigDAO
   @Inject
   public CallFlowAnalysisConfigDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+  }
+
+  public CallFlowAnalysisConfig getByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
+    return toEntity(tx.dsl()
+        .select(CALL_FLOW_ANALYSIS_CONFIG.fields())
+        .from(CALL_FLOW_ANALYSIS_CONFIG)
+        .join(OWNER_ANCESTOR)
+        .on(CALL_FLOW_ANALYSIS_CONFIG.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+        .limit(1)
+        .fetchOne());
+  }
+
+  public CallFlowAnalysisConfig getByOwnerIdWithHierarchy(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdWithHierarchy(tx, ownerId);
+    }
   }
 
   public CallFlowAnalysisConfig getByOwnerId(final String ownerId) {

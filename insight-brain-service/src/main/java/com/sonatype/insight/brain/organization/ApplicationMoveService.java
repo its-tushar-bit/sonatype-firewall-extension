@@ -359,12 +359,10 @@ public class ApplicationMoveService
     }
 
     private void loadOldPolicyConfiguration() {
-      oldLtgs = new ArrayList<>();
       oldOwnersById.put(application.getId(), application);
-      oldLtgs.addAll(ltgDAO.getByOwnerId(tx, application.getId()));
+      oldLtgs = new ArrayList<>(ltgDAO.getByOwnerIdWithHierarchy(tx, application.getId()));
       for (Owner owner : ownerDAO.walkHierarchy(tx, application.getOrganizationId())) {
         oldOwnersById.put(owner.getId(), owner);
-        oldLtgs.addAll(ltgDAO.getByOwnerId(tx, owner.getId()));
       }
       oldPolicies = policyDAO.getApplicableByOwnerIdWithHierarchy(tx, application.getId());
       oldLabels = labelDAO.getByOwnerIdWithHierarchy(tx, application.getId());

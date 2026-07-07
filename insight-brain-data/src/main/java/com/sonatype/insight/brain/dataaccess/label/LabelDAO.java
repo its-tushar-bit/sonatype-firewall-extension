@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,9 +39,11 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Field;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentLabel.COMPONENT_LABEL;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Label.LABEL;
 
 @Named
@@ -96,11 +100,14 @@ public class LabelDAO
   }
 
   public List<Label> getByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
-    final List<Label> labels = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
-      labels.addAll(getByOwnerId(tx, owner.getId()));
-    }
-    return labels;
+    return tx.dsl()
+        .select(LABEL.fields())
+        .from(LABEL)
+        .join(OWNER_ANCESTOR)
+        .on(LABEL.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE, LABEL.LABEL_LOWERCASE)
+        .fetchInto(Label.class);
   }
 
   public List<Label> getByOwnerIds(Collection<String> ownerIds) {
@@ -143,6 +150,33 @@ public class LabelDAO
     }
   }
 
+  // Keyed by COMPONENT_LABEL.OWNER_ID.
+  public Map<String, List<Label>> getByOwnerIdsAndHash(Collection<String> ownerIds, String hash) {
+    if (ownerIds == null || ownerIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      Field<String> componentOwnerField = COMPONENT_LABEL.OWNER_ID.as("component_owner_id");
+      List<Field<?>> selectFields = new ArrayList<>(Arrays.asList(LABEL.fields()));
+      selectFields.add(componentOwnerField);
+      List<Map.Entry<String, Label>> ownerLabels = getListWithSqlInClause(ownerIds,
+          chunk -> tx.dsl()
+              .select(selectFields)
+              .from(LABEL)
+              .join(COMPONENT_LABEL)
+              .on(LABEL.LABEL_ID.eq(COMPONENT_LABEL.LABEL_ID))
+              .where(COMPONENT_LABEL.OWNER_ID.in(chunk))
+              .and(COMPONENT_LABEL.HASH.eq(hash))
+              .orderBy(LABEL.LABEL_LOWERCASE)
+              .fetch(record -> Map.entry(record.get(componentOwnerField), record.into(Label.class))));
+      Map<String, List<Label>> result = new HashMap<>();
+      ownerLabels.forEach(entry -> result
+          .computeIfAbsent(entry.getKey(), k -> new ArrayList<>())
+          .add(entry.getValue()));
+      return result;
+    }
+  }
+
   public Label getByOwnerIdAndLabel(TransactionContext tx, String ownerId, String label) {
     return tx.dsl()
         .selectFrom(LABEL)
@@ -152,16 +186,18 @@ public class LabelDAO
   }
 
   public Label getByLabelWithHierarchy(String label, String ownerId) {
-    Label entity = null;
     try (TransactionContext tx = createTransactionContext()) {
-      for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
-        entity = getByOwnerIdAndLabel(tx, owner.getId(), label);
-        if (entity != null) {
-          break;
-        }
-      }
+      return tx.dsl()
+          .select(LABEL.fields())
+          .from(LABEL)
+          .join(OWNER_ANCESTOR)
+          .on(LABEL.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+          .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+          .and(LABEL.LABEL_LOWERCASE.eq(Label.normalizeLabel(label)))
+          .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+          .limit(1)
+          .fetchOneInto(Label.class);
     }
-    return entity;
   }
 
   @Override

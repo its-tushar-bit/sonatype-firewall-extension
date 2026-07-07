@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.license;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -233,13 +234,17 @@ public class LicenseOverrideService
     AppliedLicenseOverrides result = new AppliedLicenseOverrides();
     result.licenseOverridesByOwner = new ArrayList<>();
 
-    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
+    List<Owner> owners = new ArrayList<>();
+    ownerDAO.walkHierarchy(internalOwnerId).forEach(owners::add);
+    Map<String, LicenseOverride> overridesByOwnerId = licenseOverrideDAO.getByOwnerIdsAndComponentIdentifier(
+        owners.stream().map(Owner::getId).collect(Collectors.toList()), componentIdentifier);
+
+    for (Owner owner : owners) {
       LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
       licenseOverrideByOwner.ownerId = OwnerType.REPOSITORY.equals(ownerType) ? owner.getId() : owner.getPublicId();
       licenseOverrideByOwner.ownerName = owner.getName();
       licenseOverrideByOwner.ownerType = owner.getType();
-      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(owner.getId(),
-          componentIdentifier);
+      licenseOverrideByOwner.licenseOverride = overridesByOwnerId.get(owner.getId());
       result.licenseOverridesByOwner.add(licenseOverrideByOwner);
     }
 

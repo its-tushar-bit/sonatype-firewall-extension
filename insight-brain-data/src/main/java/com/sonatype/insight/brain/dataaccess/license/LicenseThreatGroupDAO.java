@@ -353,12 +353,12 @@ public class LicenseThreatGroupDAO
    * @since 1.6
    */
   public Integer getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(Owner owner, String licenseId) {
-    Integer threatLevel = null;
-    for (Owner currentOwner : ownerDAO.walkHierarchy(owner)) {
-      List<LicenseThreatGroup> licenseThreatGroups = getByOwnerIdAndLicenseId(currentOwner.getId(), licenseId);
-      threatLevel = max(threatLevel, licenseThreatGroups);
+    if (licenseId == null) {
+      return null;
     }
-    return threatLevel;
+    try (TransactionContext tx = createTransactionContext()) {
+      return max(null, getByOwnerIdAndLicenseIdsWithHierarchy(tx, owner.getId(), Set.of(licenseId)));
+    }
   }
 
   /**
@@ -436,26 +436,43 @@ public class LicenseThreatGroupDAO
     }
   }
 
+  public List<LicenseThreatGroup> getByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
+    return tx.dsl()
+        .select(LICENSE_THREAT_GROUP.fields())
+        .from(LICENSE_THREAT_GROUP)
+        .join(OWNER_ANCESTOR)
+        .on(LICENSE_THREAT_GROUP.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE, LICENSE_THREAT_GROUP.NAME)
+        .fetch(r -> toEntity(r.into(LICENSE_THREAT_GROUP)));
+  }
+
+  public List<LicenseThreatGroup> getByOwnerIdWithHierarchy(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdWithHierarchy(tx, ownerId);
+    }
+  }
+
   public List<LicenseThreatGroup> getByOwnerIdAndLicenseIdsWithHierarchy(
       TransactionContext tx,
       String ownerId,
       Set<String> licenseIds)
   {
-    List<LicenseThreatGroup> result = new ArrayList<>();
-
-    for (Owner currentOwner : ownerDAO.walkHierarchy(tx, ownerId)) {
-      var groups = tx.dsl()
-          .select(LICENSE_THREAT_GROUP.fields())
-          .from(LICENSE_THREAT_GROUP)
-          .join(LICENSE_THREAT_GROUP_LICENSE)
-          .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
-          .where(LICENSE_THREAT_GROUP.OWNER_ID.eq(currentOwner.getId()))
-          .and(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID.in(licenseIds))
-          .fetch(r -> toEntity(r.into(LICENSE_THREAT_GROUP)));
-      result.addAll(groups);
+    if (CollectionUtils.isEmpty(licenseIds)) {
+      return Collections.emptyList();
     }
 
-    return result;
+    return tx.dsl()
+        .select(LICENSE_THREAT_GROUP.fields())
+        .from(LICENSE_THREAT_GROUP)
+        .join(LICENSE_THREAT_GROUP_LICENSE)
+        .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
+        .join(OWNER_ANCESTOR)
+        .on(LICENSE_THREAT_GROUP.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .and(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID.in(licenseIds))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+        .fetch(r -> toEntity(r.into(LICENSE_THREAT_GROUP)));
   }
 
   /**

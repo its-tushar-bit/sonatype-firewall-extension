@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -200,42 +199,41 @@ public class ComponentObligationDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    Map<String, ComponentObligation> nameToObligationMap = new HashMap<>();
-
-    try (TransactionContext tx = createTransactionContext()) {
-      for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
-        List<ComponentObligation> componentObligations =
-            getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
-        for (ComponentObligation componentObligation : componentObligations) {
-          nameToObligationMap.putIfAbsent(componentObligation.getObligationName(), componentObligation);
-        }
-      }
-    }
-
-    return new ArrayList<>(nameToObligationMap.values());
+    return batchGetWithHierarchy(ownerId, List.of(componentIdentifier))
+        .getOrDefault(componentIdentifier, Collections.emptyList());
   }
 
   public Map<ComponentIdentifier, Set<String>> getAddressedObligationsByOwnerIdWithHierarchy(String ownerId) {
-    // Keeps a set of all obligations saved by component to avoid considering them when querying the parent owner
-    Map<ComponentIdentifier, Set<String>> componentObligationsFound = new HashMap<>();
-    // Keeps a set of fulfilled or ignored obligations by component
-    Map<ComponentIdentifier, Set<String>> componentObligationsAddressed = new HashMap<>();
+    var co = COMPONENT_OBLIGATION;
+    var oa = OWNER_ANCESTOR;
 
+    List<Record> rows;
     try (TransactionContext tx = createTransactionContext()) {
-      for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-        getByOwnerId(tx, owner.getId()).forEach(componentObligation -> {
-          Set<String> obligationNames = componentObligationsFound
-              .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());
-          if (obligationNames.add(componentObligation.getObligationName())
-              && (componentObligation.getStatus() == ObligationStatus.FULFILLED
-                  || componentObligation.getStatus() == ObligationStatus.IGNORED))
-          {
-            // The obligation was not saved in the scope of the previous owner and has been addressed in the current one
-            Set<String> obligationNamesAddressed = componentObligationsAddressed
-                .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());
-            obligationNamesAddressed.add(componentObligation.getObligationName());
-          }
-        });
+      rows = new ArrayList<>(tx.dsl()
+          .select(co.COMPONENT_ID_FORMAT, co.COMPONENT_ID_COORDINATES_JSON, co.OBLIGATION_NAME, co.STATUS,
+              oa.ANCESTOR_DISTANCE)
+          .from(co)
+          .join(oa)
+          .on(co.OWNER_ID.eq(oa.ANCESTOR_ID))
+          .where(oa.OWNER_ID.eq(ownerId))
+          .orderBy(oa.ANCESTOR_DISTANCE)
+          .fetch());
+    }
+
+    // Rows are ordered nearest-ancestor-first, so the first occurrence of each (component, obligation) is the closest;
+    // an obligation counts as addressed only when that closest occurrence is FULFILLED or IGNORED.
+    Map<ComponentIdentifier, Set<String>> componentObligationsFound = new HashMap<>();
+    Map<ComponentIdentifier, Set<String>> componentObligationsAddressed = new HashMap<>();
+    for (Record row : rows) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(
+          row.get(co.COMPONENT_ID_FORMAT), row.get(co.COMPONENT_ID_COORDINATES_JSON));
+      String obligationName = row.get(co.OBLIGATION_NAME);
+      String status = row.get(co.STATUS);
+      if (componentObligationsFound.computeIfAbsent(componentIdentifier, key -> new HashSet<>()).add(obligationName)
+          && (ObligationStatus.FULFILLED.name().equals(status) || ObligationStatus.IGNORED.name().equals(status)))
+      {
+        componentObligationsAddressed.computeIfAbsent(componentIdentifier, key -> new HashSet<>())
+            .add(obligationName);
       }
     }
 

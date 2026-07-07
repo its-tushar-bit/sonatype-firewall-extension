@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -375,9 +376,16 @@ public class MembershipMappingService
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
     }
 
-    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      Map<String, MembersByOwner> membersByOwnerByRoleId =
-          loadMembers(owner.getId(), owner.getName(), owner.getType(), roles);
+    List<Owner> owners = new ArrayList<>();
+    ownerDAO.walkHierarchy(internalOwnerId).forEach(owners::add);
+    Map<String, List<MembershipMapping>> mappingsByContextId = membershipMappingDAO
+        .getByContextIds(owners.stream().map(Owner::getId).collect(Collectors.toList()))
+        .stream()
+        .collect(Collectors.groupingBy(MembershipMapping::getContextId));
+
+    for (Owner owner : owners) {
+      Map<String, MembersByOwner> membersByOwnerByRoleId = loadMembers(owner.getId(), owner.getName(),
+          owner.getType(), roles, mappingsByContextId.getOrDefault(owner.getId(), Collections.emptyList()));
       for (Map.Entry<String, MembersByOwner> entry : membersByOwnerByRoleId.entrySet()) {
         if (OwnerType.APPLICATION.equals(owner.getType())) {
           entry.getValue().ownerId = owner.getPublicId();
@@ -638,8 +646,18 @@ public class MembershipMappingService
       final OwnerType ownerType,
       final List<Role> roles)
   {
+    return loadMembers(ownerId, ownerName, ownerType, roles, membershipMappingDAO.getByContextId(ownerId));
+  }
+
+  private Map<String, MembersByOwner> loadMembers(
+      final String ownerId,
+      final String ownerName,
+      final OwnerType ownerType,
+      final List<Role> roles,
+      final List<MembershipMapping> membershipMappings)
+  {
     final Map<String, MembersByOwner> membersByOwnerByRoleId = new LinkedHashMap<>();
-    for (final MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(ownerId)) {
+    for (final MembershipMapping membershipMapping : membershipMappings) {
       MembersByOwner membersByOwner = membersByOwnerByRoleId.get(membershipMapping.getRoleId());
       if (membersByOwner == null) {
         membersByOwner = new MembersByOwner(ownerId, ownerName, ownerType);

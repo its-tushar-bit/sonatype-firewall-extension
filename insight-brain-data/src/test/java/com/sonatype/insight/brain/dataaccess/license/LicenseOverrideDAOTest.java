@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -432,5 +433,93 @@ public class LicenseOverrideDAOTest
     assertThat(foundLicenseOverrides.size()).isEqualTo(2);
     assertThat(foundLicenseOverrides).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(licenseOverride1, licenseOverride2);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndComponentIdentifier_returnsOneOverridePerOwner() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    LicenseOverride orgOverride = tempEntity.newLicenseOverride(organization.getId(), componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+    LicenseOverride appOverride = tempEntity.newLicenseOverride(application.getId(), componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-1.0");
+
+    Map<String, LicenseOverride> result = dao.getByOwnerIdsAndComponentIdentifier(
+        Arrays.asList(organization.getId(), application.getId()), componentIdentifier);
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(organization.getId()).getId()).isEqualTo(orgOverride.getId());
+    assertThat(result.get(application.getId()).getId()).isEqualTo(appOverride.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndComponentIdentifier_prefersGavecOverGavFallback() {
+    ComponentIdentifier gavIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier gavecIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    LicenseOverride gavecOverride = tempEntity.newLicenseOverride(organization.getId(), gavecIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+    Application app2 = tempEntity.newApplication(organization.getId());
+    LicenseOverride gavOverride = tempEntity.newLicenseOverride(app2.getId(), gavIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-1.0");
+
+    Map<String, LicenseOverride> result = dao.getByOwnerIdsAndComponentIdentifier(
+        Arrays.asList(organization.getId(), app2.getId()), gavecIdentifier);
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(organization.getId()).getId()).isEqualTo(gavecOverride.getId());
+    assertThat(result.get(app2.getId()).getId()).isEqualTo(gavOverride.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndComponentIdentifier_prefersGavecOverGavWithinSameOwner() {
+    ComponentIdentifier gavIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier gavecIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    LicenseOverride gavecOverride = tempEntity.newLicenseOverride(organization.getId(), gavecIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+    tempEntity.newLicenseOverride(organization.getId(), gavIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-1.0");
+
+    Map<String, LicenseOverride> result = dao.getByOwnerIdsAndComponentIdentifier(
+        Arrays.asList(organization.getId()), gavecIdentifier);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(organization.getId()).getId()).isEqualTo(gavecOverride.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndComponentIdentifier_emptyWhenNoOverrides() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    Map<String, LicenseOverride> result = dao.getByOwnerIdsAndComponentIdentifier(
+        Arrays.asList(organization.getId(), application.getId()), componentIdentifier);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_returnsOverridesAcrossAncestors() {
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a", "v");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a", "v");
+    LicenseOverride orgOverride = tempEntity.newLicenseOverride(organization.getId(), componentIdentifier1,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+    LicenseOverride appOverride = tempEntity.newLicenseOverride(application.getId(), componentIdentifier2,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-1.0");
+
+    List<LicenseOverride> result;
+    try (TransactionContext tx = licenseOverrideLicenseInternalDAO.createTransactionContext()) {
+      result = dao.getByOwnerIdWithHierarchy(tx, application.getId());
+    }
+
+    assertThat(result).extracting(LicenseOverride::getId)
+        .containsExactly(appOverride.getId(), orgOverride.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_emptyWhenNoOverrides() {
+    List<LicenseOverride> result;
+    try (TransactionContext tx = licenseOverrideLicenseInternalDAO.createTransactionContext()) {
+      result = dao.getByOwnerIdWithHierarchy(tx, application.getId());
+    }
+
+    assertThat(result).isEmpty();
   }
 }

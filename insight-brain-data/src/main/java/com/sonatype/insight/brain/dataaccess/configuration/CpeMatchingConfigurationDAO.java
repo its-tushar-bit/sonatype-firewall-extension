@@ -17,6 +17,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.CpeMatchingConfiguration.CPE_MATCHING_CONFIGURATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 /**
  * @since 1.190
@@ -29,6 +30,37 @@ public class CpeMatchingConfigurationDAO
   @Inject
   public CpeMatchingConfigurationDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+  }
+
+  public CpeMatchingConfiguration getByOwnerIdWithHierarchyExcludingSelf(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(CPE_MATCHING_CONFIGURATION.fields())
+          .from(CPE_MATCHING_CONFIGURATION)
+          .join(OWNER_ANCESTOR)
+          .on(CPE_MATCHING_CONFIGURATION.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+          .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+          .and(OWNER_ANCESTOR.ANCESTOR_DISTANCE.gt(0))
+          .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+          .limit(1)
+          .fetchOneInto(CpeMatchingConfiguration.class);
+    }
+  }
+
+  public CpeMatchingConfiguration getByOwnerIdWithCpeEnabledWithHierarchyExcludingSelf(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(CPE_MATCHING_CONFIGURATION.fields())
+          .from(CPE_MATCHING_CONFIGURATION)
+          .join(OWNER_ANCESTOR)
+          .on(CPE_MATCHING_CONFIGURATION.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+          .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+          .and(OWNER_ANCESTOR.ANCESTOR_DISTANCE.gt(0))
+          .and(CPE_MATCHING_CONFIGURATION.CPE_ENABLED.isNotNull())
+          .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+          .limit(1)
+          .fetchOneInto(CpeMatchingConfiguration.class);
+    }
   }
 
   public CpeMatchingConfiguration getByOwnerId(final String ownerId) {

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 import java.util.List;
 
 import com.sonatype.insight.brain.AbstractDataTest;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -26,13 +25,10 @@ public class LicenseThreatGroupValueTypeTest
 
   private Application app;
 
-  private OwnerDAO ownerDAO;
-
   private LicenseThreatGroupDAO licenseThreatGroupDAO;
 
   @Before
   public void setUp() {
-    ownerDAO = daoFactory.createOwnerDAO();
     licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
 
     org = tempEntity.newOrganization("orgName");
@@ -44,7 +40,7 @@ public class LicenseThreatGroupValueTypeTest
 
   @Test
   public void testGetAvailableValues_AppLevel() {
-    LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(app.getId(), ownerDAO, licenseThreatGroupDAO);
+    LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(app.getId(), licenseThreatGroupDAO);
     List<LicenseThreatGroup> ltgs = type.getAvailableValues();
     assertThat(ltgs).hasSize(4);
     assertThat(ltgs.get(3)).isEqualTo(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP);
@@ -52,7 +48,7 @@ public class LicenseThreatGroupValueTypeTest
 
   @Test
   public void testGetAvailableValues_OrgLevel() {
-    LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(org.getId(), ownerDAO, licenseThreatGroupDAO);
+    LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(org.getId(), licenseThreatGroupDAO);
     List<LicenseThreatGroup> ltgs = type.getAvailableValues();
     assertThat(ltgs).hasSize(3);
     assertThat(ltgs.get(2)).isEqualTo(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP);

@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -33,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -130,6 +130,8 @@ public abstract class AbstractIndexSearchingTest
 
   private OrganizationDAO spyOrganizationDAO;
 
+  private PolicyEvaluationDAO spyPolicyEvaluationDAO;
+
   @Inject
   private LabelDAO labelDAO;
 
@@ -167,6 +169,8 @@ public abstract class AbstractIndexSearchingTest
   public void setUpSearchOverrides() {
     spyOrganizationDAO = spy(daoFactory.createOrganizationDAO());
     applyBeanFieldOverride(OwnerDAO.class, "orgDAO", spyOrganizationDAO);
+    spyPolicyEvaluationDAO = spy(daoFactory.createPolicyEvaluationDAO());
+    applyBeanFieldOverride(DocumentBuilderHelper.class, "policyEvaluationDAO", spyPolicyEvaluationDAO);
     lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
   }
 
@@ -2031,10 +2035,11 @@ public abstract class AbstractIndexSearchingTest
       Thread.sleep(200);
       threads.add(Thread.currentThread());
       return invocationOnMock.callRealMethod();
-    }).when(spyOrganizationDAO).getById(any(), anyString());
+    }).when(spyPolicyEvaluationDAO).getLastByApplicationIdAndStageId(anyString(), anyString());
 
     index();
 
+    assertThat(threads).isNotEmpty();
     assertThat(threads).extracting(Thread::getName)
         .allSatisfy(name -> {
           assertThat(name).doesNotStartWith("ForkJoinPool.commonPool-worker");

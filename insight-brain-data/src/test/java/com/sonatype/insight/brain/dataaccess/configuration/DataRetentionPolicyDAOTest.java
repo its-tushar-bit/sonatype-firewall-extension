@@ -221,4 +221,36 @@ public class DataRetentionPolicyDAOTest
         .usingComparator(Comparator.comparing(DataRetentionPolicy::getId))
         .isEqualTo(policy2);
   }
+
+  @Test
+  public void testGetByOwnerIdAndContextIdWithHierarchy_returnsAncestorPolicyWhenSelfHasNone() {
+    DataRetentionPolicy orgPolicy = new DataRetentionPolicy(organization.getId(), "contextId");
+    dao.insert(orgPolicy);
+
+    DataRetentionPolicy result = dao.getByOwnerIdAndContextIdWithHierarchy(application.getId(), "contextId");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(orgPolicy.getId());
+    assertThat(result.getOwnerId()).isEqualTo(organization.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdAndContextIdWithHierarchy_prefersSelfOverAncestor() {
+    DataRetentionPolicy appPolicy = new DataRetentionPolicy(application.getId(), "contextId");
+    dao.insert(appPolicy);
+    DataRetentionPolicy orgPolicy = new DataRetentionPolicy(organization.getId(), "contextId");
+    dao.insert(orgPolicy);
+
+    DataRetentionPolicy result = dao.getByOwnerIdAndContextIdWithHierarchy(application.getId(), "contextId");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(appPolicy.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdAndContextIdWithHierarchy_returnsNullWhenNoMatch() {
+    DataRetentionPolicy result = dao.getByOwnerIdAndContextIdWithHierarchy(application.getId(), "nonexistent-context");
+
+    assertThat(result).isNull();
+  }
 }

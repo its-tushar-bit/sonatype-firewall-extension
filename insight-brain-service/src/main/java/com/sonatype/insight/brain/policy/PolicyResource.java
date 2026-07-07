@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -89,6 +90,7 @@ import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 
@@ -264,8 +266,15 @@ public class PolicyResource
     List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
 
     // Init the result structure
+    List<Owner> hierarchyOwners = new ArrayList<>();
+    ownerDAO.walkHierarchy(ownerId).forEach(hierarchyOwners::add);
+    List<String> orgOwnerIds = hierarchyOwners.stream()
+        .filter(o -> !(o instanceof Application))
+        .map(Owner::getId)
+        .collect(toList());
+    Map<String, List<PolicyTag>> policyTagsByOrgId = policyTagDAO.getByOrganizationIdsGrouped(orgOwnerIds);
     Map<String, PoliciesByOwner> policiesByOwnerId = new LinkedHashMap<>();
-    for (Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
+    for (Owner currentOwner : hierarchyOwners) {
       String currentOwnerId = currentOwner.getId();
       if (currentOwner instanceof Application) {
         policiesByOwnerId.put(currentOwnerId,
@@ -274,8 +283,8 @@ public class PolicyResource
       else {
         policiesByOwnerId.put(
             currentOwnerId,
-            new PoliciesByOwner(currentOwnerId, currentOwner.getName(), currentOwner.getType(), policyTagDAO
-                .getByOrganizationId(currentOwnerId)));
+            new PoliciesByOwner(currentOwnerId, currentOwner.getName(), currentOwner.getType(),
+                policyTagsByOrgId.getOrDefault(currentOwnerId, Collections.emptyList())));
       }
     }
 

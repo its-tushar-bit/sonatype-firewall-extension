@@ -13,7 +13,6 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -42,8 +41,6 @@ import static java.lang.String.format;
 @Named
 public class CpeMatchingConfigurationService
 {
-  private final OwnerDAO ownerDAO;
-
   private final ApplicationDAO applicationDAO;
 
   private final OrganizationDAO organizationDAO;
@@ -56,13 +53,11 @@ public class CpeMatchingConfigurationService
 
   @Inject
   public CpeMatchingConfigurationService(
-      final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final OrganizationDAO organizationDAO,
       final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
       final ProductLicense productLicense)
   {
-    this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
@@ -81,29 +76,19 @@ public class CpeMatchingConfigurationService
     requireOwnerExists(ownerType, ownerId);
     CpeMatchingConfiguration ownerConfig = cpeMatchingConfigurationDAO.getByOwnerId(ownerId);
 
-    // Find the first inherited configuration from an ancestor
-    CpeMatchingConfiguration inheritedConfig = null;
+    CpeMatchingConfiguration inheritedConfig =
+        cpeMatchingConfigurationDAO.getByOwnerIdWithHierarchyExcludingSelf(ownerId);
     Owner inheritedFrom = null;
-    for (Owner parent : ownerDAO.walkHierarchy(ownerId, ownerType)) {
-      if (parent.getId().equals(ownerId)) {
-        // Skip to avoid checking the owner itself
-        continue;
+    if (inheritedConfig != null) {
+      if (inheritedConfig.isCpeEnabled() != null) {
+        inheritedFrom = organizationDAO.getById(inheritedConfig.getOwnerId());
       }
-
-      CpeMatchingConfiguration parentConfig = cpeMatchingConfigurationDAO.getByOwnerId(parent.getId());
-      if (parentConfig != null) {
-        if (inheritedConfig == null) {
-          inheritedConfig = parentConfig;
-        }
-        if (parentConfig.isCpeEnabled() == null) {
-          // If the inherited configuration's 'enabled' is null, we continue searching for the closest ancestor
-          // that has an explicit 'enabled' value.
-          continue;
-        }
-        else {
-          inheritedConfig.setCpeEnabled(parentConfig.isCpeEnabled());
-          inheritedFrom = parent;
-          break; // Found the closest ancestor's config, stop searching
+      else {
+        CpeMatchingConfiguration cpeEnabledConfig =
+            cpeMatchingConfigurationDAO.getByOwnerIdWithCpeEnabledWithHierarchyExcludingSelf(ownerId);
+        if (cpeEnabledConfig != null) {
+          inheritedConfig.setCpeEnabled(cpeEnabledConfig.isCpeEnabled());
+          inheritedFrom = organizationDAO.getById(cpeEnabledConfig.getOwnerId());
         }
       }
     }
@@ -147,7 +132,7 @@ public class CpeMatchingConfigurationService
         CpeMatchingConfigurationDTO dto = new CpeMatchingConfigurationDTO();
         dto.enabled = inheritedConfig.isCpeEnabled();
         dto.enabledInParent = inheritedConfig.isCpeEnabled();
-        dto.inheritedFromOrganizationName = inheritedFrom.getName();
+        dto.inheritedFromOrganizationName = inheritedFrom != null ? inheritedFrom.getName() : null;
         dto.inheritedFromOrganizationAllowOverride = inheritedConfig.isAllowOverride();
         dto.allowOverride = inheritedConfig.isAllowOverride();
         return dto;

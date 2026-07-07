@@ -407,6 +407,42 @@ public class MembershipMappingDAOTest
   }
 
   @Test
+  public void testGetByContextIdAndRoleIdWithHierarchy_collectsFromAncestors() {
+    Role role = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+    Role otherRole = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+
+    MembershipMapping mmAtApp =
+        tempEntity.newMembershipMapping(application.getId(), role.getId(), "user-at-app");
+    MembershipMapping mmAtOrg =
+        tempEntity.newMembershipMapping(organization.getId(), role.getId(), "user-at-org");
+    tempEntity.newMembershipMapping(organization.getId(), otherRole.getId(), "user-other-role");
+
+    List<MembershipMapping> result =
+        membershipDAO.getByContextIdAndRoleIdWithHierarchy(application.getId(), role.getId());
+
+    assertThat(result).extracting(MembershipMapping::getId)
+        .containsExactly(mmAtApp.getId(), mmAtOrg.getId());
+  }
+
+  @Test
+  public void testGetByContextIds_returnsMappingsForAllContexts() {
+    Role role = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+    MembershipMapping orgMapping = tempEntity.newMembershipMapping(organization.getId(), role.getId(), "user-at-org");
+    MembershipMapping appMapping = tempEntity.newMembershipMapping(application.getId(), role.getId(), "user-at-app");
+
+    List<MembershipMapping> result =
+        membershipDAO.getByContextIds(List.of(organization.getId(), application.getId()));
+
+    assertThat(result).extracting(MembershipMapping::getId)
+        .containsExactlyInAnyOrder(orgMapping.getId(), appMapping.getId());
+  }
+
+  @Test
+  public void testGetByContextIds_emptyInputReturnsEmpty() {
+    assertThat(membershipDAO.getByContextIds(Collections.emptyList())).isEmpty();
+  }
+
+  @Test
   public void testIsUserHavingRolesInAnyContext_ByUsername() {
     Role role1 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
     Role role2 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);

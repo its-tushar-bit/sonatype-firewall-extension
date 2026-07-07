@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -92,6 +95,26 @@ public class ApplicationTagDAO
           .where(TAG.ORGANIZATION_ID.eq(organizationId))
           .fetch()
           .map(this::toEntity);
+    }
+  }
+
+  public Map<String, List<ApplicationTag>> getByOrganizationIds(Collection<String> organizationIds) {
+    if (organizationIds == null || organizationIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return getListWithSqlInClause(organizationIds,
+          chunk -> tx.dsl()
+              .select(APPLICATION_TAG.fields())
+              .select(TAG.ORGANIZATION_ID)
+              .from(APPLICATION_TAG)
+              .join(TAG)
+              .on(APPLICATION_TAG.TAG_ID.eq(TAG.TAG_ID))
+              .where(TAG.ORGANIZATION_ID.in(chunk))
+              .fetch(r -> Map.entry(r.get(TAG.ORGANIZATION_ID), toEntity(r.into(APPLICATION_TAG)))))
+                  .stream()
+                  .collect(Collectors.groupingBy(Map.Entry::getKey,
+                      Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
     }
   }
 

@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -806,17 +808,168 @@ public class ApiPolicyWaiverRequestService
     allowedOwnerIds.addAll(repoManagerIds);
     allowedOwnerIds.add(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
+    List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByOwnerIds(allowedOwnerIds);
+
+    // Prefetch to keep toDto from re-introducing per-record lookups.
     Map<String, PolicyWaiverReason> reasonsById =
         policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+    Map<String, Policy> policiesById = prefetchPoliciesForWaiverRequests(policyWaiverRequests);
+    Map<String, Owner> ownersById = prefetchOwnersForWaiverRequests(policyWaiverRequests);
+    Map<String, AbstractPolicyViolation> violationsByIdForFallback =
+        prefetchViolationsForComponentIdentifierFallback(policyWaiverRequests);
 
-    List<ApiPolicyWaiverRequestDTO> result = new ArrayList<>();
-    for (String allowedOwnerId : allowedOwnerIds) {
-      policyWaiverRequestDAO.getByOwnerId(allowedOwnerId)
-          .stream()
-          .map(r -> toDto(r, reasonsById.get(r.getWaiverReasonId())))
-          .forEach(result::add);
+    return policyWaiverRequests.stream()
+        .map(r -> toDtoWithPrefetched(r, reasonsById.get(r.getWaiverReasonId()),
+            policiesById.get(r.getPolicyId()), ownersById.get(r.getOwnerId()),
+            violationsByIdForFallback.get(r.getPolicyViolationId())))
+        .collect(Collectors.toList());
+  }
+
+  private Map<String, Policy> prefetchPoliciesForWaiverRequests(List<PolicyWaiverRequest> policyWaiverRequests) {
+    Set<String> policyIds = policyWaiverRequests.stream()
+        .map(PolicyWaiverRequest::getPolicyId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    if (policyIds.isEmpty()) {
+      // emptyMap() (not Map.of()) so a null-key get() returns null instead of throwing.
+      return Collections.emptyMap();
     }
-    return result;
+    return policyDAO.getByIds(policyIds).stream().collect(Collectors.toMap(Policy::getId, p -> p));
+  }
+
+  // WARN when the list endpoint is about to fan out to more owners than expected.
+  private static final int OWNER_PREFETCH_WARN_THRESHOLD = 50;
+
+  // OwnerDAO composites org/app/repo/manager and rejects batch lookups, so fall back to per-id.
+  private Map<String, Owner> prefetchOwnersForWaiverRequests(List<PolicyWaiverRequest> policyWaiverRequests) {
+    Set<String> distinctOwnerIds = policyWaiverRequests.stream()
+        .map(PolicyWaiverRequest::getOwnerId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    if (distinctOwnerIds.size() > OWNER_PREFETCH_WARN_THRESHOLD) {
+      log.warn("getPolicyWaiverRequests fanning out to {} owners (threshold {}); consider batching ownerDAO.",
+          distinctOwnerIds.size(), OWNER_PREFETCH_WARN_THRESHOLD);
+    }
+    Map<String, Owner> ownersById = new HashMap<>(distinctOwnerIds.size());
+    for (String id : distinctOwnerIds) {
+      Owner owner = ownerDAO.getById(id);
+      if (owner != null) {
+        ownersById.put(id, owner);
+      }
+    }
+    return ownersById;
+  }
+
+  // Batch-load violations only for requests missing their own componentIdentifier
+  // (e.g. ALL_COMPONENTS matcher). Constraint facts aren't needed here.
+  private Map<String, AbstractPolicyViolation> prefetchViolationsForComponentIdentifierFallback(
+      List<PolicyWaiverRequest> policyWaiverRequests)
+  {
+    Set<String> violationIds = policyWaiverRequests.stream()
+        .filter(r -> r.getComponentIdentifier() == null && r.getPolicyViolationId() != null)
+        .map(PolicyWaiverRequest::getPolicyViolationId)
+        .collect(Collectors.toSet());
+    if (violationIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Map<String, AbstractPolicyViolation> byId = new HashMap<>(violationIds.size());
+    for (PolicyViolation v : policyViolationDAO.getByIds(violationIds)) {
+      byId.put(v.getId(), v);
+    }
+    // Ids not in policy_violation may live in the repository sibling table.
+    Set<String> unresolvedIds = new LinkedHashSet<>(violationIds);
+    unresolvedIds.removeAll(byId.keySet());
+    if (!unresolvedIds.isEmpty()) {
+      for (var v : repositoryPolicyViolationDAO.getByIds(unresolvedIds)) {
+        byId.put(v.getId(), v);
+      }
+      unresolvedIds.removeAll(byId.keySet());
+    }
+    // Batched equivalent of the per-record "violation no longer exists" debug log.
+    if (!unresolvedIds.isEmpty() && log.isDebugEnabled()) {
+      log.debug("Policy violation(s) {} no longer exist for the referenced waiver requests; "
+          + "componentIdentifier fallback will be null for those DTOs.", unresolvedIds);
+    }
+    return byId;
+  }
+
+  private ApiPolicyWaiverRequestDTO toDtoWithPrefetched(
+      PolicyWaiverRequest policyWaiverRequest,
+      PolicyWaiverReason policyWaiverReason,
+      Policy prefetchedPolicy,
+      Owner prefetchedOwner,
+      AbstractPolicyViolation prefetchedViolationForFallback)
+  {
+    ApiPolicyWaiverRequestDTO dto = new ApiPolicyWaiverRequestDTO();
+
+    dto.policyWaiverRequestId = policyWaiverRequest.getId();
+    dto.comment = policyWaiverRequest.getComment();
+    dto.noteToReviewer = policyWaiverRequest.getNoteToReviewer();
+    dto.requestTime = policyWaiverRequest.getRequestTime();
+    dto.expiryTime = policyWaiverRequest.getExpiryTime();
+    dto.hash = policyWaiverRequest.getHash();
+    dto.policyId = policyWaiverRequest.getPolicyId();
+    if (prefetchedPolicy != null) {
+      dto.policyName = prefetchedPolicy.getName();
+      dto.threatLevel = prefetchedPolicy.getThreatLevel();
+    }
+    dto.requesterId = policyWaiverRequest.getRequesterId();
+    dto.requesterName = policyWaiverRequest.getRequesterName();
+    dto.reviewerName = policyWaiverRequest.getReviewerName();
+    dto.reviewerId = policyWaiverRequest.getReviewerId();
+    dto.rejectionReason = policyWaiverRequest.getRejectionReason();
+    dto.componentUpgradeAvailable = policyWaiverRequest.isComponentUpgradeAvailable();
+    dto.expireWhenRemediationAvailable = policyWaiverRequest.isExpireWhenRemediationAvailable();
+    dto.policyViolationId = policyWaiverRequest.getPolicyViolationId();
+
+    if (policyWaiverRequest.getComponentIdentifier() != null) {
+      dto.componentIdentifier =
+          ApiComponentIdentifierDTOV2.fromComponentIdentifier(policyWaiverRequest.getComponentIdentifier());
+    }
+    else if (prefetchedViolationForFallback != null
+        && prefetchedViolationForFallback.getComponentIdentifier() != null)
+    {
+      dto.componentIdentifier =
+          ApiComponentIdentifierDTOV2.fromComponentIdentifier(prefetchedViolationForFallback.getComponentIdentifier());
+    }
+
+    if (prefetchedOwner != null) {
+      dto.scopeOwnerId = prefetchedOwner.getId();
+      dto.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(prefetchedOwner.getType(), prefetchedOwner.getId());
+      dto.scopeOwnerName = prefetchedOwner.getName();
+    }
+    else {
+      dto.scopeOwnerId = policyWaiverRequest.getOwnerId();
+    }
+
+    if (policyWaiverRequest.getComponentMatchStrategy() != null) {
+      dto.matcherStrategy = policyWaiverRequest.getComponentMatchStrategy();
+      if (policyWaiverRequest.getComponentMatchStrategy() != ALL_COMPONENTS) {
+        dto.associatedPackageUrl = policyWaiverRequest.getAssociatedPackageUrl();
+      }
+    }
+
+    if (policyWaiverRequest.getConstraintFacts() != null) {
+      policyWaiverRequest.getConstraintFacts()
+          .stream()
+          .flatMap(constraintFact -> constraintFact.getConditionFacts().stream().map(ConditionFact::getReference))
+          .filter(Objects::nonNull)
+          .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
+          .map(TriggerReference::getValue)
+          .findFirst()
+          .ifPresent(vulnerabilityId -> dto.vulnerabilityId = vulnerabilityId);
+    }
+    dto.constraintFactsJson = policyWaiverRequest.getConstraintFactsJson();
+    dto.constraintFacts = policyWaiverRequest.getConstraintFacts();
+
+    if (policyWaiverReason != null) {
+      dto.reasonText = policyWaiverReason.getReasonText();
+      dto.policyWaiverReasonId = policyWaiverReason.getId();
+    }
+
+    dto.status = policyWaiverRequest.getStatus().name();
+
+    return dto;
   }
 
   private static boolean matchesRepositoryFormat(Repository repo, String repositoryFormat) {

@@ -73,6 +73,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
@@ -2074,5 +2075,134 @@ public class ApiPolicyWaiverRequestServiceTest
 
     // Row is preserved — the guard didn't accidentally delete the just-approved waiver request.
     assertThat(policyWaiverRequestDAO.getById(created.policyWaiverRequestId)).isNotNull();
+  }
+
+  /** List endpoint must call getByOwnerIds once, not getByOwnerId per allowed owner. */
+  @Test
+  public void testGetPolicyWaiverRequests_usesBatchOwnerIdsQuery_notPerOwnerLoop() {
+    Repository repositoryA = tempEntity.newRepository();
+    Repository repositoryB = tempEntity.newRepository();
+    Policy repoPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+
+    RepositoryPolicyViolation violationA =
+        tempEntity.newRepositoryPolicyViolation(repositoryA.getId(), repoPolicy.getId(), repoPolicy.getThreatLevel());
+    RepositoryPolicyViolation violationB =
+        tempEntity.newRepositoryPolicyViolation(repositoryB.getId(), repoPolicy.getId(), repoPolicy.getThreatLevel());
+
+    apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.REPOSITORY,
+        repositoryA.getId(), violationA.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("wA", EXACT_COMPONENT, null, null, false));
+    apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.REPOSITORY,
+        repositoryB.getId(), violationB.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("wB", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequestDAO spyDao = spy(policyWaiverRequestDAO);
+    applyBeanFieldOverride(ApiPolicyWaiverRequestService.class, "policyWaiverRequestDAO", spyDao);
+    try {
+      List<ApiPolicyWaiverRequestDTO> results = apiPolicyWaiverRequestService
+          .getPolicyWaiverRequests(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, null);
+
+      assertThat(results).extracting(dto -> dto.comment).containsExactlyInAnyOrder("wA", "wB");
+      verify(spyDao, times(1)).getByOwnerIds(anyCollection());
+      verify(spyDao, never()).getByOwnerId(anyString());
+    }
+    finally {
+      applyBeanFieldOverride(ApiPolicyWaiverRequestService.class, "policyWaiverRequestDAO", policyWaiverRequestDAO);
+    }
+  }
+
+  /** DAO invocation count for the list endpoint stays O(1) regardless of allowed-owner count. */
+  @Test
+  public void testGetPolicyWaiverRequests_queryCountIsBoundedRegardlessOfOwnerCount() {
+    List<Repository> repositories = IntStream.range(0, 10)
+        .mapToObj(i -> tempEntity.newRepository())
+        .toList();
+    Policy repoPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    Repository firstRepo = repositories.get(0);
+    RepositoryPolicyViolation firstViolation =
+        tempEntity.newRepositoryPolicyViolation(firstRepo.getId(), repoPolicy.getId(), repoPolicy.getThreatLevel());
+    apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.REPOSITORY,
+        firstRepo.getId(), firstViolation.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("w0", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequestDAO spyDao = spy(policyWaiverRequestDAO);
+    applyBeanFieldOverride(ApiPolicyWaiverRequestService.class, "policyWaiverRequestDAO", spyDao);
+    try {
+      apiPolicyWaiverRequestService.getPolicyWaiverRequests(OwnerType.REPOSITORY_CONTAINER,
+          RepositoryContainer.REPOSITORY_CONTAINER_ID, null);
+
+      verify(spyDao, times(1)).getByOwnerIds(anyCollection());
+      verify(spyDao, never()).getByOwnerId(anyString());
+    }
+    finally {
+      applyBeanFieldOverride(ApiPolicyWaiverRequestService.class, "policyWaiverRequestDAO", policyWaiverRequestDAO);
+    }
+  }
+
+  /** List and single-fetch paths must produce identical DTOs for the same waiver request. */
+  @Test
+  public void testGetPolicyWaiverRequests_dtoFieldsMatchSingleFetchPath() {
+    Repository repository = tempEntity.newRepository();
+    Policy repoPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    RepositoryPolicyViolation violation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), repoPolicy.getId(), repoPolicy.getThreatLevel());
+    String waiverReasonId = policyWaiverReasonDAO.getAll().get(0).getId();
+
+    ApiPolicyWaiverRequestOptionsDTO options = new ApiPolicyWaiverRequestOptionsDTO(
+        "shared comment", EXACT_COMPONENT, DateUtils.addDays(new Date(), 30), waiverReasonId, true);
+    options.noteToReviewer = "note for reviewer";
+    ApiPolicyWaiverRequestDTO created =
+        apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.REPOSITORY,
+            repository.getId(), violation.getId(), options);
+
+    ApiPolicyWaiverRequestDTO singleFetch = apiPolicyWaiverRequestService.getPolicyWaiverRequest(
+        OwnerType.REPOSITORY, repository.getId(), created.policyWaiverRequestId);
+
+    List<ApiPolicyWaiverRequestDTO> listResults = apiPolicyWaiverRequestService.getPolicyWaiverRequests(
+        OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, null);
+
+    ApiPolicyWaiverRequestDTO fromList = listResults.stream()
+        .filter(dto -> created.policyWaiverRequestId.equals(dto.policyWaiverRequestId))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("list endpoint dropped the request just created"));
+
+    assertThat(fromList.policyWaiverRequestId).isEqualTo(singleFetch.policyWaiverRequestId);
+    assertThat(fromList.policyViolationId).isEqualTo(singleFetch.policyViolationId);
+    assertThat(fromList.comment).isEqualTo(singleFetch.comment);
+    assertThat(fromList.noteToReviewer).isEqualTo(singleFetch.noteToReviewer);
+    assertThat(fromList.requestTime).isEqualTo(singleFetch.requestTime);
+    assertThat(fromList.expiryTime).isEqualTo(singleFetch.expiryTime);
+    assertThat(fromList.hash).isEqualTo(singleFetch.hash);
+    assertThat(fromList.status).isEqualTo(singleFetch.status);
+    assertThat(fromList.expireWhenRemediationAvailable).isEqualTo(singleFetch.expireWhenRemediationAvailable);
+    assertThat(fromList.componentUpgradeAvailable).isEqualTo(singleFetch.componentUpgradeAvailable);
+
+    assertThat(fromList.policyId).isEqualTo(singleFetch.policyId);
+    assertThat(fromList.policyName).isEqualTo(singleFetch.policyName);
+    assertThat(fromList.threatLevel).isEqualTo(singleFetch.threatLevel);
+
+    assertThat(fromList.policyWaiverReasonId).isEqualTo(singleFetch.policyWaiverReasonId);
+    assertThat(fromList.reasonText).isEqualTo(singleFetch.reasonText);
+
+    assertThat(fromList.requesterId).isEqualTo(singleFetch.requesterId);
+    assertThat(fromList.requesterName).isEqualTo(singleFetch.requesterName);
+
+    assertThat(fromList.reviewerId).isEqualTo(singleFetch.reviewerId);
+    assertThat(fromList.reviewerName).isEqualTo(singleFetch.reviewerName);
+    assertThat(fromList.rejectionReason).isEqualTo(singleFetch.rejectionReason);
+
+    assertThat(fromList.scopeOwnerId).isEqualTo(singleFetch.scopeOwnerId);
+    assertThat(fromList.scopeOwnerType).isEqualTo(singleFetch.scopeOwnerType);
+    assertThat(fromList.scopeOwnerName).isEqualTo(singleFetch.scopeOwnerName);
+
+    assertThat(fromList.matcherStrategy).isEqualTo(singleFetch.matcherStrategy);
+    assertThat(fromList.associatedPackageUrl).isEqualTo(singleFetch.associatedPackageUrl);
+    assertThat(fromList.componentIdentifier).usingRecursiveComparison().isEqualTo(singleFetch.componentIdentifier);
+
+    assertThat(fromList.constraintFactsJson).isEqualTo(singleFetch.constraintFactsJson);
+    assertThat(fromList.constraintFacts)
+        .usingRecursiveComparison()
+        .isEqualTo(singleFetch.constraintFacts);
+    assertThat(fromList.vulnerabilityId).isEqualTo(singleFetch.vulnerabilityId);
   }
 }

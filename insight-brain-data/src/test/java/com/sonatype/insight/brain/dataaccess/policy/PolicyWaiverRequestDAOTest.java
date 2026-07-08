@@ -8,12 +8,15 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.db.jooq.JooqSqlCounterListener;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -27,9 +30,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus.APPROVED;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus.REJECTED;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus.REQUESTED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -435,6 +440,151 @@ public class PolicyWaiverRequestDAOTest
 
     assertThat(dao.getByOwnerId(ownerId)).extracting(PolicyWaiverRequest::getId)
         .containsExactly(policyWaiverRequestRequested.getId(), policyWaiverRequestRejected.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIds_returnsAllRequestsAcrossMultipleOwnersRegardlessOfStatus() {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    // One request per owner, each in a different status — the DAO must not filter by status.
+    PolicyWaiverRequest orgRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
+        .setHash("orgHash")
+        .setPolicyId(policy.getId())
+        .setOwnerId(organization.getId())
+        .setPolicyViolationId("orgViolation")
+        .setStatus(REQUESTED));
+    PolicyWaiverRequest appRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
+        .setHash("appHash")
+        .setPolicyId(policy.getId())
+        .setOwnerId(application.getId())
+        .setPolicyViolationId("appViolation")
+        .setStatus(APPROVED));
+    PolicyWaiverRequest repoRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
+        .setHash("repoHash")
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository.getId())
+        .setPolicyViolationId("repoViolation")
+        .setStatus(REJECTED));
+
+    assertThat(dao.getByOwnerIds(Set.of(organization.getId(), application.getId(), repository.getId())))
+        .extracting(PolicyWaiverRequest::getId)
+        .containsExactlyInAnyOrder(orgRequest.getId(), appRequest.getId(), repoRequest.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIds_returnsEmptyForEmptyInput() {
+    Policy policy = tempEntity.newPolicy(organization);
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("someHash")
+        .setPolicyId(policy.getId())
+        .setOwnerId(organization.getId())
+        .setPolicyViolationId("someViolation")
+        .setStatus(REQUESTED));
+
+    assertThat(dao.getByOwnerIds(Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIds_skipsOwnersWithoutRequests() {
+    Policy policy = tempEntity.newPolicy(organization);
+    PolicyWaiverRequest onlyRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
+        .setHash("onlyHash")
+        .setPolicyId(policy.getId())
+        .setOwnerId(application.getId())
+        .setPolicyViolationId("onlyViolation")
+        .setStatus(REQUESTED));
+
+    assertThat(dao.getByOwnerIds(Set.of(organization.getId(), application.getId())))
+        .extracting(PolicyWaiverRequest::getId)
+        .containsExactly(onlyRequest.getId());
+  }
+
+  /** Batch fetch aggregates rows across many owners without dropping any. */
+  @Test
+  public void testGetByOwnerIds_aggregatesResultsAcrossManyOwners() {
+    Policy policy = tempEntity.newPolicy(organization);
+    int ownerCount = 50;
+    List<String> ownerIds = IntStream.range(0, ownerCount)
+        .mapToObj(i -> {
+          Application app = tempEntity.newApplication("BatchTestApp-" + UUID.randomUUID(),
+              "batch-public-id-" + UUID.randomUUID(), organization.getId());
+          tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("h-" + i)
+              .setPolicyId(policy.getId())
+              .setOwnerId(app.getId())
+              .setPolicyViolationId("v-" + i)
+              .setStatus(REQUESTED));
+          return app.getId();
+        })
+        .toList();
+
+    assertThat(dao.getByOwnerIds(ownerIds)).hasSize(ownerCount);
+  }
+
+  /** Batch fetch must issue O(1) SELECTs regardless of owner count. Requires -DcustomMetrics=sqlcount. */
+  @Test
+  public void testGetByOwnerIds_issuesConstantSelectCount_notOnePerOwner() {
+    Assume.assumeTrue("Enable with -DargLine=\"-DcustomMetrics=sqlcount\" to run this validation",
+        JooqSqlCounterListener.getInstance().isEnabled());
+
+    Policy policy = tempEntity.newPolicy(organization);
+    int ownerCount = 40;
+    List<String> ownerIds = IntStream.range(0, ownerCount)
+        .mapToObj(i -> {
+          Application app = tempEntity.newApplication("QC-App-" + UUID.randomUUID(),
+              "qc-public-" + UUID.randomUUID(), organization.getId());
+          tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("qc-h-" + i)
+              .setPolicyId(policy.getId())
+              .setOwnerId(app.getId())
+              .setPolicyViolationId("qc-v-" + i)
+              .setStatus(REQUESTED));
+          return app.getId();
+        })
+        .toList();
+
+    JooqSqlCounterListener counter = JooqSqlCounterListener.getInstance();
+    counter.reset();
+
+    List<PolicyWaiverRequest> results = dao.getByOwnerIds(ownerIds);
+
+    long selectCount = counter.getSelectCount();
+    // 40 owners fit in a single H2 chunk (~1900); allow up to 3 to tolerate incidental metadata queries.
+    assertThat(selectCount)
+        .as("Batch fetch over %s owners must issue O(1) SELECTs against policy_waiver_request", ownerCount)
+        .isLessThanOrEqualTo(3);
+    assertThat(results).hasSize(ownerCount);
+  }
+
+  /** Baseline: legacy per-owner path scales linearly. Guards the batch test against a same-side regression. */
+  @Test
+  public void testGetByOwnerId_perOwnerLoopIssuesOneSelectPerOwner_baseline() {
+    Assume.assumeTrue("Enable with -DargLine=\"-DcustomMetrics=sqlcount\" to run this validation",
+        JooqSqlCounterListener.getInstance().isEnabled());
+
+    Policy policy = tempEntity.newPolicy(organization);
+    int ownerCount = 40;
+    List<String> ownerIds = IntStream.range(0, ownerCount)
+        .mapToObj(i -> {
+          Application app = tempEntity.newApplication("Baseline-App-" + UUID.randomUUID(),
+              "baseline-public-" + UUID.randomUUID(), organization.getId());
+          tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("bl-h-" + i)
+              .setPolicyId(policy.getId())
+              .setOwnerId(app.getId())
+              .setPolicyViolationId("bl-v-" + i)
+              .setStatus(REQUESTED));
+          return app.getId();
+        })
+        .toList();
+
+    JooqSqlCounterListener counter = JooqSqlCounterListener.getInstance();
+    counter.reset();
+
+    for (String ownerId : ownerIds) {
+      dao.getByOwnerId(ownerId);
+    }
+
+    long selectCount = counter.getSelectCount();
+    assertThat(selectCount)
+        .as("Per-owner loop must fire at least one SELECT per owner")
+        .isGreaterThanOrEqualTo(ownerCount);
   }
 
   @Test

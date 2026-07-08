@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -223,6 +224,21 @@ public class PolicyWaiverRequestDAO
         .selectFrom(POLICY_WAIVER_REQUEST)
         .where(POLICY_WAIVER_REQUEST.OWNER_ID.eq(ownerId))
         .fetch(this::toEntity);
+  }
+
+  /** Batch-fetch waiver requests for many owners in a single chunked IN-clause query. */
+  public List<PolicyWaiverRequest> getByOwnerIds(Collection<String> ownerIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIds(tx, ownerIds);
+    }
+  }
+
+  public List<PolicyWaiverRequest> getByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    return getListWithSqlInClause(ownerIds,
+        idChunk -> tx.dsl()
+            .selectFrom(POLICY_WAIVER_REQUEST)
+            .where(POLICY_WAIVER_REQUEST.OWNER_ID.in(idChunk))
+            .fetch(this::toEntity));
   }
 
   public List<PolicyWaiverRequest> getActiveByPolicyId(String policyId) {

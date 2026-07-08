@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Date;
+import java.util.List;
 
 import jakarta.ws.rs.core.MediaType;
 
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestReviewDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
+import com.sonatype.insight.brain.db.jooq.JooqSqlCounterListener;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -41,6 +43,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -835,5 +838,39 @@ public class ApiPolicyWaiverRequestResourceTest
         .auth(reviewer)
         .post();
     assertResponseStatus(200, response);
+  }
+
+  /** End-to-end: list endpoint issues a bounded number of SELECTs regardless of allowed-owner count. */
+  @Test
+  public void testGetPolicyWaiverRequests_httpEndpoint_issuesBoundedSelectCount() throws Exception {
+    Assume.assumeTrue("Enable with -DargLine=\"-DcustomMetrics=sqlcount\"",
+        JooqSqlCounterListener.getInstance().isEnabled());
+
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    int repoCount = 5;
+    for (int i = 0; i < repoCount; i++) {
+      Repository repository = tempEntity.newRepository();
+      RepositoryPolicyViolation violation =
+          tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+      submitWaiverRequest(OwnerType.REPOSITORY, repository.getId(), violation.getId());
+    }
+
+    JooqSqlCounterListener counter = JooqSqlCounterListener.getInstance();
+    counter.reset();
+
+    HttpResponse response = restRequest()
+        .path("{ownerType}/{ownerId}")
+        .parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .get();
+
+    assertResponseStatus(200, response);
+    List<?> results = response.getBody(List.class);
+    assertThat(results).hasSize(repoCount);
+
+    long selectCount = counter.getSelectCount();
+    // Generous upper bound; a per-owner regression would push this into many-tens or thousands.
+    assertThat(selectCount)
+        .as("List endpoint must issue a bounded number of SELECTs. Observed: %s", selectCount)
+        .isLessThan(50L);
   }
 }

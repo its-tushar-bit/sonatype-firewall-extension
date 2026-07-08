@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.google.common.cache.Cache;
@@ -48,6 +49,14 @@ public class DashboardMetricsService
   static final Map<String, int[]> VIOLATIONS_THREAT_LEVEL_BANDS = ThreatLevel.searchAggregationBands();
 
   /**
+   * CVSS bands for the Vulnerabilities tile breakdown. Keys match the frontend contract
+   * ({@code critical}, {@code high}, {@code medium}, {@code low}). {@link CvssV3Severity#NONE}
+   * is omitted — unscored CVEs contribute to {@code total} only.
+   */
+  private static final List<CvssV3Severity> VULNERABILITY_SEVERITY_BUCKETS =
+      List.of(CvssV3Severity.CRITICAL, CvssV3Severity.HIGH, CvssV3Severity.MEDIUM, CvssV3Severity.LOW);
+
+  /**
    * Index item types with no {@code applicationId} field on indexed documents ({@link ItemType#ORGANIZATION} only
    * today). {@link ItemType#POLICY} is intentionally <em>not</em> excluded: it can be org- or app-scoped via
    * {@link DocumentBuilder#setOwner}, so an {@code applicationIds}-only request returns app-scoped policies only
@@ -59,10 +68,14 @@ public class DashboardMetricsService
   private static final List<String> APPLICATION_COMPONENT_KEY_FIELDS =
       List.of(FieldIdentifier.APPLICATION_ID.label, FieldIdentifier.COMPONENT_HASH.label);
 
-  private static final List<String> VULNERABILITY_KEY_FIELDS = List.of(
-      FieldIdentifier.APPLICATION_ID.label,
-      FieldIdentifier.COMPONENT_HASH.label,
-      FieldIdentifier.VULNERABILITY_ID.label);
+  /**
+   * Distinct {@code vulnerabilityId} (CVE/advisory) for the Vulnerabilities tile — estate-level
+   * "how many unique vulnerabilities impact my scope", not per-(app, component) exposure instances.
+   * Blast radius (which apps/components) is drill-down; {@link #countScannedComponents()} and
+   * Violations cover instance-level counts separately.
+   */
+  private static final List<String> ESTATE_VULNERABILITY_KEY_FIELDS =
+      List.of(FieldIdentifier.VULNERABILITY_ID.label);
 
   private static final List<String> LEGAL_OBLIGATION_KEY_FIELDS = List.of(
       FieldIdentifier.APPLICATION_ID.label,
@@ -156,8 +169,8 @@ public class DashboardMetricsService
    * Loads each metric independently against the search index. {@code count}, {@code countDistinct}, and
    * {@code aggregateCountByField} each open their own reader/snapshot today, so applications, components, and
    * violations are not guaranteed to come from the same point-in-time view (acceptable behind the 5s coalescing
-   * cache). Cheap-tier metrics (organizations, policies, vulnerabilities, legal) add further independent
-   * round-trips. Waivers use two SQL {@code selectCount} queries scoped via
+   * cache). Cheap-tier metrics (organizations, policies, vulnerabilities with CVSS-band breakdown, legal) add
+   * further independent round-trips. Waivers use two SQL {@code selectCount} queries scoped via
    * {@link DashboardMetricsWaiverScopeService}. A batched {@link SearchIndexClient} entry point (e.g. OpenSearch
    * multi-search) may consolidate index round-trips later.
    */
@@ -183,8 +196,7 @@ public class DashboardMetricsService
         violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
     MetricValueDTO componentsMetric = new MetricValueDTO(components, null, METRIC_SOURCE_INDEX);
 
-    // Organizations / Policies / Vulnerabilities: index-native totals (CLM-40927 cheap-tier). Policy custom/system
-    // breakdown is not an indexed field; vulnerability severity uses decimal CVSS scores (not int-range buckets here).
+    // Organizations / Policies / Vulnerabilities: index-native totals (CLM-40927 cheap-tier).
     MetricValueDTO organizationsMetric = new MetricValueDTO(
         searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
         null,
@@ -193,10 +205,7 @@ public class DashboardMetricsService
         searchIndexClient.count(buildFilteredMetricQuery(ItemType.POLICY, filterContext)),
         null,
         METRIC_SOURCE_INDEX);
-    MetricValueDTO vulnerabilitiesMetric = new MetricValueDTO(
-        countDistinctSecurityVulnerabilities(filterContext),
-        null,
-        METRIC_SOURCE_INDEX);
+    MetricValueDTO vulnerabilitiesMetric = countVulnerabilities(filterContext);
 
     // Legal Obligations: stage-independent distinct keys align with the Scanned Components tile
     // ([applicationId, componentHash]) and de-dupe multi-stage re-indexes. Documents without a componentHash
@@ -243,14 +252,27 @@ public class DashboardMetricsService
   }
 
   /**
-   * Counts each indexed CVE once per {@code (applicationId, componentHash, vulnerabilityId)} so multi-stage
-   * evaluations do not inflate the tile (unlike raw {@link SearchIndexClient#count(String)} on
-   * {@link ItemType#SECURITY_VULNERABILITY} docs, which are stage-tagged).
+   * Estate-level distinct CVE count plus per-band breakdown using {@link CvssV3Severity} ranges on
+   * {@link FieldIdentifier#VULNERABILITY_SEVERITY}. Each scored CVE appears in exactly one band;
+   * unscored CVEs ({@link CvssV3Severity#NONE}) contribute to {@code total} only.
    */
-  private long countDistinctSecurityVulnerabilities(MetricFilterContext filterContext) {
-    return searchIndexClient.countDistinct(
-        buildFilteredMetricQuery(ItemType.SECURITY_VULNERABILITY, filterContext),
-        VULNERABILITY_KEY_FIELDS);
+  private MetricValueDTO countVulnerabilities(MetricFilterContext filterContext) {
+    String baseQuery = buildFilteredMetricQuery(ItemType.SECURITY_VULNERABILITY, filterContext);
+    long total = searchIndexClient.countDistinct(baseQuery, ESTATE_VULNERABILITY_KEY_FIELDS);
+    Map<String, Long> breakdown = new LinkedHashMap<>();
+    for (CvssV3Severity band : VULNERABILITY_SEVERITY_BUCKETS) {
+      breakdown.put(
+          band.getDisplayName().toLowerCase(),
+          searchIndexClient.countDistinct(
+              appendVulnerabilitySeverityRange(baseQuery, band),
+              ESTATE_VULNERABILITY_KEY_FIELDS));
+    }
+    return new MetricValueDTO(total, breakdown, METRIC_SOURCE_INDEX);
+  }
+
+  private static String appendVulnerabilitySeverityRange(String baseQuery, CvssV3Severity band) {
+    return baseQuery + " AND " + FieldIdentifier.VULNERABILITY_SEVERITY.label + ":["
+        + band.getStartScoreRange() + " TO " + band.getEndScoreRange() + "]";
   }
 
   /**

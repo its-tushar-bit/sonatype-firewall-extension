@@ -277,7 +277,10 @@ public class DashboardMetricsServiceTest
 
     assertThat(metrics.vulnerabilities.total).isEqualTo(4);
     assertThat(metrics.vulnerabilities.source).isEqualTo("index");
-    assertThat(metrics.vulnerabilities.breakdown).isNull();
+    assertThat(metrics.vulnerabilities.breakdown).containsEntry("critical", 1L);
+    assertThat(metrics.vulnerabilities.breakdown).containsEntry("high", 1L);
+    assertThat(metrics.vulnerabilities.breakdown).containsEntry("medium", 1L);
+    assertThat(metrics.vulnerabilities.breakdown).containsEntry("low", 1L);
   }
 
   @Test
@@ -296,9 +299,33 @@ public class DashboardMetricsServiceTest
 
     DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
 
-    // Same fixture indexed at Build + Release: 4 distinct (app, component, CVE) tuples, not 8 per-stage docs.
+    // Same CVEs indexed at Build + Release: 4 distinct vulnerabilityIds, not 8 per-stage docs.
     assertThat(metrics.vulnerabilities.total).isEqualTo(4);
     assertThat(metrics.components.total).isEqualTo(4);
+  }
+
+  @Test
+  public void testGetMetrics_Vulnerabilities_SameCveAcrossApplicationsCountsOnce() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application appOne = tempEntity.newApplication(org.getId());
+    Application appTwo = tempEntity.newApplication(org.getId());
+    seedComponentsReport(appOne, "componentsMetricsReport");
+    seedComponentsReport(appTwo, "componentsMetricsReportAppTwo");
+
+    User reader = tempEntity.newUser("metrics-vuln-estate-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    // componentsMetricsReport fixture has 4 distinct CVEs; indexing it on two apps still yields 4 estate CVEs.
+    assertThat(metrics.vulnerabilities.total).isEqualTo(4);
+    assertThat(metrics.vulnerabilities.breakdown).containsEntry("critical", 1L);
+    assertThat(metrics.vulnerabilities.breakdown).containsEntry("high", 1L);
+    assertThat(metrics.components.total).isEqualTo(8);
   }
 
   @Test
@@ -632,9 +659,9 @@ public class DashboardMetricsServiceTest
 
     assertThat(first.applications.total).isEqualTo(7);
     assertThat(second.applications.total).isEqualTo(7);
-    // loadMetrics runs once (coalesced): count() x3, countDistinct() x6 (components, vulnerabilities, legal).
+    // loadMetrics runs once (coalesced): count() x3, countDistinct() x10 (components x2, vulnerabilities x5, legal x3).
     verify(searchIndexClient, times(3)).count(anyString());
-    verify(searchIndexClient, times(6)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(10)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, times(1)).getLastIndexTime();
   }
@@ -670,8 +697,9 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
     service.getMetrics(request);
 
+    // Two cache misses x loadMetrics: count() x3, countDistinct() x10 per miss.
     verify(searchIndexClient, times(6)).count(anyString());
-    verify(searchIndexClient, times(12)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(20)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -707,8 +735,9 @@ public class DashboardMetricsServiceTest
     service.getMetrics(request);
     service.getMetrics(request);
 
+    // Two cache misses x loadMetrics: count() x3, countDistinct() x10 per miss.
     verify(searchIndexClient, times(6)).count(anyString());
-    verify(searchIndexClient, times(12)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(20)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
   }
 
@@ -741,7 +770,7 @@ public class DashboardMetricsServiceTest
 
     // Empty filter requests share one cache key => loadMetrics runs once (coalesced).
     verify(searchIndexClient, times(3)).count(anyString());
-    verify(searchIndexClient, times(6)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(10)).countDistinct(anyString(), any());
     verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
   }
 

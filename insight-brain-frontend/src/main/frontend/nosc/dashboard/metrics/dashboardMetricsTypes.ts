@@ -38,10 +38,10 @@ export interface LegalBreakdown {
 }
 
 /**
- * Per-severity breakdown for the Vulnerabilities metric (distinct CVE counts).
- * CVSS bands only (critical / high / medium / low) — no `none` bucket. Cheap-tier API
- * ships `breakdown: null` today; unscored CVEs would be a backend bucketing decision
- * when severity aggregation lands.
+ * Per-severity breakdown for the Vulnerabilities metric (distinct CVE / advisory IDs in scope).
+ * Each CVE with a CVSS score appears in exactly one band; unscored CVEs contribute to `total`
+ * only and are not included in any bucket (`sum(breakdown) <= total`). Blast radius
+ * (apps/components) is out of scope for this tile — see Violations for per-instance counts.
  */
 export interface VulnerabilitiesBreakdown {
   readonly critical: number;

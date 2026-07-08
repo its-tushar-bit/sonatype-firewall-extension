@@ -927,36 +927,28 @@ public class RepositoryPolicyEvaluator
       newPolicyViolations.add(policyViolation);
     }
 
-    // Diff old and new
-    // TODO: CLM-42070
-    // We should batch these operations, as was done previously for application evaluation violations.
-    // Shared helpers already exist for batch inserts and batch updates; a batch delete helper does not yet exist as far
-    // as we know and would need to be added
     PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff =
         PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
 
-    // Remove the cleared violations
     for (RepositoryPolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
-      repositoryPolicyViolationDAO.delete(tx, clearedPolicyViolation);
       policyViolationLogger.add(PolicyViolationLogEvent.FIX, clearedPolicyViolation);
     }
+    repositoryPolicyViolationDAO.deleteBatch(tx, policyViolationDiff.getCleared());
 
-    // Insert the new policy violations
     for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
-      repositoryPolicyViolationDAO.insert(tx, newPolicyViolation);
-
       if (event != null) {
         event.repositoryPolicyViolations.add(newPolicyViolation);
       }
-
       policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
       if (newPolicyViolation.isWaived()) {
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
       }
     }
+    repositoryPolicyViolationDAO.insertBatch(tx, policyViolationDiff.getAppeared());
 
     // Update the existing violations so that 'time' is set and the original violation waive time, if it exists,
     // is brought forward
+    List<RepositoryPolicyViolation> updatedPolicyViolations = new ArrayList<>(policyViolationDiff.getSame().size());
     for (Map.Entry<RepositoryPolicyViolation, RepositoryPolicyViolation> entry : policyViolationDiff.getSame()
         .entrySet())
     {
@@ -970,17 +962,16 @@ public class RepositoryPolicyEvaluator
         newPolicyViolation.setWaiveTime(oldPolicyViolation.getWaiveTime());
       }
       newPolicyViolation.setId(oldPolicyViolation.getId());
-      repositoryPolicyViolationDAO.update(tx, newPolicyViolation);
+      updatedPolicyViolations.add(newPolicyViolation);
 
       if (!isNewPolicyViolationWaived && isOldPolicyViolationWaived) {
-        // The policy violation was un-waived.
         policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
       }
       else if (isNewPolicyViolationWaived && !isOldPolicyViolationWaived) {
-        // The policy violation was waived.
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
       }
     }
+    repositoryPolicyViolationDAO.updateBatch(tx, updatedPolicyViolations);
 
     // Preserve the wire ordering previously provided by getActiveByRepositoryIdAndPathname's
     // ORDER BY threat_level DESC, policy_id. Downstream telemetry consumers (event payloads emitted

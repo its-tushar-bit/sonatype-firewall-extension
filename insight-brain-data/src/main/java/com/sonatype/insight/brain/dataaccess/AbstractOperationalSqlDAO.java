@@ -248,6 +248,38 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
         });
   }
 
+  /**
+   * Batched equivalent of {@link #delete(TransactionContext, HasStringId)} — collapses a per-entity DELETE loop into
+   * one DELETE per IN-clause chunk (chunk size governed by {@link AbstractSqlDAO#getInOperatorThreshold}). Participates
+   * in the caller's transaction so callers can compose multi-step operations atomically.
+   * <p>
+   * Emits per-entity search-index changes and entity-leak-detection cleanup in a follow-up loop, mirroring the
+   * {@link #insertBatch} / {@link #updateBatch} pattern.
+   */
+  public void deleteBatch(TransactionContext tx, List<T> entities) {
+    if (entities == null || entities.isEmpty()) {
+      return;
+    }
+    List<String> ids = entities.stream().map(HasStringId::getId).toList();
+    Table<?> table = getJooqTable();
+    var idField = getIdField(table);
+    getListWithSqlInClause(ids,
+        partition -> List.of(tx.dsl()
+            .deleteFrom(table)
+            .where(idField.in(partition))
+            .execute()));
+
+    boolean leakDetectionOn = detectTestEntityLeaks() && operationalDataStore.isDatabaseInMemory();
+    for (T entity : entities) {
+      if (shouldAddSearchIndexChange(tx, entity)) {
+        insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
+      }
+      if (leakDetectionOn) {
+        testEntityLeaksDetectionData.remove(entity.getId());
+      }
+    }
+  }
+
   protected String getDatabaseSchema() {
     return operationalDataStore.getDatabaseSchema();
   }

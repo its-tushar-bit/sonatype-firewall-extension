@@ -26,6 +26,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.SQLDialect;
 import org.jooq.UpdatableRecord;
 import org.jooq.impl.DSL;
 
@@ -40,6 +41,37 @@ public abstract class AbstractPolicyViolationDAO<T extends AbstractPolicyViolati
   {
     super(operationalDataStore);
     this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
+  }
+
+  @Override
+  public int insert(TransactionContext tx, T entity, boolean ignoreDuplicateKey) {
+    storeConstraints(entity);
+    return super.insert(tx, entity, ignoreDuplicateKey);
+  }
+
+  @Override
+  public int update(TransactionContext tx, T entity) {
+    storeConstraints(entity);
+    return super.update(tx, entity);
+  }
+
+  @Override
+  public int insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
+    // On H2 the inherited batch loops back through insert(tx, entity, ignoreDuplicateKey), so storeConstraints
+    // runs per-entity via our insert() override. On PostgreSQL the batch skips single-entity insert(), so we
+    // must run the constraint-facts store once for the whole batch here.
+    if (tx.dsl().dialect() != SQLDialect.H2) {
+      storeConstraintsBatch(entities);
+    }
+    return super.insertBatch(tx, entities, ignoreDuplicateKey);
+  }
+
+  @Override
+  public int updateBatch(TransactionContext tx, List<T> entities) {
+    if (tx.dsl().dialect() != SQLDialect.H2) {
+      storeConstraintsBatch(entities);
+    }
+    return super.updateBatch(tx, entities);
   }
 
   public T getByIdWithConstraintFacts(String id) {

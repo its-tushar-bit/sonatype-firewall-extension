@@ -65,18 +65,6 @@ public class RepositoryPolicyViolationDAO
     return REPOSITORY_POLICY_VIOLATION;
   }
 
-  @Override
-  public int insert(TransactionContext tx, RepositoryPolicyViolation entity) {
-    storeConstraints(entity);
-    return super.insert(tx, entity);
-  }
-
-  @Override
-  public int update(TransactionContext tx, RepositoryPolicyViolation entity) {
-    storeConstraints(entity);
-    return super.update(tx, entity);
-  }
-
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getActiveByRepositoryIdAndPathname(tx, repositoryId, pathname);

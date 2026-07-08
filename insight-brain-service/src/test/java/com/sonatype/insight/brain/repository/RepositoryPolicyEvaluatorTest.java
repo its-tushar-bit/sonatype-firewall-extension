@@ -508,6 +508,38 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_ClearsMultipleViolationsForOneComponent() throws Exception {
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
+    Repository repository = tempEntity.newRepository();
+
+    Policy policy1 = tempEntity.newPolicy(repository.getId(), "Policy-1", 9);
+    Policy policy2 = tempEntity.newPolicy(repository.getId(), "Policy-2", 7);
+    Policy policy3 = tempEntity.newPolicy(repository.getId(), "Policy-3", 5);
+
+    RepositoryComponentEvaluationDataRequestList requestList = new RepositoryComponentEvaluationDataRequestList();
+    requestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path/to/c.jar", "h1"));
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "h1",
+        MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+        createSecurityVulnerabilities(), 2 /* popularity */));
+    mockHdsRequest(requestList, hdsResult, false);
+
+    repositoryPolicyEvaluator.evaluate(repository, requestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(3);
+
+    policyDAO.delete(policy1);
+    policyDAO.delete(policy2);
+    policyDAO.delete(policy3);
+
+    repositoryPolicyEvaluator.evaluate(repository, requestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).isEmpty();
+  }
+
+  @Test
   public void testEvaluate_PolicyViolationLogger_WaiveAndUnwaivePolicyViolations() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();

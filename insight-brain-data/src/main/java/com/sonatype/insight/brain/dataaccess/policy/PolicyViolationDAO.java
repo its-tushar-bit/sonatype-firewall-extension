@@ -58,7 +58,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -92,44 +91,6 @@ public class PolicyViolationDAO
   @Override
   public List<PolicyViolation> getAll(TransactionContext tx) {
     return tx.dsl().selectFrom(POLICY_VIOLATION).fetchInto(PolicyViolation.class);
-  }
-
-  @Override
-  public int insert(TransactionContext tx, PolicyViolation entity) {
-    storeConstraints(entity);
-    return super.insert(tx, entity);
-  }
-
-  @Override
-  public int insert(TransactionContext tx, PolicyViolation entity, boolean ignoreDuplicateKey) {
-    storeConstraints(entity);
-    return super.insert(tx, entity, ignoreDuplicateKey);
-  }
-
-  @Override
-  public int update(TransactionContext tx, PolicyViolation entity) {
-    storeConstraints(entity);
-    return super.update(tx, entity);
-  }
-
-  @Override
-  public int insertBatch(TransactionContext tx, List<PolicyViolation> entities, boolean ignoreDuplicateKey) {
-    // On H2, the fallback calls insert(tx, entity, ignoreDuplicateKey) per entity which already
-    // handles storeConstraints via our insert() override.
-    if (tx.dsl().dialect() != SQLDialect.H2) {
-      storeConstraintsBatch(entities);
-    }
-    return super.insertBatch(tx, entities, ignoreDuplicateKey);
-  }
-
-  @Override
-  public int updateBatch(TransactionContext tx, List<PolicyViolation> entities) {
-    // On H2, the fallback calls update(tx, entity) per entity which already handles storeConstraints
-    // via our update() override.
-    if (tx.dsl().dialect() != SQLDialect.H2) {
-      storeConstraintsBatch(entities);
-    }
-    return super.updateBatch(tx, entities);
   }
 
   private final PolicyEvaluationDAO policyEvaluationDAO;

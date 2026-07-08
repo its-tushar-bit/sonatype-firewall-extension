@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.jooq.SQLDialect;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -113,6 +114,143 @@ public class RepositoryPolicyViolationDAOTest
 
     policyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation).isNull();
+  }
+
+  @Test
+  public void testInsertBatch_persistsAllAndStoresConstraintFacts_H2() {
+    testInsertBatch_persistsAllAndStoresConstraintFacts();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertBatch_persistsAllAndStoresConstraintFacts_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    assertThatDialectIs(SQLDialect.POSTGRES);
+    testInsertBatch_persistsAllAndStoresConstraintFacts();
+  }
+
+  private void testInsertBatch_persistsAllAndStoresConstraintFacts() {
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    Date now = new Date();
+    RepositoryPolicyViolation v1 = newViolation(policy, "p1", 5, PolicyThreatCategory.LICENSE, "h1", "1", "c1", now);
+    RepositoryPolicyViolation v2 = newViolation(policy, "p2", 3, PolicyThreatCategory.SECURITY, "h2", "2", "c2", now);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.insertBatch(tx, List.of(v1, v2), false);
+      tx.commit();
+    }
+
+    assertThat(v1.getId()).isNotNull();
+    assertThat(v2.getId()).isNotNull();
+    assertThat(v1.getConstraintFactsId()).isNotNull();
+    assertThat(v2.getConstraintFactsId()).isNotNull();
+    assertThat(dao.getById(v1.getId())).isNotNull();
+    assertThat(dao.getById(v2.getId())).isNotNull();
+  }
+
+  @Test
+  public void testUpdateBatch_persistsChangesForAllEntries_H2() {
+    testUpdateBatch_persistsChangesForAllEntries();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testUpdateBatch_persistsChangesForAllEntries_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    assertThatDialectIs(SQLDialect.POSTGRES);
+    testUpdateBatch_persistsChangesForAllEntries();
+  }
+
+  private void testUpdateBatch_persistsChangesForAllEntries() {
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    Date now = new Date();
+    RepositoryPolicyViolation v1 = newViolation(policy, "p1", 5, PolicyThreatCategory.LICENSE, "h1", "1", "c1", now);
+    RepositoryPolicyViolation v2 = newViolation(policy, "p2", 3, PolicyThreatCategory.SECURITY, "h2", "2", "c2", now);
+    dao.insert(v1);
+    dao.insert(v2);
+
+    v1.setActionTypeId(Action.ID_FAIL);
+    v2.setActionTypeId(Action.ID_WARN);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.updateBatch(tx, List.of(v1, v2));
+      tx.commit();
+    }
+
+    assertThat(dao.getById(v1.getId()).getActionTypeId()).isEqualTo(Action.ID_FAIL);
+    assertThat(dao.getById(v2.getId()).getActionTypeId()).isEqualTo(Action.ID_WARN);
+  }
+
+  @Test
+  public void testDeleteBatch_removesSelectedViolationsPreservingOthers_H2() {
+    testDeleteBatch_removesSelectedViolationsPreservingOthers();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testDeleteBatch_removesSelectedViolationsPreservingOthers_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    assertThatDialectIs(SQLDialect.POSTGRES);
+    testDeleteBatch_removesSelectedViolationsPreservingOthers();
+  }
+
+  private void testDeleteBatch_removesSelectedViolationsPreservingOthers() {
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    Date now = new Date();
+    RepositoryPolicyViolation keep =
+        newViolation(policy, "keep", 5, PolicyThreatCategory.LICENSE, "hk", "k", "ck", now);
+    RepositoryPolicyViolation del1 =
+        newViolation(policy, "del1", 3, PolicyThreatCategory.SECURITY, "hd1", "d1", "cd1", now);
+    RepositoryPolicyViolation del2 =
+        newViolation(policy, "del2", 4, PolicyThreatCategory.SECURITY, "hd2", "d2", "cd2", now);
+    dao.insert(keep);
+    dao.insert(del1);
+    dao.insert(del2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteBatch(tx, List.of(del1, del2));
+      tx.commit();
+    }
+
+    assertThat(dao.getById(keep.getId())).isNotNull();
+    assertThat(dao.getById(del1.getId())).isNull();
+    assertThat(dao.getById(del2.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteBatch_emptyList_noOp() {
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteBatch(tx, Collections.emptyList());
+      tx.commit();
+    }
+  }
+
+  private void assertThatDialectIs(SQLDialect expected) {
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      assertThat(tx.dsl().dialect()).isEqualTo(expected);
+    }
+  }
+
+  private RepositoryPolicyViolation newViolation(
+      Policy policy,
+      String pathname,
+      int threatLevel,
+      PolicyThreatCategory category,
+      String hash,
+      String versionSuffix,
+      String constraintData,
+      Date time)
+  {
+    return new RepositoryPolicyViolation(repository.getId(), pathname, time,
+        policy.getId(), policy.getName(), threatLevel, category, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", versionSuffix),
+        List.of(new ConstraintFact(constraintData, constraintData, constraintData)));
   }
 
   private void assertPolicyViolation(

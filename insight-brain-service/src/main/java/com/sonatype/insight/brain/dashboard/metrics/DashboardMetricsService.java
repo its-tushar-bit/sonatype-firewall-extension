@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -97,6 +98,8 @@ public class DashboardMetricsService
 
   private final Configuration configuration;
 
+  private final StageTypeService stageTypeService;
+
   private final CurrentUser currentUser;
 
   private final TenantReference<Cache<DashboardMetricsCacheKey, DashboardMetricsDTO>> caches;
@@ -110,6 +113,7 @@ public class DashboardMetricsService
       PolicyWaiverRequestDAO policyWaiverRequestDAO,
       DashboardMetricsWaiverScopeService waiverScopeService,
       Configuration configuration,
+      StageTypeService stageTypeService,
       CurrentUser currentUser)
   {
     this.searchIndexClient = searchIndexClient;
@@ -119,6 +123,7 @@ public class DashboardMetricsService
     this.policyWaiverRequestDAO = policyWaiverRequestDAO;
     this.waiverScopeService = waiverScopeService;
     this.configuration = configuration;
+    this.stageTypeService = stageTypeService;
     this.currentUser = currentUser;
     this.caches = new TenantReference<>(this::createCache);
   }
@@ -170,7 +175,10 @@ public class DashboardMetricsService
     long components = countScannedComponents(filterContext);
     Long lastUpdatedAt = searchIndexClient.getLastIndexTime();
 
-    MetricValueDTO applicationsMetric = new MetricValueDTO(applications, null, METRIC_SOURCE_INDEX);
+    MetricValueDTO applicationsMetric = new MetricValueDTO(
+        applications,
+        Map.of("stages", licensedDashboardStageCount()),
+        METRIC_SOURCE_INDEX);
     MetricValueDTO violationsMetric = new MetricValueDTO(
         violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
     MetricValueDTO componentsMetric = new MetricValueDTO(components, null, METRIC_SOURCE_INDEX);
@@ -243,6 +251,14 @@ public class DashboardMetricsService
     return searchIndexClient.countDistinct(
         buildFilteredMetricQuery(ItemType.SECURITY_VULNERABILITY, filterContext),
         VULNERABILITY_KEY_FIELDS);
+  }
+
+  /**
+   * Licensed dashboard stage count for the Applications tile secondary stat — metadata from
+   * {@link StageTypeService}, not an index aggregation.
+   */
+  private long licensedDashboardStageCount() {
+    return stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT).size();
   }
 
   /**

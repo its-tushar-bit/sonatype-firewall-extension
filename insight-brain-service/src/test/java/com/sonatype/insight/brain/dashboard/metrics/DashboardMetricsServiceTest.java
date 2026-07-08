@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -525,7 +527,9 @@ public class DashboardMetricsServiceTest
 
     assertThat(metrics.applications.total).isEqualTo(3);
     assertThat(metrics.applications.source).isEqualTo("index");
-    assertThat(metrics.applications.breakdown).isNull();
+    assertThat(metrics.applications.breakdown).containsEntry(
+        "stages",
+        (long) lookup(StageTypeService.class).getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT).size());
     assertThat(metrics.violations).isNotNull();
     assertThat(metrics.violations.source).isEqualTo("index");
     assertThat(metrics.lastUpdatedAt).isNotNull();
@@ -773,7 +777,7 @@ public class DashboardMetricsServiceTest
 
   private static void assertIndexSourcedMetric(DashboardMetricsDTO metrics) {
     assertThat(metrics.applications.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_INDEX);
-    assertThat(metrics.applications.breakdown).isNull();
+    assertThat(metrics.applications.breakdown).containsKey("stages");
     assertThat(metrics.lastUpdatedAt).isNotNull();
   }
 
@@ -788,12 +792,32 @@ public class DashboardMetricsServiceTest
       Configuration configuration,
       CurrentUser currentUser)
   {
+    return newServiceWithMocks(
+        searchIndexClient,
+        metricFilterValidator,
+        organizationDAO,
+        configuration,
+        mock(StageTypeService.class),
+        currentUser);
+  }
+
+  private static DashboardMetricsService newServiceWithMocks(
+      SearchIndexClient searchIndexClient,
+      MetricFilterValidator metricFilterValidator,
+      OrganizationDAO organizationDAO,
+      Configuration configuration,
+      StageTypeService stageTypeService,
+      CurrentUser currentUser)
+  {
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
     DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
     lenient().when(waiverScopeService.resolveAccessibleOwnerIds(any())).thenReturn(Set.of("owner-1"));
     lenient().when(policyWaiverDAO.selectCount(any())).thenReturn(0L);
     lenient().when(policyWaiverRequestDAO.selectCount(any())).thenReturn(0L);
+    lenient()
+        .when(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT))
+        .thenReturn(List.of());
     return new DashboardMetricsService(
         searchIndexClient,
         metricFilterValidator,
@@ -802,6 +826,7 @@ public class DashboardMetricsServiceTest
         policyWaiverRequestDAO,
         waiverScopeService,
         configuration,
+        stageTypeService,
         currentUser);
   }
 

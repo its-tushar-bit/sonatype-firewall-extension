@@ -453,7 +453,7 @@ public class ReportServiceTest
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
         mockScanUploadService, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService,
         scanPersistenceService, repositoryComponentDAO, null, null, null, null,
-        innerSourceCleanupPendingService, thirdPartySbomMetadataDAO);
+        innerSourceCleanupPendingService, thirdPartySbomMetadataDAO, null);
   }
 
   @Test

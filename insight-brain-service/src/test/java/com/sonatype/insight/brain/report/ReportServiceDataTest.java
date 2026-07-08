@@ -111,6 +111,6 @@ public class ReportServiceDataTest
 
     return new ReportService(null, null, null, null, null, null, null, null, null, null, null,
         daoFactory.createLicenseDAO(), null, null, licenseThreatGroupDAO, null, null, null, multiLicenseDAO, null, null,
-        null, null, null, null, null, null, null, null, null, null, null, null, null);
+        null, null, null, null, null, null, null, null, null, null, null, null, null, null);
   }
 }

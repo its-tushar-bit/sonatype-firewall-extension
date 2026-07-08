@@ -1102,11 +1102,21 @@ public class ReportResourceTest
     String scanId = "ReportResourceTest_HostedScanId";
     Repository repository = tempEntity.newRepository();
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId());
-    // isHostedScan(scanId) resolves the component by scanId, so bind this component to the scan under test.
+    // isHostedScan(scanId, appId) requires the (appId, scanId) pair to be linked in
+    // policy_evaluation with a hosted trigger type — that's the CLM-41904 IDOR guard against a
+    // caller re-evaluating another app's hosted scanId. Seed the first-time hosted row here
+    // (as HostedComponentScanQueueConsumer would on a real first-time scan) and bind the
+    // repository_component to the scanId.
     component.setScanId(scanId);
     try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
       tx.begin();
       repositoryComponentDAO.update(tx, component);
+      tx.commit();
+    }
+    try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
+      tx.begin();
+      policyEvaluationDAO.insert(tx,
+          PolicyEvaluation.createForHostedComponent(app.getId(), Stage.ID_BUILD, scanId, false));
       tx.commit();
     }
 

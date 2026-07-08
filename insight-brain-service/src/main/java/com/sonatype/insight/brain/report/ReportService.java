@@ -49,6 +49,8 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.innersource.InnerSourceCleanupPendingService;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -110,6 +112,7 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.brain.utils.JacksonNodeUtils;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -218,6 +221,8 @@ public class ReportService
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
   public ReportService(
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -253,7 +258,8 @@ public class ReportService
       final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider,
       final ApplicationReportPersistenceService applicationReportPersistenceService,
       final InnerSourceCleanupPendingService innerSourceCleanupPendingService,
-      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final ClusterLockManager clusterLockManager)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -289,6 +295,7 @@ public class ReportService
     this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.innerSourceCleanupPendingService = innerSourceCleanupPendingService;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.clusterLockManager = clusterLockManager;
   }
 
   @Trace
@@ -402,14 +409,10 @@ public class ReportService
   }
 
   public boolean isHostedScan(final String scanId, final String appId) {
-    if (isHostedRepositoryComponent(scanId)) {
-      return true;
-    }
+    // Cross-check that the (appId, scanId) pair is linked in policy_evaluation with a hosted
+    // trigger type. CLM-41693: both REPOSITORY_MANAGER (pre-v1.206) and HOSTED_REPOSITORY_SCANNING
+    // (v1.206+) are recognised as hosted.
     PolicyEvaluation pe = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
-    // CLM-41693: Both REPOSITORY_MANAGER (historical hosted scan records) and
-    // HOSTED_REPOSITORY_SCANNING (new in v1.206) identify hosted repository scans.
-    // Existing records in customer databases pre-v1.206 will have REPOSITORY_MANAGER;
-    // we must continue to recognize them as hosted to preserve report rendering.
     return pe != null && isHostedScanTriggerType(pe.getScanTriggerType());
   }
 
@@ -427,6 +430,7 @@ public class ReportService
     if (repository == null) {
       throw new NotFoundException("Repository not found for component scanId: " + scanId);
     }
+    Application application = applicationDAO.getByIdNotNull(appId);
     PolicyEvaluation lastEval = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
     String stageTypeId = lastEval != null ? lastEval.getStageTypeId() : ComplianceStageType.ID;
     String format = component.getComponentIdentifier() != null
@@ -443,15 +447,47 @@ public class ReportService
     // Callers passing skipAutoWaivers=true via ReportResource will have it silently ignored for hosted scans.
     log.debug("reevaluateHostedComponent: skipAutoWaivers not supported for hosted scans, appId={} scanId={}", appId,
         scanId);
-    repositoryPolicyEvaluatorProvider.get().evaluate(repository, request, false, null, stageTypeId);
-    try {
-      saveOverlayFiles(appId, scanId);
+    // Cluster-lock evaluate → saveOverlayFiles → persist to keep the row and the overlay it
+    // describes consistent across concurrent re-evals of the same (application, scanId).
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
+      clusterLock.lock();
+      repositoryPolicyEvaluatorProvider.get().evaluate(repository, request, false, null, stageTypeId);
+      try {
+        saveOverlayFiles(appId, scanId);
+      }
+      catch (RuntimeException e) {
+        throw e;
+      }
+      catch (Exception e) {
+        throw new InternalServerErrorException("Failed to save overlay files for scanId=" + scanId, e);
+      }
+      persistHostedComponentReevaluation(appId, scanId, stageTypeId);
     }
-    catch (RuntimeException e) {
-      throw e;
-    }
-    catch (Exception e) {
-      throw new InternalServerErrorException("Failed to save overlay files for scanId=" + scanId, e);
+  }
+
+  /**
+   * Records a policy_evaluation entry for a hosted-repo component so the re-evaluation appears in
+   * Latest Evaluations. Mirrors {@code ScanPolicyEvaluator.processPolicyResults}: every call writes
+   * a new row, and the prior-row lookup classifies the row's reevaluation flag rather than
+   * skipping the insert.
+   */
+  void persistHostedComponentReevaluation(final String appId, final String scanId, final String stageTypeId) {
+    try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
+      tx.begin();
+      boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
+      AuditData.get().setIsReevaluation(isReevaluation);
+      PolicyEvaluation policyEvaluation = new PolicyEvaluation(
+          appId, stageTypeId.toLowerCase(), scanId, isReevaluation, false, "system",
+          ScanTriggerType.REPOSITORY_MANAGER, null);
+      if (isReevaluation) {
+        PolicyEvaluation lastPrimary =
+            policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx, appId, stageTypeId);
+        policyEvaluation.setForObsoleteScan(!lastPrimary.getScanId().equals(scanId));
+      }
+      policyEvaluationDAO.insert(tx, policyEvaluation);
+      tx.commit();
+      log.debug("Persisted hosted-component policy_evaluation row appId={} scanId={} isReevaluation={}",
+          appId, scanId, isReevaluation);
     }
   }
 
@@ -644,11 +680,11 @@ public class ReportService
     ApplicationReport report = reportDataStore.getApplicationReport(application, scanId);
     ReportEntry bomEntry = report != null ? report.getEntry("bom.json") : null;
     String bomOuterHashOverride = bomEntry != null ? extractBomOuterHash(bomEntry.buf) : null;
-    for (String fileName : List.of("policythreats.json", "summary.json")) {
-      byte[] content = HostedReportFileBuilder.build(fileName, comp, violations, bomOuterHashOverride);
-      applicationReportPersistenceService.saveReportFile(appId, scanId, fileName,
-          new ByteArrayInputStream(content));
-    }
+    // Regenerate policythreats.json only. summary.json is HDS-owned; overwriting it with the local
+    // builder's placeholder previously NPE'd getTotalComponentCount and emptied Latest Evaluations.
+    byte[] content = HostedReportFileBuilder.build("policythreats.json", comp, violations, bomOuterHashOverride);
+    applicationReportPersistenceService.saveReportFile(appId, scanId, "policythreats.json",
+        new ByteArrayInputStream(content));
     // Patch bom.json displayName — required by PDF generator (ApiReportDataServiceV2:289 NPE)
     if (bomEntry != null) {
       byte[] patched = HostedReportFileBuilder.patchBomDisplayName(bomEntry.buf, comp);

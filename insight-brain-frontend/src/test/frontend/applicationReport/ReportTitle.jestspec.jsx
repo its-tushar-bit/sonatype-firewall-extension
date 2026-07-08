@@ -315,4 +315,56 @@ describe('ReportTitle', () => {
 
     expect(description).toBeVisible();
   });
+
+  // CLM-41904: hosted-repo report threads componentDisplayName into the Latest Evaluations link
+  // so the destination page can render the friendly component coordinates as the H1 (instead of
+  // the synthetic app publicId). Consumer side is covered in ApplicationLatestEvaluationsPage
+  // tests; this is the producer-side coverage — asserts the URL is built with the param present.
+  it('threads componentDisplayName into the Latest Evaluations link for hosted-repo flow', () => {
+    routerSelectors.selectRouterCurrentParams.mockReturnValue({
+      publicId: givenPublicId,
+      scanId: givenScanIdForReport,
+      origin: 'hostedRepoComponents',
+      componentDisplayName: 'myimg:1.0',
+      repositoryManagerId: 'rm-1',
+      repositoryId: 'repo-1',
+      repositoryPublicId: 'maven-releases',
+    });
+
+    renderComponent();
+
+    expect(routerContextMock.href).toHaveBeenCalledWith(
+      'applicationLatestEvaluations',
+      expect.objectContaining({
+        applicationPublicId: givenPublicId,
+        scanId: givenScanIdForReport,
+        componentDisplayName: 'myimg:1.0',
+        origin: 'hostedRepoComponents',
+      })
+    );
+  });
+
+  it('renders the H1 with componentDisplayName instead of application name for hosted-repo flow', () => {
+    routerSelectors.selectRouterCurrentParams.mockReturnValue({
+      publicId: givenPublicId,
+      scanId: givenScanIdForReport,
+      origin: 'hostedRepoComponents',
+      componentDisplayName: 'myimg:1.0',
+    });
+
+    renderComponent();
+
+    expect(screen.getByRole('heading', { name: 'myimg:1.0 Title' })).toBeVisible();
+  });
+
+  it('omits componentDisplayName from the Latest Evaluations link when not in hosted-repo flow', () => {
+    // routerSelectors.selectRouterCurrentParams already returns { publicId, scanId } — no origin.
+    renderComponent();
+
+    const latestEvalCall = routerContextMock.href.mock.calls.find(
+      (call) => call[0] === 'applicationLatestEvaluations'
+    );
+    expect(latestEvalCall).toBeDefined();
+    expect(latestEvalCall[1]).not.toHaveProperty('componentDisplayName');
+  });
 });

@@ -994,9 +994,7 @@ public class HostedComponentScanQueueConsumer
     try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       tx.begin();
       if (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) == null) {
-        PolicyEvaluation pe = new PolicyEvaluation(
-            appId, stageTypeId.toLowerCase(), scanId, false, false, "system",
-            ScanTriggerType.HOSTED_REPOSITORY_SCANNING, null);
+        PolicyEvaluation pe = PolicyEvaluation.createForHostedComponent(appId, stageTypeId, scanId, false);
         policyEvaluationDAO.insert(tx, pe);
         log.debug("Created policy_evaluation record appId={} scanId={}", appId, scanId);
       }

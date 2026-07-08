@@ -7,19 +7,32 @@ package com.sonatype.insight.brain.report;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -68,6 +81,9 @@ public class ReportServiceHostedComponentTest
 
   @Mock
   private com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO licenseThreatGroupDAO;
+
+  @Mock
+  private com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager clusterLockManager;
 
   @Mock
   private com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO multiLicenseDAO;
@@ -287,5 +303,226 @@ public class ReportServiceHostedComponentTest
     v.setThreatLevel(threatLevel);
     v.setWaived(waived);
     return v;
+  }
+
+  // ---- persistHostedComponentReevaluation (CLM-41904) ----
+
+  private TransactionContext stubPersistPlumbing() {
+    TransactionContext tx = mock(TransactionContext.class);
+    when(policyEvaluationDAO.createTransactionContext()).thenReturn(tx);
+    return tx;
+  }
+
+  private PolicyEvaluation firstTimeHostedRow(final String appId, final String stage, final String scanId) {
+    return new PolicyEvaluation(appId, stage, scanId, false, false, "system",
+        ScanTriggerType.HOSTED_REPOSITORY_SCANNING, null);
+  }
+
+  @Test
+  public void persistHostedComponentReevaluation_firstTimeCall_insertsRowWithReevaluationFalse() {
+    TransactionContext tx = stubPersistPlumbing();
+    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "scan-1")).thenReturn(null);
+
+    reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
+
+    ArgumentCaptor<PolicyEvaluation> captor = ArgumentCaptor.forClass(PolicyEvaluation.class);
+    verify(policyEvaluationDAO).insert(any(TransactionContext.class), captor.capture());
+    PolicyEvaluation inserted = captor.getValue();
+    assertThat(inserted.isReevaluation()).isFalse();
+    assertThat(inserted.isForObsoleteScan()).isFalse();
+    assertThat(inserted.getScanTriggerType()).isEqualTo(ScanTriggerType.REPOSITORY_MANAGER);
+    verify(tx).commit();
+  }
+
+  @Test
+  public void persistHostedComponentReevaluation_priorFirstTimeRowExists_insertsReevaluationRow() {
+    TransactionContext tx = stubPersistPlumbing();
+    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "scan-1"))
+        .thenReturn(firstTimeHostedRow("app-1", "release", "scan-1"));
+    when(policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx, "app-1", "release"))
+        .thenReturn(firstTimeHostedRow("app-1", "release", "scan-1"));
+
+    reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
+
+    ArgumentCaptor<PolicyEvaluation> captor = ArgumentCaptor.forClass(PolicyEvaluation.class);
+    verify(policyEvaluationDAO).insert(any(TransactionContext.class), captor.capture());
+    PolicyEvaluation inserted = captor.getValue();
+    assertThat(inserted.getApplicationId()).isEqualTo("app-1");
+    assertThat(inserted.getScanId()).isEqualTo("scan-1");
+    assertThat(inserted.getStageTypeId()).isEqualTo("release");
+    assertThat(inserted.isReevaluation()).isTrue();
+    assertThat(inserted.isForMonitoring()).isFalse();
+    assertThat(inserted.isForObsoleteScan()).isFalse();
+    assertThat(inserted.getInitiator()).isEqualTo("system");
+    assertThat(inserted.getScanTriggerType()).isEqualTo(ScanTriggerType.REPOSITORY_MANAGER);
+    verify(tx).commit();
+  }
+
+  @Test
+  public void persistHostedComponentReevaluation_repeatedReeval_insertsAnotherRow() {
+    TransactionContext tx = stubPersistPlumbing();
+    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "scan-1"))
+        .thenReturn(firstTimeHostedRow("app-1", "release", "scan-1"));
+    when(policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx, "app-1", "release"))
+        .thenReturn(firstTimeHostedRow("app-1", "release", "scan-1"));
+
+    reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
+    reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
+
+    verify(policyEvaluationDAO, times(2))
+        .insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+  }
+
+  @Test
+  public void persistHostedComponentReevaluation_marksNewRowObsoleteWhenReEvalIsForOlderScan() {
+    TransactionContext tx = stubPersistPlumbing();
+    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "older-scan"))
+        .thenReturn(firstTimeHostedRow("app-1", "release", "older-scan"));
+    PolicyEvaluation priorPrimary = firstTimeHostedRow("app-1", "release", "current-latest-scan");
+    when(policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx, "app-1", "release"))
+        .thenReturn(priorPrimary);
+
+    reportService.persistHostedComponentReevaluation("app-1", "older-scan", "release");
+
+    ArgumentCaptor<PolicyEvaluation> captor = ArgumentCaptor.forClass(PolicyEvaluation.class);
+    verify(policyEvaluationDAO).insert(any(TransactionContext.class), captor.capture());
+    assertThat(captor.getValue().isReevaluation()).isTrue();
+    assertThat(captor.getValue().isForObsoleteScan()).isTrue();
+    assertThat(priorPrimary.isForObsoleteScan()).isFalse();
+    verify(policyEvaluationDAO, never()).update(any(TransactionContext.class), any(PolicyEvaluation.class));
+  }
+
+  @Test
+  public void persistHostedComponentReevaluation_firstTimeCall_doesNotQueryLastPrimary() {
+    TransactionContext tx = stubPersistPlumbing();
+    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "scan-1")).thenReturn(null);
+
+    reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
+
+    verify(policyEvaluationDAO, never()).getLastPrimaryByApplicationIdAndStageId(
+        any(TransactionContext.class), any(String.class), any(String.class));
+  }
+
+  @Test
+  public void persistHostedComponentReevaluation_propagatesRuntimeExceptionFromInsert() {
+    stubPersistPlumbing();
+    RuntimeException dbFailure = new IllegalStateException("db down");
+    doThrow(dbFailure).when(policyEvaluationDAO)
+        .insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+
+    assertThatThrownBy(() -> reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release"))
+        .isSameAs(dbFailure);
+  }
+
+  // Suresh comment #1: verify the transaction commits only on success. If insert throws, the
+  // try-with-resources on TransactionContext must close (rollback-on-close) without a commit —
+  // otherwise a future refactor could accidentally commit a half-written row.
+  @Test
+  public void persistHostedComponentReevaluation_doesNotCommitWhenInsertThrows() {
+    TransactionContext tx = stubPersistPlumbing();
+    doThrow(new IllegalStateException("db down")).when(policyEvaluationDAO)
+        .insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+
+    assertThatThrownBy(() -> reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release"))
+        .isInstanceOf(IllegalStateException.class);
+
+    verify(tx, never()).commit();
+    verify(tx).close();
+  }
+
+  // ---- reevaluateHostedComponent (CLM-41904, cluster-lock widened per iam-ast comment) ----
+
+  private RepositoryComponent stubReevaluatePlumbing(final String appId, final String scanId) {
+    RepositoryComponent comp = newComponent("repo-1", "com/example/lib.jar", "hash-abc");
+    when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
+    com.sonatype.insight.brain.model.repository.Repository repo =
+        mock(com.sonatype.insight.brain.model.repository.Repository.class);
+    when(repo.getFormat()).thenReturn("maven");
+    when(repositoryDAO.getById("repo-1")).thenReturn(repo);
+    Application application = mock(Application.class);
+    when(applicationDAO.getByIdNotNull(appId)).thenReturn(application);
+    when(clusterLockManager.createForPolicyEvaluation(application, scanId)).thenReturn(mock(ClusterLock.class));
+    when(repositoryPolicyEvaluatorProvider.get()).thenReturn(repositoryPolicyEvaluator);
+    // saveOverlayFiles reads the application report; return a null-friendly stub.
+    when(reportDataStore.getApplicationReport(any(), any())).thenReturn(null);
+    when(policyEvaluationDAO.createTransactionContext()).thenReturn(mock(TransactionContext.class));
+    return comp;
+  }
+
+  @Test
+  public void reevaluateHostedComponent_acquiresClusterLockForApplicationAndScanId() {
+    stubReevaluatePlumbing("app-1", "scan-1");
+    Application application = applicationDAO.getByIdNotNull("app-1");
+    ClusterLock lock = mock(ClusterLock.class);
+    when(clusterLockManager.createForPolicyEvaluation(application, "scan-1")).thenReturn(lock);
+
+    reportService.reevaluateHostedComponent("app-1", "scan-1");
+
+    verify(clusterLockManager).createForPolicyEvaluation(application, "scan-1");
+    verify(lock).lock();
+    verify(lock).close();
+  }
+
+  // iam-ast comment #5: the widened lock must protect evaluate + saveOverlayFiles + persist.
+  // Verify all three write-path calls happen while the lock is held (lock().lock() before,
+  // close() after), so future refactors can't accidentally move work outside the critical section.
+  @Test
+  public void reevaluateHostedComponent_holdsClusterLockAcrossEvaluateSaveOverlayAndPersist() throws Exception {
+    stubReevaluatePlumbing("app-1", "scan-1");
+    Application application = applicationDAO.getByIdNotNull("app-1");
+    ClusterLock lock = mock(ClusterLock.class);
+    when(clusterLockManager.createForPolicyEvaluation(application, "scan-1")).thenReturn(lock);
+
+    reportService.reevaluateHostedComponent("app-1", "scan-1");
+
+    org.mockito.InOrder inOrder = org.mockito.Mockito.inOrder(
+        lock, repositoryPolicyEvaluator, applicationReportPersistenceService, policyEvaluationDAO);
+    inOrder.verify(lock).lock();
+    inOrder.verify(repositoryPolicyEvaluator)
+        .evaluate(any(), any(), org.mockito.ArgumentMatchers.eq(false),
+            org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.anyString());
+    inOrder.verify(applicationReportPersistenceService)
+        .saveReportFile(
+            org.mockito.ArgumentMatchers.eq("app-1"), org.mockito.ArgumentMatchers.eq("scan-1"),
+            org.mockito.ArgumentMatchers.eq("policythreats.json"), any());
+    inOrder.verify(policyEvaluationDAO).insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+    inOrder.verify(lock).close();
+  }
+
+  // Suresh comment #3: if clusterLock.lock() throws (e.g. PostgresClusterLock connection failure),
+  // no downstream work should run — no evaluate, no saveOverlayFiles, no policy_evaluation write.
+  // The try-with-resources still closes the (partially-constructed) lock.
+  @Test
+  public void reevaluateHostedComponent_haltsBeforeAnyWriteWhenLockAcquisitionFails() throws Exception {
+    stubReevaluatePlumbing("app-1", "scan-1");
+    Application application = applicationDAO.getByIdNotNull("app-1");
+    ClusterLock lock = mock(ClusterLock.class);
+    RuntimeException lockFailure = new IllegalStateException("cluster lock connection failed");
+    doThrow(lockFailure).when(lock).lock();
+    when(clusterLockManager.createForPolicyEvaluation(application, "scan-1")).thenReturn(lock);
+
+    assertThatThrownBy(() -> reportService.reevaluateHostedComponent("app-1", "scan-1")).isSameAs(lockFailure);
+
+    verify(repositoryPolicyEvaluator, never()).evaluate(any(), any(), org.mockito.ArgumentMatchers.anyBoolean(),
+        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString());
+    verify(applicationReportPersistenceService, never()).saveReportFile(
+        org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
+        org.mockito.ArgumentMatchers.anyString(), any());
+    verify(policyEvaluationDAO, never()).insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+    verify(lock).close();
+  }
+
+  // Suresh comment #2: guard against a future refactor re-adding summary.json to the overlay-write
+  // loop. summary.json is HDS-owned; overwriting it with the local builder's placeholder was the
+  // exact bug that emptied Latest Evaluations (CLM-41904).
+  @Test
+  public void reevaluateHostedComponent_neverOverwritesSummaryJson() throws Exception {
+    stubReevaluatePlumbing("app-1", "scan-1");
+
+    reportService.reevaluateHostedComponent("app-1", "scan-1");
+
+    verify(applicationReportPersistenceService, never()).saveReportFile(
+        org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
+        org.mockito.ArgumentMatchers.eq("summary.json"), any());
   }
 }

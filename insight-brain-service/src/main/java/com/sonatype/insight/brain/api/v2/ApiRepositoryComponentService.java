@@ -161,6 +161,14 @@ public class ApiRepositoryComponentService
       log.info("Deleting components from hosted repository {}:{}",
           repositoryManagerInstanceId, repository.getPublicId());
 
+      // Purge the full PENDING backlog first; the per-component loop below misses not-yet-evaluated
+      // entries that have no repository_component row (CLM-42122).
+      int purged = hostedComponentScanQueueDAO.deletePendingByRepositoryId(repository.getId());
+      if (purged > 0) {
+        log.info("Purged {} pending scan queue entries for hosted repository {}:{}", purged,
+            repositoryManagerInstanceId, repository.getPublicId());
+      }
+
       int totalDeleted = 0;
       List<RepositoryComponent> batch;
       do {

@@ -15,6 +15,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -45,6 +46,9 @@ public class HostedComponentEvaluationServiceTest
 
   @Inject
   private HostedComponentScanQueueDAO queueDAO;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
 
   @Before
   public void setUpTest() {
@@ -84,7 +88,8 @@ public class HostedComponentEvaluationServiceTest
 
   @Test
   public void queueScan_triggerProcessingAndJobCompletes() throws Exception {
-    Repository repo = tempEntity.newRepository("repo-eval-2");
+    // Monitoring must be on for the consumer to evaluate rather than drop the job (CLM-42122 guard).
+    Repository repo = enableMonitoring(tempEntity.newRepository("repo-eval-2"));
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     File scanFile = writeScanFile("scan-eval-2.xml.gz");
 
@@ -220,5 +225,12 @@ public class HostedComponentEvaluationServiceTest
       fos.write("scan-content".getBytes(StandardCharsets.UTF_8));
     }
     return scanFile;
+  }
+
+  /** Enables monitoring so the CLM-42122 guard lets jobs through (newRepository defaults it false). */
+  private Repository enableMonitoring(final Repository repo) {
+    repo.setMonitoringEnabled(true);
+    repositoryDAO.update(repo);
+    return repo;
   }
 }

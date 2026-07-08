@@ -288,6 +288,21 @@ public class HostedComponentScanQueueConsumer
   @Override
   protected void executeJob(final HostedComponentScanQueue job) throws Exception {
     String repositoryId = job.getRepositoryId();
+
+    // A queued job can outlive its repo's monitoring being disabled or the repo being deleted; drop it
+    // rather than scan a stale repo (CLM-42122).
+    Repository repository = repositoryDAO.getById(repositoryId);
+    if (repository == null) {
+      log.info("Hosted component scan: repository {} no longer exists; dropping scan job id={}.",
+          repositoryId, job.getId());
+      return;
+    }
+    if (!repository.isMonitoringEnabled()) {
+      log.info("Hosted component scan: repository {} monitoring disabled; dropping scan job id={}.",
+          repositoryId, job.getId());
+      return;
+    }
+
     ScanEntity scanEntity = scanPersistenceServiceProvider.get().getScanByName(repositoryId, job.getScanFileId());
     if (scanEntity == null) {
       throw new IllegalStateException(

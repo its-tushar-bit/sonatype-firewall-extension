@@ -69,6 +69,9 @@ public class HostedComponentScanQueueConsumerTest
   private RepositoryComponentDAO repositoryComponentDAO;
 
   @Inject
+  private com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO repositoryDAO;
+
+  @Inject
   private com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   @Inject
@@ -177,7 +180,7 @@ public class HostedComponentScanQueueConsumerTest
   @Test
   public void run_executeJobThrowsIllegalStateWhenScanFileNotFound() throws Exception {
     // Insert a queue row with a scanFileId that does not exist on disk
-    Repository repo = tempEntity.newRepository("repo-no-scan");
+    Repository repo = enableMonitoring(tempEntity.newRepository("repo-no-scan"));
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     HostedComponentScanQueue job = new HostedComponentScanQueue(
@@ -623,8 +626,15 @@ public class HostedComponentScanQueueConsumerTest
     }
   }
 
+  /** Enables monitoring so the CLM-42122 guard lets jobs through (newRepository defaults it false). */
+  private Repository enableMonitoring(final Repository repo) {
+    repo.setMonitoringEnabled(true);
+    repositoryDAO.update(repo);
+    return repo;
+  }
+
   private HostedComponentScanQueue insertPendingJob(final String repoName) throws Exception {
-    Repository repo = tempEntity.newRepository(repoName);
+    Repository repo = enableMonitoring(tempEntity.newRepository(repoName));
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     ScanEntity scanEntity = scanPersistenceService.createTempScan(repo.getId());
@@ -654,6 +664,8 @@ public class HostedComponentScanQueueConsumerTest
       final String format) throws Exception
   {
     String repoId = org.getRelatedRepositoryId();
+    // Enable monitoring so the CLM-42122 guard lets the job through (org-linked repo defaults it false).
+    enableMonitoring(repositoryDAO.getByIdNotNull(repoId));
     tempEntity.newRepositoryComponent(repoId);
 
     String scanXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -691,7 +703,7 @@ public class HostedComponentScanQueueConsumerTest
       final String sha1,
       final String format) throws Exception
   {
-    Repository repo = tempEntity.newRepository(repoName);
+    Repository repo = enableMonitoring(tempEntity.newRepository(repoName));
     tempEntity.newRepositoryComponent(repo.getId());
 
     // Write minimal scan XML as plain bytes (Jersey decompresses gzip before writing to temp file)
@@ -735,7 +747,7 @@ public class HostedComponentScanQueueConsumerTest
       final String[] innerSha1s,
       final String format) throws Exception
   {
-    Repository repo = tempEntity.newRepository(repoName);
+    Repository repo = enableMonitoring(tempEntity.newRepository(repoName));
     tempEntity.newRepositoryComponent(repo.getId());
 
     StringBuilder dirs = new StringBuilder();
@@ -1015,5 +1027,56 @@ public class HostedComponentScanQueueConsumerTest
     assertThat(afterSecondRun.getComponentCount())
         .as("replay should not regress componentCount to NULL")
         .isNotNull();
+  }
+
+  @Test
+  public void executeJob_dropsJobWhenRepositoryMonitoringDisabled() throws Exception {
+    // newRepository defaults monitoring off, so this repo is disabled.
+    Repository repo = tempEntity.newRepository("repo-monitoring-disabled");
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ScanEntity scanEntity = scanPersistenceService.createTempScan(repo.getId());
+    try (OutputStream out = scanEntity.getOutputStream()) {
+      out.write("scan-content".getBytes(StandardCharsets.UTF_8));
+    }
+    HostedComponentScanQueue job = new HostedComponentScanQueue(
+        component.getId(), scanEntity.getName(),
+        HostedComponentScanQueueDAO.Status.PENDING.name(),
+        HostedComponentScanQueue.DEFAULT_PRIORITY,
+        repo.getId());
+    queueDAO.insert(job);
+
+    // No HDS mock is configured: if the guard failed and the job were evaluated, the run would fail
+    // reaching HDS instead of completing cleanly.
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+    assertThat(queueDAO.getById(job.getId()).getRetryCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void executeJob_dropsJobWhenRepositoryMissing() throws Exception {
+    // Repo row absent entirely (e.g. deleted): guard drops the job rather than NPE / evaluate.
+    Repository repo = enableMonitoring(tempEntity.newRepository("repo-to-delete"));
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ScanEntity scanEntity = scanPersistenceService.createTempScan(repo.getId());
+    try (OutputStream out = scanEntity.getOutputStream()) {
+      out.write("scan-content".getBytes(StandardCharsets.UTF_8));
+    }
+    HostedComponentScanQueue job = new HostedComponentScanQueue(
+        component.getId(), scanEntity.getName(),
+        HostedComponentScanQueueDAO.Status.PENDING.name(),
+        HostedComponentScanQueue.DEFAULT_PRIORITY,
+        "00000000000000000000000000000000");
+    queueDAO.insert(job);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
   }
 }

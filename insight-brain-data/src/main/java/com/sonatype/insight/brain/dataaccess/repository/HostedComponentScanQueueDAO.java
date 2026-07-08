@@ -47,6 +47,10 @@ public class HostedComponentScanQueueDAO
     FAILED
   }
 
+  // Bounds lock duration per DELETE, not the IN-clause parameter limit (which is far higher — see
+  // AbstractSqlDAO.getInOperatorThreshold). 1000 keeps each batch well under that limit.
+  private static final int DELETE_BATCH_SIZE = 1000;
+
   @Inject
   public HostedComponentScanQueueDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
@@ -261,6 +265,40 @@ public class HostedComponentScanQueueDAO
         .where(HOSTED_COMPONENT_SCAN_QUEUE.COMPONENT_ID.in(componentIds)
             .and(HOSTED_COMPONENT_SCAN_QUEUE.STATUS.eq(Status.PENDING.name())))
         .execute();
+  }
+
+  /**
+   * Deletes a repository's PENDING backlog, keyed on the queue's own {@code repository_id} rather than joined
+   * through {@code repository_component} so not-yet-evaluated entries (no component row) are also removed
+   * (CLM-42122). Batched to bound lock duration; IN_PROGRESS is left to complete.
+   */
+  public int deletePendingByRepositoryId(final String repositoryId) {
+    int deleted = 0;
+    while (true) {
+      final List<String> ids;
+      try (TransactionContext tx = createTransactionContext()) {
+        ids = tx.dsl()
+            .select(HOSTED_COMPONENT_SCAN_QUEUE.ID)
+            .from(HOSTED_COMPONENT_SCAN_QUEUE)
+            .where(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID.eq(repositoryId)
+                .and(HOSTED_COMPONENT_SCAN_QUEUE.STATUS.eq(Status.PENDING.name())))
+            .limit(DELETE_BATCH_SIZE)
+            .fetchInto(String.class);
+      }
+      if (ids.isEmpty()) {
+        return deleted;
+      }
+      try (TransactionContext tx = createTransactionContext()) {
+        tx.begin();
+        // Re-check status: a selected row may have been acquired (-> IN_PROGRESS) since the select.
+        deleted += tx.dsl()
+            .deleteFrom(HOSTED_COMPONENT_SCAN_QUEUE)
+            .where(HOSTED_COMPONENT_SCAN_QUEUE.ID.in(ids)
+                .and(HOSTED_COMPONENT_SCAN_QUEUE.STATUS.eq(Status.PENDING.name())))
+            .execute();
+        tx.commit();
+      }
+    }
   }
 
   /**

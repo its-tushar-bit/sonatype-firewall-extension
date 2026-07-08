@@ -256,12 +256,35 @@ public class ApiRepositoryComponentServiceTest
 
     service.deleteRepositoryComponents(RM_INSTANCE_ID, List.of(REPO_PUBLIC_ID));
 
+    verify(hostedComponentScanQueueDAO).deletePendingByRepositoryId(eq(REPO_ID));
     verify(hostedComponentScanQueueDAO).deletePendingByComponentIds(eq(transactionContext),
         eq(List.of(COMPONENT_ID_1, COMPONENT_ID_2)));
     verify(repositoryComponentDeleteService).deleteComponent(component1);
     verify(repositoryComponentDeleteService).deleteComponent(component2);
+    // Purge uses its own tx; only the cleanup batch touches the injected one.
     verify(transactionContext, times(1)).begin();
     verify(transactionContext, times(1)).commit();
+  }
+
+  @Test
+  public void testDeleteRepositoryComponents_PurgeFailurePropagates_NoComponentDeleted() {
+    // A purge failure must abort loudly (so NXRM retries), not be swallowed — swallowing would report
+    // the disable done while the PENDING backlog it was meant to clear survives.
+    Repository hostedRepo = mock(Repository.class);
+    when(hostedRepo.getId()).thenReturn(REPO_ID);
+    when(hostedRepo.getPublicId()).thenReturn(REPO_PUBLIC_ID);
+    when(hostedRepo.getRepositoryType()).thenReturn(RepositoryType.hosted);
+    when(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(RM_INSTANCE_ID, REPO_PUBLIC_ID))
+        .thenReturn(hostedRepo);
+    when(hostedComponentScanQueueDAO.deletePendingByRepositoryId(REPO_ID))
+        .thenThrow(new RuntimeException("db down"));
+
+    assertThatThrownBy(() -> service.deleteRepositoryComponents(RM_INSTANCE_ID, List.of(REPO_PUBLIC_ID)))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("db down");
+
+    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
   @Test
@@ -285,6 +308,7 @@ public class ApiRepositoryComponentServiceTest
 
     verify(repositoryComponentDeleteService, times(100)).deleteComponent(component1);
     verify(repositoryComponentDeleteService, times(1)).deleteComponent(component2);
+    // Two cleanup batches; the purge manages its own tx (not the injected one).
     verify(transactionContext, times(2)).begin();
     verify(transactionContext, times(2)).commit();
   }
@@ -312,8 +336,11 @@ public class ApiRepositoryComponentServiceTest
 
     service.deleteRepositoryComponents(RM_INSTANCE_ID, List.of("pub-1", "pub-2"));
 
+    verify(hostedComponentScanQueueDAO).deletePendingByRepositoryId(eq("repo-1"));
+    verify(hostedComponentScanQueueDAO).deletePendingByRepositoryId(eq("repo-2"));
     verify(repositoryComponentDeleteService).deleteComponent(component1);
     verify(repositoryComponentDeleteService).deleteComponent(component2);
+    // One cleanup tx per repo (purge manages its own); two repos => 2.
     verify(transactionContext, times(2)).begin();
     verify(transactionContext, times(2)).commit();
   }
@@ -339,6 +366,7 @@ public class ApiRepositoryComponentServiceTest
     // Neither repo's components should be deleted due to upfront validation
     verify(repositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
+    verify(hostedComponentScanQueueDAO, never()).deletePendingByRepositoryId(any());
   }
 
   @Test
@@ -363,6 +391,7 @@ public class ApiRepositoryComponentServiceTest
 
     service.deleteRepositoryComponents(RM_INSTANCE_ID, Arrays.asList(REPO_PUBLIC_ID, null));
 
+    verify(hostedComponentScanQueueDAO).deletePendingByRepositoryId(eq(REPO_ID));
     verify(repositoryComponentDeleteService, times(1)).deleteComponent(component1);
   }
 

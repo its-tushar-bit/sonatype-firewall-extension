@@ -10,6 +10,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
@@ -792,6 +800,209 @@ public class HostedComponentScanQueueDAOTest
       int deleted = hostedComponentScanQueueDAO.deletePendingByComponentIds(tx, List.of());
       assertThat(deleted).isEqualTo(0);
     }
+  }
+
+  @Test
+  public void testDeletePendingByRepositoryId_removesPendingBacklogIncludingRowsWithNoComponentRow() {
+    final Repository repo = tempEntity.newRepository("repo-1");
+
+    final HostedComponentScanQueue pending1 = tempEntity.newHostedComponentScanQueue("no-comp-row-1",
+        repo.getId(), HostedComponentScanQueueDAO.Status.PENDING.name());
+    final HostedComponentScanQueue pending2 = tempEntity.newHostedComponentScanQueue("no-comp-row-2",
+        repo.getId(), HostedComponentScanQueueDAO.Status.PENDING.name());
+
+    final int deleted = hostedComponentScanQueueDAO.deletePendingByRepositoryId(repo.getId());
+
+    assertThat(deleted).isEqualTo(2);
+    assertThat(hostedComponentScanQueueDAO.getById(pending1.getId())).isNull();
+    assertThat(hostedComponentScanQueueDAO.getById(pending2.getId())).isNull();
+  }
+
+  @Test
+  public void testDeletePendingByRepositoryId_leavesInProgressJobsUntouched() {
+    final Repository repo = tempEntity.newRepository("repo-1");
+    final HostedComponentScanQueue pending = tempEntity.newHostedComponentScanQueue("c-pending",
+        repo.getId(), HostedComponentScanQueueDAO.Status.PENDING.name());
+    final HostedComponentScanQueue inProgress = tempEntity.newHostedComponentScanQueue("c-inprogress",
+        repo.getId(), HostedComponentScanQueueDAO.Status.IN_PROGRESS.name());
+
+    final int deleted = hostedComponentScanQueueDAO.deletePendingByRepositoryId(repo.getId());
+
+    assertThat(deleted).isEqualTo(1);
+    assertThat(hostedComponentScanQueueDAO.getById(pending.getId())).isNull();
+    assertThat(hostedComponentScanQueueDAO.getById(inProgress.getId())).isNotNull();
+  }
+
+  @Test
+  public void testDeletePendingByRepositoryId_onlyAffectsTargetRepository() {
+    final Repository repoA = tempEntity.newRepository("repo-a");
+    final Repository repoB = tempEntity.newRepository("repo-b");
+    final HostedComponentScanQueue a = tempEntity.newHostedComponentScanQueue("c-a",
+        repoA.getId(), HostedComponentScanQueueDAO.Status.PENDING.name());
+    final HostedComponentScanQueue b = tempEntity.newHostedComponentScanQueue("c-b",
+        repoB.getId(), HostedComponentScanQueueDAO.Status.PENDING.name());
+
+    final int deleted = hostedComponentScanQueueDAO.deletePendingByRepositoryId(repoA.getId());
+
+    assertThat(deleted).isEqualTo(1);
+    assertThat(hostedComponentScanQueueDAO.getById(a.getId())).isNull();
+    assertThat(hostedComponentScanQueueDAO.getById(b.getId())).isNotNull();
+  }
+
+  // CLM-42122 concurrency: purge and acquire operate on disjoint rows (purge deletes PENDING; acquire
+  // locks and flips a row to IN_PROGRESS), so a row is never both purged and processed. Re-run against
+  // real FOR UPDATE SKIP LOCKED by HostedComponentScanQueueDAOPostgresTest.
+
+  @Test
+  public void testPurge_doesNotDeleteInProgressRow_whenDisabledWhileJobRunning() {
+    final Repository repo = tempEntity.newRepository("repo-c7");
+    final HostedComponentScanQueue pending = tempEntity.newHostedComponentScanQueue("c7-pending",
+        repo.getId(), HostedComponentScanQueueDAO.Status.PENDING.name());
+    final HostedComponentScanQueue running = tempEntity.newHostedComponentScanQueue("c7-inprogress",
+        repo.getId(), HostedComponentScanQueueDAO.Status.IN_PROGRESS.name());
+
+    final int deleted = hostedComponentScanQueueDAO.deletePendingByRepositoryId(repo.getId());
+
+    assertThat(deleted).isEqualTo(1);
+    assertThat(hostedComponentScanQueueDAO.getById(pending.getId())).isNull();
+    assertThat(hostedComponentScanQueueDAO.getById(running.getId())).isNotNull();
+    assertThat(hostedComponentScanQueueDAO.getById(running.getId()).getStatus())
+        .isEqualTo(HostedComponentScanQueueDAO.Status.IN_PROGRESS.name());
+  }
+
+  @Test
+  public void testPurge_removesJobAfterItIsReturnedToPending() {
+    final Repository repo = tempEntity.newRepository("repo-e2");
+    final HostedComponentScanQueue job = tempEntity.newHostedComponentScanQueue("e2-job",
+        repo.getId(), HostedComponentScanQueueDAO.Status.IN_PROGRESS.name());
+
+    hostedComponentScanQueueDAO.deletePendingByRepositoryId(repo.getId());
+    assertThat(hostedComponentScanQueueDAO.getById(job.getId())).isNotNull();
+
+    hostedComponentScanQueueDAO.unacquireJobs(Set.of(job.getId()));
+    assertThat(hostedComponentScanQueueDAO.getById(job.getId()).getStatus())
+        .isEqualTo(HostedComponentScanQueueDAO.Status.PENDING.name());
+
+    final int deleted = hostedComponentScanQueueDAO.deletePendingByRepositoryId(repo.getId());
+    assertThat(deleted).isEqualTo(1);
+    assertThat(hostedComponentScanQueueDAO.getById(job.getId())).isNull();
+  }
+
+  @Test
+  public void testConcurrentPurge_ofDifferentRepositories_isIsolatedAndDeadlockFree() throws Exception {
+    final Repository repoA = tempEntity.newRepository("repo-c3-a");
+    final Repository repoB = tempEntity.newRepository("repo-c3-b");
+    for (int i = 0; i < 5; i++) {
+      tempEntity.newHostedComponentScanQueue("c3a-" + i, repoA.getId(),
+          HostedComponentScanQueueDAO.Status.PENDING.name());
+      tempEntity.newHostedComponentScanQueue("c3b-" + i, repoB.getId(),
+          HostedComponentScanQueueDAO.Status.PENDING.name());
+    }
+
+    final CyclicBarrier barrier = new CyclicBarrier(2);
+    final ExecutorService pool = Executors.newFixedThreadPool(2);
+    try {
+      final Callable<Integer> purgeA = () -> {
+        barrier.await();
+        return hostedComponentScanQueueDAO.deletePendingByRepositoryId(repoA.getId());
+      };
+      final Callable<Integer> purgeB = () -> {
+        barrier.await();
+        return hostedComponentScanQueueDAO.deletePendingByRepositoryId(repoB.getId());
+      };
+      final Future<Integer> fA = pool.submit(purgeA);
+      final Future<Integer> fB = pool.submit(purgeB);
+      final int deletedA = fA.get(30, TimeUnit.SECONDS);
+      final int deletedB = fB.get(30, TimeUnit.SECONDS);
+
+      assertThat(deletedA).isEqualTo(5);
+      assertThat(deletedB).isEqualTo(5);
+    }
+    finally {
+      pool.shutdownNow();
+    }
+  }
+
+  @Test
+  public void testConcurrentPurgeVsAcquire_noDoubleProcessing_inProgressNeverDeleted() throws Exception {
+    final Repository repo = tempEntity.newRepository("repo-c1");
+    final int total = 40;
+    for (int i = 0; i < total; i++) {
+      tempEntity.newHostedComponentScanQueue("c1-" + i, repo.getId(),
+          HostedComponentScanQueueDAO.Status.PENDING.name());
+    }
+
+    final Set<String> acquiredIds =
+        ConcurrentHashMap.newKeySet();
+    final AtomicBoolean duplicate =
+        new AtomicBoolean(false);
+    final CyclicBarrier barrier = new CyclicBarrier(2);
+    final ExecutorService pool = Executors.newFixedThreadPool(2);
+    try {
+      // Acquirer: take jobs until the queue is empty for 3 consecutive tries.
+      final Runnable acquirer = () -> {
+        try {
+          barrier.await();
+        }
+        catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        int emptyStreak = 0;
+        while (emptyStreak < 3) {
+          final List<HostedComponentScanQueue> jobs = hostedComponentScanQueueDAO.acquireNextPendingJobs(4);
+          if (jobs.isEmpty()) {
+            emptyStreak++;
+            continue;
+          }
+          emptyStreak = 0;
+          for (HostedComponentScanQueue j : jobs) {
+            if (!acquiredIds.add(j.getId())) {
+              duplicate.set(true); // same job acquired twice — must never happen
+            }
+          }
+        }
+      };
+      final Runnable purger = () -> {
+        try {
+          barrier.await();
+        }
+        catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        hostedComponentScanQueueDAO.deletePendingByRepositoryId(repo.getId());
+      };
+
+      final Future<?> fAcq = pool.submit(acquirer);
+      final Future<?> fPurge = pool.submit(purger);
+      fPurge.get(30, TimeUnit.SECONDS);
+      fAcq.get(30, TimeUnit.SECONDS);
+    }
+    finally {
+      pool.shutdownNow();
+    }
+
+    assertThat(duplicate.get()).as("no job should be acquired by two workers").isFalse();
+
+    // Purge only removes PENDING, so any row a worker acquired must survive as IN_PROGRESS.
+    for (String id : acquiredIds) {
+      final HostedComponentScanQueue row = hostedComponentScanQueueDAO.getById(id);
+      assertThat(row).as("acquired job %s must not have been deleted by purge", id).isNotNull();
+      assertThat(row.getStatus())
+          .as("acquired job %s must be IN_PROGRESS", id)
+          .isEqualTo(HostedComponentScanQueueDAO.Status.IN_PROGRESS.name());
+    }
+
+    final long pendingForRepo;
+    try (TransactionContext tx = hostedComponentScanQueueDAO.createTransactionContext()) {
+      tx.begin();
+      pendingForRepo = hostedComponentScanQueueDAO
+          .getByStatus(tx, HostedComponentScanQueueDAO.Status.PENDING)
+          .stream()
+          .filter(r -> repo.getId().equals(r.getRepositoryId()))
+          .count();
+      tx.commit();
+    }
+    assertThat(pendingForRepo).as("no PENDING rows should remain for the repo").isZero();
   }
 
 }

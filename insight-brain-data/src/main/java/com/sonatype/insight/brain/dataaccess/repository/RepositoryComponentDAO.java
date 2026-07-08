@@ -101,7 +101,8 @@ public class RepositoryComponentDAO
     try (TransactionContext tx = createTransactionContext()) {
       var query = tx.dsl()
           .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId));
+          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(notInnerPathname());
       if (filter != null && !filter.isEmpty()) {
         String escaped = escapeLike(filter);
         query = query.and(
@@ -123,7 +124,8 @@ public class RepositoryComponentDAO
       var query = tx.dsl()
           .selectCount()
           .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId));
+          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(notInnerPathname());
       if (filter != null && !filter.isEmpty()) {
         String escaped = escapeLike(filter);
         query = query.and(
@@ -132,6 +134,15 @@ public class RepositoryComponentDAO
       }
       return query.fetchOne(0, Integer.class);
     }
+  }
+
+  /**
+   * CLM-42089: exclude transient inner-pathname rows written by the archive-of-archives fan-out
+   * during evaluation (cleaned up by {@code HostedComponentScanQueueConsumer.deleteInnerRepositoryComponentRows}).
+   * Apply on UI-facing queries so a refresh mid-evaluation does not surface these transient rows.
+   */
+  private static Condition notInnerPathname() {
+    return REPOSITORY_COMPONENT.PATHNAME.notLike("%!/%");
   }
 
   private static String escapeLike(String value) {
@@ -466,6 +477,7 @@ public class RepositoryComponentDAO
           .selectCount()
           .from(REPOSITORY_COMPONENT)
           .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(notInnerPathname())
           .fetchOne(0, Integer.class);
     }
   }
@@ -477,6 +489,7 @@ public class RepositoryComponentDAO
           .from(REPOSITORY_COMPONENT)
           .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .and(REPOSITORY_COMPONENT.MATCH_STATE_ID.ne(MatchState.UNKNOWN.getId()))
+          .and(notInnerPathname())
           .fetchOne(0, Integer.class);
     }
   }
@@ -489,6 +502,7 @@ public class RepositoryComponentDAO
           .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .and(REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull())
           .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
+          .and(notInnerPathname())
           .fetchOne(0, Integer.class);
     }
   }
@@ -503,6 +517,7 @@ public class RepositoryComponentDAO
           .from(REPOSITORY_COMPONENT)
           .where(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(Date.from(Instant.EPOCH)))
           .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
+          .and(notInnerPathname())
           .fetchOne(0, Long.class);
     }
   }

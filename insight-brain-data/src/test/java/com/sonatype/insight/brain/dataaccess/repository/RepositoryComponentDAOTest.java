@@ -1774,6 +1774,116 @@ public class RepositoryComponentDAOTest
     }
   }
 
+  // ---- CLM-42089: UI-facing queries must never expose inner-pathname rows.
+  // The archive-of-archives fan-out (CLM-40943) briefly persists rows like
+  // "outer.zip!/inner.jar" during evaluation. Filtering here closes the race
+  // window in which a UI refresh mid-evaluation would surface these transient rows.
+
+  @Test
+  public void testGetByRepositoryIdPaged_excludesInnerPathnameRows() {
+    String outer = "outer.zip";
+    tempEntity.newRepositoryComponent(repository.getId(), outer);
+    tempEntity.newRepositoryComponent(repository.getId(), outer + "!/a.jar");
+    tempEntity.newRepositoryComponent(repository.getId(), outer + "!/nested/b.jar");
+
+    List<RepositoryComponent> result = dao.getByRepositoryIdPaged(repository.getId(), null, 100, 0);
+
+    assertThat(result).extracting(RepositoryComponent::getPathname).containsExactly(outer);
+  }
+
+  @Test
+  public void testGetByRepositoryIdPaged_excludesInnerPathnameRows_withFilterMatchingInnerPath() {
+    // Filter substring appears in an inner pathname but the inner row must still be excluded — the
+    // filter cannot "unhide" inner rows.
+    String outer = "outer.zip";
+    tempEntity.newRepositoryComponent(repository.getId(), outer);
+    tempEntity.newRepositoryComponent(repository.getId(), outer + "!/log4j-core.jar");
+
+    List<RepositoryComponent> result = dao.getByRepositoryIdPaged(repository.getId(), "log4j", 100, 0);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testCountByRepositoryIdWithFilter_excludesInnerPathnameRows() {
+    String outer = "outer.zip";
+    tempEntity.newRepositoryComponent(repository.getId(), outer);
+    tempEntity.newRepositoryComponent(repository.getId(), outer + "!/a.jar");
+    tempEntity.newRepositoryComponent(repository.getId(), outer + "!/b.jar");
+
+    int count = dao.countByRepositoryIdWithFilter(repository.getId(), null);
+
+    assertThat(count).as("only the outer row is counted").isEqualTo(1);
+  }
+
+  @Test
+  public void testCountByRepositoryIdWithFilter_countMatchesPagedResultSize() {
+    // Paged list and count must agree — otherwise the UI paginator shows N total but only renders
+    // fewer rows, which is exactly the visible artifact CLM-42089 fixed.
+    tempEntity.newRepositoryComponent(repository.getId(), "outer1.zip");
+    tempEntity.newRepositoryComponent(repository.getId(), "outer1.zip!/lib-a.jar");
+    tempEntity.newRepositoryComponent(repository.getId(), "outer2.zip");
+    tempEntity.newRepositoryComponent(repository.getId(), "outer2.zip!/lib-b.jar");
+    tempEntity.newRepositoryComponent(repository.getId(), "standalone.jar");
+
+    int count = dao.countByRepositoryIdWithFilter(repository.getId(), null);
+    List<RepositoryComponent> paged = dao.getByRepositoryIdPaged(repository.getId(), null, 100, 0);
+
+    assertThat(count).isEqualTo(3);
+    assertThat(paged).hasSize(count);
+    assertThat(paged).extracting(RepositoryComponent::getPathname)
+        .containsExactlyInAnyOrder("outer1.zip", "outer2.zip", "standalone.jar");
+  }
+
+  @Test
+  public void testGetComponentCountByRepositoryId_excludesInnerPathnameRows() {
+    // Summary tile total must match the paged list; otherwise the UI shows "N components"
+    // but renders fewer rows during the archive-of-archives evaluation window.
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip");
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip!/a.jar");
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip!/nested/b.jar");
+
+    assertThat(dao.getComponentCountByRepositoryId(repository.getId())).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetKnownComponentCountByRepositoryId_excludesInnerPathnameRows() {
+    // Known-component summary must also ignore inner-pathname rows, even when they are EXACT matches.
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "outer.zip",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), false);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "outer.zip!/a.jar",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), false);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "outer.zip!/b.jar",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), false);
+
+    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId())).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetQuarantinedComponentCountByRepositoryId_excludesInnerPathnameRows() {
+    // Quarantine summary tile sits next to the components tile on the same repo page.
+    // Inner-pathname rows can carry non-null quarantine_time during the eval window
+    // (RepositoryPolicyEvaluator stamps per-pathname), so filtering matches the component-count fix.
+    Date quarantineTime = new Date();
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip", quarantineTime, null);
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip!/a.jar", quarantineTime, null);
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip!/b.jar", quarantineTime, null);
+
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId())).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetQuarantinedComponentCount_excludesInnerPathnameRows() {
+    // Org-wide firewall dashboard summary — same class of race-window inflation.
+    Date quarantineTime = new Date();
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip", quarantineTime, null);
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip!/a.jar", quarantineTime, null);
+    tempEntity.newRepositoryComponent(repositoryTwo.getId(), "other-outer.zip", quarantineTime, null);
+    tempEntity.newRepositoryComponent(repositoryTwo.getId(), "other-outer.zip!/x.jar", quarantineTime, null);
+
+    assertThat(dao.getQuarantinedComponentCount()).isEqualTo(2);
+  }
+
   // ----------------------------------------------------------------------
   // CLM-40039 §6.1 — getMonitoringEligiblePage: eligibility filter + dedup
   // by (repository_id, hash) + globally newest-first emission.

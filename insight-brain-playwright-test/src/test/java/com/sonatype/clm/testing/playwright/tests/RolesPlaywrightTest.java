@@ -14,6 +14,9 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 
+import java.util.regex.Pattern;
+
+import com.microsoft.playwright.Route;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -115,7 +118,6 @@ public class RolesPlaywrightTest
     assertions.shouldHavePermissionToggles(PERMISSION_CATEGORY_IQ);
   }
 
-  /** The form emits one combined message for both missing-name and missing-description (RoleEditor.jsx:60-66). */
   @Test
   @Category(RegressionTest.class)
   public void testCreateRole_fieldValidation() {
@@ -256,9 +258,8 @@ public class RolesPlaywrightTest
   }
 
   /**
-   * The {@code readOnly=true} branch of the page is reached by logging in as a user with
-   * {@code VIEW_ROLES} but no {@code EDIT_ROLES} — the {@code rolesActions#load} thunk maps
-   * that combination to {@code readOnly=true}.
+   * The read-only page branch is reached by logging in as a user with {@code VIEW_ROLES} but no
+   * {@code EDIT_ROLES}.
    */
   @Test
   @Category(RegressionTest.class)
@@ -304,6 +305,32 @@ public class RolesPlaywrightTest
 
     rolesPage.roleItemAnchor(rolesPage.roleItem(customRoleName).first()).click();
     assertThat(page).hasURL(RolesPage.editRoleUrlPattern(customRole.getId()));
+  }
+
+  /**
+   * Simulates a roles-list 500 via {@code page.route} because the embedded IQ server has no
+   * supported hook to force this endpoint into a 500; the test's purpose is specifically the
+   * {@code NxLoadWrapper} error chrome and Retry flow.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testRolesList_loadErrorWithRetry() {
+    Pattern rolesEndpoint = Pattern.compile(".*/api/v2/roles.*");
+    page.route(rolesEndpoint, route -> route.fulfill(new Route.FulfillOptions()
+        .setStatus(500)
+        .setContentType("application/json")
+        .setBody("{\"message\":\"Simulated server error\"}")));
+
+    playwrightRefresh();
+    assertThat(rolesPage.loadError()).isVisible();
+    assertThat(rolesPage.retryButton()).isVisible();
+
+    page.unroute(rolesEndpoint);
+    rolesPage.retryButton().click();
+
+    assertThat(rolesPage.loadError()).isHidden();
+    assertions.shouldShowContainer();
+    assertions.shouldShowBuiltInRoles();
   }
 
   /** Flag set before login so a login throw still triggers cleanup in {@link #restoreAdminSession}. */

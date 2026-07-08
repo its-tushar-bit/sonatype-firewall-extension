@@ -14,9 +14,18 @@ import com.sonatype.insight.brain.model.Organization;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+/**
+ * Regression coverage for the SCM Onboarding page ({@code /assets/index.html#/onboarding}).
+ * Covers the slices reachable without a live SCM provider; deeper repository/import flows
+ * are deferred to a follow-up ticket.
+ */
 public class ScmOnboardingPlaywrightTest
     extends AbstractIqUiTest
 {
+  private ScmOnboardingPage onboardingPage;
+
+  private ScmOnboardingPageAssertions assertions;
+
   @Test
   @Category(RegressionTest.class)
   public void testScmOnboardingOrg_renders() {
@@ -25,7 +34,38 @@ public class ScmOnboardingPlaywrightTest
     playwrightRefreshOrOpen(ScmOnboardingPage.urlForOrg(org.getId()));
     playwrightLogin();
 
-    ScmOnboardingPage onboardingPage = new ScmOnboardingPage();
-    new ScmOnboardingPageAssertions(onboardingPage).shouldShowContainer();
+    onboardingPage = new ScmOnboardingPage();
+    assertions = new ScmOnboardingPageAssertions(onboardingPage);
+    assertions.shouldShowContainer();
   }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testScmOnboarding_targetOrgDropdownAndNewOrganizationButton() {
+    Organization org = tempEntity.newOrganization();
+    playwrightRefreshOrOpen(ScmOnboardingPage.urlForOrg(org.getId()));
+    playwrightLogin();
+
+    onboardingPage = new ScmOnboardingPage();
+    assertions = new ScmOnboardingPageAssertions(onboardingPage);
+
+    assertions.shouldShowContainer();
+    assertions.shouldShowTargetOrganizationDropdown();
+    assertions.shouldShowNewOrganizationButton();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testScmOnboarding_missingScmTokenError() {
+    Organization org = tempEntity.newOrganization();
+    playwrightRefreshOrOpen(ScmOnboardingPage.urlForOrg(org.getId()));
+    playwrightLogin();
+
+    onboardingPage = new ScmOnboardingPage();
+    assertions = new ScmOnboardingPageAssertions(onboardingPage);
+
+    assertions.shouldShowContainer();
+    assertions.shouldShowScmTokenNotConfiguredError();
+  }
+
 }

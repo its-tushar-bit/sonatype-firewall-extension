@@ -119,7 +119,7 @@ public class WebhookEditorPage
   }
 
   public Locator loadError() {
-    return locator(ROOT + " .nx-alert--load-error");
+    return nxLoadErrorAlert(locator(ROOT));
   }
 
 }

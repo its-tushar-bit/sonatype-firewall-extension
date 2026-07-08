@@ -30,11 +30,7 @@ public class SbomManagerBomRegressionPage
         + "/bom/" + versionId + "/overview";
   }
 
-  /**
-   * The "Report" tab ({@code NxTab} with role {@code tab}, name "Report"}).
-   * This is the default active tab; it renders {@code BillOfMaterialsComponentsTile}
-   * and {@code SummaryTile}.
-   */
+  /** The "Report" tab (default active tab). */
   public Locator reportTab() {
     return locator(ROOT).getByRole(AriaRole.TAB,
         new Locator.GetByRoleOptions().setName("Report").setExact(true));
@@ -50,27 +46,18 @@ public class SbomManagerBomRegressionPage
         new Locator.GetByRoleOptions().setName("Report").setExact(true).setSelected(true));
   }
 
-  /**
-   * The "Original BOM" tab ({@code NxTab} with role {@code tab}, name "Original BOM"}).
-   * Clicking it renders {@code OriginalBomViewer} in the second {@code NxTabPanel}.
-   */
+  /** The "Original BOM" tab. */
   public Locator originalBomTab() {
     return locator(ROOT).getByRole(AriaRole.TAB,
         new Locator.GetByRoleOptions().setName("Original BOM").setExact(true));
   }
 
-  /**
-   * The component list table ({@code NxTable id="bill-of-materials-components-table"}).
-   * Rendered inside the Report tab panel by {@code BillOfMaterialsComponentsTile}.
-   */
+  /** The component list table. */
   public Locator componentTable() {
     return locator("#bill-of-materials-components-table");
   }
 
-  /**
-   * Body rows of the component table — excludes the header row.
-   * Used to assert row count after applying the component search filter.
-   */
+  /** Body rows of the component table — excludes the header row. */
   public Locator componentTableBodyRows() {
     return locator("#bill-of-materials-components-table tbody .nx-table-row:not(.nx-table-row--header)");
   }
@@ -86,18 +73,14 @@ public class SbomManagerBomRegressionPage
   }
 
   /**
-   * The component search text input ({@code NxStatefulTextInput id="component-search"}).
-   * {@code NxStatefulTextInput} places {@code id} on the {@code <input>} directly.
+   * The component search text input.
    * Triggers a 300 ms-debounced backend query for components matching by name or license.
    */
   public Locator componentSearchInput() {
     return locator("#component-search");
   }
 
-  /**
-   * The {@code OriginalBomViewer} container ({@code div.iq-original-bom-viewer}).
-   * Present in the DOM once the "Original BOM" tab panel is active.
-   */
+  /** The {@code OriginalBomViewer} container — present once the "Original BOM" tab panel is active. */
   public Locator originalBomViewer() {
     return locator(".iq-original-bom-viewer");
   }
@@ -114,39 +97,24 @@ public class SbomManagerBomRegressionPage
         .filter(new Locator.FilterOptions().setHasText("found"));
   }
 
-  /**
-   * The {@code
-   *
-  <h2>} heading "Original Bill of Material Data" inside the viewer.
-   * Only visible after the {@code NxLoadWrapper} inside {@code OriginalBomViewer}
-   * finishes loading the original SBOM tree.
-   */
+  /** The H2 heading "Original Bill of Material Data" — visible after the viewer finishes loading. */
   public Locator originalBomViewerTitle() {
     return locator(".iq-original-bom-viewer").getByRole(AriaRole.HEADING,
         new Locator.GetByRoleOptions().setLevel(2));
   }
 
-  /**
-   * The SBOM version dropdown container ({@code .sbom-manager-sbom-version-dropdown}).
-   * Rendered as {@code NxDropdown} in the page-title button bar. The toggle label reads
-   * "Viewing: {currentVersion}".
-   */
+  /** The SBOM version dropdown container. Toggle label reads "Viewing: {currentVersion}". */
   public Locator versionDropdown() {
     return locator(".sbom-manager-sbom-version-dropdown");
   }
 
-  /**
-   * The toggle button of the SBOM version dropdown ({@code button.nx-dropdown__toggle}).
-   * Clicking it opens the list of available SBOM versions for the application.
-   */
+  /** The toggle button of the SBOM version dropdown — opens the list of available versions. */
   public Locator versionDropdownToggle() {
     return locator(".sbom-manager-sbom-version-dropdown button.nx-dropdown__toggle");
   }
 
   /**
    * A specific version link inside the open dropdown menu.
-   * Each item is an {@code <a class="nx-dropdown-button">} whose text is the version ID.
-   * Only present in the DOM while the dropdown is open.
    *
    * @param versionId exact SBOM version string to locate (e.g. "bom-regression-v2")
    */
@@ -157,8 +125,7 @@ public class SbomManagerBomRegressionPage
 
   /**
    * Fill the component search input with {@code query}.
-   * The BOM tile debounces by 300 ms before firing the backend request;
-   * Playwright web-first assertions handle the wait automatically.
+   * The BOM tile debounces by 300 ms before firing the backend request.
    */
   public void searchComponents(String query) {
     componentSearchInput().fill(query);
@@ -183,37 +150,25 @@ public class SbomManagerBomRegressionPage
     versionDropdownItem(versionId).click();
   }
 
-  /**
-   * The segmented export button container
-   * ({@code .sbom-manager-bill-of-materials-page__export-button}).
-   * Rendered as {@code NxStatefulSegmentedButton} in the page-title button bar.
-   */
+  /** The segmented export button container. */
   public Locator exportButton() {
     return locator(".sbom-manager-bill-of-materials-page__export-button");
   }
 
   /**
-   * The primary (main) button inside the segmented export button
-   * ({@code button.nx-segmented-btn__main-btn}).
+   * The primary (main) button inside the segmented export button.
    * Text reads "Export SBOM" for a valid BOM and "Export Original SBOM" for an invalid BOM.
    */
   public Locator exportButtonPrimary() {
     return locator(".sbom-manager-bill-of-materials-page__export-button .nx-segmented-btn__main-btn");
   }
 
-  /**
-   * The "more options" toggle in the segmented export button
-   * ({@code button.nx-segmented-btn__dropdown-btn}, {@code aria-label="more options"}).
-   * Clicking opens the export options dropdown list.
-   */
+  /** The "more options" toggle in the segmented export button — opens the export options dropdown. */
   public Locator exportButtonDropdownToggle() {
     return locator(".sbom-manager-bill-of-materials-page__export-button .nx-segmented-btn__dropdown-btn");
   }
 
-  /**
-   * The "Export Original SBOM" button inside the open export dropdown.
-   * Present (and enabled) for valid BOMs in the dropdown items.
-   */
+  /** The "Export Original SBOM" button inside the open export dropdown. */
   public Locator exportDropdownExportOriginalSbomButton() {
     return locator(".sbom-manager-bill-of-materials-page__export-button")
         .getByRole(AriaRole.BUTTON,
@@ -221,9 +176,8 @@ public class SbomManagerBomRegressionPage
   }
 
   /**
-   * The "Additional Export Options" button inside the open export dropdown
-   * ({@code button.nx-dropdown-button}).
-   * Disabled ({@code disabled} attribute) when the SBOM is invalid.
+   * The "Additional Export Options" button inside the open export dropdown.
+   * Disabled when the SBOM is invalid.
    */
   public Locator exportDropdownAdditionalExportOptions() {
     return locator(".sbom-manager-bill-of-materials-page__export-button")
@@ -232,7 +186,7 @@ public class SbomManagerBomRegressionPage
   }
 
   /**
-   * The "Export PDF" link inside the open export dropdown ({@code a.nx-dropdown-button}).
+   * The "Export PDF" link inside the open export dropdown.
    * Rendered with {@code aria-disabled="true"} when the SBOM is invalid.
    */
   public Locator exportDropdownPdfLink() {
@@ -241,58 +195,38 @@ public class SbomManagerBomRegressionPage
             new Locator.GetByRoleOptions().setName("Export PDF").setExact(true));
   }
 
-  /**
-   * The Additional Export Options modal container ({@code #sbom-additional-export-options-modal}).
-   * Rendered by {@code SbomAdditionalExportOptionsModal} when "Additional Export Options" is clicked.
-   */
+  /** The Additional Export Options modal container. */
   public Locator additionalExportOptionsModal() {
     return locator("#sbom-additional-export-options-modal");
   }
 
-  /**
-   * The heading inside the Additional Export Options modal ("Additional Export Options").
-   * Used as the primary existence-and-visibility assertion for the modal.
-   */
+  /** The heading inside the Additional Export Options modal. */
   public Locator additionalExportOptionsModalTitle() {
     return locator("#sbom-additional-export-options-modal")
         .getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(2).setExact(true));
   }
 
-  /**
-   * The "SBOM Specification" fieldset group inside the modal ({@code <fieldset>} with role group).
-   * Contains CycloneDX, SPDX 2.3, and SPDX 3.0 radio options.
-   */
+  /** The "SBOM Specification" fieldset — contains CycloneDX, SPDX 2.3, SPDX 3.0 radio options. */
   public Locator additionalExportOptionsSpecificationFieldset() {
     return locator("#sbom-additional-export-options-modal")
         .getByRole(AriaRole.GROUP,
             new Locator.GetByRoleOptions().setName("SBOM Specification").setExact(true));
   }
 
-  /**
-   * The "SBOM Format" fieldset group inside the modal.
-   * Contains JSON and XML radio options.
-   */
+  /** The "SBOM Format" fieldset — contains JSON and XML radio options. */
   public Locator additionalExportOptionsFormatFieldset() {
     return locator("#sbom-additional-export-options-modal")
         .getByRole(AriaRole.GROUP,
             new Locator.GetByRoleOptions().setName("SBOM Format").setExact(true));
   }
 
-  /**
-   * The {@code NxLoadError} error alert ({@code .nx-alert--load-error}) rendered by
-   * {@code NxLoadWrapper} when any of the 6 BOM data-source error selectors is non-null.
-   * Visible in place of the page content while the error persists.
-   */
+  /** Load-error alert shown when any of the 6 BOM data-source selectors returns non-null. */
   public Locator loadError() {
-    return locator(".nx-alert--load-error");
+    return nxLoadErrorAlert();
   }
 
-  /**
-   * The Retry button ({@code button.nx-load-error__retry}) inside the {@code NxLoadError} alert.
-   * Clicking it dispatches {@code doLoad()} which re-fetches all BOM data sources.
-   */
   public Locator retryButton() {
-    return locator("button.nx-load-error__retry");
+    return nxLoadErrorRetryButton();
   }
 
   /** Click the Retry button inside the load-error alert. */
@@ -313,22 +247,14 @@ public class SbomManagerBomRegressionPage
         "#bill-of-materials-summary-tile-chart-and-progress-policy-violation-summary");
   }
 
-  /**
-   * The {@code NxWarningAlert} container ({@code #invalid-sbom-alert}).
-   * Rendered when {@code isValid=false} and the alert has not yet been dismissed.
-   * Contains heading "Invalid SBOM Detected" and the validation-error detail message.
-   */
+  /** The invalid-SBOM warning alert — rendered when {@code isValid=false} and not yet dismissed. */
   public Locator invalidSbomAlert() {
     return locator("#invalid-sbom-alert");
   }
 
   /**
-   * The {@code NxCloseButton} ({@code aria-label="Close"}) inside the invalid-SBOM alert.
-   * Clicking it dispatches {@code dismissSbomInvalidAlert()} which sets
-   * {@code validationErrorAlertDismissed=true} in the Redux slice, hiding the alert
-   * and revealing {@code InvalidSbomIndicator} in the page-title {@code
-   *
-  <h1>}.
+   * The close button inside the invalid-SBOM alert.
+   * Clicking dismisses the alert and reveals {@link #invalidSbomIndicator()} in the page title.
    */
   public Locator invalidSbomAlertCloseButton() {
     return locator("#invalid-sbom-alert").getByRole(AriaRole.BUTTON,
@@ -336,10 +262,7 @@ public class SbomManagerBomRegressionPage
   }
 
   /**
-   * The {@code InvalidSbomIndicator} icon ({@code .sbom-manager-invalid-sbom-indicator})
-   * inside the page-title {@code
-   *
-  <h1>}.
+   * The invalid-SBOM indicator icon inside the page-title H1.
    * Only present when {@code isValid=false} AND the alert has been dismissed.
    */
   public Locator invalidSbomIndicator() {

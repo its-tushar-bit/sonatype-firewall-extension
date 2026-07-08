@@ -73,6 +73,15 @@ public class RolesPage
     return container().getByRole(AriaRole.BUTTON, CREATE_ROLE_BUTTON_OPTIONS);
   }
 
+  /** Load-error alert shown when the roles-list fetch fails. */
+  public Locator loadError() {
+    return nxLoadErrorAlert(container());
+  }
+
+  public Locator retryButton() {
+    return nxLoadErrorRetryButton(container());
+  }
+
   /**
    * Two unlabelled sibling {@code
    *

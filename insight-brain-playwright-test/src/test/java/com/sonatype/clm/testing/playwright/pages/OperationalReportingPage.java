@@ -59,5 +59,4 @@ public class OperationalReportingPage
     return container().getByRole(AriaRole.HEADING,
         new Locator.GetByRoleOptions().setLevel(2).setName("Contact Us"));
   }
-
 }

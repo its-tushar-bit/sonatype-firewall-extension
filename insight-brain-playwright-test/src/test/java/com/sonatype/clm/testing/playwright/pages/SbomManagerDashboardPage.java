@@ -30,11 +30,7 @@ public class SbomManagerDashboardPage
     return locator(ROOT);
   }
 
-  /**
-   * Page {@code
-   *
-  <h1>} heading "SBOM Manager Dashboard".
-   */
+  /** Page H1 heading "SBOM Manager Dashboard". */
   public Locator heading() {
     return locator(ROOT).getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(1));
   }
@@ -75,38 +71,30 @@ public class SbomManagerDashboardPage
   }
 
   /**
-   * C/C++ info alert ({@code .nx-alert--info}) rendered inside the dashboard when
-   * {@code isCpeMatchingSupported} is {@code true} and the alert has not been dismissed
-   * via localStorage key {@code sbomManagerDashboardInfoAlertDismissed}.
+   * C/C++ info alert — rendered when {@code isCpeMatchingSupported} is {@code true}
+   * and the alert has not been dismissed via localStorage.
    */
   public Locator cppSupportAlert() {
     return locator(ROOT + " .nx-alert--info");
   }
 
-  /**
-   * "Public Data Sources documentation" external link inside the C/C++ support alert
-   * ({@code NxTextLink} pointing to {@code links.sonatype.com/products/insight/public-data-sources}).
-   */
+  /** Documentation link inside the C/C++ support alert. */
   public Locator cppSupportAlertDocLink() {
     return cppSupportAlert().getByRole(AriaRole.LINK);
   }
 
-  /**
-   * Close button ({@code button[aria-label="Close"]}, rendered by {@code NxCloseButton})
-   * inside the C/C++ support alert.
-   */
+  /** Close button inside the C/C++ support alert. */
   public Locator cppSupportAlertCloseButton() {
     return cppSupportAlert().getByRole(AriaRole.BUTTON,
         new Locator.GetByRoleOptions().setName("Close"));
   }
 
   /**
-   * {@code NxLoadWrapper} error alert ({@code .nx-alert--load-error}) rendered inside the
-   * dashboard when the SBOM Manager feature flag is absent from
-   * {@code /rest/product/features}. The error text reads
+   * {@code NxLoadWrapper} error alert rendered inside the dashboard when the SBOM Manager
+   * feature flag is absent from {@code /rest/product/features}. The error text reads
    * "The SBOM Manager license feature is not enabled."
    */
   public Locator loadWrapperError() {
-    return locator(ROOT + " .nx-alert--load-error");
+    return nxLoadErrorAlert(locator(ROOT));
   }
 }

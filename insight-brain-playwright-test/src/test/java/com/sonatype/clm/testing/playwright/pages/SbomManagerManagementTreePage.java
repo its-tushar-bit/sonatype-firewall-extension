@@ -25,6 +25,17 @@ public class SbomManagerManagementTreePage
     return "/assets/index.html#/sbomManager/management/tree";
   }
 
+  /** Global Solution-Switcher toggle. CSS-anchored — the toggle's label is an SVG icon only. */
+  public Locator solutionSwitcherToggle() {
+    return locator("#iq-solution-switcher .nx-dropdown__toggle");
+  }
+
+  /** "SBOM Manager" link inside the open Solution-Switcher dropdown. */
+  public Locator solutionSwitcherSbomManagerLink() {
+    return locator("#iq-solution-switcher")
+        .getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("SBOM Manager"));
+  }
+
   public Locator heading() {
     return locator(ROOT).getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(1));
   }
@@ -43,5 +54,10 @@ public class SbomManagerManagementTreePage
 
   public Locator treeItemLabels() {
     return locator("[data-testid='owners-tree-item-label']");
+  }
+
+  /** "Organization Management" wrapper mounted by {@code sbomManager.management.view}. */
+  public Locator ownerManagerContainer() {
+    return locator("#owner-manager-main");
   }
 }

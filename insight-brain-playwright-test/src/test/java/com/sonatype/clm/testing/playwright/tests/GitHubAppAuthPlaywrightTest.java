@@ -43,15 +43,11 @@ public class GitHubAppAuthPlaywrightTest
   @Category(RegressionTest.class)
   public void testRegistrationModal_orgNameRequiredForOrganizationAccount() {
     openRegistrationModalAtRoot();
-    // Explicitly select Organization (don't rely on default) and confirm the org-name input
-    // mounts — that gates the form-level validation we're about to exercise.
     authPage.registrationModalOrgAccountRadio().label().click();
     authAssertions.shouldShowOrgNameInput();
 
     authPage.registrationModalSubmitButton().click();
 
-    // Modal stays open AND the form-level validation message surfaces; without both, this test
-    // would silently pass even if validation was broken.
     authAssertions.shouldShowRegistrationModal();
     authAssertions.shouldShowOrgNameValidationError();
   }
@@ -111,10 +107,7 @@ public class GitHubAppAuthPlaywrightTest
     authAssertions.shouldShowGitHubAppSection();
   }
 
-  /**
-   * Seeds a parent org with GitHub source control configured, then a child org that inherits
-   * from it. Returns the child org for the test to navigate to.
-   */
+  /** Seeds a parent org with GitHub SCM configured, plus a child org that inherits from it. */
   private Organization createChildOrgInheritingGitHub() {
     String suffix = TemporaryEntity.uuid();
     Organization parentOrg = tempEntity.newOrganization("GitHubAppParent-" + suffix);
@@ -168,4 +161,5 @@ public class GitHubAppAuthPlaywrightTest
     new SourceControlConfigurationPage().selectProvider("GitHub");
     assertThat(authPage.authMethodSection()).isVisible();
   }
+
 }

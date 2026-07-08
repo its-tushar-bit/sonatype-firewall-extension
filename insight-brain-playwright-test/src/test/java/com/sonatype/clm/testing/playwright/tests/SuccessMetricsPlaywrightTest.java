@@ -9,12 +9,15 @@ import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
+import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPageAssertions;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 
 import java.util.regex.Pattern;
@@ -49,6 +52,10 @@ public class SuccessMetricsPlaywrightTest
   private static final String EXPECTED_URL_FRAGMENT = "/labs/successMetrics";
 
   private static final String EXPECTED_PAGE_TAB_TITLE = "Success Metrics - Lifecycle";
+
+  private static final String INDIVIDUAL_REPORT_NAME_PREFIX = "pw-sm-report";
+
+  private static final String INDIVIDUAL_REPORT_SCOPE_JSON = "{}";
 
   @Before
   public void ensureFeatureEnabledAndOpenDashboard() {
@@ -121,6 +128,50 @@ public class SuccessMetricsPlaywrightTest
     else {
       configAssertions.shouldHaveEnabledToggleChecked();
     }
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSuccessMetrics_individualReportRendersOnDirectNavigation() {
+    String reportName = INDIVIDUAL_REPORT_NAME_PREFIX + "-" + TemporaryEntity.uuid();
+    SuccessMetricsReport report =
+        tempEntity.newSuccessMetricsReport("admin", reportName, INDIVIDUAL_REPORT_SCOPE_JSON);
+
+    playwrightRefreshOrOpen(SuccessMetricsPage.reportUrl(report.getId()));
+
+    SuccessMetricsPage successMetrics = new SuccessMetricsPage();
+    SuccessMetricsPageAssertions assertions = new SuccessMetricsPageAssertions(successMetrics);
+    assertions.shouldShowIndividualReport(reportName);
+  }
+
+  /** Gear-menu "Success Metrics" navigates to the config page. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSuccessMetrics_gearMenuNavigatesToConfigPage() {
+    new HeaderComponent().navigateToSystemPreference("Success Metrics");
+
+    SuccessMetricsConfigurationPage configPage = new SuccessMetricsConfigurationPage();
+    new SuccessMetricsConfigurationPageAssertions(configPage).shouldRenderPageLayout();
+  }
+
+  /**
+   * Exercises the report list → detail click contract that
+   * {@link #testSuccessMetrics_individualReportRendersOnDirectNavigation} deliberately skips.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSuccessMetrics_reportListLinkNavigatesToIndividualReport() {
+    String reportName = INDIVIDUAL_REPORT_NAME_PREFIX + "-" + TemporaryEntity.uuid();
+    tempEntity.newSuccessMetricsReport("admin", reportName, INDIVIDUAL_REPORT_SCOPE_JSON);
+
+    playwrightRefreshOrOpen(SuccessMetricsPage.url());
+
+    SuccessMetricsPage successMetrics = new SuccessMetricsPage();
+    SuccessMetricsPageAssertions assertions = new SuccessMetricsPageAssertions(successMetrics);
+
+    successMetrics.reportListLink(reportName).click();
+
+    assertions.shouldShowIndividualReport(reportName);
   }
 
   private void ensureSuccessMetricsEnabled() {

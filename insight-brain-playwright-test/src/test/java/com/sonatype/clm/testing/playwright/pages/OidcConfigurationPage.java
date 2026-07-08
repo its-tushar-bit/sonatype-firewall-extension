@@ -71,6 +71,34 @@ public class OidcConfigurationPage
     return byLabel("Email Claim");
   }
 
+  public Locator firstNameClaim() {
+    return byLabel("First Name Claim");
+  }
+
+  public Locator lastNameClaim() {
+    return byLabel("Last Name Claim");
+  }
+
+  public Locator groupsClaim() {
+    return byLabel("Groups Claim");
+  }
+
+  public Locator exactMatchClaimsJson() {
+    return byLabel("Exact Match Claims (JSON)");
+  }
+
+  public Locator authorizationCustomParamsJson() {
+    return byLabel("Authorization Custom Parameters (JSON)");
+  }
+
+  public Locator tokenRequestCustomParamsJson() {
+    return byLabel("Token Request Custom Parameters (JSON)");
+  }
+
+  public Locator jwksJson() {
+    return byLabel("JWKS (JSON)");
+  }
+
   public Locator saveButton() {
     return locator("#oidc-configuration-page").getByRole(AriaRole.BUTTON, SAVE_OPTS);
   }

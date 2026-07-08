@@ -101,6 +101,26 @@ public abstract class BasePage
     return page.getByRole(role, new Page.GetByRoleOptions().setName(name));
   }
 
+  /** {@code NxLoadError} alert scoped to a container. */
+  protected Locator nxLoadErrorAlert(Locator scope) {
+    return scope.locator(".nx-alert--load-error");
+  }
+
+  protected Locator nxLoadErrorAlert() {
+    return locator(".nx-alert--load-error");
+  }
+
+  /** Retry button inside a {@code NxLoadError} alert. */
+  protected Locator nxLoadErrorRetryButton(Locator scope) {
+    return nxLoadErrorAlert(scope).getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Retry"));
+  }
+
+  protected Locator nxLoadErrorRetryButton() {
+    return nxLoadErrorAlert().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Retry"));
+  }
+
   protected Locator nxToggleLabel(String accessibleName) {
     return page.locator("label.nx-toggle")
         .filter(new Locator.FilterOptions().setHasText(exactTextPattern(accessibleName)));

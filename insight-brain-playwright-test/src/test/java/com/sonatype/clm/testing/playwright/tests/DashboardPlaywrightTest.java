@@ -5,15 +5,19 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import java.util.regex.Pattern;
+
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPageAssertions;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
+
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
  * Dashboard shell tests using Playwright: tab bar, tab switching, and shared filter/export controls.
@@ -57,6 +61,8 @@ public class DashboardPlaywrightTest
     DashboardPageAssertions dashboardAssertions = new DashboardPageAssertions(dashboard);
     dashboardAssertions.shouldBeLoaded();
     dashboardAssertions.shouldShowAllTabs();
+    dashboardAssertions.violationsTabShouldBeActive();
+    assertThat(page).hasURL(Pattern.compile(".*/dashboard/violations.*"));
   }
 
   @Test

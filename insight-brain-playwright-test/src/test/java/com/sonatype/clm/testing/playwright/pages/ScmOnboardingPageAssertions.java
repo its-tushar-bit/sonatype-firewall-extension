@@ -18,4 +18,16 @@ public class ScmOnboardingPageAssertions
   public void shouldShowContainer() {
     assertThat(page.container()).isVisible();
   }
+
+  public void shouldShowNewOrganizationButton() {
+    assertThat(page.newOrganizationButton()).isVisible();
+  }
+
+  public void shouldShowTargetOrganizationDropdown() {
+    assertThat(page.targetOrganizationDropdown()).isVisible();
+  }
+
+  public void shouldShowScmTokenNotConfiguredError() {
+    assertThat(page.scmTokenNotConfiguredError()).isVisible();
+  }
 }

@@ -50,4 +50,11 @@ public class SuccessMetricsPageAssertions
     assertThat(page.addReportButton()).isEnabled();
     assertThat(page.addReportButton()).containsText(expectedLabelSubstring);
   }
+
+  /** Individual-report page renders with the given report name in the H1 and the Delete button. */
+  public void shouldShowIndividualReport(String expectedReportName) {
+    assertThat(page.reportContainer()).isVisible();
+    assertThat(page.reportPageHeading()).hasText(expectedReportName);
+    assertThat(page.deleteReportButton()).isVisible();
+  }
 }

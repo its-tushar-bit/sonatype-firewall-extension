@@ -36,6 +36,11 @@ public class WebhookEditorPage
     return "/assets/index.html#/webhooks/create";
   }
 
+  /** Webhook create form accessed from Firewall context. Matches ui-router state {@code firewall.addWebhook}. */
+  public static String firewallCreateUrl() {
+    return "/assets/index.html#/firewall/webhooks/create";
+  }
+
   public Locator container() {
     return locator(ROOT);
   }

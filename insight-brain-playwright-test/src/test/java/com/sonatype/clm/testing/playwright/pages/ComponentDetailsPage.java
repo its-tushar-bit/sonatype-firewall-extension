@@ -151,7 +151,7 @@ public class ComponentDetailsPage
   }
 
   public Locator backButton() {
-    return locator(".nx-back-button");
+    return container().locator(".nx-back-button").getByRole(AriaRole.LINK);
   }
 
   public Locator securityTabPanel() {
@@ -295,6 +295,11 @@ public class ComponentDetailsPage
 
   public Locator popoverBackButton() {
     return policyViolationDetailsPopover().locator(".nx-back-button").getByRole(AriaRole.LINK);
+  }
+
+  public Locator popoverCloseButton() {
+    return policyViolationDetailsPopover()
+        .getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Close"));
   }
 
   public Locator popoverSection() {

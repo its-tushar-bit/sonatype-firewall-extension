@@ -42,6 +42,11 @@ public class UserManagementPage
     return "/assets/index.html#/users";
   }
 
+  /** Users list accessed from Firewall context. Matches ui-router state {@code firewall.users}. */
+  public static String firewallUrl() {
+    return "/assets/index.html#/firewall/users";
+  }
+
   /** Add User form. Matches ui-router state {@code createUser} → url {@code /users/_new_}. */
   public static String urlToCreateUser() {
     return "/assets/index.html#/users/_new_";

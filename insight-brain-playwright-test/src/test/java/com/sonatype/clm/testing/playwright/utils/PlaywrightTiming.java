@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.playwright.utils;
 
+import com.microsoft.playwright.assertions.LocatorAssertions;
+
 /**
  * Standard timeouts for Playwright functional tests ("flakiness budget" defaults).
  * Prefer these values or {@link PlaywrightWaitUtils} helpers over ad-hoc literals.
@@ -16,6 +18,14 @@ public final class PlaywrightTiming
 
   /** Waiting for an element to become visible/hidden or for text to match. */
   public static final long ELEMENT_TIMEOUT_MS = 10_000L;
+
+  /**
+   * Standard {@link LocatorAssertions.IsVisibleOptions} using {@link #ELEMENT_TIMEOUT_MS}.
+   * Use as the first (gate) assertion after each navigation or significant UI transition;
+   * subsequent assertions on the same rendered page need no explicit timeout.
+   */
+  public static final LocatorAssertions.IsVisibleOptions VISIBLE_OPTS =
+      new LocatorAssertions.IsVisibleOptions().setTimeout(ELEMENT_TIMEOUT_MS);
 
   /**
    * Element visibility/hidden waits that legitimately exceed {@link #ELEMENT_TIMEOUT_MS} —
@@ -51,4 +61,5 @@ public final class PlaywrightTiming
 
   /** Async evaluation or file-import operations that may exceed {@link #LONG_OPERATION_TIMEOUT_MS}. */
   public static final long ASYNC_EVALUATION_TIMEOUT_MS = 90_000L;
+
 }

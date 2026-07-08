@@ -11,9 +11,12 @@ import java.net.URL;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Route;
+import com.microsoft.playwright.assertions.LocatorAssertions;
+import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
@@ -21,6 +24,7 @@ import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPageAssertions;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.clm.testing.playwright.utils.SmallReportFixture;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -230,11 +234,14 @@ public class ReportListPlaywrightTest
     Locator appSortButton = reportList.sortButtonOf(reportList.applicationHeaderCell());
 
     // RSC NxTableCell.tsx accessible-name format: `<headerText> <ariaSort>`.
-    assertThat(appSortButton).hasAccessibleName("Application unsorted");
+    assertThat(appSortButton).hasAccessibleName("Application unsorted",
+        new LocatorAssertions.HasAccessibleNameOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
     reportList.clickApplicationSort();
-    assertThat(appSortButton).hasAccessibleName("Application ascending");
+    assertThat(appSortButton).hasAccessibleName("Application ascending",
+        new LocatorAssertions.HasAccessibleNameOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
     reportList.clickApplicationSort();
-    assertThat(appSortButton).hasAccessibleName("Application descending");
+    assertThat(appSortButton).hasAccessibleName("Application descending",
+        new LocatorAssertions.HasAccessibleNameOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
   }
 
   @Test
@@ -382,6 +389,39 @@ public class ReportListPlaywrightTest
     reportList.clickApplicationSort();
 
     assertions.shouldHaveAriaSort(reportList.applicationHeaderCell(), "none");
+  }
+
+  /**
+   * Aborting the primary data fetch ({@code /rest/application/services/summary}) and the
+   * stage-type fetch ({@code /rest/policy/stages}) causes {@code reportsSlice.loadStagesAndReports}
+   * to reject, setting {@code loadError} in Redux. {@code NxLoadWrapper} then renders its error
+   * state containing a Retry button.
+   * <p>
+   * Both endpoints must be intercepted: {@code loadStagesFulfilled} sets {@code loadError = null}
+   * unconditionally, so aborting only the summary endpoint causes the error to be cleared when
+   * the stage-type request later resolves successfully. The container is asserted visible before
+   * the routes are registered so that in-flight API calls from {@code @Before} have settled.
+   * {@code page.unrouteAll()} in finally cleans up state for sibling tests.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testReportsPage_networkErrorOnDataLoad_showsRetryButton() {
+    try {
+      assertThat(new ReportListPage().container()).isVisible(
+          new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+      page.route(Pattern.compile(".*/rest/application/services/summary.*"), Route::abort);
+      page.route(Pattern.compile(".*/rest/policy/stages.*"), Route::abort);
+      playwrightRefreshOrOpen(ReportListPage.url());
+
+      ReportListPage reportList = new ReportListPage();
+      Locator retryButton = reportList.container()
+          .getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Retry"));
+      assertThat(retryButton).isVisible(
+          new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    }
+    finally {
+      page.unrouteAll();
+    }
   }
 
   /**

@@ -51,6 +51,10 @@ public class ListWaiversTablePage
     return container().getByRole(AriaRole.BUTTON, EXCLUSION_OPTS);
   }
 
+  public Locator activeWaiverRow(int index) {
+    return activeWaiverRows().nth(index);
+  }
+
   public Locator waiverRowCreatedDate(int index) {
     return container().locator("tbody").getByRole(AriaRole.ROW).nth(index).locator(".waiver-row-date-created");
   }

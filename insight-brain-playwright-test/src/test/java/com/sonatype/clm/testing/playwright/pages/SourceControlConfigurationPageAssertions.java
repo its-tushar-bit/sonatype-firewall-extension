@@ -83,4 +83,10 @@ public class SourceControlConfigurationPageAssertions
     assertThat(page.submitButton()).isVisible();
     assertThat(page.submitButton()).hasText(Pattern.compile("Create|Update"));
   }
+
+  public void shouldShowUnsupportedAlert() {
+    assertThat(page.unsupportedAlert()).isVisible(
+        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(page.unsupportedAlert()).containsText("Source Control is not supported by your license");
+  }
 }

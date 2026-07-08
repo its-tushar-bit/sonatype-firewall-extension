@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -17,12 +18,18 @@ import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardWaiversComponent;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.clm.testing.playwright.pages.WaiverDetailsPage;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
+import com.sonatype.clm.testing.playwright.utils.PolicyEvaluationSeeder;
+import com.sonatype.clm.testing.playwright.utils.PolicyEvaluationSeeder.SeededEvaluation;
+import com.sonatype.clm.testing.playwright.utils.SmallReportFixture;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -40,6 +47,7 @@ import com.sonatype.insight.mock.hds.HdsMockServer;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Route;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -408,6 +416,65 @@ public class ApplicationReportPlaywrightTest
     reportAfterDeleteAssertions.shouldBeVisible();
     reportAfterDeleteAssertions.shouldShowViolationRows();
     assertThat(reportAfterDelete.waivedViolationsIndicator()).hasCount(0);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testComponentDetails_fromApplicationReport_withViolationPopover() throws IOException {
+    PolicyEvaluationSeeder seeder = new PolicyEvaluationSeeder(
+        tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),
+        baseUrlFromTest, SmallReportFixture.CANNED_REPORT_DIR);
+    SeededEvaluation seeded = seeder.seedSingleConditionAndEvaluate(
+        "CMCDOrg", "CMCDApp", "cm-cd", "cm-cd-s", "CMCDPol", "c",
+        "MatchState", "is", "exact", 7);
+
+    stubComponentHdsEndpoints();
+
+    navigateAndWaitForUrl(
+        ApplicationReportPage.url(seeded.app(), seeded.scanId()), "/applicationReport/");
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    assertThat(reportPage.appReportMain()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+
+    reportPage.openFirstComponentFromReport();
+    playwrightWaitUntilUrlContains("/componentDetails/");
+
+    ComponentDetailsPage detailsPage = new ComponentDetailsPage();
+    assertThat(detailsPage.container()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+    assertThat(detailsPage.headerTitle()).isVisible();
+    assertThat(detailsPage.overviewComponentInformationTile()).isVisible();
+
+    detailsPage.clickComponentDetailsTab("Policy Violations");
+    playwrightWaitUntilUrlContains("/violations");
+
+    assertThat(detailsPage.policyViolationsTable()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+    detailsPage.policyViolationRows().first().waitFor();
+    detailsPage.policyViolationRows().first().click();
+
+    assertThat(detailsPage.popoverViolationPage()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+
+    detailsPage.popoverCloseButton().click();
+    detailsPage.policyViolationDetailsPopover()
+        .waitFor(
+            new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN));
+
+    detailsPage.navigateBackToApplicationReport();
+    playwrightWaitUntilUrlContains("/policy");
+    assertThat(reportPage.appReportMain()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+  }
+
+  private void stubComponentHdsEndpoints() {
+    URL componentDetailsResource = Objects.requireNonNull(
+        getClass().getResource("/componentDetails/javancssComponentDetails-29.50.json"),
+        "test resource not found: /componentDetails/javancssComponentDetails-29.50.json");
+    testCLMServer.getHdsServer()
+        .respondWith(componentDetailsResource)
+        .atUri("rest/ci/componentDetails");
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
+        .atUri("rest/component/dependencies");
+    testCLMServer.getHdsServer()
+        .respondWith(Collections.emptyMap())
+        .atUri("rest/vulnerability/details/json");
   }
 
   private void stubReevaluationEndpoint() throws IOException {

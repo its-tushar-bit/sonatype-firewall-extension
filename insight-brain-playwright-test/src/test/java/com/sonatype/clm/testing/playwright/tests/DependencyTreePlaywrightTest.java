@@ -27,8 +27,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.microsoft.playwright.assertions.LocatorAssertions;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -93,14 +91,12 @@ public class DependencyTreePlaywrightTest
   public void testDependencyTree_pageRendersWithTreeAndControls() {
     playwrightRefreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ApplicationReportPage reportPage = new ApplicationReportPage();
-    assertThat(reportPage.appReportMain()).isVisible(
-        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(reportPage.appReportMain()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
 
     reportPage.navigateToDependencyTree();
 
     DependencyTreePage depTreePage = new DependencyTreePage();
-    assertThat(depTreePage.container()).isVisible(
-        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(depTreePage.container()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
     assertThat(depTreePage.heading()).containsText(DEP_TREE_HEADING);
     assertThat(depTreePage.expandAllButton()).isVisible();
     assertThat(depTreePage.collapseAllButton()).isVisible();
@@ -118,8 +114,7 @@ public class DependencyTreePlaywrightTest
   public void testDependencyTree_expandCollapseNodes() {
     DependencyTreePage depTreePage = new DependencyTreePage();
 
-    assertThat(depTreePage.container()).isVisible(
-        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(depTreePage.container()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
 
     depTreePage.collapseAllButton().click();
     assertThat(depTreePage.firstCollapsibleChildPanel()).isHidden();
@@ -137,8 +132,7 @@ public class DependencyTreePlaywrightTest
   public void testDependencyTree_violationIndicators() {
     DependencyTreePage depTreePage = new DependencyTreePage();
 
-    assertThat(depTreePage.container()).isVisible(
-        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(depTreePage.container()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
 
     assertThat(depTreePage.treeViolationIndicators().first()).isVisible();
     assertThat(depTreePage.treeCriticalIndicators().first()).isVisible();
@@ -163,8 +157,7 @@ public class DependencyTreePlaywrightTest
     playwrightRefreshOrOpen(SastScanPage.url(app.getPublicId(), sastScan.getId()));
     SastScanPage sastPage = new SastScanPage();
 
-    assertThat(sastPage.findingsContainer()).isVisible(
-        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(sastPage.findingsContainer()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
     assertThat(sastPage.pageHeading()).containsText(SAST_PAGE_HEADING);
     assertThat(sastPage.findingsHeading()).containsText(SAST_FINDINGS_HEADING);
     assertThat(sastPage.findingRows().first()).isVisible();

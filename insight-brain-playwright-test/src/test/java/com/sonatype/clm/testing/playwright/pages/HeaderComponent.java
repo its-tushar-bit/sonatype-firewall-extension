@@ -115,6 +115,15 @@ public class HeaderComponent
     assertThat(locator("#user-token-modal")).isVisible();
   }
 
+  public Locator solutionSwitcherToggle() {
+    return byRole(AriaRole.BUTTON, "Solution Switcher");
+  }
+
+  /** Link inside the open Solution Switcher dropdown. */
+  public Locator solutionSwitcherLink(String name) {
+    return byRole(AriaRole.LINK, name);
+  }
+
   public Locator systemConfigMenuButton() {
     return locator("#system-configuration-menu button");
   }

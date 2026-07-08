@@ -6,10 +6,14 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.microsoft.playwright.PlaywrightException;
+import com.microsoft.playwright.Route;
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponentAssertions;
@@ -21,8 +25,9 @@ import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPageA
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
+
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 /**
  * Source Control configuration smoke tests.
@@ -132,5 +137,42 @@ public class SourceControlPlaywrightTest
     editorAssertions.shouldShowAutomatedRemediationCopy();
     editorAssertions.shouldShowAdvancedGitOptions();
     editorAssertions.shouldShowCreateButton();
+  }
+
+  /**
+   * When neither {@code notifications} nor {@code automation} is present in the
+   * {@code GET /rest/product/features} response,
+   * {@code selectIsSourceControlForSourceTileSupported} resolves to {@code false} and
+   * {@code SourceControlConfiguration.jsx} renders
+   * {@code NxErrorAlert id="source-control-not-supported"} instead of the SCM form.
+   * <p>
+   * A full page reload after registering the intercept resets the Redux store so
+   * {@code fetchProductFeaturesIfNeeded} re-fires through the mock (the features may
+   * already be cached from the {@code @Before} dashboard navigation).
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSourceControlEditor_showsUnsupportedAlertWhenFeaturesAbsent() {
+    try {
+      page.route(Pattern.compile(".*/rest/product/features([?#][^/]*)?$"),
+          route -> route.fulfill(new Route.FulfillOptions()
+              .setStatus(200)
+              .setContentType("application/json")
+              .setBody("[]")));
+      navigateAndWaitForUrl(
+          OwnerSummaryPage.editOrganizationUrl(ROOT_ORGANIZATION_ID,
+              SourceControlConfigurationPage.URL_FRAGMENT),
+          SourceControlConfigurationPage.URL_FRAGMENT);
+
+      // Full reload clears the Redux store cache; fetchProductFeaturesIfNeeded re-fires
+      // through the intercepted route and the license gate activates.
+      page.reload();
+
+      SourceControlConfigurationPage scPage = new SourceControlConfigurationPage();
+      new SourceControlConfigurationPageAssertions(scPage).shouldShowUnsupportedAlert();
+    }
+    finally {
+      page.unrouteAll();
+    }
   }
 }

@@ -86,6 +86,16 @@ public class SourceControlConfigurationPage
   }
 
   /**
+   * Error alert rendered when neither the {@code notifications} nor {@code automation}
+   * product feature is licensed, forcing {@code selectIsSourceControlForSourceTileSupported}
+   * to {@code false}.
+   * {@code NxErrorAlert} renders with {@code role="alert"}.
+   */
+  public Locator unsupportedAlert() {
+    return container().getByRole(AriaRole.ALERT);
+  }
+
+  /**
    * Prepare GitHub + PAT auth so {@link #accessTokenInput()} is mounted.
    *
    * <p>

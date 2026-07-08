@@ -42,6 +42,8 @@ import com.microsoft.playwright.assertions.LocatorAssertions.IsVisibleOptions;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
+import com.sonatype.clm.testing.playwright.pages.ListWaiversTablePage;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -219,6 +221,24 @@ public class ViolationDetailsPlaywrightTest
     ViolationDetailsPage detailsPage = openViolationDetails();
     assertThat(detailsPage.backButton()).isVisible();
     assertThat(detailsPage.popoverSection()).not().isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicableWaiversBadge_clickOpensListWaiversTable() {
+    String violationId = seedViolationWithWaivers();
+    playwrightRefreshOrOpen(ViolationDetailsPage.url(violationId));
+    playwrightRefresh();
+
+    ViolationDetailsPage detailsPage = new ViolationDetailsPage();
+    detailsPage.container()
+        .waitFor(new Locator.WaitForOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(detailsPage.applicableWaiversBadge()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+    detailsPage.applicableWaiversBadge().click();
+
+    ListWaiversTablePage listPage = new ListWaiversTablePage();
+    assertThat(listPage.container()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+    assertThat(listPage.activeWaiverRows()).hasCount(DATA.waiverCount());
   }
 
   private ViolationDetailsPage openViolationDetails() {

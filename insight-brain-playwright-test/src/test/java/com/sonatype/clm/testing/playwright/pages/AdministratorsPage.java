@@ -24,6 +24,11 @@ public class AdministratorsPage
     return "/assets/index.html#/administrators";
   }
 
+  /** Administrators page accessed from Firewall context. Matches ui-router state {@code firewall.administrators}. */
+  public static String firewallUrl() {
+    return "/assets/index.html#/firewall/administrators";
+  }
+
   public Locator container() {
     return locator(ROOT);
   }

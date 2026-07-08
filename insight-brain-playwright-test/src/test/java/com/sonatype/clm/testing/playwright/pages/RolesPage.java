@@ -42,6 +42,11 @@ public class RolesPage
     return "/assets/index.html#/roles";
   }
 
+  /** Roles list accessed from Firewall context. Matches ui-router state {@code firewall.rolesList}. */
+  public static String firewallUrl() {
+    return "/assets/index.html#/firewall/roles";
+  }
+
   public static String urlToCreateRole() {
     return "/assets/index.html#/roles/_new_";
   }

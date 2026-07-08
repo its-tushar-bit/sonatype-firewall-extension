@@ -30,6 +30,11 @@ public class WebhookListPage
     return "/assets/index.html#/webhooks/list";
   }
 
+  /** Webhook list accessed from Firewall context. Matches ui-router state {@code firewall.listWebhooks}. */
+  public static String firewallUrl() {
+    return "/assets/index.html#/firewall/webhooks/list";
+  }
+
   public Locator container() {
     return locator(ROOT);
   }

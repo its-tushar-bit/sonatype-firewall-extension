@@ -19,6 +19,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import javax.sql.DataSource;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +63,13 @@ public class NewDbConnectionOperationalCheck
 
   private static final String UPDATE_TEST_QUERY = "UPDATE %s.test_table SET name = name WHERE false";
 
+  /**
+   * Last observed connection health per managed {@link DataSource}, keyed by identity. Covers each data store's primary
+   * pool plus the operational store's separate locks pool (MTIQ and clustered single-tenant Postgres). In Postgres the
+   * four data stores share one primary pool, so identity keying restarts each distinct pool at most once per recovery.
+   */
+  private final Map<DataSource, Boolean> lastHealthyByPool = new IdentityHashMap<>();
+
   @Inject
   public NewDbConnectionOperationalCheck(
       final OperationalDataStore operationalDataStore,
@@ -78,6 +88,11 @@ public class NewDbConnectionOperationalCheck
       return;
     }
 
+    boolean healthy = performConnectionCheck(healthBuilder, dataStore);
+    drainPoolIfRecovered(dataStore, healthy);
+  }
+
+  private boolean performConnectionCheck(Health.Builder healthBuilder, DataStore dataStore) {
     String messageKey = dataStore.getID() + " database";
 
     try (
@@ -93,22 +108,81 @@ public class NewDbConnectionOperationalCheck
         healthBuilder.withDetail(messageKey,
             "Cannot open new connections to the database. The connection failed after " + duration + " ms.")
             .down();
-        return;
+        return false;
       }
 
       if (isConnectionReadOnly(tempConnection, dataStore)) {
         healthBuilder.withDetail(messageKey,
             "New connections to the database are read-only. Cannot perform write operations.")
             .down();
-        return;
+        return false;
       }
 
       healthBuilder.withDetail(messageKey, "roundTripTimeInMs=" + duration);
+      return true;
     }
     catch (Exception e) {
       log.error(e.getMessage(), e);
       healthBuilder.withDetail(messageKey, "Cannot open new connections to the database: " + e.getMessage())
           .down(e);
+      return false;
+    }
+  }
+
+  /**
+   * On an unhealthy-to-healthy transition for an external data store, drain and rebuild the connection pools it owns so
+   * stale connections left over from a database failover are evicted immediately instead of aging out over
+   * {@code maxConnectionLifetimeSeconds}. This covers the primary pool and, for the operational data store, the
+   * separate
+   * locks pool used by the clustered locking mechanism (MTIQ and clustered single-tenant Postgres).
+   */
+  // Visible for testing
+  void drainPoolIfRecovered(final DataStore dataStore, final boolean nowHealthy) {
+    if (dataStore.isDatabaseEmbedded()) {
+      return;
+    }
+
+    restartPoolIfRecovered(dataStore, dataStore.getDataSource(), nowHealthy);
+
+    if (dataStore instanceof OperationalDataStore operationalDataStore) {
+      restartPoolIfRecovered(dataStore, operationalDataStore.getDataSourceForLocks(), nowHealthy);
+    }
+  }
+
+  private void restartPoolIfRecovered(
+      final DataStore dataStore,
+      final DataSource dataSource,
+      final boolean nowHealthy)
+  {
+    if (dataSource == null) {
+      return;
+    }
+
+    boolean recovered;
+    synchronized (lastHealthyByPool) {
+      Boolean previous = lastHealthyByPool.put(dataSource, nowHealthy);
+      recovered = Boolean.FALSE.equals(previous) && nowHealthy;
+    }
+
+    if (recovered) {
+      restartPool(dataStore, dataSource);
+    }
+  }
+
+  private void restartPool(final DataStore dataStore, final DataSource dataSource) {
+    if (!(dataSource instanceof BasicDataSource pool)) {
+      return;
+    }
+
+    try {
+      log.info("Database connections recovered for {}; draining connection pool to evict stale connections",
+          dataStore.getID());
+      pool.restart();
+    }
+    catch (Exception e) {
+      log.warn("Failed to drain connection pool for {} after health recovery; "
+          + "stale connections will age out via maxConnectionLifetimeSeconds: {}", dataStore.getID(), e.getMessage(),
+          e);
     }
   }
 

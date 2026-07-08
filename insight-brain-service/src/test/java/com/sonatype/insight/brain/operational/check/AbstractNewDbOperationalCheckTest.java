@@ -6,11 +6,14 @@
 package com.sonatype.insight.brain.operational.check;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
@@ -26,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -169,6 +173,91 @@ abstract class AbstractNewDbOperationalCheckTest
     NewDbConnectionOperationalCheck spy = spy(databaseOperationalCheck);
     doReturn(null).when(spy).isConnectionReadOnlyViaQuery(any(), any());
     testExecute_Unhealthy_ReadOnly(thirdPartyScansDataStore, spy);
+  }
+
+  @Test
+  public void testExecute_Recovery_DrainsSharedAndLocksPools() throws Exception {
+    assumeFalse("Pool draining applies to external databases only", operationalDataStore.isDatabaseEmbedded());
+
+    BasicDataSource sharedPool = (BasicDataSource) operationalDataStore.getDataSource();
+    BasicDataSource locksPool = (BasicDataSource) operationalDataStore.getDataSourceForLocks();
+    assertThat(locksPool).isNotNull();
+    warmPool(sharedPool);
+    warmPool(locksPool);
+    assertThat(sharedPool.getNumIdle()).isGreaterThan(0);
+    assertThat(locksPool.getNumIdle()).isGreaterThan(0);
+
+    setDatabaseReadOnly(operationalDataStore, true);
+    assertThat(databaseOperationalCheck.execute().getStatus()).isEqualTo(Status.DOWN);
+
+    setDatabaseReadOnly(operationalDataStore, false);
+    assertThat(databaseOperationalCheck.execute().getStatus()).isEqualTo(Status.UP);
+
+    assertThat(sharedPool.getNumIdle()).isZero();
+    assertThat(locksPool.getNumIdle()).isZero();
+
+    try (Connection connection = sharedPool.getConnection()) {
+      assertThat(connection.isValid(5)).isTrue();
+    }
+  }
+
+  @Test
+  public void testExecute_SteadyStateHealthy_DoesNotDrainSharedPool() throws Exception {
+    assumeFalse("Pool draining applies to external databases only", operationalDataStore.isDatabaseEmbedded());
+
+    BasicDataSource sharedPool = (BasicDataSource) operationalDataStore.getDataSource();
+    warmPool(sharedPool);
+    int idleBefore = sharedPool.getNumIdle();
+    assertThat(idleBefore).isGreaterThan(0);
+
+    assertThat(databaseOperationalCheck.execute().getStatus()).isEqualTo(Status.UP);
+    assertThat(databaseOperationalCheck.execute().getStatus()).isEqualTo(Status.UP);
+
+    assertThat(sharedPool.getNumIdle()).isEqualTo(idleBefore);
+  }
+
+  @Test
+  public void testExecute_Recovery_EmbeddedDatabase_NotDrained() throws Exception {
+    BasicDataSource sharedPool = (BasicDataSource) operationalDataStore.getDataSource();
+    warmPool(sharedPool);
+    int idleBefore = sharedPool.getNumIdle();
+    assertThat(idleBefore).isGreaterThan(0);
+
+    doReturn(true).when(operationalDataStore).isDatabaseEmbedded();
+
+    databaseOperationalCheck.drainPoolIfRecovered(operationalDataStore, false);
+    databaseOperationalCheck.drainPoolIfRecovered(operationalDataStore, true);
+
+    assertThat(sharedPool.getNumIdle()).isEqualTo(idleBefore);
+  }
+
+  @Test
+  public void testDrainPoolIfRecovered_RestartFailureIsSwallowed() throws Exception {
+    assumeFalse("Pool draining applies to external databases only", operationalDataStore.isDatabaseEmbedded());
+
+    BasicDataSource throwingPool = spy((BasicDataSource) operationalDataStore.getDataSource());
+    doThrow(new SQLException("simulated restart failure")).when(throwingPool).restart();
+    doReturn(throwingPool).when(operationalDataStore).getDataSource();
+
+    databaseOperationalCheck.drainPoolIfRecovered(operationalDataStore, false);
+    databaseOperationalCheck.drainPoolIfRecovered(operationalDataStore, true);
+
+    verify(throwingPool).restart();
+  }
+
+  private void warmPool(final BasicDataSource pool) throws Exception {
+    try (Connection connection = pool.getConnection()) {
+      assertThat(connection.isValid(5)).isTrue();
+    }
+  }
+
+  private void setDatabaseReadOnly(final DataStore dataStore, final boolean readOnly) throws Exception {
+    try (Connection connection = dataStore.getDataSource().getConnection();
+        Statement statement = connection.createStatement())
+    {
+      statement.execute("ALTER DATABASE " + connection.getCatalog() + " SET default_transaction_read_only = "
+          + (readOnly ? "on" : "off") + ";");
+    }
   }
 
   private void testExecute_Unhealthy(DataStore unhealthyDataStore) throws Exception {

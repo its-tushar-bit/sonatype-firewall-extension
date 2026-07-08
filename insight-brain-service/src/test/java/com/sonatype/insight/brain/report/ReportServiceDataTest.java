@@ -23,10 +23,13 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -111,6 +114,8 @@ public class ReportServiceDataTest
 
     return new ReportService(null, null, null, null, null, null, null, null, null, null, null,
         daoFactory.createLicenseDAO(), null, null, licenseThreatGroupDAO, null, null, null, multiLicenseDAO, null, null,
-        null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        null, null, null, null, null, null, null, null, null, null, null, null, null,
+        Mockito.mock(HostedComponentScanQueueConsumer.class),
+        Mockito.mock(ClusterLockManager.class));
   }
 }

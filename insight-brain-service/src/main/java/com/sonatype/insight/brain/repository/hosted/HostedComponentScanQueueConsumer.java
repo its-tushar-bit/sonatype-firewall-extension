@@ -421,7 +421,14 @@ public class HostedComponentScanQueueConsumer
     // ScanPolicyEvaluator reads bom.json/security.json/licenses.json from it.
     if (application != null && scanReceipt != null) {
       mirrorNestedComponentViolationsFromApplicationEvaluation(
-          job, repositoryId, outerComponentInfo, application, scanReceipt.getScanId(), stage);
+          job.getId(),
+          repositoryId,
+          outerComponentInfo.pathname(),
+          outerComponentInfo.hash(),
+          application,
+          scanReceipt.getScanId(),
+          stage,
+          job.getComponentId());
     }
 
     if (componentInfos.size() > 1) {
@@ -1110,16 +1117,41 @@ public class HostedComponentScanQueueConsumer
    * (HDS didn't identify nested components for this format), the outer-only behaviour from
    * {@link #evaluatePolicies} is unaffected — we lose only the inner-component breakout.
    * Recoverable on the next CM sweep.
+   * <p>
+   * <b>CLM-42080:</b> public entry point takes primitives (not {@link HostedComponentScanQueue}
+   * / {@link ScanComponentInfo}) so the re-evaluation path in
+   * {@code ReportService#reevaluateHostedComponent} can share this exact drill-down and
+   * mirror logic with the initial-scan path. Before this refactor, re-eval only refreshed
+   * the outer's own violation, leaving mirrored inner-pathname rows at the threat_level they
+   * carried at initial-scan time. Re-eval callers pass {@code scanId} for both
+   * {@code jobLogId} and {@code scanId} — the split exists so the initial-scan path can pass
+   * {@code HostedComponentScanQueue.getId()} as {@code jobLogId} while carrying its own
+   * distinct {@code scanId}.
+   * <p>
+   * <b>Side effect on re-eval:</b> the identified-outer gate calls
+   * {@link #patchBomKeepOuterOnly}, which permanently trims {@code bom.json} to the outer's
+   * entry. If a component transitions UNKNOWN → identified between the initial scan and a
+   * re-eval (e.g. HDS updated its database), the first re-eval that hits the gate will trim
+   * the overlay for the first time. Subsequent re-evals are idempotent (the trim function
+   * returns early when its input already matches its output), but the original multi-entry
+   * bom cannot be recovered without re-uploading the scan.
+   *
+   * @param jobLogId opaque id used ONLY for log correlation (initial-scan path passes
+   *          {@code HostedComponentScanQueue.getId()}; re-eval path passes the scan id).
+   * @param componentIdOrNull NXRM {@code componentId} to stamp on newly-created rows, or
+   *          {@code null} on the re-eval path (no queue entry to source it from).
    */
-  private void mirrorNestedComponentViolationsFromApplicationEvaluation(
-      final HostedComponentScanQueue job,
+  public void mirrorNestedComponentViolationsFromApplicationEvaluation(
+      final String jobLogId,
       final String repositoryId,
-      final ScanComponentInfo outer,
+      final String outerPathname,
+      final String outerHash,
       final Application application,
       final String scanId,
-      final String stage)
+      final String stageTypeId,
+      final String componentIdOrNull)
   {
-    if (scanId == null) {
+    if (scanId == null || stageTypeId == null) {
       return;
     }
     try {
@@ -1153,7 +1185,7 @@ public class HostedComponentScanQueueConsumer
       // Ross retracted the deeper "stop at first known component" rule pending HDS-side
       // discussion (Slack 2026-06-26 22:29), so we keep this simple one-level decision.
       RepositoryComponent outerRow =
-          repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, outer.pathname());
+          repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, outerPathname);
       boolean outerIdentified = outerRow != null
           && outerRow.getMatchStateId() != null
           && !MatchState.UNKNOWN.getId().equalsIgnoreCase(outerRow.getMatchStateId());
@@ -1172,12 +1204,12 @@ public class HostedComponentScanQueueConsumer
       if (outerIdentified && !keepNestedForFormat) {
         log.info("Identified-outer gate: outer pathname={} matchState={} format={} → reporting as "
             + "1 component, no inner drill-down (matches iq-cli single-file scan behaviour)",
-            outer.pathname(), outerRow.getMatchStateId(), repoFormat);
+            outerPathname, outerRow.getMatchStateId(), repoFormat);
 
         // Stamp componentCount = 1. Unconditional UPDATE because the earlier eager stamp and
         // saveReportFiles' bom refinement (both via raiseComponentCountIfHigher) may have
         // raised the column to HDS's expanded count.
-        forceComponentCount(repositoryId, outer.pathname(), 1);
+        forceComponentCount(repositoryId, outerPathname, 1);
 
         // Patch data.json.totalArtifactCount=1 + knownArtifactCount=1 so the drill-in Build
         // Report header reads "1 COMPONENT, 100% of all components identified" instead of
@@ -1197,7 +1229,7 @@ public class HostedComponentScanQueueConsumer
         // (Application Report body, SBOM exports, Search index) to the same one-entry view
         // iq-cli already produces for the same binary.
         try {
-          patchBomKeepOuterOnly(application, scanId, outer.hash());
+          patchBomKeepOuterOnly(application, scanId, outerHash);
         }
         catch (Exception ex) {
           log.warn("Failed to trim bom.json to outer for identified outer scanId={}: {}",
@@ -1210,7 +1242,7 @@ public class HostedComponentScanQueueConsumer
         try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
           tx.begin();
           List<RepositoryPolicyViolation> existingForOuter = repositoryPolicyViolationDAO
-              .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repositoryId, outer.pathname());
+              .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repositoryId, outerPathname);
           int deleted = 0;
           for (RepositoryPolicyViolation existing : existingForOuter) {
             String existingPathname = existing.getPathname();
@@ -1222,7 +1254,7 @@ public class HostedComponentScanQueueConsumer
           tx.commit();
           if (deleted > 0) {
             log.info("Identified-outer gate cleanup: deleted {} stale inner-pathname rows for "
-                + "outer pathname={}", deleted, outer.pathname());
+                + "outer pathname={}", deleted, outerPathname);
           }
         }
         return;
@@ -1234,7 +1266,7 @@ public class HostedComponentScanQueueConsumer
       // (component × policy) — including for the inner components HDS identified. The return
       // value is intentionally unused; we read the persisted rows back via the DAO in step 2
       // so the same code path works for both first-time and re-evaluation runs.
-      Stage policyStage = new Stage(stage.toLowerCase());
+      Stage policyStage = new Stage(stageTypeId.toLowerCase());
       scanPolicyEvaluatorProvider.get()
           .evaluate(application, scanId, policyStage,
               ScanTriggerType.REPOSITORY_MANAGER,
@@ -1251,7 +1283,7 @@ public class HostedComponentScanQueueConsumer
       // stamps can be both higher (scanner's file-list view for .gem, .tar.gz, etc.) and
       // lower (early HDS firewall-purpose bom for nuget) than the truth.
       List<ApplicationComponent> appComponents =
-          applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage.toLowerCase());
+          applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stageTypeId.toLowerCase());
 
       // CLM-40943: align with LC's count by excluding components identified solely via
       // manifest extraction (Gemfile.lock, requirements.txt, package-lock.json, etc.). The
@@ -1277,9 +1309,9 @@ public class HostedComponentScanQueueConsumer
       if (dependencyDerived > 0) {
         log.info("Excluded {} manifest-derived 'dependency:' components from componentCount stamp "
             + "for pathname={} (kept {} direct-identification components)",
-            dependencyDerived, outer.pathname(), directCount);
+            dependencyDerived, outerPathname, directCount);
       }
-      setComponentCountFromSyntheticEval(repositoryId, outer.pathname(), directCount);
+      setComponentCountFromSyntheticEval(repositoryId, outerPathname, directCount);
 
       // CLM-40943: keep the Build Report header in sync with the Hosted Repos list COMPONENTS
       // column. data.json.totalArtifactCount drives the "X COMPONENTS, 100% of all components
@@ -1305,13 +1337,15 @@ public class HostedComponentScanQueueConsumer
       // matched. Loading them in one batch call is the standard pattern (see
       // ScanPolicyEvaluator's own use at lines 590, 653, 772, 1154, 1987).
       List<PolicyViolation> violations =
-          policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), stage.toLowerCase());
+          policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), stageTypeId.toLowerCase());
       if (violations.isEmpty()) {
-        log.debug("ScanPolicyEvaluator produced no policy_violation rows for job id={}, app={}, scan={} — "
-            + "no inner-component violations to mirror", job.getId(), application.getId(), scanId);
-        return;
+        log.debug("ScanPolicyEvaluator produced no policy_violation rows for jobLogId={}, app={}, scan={} — "
+            + "no inner-component violations to mirror (stale inner rows will still be cleaned up)",
+            jobLogId, application.getId(), scanId);
       }
-      policyViolationDAO.loadConstraintFacts(violations);
+      else {
+        policyViolationDAO.loadConstraintFacts(violations);
+      }
 
       // Step 3: build a hash → ApplicationComponent map so we can resolve each violation's
       // pathnames (= file paths inside the outer archive). The bom-derived pathnames are the
@@ -1325,7 +1359,7 @@ public class HostedComponentScanQueueConsumer
       // Step 4: mirror only INNER violations. Skip the outer (already persisted by
       // evaluatePolicies; double-write would create a second repository_policy_violation row
       // under a different pathname with the same coordinates, breaking dedup downstream).
-      String outerHash = outer.hash();
+      // (outerHash is a parameter of this method — no local re-declaration needed.)
       Date now = new Date();
       int mirrored = 0;
       try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
@@ -1345,7 +1379,7 @@ public class HostedComponentScanQueueConsumer
         // getActiveByRepositoryIdAndPathnameOrInnerPathnames helper returns the outer row +
         // all inners under it; we filter to inners-only before deleting.
         List<RepositoryPolicyViolation> existingForOuter = repositoryPolicyViolationDAO
-            .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repositoryId, outer.pathname());
+            .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repositoryId, outerPathname);
         int deletedStale = 0;
         for (RepositoryPolicyViolation existing : existingForOuter) {
           String existingPathname = existing.getPathname();
@@ -1355,8 +1389,8 @@ public class HostedComponentScanQueueConsumer
           }
         }
         if (deletedStale > 0) {
-          log.debug("Idempotent re-mirror: deleted {} stale inner-pathname rows for job id={}, "
-              + "outer pathname={}", deletedStale, job.getId(), outer.pathname());
+          log.debug("Idempotent re-mirror: deleted {} stale inner-pathname rows for jobLogId={}, "
+              + "outer pathname={}", deletedStale, jobLogId, outerPathname);
         }
 
         int skippedDependencyDerived = 0;
@@ -1392,7 +1426,7 @@ public class HostedComponentScanQueueConsumer
           // path — one canonical label per inner component is enough for the UI and matches
           // what the existing policythreats.json builder expects.
           String innerLabel = innerLabelFromComponent(pv, ac);
-          String innerPathname = outer.pathname() + "!/" + innerLabel;
+          String innerPathname = outerPathname + "!/" + innerLabel;
 
           RepositoryPolicyViolation rpv = new RepositoryPolicyViolation(
               repositoryId,
@@ -1417,8 +1451,8 @@ public class HostedComponentScanQueueConsumer
           }
           // Stamp the NXRM componentId so component-keyed UI features (waivers, quarantine
           // history) match the inner rows the same way they match the outer.
-          if (job.getComponentId() != null) {
-            rpv.setComponentId(job.getComponentId());
+          if (componentIdOrNull != null) {
+            rpv.setComponentId(componentIdOrNull);
           }
           repositoryPolicyViolationDAO.insert(tx, rpv);
           mirrored++;
@@ -1426,17 +1460,17 @@ public class HostedComponentScanQueueConsumer
         tx.commit();
         if (skippedDependencyDerived > 0) {
           log.info("Excluded {} manifest-derived 'dependency:' policy_violation rows from "
-              + "repository_policy_violation mirror for job id={}, app={}, scan={}",
-              skippedDependencyDerived, job.getId(), application.getId(), scanId);
+              + "repository_policy_violation mirror for jobLogId={}, app={}, scan={}",
+              skippedDependencyDerived, jobLogId, application.getId(), scanId);
         }
       }
       log.info("Mirrored {} inner-component policy_violation rows into repository_policy_violation "
-          + "for job id={}, app={}, scan={} (total app-side violations: {}, outer-hash filtered)",
-          mirrored, job.getId(), application.getId(), scanId, violations.size());
+          + "for jobLogId={}, app={}, scan={} (total app-side violations: {}, outer-hash filtered)",
+          mirrored, jobLogId, application.getId(), scanId, violations.size());
     }
     catch (Exception e) {
-      log.warn("Nested-component mirror failed for job id={} (outer eval already persisted): {}",
-          job.getId(), e.getMessage(), e);
+      log.warn("Nested-component mirror failed for jobLogId={} (outer eval already persisted): {}",
+          jobLogId, e.getMessage(), e);
     }
   }
 

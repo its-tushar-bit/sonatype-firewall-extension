@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
 import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
@@ -221,6 +222,8 @@ public class ReportService
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private final HostedComponentScanQueueConsumer hostedComponentScanQueueConsumer;
+
   private final ClusterLockManager clusterLockManager;
 
   @Inject
@@ -259,6 +262,7 @@ public class ReportService
       final ApplicationReportPersistenceService applicationReportPersistenceService,
       final InnerSourceCleanupPendingService innerSourceCleanupPendingService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final HostedComponentScanQueueConsumer hostedComponentScanQueueConsumer,
       final ClusterLockManager clusterLockManager)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -295,6 +299,7 @@ public class ReportService
     this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.innerSourceCleanupPendingService = innerSourceCleanupPendingService;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.hostedComponentScanQueueConsumer = hostedComponentScanQueueConsumer;
     this.clusterLockManager = clusterLockManager;
   }
 
@@ -421,6 +426,19 @@ public class ReportService
         || ScanTriggerType.REPOSITORY_MANAGER == scanTriggerType;
   }
 
+  /**
+   * Re-evaluate a hosted-repository component (Re-Evaluate button on the Application Report,
+   * hosted-scan branch of {@code ReportResource.reevaluatePolicy}). Runs synchronously on the
+   * caller's request thread — the JAX-RS resource ignores {@code async=true} for hosted scans.
+   * <p>
+   * <b>Latency contract:</b> the outer {@code RepositoryPolicyEvaluator.evaluate} plus (per
+   * CLM-42080) the drill-down {@code ScanPolicyEvaluator.evaluate} inside the mirror both run
+   * inline. For large archives (e.g. nuget nupkg with many framework-fanout DLLs, or a gem
+   * with a deep dependency graph) this can push the response into multi-second territory.
+   * Keep the worst-case comfortably under the deployment ALB / nginx idle timeout — CLM-38045
+   * was a real production incident from a synchronous long response timing out at the
+   * proxy layer.
+   */
   public void reevaluateHostedComponent(final String appId, final String scanId) {
     RepositoryComponent component = repositoryComponentDAO.getByScanId(scanId);
     if (component == null) {
@@ -432,7 +450,8 @@ public class ReportService
     }
     Application application = applicationDAO.getByIdNotNull(appId);
     PolicyEvaluation lastEval = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
-    String stageTypeId = lastEval != null ? lastEval.getStageTypeId() : ComplianceStageType.ID;
+    String rawStage = lastEval != null ? lastEval.getStageTypeId() : null;
+    String stageTypeId = rawStage != null ? rawStage : ComplianceStageType.ID;
     String format = component.getComponentIdentifier() != null
         ? component.getComponentIdentifier().getFormat()
         : repository.getFormat();
@@ -447,11 +466,24 @@ public class ReportService
     // Callers passing skipAutoWaivers=true via ReportResource will have it silently ignored for hosted scans.
     log.debug("reevaluateHostedComponent: skipAutoWaivers not supported for hosted scans, appId={} scanId={}", appId,
         scanId);
-    // Cluster-lock evaluate → saveOverlayFiles → persist to keep the row and the overlay it
-    // describes consistent across concurrent re-evals of the same (application, scanId).
+    // Cluster-lock evaluate → mirror → saveOverlayFiles → persist to keep the row and the overlay
+    // it describes consistent across concurrent re-evals of the same (application, scanId).
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
       clusterLock.lock();
       repositoryPolicyEvaluatorProvider.get().evaluate(repository, request, false, null, stageTypeId);
+
+      try {
+        hostedComponentScanQueueConsumer.mirrorNestedComponentViolationsFromApplicationEvaluation(
+            scanId, repository.getId(), component.getPathname(), component.getHash(),
+            application, scanId, stageTypeId, null);
+      }
+      catch (Exception e) {
+        log.warn("reevaluateHostedComponent: nested-violation mirror step failed for appId={} "
+            + "scanId={}; outer refresh persisted, but mirrored inner-pathname rows remain at "
+            + "their previous threat_level until the next re-eval retries the idempotent mirror",
+            appId, scanId, e);
+      }
+
       try {
         saveOverlayFiles(appId, scanId);
       }

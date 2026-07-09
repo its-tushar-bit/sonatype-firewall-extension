@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.repository.RepositoryService;
+import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -189,7 +190,9 @@ public class ApiComponentsWithWaiversReportingService
     appViews
         .stream()
         .map(appView -> {
-          return CompletableFuture.supplyAsync(() -> {
+          // Rebind the caller's tenant on the shared pool worker; workers may retain an invalidated tenant
+          // from a prior request, which would cause downstream tenant-scoped DAO calls to throw.
+          return CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> {
             Application app = appView.getApplication();
 
             boolean anyAppPolicyViolations = false;
@@ -263,7 +266,7 @@ public class ApiComponentsWithWaiversReportingService
             else {
               return null;
             }
-          }, ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL));
+          }), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL));
         })
         .map(CompletableFuture::join)
         .filter(Objects::nonNull)

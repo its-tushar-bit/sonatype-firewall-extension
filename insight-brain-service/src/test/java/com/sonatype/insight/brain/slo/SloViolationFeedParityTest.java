@@ -98,10 +98,11 @@ public class SloViolationFeedParityTest
     });
 
     grantReadPermission(app.getId());
-    SloViolationFeedResults results = service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, null, 1, 50);
+    SloViolationFeedResults results =
+        service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, null, null, 50);
 
     SloViolation result = results.violations()
-        .getResults()
+        .results()
         .stream()
         .filter(v -> v.violationId.equals(seeded.getId()))
         .findFirst()
@@ -126,27 +127,151 @@ public class SloViolationFeedParityTest
   @Test
   public void paginationReturnsAllViolationsAcrossPages() {
     Policy policy = tempEntity.newPolicy(app);
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, SCAN_ID);
 
+    // Distinct open times (per-evaluation) so the walk exercises a real multi-page (updateTime, id) ordering.
+    Date base = new Date();
     Set<String> seededIds = new LinkedHashSet<>();
     for (int i = 0; i < 7; i++) {
+      PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(
+          app.getId(), Stage.ID_RELEASE, SCAN_ID + "-" + i, DateUtils.addMinutes(base, i));
       seededIds.add(tempEntity.newPolicyViolation(evaluation, policy).getId());
     }
 
     grantReadPermission(app.getId());
 
     List<String> collected = new ArrayList<>();
-    long reportedTotal = -1;
-    for (int page = 1; page <= 3; page++) {
-      SloViolationFeedResults results = service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, null, page, 3);
-      reportedTotal = results.violations().getTotal();
-      collected.addAll(results.violations().getResults().stream().map(v -> v.violationId).collect(toList()));
+    long firstPageTotal = -1;
+    SloViolationFeedCursor cursor = null;
+    boolean done = false;
+    // Walk to completion: the loop bound is generous; termination is driven by a null next-page cursor.
+    for (int page = 0; page < 10; page++) {
+      Date updatedSince = cursor == null ? null : new Date(cursor.updatedSince());
+      String afterViolationId = cursor == null ? null : cursor.afterViolationId();
+      SloViolationFeedResults results =
+          service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, updatedSince, afterViolationId, 3);
+      if (page == 0) {
+        // total reflects the request: on the unfiltered first page it is the grand total.
+        firstPageTotal = results.violations().total();
+      }
+      collected.addAll(results.violations().results().stream().map(v -> v.violationId).collect(toList()));
+      cursor = results.violations().nextPageCursor();
+      if (cursor == null) {
+        done = true;
+        break;
+      }
     }
 
+    // Static data: the walk terminates on a null cursor having returned every id exactly once.
+    assertThat(done).as("walk terminated on a null next-page cursor").isTrue();
     assertThat(collected).hasSize(7);
     assertThat(new LinkedHashSet<>(collected)).as("no duplicates across pages").hasSize(7);
     assertThat(new LinkedHashSet<>(collected)).isEqualTo(seededIds);
-    assertThat(reportedTotal).isEqualTo(7L);
+    assertThat(firstPageTotal).isEqualTo(7L);
+  }
+
+  @Test
+  public void cursorRowMovingForwardBetweenPagesDoesNotSkipUnseenRows() {
+    Policy policy = tempEntity.newPolicy(app);
+
+    // Five violations with strictly increasing update times so the sort order is deterministic.
+    Date base = new Date();
+    List<String> seededInOrder = new ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(
+          app.getId(), Stage.ID_RELEASE, SCAN_ID + "-move-" + i, DateUtils.addMinutes(base, i));
+      seededInOrder.add(tempEntity.newPolicyViolation(evaluation, policy).getId());
+    }
+
+    grantReadPermission(app.getId());
+
+    SloViolationFeedResults page1 =
+        service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, null, null, 2);
+    assertThat(page1.violations().results()).hasSize(2);
+    SloViolationFeedCursor cursor = page1.violations().nextPageCursor();
+    assertThat(cursor).isNotNull();
+
+    // The cursor row (last row of page 1) is fixed after delivery, jumping it to the end of the sort order.
+    PolicyViolation cursorRow = policyViolationDAO.getById(cursor.afterViolationId());
+    cursorRow.setFixTime(DateUtils.addHours(base, 24));
+    policyViolationDAO.update(cursorRow);
+
+    SloViolationFeedResults page2 = service.getSloViolations(
+        app.getPublicId(), Stage.ID_RELEASE, new Date(cursor.updatedSince()), cursor.afterViolationId(), 10);
+
+    Set<String> page2Ids = page2.violations().results().stream().map(v -> v.violationId).collect(toSet());
+    Set<String> unseen = new LinkedHashSet<>(seededInOrder.subList(2, 5));
+
+    // The previously-unseen rows must still be delivered even though the cursor row moved past them.
+    assertThat(page2Ids).as("unseen rows not skipped when cursor row moves forward").containsAll(unseen);
+
+    // Deduping by id across the whole walk recovers every seeded violation.
+    Set<String> collected = page1.violations().results().stream().map(v -> v.violationId).collect(toSet());
+    collected.addAll(page2Ids);
+    assertThat(collected).containsExactlyInAnyOrderElementsOf(new LinkedHashSet<>(seededInOrder));
+  }
+
+  @Test
+  public void exactMultipleOfPageSizeEndsWithTrailingEmptyPage() {
+    Policy policy = tempEntity.newPolicy(app);
+
+    // Six violations with pageSize 3: the match count is an exact multiple of the page size, so the last full page
+    // still emits a non-null cursor and the walk terminates on a trailing empty page.
+    Date base = new Date();
+    Set<String> seededIds = new LinkedHashSet<>();
+    for (int i = 0; i < 6; i++) {
+      PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(
+          app.getId(), Stage.ID_RELEASE, SCAN_ID + "-mult-" + i, DateUtils.addMinutes(base, i));
+      seededIds.add(tempEntity.newPolicyViolation(evaluation, policy).getId());
+    }
+
+    grantReadPermission(app.getId());
+
+    List<String> collected = new ArrayList<>();
+    int pages = 0;
+    int lastPageSize = -1;
+    SloViolationFeedCursor cursor = null;
+    boolean done = false;
+    for (int page = 0; page < 10; page++) {
+      Date updatedSince = cursor == null ? null : new Date(cursor.updatedSince());
+      String afterViolationId = cursor == null ? null : cursor.afterViolationId();
+      SloViolationFeedResults results =
+          service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, updatedSince, afterViolationId, 3);
+      pages++;
+      lastPageSize = results.violations().results().size();
+      collected.addAll(results.violations().results().stream().map(v -> v.violationId).collect(toList()));
+      cursor = results.violations().nextPageCursor();
+      if (cursor == null) {
+        done = true;
+        break;
+      }
+    }
+
+    // Two full pages of 3, then a trailing empty page carrying the null cursor that ends the walk.
+    assertThat(pages).isEqualTo(3);
+    assertThat(lastPageSize).as("trailing page is empty").isZero();
+    assertThat(done).as("walk terminated on a null cursor").isTrue();
+    assertThat(new LinkedHashSet<>(collected)).isEqualTo(seededIds);
+  }
+
+  @Test
+  public void blankCursorReturnsFirstPageRatherThanSilentlyEmptyFeed() {
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, SCAN_ID);
+    Set<String> seededIds = new LinkedHashSet<>();
+    for (int i = 0; i < 3; i++) {
+      seededIds.add(tempEntity.newPolicyViolation(evaluation, policy).getId());
+    }
+
+    grantReadPermission(app.getId());
+
+    // A blank afterViolationId (e.g. "afterViolationId=" in the query string) must be treated as "first page",
+    // not passed through as an empty-string cursor that silently returns zero rows.
+    SloViolationFeedResults results =
+        service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, null, "  ", 50);
+
+    Set<String> returnedIds =
+        results.violations().results().stream().map(v -> v.violationId).collect(toSet());
+    assertThat(returnedIds).isEqualTo(seededIds);
   }
 
   @Test
@@ -181,14 +306,14 @@ public class SloViolationFeedParityTest
 
     grantReadPermission(app.getId());
     SloViolationFeedResults results =
-        service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, cutoff, 1, 50);
+        service.getSloViolations(app.getPublicId(), Stage.ID_RELEASE, cutoff, null, 50);
 
     Set<String> returnedIds =
-        results.violations().getResults().stream().map(v -> v.violationId).collect(toSet());
+        results.violations().results().stream().map(v -> v.violationId).collect(toSet());
 
     assertThat(returnedIds).containsExactlyInAnyOrder(newOpen.getId(), fixedAfter.getId(), waivedAfter.getId());
     assertThat(returnedIds).doesNotContain(oldOpen.getId());
-    assertThat(results.violations().getTotal()).isEqualTo(3L);
+    assertThat(results.violations().total()).isEqualTo(3L);
   }
 
   private void seedReport() throws Exception {

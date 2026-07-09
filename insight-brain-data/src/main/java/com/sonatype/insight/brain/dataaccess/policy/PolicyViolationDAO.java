@@ -2282,48 +2282,67 @@ public class PolicyViolationDAO
   }
 
   /**
-   * Returns a page of violations in ALL states (open, fixed, waived) for a single application at a single stage,
-   * optionally limited to those changed since {@code updatedSince}. Ordered by update time (the greatest of
-   * open/waive/fix/legacy time) ascending, with {@code policy_violation_id} as a deterministic tiebreaker for rows
-   * that share an update time. {@code legacy_violation_time} participates in the ordering only so a retroactive
-   * legacy-marking or revoke moves the row for delta pollers; it is not an SLO-clock event. Backs the SLO violation
-   * feed ({@code GET rest/slo/{applicationId}/violations}).
+   * Returns a cursor page of violations in ALL states (open, fixed, waived) for a single application at a single
+   * stage, optionally limited to those changed since {@code updatedSince}. Ordered by update time (the greatest of
+   * open/waive/fix/legacy time) ascending, with {@code policy_violation_id} as a deterministic tiebreaker.
+   * <p>
+   * {@code updatedSince} doubles as the time component of the keyset cursor. Because "any of open/waive/fix/legacy
+   * &gt;= T" is equivalent to "GREATEST(open, waive, fix, legacy) &gt;= T", the same value that filters the feed to
+   * recent changes also anchors the continuation point:
+   * <ul>
+   * <li>{@code afterViolationId == null} — first page (or a plain delta poll): an inclusive
+   * {@code updateTime &gt;= updatedSince} filter (see {@link #updatedSinceCondition(Date)}).</li>
+   * <li>{@code afterViolationId != null} — a continuation: {@code updatedSince} is the frozen sort-key value of the
+   * last row the caller received (see {@link SloFeedSortKey#of(PolicyViolation)}) and {@code afterViolationId}
+   * is that row's id, so the next {@code limit} rows strictly after that {@code (updateTime, id)} position are
+   * returned:
+   *
+   * <pre>
+   * updateTime &gt; updatedSince OR (updateTime = updatedSince AND policy_violation_id &gt; afterViolationId)
+   * </pre>
+   *
+   * </li>
+   * </ul>
+   * The continuation point is taken verbatim from the caller and is <b>not</b> re-resolved from the cursor row's
+   * current position; the row need not still exist. See {@code SloViolationPageResult} in {@code insight-brain-service}
+   * for why the position is frozen and the resulting client dedupe-by-{@code violationId} contract — the same guidance
+   * already applies to the {@code updatedSince} watermark poll (see {@link #updatedSinceCondition(Date)}).
    *
    * @param applicationId the application internal id
    * @param stageTypeId the stage type id (e.g. {@code release})
-   * @param updatedSince if non-null, only violations whose open/waive/fix/legacy time is at or after this cutoff are
-   *          returned. The cutoff is <b>inclusive</b> ({@code >=}); a watermark poller should pass the last-seen
-   *          maximum update time and deduplicate by {@code violationId} on overlap (see
-   *          {@link #updatedSinceCondition(Date)}).
-   * @param offset the zero-based row offset
+   * @param updatedSince if non-null, the inclusive lower bound on update time; also the frozen sort-key value to page
+   *          after when {@code afterViolationId} is supplied
+   * @param afterViolationId if non-null, the frozen tiebreaker id to page after (requires {@code updatedSince})
    * @param limit the maximum number of rows to return
-   * @return the matching page of violations
+   * @return the matching slice of violations
    */
-  public List<PolicyViolation> getByApplicationIdAndStagePaged(
+  public List<PolicyViolation> getByApplicationIdAndStageAfterCursor(
       final String applicationId,
       final String stageTypeId,
       final Date updatedSince,
-      final int offset,
+      final String afterViolationId,
       final int limit)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      // Timezone-independent epoch sentinel. A bound/inline java.util.Date renders in the JVM default timezone, so
-      // on a non-UTC server it would NOT match the Postgres expression index literal (TIMESTAMP '1970-01-01
-      // 00:00:00'), causing the planner to bypass policy_violation_app_stage_updated_idx and full-sort the
-      // partition. A plain-SQL literal renders identically on H2 and Postgres regardless of JVM tz, keeping the
-      // ORDER BY expression byte-for-byte aligned with the index expression.
-      final org.jooq.Field<java.util.Date> epoch =
-          DSL.field("timestamp '1970-01-01 00:00:00'", POLICY_VIOLATION.OPEN_TIME.getDataType());
-      final org.jooq.Field<java.util.Date> updateTime = DSL.greatest(
-          DSL.coalesce(POLICY_VIOLATION.OPEN_TIME, epoch),
-          DSL.coalesce(POLICY_VIOLATION.WAIVE_TIME, epoch),
-          DSL.coalesce(POLICY_VIOLATION.FIX_TIME, epoch),
-          DSL.coalesce(POLICY_VIOLATION.LEGACY_VIOLATION_TIME, epoch));
+      // The SAME Field instance drives both the keyset predicate and the ORDER BY below. That identity is the whole
+      // correctness argument for keyset pagination on a computed sort key: if a refactor recomputed one of the two,
+      // sub-millisecond skew between them could skip rows exactly at the cursor boundary. Keep them sharing this local.
+      final org.jooq.Field<java.util.Date> updateTime = SloFeedSortKey.field();
+      final org.jooq.Condition condition;
+      if (updatedSince != null && afterViolationId != null) {
+        // Row-value keyset: (updateTime, id) > (updatedSince, afterViolationId). Postgres plans this as a single
+        // ordered range scan over the (app, stage, updateTime, id) expression index, rather than the OR-decomposed
+        // shape which it does not always plan that way; jOOQ emulates the row comparison on dialects lacking it.
+        condition = applicationStageCondition(applicationId, stageTypeId, null)
+            .and(DSL.row(updateTime, POLICY_VIOLATION.POLICY_VIOLATION_ID).gt(updatedSince, afterViolationId));
+      }
+      else {
+        condition = applicationStageCondition(applicationId, stageTypeId, updatedSince);
+      }
       return tx.dsl()
           .selectFrom(POLICY_VIOLATION)
-          .where(applicationStageCondition(applicationId, stageTypeId, updatedSince))
+          .where(condition)
           .orderBy(updateTime.asc(), POLICY_VIOLATION.POLICY_VIOLATION_ID.asc())
-          .offset(offset)
           .limit(limit)
           .fetchInto(PolicyViolation.class);
     }

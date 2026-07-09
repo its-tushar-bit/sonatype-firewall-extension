@@ -102,4 +102,50 @@ public class SloViolationsRestResourceTest
 
     assertResponseStatus(404, response);
   }
+
+  @Test
+  public void blankAfterViolationId_treatedAsFirstPage_returns200() throws Exception {
+    // A stray "afterViolationId=" must not be rejected or silently return an empty feed; it is a first-page request.
+    final HttpResponse response = restRequest()
+        .path(path)
+        .query("afterViolationId=")
+        .get();
+
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void updatedSinceWithoutCursor_treatedAsFilteredFirstPage_returns200() throws Exception {
+    // updatedSince on its own is a valid delta filter / first page, not a half-supplied cursor.
+    final HttpResponse response = restRequest()
+        .path(path)
+        .query("updatedSince", 1_000L)
+        .get();
+
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void unknownCursorWithUpdatedSince_treatedAsOpaquePosition_returns200() throws Exception {
+    // The cursor row need not still exist: an unknown afterViolationId is an opaque (updatedSince, id) position scoped
+    // to this application, not a 400. It pages this application's rows (possibly none) rather than being rejected.
+    final HttpResponse response = restRequest()
+        .path(path)
+        .query("updatedSince", 1_000L)
+        .query("afterViolationId", "does-not-exist")
+        .get();
+
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void cursorIdWithoutUpdatedSince_returns400() throws Exception {
+    // afterViolationId is only the tiebreaker; without updatedSince there is no time component to continue from.
+    final HttpResponse response = restRequest()
+        .path(path)
+        .query("afterViolationId", "some-id")
+        .get();
+
+    assertResponseStatus(400, response);
+  }
 }

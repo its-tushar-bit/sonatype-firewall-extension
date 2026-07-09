@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -26,8 +28,8 @@ import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for the SLO violation feed queries on {@link PolicyViolationDAO}: an all-states paged query and matching count
- * for a single application at a single stage, with an optional {@code updatedSince} delta filter.
+ * Tests for the SLO violation feed queries on {@link PolicyViolationDAO}: an all-states cursor-paged query and
+ * matching count for a single application at a single stage, with an optional {@code updatedSince} delta filter.
  */
 public class PolicyViolationDAOSloTest
     extends AbstractDbDAOTest
@@ -52,7 +54,7 @@ public class PolicyViolationDAOSloTest
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, null)).isEqualTo(3L);
 
     List<PolicyViolation> page =
-        dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, null, 0, 100);
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
     assertThat(page).extracting(PolicyViolation::getId).containsExactlyInAnyOrderElementsOf(targetIds);
   }
 
@@ -61,14 +63,16 @@ public class PolicyViolationDAOSloTest
     seedThreeReleaseViolationsInDifferentStates();
 
     List<PolicyViolation> allViolations =
-        dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, null, 0, 100);
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
     Set<String> allIds = allViolations.stream().map(PolicyViolation::getId).collect(toSet());
     assertThat(allIds).hasSize(3);
 
     List<PolicyViolation> page1 =
-        dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, null, 0, 2);
-    List<PolicyViolation> page2 =
-        dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, null, 2, 2);
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
+    PolicyViolation cursor = page1.get(1);
+    List<PolicyViolation> page2 = dao.getByApplicationIdAndStageAfterCursor(
+        application.getId(), ReleaseStageType.ID,
+        SloFeedSortKey.of(cursor), cursor.getId(), 2);
 
     assertThat(page1).hasSize(2);
     assertThat(page2).hasSize(1);
@@ -76,11 +80,153 @@ public class PolicyViolationDAOSloTest
     Set<String> page1Ids = page1.stream().map(PolicyViolation::getId).collect(toSet());
     Set<String> page2Ids = page2.stream().map(PolicyViolation::getId).collect(toSet());
 
-    // Pages must be disjoint (no duplicates across pages) and together cover the full result set exactly.
     assertThat(page1Ids).doesNotContainAnyElementsOf(page2Ids);
-    assertThat(page1Ids).hasSize(2);
-    assertThat(page2Ids).hasSize(1);
     assertThat(Sets.union(page1Ids, page2Ids)).isEqualTo(allIds);
+  }
+
+  @Test
+  public void cursorPaginationDoesNotSkipWhenEarlierRowUpdateTimeMovesForward() {
+    Policy policy = tempEntity.newPolicy(application);
+
+    Date base = new Date();
+    List<PolicyViolation> seeded = new ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+          application.getId(), ReleaseStageType.ID, "slo-cursor-shift-" + i, DateUtils.addMinutes(base, i));
+      seeded.add(tempEntity.newPolicyViolation(eval, policy));
+    }
+
+    List<PolicyViolation> firstPage =
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
+    assertThat(firstPage).hasSize(2);
+
+    // Freeze the continuation cursor at the last row the caller saw before any concurrent mutation.
+    PolicyViolation cursorRow = firstPage.get(1);
+    Date cursorUpdateTime = SloFeedSortKey.of(cursorRow);
+
+    // Simulate a concurrent update that moves an already-seen (earlier) row to the end of the sort order.
+    PolicyViolation moved = firstPage.get(0);
+    moved.setFixTime(DateUtils.addHours(base, 24));
+    dao.update(moved);
+
+    List<PolicyViolation> secondPage = dao.getByApplicationIdAndStageAfterCursor(
+        application.getId(), ReleaseStageType.ID, cursorUpdateTime, cursorRow.getId(), 10);
+
+    Set<String> collected = Sets.union(
+        firstPage.stream().map(PolicyViolation::getId).collect(toSet()),
+        secondPage.stream().map(PolicyViolation::getId).collect(toSet()));
+
+    assertThat(collected).containsExactlyInAnyOrderElementsOf(
+        seeded.stream().map(PolicyViolation::getId).collect(toSet()));
+  }
+
+  /**
+   * P0 regression: the <em>cursor</em> row itself (not merely an earlier row) moves forward between page 1 and page 2.
+   * The frozen composite cursor must still return the rows that were between the cursor row and the next page rather
+   * than silently skipping them. The cursor row may be re-delivered (a duplicate), which callers dedupe by id.
+   */
+  @Test
+  public void cursorPaginationDoesNotSkipWhenTheCursorRowItselfMovesForward() {
+    Policy policy = tempEntity.newPolicy(application);
+
+    Date base = new Date();
+    List<PolicyViolation> seeded = new ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+          application.getId(), ReleaseStageType.ID, "slo-cursor-self-shift-" + i, DateUtils.addMinutes(base, i));
+      seeded.add(tempEntity.newPolicyViolation(eval, policy));
+    }
+
+    List<PolicyViolation> firstPage =
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
+    assertThat(firstPage).hasSize(2);
+
+    // Freeze the cursor at the last row of page 1 (this is the row we will then move forward).
+    PolicyViolation cursorRow = firstPage.get(1);
+    Date cursorUpdateTime = SloFeedSortKey.of(cursorRow);
+
+    // The cursor row is waived/fixed after delivery, jumping it to the end of the sort order.
+    cursorRow.setFixTime(DateUtils.addHours(base, 48));
+    dao.update(cursorRow);
+
+    List<PolicyViolation> secondPage = dao.getByApplicationIdAndStageAfterCursor(
+        application.getId(), ReleaseStageType.ID, cursorUpdateTime, cursorRow.getId(), 10);
+
+    Set<String> secondPageIds = secondPage.stream().map(PolicyViolation::getId).collect(toSet());
+    Set<String> unseen = seeded.stream()
+        .skip(2)
+        .map(PolicyViolation::getId)
+        .collect(toSet());
+
+    // The previously-unseen rows must not be skipped even though the cursor row moved past them.
+    assertThat(secondPageIds).containsAll(unseen);
+
+    // No unseen row is lost across the whole walk (dedupe by id).
+    Set<String> collected = Sets.union(
+        firstPage.stream().map(PolicyViolation::getId).collect(toSet()), secondPageIds);
+    assertThat(collected).containsExactlyInAnyOrderElementsOf(
+        seeded.stream().map(PolicyViolation::getId).collect(toSet()));
+  }
+
+  /**
+   * The composite {@code (updatedSince, afterViolationId)} cursor exists so that when a page boundary falls inside a
+   * group of rows sharing one sort key, the {@code policy_violation_id} tiebreaker keeps the walk moving without
+   * skipping or duplicating. Every other paging test seeds distinct update times, so only this test exercises the
+   * {@code updateTime = updatedSince AND id > afterViolationId} branch of the keyset predicate.
+   */
+  @Test
+  public void cursorPaginationTiebreaksByIdWhenSortKeysAreIdentical() {
+    Policy policy = tempEntity.newPolicy(application);
+
+    // One evaluation → all violations share its open_time → identical GREATEST sort key, forcing the id tiebreaker.
+    PolicyEvaluation evaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "slo-scan-tie");
+    Set<String> seededIds = new LinkedHashSet<>();
+    for (int i = 0; i < 5; i++) {
+      seededIds.add(tempEntity.newPolicyViolation(evaluation, policy).getId());
+    }
+
+    List<PolicyViolation> all =
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
+    assertThat(all).hasSize(5);
+    assertThat(all.stream().map(v -> SloFeedSortKey.of(v).getTime()).collect(toSet()))
+        .as("all rows share one sort key so the walk exercises the id tiebreaker")
+        .hasSize(1);
+
+    // Walk in pages of 2 so page boundaries land inside the tie group; terminate on the trailing empty page.
+    List<String> collected = new ArrayList<>();
+    Date updatedSince = null;
+    String afterViolationId = null;
+    for (int page = 0; page < 20; page++) {
+      List<PolicyViolation> slice = dao.getByApplicationIdAndStageAfterCursor(
+          application.getId(), ReleaseStageType.ID, updatedSince, afterViolationId, 2);
+      if (slice.isEmpty()) {
+        break;
+      }
+      slice.forEach(v -> collected.add(v.getId()));
+      PolicyViolation last = slice.get(slice.size() - 1);
+      updatedSince = SloFeedSortKey.of(last);
+      afterViolationId = last.getId();
+    }
+
+    assertThat(collected).as("no duplicates across the tie-group walk").doesNotHaveDuplicates();
+    assertThat(new LinkedHashSet<>(collected)).isEqualTo(seededIds);
+  }
+
+  /**
+   * A cursor id that belongs to a different application is only an opaque tiebreaker string here; the query stays
+   * scoped to {@code (applicationId, stageTypeId)}, so it can only ever page the target application's rows — never
+   * another application's. This is the isolation guarantee that lets the service skip re-validating the cursor row.
+   */
+  @Test
+  public void foreignCursorIdStaysScopedToTheApplication() {
+    Set<String> targetIds = seedThreeReleaseViolationsInDifferentStates();
+    seedOtherApplicationReleaseViolation();
+
+    List<PolicyViolation> page = dao.getByApplicationIdAndStageAfterCursor(
+        application.getId(), ReleaseStageType.ID, new Date(0L), "some-foreign-application-violation-id", 100);
+
+    assertThat(page).extracting(PolicyViolation::getId).containsExactlyInAnyOrderElementsOf(targetIds);
   }
 
   @Test
@@ -91,7 +237,6 @@ public class PolicyViolationDAOSloTest
     Date oldTime = DateUtils.addDays(now, -2);
     Date cutoff = DateUtils.addDays(now, -1);
 
-    // The violation's open_time is derived from the policy evaluation time, so we drive open_time via the evaluation.
     PolicyEvaluation olderEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "slo-scan-old", oldTime);
     tempEntity.newPolicyViolation(olderEvaluation, policy);
@@ -102,8 +247,9 @@ public class PolicyViolationDAOSloTest
 
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, null)).isEqualTo(2L);
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
-    assertThat(dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, cutoff, 0, 10))
-        .hasSize(1);
+    assertThat(
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
+            .hasSize(1);
   }
 
   @Test
@@ -114,22 +260,19 @@ public class PolicyViolationDAOSloTest
     Date oldTime = DateUtils.addDays(now, -2);
     Date cutoff = DateUtils.addDays(now, -1);
 
-    // Opened before the cutoff (so the open_time OR-branch cannot match) but fixed at `now`. Only the
-    // FIX_TIME.ge(...) branch of updatedSinceCondition can bring this violation into the delta; if that branch were
-    // dropped this test would fail.
     PolicyEvaluation evaluation =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "slo-scan-fixed", oldTime);
     PolicyViolation fixedViolation = tempEntity.newPolicyViolation(evaluation, policy);
     fixedViolation.setFixTime(now);
     dao.update(fixedViolation);
 
-    // Guard: open_time really is before the cutoff, so nothing but fix_time can satisfy the delta.
     assertThat(fixedViolation.getOpenTime()).isBefore(cutoff);
 
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
-    assertThat(dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, cutoff, 0, 10))
-        .extracting(PolicyViolation::getId)
-        .containsExactly(fixedViolation.getId());
+    assertThat(
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
+            .extracting(PolicyViolation::getId)
+            .containsExactly(fixedViolation.getId());
   }
 
   @Test
@@ -140,22 +283,19 @@ public class PolicyViolationDAOSloTest
     Date oldTime = DateUtils.addDays(now, -2);
     Date cutoff = DateUtils.addDays(now, -1);
 
-    // Opened before the cutoff (so the open_time OR-branch cannot match) but waived at `now`. Only the
-    // WAIVE_TIME.ge(...) branch of updatedSinceCondition can bring this violation into the delta; if that branch were
-    // dropped this test would fail.
     PolicyEvaluation evaluation =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "slo-scan-waived", oldTime);
     PolicyViolation waivedViolation = tempEntity.newPolicyViolation(evaluation, policy);
     waivedViolation.setWaiveTime(now);
     dao.update(waivedViolation);
 
-    // Guard: open_time really is before the cutoff, so nothing but waive_time can satisfy the delta.
     assertThat(waivedViolation.getOpenTime()).isBefore(cutoff);
 
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
-    assertThat(dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, cutoff, 0, 10))
-        .extracting(PolicyViolation::getId)
-        .containsExactly(waivedViolation.getId());
+    assertThat(
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
+            .extracting(PolicyViolation::getId)
+            .containsExactly(waivedViolation.getId());
   }
 
   @Test
@@ -173,16 +313,14 @@ public class PolicyViolationDAOSloTest
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "slo-scan-new", now);
     PolicyViolation newerViolation = tempEntity.newPolicyViolation(newerEvaluation, policy);
 
-    // Use the persisted open_time as the exact watermark to avoid any precision drift between `now` and storage.
     Date boundary = newerViolation.getOpenTime();
 
-    // Inclusive (>=): a violation whose time exactly equals updatedSince is returned; the strictly-older one is not.
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, boundary)).isEqualTo(1L);
-    assertThat(dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, boundary, 0, 10))
-        .extracting(PolicyViolation::getId)
-        .containsExactly(newerViolation.getId());
+    assertThat(dao.getByApplicationIdAndStageAfterCursor(
+        application.getId(), ReleaseStageType.ID, boundary, null, 10))
+            .extracting(PolicyViolation::getId)
+            .containsExactly(newerViolation.getId());
 
-    // A cutoff strictly after the newest update time excludes everything.
     Date afterNewest = new Date(boundary.getTime() + 1000L);
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, afterNewest)).isEqualTo(0L);
   }
@@ -197,24 +335,19 @@ public class PolicyViolationDAOSloTest
     Date legacyMarkedAt = DateUtils.addDays(now, -2);
     Date afterLegacyMark = DateUtils.addDays(now, -1);
 
-    // A violation opened long ago that was later retroactively marked legacy. It is STILL an SLO violation and must
-    // be returned; the legacy mark participates only in change-detection (delta), not SLO suppression.
     PolicyEvaluation evaluation =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "slo-scan-legacy", openedAt);
     PolicyViolation legacyViolation = tempEntity.newPolicyViolation(evaluation, policy);
     legacyViolation.setLegacyViolationTime(legacyMarkedAt);
     dao.update(legacyViolation);
 
-    // (a) Returned with no delta filter.
-    assertThat(dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, null, 0, 10))
-        .extracting(PolicyViolation::getId)
-        .contains(legacyViolation.getId());
+    assertThat(
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 10))
+            .extracting(PolicyViolation::getId)
+            .contains(legacyViolation.getId());
 
-    // (b) Included when the cutoff precedes the legacy-mark time (the label flipped after the cutoff), even though
-    // open_time is older than the cutoff...
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, beforeLegacyMark))
         .isEqualTo(1L);
-    // ...and excluded when the cutoff is after every one of its time columns.
     assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, afterLegacyMark))
         .isEqualTo(0L);
   }
@@ -233,17 +366,16 @@ public class PolicyViolationDAOSloTest
     Set<String> allIds = Sets.union(targetIds, Set.of(legacyViolation.getId()));
 
     List<PolicyViolation> page1 =
-        dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, null, 0, 2);
-    List<PolicyViolation> page2 =
-        dao.getByApplicationIdAndStagePaged(application.getId(), ReleaseStageType.ID, null, 2, 2);
+        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
+    PolicyViolation cursor = page1.get(1);
+    List<PolicyViolation> page2 = dao.getByApplicationIdAndStageAfterCursor(
+        application.getId(), ReleaseStageType.ID,
+        SloFeedSortKey.of(cursor), cursor.getId(), 2);
 
     Set<String> page1Ids = page1.stream().map(PolicyViolation::getId).collect(toSet());
     Set<String> page2Ids = page2.stream().map(PolicyViolation::getId).collect(toSet());
 
-    // Pages must remain disjoint and together cover the full result set (including the legacy row) exactly once.
     assertThat(page1Ids).doesNotContainAnyElementsOf(page2Ids);
-    assertThat(page1Ids).hasSize(2);
-    assertThat(page2Ids).hasSize(2);
     assertThat(Sets.union(page1Ids, page2Ids)).isEqualTo(allIds);
   }
 
@@ -252,15 +384,12 @@ public class PolicyViolationDAOSloTest
     PolicyEvaluation evaluation =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "slo-scan");
 
-    // Open (unresolved).
     PolicyViolation openViolation = tempEntity.newPolicyViolation(evaluation, policy);
 
-    // Fixed.
     PolicyViolation fixedViolation = tempEntity.newPolicyViolation(evaluation, policy);
     fixedViolation.setFixTime(new Date());
     dao.update(fixedViolation);
 
-    // Waived.
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(evaluation, policy,
         tempEntity.newWaiver(policy.getId(), application.getId()));
 

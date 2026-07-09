@@ -13,10 +13,10 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.SloFeedSortKey;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -33,11 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 public class SloViolationFeedService
 {
   static final int MAX_PAGE_SIZE = 1000;
-
-  // Upper bound on page so (page - 1) * pageSize can never overflow the int offset passed to the DAO
-  // (worst case 1_000_000 * 1000 = 1e9, well within Integer.MAX_VALUE). Deep offset pagination beyond this is
-  // both nonsensical and prohibitively slow; callers walking the full set should use the updatedSince watermark.
-  static final int MAX_PAGE = 1_000_000;
 
   private final ApplicationDAO applicationDAO;
 
@@ -61,42 +56,40 @@ public class SloViolationFeedService
   }
 
   /**
-   * Returns the SLO violation feed for an application/stage across all states (open, fixed, waived).
+   * Returns the SLO violation feed for an application/stage across all states (open, fixed, waived). Pagination is
+   * cursor-based ({@code afterViolationId}); see {@link SloViolationPageResult} for the frozen-cursor rationale and the
+   * client dedupe-by-{@code violationId} contract.
    * <p>
    * Note on enrichment provenance: {@code dependencyType} and {@code recommendedRemediationVersion} are derived
    * from the <em>latest</em> policy evaluation's scan report for the stage, not from the scan in which each
-   * violation was originally opened. Consequently a violation opened in an older scan may report
-   * {@code dependencyType = "Unknown"} (and no recommended version) if its component version is no longer present
-   * in the latest report. Time-based SLO fields ({@code openTime}/{@code fixTime}/{@code waiveTime}) are always
-   * per-violation and unaffected.
+   * violation was originally opened.
    * </p>
    * <p>
-   * Note on {@code total} staleness: the count and the page are read in <em>separate</em> transactions
-   * ({@link PolicyViolationDAO#countByApplicationIdAndStage} then
-   * {@link PolicyViolationDAO#getByApplicationIdAndStagePaged}), so under a concurrent scan the reported
-   * {@code total} may be slightly stale relative to the returned page. This is benign for a polling feed whose
-   * consumers dedupe by {@code violationId} and reconcile across polls; it mirrors the Priorities pattern. We
-   * intentionally do not "fix" this with a costlier single-query/serializable read.
+   * Note on {@code total} staleness: the count and the slice are read in <em>separate</em> transactions, so under
+   * a concurrent scan the reported {@code total} may be slightly stale relative to the returned rows.
    * </p>
-   * <p>
-   * Feature gating for this endpoint is enforced at the REST tier via
-   * {@code @HasFeature(SLO_VIOLATION_FEED)} on {@link SloViolationsRestResource} (404 when disabled), so this
-   * service method performs no feature-flag check of its own.
-   * </p>
+   *
+   * @see SloViolationPageResult
    */
   @Authorize(permission = Permission.READ)
   public SloViolationFeedResults getSloViolations(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final String stageIdParam,
       final Date updatedSince,
-      final int page,
+      final String afterViolationId,
       final int pageSize)
   {
-    validatePagination(page, pageSize);
+    validatePageSize(pageSize);
+
+    // Normalize blank/whitespace cursor ids to null so a stray "afterViolationId=" query param is treated as "first
+    // page" rather than reaching the DAO as an empty-string cursor that silently returns zero rows.
+    final String cursorId = StringUtils.trimToNull(afterViolationId);
 
     final String stageId = resolveAndValidateStage(stageIdParam);
 
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+
+    validateCursor(updatedSince, cursorId);
 
     final PolicyEvaluation evaluation =
         policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageId);
@@ -107,24 +100,43 @@ public class SloViolationFeedService
     final String scanId = evaluation.getScanId();
 
     final long total = policyViolationDAO.countByApplicationIdAndStage(application.getId(), stageId, updatedSince);
-    final int offset = (page - 1) * pageSize;
 
-    final List<PolicyViolation> violations =
-        policyViolationDAO.getByApplicationIdAndStagePaged(application.getId(), stageId, updatedSince, offset,
-            pageSize);
+    final List<PolicyViolation> violations = policyViolationDAO.getByApplicationIdAndStageAfterCursor(
+        application.getId(), stageId, updatedSince, cursorId, pageSize);
 
     final List<SloViolation> mapped = enricher.enrich(application, stageId, scanId, violations);
 
-    return new SloViolationFeedResults(stageId, scanId, new ApiPageResult<>(total, page, pageSize, mapped));
+    // A full page implies there may be more rows; freeze the continuation point at the last returned row's
+    // (sort key, id). The cursor field names mirror the request params so the caller round-trips them verbatim.
+    final PolicyViolation lastRow =
+        violations.size() == pageSize ? violations.get(violations.size() - 1) : null;
+    final SloViolationFeedCursor nextPageCursor = lastRow == null
+        ? null
+        : new SloViolationFeedCursor(SloFeedSortKey.of(lastRow).getTime(), lastRow.getId());
+
+    return new SloViolationFeedResults(
+        stageId,
+        scanId,
+        new SloViolationPageResult(total, mapped, nextPageCursor));
   }
 
-  private void validatePagination(final int page, final int pageSize) {
-    if (page < 1 || page > MAX_PAGE) {
-      throw new BadRequestException("Invalid page: " + page + ". Page must be between 1 and " + MAX_PAGE + ".");
-    }
+  private void validatePageSize(final int pageSize) {
     if (pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
       throw new BadRequestException(
           "Invalid page size: " + pageSize + ". Page size must be between 1 and " + MAX_PAGE_SIZE + ".");
+    }
+  }
+
+  private void validateCursor(final Date updatedSince, final String cursorId) {
+    // afterViolationId is only the tiebreaker within the frozen (updatedSince, afterViolationId) keyset, so a
+    // continuation needs the time component. The cursor row is deliberately NOT looked up (see the frozen-cursor
+    // rationale on SloViolationPageResult): the query is already scoped to this application/stage, so a stale or
+    // foreign afterViolationId can only page this application's rows — it cannot leak another application's data nor
+    // act
+    // as an existence oracle. A first page or a plain updatedSince delta poll (cursorId == null) is always valid.
+    if (cursorId != null && updatedSince == null) {
+      throw new BadRequestException(
+          "Invalid cursor: afterViolationId requires updatedSince (pass back the prior page's nextPageCursor fields).");
     }
   }
 

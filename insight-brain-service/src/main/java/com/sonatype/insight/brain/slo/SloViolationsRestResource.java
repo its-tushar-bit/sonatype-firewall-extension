@@ -38,8 +38,6 @@ public class SloViolationsRestResource
   // getById() and leave the audit record's application null.
   static final String RESOURCE_PATH = "rest/slo/{applicationPublicId}/violations";
 
-  static final String DEFAULT_PAGE = "1";
-
   static final String DEFAULT_PAGE_SIZE = "50";
 
   private final SloViolationFeedService sloViolationFeedService;
@@ -56,10 +54,11 @@ public class SloViolationsRestResource
       @PathParam("applicationPublicId") final String applicationPublicId,
       @QueryParam("stageId") final String stageId,
       @QueryParam("updatedSince") final Long updatedSinceEpochMillis,
-      @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
+      @QueryParam("afterViolationId") final String afterViolationId,
       @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize)
   {
     final Date updatedSince = updatedSinceEpochMillis == null ? null : new Date(updatedSinceEpochMillis);
-    return sloViolationFeedService.getSloViolations(applicationPublicId, stageId, updatedSince, page, pageSize);
+    return sloViolationFeedService.getSloViolations(
+        applicationPublicId, stageId, updatedSince, afterViolationId, pageSize);
   }
 }

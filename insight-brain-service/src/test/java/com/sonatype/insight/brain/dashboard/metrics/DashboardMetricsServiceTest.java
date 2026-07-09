@@ -25,7 +25,9 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
+import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -52,7 +54,6 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import jakarta.inject.Inject;
-import jakarta.ws.rs.BadRequestException;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.subject.SimplePrincipalCollection;
@@ -850,10 +851,10 @@ public class DashboardMetricsServiceTest
     return new DashboardMetricsService(
         searchIndexClient,
         metricFilterValidator,
-        organizationDAO,
         policyWaiverDAO,
         policyWaiverRequestDAO,
         waiverScopeService,
+        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
         configuration,
         stageTypeService,
         currentUser);

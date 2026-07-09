@@ -13,7 +13,13 @@ public class StageRiskScoreDTO
 
   public String scanId;
 
+  /** Epoch millis of the latest policy evaluation for this stage (Martha card date). */
+  public Long evaluationTime;
+
   public RiskDTO risk = new RiskDTO();
+
+  public StageRiskScoreDTO() {
+  }
 
   public StageRiskScoreDTO(final String stageTypeId) {
     this.stageTypeId = stageTypeId;

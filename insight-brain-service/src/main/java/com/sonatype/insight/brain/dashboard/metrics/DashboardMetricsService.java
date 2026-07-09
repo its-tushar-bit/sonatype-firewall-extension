@@ -17,12 +17,10 @@ import java.util.concurrent.TimeUnit;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import jakarta.ws.rs.BadRequestException;
 
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
@@ -86,7 +84,8 @@ public class DashboardMetricsService
    * Sentinel org id for a filter that must match zero APPLICATION docs. Valid under
    * {@link MetricFilterValidator#ID_PATTERN} but never indexed as an organization owner.
    */
-  static final String NO_MATCH_ORGANIZATION_FILTER_ID = "__no_match__";
+  static final String NO_MATCH_ORGANIZATION_FILTER_ID =
+      DashboardIndexDimensionQueryBuilder.NO_MATCH_ORGANIZATION_FILTER_ID;
 
   private static final int CACHE_MAXIMUM_SIZE = 128;
 
@@ -101,13 +100,13 @@ public class DashboardMetricsService
 
   private final MetricFilterValidator metricFilterValidator;
 
-  private final OrganizationDAO organizationDAO;
-
   private final PolicyWaiverDAO policyWaiverDAO;
 
   private final PolicyWaiverRequestDAO policyWaiverRequestDAO;
 
   private final DashboardMetricsWaiverScopeService waiverScopeService;
+
+  private final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
 
   private final Configuration configuration;
 
@@ -121,20 +120,20 @@ public class DashboardMetricsService
   public DashboardMetricsService(
       SearchIndexClient searchIndexClient,
       MetricFilterValidator metricFilterValidator,
-      OrganizationDAO organizationDAO,
       PolicyWaiverDAO policyWaiverDAO,
       PolicyWaiverRequestDAO policyWaiverRequestDAO,
       DashboardMetricsWaiverScopeService waiverScopeService,
+      DashboardIndexDimensionQueryBuilder dimensionQueryBuilder,
       Configuration configuration,
       StageTypeService stageTypeService,
       CurrentUser currentUser)
   {
     this.searchIndexClient = searchIndexClient;
     this.metricFilterValidator = metricFilterValidator;
-    this.organizationDAO = organizationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyWaiverRequestDAO = policyWaiverRequestDAO;
     this.waiverScopeService = waiverScopeService;
+    this.dimensionQueryBuilder = dimensionQueryBuilder;
     this.configuration = configuration;
     this.stageTypeService = stageTypeService;
     this.currentUser = currentUser;
@@ -303,8 +302,8 @@ public class DashboardMetricsService
 
   private MetricFilterContext buildMetricFilterContext(DashboardMetricsRequestDTO request) {
     return new MetricFilterContext(
-        buildOrganizationFilterClause(request.organizationIds),
-        buildApplicationFilterClause(request.applicationIds));
+        dimensionQueryBuilder.buildOrganizationFilterClause(request.organizationIds),
+        dimensionQueryBuilder.buildApplicationFilterClause(request.applicationIds));
   }
 
   /**
@@ -351,32 +350,6 @@ public class DashboardMetricsService
     return baseQuery + " AND (" + String.join(" OR ", filterClauses) + ")";
   }
 
-  private String buildOrganizationFilterClause(Set<String> organizationIds) {
-    if (organizationIds == null || organizationIds.isEmpty()) {
-      return null;
-    }
-    if (organizationIds.contains(Organization.ROOT_ORGANIZATION_ID)) {
-      return null;
-    }
-    Set<String> expandedOrgIds = organizationDAO.getAllChildOrganizationIds(organizationIds);
-    if (expandedOrgIds.isEmpty()) {
-      return "organizationId:(" + NO_MATCH_ORGANIZATION_FILTER_ID + ")";
-    }
-    int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
-    if (expandedOrgIds.size() > maxClauseCount) {
-      throw new BadRequestException(
-          "Organization filter expands to too many organizations (max " + maxClauseCount + ").");
-    }
-    return "organizationId:(" + String.join(" ", sortedCopy(expandedOrgIds)) + ")";
-  }
-
-  private static String buildApplicationFilterClause(Set<String> applicationIds) {
-    if (applicationIds == null || applicationIds.isEmpty()) {
-      return null;
-    }
-    return "applicationId:(" + String.join(" ", sortedCopy(applicationIds)) + ")";
-  }
-
   private Cache<DashboardMetricsCacheKey, DashboardMetricsDTO> createCache() {
     return CacheBuilder.newBuilder()
         .expireAfterWrite(CACHE_TTL.toMillis(), TimeUnit.MILLISECONDS)
@@ -386,13 +359,6 @@ public class DashboardMetricsService
 
   private Cache<DashboardMetricsCacheKey, DashboardMetricsDTO> getCache() {
     return caches.get();
-  }
-
-  private static List<String> sortedCopy(Set<String> ids) {
-    if (ids == null || ids.isEmpty()) {
-      return List.of();
-    }
-    return ids.stream().sorted().toList();
   }
 
   private record MetricFilterContext(String organizationClause, String applicationClause)

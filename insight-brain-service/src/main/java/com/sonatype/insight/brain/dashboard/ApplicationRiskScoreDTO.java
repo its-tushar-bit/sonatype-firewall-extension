@@ -39,6 +39,15 @@ public class ApplicationRiskScoreDTO
 
   public List<StageRiskScoreDTO> stageRisks = new ArrayList<>();
 
+  /**
+   * Epoch millis of the most recent stage evaluation. Populated for Martha list cards; also
+   * serialized on Classic Dashboard responses for apps with violations (additive field).
+   */
+  public Long lastEvaluationTime;
+
+  public ApplicationRiskScoreDTO() {
+  }
+
   public ApplicationRiskScoreDTO(
       final String organizationName,
       final String organizationId,

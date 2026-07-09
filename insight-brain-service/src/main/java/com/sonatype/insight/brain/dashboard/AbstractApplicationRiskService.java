@@ -87,7 +87,8 @@ abstract class AbstractApplicationRiskService
       final Set<String> stageIds,
       final PolicyThreatCategoryFilter policyThreatCategoryFilter,
       final PolicyThreatLevelFilter policyThreatLevelFilter,
-      final PolicyViolationStateFilter policyViolationStateFilter)
+      final PolicyViolationStateFilter policyViolationStateFilter,
+      final boolean includeZeroRiskApplications)
   {
     final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
 
@@ -95,7 +96,7 @@ abstract class AbstractApplicationRiskService
         policyViolationLoader.getViolations(appsToSearch, stageTypes, false, policyThreatLevelFilter,
             policyThreatCategoryFilter, policyViolationStateFilter);
 
-    return createApplicationRiskScores(appViews);
+    return createApplicationRiskScores(appViews, includeZeroRiskApplications);
   }
 
   /**
@@ -135,7 +136,8 @@ abstract class AbstractApplicationRiskService
         stageIds,
         policyThreatCategoryFilter,
         policyThreatLevelFilter,
-        policyViolationStateFilter);
+        policyViolationStateFilter,
+        false);
 
     applicationRiskScoreDTOs.sort(applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
@@ -154,13 +156,44 @@ abstract class AbstractApplicationRiskService
     return result;
   }
 
-  private List<ApplicationRiskScoreDTO> createApplicationRiskScores(Collection<ApplicationView> appViews) {
+  @Override
+  public DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRiskCards(
+      final Set<String> organizationIds,
+      final Set<String> applicationIds,
+      final Set<String> stageIds,
+      final Set<String> tagIds,
+      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final PolicyThreatLevelFilter policyThreatLevelFilter,
+      final PolicyViolationStateFilter policyViolationStateFilter)
+  {
+    dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
+
+    List<Application> appsToSearch =
+        applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
+
+    List<ApplicationRiskScoreDTO> cards = getRiskForProvidedApps(
+        appsToSearch,
+        stageIds,
+        policyThreatCategoryFilter,
+        policyThreatLevelFilter,
+        policyViolationStateFilter,
+        true);
+
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
+    result.dashboardResults = cards;
+    result.hasNextPage = false;
+    return result;
+  }
+
+  private List<ApplicationRiskScoreDTO> createApplicationRiskScores(
+      final Collection<ApplicationView> appViews,
+      final boolean includeZeroRiskApplications)
+  {
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>(appViews.size());
     for (ApplicationView appView : appViews) {
       final ApplicationRiskScoreDTO applicationRiskScore = createApplicationRiskScore(
           appView,
-          false // returnNullAndSkipStageViewCalculationsWhenRiskIsZero
-      );
+          includeZeroRiskApplications);
 
       if (applicationRiskScore != null) {
         applicationRiskScores.add(applicationRiskScore);
@@ -202,10 +235,21 @@ abstract class AbstractApplicationRiskService
         StageRiskScoreDTO stageRiskScore = new StageRiskScoreDTO(appStageView.getStageType().getId());
         stageRiskScore.stageTypeName = appStageView.getStageType().getName();
         stageRiskScore.scanId = appStageView.getLastEvaluation().getScanId();
+        if (appStageView.getLastEvaluation().getTime() != null) {
+          stageRiskScore.evaluationTime = appStageView.getLastEvaluation().getTime().getTime();
+        }
         for (PolicyViolation violation : appStageView.getFilteredViolations()) {
           updateRisk(stageRiskScore.risk, violation.getThreatLevel());
         }
         applicationRiskScore.addStageRiskScore(stageRiskScore);
+      }
+    }
+
+    List<ApplicationStageView> stagesByLatestEval = sortByLastEvaluationTimeDescending(appView.getStageViews());
+    if (!stagesByLatestEval.isEmpty()) {
+      PolicyEvaluation latest = stagesByLatestEval.get(0).getLastEvaluation();
+      if (latest != null && latest.getTime() != null) {
+        applicationRiskScore.lastEvaluationTime = latest.getTime().getTime();
       }
     }
 
@@ -238,8 +282,10 @@ abstract class AbstractApplicationRiskService
     sorted.sort((appStageView1, appStageView2) -> {
       PolicyEvaluation eval1 = appStageView1.getLastEvaluation();
       PolicyEvaluation eval2 = appStageView2.getLastEvaluation();
-      if (eval1 == null || eval2 == null) {
-        return eval1 == eval2 ? 0 : (eval1 == null ? 1 : -1);
+      boolean eval1Missing = eval1 == null || eval1.getTime() == null;
+      boolean eval2Missing = eval2 == null || eval2.getTime() == null;
+      if (eval1Missing || eval2Missing) {
+        return eval1Missing == eval2Missing ? 0 : (eval1Missing ? 1 : -1);
       }
       return eval2.getTime().compareTo(eval1.getTime());
     });

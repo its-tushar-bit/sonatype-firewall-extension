@@ -27,5 +27,19 @@ public interface ApplicationRiskService
       int page,
       int pageSize);
 
+  /**
+   * Evaluation cards for a fixed application id set. Unlike {@link #getApplicationRisks}, retains
+   * evaluated apps with zero violations so {@link ApplicationRiskScoreDTO#lastEvaluationTime} is
+   * available on Martha list cards.
+   */
+  DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRiskCards(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      Set<String> stageIds,
+      Set<String> tagIds,
+      PolicyThreatCategoryFilter policyThreatCategories,
+      PolicyThreatLevelFilter policyThreatLevelRange,
+      PolicyViolationStateFilter policyViolationStates);
+
   ApplicationRiskScoreDTO getRiskForApp(final Application application, final Set<StageType> stageTypes);
 }

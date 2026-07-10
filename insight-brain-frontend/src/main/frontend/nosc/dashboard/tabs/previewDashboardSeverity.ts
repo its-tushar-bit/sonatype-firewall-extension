@@ -47,3 +47,22 @@ export function severityColor(value: number | undefined, kind: ComponentScoreKin
 export function threatColor(level: number): BadgeColor {
   return threatColorFor(level);
 }
+
+export type ApplicationSeverity = 'critical' | 'severe' | 'moderate' | 'low' | 'total';
+
+const SEVERITY_TO_SCORE_KIND: Record<Exclude<ApplicationSeverity, 'total'>, ComponentScoreKind> = {
+  critical: 'crit',
+  severe: 'sev',
+  moderate: 'mod',
+  low: 'low',
+};
+
+/** Badge color for application/stage risk counts (dashboard table + Martha cards). */
+export function applicationSeverityBadgeColor(
+  value: number,
+  severity: ApplicationSeverity,
+): BadgeColor {
+  if (value === 0) return 'green';
+  if (severity === 'total') return 'red';
+  return severityColor(value, SEVERITY_TO_SCORE_KIND[severity]);
+}

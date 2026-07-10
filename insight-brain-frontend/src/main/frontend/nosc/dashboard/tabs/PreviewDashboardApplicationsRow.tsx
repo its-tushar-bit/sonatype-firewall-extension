@@ -4,51 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { Badge, Link, Table, Text } from '@radix-ui/themes';
+import { Link, Table, Text } from '@radix-ui/themes';
 import PreviewDashboardApplicationsAppNameLink from 'MainRoot/nosc/dashboard/tabs/PreviewDashboardApplicationsAppNameLink';
 import { PreviewDashboardApplication } from 'MainRoot/nosc/dashboard/tabs/previewDashboardApplicationsSelectors';
-import {
-  BadgeColor,
-  ComponentScoreKind,
-  severityColor as scoreColor,
-} from 'MainRoot/nosc/dashboard/tabs/previewDashboardSeverity';
-
-type Severity = 'critical' | 'severe' | 'moderate' | 'low' | 'total';
-
-const SEVERITY_TO_SCORE_KIND: Record<Exclude<Severity, 'total'>, ComponentScoreKind> = {
-  critical: 'crit',
-  severe: 'sev',
-  moderate: 'mod',
-  low: 'low',
-};
-
-/**
- * Severity badge color. Replaces the Classic `DashboardHeatMapCell` saturation gradient with discrete Radix
- * accent colors — semantic, accessible, dark-mode-clean. Per-tier colors come from the shared
- * {@link scoreColor} helper so hues stay consistent across Preview surfaces.
- *
- * `total` is a roll-up cell, not a severity tier; it goes red when there are any violations and green
- * otherwise (intentionally distinct from the components grid's threat-bucketed total).
- */
-function severityColor(value: number, severity: Severity): BadgeColor {
-  if (value === 0) return 'green';
-  if (severity === 'total') return 'red';
-  return scoreColor(value, SEVERITY_TO_SCORE_KIND[severity]);
-}
-
-function SeverityBadge({
-  value,
-  severity,
-}: {
-  value: number;
-  severity: Severity;
-}): JSX.Element {
-  return (
-    <Badge color={severityColor(value, severity)} variant="soft" radius="full">
-      {value}
-    </Badge>
-  );
-}
+import { ApplicationSeverityBadge } from 'MainRoot/nosc/dashboard/tabs/ApplicationSeverityBadge';
 
 /**
  * Classic deep-link to the per-stage policy report. There is no
@@ -81,19 +40,19 @@ export default function PreviewDashboardApplicationsRow({
           />
         </Table.RowHeaderCell>
         <Table.Cell justify="end">
-          <SeverityBadge value={totalApplicationRisk.totalRisk} severity="total" />
+          <ApplicationSeverityBadge value={totalApplicationRisk.totalRisk} severity="total" />
         </Table.Cell>
         <Table.Cell justify="end">
-          <SeverityBadge value={totalApplicationRisk.criticalRisk} severity="critical" />
+          <ApplicationSeverityBadge value={totalApplicationRisk.criticalRisk} severity="critical" />
         </Table.Cell>
         <Table.Cell justify="end">
-          <SeverityBadge value={totalApplicationRisk.severeRisk} severity="severe" />
+          <ApplicationSeverityBadge value={totalApplicationRisk.severeRisk} severity="severe" />
         </Table.Cell>
         <Table.Cell justify="end">
-          <SeverityBadge value={totalApplicationRisk.moderateRisk} severity="moderate" />
+          <ApplicationSeverityBadge value={totalApplicationRisk.moderateRisk} severity="moderate" />
         </Table.Cell>
         <Table.Cell justify="end">
-          <SeverityBadge value={totalApplicationRisk.lowRisk} severity="low" />
+          <ApplicationSeverityBadge value={totalApplicationRisk.lowRisk} severity="low" />
         </Table.Cell>
       </Table.Row>
       {stageRisks.map((stage) => (

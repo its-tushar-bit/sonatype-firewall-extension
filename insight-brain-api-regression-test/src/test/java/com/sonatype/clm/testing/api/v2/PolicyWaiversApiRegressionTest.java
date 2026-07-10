@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.api.v2;
 import com.sonatype.clm.testing.api.AbstractIqApiTest;
 import com.sonatype.clm.testing.api.categories.ApiRegressionTest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiBulkWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.model.Application;
@@ -41,9 +42,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyWaiversApiRegressionTest
     extends AbstractIqApiTest
 {
-  private static final String WAIVER_APP_BASE = "api/v2/policyWaivers/application/";
+  private static final String WAIVER_APP_BASE = PublicApiPaths.POLICY_WAIVER_PATH + "/application/";
 
-  private static final String WAIVER_ORG_BASE = "api/v2/policyWaivers/organization/";
+  private static final String WAIVER_ORG_BASE = PublicApiPaths.POLICY_WAIVER_PATH + "/organization/";
 
   @Test
   public void testCreateWaiverByViolationId_success() throws Exception {
@@ -178,7 +179,8 @@ public class PolicyWaiversApiRegressionTest
     assertResponseStatus(200, response);
 
     assertThatJson(response.getBodyText())
-        .isArray();
+        .isArray()
+        .hasSize(1);
     assertThatJson(response.getBodyText())
         .inPath("$[*].policyWaiverId")
         .isArray()
@@ -205,11 +207,12 @@ public class PolicyWaiversApiRegressionTest
 
     HttpResponse response = apiGet(waiverPath(app, "nonexistent-waiver-id"));
     assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).containsIgnoringCase("cannot find a waiver");
   }
 
   @Test
   public void testGetPolicyWaiversForOrg_returnsSeededWaiver() throws Exception {
-    Organization org = tempEntity.newOrganization(uniqueName("api-waiver-org"));
+    Organization org = tempEntity.newOrganization(uniqueName("Api Waiver Org"));
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver = tempEntity.newWaiver(policy.getId(), org.getId());
 
@@ -217,7 +220,8 @@ public class PolicyWaiversApiRegressionTest
     assertResponseStatus(200, response);
 
     assertThatJson(response.getBodyText())
-        .isArray();
+        .isArray()
+        .hasSize(1);
     assertThatJson(response.getBodyText())
         .inPath("$[*].policyWaiverId")
         .isArray()
@@ -228,7 +232,7 @@ public class PolicyWaiversApiRegressionTest
   public void testUpdateWaiverComment_success() throws Exception {
     Application app = tempEntity.newApplication(uniqueId("api-waiver-update"), Organization.ROOT_ORGANIZATION_ID);
     Policy policy = tempEntity.newPolicy(app);
-    PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), app.getId(), "original comment");
+    PolicyWaiver waiver = tempEntity.newWaiver(uniqueId("hash"), policy.getId(), app.getId(), "original comment");
 
     ApiWaiverOptionsDTO body = new ApiWaiverOptionsDTO();
     body.comment = "updated comment";
@@ -253,6 +257,7 @@ public class PolicyWaiversApiRegressionTest
 
     HttpResponse response = apiPutJson(waiverPath(app, "nonexistent-waiver-id"), body);
     assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).containsIgnoringCase("cannot find a waiver");
   }
 
   @Test
@@ -263,6 +268,7 @@ public class PolicyWaiversApiRegressionTest
 
     assertResponseStatus(204, apiDelete(waiverPath(app, waiver.getId())));
     assertResponseStatus(404, apiGet(waiverPath(app, waiver.getId())));
+    // Waiver is deleted via API above; TemporaryEntity cleanup at teardown is a no-op today.
   }
 
   @Test
@@ -271,6 +277,7 @@ public class PolicyWaiversApiRegressionTest
 
     HttpResponse response = apiDelete(waiverPath(app, "nonexistent-waiver-id"));
     assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).containsIgnoringCase("does not exist");
   }
 
   /** Auth contract: unauthenticated callers get 401, not 200/403/404. */
@@ -279,6 +286,33 @@ public class PolicyWaiversApiRegressionTest
     Application app = tempEntity.newApplication(uniqueId("api-waiver-anon"), Organization.ROOT_ORGANIZATION_ID);
 
     HttpResponse response = anonApiGet(waiverPath(app));
+    assertResponseStatus(401, response);
+  }
+
+  /** Auth contract on POST: unauthenticated create fails with 401 before the body is parsed. */
+  @Test
+  public void testCreateWaiver_unauthenticated_returns401() throws Exception {
+    Application app = tempEntity.newApplication(uniqueId("api-waiver-anon-post"), Organization.ROOT_ORGANIZATION_ID);
+
+    HttpResponse response = anonApiPostJson(waiverPath(app, "any-violation-id"), new ApiWaiverOptionsDTO());
+    assertResponseStatus(401, response);
+  }
+
+  /** Auth contract on PUT: unauthenticated update fails with 401 before the body is parsed. */
+  @Test
+  public void testUpdateWaiver_unauthenticated_returns401() throws Exception {
+    Application app = tempEntity.newApplication(uniqueId("api-waiver-anon-put"), Organization.ROOT_ORGANIZATION_ID);
+
+    HttpResponse response = anonApiPutJson(waiverPath(app, "any-waiver-id"), new ApiWaiverOptionsDTO());
+    assertResponseStatus(401, response);
+  }
+
+  /** Auth contract on DELETE: unauthenticated delete fails with 401. */
+  @Test
+  public void testDeleteWaiver_unauthenticated_returns401() throws Exception {
+    Application app = tempEntity.newApplication(uniqueId("api-waiver-anon-del"), Organization.ROOT_ORGANIZATION_ID);
+
+    HttpResponse response = anonApiDelete(waiverPath(app, "any-waiver-id"));
     assertResponseStatus(401, response);
   }
 

@@ -112,7 +112,7 @@ pipeline {
           List<String> issues = []
           issues.addAll(getIssuesByFixVersion('CLM', 'selfhosted-next'))
           issues.addAll(getIssuesByFixVersion('INT', 'selfhosted-next'))
-          issues.addAll(getIssuesByFixVersion('NEXUS', 'selfhosted-next'))
+          issues.addAll(getIssuesByFixVersion('FIRE', 'selfhosted-next'))
 
           replaceFixVersionForIssues(issues, 'selfhosted-next', [releaseVersion])
         }

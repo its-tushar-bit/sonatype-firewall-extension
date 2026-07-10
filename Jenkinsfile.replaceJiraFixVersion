@@ -9,7 +9,7 @@ properties([
     parameters([
       booleanParam(defaultValue: true, name: 'CLM'),
       booleanParam(defaultValue: true, name: 'INT'),
-      booleanParam(defaultValue: true, name: 'NEXUS'),
+      booleanParam(defaultValue: true, name: 'FIRE'),
     ])
 ])
 
@@ -29,8 +29,8 @@ pipeline {
           if (params.INT) {
             issues.addAll(getIssuesByFixVersion('INT', 'brain-next'))
           }
-          if (params.NEXUS) {
-            issues.addAll(getIssuesByFixVersion('NEXUS', 'brain-next'))
+          if (params.FIRE) {
+            issues.addAll(getIssuesByFixVersion('FIRE', 'brain-next'))
           }
           replaceFixVersionForIssues(issues, 'brain-next', ['saas-next', 'selfhosted-next'])
         }

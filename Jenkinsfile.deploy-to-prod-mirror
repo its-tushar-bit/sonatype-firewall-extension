@@ -130,16 +130,16 @@ pipeline {
             // Create the Jira fix version in each project
             def CLM_PROJECT_ID = 10002
             def INT_PROJECT_ID = 10007
-            def NEXUS_PROJECT_ID = 10003
+            def FIRE_PROJECT_ID = 12425
             jiraCreateFixVersion(saasVersion, 'CLM', CLM_PROJECT_ID)
             jiraCreateFixVersion(saasVersion, 'INT', INT_PROJECT_ID)
-            jiraCreateFixVersion(saasVersion, 'NEXUS', NEXUS_PROJECT_ID)
+            jiraCreateFixVersion(saasVersion, 'FIRE', FIRE_PROJECT_ID)
 
             // Collect issues with saas-next fix version from all projects
             List<String> issues = []
             issues.addAll(getIssuesByFixVersion('CLM', 'saas-next'))
             issues.addAll(getIssuesByFixVersion('INT', 'saas-next'))
-            issues.addAll(getIssuesByFixVersion('NEXUS', 'saas-next'))
+            issues.addAll(getIssuesByFixVersion('FIRE', 'saas-next'))
 
             // Replace saas-next with the specific version
             replaceFixVersionForIssues(issues, 'saas-next', [saasVersion])

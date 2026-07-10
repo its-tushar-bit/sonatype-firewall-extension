@@ -11,6 +11,7 @@ import {
   ComingSoonRoute,
 } from 'MainRoot/nosc/comingSoon';
 import { isNativeClassicEmbedSlug } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
+import { NEXUS_ONE_APPLICATION_REPORT_STATE } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import 'MainRoot/nexus-one/routes';
 
 describe('nexusOneClassicEmbedRoutes', () => {
@@ -26,6 +27,12 @@ describe('nexusOneClassicEmbedRoutes', () => {
         expect(state?.component).toBe(ComingSoonRoute);
       }
     });
+  });
+
+  it('registers the embedded application report state (CLM-41538)', () => {
+    expect(router.stateRegistry.get(NEXUS_ONE_APPLICATION_REPORT_STATE)?.url).toBe(
+      '/applications/{publicId}/report/{scanId}?componentHash&tabId',
+    );
   });
 
   it('registers Success Metrics detail and Classic alias states', () => {

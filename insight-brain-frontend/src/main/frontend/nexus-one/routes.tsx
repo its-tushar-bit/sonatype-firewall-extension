@@ -24,6 +24,10 @@ import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap'
 import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
 import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
+import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
+// Classic applicationReport child states (component details, raw data, etc.) so
+// in-report links from the embedded ReportPage resolve inside the Nexus One bundle.
+import 'MainRoot/applicationReport/route';
 import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage';
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import {
@@ -81,6 +85,11 @@ router.stateRegistry.register({
 
 // Application detail: abstract parent shell + one child state per tab (CLM-40901).
 nexusOneApplicationDetailStates().forEach((state) => {
+  router.stateRegistry.register(state);
+});
+
+// Embedded Classic application policy report (CLM-41538).
+nexusOneApplicationReportStates().forEach((state) => {
   router.stateRegistry.register(state);
 });
 

@@ -137,9 +137,17 @@ public class HostedComponentScanQueueConsumer
    * still holds the inner rows — producing an internal inconsistency where the header pill
    * reads "1 COMPONENT" but the body table shows 5 rows.
    * <p>
+   * <b>Npm</b>: HDS identifies inner components for {@code .tgz} packages via the manifest
+   * inside the archive (the {@code package.json} declares dependencies that HDS resolves).
+   * For npm tarballs where nested identification lands (npm confirmed via HDS per CLM-40943
+   * comment thread), the collapse-to-1 gate would hide those inner findings; keeping npm in
+   * this set preserves them so the hosted-repo report stays aligned with the LC application
+   * report for the same {@code .tgz}. Npm packages where HDS returns no nested components
+   * still collapse naturally because {@code effectiveComponentCount == 1}.
+   * <p>
    * Formats NOT in this set fall under the collapse path: identified outer → 1 component,
    * outer's own violations. This matches iq-cli for rubygems gem (whose Gemfile.lock-derived
-   * entries iq-cli drops), pypi wheel/sdist, npm tgz, maven jar, r tarball.
+   * entries iq-cli drops), pypi wheel/sdist, maven jar, r tarball.
    * <p>
    * Default for any new/unknown format is the SAFER "collapse" path. If a future format
    * (cargo, yum, docker) turns out to have nuget-like nested binaries, add it here. The set
@@ -332,9 +340,17 @@ public class HostedComponentScanQueueConsumer
           job.getId(), componentInfos.size(), HIGH_COMPONENT_COUNT_THRESHOLD);
     }
 
-    String stage = job.getPolicyEvaluationStage() != null
-        ? job.getPolicyEvaluationStage()
-        : ComplianceStageType.ID;
+    // CLM-42079: NXRM's scan-queue payload sends stage in inconsistent casing/format —
+    // "RELEASE", "release", "BUILD", "STAGE_RELEASE" (underscore), and occasionally NULL.
+    // IQ's canonical stage IDs are all-lowercase with hyphens ("release", "build",
+    // "stage-release"). A raw toLowerCase() lets "RELEASE"/"release" through unchanged but
+    // leaves "STAGE_RELEASE" as "stage_release" (INVALID — hyphen, not underscore) which
+    // silently mis-routes policy evaluation. NULL falls back to compliance stage today, which
+    // masks NXRM configuration issues in telemetry (Dariush 2026-07-01: 29,952 stage-release
+    // vs 124 build in production despite build being the configured stage). normalizeStage()
+    // canonicalizes the value and logs at WARN when the fallback fires so ops can spot the
+    // NXRM-side gap.
+    String stage = normalizeStage(job.getPolicyEvaluationStage(), job.getId());
 
     if (componentInfos.isEmpty()) {
       // No usable <dir> in the scan file. Still upload via the repository pipeline so HDS has the
@@ -378,22 +394,6 @@ public class HostedComponentScanQueueConsumer
     // entry. We delete the inner repository_component rows immediately afterwards (see below) so
     // the Components page only ever shows the outer artifact.
     evaluatePolicies(job, repositoryId, componentInfos, stage);
-
-    // CLM-41693: Emit APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry with
-    // scan_trigger_type=HOSTED_REPOSITORY_SCANNING so telemetry consumers can distinguish
-    // hosted repository scans from other scan trigger types (CLI, IDE, WEB_UI, etc.).
-    //
-    // Guarded on application != null because the application-id is a required attribute of this
-    // telemetry event and is not available on the repository-upload fallback path above
-    // (uploadForRepository). That fallback fires only when the synthetic application could not
-    // be created (logged at WARN — see the else branch above) and is a system-error condition,
-    // not a normal flow. scanReceipt is guaranteed non-null after either upload branch (both
-    // throw on failure), but kept as a defensive guard against future refactors of the upload
-    // contract. Tracked under Phase 2 (CLM-40999) if telemetry needs to cover the fallback path.
-    if (application != null && scanReceipt != null) {
-      sendHostedScanEvaluationTelemetry(
-          scanReceipt.getScanId(), application.getId(), stage, componentInfos);
-    }
 
     stampStage(repositoryId, outerComponentInfo.pathname(), stage.toLowerCase());
 
@@ -446,11 +446,62 @@ public class HostedComponentScanQueueConsumer
           job.getComponentId());
     }
 
+    // CLM-41693 / CLM-42079: Emit APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry with
+    // scan_trigger_type=HOSTED_REPOSITORY_SCANNING so telemetry consumers can distinguish
+    // hosted repository scans from other scan trigger types (CLI, IDE, WEB_UI, etc.).
+    //
+    // Fires AFTER mirrorNestedComponentViolationsFromApplicationEvaluation so we can read the
+    // final component_count that the UI will display — same authoritative value the Hosted
+    // Repository build report shows in its "N COMPONENTS" header. This closes the discrepancy
+    // reported in CLM-42079 where telemetry emitted the raw scanner count (e.g. 6 for an
+    // ansible.tar.gz with 5 unknown nested files) while the report showed 1 (identified-outer
+    // gate collapsed to a single component).
+    //
+    // Guarded on application != null because the application-id is a required attribute of this
+    // telemetry event and is not available on the repository-upload fallback path above
+    // (uploadForRepository). scanReceipt is guaranteed non-null after either upload branch (both
+    // throw on failure), but kept as a defensive guard against future refactors.
+    if (application != null && scanReceipt != null) {
+      int effectiveCount = readEffectiveComponentCount(repositoryId, outerComponentInfo.pathname(),
+          componentInfos.size());
+      sendHostedScanEvaluationTelemetry(
+          scanReceipt.getScanId(), application.getId(), stage, componentInfos, effectiveCount);
+    }
+
     if (componentInfos.size() > 1) {
       deleteInnerRepositoryComponentRows(repositoryId, componentInfos);
       log.info("Processed archive-of-archives scan for job id={}: outer pathname={} retained, {} inner rows deleted",
           job.getId(), outerComponentInfo.pathname(), componentInfos.size() - 1);
     }
+  }
+
+  /**
+   * Returns the authoritative {@code repository_component.component_count} for the outer artifact
+   * — the value the Hosted Repository UI header displays as "N COMPONENTS". Used by telemetry
+   * to keep {@code number_of_components} attribute in lockstep with what users see in the report.
+   * <p>
+   * Falls back to {@code fallbackCount} (typically the scanner's {@code componentInfos.size()})
+   * when the row is missing or the column is NULL — either would only happen on a race with a
+   * concurrent delete or before the stamp landed, both indicating something already went wrong
+   * upstream where the fallback is a reasonable last-resort value that matches historical
+   * telemetry behaviour.
+   */
+  private int readEffectiveComponentCount(
+      final String repositoryId,
+      final String pathname,
+      final int fallbackCount)
+  {
+    try {
+      RepositoryComponent row = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
+      if (row != null && row.getComponentCount() != null) {
+        return row.getComponentCount();
+      }
+    }
+    catch (Exception e) {
+      log.warn("Failed to read final component_count for telemetry pathname={}: {}; falling back to {}",
+          pathname, e.getMessage(), fallbackCount);
+    }
+    return fallbackCount;
   }
 
   /**
@@ -479,25 +530,38 @@ public class HostedComponentScanQueueConsumer
   }
 
   /**
-   * CLM-40943: unconditionally writes {@code component_count} on the outer artifact's
-   * {@code repository_component} row from the synthetic application's post-evaluation view.
-   * After {@code ScanPolicyEvaluator.evaluate()} runs, {@code application_component} holds one
-   * row per distinct component HDS identified for this scan (outer + every inner). That count
-   * is the same number LC's application report shows for the same scan, so it is the source
-   * of truth — overwriting both the scanner-based eager stamp ({@code executeJob}) and the
-   * HDS-bom refinement in {@code saveReportFiles}.
+   * CLM-40943: raises the outer artifact's {@code repository_component.component_count} from
+   * the synthetic application's post-evaluation view when that count is higher than what's
+   * currently stored.
    * <p>
-   * Uses the DAO's {@code stampComponentCount} (unconditional {@code UPDATE}) rather than
-   * {@code raiseComponentCountIfHigher} because the earlier stamps can be both higher than
-   * the truth (scanner's file-list expansion for .gem / .tar.gz) and lower than the truth
-   * (early HDS firewall-purpose bom for .nupkg). Failures are logged but don't fail the job —
-   * the prior stamps are still a usable approximation.
+   * After {@code ScanPolicyEvaluator.evaluate()} runs, {@code application_component} holds one
+   * row per distinct component HDS identified for this scan (outer + every inner). For most
+   * hosted scans that value matches the LC application report and is the source of truth we
+   * want the Hosted Repos list to show.
+   * <p>
+   * Uses the DAO's {@code raiseComponentCountIfHigher} (a conditional {@code UPDATE ... WHERE
+   * count < :new} rather than unconditional {@code stampComponentCount}) because
+   * ScanPolicyEvaluator occasionally persists {@code application_component} rows with
+   * {@code stage_type_id = null} on re-evaluations, which makes the stage-filtered
+   * {@code directCount} passed here come back as 0. The earlier {@code bom.json} refinement in
+   * {@code saveReportFiles} already wrote the authoritative HDS count via the same raise-only
+   * helper — preserving it when the synth-eval value is smaller keeps the Hosted Repos list
+   * page in sync with the drill-in Build Report (both ultimately track {@code bom.json}'s
+   * {@code aaData.length}).
+   * <p>
+   * Note the neighbour helper {@link #forceComponentCount} handles the intentional-decrement
+   * case (identified-outer gate collapsing to 1) with an unconditional {@code stampComponentCount}
+   * — that path deliberately writes lower values than the earlier bom.json refinement, so it
+   * cannot route through this raise-only method.
+   * <p>
+   * Failures are logged but don't fail the job — the prior stamps are still a usable
+   * approximation.
    * <p>
    * Known limitation (tracked separately): for archives whose payload includes a dependency
    * manifest the hosted-side scanner parses (e.g. {@code Gemfile.lock} inside a .gem,
    * {@code requirements.txt} inside a sdist), the synthetic-app's bom will contain manifest-
    * derived transitive entries that LC's iq-cli scan does not extract by default. In those
-   * cases the stamped count will exceed LC's count.
+   * cases the raised count will exceed LC's count.
    */
   private void setComponentCountFromSyntheticEval(
       final String repositoryId,
@@ -540,6 +604,45 @@ public class HostedComponentScanQueueConsumer
       log.warn("Failed to stamp component_count={} for pathname={}: {}",
           count, pathname, e.getMessage(), e);
     }
+  }
+
+  /**
+   * Canonicalizes the raw {@code policy_evaluation_stage} column value pulled from the NXRM
+   * scan-queue payload into an IQ canonical stage id.
+   * <p>
+   * NXRM historically sends stage in inconsistent shapes (per production DB survey
+   * 2026-07-01): {@code RELEASE} / {@code release} (upper/lower case), {@code BUILD},
+   * {@code STAGE_RELEASE} (underscore instead of hyphen), and occasionally {@code NULL}.
+   * IQ's own stage IDs (see {@code Stage.ID_BUILD}, {@code Stage.ID_STAGE_RELEASE} etc.) are
+   * all lower-case with hyphens. Feeding an un-normalized value like {@code stage_release}
+   * (underscore) into policy evaluation silently mis-routes the scan because it doesn't
+   * match any registered stage id.
+   * <p>
+   * Normalization steps:
+   * <ol>
+   * <li>NULL / blank → {@link ComplianceStageType#ID} fallback (existing behaviour, but now
+   * explicitly logged at WARN so ops can correlate with NXRM configs that aren't
+   * propagating the stage — root cause of the 29,952 stage-release vs 124 build
+   * telemetry imbalance Dariush flagged).</li>
+   * <li>Lowercase — {@code RELEASE} → {@code release}, {@code BUILD} → {@code build}.</li>
+   * <li>Replace underscores with hyphens — {@code stage_release} → {@code stage-release}.
+   * This is the fix for the {@code STAGE_RELEASE} value NXRM sometimes sends.</li>
+   * </ol>
+   * <p>
+   * Non-goal: this method does NOT validate the canonicalized value against known
+   * {@code Stage.ID_*} constants. The downstream policy evaluator already handles unknown
+   * stage ids gracefully (treats them as no-match); adding validation here would risk
+   * failing scans on stage values that IQ silently tolerates today.
+   */
+  @VisibleForTesting
+  static String normalizeStage(final String rawStage, final String jobId) {
+    if (rawStage == null || rawStage.isBlank()) {
+      log.warn("CLM-42079: Hosted scan job id={} has NULL/blank policy_evaluation_stage; "
+          + "defaulting to {}. This usually indicates NXRM is not sending the configured stage "
+          + "on the /rest/repositories/hosted/scan payload.", jobId, ComplianceStageType.ID);
+      return ComplianceStageType.ID;
+    }
+    return rawStage.toLowerCase().replace('_', '-');
   }
 
   /**
@@ -667,12 +770,16 @@ public class HostedComponentScanQueueConsumer
           scanReceipt.getScanId(), application.getPublicId());
       persistApplicationLinkedReportFiles(repositoryId, scanEntity, componentInfo, application, scanReceipt, stage);
 
-      // CLM-41693: Emit APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry for the sync enforcement
-      // path so synchronous hosted scans appear alongside async-queue hosted scans in the telemetry
-      // stream with scan_trigger_type=HOSTED_REPOSITORY_SCANNING. Without this, real-time enforcement
-      // scans would be silently under-counted.
+      // CLM-41693 / CLM-42079: Emit APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry for the
+      // sync enforcement path so synchronous hosted scans appear alongside async-queue hosted
+      // scans in the telemetry stream with scan_trigger_type=HOSTED_REPOSITORY_SCANNING.
+      //
+      // Sync path evaluates only the outer artifact (see class javadoc "Archive-of-archives
+      // fan-out scope") — no inner drill-down. That matches an effective count of 1 by construction,
+      // and matches what the Hosted Repository UI shows for these blocked/allowed enforcements.
+      // No DB read needed here — the count is definitional.
       sendHostedScanEvaluationTelemetry(
-          scanReceipt.getScanId(), application.getId(), stage, List.of(componentInfo));
+          scanReceipt.getScanId(), application.getId(), stage, List.of(componentInfo), 1);
     }
     catch (Exception e) {
       // componentInfo is guaranteed non-null by the early-return guard at the top of this method.
@@ -964,6 +1071,14 @@ public class HostedComponentScanQueueConsumer
   }
 
   /**
+   * Sentinel for missing {@code format()} in scan component infos. Matches
+   * {@code ScanPolicyEvaluator.UNKNOWN} so the resulting {@code number_of_unknown_components}
+   * telemetry attribute key is identical across hosted-repo and regular scan paths — telemetry
+   * consumers aggregating across scan types must not split on a sentinel-case difference.
+   */
+  private static final String TELEMETRY_UNKNOWN_FORMAT = "unknown";
+
+  /**
    * Emits {@code APPLICATION_EVALUATION_COMPONENT_COUNTS} telemetry with
    * {@code scan_trigger_type=HOSTED_REPOSITORY_SCANNING} for hosted repository scans.
    * <p>
@@ -972,25 +1087,100 @@ public class HostedComponentScanQueueConsumer
    * telemetry consumers to distinguish hosted repository scans from other trigger types
    * (CLI, IDE, WEB_UI, etc.) using a single telemetry event.
    */
-  /**
-   * Sentinel for missing {@code format()} in scan component infos. Matches
-   * {@code ScanPolicyEvaluator.UNKNOWN} so the resulting {@code number_of_unknown_components}
-   * telemetry attribute key is identical across hosted-repo and regular scan paths — telemetry
-   * consumers aggregating across scan types must not split on a sentinel-case difference.
-   */
-  private static final String TELEMETRY_UNKNOWN_FORMAT = "unknown";
-
   @VisibleForTesting
   void sendHostedScanEvaluationTelemetry(
       final String scanId,
       final String applicationId,
       final String stage,
-      final List<ScanComponentInfo> componentInfos)
+      final List<ScanComponentInfo> componentInfos,
+      final int effectiveComponentCount)
   {
     try {
-      Map<String, Long> componentCounts = componentInfos.stream()
-          .map(info -> info.format() != null ? info.format() : TELEMETRY_UNKNOWN_FORMAT)
-          .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+      // CLM-42079: cap the per-format grouping to effectiveComponentCount so telemetry matches
+      // what the UI shows in the Hosted Repository report ("1 COMPONENT" for identified-outer
+      // collapse; N for keep-nested formats like nuget/go/pub; scanner count for unidentified).
+      // Attribute the count to the OUTER's format when collapsing — that's the artifact users
+      // interact with, and matches the Application Report which also shows a single format row.
+      //
+      // The `effectiveComponentCount == 1` guard is deliberately strict (not `<= 1`): a 0 or
+      // negative value indicates the DB read fell back or returned a zero-stamped row, and we do
+      // NOT want to fabricate a `{outerFormat: 1}` in that case — that would over-count what the
+      // UI shows as zero. Falls through to the empty-map path below, which produces a payload
+      // with only `number_of_components=0` and no per-format keys.
+      Map<String, Long> componentCounts;
+      if (effectiveComponentCount == 1 && !componentInfos.isEmpty()) {
+        // Collapsed view: 1 row keyed on the outer's format.
+        String outerFormat = componentInfos.get(0).format() != null
+            ? componentInfos.get(0).format()
+            : TELEMETRY_UNKNOWN_FORMAT;
+        componentCounts = Collections.singletonMap(outerFormat, 1L);
+      }
+      else if (effectiveComponentCount <= 0) {
+        // Zero (or negative — a defensive fallback readEffectiveComponentCount could theoretically
+        // produce) means the authoritative DB view has no components for this scan. Emit an empty
+        // per-format map so downstream number_of_components sums to 0, matching the UI.
+        componentCounts = Collections.emptyMap();
+      }
+      else {
+        // Non-collapsed: group all scanned components by format. Groupings from componentInfos
+        // always sum to componentInfos.size(). When effectiveComponentCount is smaller (nuget /
+        // go / pub scans where ScanPolicyEvaluator dedupes below the scanner's view, or after
+        // the inner-row delete step in executeJob) we cap the aggregate to effectiveComponentCount
+        // by preferring the outer's format for the surplus — that keeps
+        // number_of_components == UI-shown value, matches the identified-outer collapse pattern
+        // above, and only affects per-format distribution (which for keep-nested formats is
+        // dominated by the outer's format anyway).
+        Map<String, Long> rawGrouping = componentInfos.stream()
+            .map(info -> info.format() != null ? info.format() : TELEMETRY_UNKNOWN_FORMAT)
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        long rawSum = rawGrouping.values().stream().mapToLong(Long::longValue).sum();
+        if (rawSum > effectiveComponentCount) {
+          // Cap the total. Attribute the reduction to the outer's format (or fall back to any
+          // over-represented key if the outer isn't in the grouping — shouldn't happen but keeps
+          // the cap safe).
+          String outerFormat = componentInfos.get(0).format() != null
+              ? componentInfos.get(0).format()
+              : TELEMETRY_UNKNOWN_FORMAT;
+          long surplus = rawSum - effectiveComponentCount;
+          Map<String, Long> capped = new java.util.LinkedHashMap<>(rawGrouping);
+          long outerCount = capped.getOrDefault(outerFormat, 0L);
+          if (outerCount >= surplus) {
+            long adjusted = outerCount - surplus;
+            if (adjusted == 0) {
+              capped.remove(outerFormat);
+            }
+            else {
+              capped.put(outerFormat, adjusted);
+            }
+          }
+          else {
+            // Outer alone can't absorb the surplus — drain proportionally starting from the
+            // largest bucket to avoid producing negative counts. Cheap and rare path.
+            long remaining = surplus;
+            for (Map.Entry<String, Long> e : new java.util.ArrayList<>(capped.entrySet())) {
+              if (remaining <= 0) {
+                break;
+              }
+              long v = e.getValue();
+              long take = Math.min(v, remaining);
+              long left = v - take;
+              if (left == 0) {
+                capped.remove(e.getKey());
+              }
+              else {
+                capped.put(e.getKey(), left);
+              }
+              remaining -= take;
+            }
+          }
+          log.debug("Capped per-format grouping from raw={} to effectiveCount={} for scanId={}",
+              rawSum, effectiveComponentCount, scanId);
+          componentCounts = capped;
+        }
+        else {
+          componentCounts = rawGrouping;
+        }
+      }
       TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
           scanId, applicationId, stage.toLowerCase(),
           ScanTriggerType.HOSTED_REPOSITORY_SCANNING,
@@ -998,7 +1188,8 @@ public class HostedComponentScanQueueConsumer
           Collections.singletonMap("component_counts", componentCounts));
       telemetrySender.send(telemetryData);
       log.debug("Sent APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry for hosted scan: "
-          + "scanId={}, appId={}, scan_trigger_type=HOSTED_REPOSITORY_SCANNING", scanId, applicationId);
+          + "scanId={}, appId={}, scan_trigger_type=HOSTED_REPOSITORY_SCANNING, count={}",
+          scanId, applicationId, effectiveComponentCount);
     }
     catch (Exception e) {
       // Telemetry is auxiliary; swallow exceptions so a telemetry failure cannot abort a hosted
@@ -1284,7 +1475,12 @@ public class HostedComponentScanQueueConsumer
       Stage policyStage = new Stage(stageTypeId.toLowerCase());
       scanPolicyEvaluatorProvider.get()
           .evaluate(application, scanId, policyStage,
-              ScanTriggerType.REPOSITORY_MANAGER,
+              // CLM-42079: keep the trigger type consistent with the policy_evaluation row we
+              // write in createPolicyEvaluationRecord() so the internal ScanPolicyEvaluator
+              // emission tags the same synthetic-app scan as HOSTED_REPOSITORY_SCANNING in
+              // telemetry. Was REPOSITORY_MANAGER before, which silently disagreed with the row
+              // this method's caller had just persisted.
+              ScanTriggerType.HOSTED_REPOSITORY_SCANNING,
               ClientScanType.SONATYPE,
               false /* skipAutoWaivers */);
 

@@ -470,44 +470,68 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     );
   });
 
-  it('Waivers tab trigger shows a count badge once the live data resolves (P1-F7d UX parity with Violations)', async () => {
+  it('does not fetch the raw report until the Components tab is opened (Goldman V1 lazy load)', async () => {
     mockHappyPath(axiosMock);
-    // 11 waivers — chosen because no other count in the test fixture
-    // is "11" (Total: 3, Critical: 1, Severe: 0, Moderate: 1, etc),
-    // so within(waiversTab).getByText('11') is unambiguous.
-    axiosMock.onPost(getWaiversAndAutoWaiversUrl()).reply(200, {
-      dashboardResults: Array.from({ length: 11 }, (_, i) => ({
-        id: `w${i}`,
+    renderAppDetail();
+
+    await screen.findByTestId('nosc-app-detail-page');
+    await waitFor(() => {
+      expect(axiosMock.history.get.some((r: { url?: string }) =>
+        r.url?.includes(getReportPolicyThreatsUrl(PUBLIC_ID, SCAN_ID)),
+      )).toBe(true);
+    });
+
+    expect(
+      axiosMock.history.get.some((r: { url?: string }) =>
+        r.url?.includes(getApplicationReportRawUrl(PUBLIC_ID, SCAN_ID)),
+      ),
+    ).toBe(false);
+
+    await userEvent.click(screen.getByTestId('nosc-app-detail-tab-components'));
+    await screen.findByTestId('nosc-app-detail-components-table');
+
+    expect(
+      axiosMock.history.get.some((r: { url?: string }) =>
+        r.url?.includes(getApplicationReportRawUrl(PUBLIC_ID, SCAN_ID)),
+      ),
+    ).toBe(true);
+  });
+
+  it('Waivers tab paginates server-side when hasNextPage is true (CLM-42227)', async () => {
+    mockHappyPath(axiosMock);
+
+    const waiverPage = (page: number) =>
+      Array.from({ length: 3 }, (_, i) => ({
+        id: `w-page${page}-${i}`,
         threatLevel: 5,
         ownerId: INTERNAL_ID,
         ownerType: 'application',
         scope: 'app',
-        policyName: `policy-${i}`,
-      })),
-      hasNextPage: false,
-    });
-    renderAppDetail();
-    const waiversTab = await screen.findByTestId('nosc-app-detail-tab-waivers');
-    // Badge content lands once the dashboard endpoint resolves.
-    // Radix Tabs.Trigger renders BOTH a visible inner-span AND a hidden
-    // measurement span (rt-TabsTriggerInnerHidden) so the trigger keeps
-    // a stable width across active/inactive states. Both copies of the
-    // badge text exist; assert at least one is present.
-    await waitFor(() => {
-      expect(within(waiversTab).getAllByText('11').length).toBeGreaterThanOrEqual(1);
-    });
-  });
+        policyName: `policy-page${page}-${i}`,
+      }));
 
-  it('Waivers tab trigger renders no badge while waivers are still loading or on error', async () => {
-    mockHappyPath(axiosMock);
-    // Never resolve the waivers request so the loading state persists.
-    axiosMock.onPost(getWaiversAndAutoWaiversUrl()).reply(() => new Promise(() => {}));
+    axiosMock.onPost(getWaiversAndAutoWaiversUrl()).reply((config: { data?: string }) => {
+      const body = JSON.parse(config.data || '{}');
+      const page = body.page ?? 0;
+      return [
+        200,
+        {
+          dashboardResults: waiverPage(page),
+          hasNextPage: page === 0,
+        },
+      ];
+    });
+
     renderAppDetail();
-    const waiversTab = await screen.findByTestId('nosc-app-detail-tab-waivers');
-    // Tab is rendered (text content includes "Waivers")
-    expect(waiversTab.textContent).toMatch(/Waivers/);
-    // ...but no numeric count badge inside while loading.
-    expect(within(waiversTab).queryByText(/^\d+$/)).toBeNull();
+    await screen.findByTestId('nosc-app-detail-page');
+    await userEvent.click(screen.getByTestId('nosc-app-detail-tab-waivers'));
+
+    expect(await screen.findByText('policy-page0-0')).toBeInTheDocument();
+    expect(screen.getByTestId('nosc-app-detail-waivers-pagination')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+    expect(screen.getByTestId('nosc-app-detail-waivers-pagination')).toBeInTheDocument();
+    expect(await screen.findByText('policy-page1-0')).toBeInTheDocument();
   });
 
   it('Waivers tab shows an application-specific empty state when the app has zero waivers', async () => {
@@ -738,13 +762,19 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       expect(rows).toHaveLength(5);
     });
 
-    it('column count badge in the Components tab trigger reflects total scanned components', async () => {
+    it('column count badge in the Components tab trigger reflects policythreats count on landing (CLM-42227)', async () => {
       mockHappyPath(axiosMock);
       renderAppDetail();
       const componentsTab = await screen.findByTestId('nosc-app-detail-tab-components');
+      // Badge uses policythreats aaData length so it populates without the deferred raw fetch.
       await waitFor(() => {
-        expect(within(componentsTab).getAllByText('5').length).toBeGreaterThanOrEqual(1);
+        expect(within(componentsTab).getAllByText('3').length).toBeGreaterThanOrEqual(1);
       });
+      expect(
+        axiosMock.history.get.some((r: { url?: string }) =>
+          r.url?.includes(getApplicationReportRawUrl(PUBLIC_ID, SCAN_ID)),
+        ),
+      ).toBe(false);
     });
 
     it('Violations column reflects per-component active violation count from policythreats.json', async () => {
@@ -830,6 +860,27 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
         'href',
         `http://localhost/assets/index.html#/applicationReport/${PUBLIC_ID}/${SCAN_ID}/policy`,
       );
+    });
+
+    it('shows a large-scan banner when the component inventory exceeds the threshold', async () => {
+      axiosMock.onGet(getApplicationUrl(PUBLIC_ID)).reply(200, APPLICATION_FIXTURE);
+      axiosMock.onGet(getApplicationReportsUrl(INTERNAL_ID)).reply(200, REPORTS_FIXTURE);
+      axiosMock.onGet(getReportPolicyThreatsUrl(PUBLIC_ID, SCAN_ID)).reply(200, POLICY_THREATS_FIXTURE);
+      axiosMock.onGet(getApplicationReportRawUrl(PUBLIC_ID, SCAN_ID)).reply(200, {
+        components: Array.from({ length: 10_000 }, (_, i) => ({
+          hash: `hash-${i}`,
+          displayName: `component-${i}`,
+          matchState: 'exact',
+          licenseData: {},
+          securityData: { securityIssues: [] },
+          dependencyData: { directDependency: true },
+        })),
+      });
+
+      renderAppDetail('components');
+      expect(
+        await screen.findByTestId('nosc-app-detail-components-large-scan'),
+      ).toBeInTheDocument();
     });
 
     it('renders an error card with Retry when the raw-report endpoint 500s', async () => {

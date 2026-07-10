@@ -25,6 +25,7 @@ import { ActionIcons, DomainIcons, StatusIcons } from 'MainRoot/nosc/icons';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import { FlatViolation, ThreatLabel } from './applicationDetailTypes';
+import { LargeScanBanner } from './LargeScanBanner';
 import { THREAT_GROUPS, VIOLATION_PAGE_SIZE } from './applicationDetailUtils';
 import './PolicyFailuresTab.scss';
 
@@ -191,6 +192,12 @@ export function PolicyFailuresTab({
 
   return (
     <Box mt="4" data-testid="nosc-app-detail-policy-failures">
+      <LargeScanBanner
+        itemCount={violations.length}
+        itemLabel="violations"
+        guidance="Filters and pagination run in your browser — use Classic for full export and advanced reporting on very large inventories."
+        testId="nosc-app-detail-policy-failures-large-scan"
+      />
       <Grid columns={{ initial: '1', md: '220px 1fr' }} gap="4">
         <Box p="1" pt="0">
           <Flex align="center" justify="start" mb="4">

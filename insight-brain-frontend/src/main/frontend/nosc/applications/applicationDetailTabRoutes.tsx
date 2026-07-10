@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useApplicationDetailShellContext } from './applicationDetailContext';
 import {
+  fetchApplicationRawReport,
   selectApplicationPolicyThreatsState,
   selectApplicationRawReportState,
   selectApplicationReportsState,
@@ -87,14 +89,27 @@ export function ApplicationDetailViolationsRoute(): JSX.Element {
 /** UI-Router child route: Components tab. */
 export function ApplicationDetailComponentsRoute(): JSX.Element {
   const shell = useApplicationDetailShellContext();
+  const dispatch = useDispatch();
+  const reportsState = useSelector(selectApplicationReportsState);
   const rawState = useSelector(selectApplicationRawReportState);
   const violationCountByHash = useSelector(selectViolationCountByHash);
   const scanId = useSelector(selectScanId);
+  // When reports are ready but no scan exists, skip the raw fetch and surface ComponentsTab's empty state.
+  const noScanYet = !scanId && reportsState.status === 'ready';
+
+  // Initial fetch when the tab mounts with a scanId; retries go through shell.retryRaw.
+  // Guard on `idle` only — avoids re-downloading huge raw JSON on every tab revisit once cached.
+  useEffect(() => {
+    if (!scanId || rawState.status !== 'idle') return;
+    void dispatch(fetchApplicationRawReport({ publicId: shell.publicId, scanId }));
+  }, [dispatch, shell.publicId, scanId, rawState.status]);
+
+  const effectiveStatus = noScanYet ? 'ready' : rawState.status;
 
   return (
     <ComponentsTab
       components={rawState.data?.components ?? []}
-      status={rawState.status}
+      status={effectiveStatus}
       publicId={shell.publicId}
       scanId={scanId}
       violationCountByHash={violationCountByHash}
@@ -125,10 +140,6 @@ export function ApplicationDetailWaiversRoute(): JSX.Element {
     <AppWaiversTab
       applicationInternalId={shell.applicationInternalId}
       publicId={shell.publicId}
-      waivers={shell.waivers}
-      loading={shell.waiversLoading}
-      error={shell.waiversError}
-      refetch={shell.refetchWaivers}
     />
   );
 }

@@ -12,6 +12,7 @@ import {
   Pencil,
   Check,
   ChevronLeft,
+  ChevronRight,
   X,
   Search,
   RefreshCw,
@@ -55,6 +56,7 @@ export const ActionIcons = {
    * apps/nexusone-ux-prototype design language.
    */
   ChevronLeft,
+  ChevronRight,
   Search,
   Refresh: RefreshCw,
   Download,

@@ -59,4 +59,23 @@ describe('useWaiversList — shared keyed cache', () => {
 
     second.unmount();
   });
+
+  it('does not fetch until applicationInternalId is present when scoped to an application', async () => {
+    const store = makeStore();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={store}>{children}</Provider>
+    );
+
+    const { rerender } = renderHook(
+      ({ applicationInternalId }: { applicationInternalId: string | undefined }) =>
+        useWaiversList({ applicationInternalId, includeAutoWaivers: true }),
+      { wrapper, initialProps: { applicationInternalId: undefined } },
+    );
+
+    await waitFor(() => expect(mock.history.post.length).toBe(0));
+
+    rerender({ applicationInternalId: 'app-1' });
+
+    await waitFor(() => expect(mock.history.post.length).toBe(1));
+  });
 });

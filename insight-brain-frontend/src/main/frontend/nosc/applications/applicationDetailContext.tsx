@@ -5,7 +5,6 @@
  */
 import React, { createContext, useContext } from 'react';
 import type { ApplicationDTO } from './applicationDetailTypes';
-import type { PolicyWaiverDTO } from 'MainRoot/nosc/waivers/waiverTypes';
 import type { TileStatus } from 'MainRoot/nosc/dashboard/useTile';
 
 /** Shell-level data not stored in the applicationDetail Redux slice (CLM-40901). */
@@ -15,10 +14,6 @@ export interface ApplicationDetailShellContextValue {
   readonly appStatus: TileStatus;
   readonly appRetry: () => void;
   readonly applicationInternalId: string | undefined;
-  readonly waivers: ReadonlyArray<PolicyWaiverDTO>;
-  readonly waiversLoading: boolean;
-  readonly waiversError: string | null;
-  readonly refetchWaivers: () => void;
   readonly retryReports: () => void;
   readonly retryPolicy: () => void;
   readonly retryRaw: () => void;

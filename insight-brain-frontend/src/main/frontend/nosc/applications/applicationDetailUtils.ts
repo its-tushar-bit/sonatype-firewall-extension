@@ -17,6 +17,8 @@ import {
 } from './applicationDetailTypes';
 
 export const VIOLATION_PAGE_SIZE = 20;
+/** Warn users when client-side tab filtering/pagination may be slow on large scans. */
+export const LARGE_SCAN_WARNING_THRESHOLD = 10_000;
 export const THREAT_GROUPS: ReadonlyArray<{ readonly group: ThreatLabel; readonly range: string }> = [
   { group: 'Critical', range: '8-10' },
   { group: 'Severe', range: '4-7' },

@@ -27,7 +27,10 @@ import type { PolicyWaiverDTO, PolicyWaiverDetailDTO } from './waiverTypes';
 export type UseWaiversListOptions = WaiversListRequest;
 
 export interface UseWaiversListResult {
+  /** True only on the first fetch for this listKey (no cached entry yet). */
   loading: boolean;
+  /** True during a background refetch while stale waivers remain visible. */
+  refreshing: boolean;
   error: string | null;
   waivers: ReadonlyArray<PolicyWaiverDTO>;
   hasNextPage: boolean;
@@ -61,7 +64,11 @@ export function useWaiversList(options: UseWaiversListOptions = {}): UseWaiversL
   // primitives below are the only inputs that can change the request. Dispatching
   // the request object directly (rather than via a ref) keeps the effect and
   // `refetch` in sync without indirection.
+  const scopedToApplication = 'applicationInternalId' in options;
+  const canFetch = !scopedToApplication || !!applicationInternalId;
+
   const fetchList = useCallback(() => {
+    if (!canFetch) return;
     void dispatch(
       fetchNoscWaiversList({
         applicationInternalId,
@@ -70,9 +77,10 @@ export function useWaiversList(options: UseWaiversListOptions = {}): UseWaiversL
         includeAutoWaivers,
       }),
     );
-  }, [dispatch, applicationInternalId, pageSize, page, includeAutoWaivers]);
+  }, [dispatch, canFetch, applicationInternalId, pageSize, page, includeAutoWaivers]);
 
   useEffect(() => {
+    if (!canFetch) return;
     fetchList();
     // Stale-while-revalidate: cached entries render immediately on navigate-back,
     // then refetch in the background. This gives instant page loads when switching
@@ -83,10 +91,16 @@ export function useWaiversList(options: UseWaiversListOptions = {}): UseWaiversL
     // No cleanup reset: the cache is keyed by `listKey`, so a stale entry is
     // harmless and key-scoped. Deleting on unmount would clobber a co-mounted
     // consumer sharing the same key (the collision the keyed cache exists to prevent).
-  }, [fetchList]);
+  }, [canFetch, fetchList]);
+
+  const isLoading = listState.status === 'loading';
+  const waiverCount = listState.waivers.length;
 
   return {
-    loading: !hasEntry || listState.status === 'loading',
+    // No cache entry yet, or fetching a new page key with no rows to show.
+    loading: !hasEntry || (isLoading && waiverCount === 0),
+    // Stale-while-revalidate: keep prior rows visible during background refetch.
+    refreshing: hasEntry && isLoading && waiverCount > 0,
     error: listState.error,
     waivers: listState.waivers,
     hasNextPage: listState.hasNextPage,

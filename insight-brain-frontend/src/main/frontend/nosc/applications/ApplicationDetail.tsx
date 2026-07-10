@@ -18,14 +18,12 @@ import { PageHeading } from '@sonatype/nexus-one-components';
 import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
 import { useTile } from 'MainRoot/nosc/dashboard/useTile';
 import { getApplicationUrl } from 'MainRoot/util/CLMLocation';
-import { useWaiversList } from 'MainRoot/nosc/waivers/useWaivers';
 import { useApplicationDetailData } from './useApplicationDetailData';
 import {
   selectApplicationPolicyThreatsState,
-  selectApplicationRawReportState,
 } from './applicationDetailSlice';
 import {
-  selectTotalComponentsScanned,
+  selectComponentCount,
   selectViolationSummary,
 } from './applicationDetailSelectors';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
@@ -65,9 +63,11 @@ import '@radix-ui/themes/styles.css';
  *   - Policy Failures tab: client-side filter + sort + paginate over the
  *     full violation list from policythreats.json. No backend pagination
  *     because the endpoint already returns everything.
- *   - Components, SBOMs, Waivers, Team Members tabs: inline "Coming Soon"
- *     panel with a Continue-in-Classic deep link. (No Security Events tab
- *     — IQ has no equivalent data source today.)
+ *   - Components tab: scanned components from the latest report raw JSON.
+ *     Raw report fetch is deferred until the user opens this tab.
+ *   - Waivers tab: live waiver list scoped to the application (server-paged).
+ *     SBOMs + Team Members tabs: inline "Coming Soon" with Classic deep links.
+ *     (No Security Events tab — IQ has no equivalent data source today.)
  *
  * Sequential data dependencies are unavoidable here: we need the
  * application's internal `id` from `/rest/application/{publicId}` before
@@ -100,28 +100,14 @@ export default function ApplicationDetail(): JSX.Element {
 
   const applicationInternalId = appTile.data?.id;
 
-  // Live waivers scoped to this application — lifted from AppWaiversTab
-  // to the parent so the Waivers tab trigger can show a count badge in
-  // the same shape as the Violations tab (P1-F7d UX parity).
-  const {
-    loading: waiversLoading,
-    error: waiversError,
-    waivers,
-    refetch: refetchWaivers,
-  } = useWaiversList({
-    applicationInternalId,
-    includeAutoWaivers: true,
-  });
-
   const { retryReports, retryPolicy, retryRaw } = useApplicationDetailData({
     applicationInternalId,
     publicId,
   });
 
   const policyState = useSelector(selectApplicationPolicyThreatsState);
-  const rawState = useSelector(selectApplicationRawReportState);
   const { totalViolations } = useSelector(selectViolationSummary);
-  const totalComponentsScanned = useSelector(selectTotalComponentsScanned);
+  const componentCount = useSelector(selectComponentCount);
 
   const overviewIsReady = appTile.status === 'ready';
 
@@ -136,10 +122,6 @@ export default function ApplicationDetail(): JSX.Element {
       appStatus: appTile.status,
       appRetry: appTile.retry,
       applicationInternalId,
-      waivers,
-      waiversLoading,
-      waiversError,
-      refetchWaivers,
       retryReports,
       retryPolicy,
       retryRaw,
@@ -150,10 +132,6 @@ export default function ApplicationDetail(): JSX.Element {
       appTile.status,
       appTile.retry,
       applicationInternalId,
-      waivers,
-      waiversLoading,
-      waiversError,
-      refetchWaivers,
       retryReports,
       retryPolicy,
       retryRaw,
@@ -269,9 +247,10 @@ export default function ApplicationDetail(): JSX.Element {
             <Tabs.Trigger value="components" data-testid="nosc-app-detail-tab-components">
               <Flex align="center" gap="2">
                 Components
-                {rawState.status === 'ready' && (
+                {/* policythreats component count populates on landing without the deferred raw fetch */}
+                {policyState.status === 'ready' && (
                   <Badge size="1" color="gray" variant="soft" radius="full">
-                    {totalComponentsScanned}
+                    {componentCount}
                   </Badge>
                 )}
               </Flex>
@@ -280,14 +259,7 @@ export default function ApplicationDetail(): JSX.Element {
               SBOMs
             </Tabs.Trigger>
             <Tabs.Trigger value="waivers" data-testid="nosc-app-detail-tab-waivers">
-              <Flex align="center" gap="2">
-                Waivers
-                {!waiversLoading && !waiversError && applicationInternalId && (
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {waivers.length}
-                  </Badge>
-                )}
-              </Flex>
+              Waivers
             </Tabs.Trigger>
             <Tabs.Trigger value="team-members" data-testid="nosc-app-detail-tab-team-members">
               Team Members

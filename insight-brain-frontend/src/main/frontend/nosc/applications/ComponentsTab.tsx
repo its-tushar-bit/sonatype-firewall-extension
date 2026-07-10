@@ -19,6 +19,7 @@ import { DomainIcons } from 'MainRoot/nosc/icons';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import { RawReportComponent } from './applicationDetailTypes';
+import { LargeScanBanner } from './LargeScanBanner';
 import {
   COMPONENTS_PAGE_SIZE,
   classicReportHrefForComponent,
@@ -153,9 +154,15 @@ export function ComponentsTab({
 
   return (
     <Box pt="3" data-testid="nosc-app-detail-components-tab">
+      <LargeScanBanner
+        itemCount={components.length}
+        itemLabel="components"
+        guidance="Search and pagination run in your browser — use Classic for full export on very large inventories."
+        testId="nosc-app-detail-components-large-scan"
+      />
       <Flex justify="between" align="center" mb="3" gap="3" wrap="wrap">
         <Text size="2" color="gray">
-          <strong>{components.length}</strong> components scanned in the latest report.
+          <strong>{components.length.toLocaleString()}</strong> components scanned in the latest report.
         </Text>
         <Flex align="center" gap="3">
           <TextField.Root

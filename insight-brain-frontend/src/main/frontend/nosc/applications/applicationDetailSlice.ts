@@ -97,10 +97,11 @@ export interface LoadApplicationDetailArgs {
 }
 
 /**
- * Single entry point for all Application Detail fetches (CLM-40901). Runs
- * reports first, then policythreats + raw report in parallel when a scanId
- * exists. Individual fetch thunks still own slice transitions so partial
- * loading states match the pre-refactor UX.
+ * Single entry point for Application Detail fetches (CLM-40901). Runs
+ * reports first, then policythreats when a scanId exists. The raw report is
+ * deferred until the user opens the Components tab (Goldman V1 — avoids
+ * downloading huge scan JSON on every detail landing). Tab badges use the
+ * policythreats component count so they populate on landing without the raw fetch.
  */
 export const loadApplicationDetail = createAsyncThunk(
   'applicationDetail/load',
@@ -113,10 +114,7 @@ export const loadApplicationDetail = createAsyncThunk(
       dispatch(resetRawReport());
       return;
     }
-    await Promise.all([
-      dispatch(fetchApplicationPolicyThreats({ publicId, scanId })).unwrap(),
-      dispatch(fetchApplicationRawReport({ publicId, scanId })).unwrap(),
-    ]);
+    await dispatch(fetchApplicationPolicyThreats({ publicId, scanId })).unwrap();
   },
   {
     condition: (_, { getState }) => {

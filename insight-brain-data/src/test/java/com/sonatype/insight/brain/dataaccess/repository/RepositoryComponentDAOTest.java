@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -62,6 +63,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryPolicyViolation.REPOSITORY_POLICY_VIOLATION;
 import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -436,6 +438,175 @@ public class RepositoryComponentDAOTest
     assertThat(dao.getByRepositoryIdAndPathname(repositoryTwo.getId(), shared))
         .as("sibling repo's row must survive")
         .isNotNull();
+  }
+
+  // ---- getWithActiveViolationsByRepositoryIdAndPathname (CLM-42134 merged read) ----
+
+  @Test
+  public void testGetWithActiveViolationsByRepositoryIdAndPathname_returnsComponentAndViolations() {
+    String pathname = "path";
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, null);
+
+    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+        pathname);
+
+    assertThat(result.component()).isNotNull();
+    assertThat(result.component().getId()).isEqualTo(component.getId());
+    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+        .containsExactly(3, 1);
+  }
+
+  @Test
+  public void testGetWithActiveViolationsByRepositoryIdAndPathname_doesNotCrossContaminateOverlappingColumns() {
+    // repository_component and repository_policy_violation share several column names (repository_id,
+    // pathname, hash, component_id_format, component_id_coordinates_json, component_id). Use distinct
+    // hash values on each side to prove the mapping doesn't mix up which physical table a column came
+    // from — both fixtures otherwise default to the same literal "hash" (see TemporaryEntity), which
+    // would mask a mix-up.
+    String pathname = "path";
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, pathname, "component-hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), new Date(), null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, false,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+
+    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+        pathname);
+
+    assertThat(result.component().getHash()).isEqualTo("component-hash");
+    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getHash).containsExactly("hash");
+  }
+
+  @Test
+  public void testGetWithActiveViolationsByRepositoryIdAndPathname_excludesInactiveViolations() {
+    // Production code never creates inactive violations going forward — RepositoryPolicyViolation.active
+    // is @Deprecated since 1.90 with no public setter; inactive rows only exist as legacy pre-1.90 data
+    // pending InactiveRepositoryViolationCleaner. Flip the row directly via jOOQ to simulate that state
+    // and confirm the rpv subquery's ACTIVE.eq(true) filter actually excludes it.
+    String pathname = "path";
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    RepositoryPolicyViolation activeViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 3,
+        pathname, null);
+    RepositoryPolicyViolation inactiveViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
+        pathname, null);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(REPOSITORY_POLICY_VIOLATION)
+          .set(REPOSITORY_POLICY_VIOLATION.ACTIVE, false)
+          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_POLICY_VIOLATION_ID.eq(inactiveViolation.getId()))
+          .execute();
+      tx.commit();
+    }
+
+    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+        pathname);
+
+    assertThat(result.component().getId()).isEqualTo(component.getId());
+    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getId)
+        .containsExactly(activeViolation.getId());
+  }
+
+  @Test
+  public void testGetWithActiveViolationsByRepositoryIdAndPathname_componentOnly_noViolations() {
+    String pathname = "path";
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+
+    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+        pathname);
+
+    assertThat(result.component()).isNotNull();
+    assertThat(result.component().getId()).isEqualTo(component.getId());
+    assertThat(result.activeViolations()).isEmpty();
+  }
+
+  @Test
+  public void testGetWithActiveViolationsByRepositoryIdAndPathname_orphanViolation_noComponentRow() {
+    // CLM-40943 archive-of-archives: inner repository_component rows get deleted while their active
+    // violations are intentionally kept (see HostedComponentScanQueueConsumer). The merged read must
+    // still surface the violation even though there's no matching component row.
+    String pathname = "outer.zip!/inner.jar";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, pathname, null);
+
+    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+        pathname);
+
+    assertThat(result.component()).isNull();
+    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+        .containsExactly(5);
+  }
+
+  @Test
+  public void testGetWithActiveViolationsByRepositoryIdAndPathname_neitherExists_returnsNullAndEmpty() {
+    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+        "missing/path");
+
+    assertThat(result.component()).isNull();
+    assertThat(result.activeViolations()).isEmpty();
+  }
+
+  @Test
+  public void testGetWithActiveViolationsByRepositoryIdAndPathname_isolatesPerRepository() {
+    String shared = "outer.zip!/lib.jar";
+    RepositoryComponent componentOne = tempEntity.newRepositoryComponent(repository.getId(), shared);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, shared, null);
+    tempEntity.newRepositoryComponent(repositoryTwo.getId(), shared);
+    tempEntity.newRepositoryPolicyViolation(repositoryTwo.getId(), 9, shared, null);
+
+    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+        shared);
+
+    assertThat(result.component().getId()).isEqualTo(componentOne.getId());
+    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+        .containsExactly(2);
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetWithActiveViolationsByRepositoryIdAndPathname_Postgres() {
+    // H2 doesn't support FULL OUTER JOIN, so the merged read is emulated as a LEFT JOIN UNION ALL a
+    // reverse LEFT JOIN WHERE unmatched (CLM-42134). Exercise both halves of that emulation against
+    // real Postgres, which does support FULL OUTER JOIN natively, to guard against the two dialects
+    // diverging on this query.
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    repository = tempEntity.newRepository();
+
+    String withComponent = "path";
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), withComponent);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, withComponent, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, withComponent, null);
+
+    RepositoryComponentDAO.ComponentWithActiveViolations withComponentResult =
+        getWithActiveViolations(repository.getId(), withComponent);
+    assertThat(withComponentResult.component()).isNotNull();
+    assertThat(withComponentResult.component().getId()).isEqualTo(component.getId());
+    assertThat(withComponentResult.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+        .containsExactly(3, 1);
+
+    // CLM-40943 archive-of-archives orphan case: active violation with no matching component row.
+    String orphanPathname = "outer.zip!/inner.jar";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, orphanPathname, null);
+
+    RepositoryComponentDAO.ComponentWithActiveViolations orphanResult =
+        getWithActiveViolations(repository.getId(), orphanPathname);
+    assertThat(orphanResult.component()).isNull();
+    assertThat(orphanResult.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+        .containsExactly(5);
+  }
+
+  private RepositoryComponentDAO.ComponentWithActiveViolations getWithActiveViolations(
+      String repositoryId,
+      String pathname)
+  {
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      RepositoryComponentDAO.ComponentWithActiveViolations result =
+          dao.getWithActiveViolationsByRepositoryIdAndPathname(tx, repositoryId, pathname);
+      tx.commit();
+      return result;
+    }
   }
 
   @Test

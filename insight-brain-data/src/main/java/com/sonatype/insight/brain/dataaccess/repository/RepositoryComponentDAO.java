@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.Fire
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -47,6 +49,7 @@ import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Record;
 import org.jooq.Record2;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
@@ -370,6 +373,88 @@ public class RepositoryComponentDAO
         .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
         .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .fetchOne());
+  }
+
+  /**
+   * Merges the two per-component reads inside the (repositoryId, pathname) cluster lock in
+   * {@code RepositoryPolicyEvaluator} into a single round trip (CLM-42134). Each table is pre-filtered
+   * to the target key in its own subquery, then combined so that either side is preserved when the other
+   * is empty: this matters because {@code repository_policy_violation} rows can outlive their
+   * {@code repository_component} row (see the archive-of-archives inner-pathname cleanup in
+   * {@code HostedComponentScanQueueConsumer}, CLM-40943) — a plain left join from
+   * {@code repository_component} would silently drop those active violations.
+   * <p>
+   * This is a full outer join, emulated as {@code (rc LEFT JOIN rpv) UNION ALL (rpv LEFT JOIN rc WHERE
+   * unmatched)} because H2 (used by this module's non-Postgres tests) doesn't support {@code FULL OUTER
+   * JOIN}. Both derived tables are already filtered down to the single target key, so an unconditional
+   * join predicate is safe here: it behaves like a cross join that still preserves rows from either side
+   * when the other is empty.
+   *
+   * @param tx transaction context; caller owns begin/commit (this method only reads)
+   * @param repositoryId repository to look up; must be non-null, per caller's existing contract
+   * @param pathname pathname within the repository; must be non-null, per caller's existing contract
+   * @return the component (null if no {@code repository_component} row exists for the key) paired with
+   *         its active policy violations (empty list, never null, if there are none)
+   */
+  public ComponentWithActiveViolations getWithActiveViolationsByRepositoryIdAndPathname(
+      TransactionContext tx,
+      String repositoryId,
+      String pathname)
+  {
+    var rc = tx.dsl()
+        .selectFrom(REPOSITORY_COMPONENT)
+        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .asTable("rc");
+    var rpv = tx.dsl()
+        .selectFrom(REPOSITORY_POLICY_VIOLATION)
+        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+        .asTable("rpv");
+
+    Field<String> rcId = rc.field(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID);
+    Field<String> rpvId = rpv.field(REPOSITORY_POLICY_VIOLATION.REPOSITORY_POLICY_VIOLATION_ID);
+
+    // Row count is bounded by the active violations for one (repositoryId, pathname) — at most one
+    // component row fanned out across a handful of policy violations — so a full fetch() is safe here.
+    List<Record> rows = tx.dsl()
+        .select(rc.fields())
+        .select(rpv.fields())
+        .from(rc)
+        .leftJoin(rpv)
+        .on(DSL.trueCondition())
+        .unionAll(
+            tx.dsl()
+                .select(rc.fields())
+                .select(rpv.fields())
+                .from(rpv)
+                .leftJoin(rc)
+                .on(DSL.trueCondition())
+                .where(rcId.isNull()))
+        .fetch();
+
+    RepositoryComponent component = rows.stream()
+        .filter(r -> r.get(rcId) != null)
+        .findFirst()
+        .map(r -> toEntity(r.into(REPOSITORY_COMPONENT.fields())))
+        .orElse(null);
+
+    List<RepositoryPolicyViolation> activeViolations = rows.stream()
+        .filter(r -> r.get(rpvId) != null)
+        .map(r -> r.into(REPOSITORY_POLICY_VIOLATION.fields()).into(RepositoryPolicyViolation.class))
+        .sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel)
+            .reversed()
+            .thenComparing(RepositoryPolicyViolation::getPolicyId, Comparator.nullsLast(Comparator.naturalOrder())))
+        .collect(Collectors.toList());
+
+    return new ComponentWithActiveViolations(component, activeViolations);
+  }
+
+  public record ComponentWithActiveViolations(
+      RepositoryComponent component,
+      List<RepositoryPolicyViolation> activeViolations)
+  {
   }
 
   public ComponentIdentifier getComponentIdentifierByRepositoryIdAndPathname(

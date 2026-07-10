@@ -711,13 +711,22 @@ public class RepositoryPolicyEvaluator
       allPolicyAlertsByComponent.addAll(activeAlerts);
       allPolicyAlertsByComponent.addAll(waivedAlerts);
 
+      // Single merged read per component: the existing repository_component row and its active policy
+      // violations for (repositoryId, pathname), in one round trip instead of two (CLM-42134). The
+      // per-component read itself remains (still N round trips across an N-component batch); bounded-chunk
+      // batching across components is a follow-up if profiling shows reads still dominate (see CLM-42071).
+      String pathname = component.getPathnames().get(0);
+      RepositoryComponentDAO.ComponentWithActiveViolations existing =
+          repositoryComponentDAO.getWithActiveViolationsByRepositoryIdAndPathname(tx, repository.getId(), pathname);
+
       // The order of the following calls are important and must not be changed. See: CLM-13853
       List<RepositoryPolicyViolation> newRepositoryPolicyViolations =
           persistPolicyViolations(tx, repository, evaluationTime, component, policies,
-              policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent);
+              policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent,
+              existing.activeViolations());
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
           canBeQuarantined, forMonitoring, explicitReleaseReason, stageTypeId, activeAlerts,
-          newRepositoryPolicyViolations);
+          newRepositoryPolicyViolations, existing.component());
 
       tx.commit();
 
@@ -739,15 +748,11 @@ public class RepositoryPolicyEvaluator
       ReleaseReason explicitReleaseReason,
       String stageTypeId,
       List<PolicyAlert> activeAlerts,
-      List<RepositoryPolicyViolation> newRepositoryPolicyViolations)
+      List<RepositoryPolicyViolation> newRepositoryPolicyViolations,
+      RepositoryComponent existingRepositoryComponent)
   {
     String pathname = component.getPathnames().get(0);
-    // TODO(CLM-42071): per-component DB read inside the cluster lock — still an N+1 across a 100-component batch.
-    // Safe to defer: read is inside the (repo,pathname) cluster lock and drives insert-vs-update semantics.
-    // The clean fix is `INSERT … ON CONFLICT (repository_id, pathname) DO UPDATE` (one round-trip, no race).
-    // See CLM-40092 PR description.
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
-        repository.getId(), pathname);
+    RepositoryComponent repositoryComponent = existingRepositoryComponent;
     // Must be read before any mutation to repositoryComponent below.
     boolean wasQuarantined = repositoryComponent != null && repositoryComponent.isQuarantined();
     String repositoryComponentId = repositoryComponent == null ? null : repositoryComponent.getId();
@@ -897,15 +902,10 @@ public class RepositoryPolicyEvaluator
       RepositoryPolicyViolationLogger policyViolationLogger,
       CreateRepositoryPolicyViolationsEvent event,
       List<PolicyAlert> allPolicyAlertsByComponent,
-      Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent)
+      Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent,
+      List<RepositoryPolicyViolation> oldPolicyViolations)
   {
     String pathname = component.getPathnames().get(0);
-    // TODO(CLM-40092): per-component DB read inside the cluster lock — still an N+1 across a 100-component batch.
-    // Safe to defer: read is inside the (repo,pathname) cluster lock so we see the latest committed state.
-    // Batching this requires a design conversation: either tolerate a small staleness window from a pre-lock
-    // prefetch, or widen the lock so we can prefetch under coverage. See CLM-40092 PR description.
-    List<RepositoryPolicyViolation> oldPolicyViolations =
-        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
     repositoryPolicyViolationDAO.loadConstraintFacts(oldPolicyViolations);
 
     // Build the list of current RepositoryPolicyViolations for this component

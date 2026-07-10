@@ -119,6 +119,7 @@ import com.sonatype.insight.brain.test.MailboxTestUtil;
 import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 import jakarta.inject.Inject;
@@ -1074,6 +1075,61 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(auditViolations.get(1).getPolicyId()).isEqualTo(policyWaived.getId());
 
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+  }
+
+  /**
+   * Regression sentinel for CLM-42134 (CLM-40943 archive-of-archives). {@code
+   * HostedComponentScanQueueConsumer.deleteInnerRepositoryComponentRows} deletes an inner pathname's
+   * {@code repository_component} row while its active violation stays active. A later {@code evaluate()}
+   * for that same pathname must update the existing violation in place, not duplicate it — the merged
+   * DAO read this ticket introduces must still surface the violation even with no matching component row.
+   */
+  @Test
+  public void testEvaluate_reevaluatingOrphanActiveViolation_updatesInPlace_insteadOfDuplicating() throws Exception {
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
+    Repository repository = tempEntity.newRepository();
+    tempEntity.newPolicy(repository.getId());
+
+    String pathname = "outer.zip!/inner.jar";
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", pathname, "h0"));
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g0", "a0", "v0", "c0", "e0"), "h0",
+        MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+        createSecurityVulnerabilities(), 0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+
+    List<RepositoryPolicyViolation> violationsAfterFirstEvaluate =
+        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+    assertThat(violationsAfterFirstEvaluate).hasSize(1);
+    String originalViolationId = violationsAfterFirstEvaluate.get(0).getId();
+
+    // Simulate the CLM-40943 cleanup: delete the repository_component row, leave the violation active.
+    RepositoryComponent orphanedComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
+    assertThat(orphanedComponent).isNotNull();
+    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      repositoryComponentDAO.delete(tx, orphanedComponent);
+      tx.commit();
+    }
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname)).isNull();
+
+    // Re-evaluate the same pathname/hash — the orphan violation must be reused, not duplicated.
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+
+    List<RepositoryPolicyViolation> violationsAfterSecondEvaluate =
+        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+    assertThat(violationsAfterSecondEvaluate).hasSize(1);
+    assertThat(violationsAfterSecondEvaluate.get(0).getId()).isEqualTo(originalViolationId);
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname)).isNotNull();
   }
 
   @Test

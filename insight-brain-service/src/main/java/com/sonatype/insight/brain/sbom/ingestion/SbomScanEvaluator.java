@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.sbom.ingestion;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 import jakarta.annotation.Nullable;
@@ -140,10 +141,10 @@ public class SbomScanEvaluator
     ApiThirdPartyScanTicketDTO importTicket = sbomMetadataUtils.createSbomImportTicket(applicationId);
 
     ScanResult scanResult;
-    try {
+    try (InputStream sbomStream = thirdPartyPersistenceService.getSbomContentsInputStream(sbomMetadata)) {
       scanResult = sbomMetadataUtils.scanSbomInputStream(
           application,
-          thirdPartyPersistenceService.getSbomContentsInputStream(sbomMetadata),
+          sbomStream,
           sbomFormat,
           contentType,
           ScannerDriver.SBOM_API);

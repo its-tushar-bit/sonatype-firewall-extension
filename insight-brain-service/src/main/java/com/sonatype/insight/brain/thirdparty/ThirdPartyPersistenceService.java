@@ -360,7 +360,21 @@ public class ThirdPartyPersistenceService
     if (sbomMetadata.getFilename() != null) {
       var sbomEntity =
           sbomPersistenceService.getPermanentSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
-      return new GzipCompressorInputStream(sbomEntity.getInputStream());
+      InputStream rawStream = sbomEntity.getInputStream();
+      try {
+        return new GzipCompressorInputStream(rawStream);
+      }
+      catch (Throwable t) {
+        // If the gzip wrapper fails to construct (e.g. corrupt / non-gzip file), close the underlying
+        // file stream so its descriptor is not leaked.
+        try {
+          rawStream.close();
+        }
+        catch (IOException closeEx) {
+          t.addSuppressed(closeEx);
+        }
+        throw t;
+      }
     }
     else {
       // probably a binary upload that hasn't been processed yet

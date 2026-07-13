@@ -22,10 +22,12 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.FileSbomPersistenceService;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportOption;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
+import com.sonatype.insight.brain.scan.datastore.FileScanPersistenceService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
@@ -65,6 +67,12 @@ abstract class AbstractSbomExporterTest
 
   @Inject
   private FileCleaner fileCleaner;
+
+  @Inject
+  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
+  @Inject
+  private FileScanPersistenceService scanPersistenceService;
 
   @Mock
   protected InsightWork mockSbomPersistenceInsightWork;
@@ -119,6 +127,8 @@ abstract class AbstractSbomExporterTest
         thirdPartySbomMetadataDAO,
         thirdPartyFileDAO,
         thirdPartyScanDAO,
-        new FileSbomPersistenceService(mockSbomPersistenceInsightWork, fileCleaner));
+        new FileSbomPersistenceService(mockSbomPersistenceInsightWork, fileCleaner),
+        applicationReportPersistenceService,
+        scanPersistenceService);
   }
 }

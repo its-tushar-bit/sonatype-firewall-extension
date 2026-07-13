@@ -29,12 +29,15 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.brain.utils.FunctionWithException;
 import com.sonatype.insight.brain.utils.SupplierWithException;
@@ -84,6 +87,10 @@ public class ThirdPartyPersistenceService
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
   private final SbomPersistenceService sbomPersistenceService;
+
+  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+
+  private final ScanPersistenceService scanPersistenceService;
 
   /**
    * Paths coming into this class from outside, which get saved in various database columns and used in the construction
@@ -208,12 +215,16 @@ public class ThirdPartyPersistenceService
       final ThirdPartySbomMetadataDAO sbomMetadataDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final SbomPersistenceService sbomPersistenceService)
+      final SbomPersistenceService sbomPersistenceService,
+      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final ScanPersistenceService scanPersistenceService)
   {
     this.sbomMetadataDAO = sbomMetadataDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.sbomPersistenceService = sbomPersistenceService;
+    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.scanPersistenceService = scanPersistenceService;
   }
 
   /**
@@ -574,16 +585,82 @@ public class ThirdPartyPersistenceService
    * Deletes the given SBOM metadata entity and all known associated data including other related entities and files.
    */
   public void deleteSbomMetadataAndAssociatedFiles(ThirdPartySbomMetadata sbomMetadata) throws IOException {
+    String applicationId = sbomMetadata.getApplicationId();
+    String scanId;
+    String filteredScanFile;
+
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
+
+      // Capture the scanId and filtered scan file name within the delete transaction, before the cascade delete
+      // removes the ThirdPartyScan row, so the captured ids match the row actually being deleted even under a
+      // concurrent re-scan of the same file (CLM-40930).
+      ThirdPartyScan thirdPartyScan = thirdPartyScanDAO.getByThirdPartyFileId(tx, sbomMetadata.getThirdPartyFileId());
+      scanId = thirdPartyScan == null ? null : thirdPartyScan.getScanId();
+      filteredScanFile = thirdPartyScan == null ? null : thirdPartyScan.getFilteredScanFile();
+
       ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getById(sbomMetadata.getThirdPartyFileId());
-      // Deleting the corresponding ThirdPartyFile will cascade to the SBOM metadata and all other child records
-      thirdPartyFileDAO.delete(tx, thirdPartyFile);
-      deleteSbomFile(sbomMetadata);
-      if (SbomScanType.BINARY.name().equals(sbomMetadata.getScanType())) {
-        deletePersistentTempBinary(sbomMetadata, thirdPartyFile);
+      // Deleting the corresponding ThirdPartyFile will cascade to the SBOM metadata and all other child records.
+      // Concurrent delete safety: if the row was already deleted by another transaction, skip gracefully.
+      if (thirdPartyFile != null) {
+        thirdPartyFileDAO.delete(tx, thirdPartyFile);
+        deleteSbomFile(sbomMetadata);
+        if (SbomScanType.BINARY.name().equals(sbomMetadata.getScanType())) {
+          deletePersistentTempBinary(sbomMetadata, thirdPartyFile);
+        }
       }
       tx.commit();
+    }
+
+    // Scan files and report files live in non-transactional storage (filesystem or S3). Delete them after the DB
+    // commit so a storage failure is logged but cannot roll back the already-committed metadata delete (consistent
+    // with deleteSbomFile behavior). Deleting an SBOM must remove it completely from the server — scan files and
+    // reports (CLM-40930). Matches the cleanup patterns in ApplicationCleaner.delete and ReportPurger.purgeReport.
+    deleteScanAndReportFilesForScan(applicationId, scanId, filteredScanFile);
+  }
+
+  /**
+   * Best-effort removal of the scan files and policy-evaluation report files for the given scanId. A blank scanId
+   * (e.g. an SBOM deleted before its evaluation completed) is skipped: nothing was persisted for it yet, and passing
+   * a blank id to the storage layer could target the wrong path. Each deletion is independent and best-effort — a
+   * failure is logged and neither prevents the other deletions nor rolls back the committed metadata delete.
+   */
+  private void deleteScanAndReportFilesForScan(String applicationId, String scanId, String filteredScanFile) {
+    if (StringUtils.isBlank(scanId)) {
+      log.debug("No scanId associated with SBOM for applicationId {}; skipping scan and report file cleanup",
+          applicationId);
+      return;
+    }
+
+    // Main scan file (scan-<scanId>.xml.gz)
+    try {
+      scanPersistenceService.deleteScan(applicationId, scanId);
+    }
+    catch (IOException e) {
+      log.error("Failed to delete scan file for applicationId {} scanId {}: {}",
+          applicationId, scanId, e.getMessage(), e);
+    }
+
+    // Filtered scan file (scan-<scanId>-filtered.xml.gz): per-scanId and not shared across scans, so it is safe to
+    // delete here. (ReportPurger.purgeReport does not clean this file up — a separate, pre-existing gap.)
+    if (StringUtils.isNotBlank(filteredScanFile)) {
+      try {
+        ScanEntity filteredScanEntity = scanPersistenceService.getScanByName(applicationId, filteredScanFile);
+        scanPersistenceService.deleteScan(filteredScanEntity);
+      }
+      catch (IOException e) {
+        log.error("Failed to delete filtered scan file {} for applicationId {}: {}",
+            filteredScanFile, applicationId, e.getMessage(), e);
+      }
+    }
+
+    // Policy-evaluation report files
+    try {
+      applicationReportPersistenceService.deleteReport(applicationId, scanId);
+    }
+    catch (IOException e) {
+      log.error("Failed to delete report files for applicationId {} scanId {}: {}",
+          applicationId, scanId, e.getMessage(), e);
     }
   }
 

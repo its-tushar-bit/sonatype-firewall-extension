@@ -49,11 +49,15 @@ public class ThirdPartyScanDAO
 
   public ThirdPartyScan getByThirdPartyFileId(String thirdPartyFileId) {
     try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
-          .selectFrom(THIRD_PARTY_SCAN)
-          .where(THIRD_PARTY_SCAN.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))
-          .fetchOneInto(ThirdPartyScan.class);
+      return getByThirdPartyFileId(tx, thirdPartyFileId);
     }
+  }
+
+  public ThirdPartyScan getByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
+    return tx.dsl()
+        .selectFrom(THIRD_PARTY_SCAN)
+        .where(THIRD_PARTY_SCAN.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))
+        .fetchOneInto(ThirdPartyScan.class);
   }
 
   public List<ThirdPartyScan> getByScanRequestId(String scanRequestId) {

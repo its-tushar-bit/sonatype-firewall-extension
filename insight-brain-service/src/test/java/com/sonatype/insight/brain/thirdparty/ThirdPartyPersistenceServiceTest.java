@@ -7,18 +7,29 @@ package com.sonatype.insight.brain.thirdparty;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
+import com.sonatype.insight.brain.scan.datastore.FileScanPersistenceService;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -47,6 +58,15 @@ public class ThirdPartyPersistenceServiceTest
 
   @Inject
   private ThirdPartyPersistenceService thirdPartyPersistenceService;
+
+  @Inject
+  private ThirdPartyScanDAO thirdPartyScanDAO;
+
+  @Inject
+  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
+  @Inject
+  private FileScanPersistenceService scanPersistenceService;
 
   // A minimal CycloneDX 1.1 SBOM – enough for SbomFileDetector to parse it
   private static final String MINIMAL_CDX_SBOM =
@@ -163,5 +183,83 @@ public class ThirdPartyPersistenceServiceTest
     summary.format = detection.mimeType;
     detection.summary = summary;
     return detection;
+  }
+
+  private ScanEntity writeScanFile(String applicationId, String name) throws IOException {
+    ScanEntity entity = scanPersistenceService.getScanByName(applicationId, name);
+    try (var os = entity.getOutputStream()) {
+      os.write("scan file content".getBytes(StandardCharsets.UTF_8));
+    }
+    assertThat(entity.exists()).isTrue();
+    return entity;
+  }
+
+  // ---------------------------------------------------------------------------
+  // deleteSbomMetadataAndAssociatedFiles – report cleanup (CLM-40930)
+  // ---------------------------------------------------------------------------
+
+  @Test
+  public void deleteSbomMetadataAndAssociatedFiles_removesReportFilesForScan() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    SbomDetectionResult detection = sbomDetectionResult(true);
+
+    ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> pair =
+        thirdPartyPersistenceService.saveSbomManagerSbomFromScan(
+            MINIMAL_CDX_SBOM, "scan.xml", application.getId(), "1.0.0", detection);
+    ThirdPartySbomMetadata metadata = pair.getLeft();
+    ThirdPartyFile thirdPartyFile = pair.getRight();
+
+    // Associate a scan and give it a scanId, mirroring the real post-evaluation state.
+    String scanId = "scan-" + UUID.randomUUID();
+    String scanRequestId = UUID.randomUUID().toString();
+    thirdPartyPersistenceService.associateWithScan(thirdPartyFile, scanRequestId);
+    thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
+
+    // Create the main scan file and a filtered scan file keyed by that scanId.
+    ScanEntity mainScan = writeScanFile(application.getId(), "scan-" + scanId + ".xml.gz");
+    String filteredScanFileName = SbomCommonUtils.newFilteredScanFileName(scanId);
+    ScanEntity filteredScan = writeScanFile(application.getId(), filteredScanFileName);
+    ThirdPartyScan tpScan = thirdPartyScanDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    tpScan.setFilteredScanFile(filteredScanFileName);
+    thirdPartyScanDAO.update(tpScan);
+
+    // Create report files keyed by that scanId.
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    createReport(applicationReportPersistenceService, eval, 128);
+    assertThat(applicationReportPersistenceService.reportExists(application.getId(), scanId)).isTrue();
+
+    thirdPartyPersistenceService.deleteSbomMetadataAndAssociatedFiles(metadata);
+
+    assertThat(mainScan.exists()).isFalse();
+    assertThat(filteredScan.exists()).isFalse();
+    assertThat(applicationReportPersistenceService.reportExists(application.getId(), scanId)).isFalse();
+  }
+
+  @Test
+  public void deleteSbomMetadataAndAssociatedFiles_absentScanId_skipsReportDeleteAndKeepsOtherReports() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    SbomDetectionResult detection = sbomDetectionResult(true);
+
+    ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> pair =
+        thirdPartyPersistenceService.saveSbomManagerSbomFromScan(
+            MINIMAL_CDX_SBOM, "scan.xml", application.getId(), "1.0.0", detection);
+    ThirdPartySbomMetadata metadata = pair.getLeft();
+    ThirdPartyFile thirdPartyFile = pair.getRight();
+
+    // Associate a scan but never assign a scanId (the pre-evaluation window).
+    thirdPartyPersistenceService.associateWithScan(thirdPartyFile, UUID.randomUUID().toString());
+
+    // Unrelated scan file and report for the same application under a different scanId must survive.
+    String otherScanId = "other-" + UUID.randomUUID();
+    ScanEntity otherScan = writeScanFile(application.getId(), "scan-" + otherScanId + ".xml.gz");
+    PolicyEvaluation otherEval = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, otherScanId);
+    createReport(applicationReportPersistenceService, otherEval, 128);
+    assertThat(applicationReportPersistenceService.reportExists(application.getId(), otherScanId)).isTrue();
+
+    thirdPartyPersistenceService.deleteSbomMetadataAndAssociatedFiles(metadata);
+
+    // No exception, and the unrelated scan file and report are untouched.
+    assertThat(otherScan.exists()).isTrue();
+    assertThat(applicationReportPersistenceService.reportExists(application.getId(), otherScanId)).isTrue();
   }
 }

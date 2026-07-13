@@ -56,6 +56,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.CheckIndex.CheckIndexException;
 import org.apache.lucene.index.CorruptIndexException;
@@ -159,7 +160,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
   @Test
@@ -174,7 +176,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
   @Test
@@ -201,7 +205,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
   @Test
@@ -249,7 +255,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrg.getId(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrg.getName(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrg.getName(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
   @Test
@@ -290,7 +298,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrg.getId(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrg.getName(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrg.getName(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
   @Test
@@ -306,7 +316,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.POLICY_THREAT_LEVEL, policy.getThreatLevel(), StoredField.class, true),
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
-        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getOrganizationId(), StringField.class, false));
   }
 
   @Test
@@ -322,7 +334,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
   @Test
@@ -337,7 +350,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, "", TextField.class, true),
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
-        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getOrganizationId(), StringField.class, false));
   }
 
   @Test
@@ -375,7 +390,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, organization.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_ID, organization.getId(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, organization.getName(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_NAME, organization.getName(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, organization.getId(), StringField.class, false));
   }
 
   @Test
@@ -421,7 +438,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
   @Test
@@ -466,7 +485,9 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, org.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, org.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, app.getId(), StringField.class, false),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, org.getId(), StringField.class, false));
   }
 
   @Test
@@ -496,7 +517,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, application.getId(), StringField.class, false));
   }
 
   @Test
@@ -526,7 +548,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, application.getId(), StringField.class, false));
   }
 
   @Test
@@ -558,7 +581,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, application.getId(), StringField.class, false));
   }
 
   @Test
@@ -597,7 +621,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, application.getId(), StringField.class, false));
   }
 
   @Test
@@ -637,7 +662,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, application.getId(), StringField.class, false));
   }
 
   @Test
@@ -679,7 +705,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, application.getId(), StringField.class, false));
   }
 
   @Test
@@ -720,7 +747,8 @@ public class LuceneSearchIndexClientTest
         field(FieldIdentifier.ORGANIZATION_NAME, organization.getName(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, thirdPartyFileCoordinate.getHash(), TextField.class, true),
         field(FieldIdentifier.PARENT_ORGANIZATION_NAME, rootOrganization.getName(), TextField.class, true),
-        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true));
+        field(FieldIdentifier.PARENT_ORGANIZATION_ID, rootOrganization.getId(), TextField.class, true),
+        field(FieldIdentifier.ALLOWED_CONTEXT_IDS, application.getId(), StringField.class, false));
   }
 
   @Test

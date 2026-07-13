@@ -439,6 +439,31 @@ public class ConfigurationUtils
     return parsed;
   }
 
+  public static int getFirewallQuarantineHdsConnectTimeoutInSeconds(String value, int defaultVal) {
+    return clampFirewallQuarantineHdsTimeoutInSeconds(
+        "firewallQuarantineHdsConnectTimeoutInSeconds", value, defaultVal);
+  }
+
+  public static int getFirewallQuarantineHdsSocketTimeoutInSeconds(String value, int defaultVal) {
+    return clampFirewallQuarantineHdsTimeoutInSeconds(
+        "firewallQuarantineHdsSocketTimeoutInSeconds", value, defaultVal);
+  }
+
+  private static int clampFirewallQuarantineHdsTimeoutInSeconds(String propertyName, String value, int defaultVal) {
+    // Unlike getFirewallQuarantineHdsPoolSize, these timeout properties intentionally have no env-var
+    // override path, so a null/blank value simply falls through to NumberUtils.toInt's defaultVal.
+    int parsed = NumberUtils.toInt(value, defaultVal);
+    if (parsed < FirewallQuarantineHdsClient.MIN_TIMEOUT_SECONDS
+        || parsed > FirewallQuarantineHdsClient.MAX_TIMEOUT_SECONDS)
+    {
+      log.warn("{}={} is out of range ({}-{}), falling back to default {}.", propertyName, parsed,
+          FirewallQuarantineHdsClient.MIN_TIMEOUT_SECONDS, FirewallQuarantineHdsClient.MAX_TIMEOUT_SECONDS,
+          defaultVal);
+      return defaultVal;
+    }
+    return parsed;
+  }
+
   public static int getSaasPolicyMonitorPoolSize(String value, int defaultVal) {
     if (Strings.isNullOrEmpty(value)) {
       return getIntEnvValueOrDefault(NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE, defaultVal);

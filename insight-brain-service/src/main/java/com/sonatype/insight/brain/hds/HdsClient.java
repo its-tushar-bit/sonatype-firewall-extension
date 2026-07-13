@@ -283,6 +283,14 @@ public class HdsClient
   protected void customizeConfiguration(@SuppressWarnings("unused") HttpClientUtils.Configuration configuration) {
   }
 
+  /**
+   * Exposes the business {@link Configuration} bean to subclasses (e.g. so {@link #customizeConfiguration}
+   * overrides can read their own dedicated, admin-configurable properties instead of hardcoded constants).
+   */
+  protected Configuration getConfiguration() {
+    return configuration;
+  }
+
   @Override
   public void stop() throws Exception {
     client.close();

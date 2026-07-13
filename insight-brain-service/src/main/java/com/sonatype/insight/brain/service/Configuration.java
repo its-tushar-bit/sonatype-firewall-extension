@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigur
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
+import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.relay.RelayClient;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
@@ -181,6 +182,8 @@ public class Configuration
         SystemConfigurationProperty.SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
         SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE,
         SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_POOL_SIZE,
+        SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_CONNECT_TIMEOUT_IN_SECONDS,
+        SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS,
         SystemConfigurationProperty.CSRF_PROTECTION,
         SystemConfigurationProperty.USER_AGENT_SUFFIX,
         SystemConfigurationProperty.CSP_ENABLED,
@@ -292,6 +295,7 @@ public class Configuration
     eventBusMaxThreadPoolSizeSetMaxPoolSize(propertyNamesCopy);
     releaseGraphCacheSizeInitializeCache(propertyNamesCopy);
     firewallQuarantineHdsPoolSizeRestartWarning(propertyNamesCopy);
+    firewallQuarantineHdsTimeoutsServerConfigurationChanged(propertyNamesCopy);
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
@@ -339,6 +343,20 @@ public class Configuration
         prop -> log.warn(
             "firewallQuarantineHdsPoolSize updated to {} but will not take effect until the server is restarted.",
             getFirewallQuarantineHdsPoolSize()));
+  }
+
+  // A change to the global CONNECT_TIMEOUT_IN_SECONDS/SOCKET_TIMEOUT_IN_SECONDS already triggers
+  // hdsUrlAndTimeoutsServerConfigurationChanged() above, which also calls serverConfigurationChanged()
+  // on FirewallQuarantineHdsClient - so it can run twice if an admin changes a global and a
+  // quarantine-specific timeout together. Harmless: customizeConfiguration() re-reads the
+  // quarantine-specific properties each time and is idempotent.
+  private void firewallQuarantineHdsTimeoutsServerConfigurationChanged(Set<String> propertyNamesCopy) {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_CONNECT_TIMEOUT_IN_SECONDS) ||
+            prop.equals(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS),
+        prop -> hdsClients.orderedStream()
+            .filter(FirewallQuarantineHdsClient.class::isInstance)
+            .forEach(HdsClient::serverConfigurationChanged));
   }
 
   private void policyMonitoringHourSchedulePolicyMonitoring(
@@ -523,6 +541,14 @@ public class Configuration
 
   public int getFirewallQuarantineHdsPoolSize() {
     return configCache.get(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_POOL_SIZE);
+  }
+
+  public int getFirewallQuarantineHdsConnectTimeoutInSeconds() {
+    return configCache.get(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_CONNECT_TIMEOUT_IN_SECONDS);
+  }
+
+  public int getFirewallQuarantineHdsSocketTimeoutInSeconds() {
+    return configCache.get(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS);
   }
 
   public boolean isAntiCsrfEnabled() {

@@ -60,6 +60,10 @@ public class ConfigurationInfo
         configuration.getAdvancedSearchCSVExportDelimiter());
     entries.put(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, configuration.getConnectTimeoutInSeconds());
     entries.put(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, configuration.getSocketTimeoutInSeconds());
+    entries.put(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_CONNECT_TIMEOUT_IN_SECONDS,
+        configuration.getFirewallQuarantineHdsConnectTimeoutInSeconds());
+    entries.put(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS,
+        configuration.getFirewallQuarantineHdsSocketTimeoutInSeconds());
     entries.put(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, configuration.getReportTimeoutInSeconds());
     entries.put(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
         configuration.isNeedsAcknowledgementOfInitialDashboardFilter());

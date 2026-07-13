@@ -574,4 +574,38 @@ public class ConfigurationUtilsTest
     assertThat(ConfigurationUtils.getFirewallQuarantineHdsPoolSize("51", 20)).isEqualTo(20);
     assertThat(logOutput).atWarnLevel().contains("out of range");
   }
+
+  @Test
+  public void testGetFirewallQuarantineHdsConnectTimeoutInSeconds_withInRangeValue() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsConnectTimeoutInSeconds("30", 10)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsConnectTimeoutInSeconds_zeroFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsConnectTimeoutInSeconds("0", 10)).isEqualTo(10);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsConnectTimeoutInSeconds_aboveMaxFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsConnectTimeoutInSeconds("61", 10)).isEqualTo(10);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsSocketTimeoutInSeconds_withInRangeValue() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsSocketTimeoutInSeconds("30", 20)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsSocketTimeoutInSeconds_zeroFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsSocketTimeoutInSeconds("0", 20)).isEqualTo(20);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsSocketTimeoutInSeconds_aboveMaxFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsSocketTimeoutInSeconds("61", 20)).isEqualTo(20);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
 }

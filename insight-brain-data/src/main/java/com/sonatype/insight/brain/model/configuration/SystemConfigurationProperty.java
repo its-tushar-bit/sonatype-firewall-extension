@@ -122,6 +122,12 @@ public class SystemConfigurationProperty
 
   public static final String FIREWALL_QUARANTINE_HDS_POOL_SIZE = "firewallQuarantineHdsPoolSize";
 
+  public static final String FIREWALL_QUARANTINE_HDS_CONNECT_TIMEOUT_IN_SECONDS =
+      "firewallQuarantineHdsConnectTimeoutInSeconds";
+
+  public static final String FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS =
+      "firewallQuarantineHdsSocketTimeoutInSeconds";
+
   public static final String ACCESS_ALLOWLIST = "accessAllowlist";
 
   public static final String BASE_URL = "baseUrl";

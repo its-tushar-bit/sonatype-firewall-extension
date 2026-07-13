@@ -55,7 +55,7 @@ public abstract class AbstractHdsClientTest
   protected PasswordHandler passwordHandler;
 
   @Inject
-  private ApiConfigurationService configurationService;
+  protected ApiConfigurationService configurationService;
 
   @Inject
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
+import com.sonatype.insight.error.exception.BadRequestException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -241,13 +242,15 @@ public class PostgresApplicationRiskService
       sortColumn = orderBy.substring(1);
     }
 
-    sortColumn = switch (ApplicationRiskOrderByEnum.valueOf(sortColumn)) {
+    sortColumn = switch (ApplicationRiskOrderByEnum.fromOrderByToken(sortColumn)) {
       case TOTAL_RISK -> "total_risk_per_stage_unique";
       case CRITICAL_RISK -> "critical_per_stage_unique";
       case SEVERE_RISK -> "severe_per_stage_unique";
       case MODERATE_RISK -> "moderate_per_stage_unique";
       case LOW_RISK -> "low_per_stage_unique";
       case NAME -> "name";
+      case LAST_EVALUATION_TIME -> throw new BadRequestException(
+          "orderBy lastEvaluationTime is not supported for PostgreSQL-backed application risk queries.");
     };
 
     return Pair.of(sortColumn, direction);

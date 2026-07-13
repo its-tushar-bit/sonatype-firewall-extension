@@ -26,6 +26,13 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 final class ApplicationsListRequestValidator
 {
+  /** Martha V1 fixed default — latest evaluation descending (CLM-42229). */
+  static final String DEFAULT_ORDER_BY = "-lastEvaluationTime";
+
+  private static final String ORDER_BY_LAST_EVALUATION_ASC = "lastEvaluationTime";
+
+  private static final String ORDER_BY_LAST_EVALUATION_DESC = "-" + ORDER_BY_LAST_EVALUATION_ASC;
+
   void validate(final ApplicationsListRequestDTO request) {
     if (request == null) {
       return;
@@ -50,8 +57,15 @@ final class ApplicationsListRequestValidator
       throw new BadRequestException("policyViolationStates filter is not yet supported on the applications list.");
     }
     if (StringUtils.isNotBlank(request.orderBy)) {
-      throw new BadRequestException("orderBy is not yet supported on the applications list.");
+      validateOrderBy(request.orderBy);
     }
+  }
+
+  private static void validateOrderBy(final String orderBy) {
+    if (ORDER_BY_LAST_EVALUATION_DESC.equals(orderBy) || ORDER_BY_LAST_EVALUATION_ASC.equals(orderBy)) {
+      return;
+    }
+    throw new BadRequestException("Unsupported orderBy on the applications list: " + orderBy);
   }
 
   private static boolean hasNonEmptyFilterSet(final Set<String> ids) {

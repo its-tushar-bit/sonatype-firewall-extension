@@ -116,6 +116,63 @@ public class ApplicationRiskScoreDTOComparatorTest
   }
 
   @Test
+  public void testCompare_LastEvaluationTime_DESC_NewerFirst() {
+    ApplicationRiskScoreDTO older = newDTO("Older", 0, 0, 0, 0, 0);
+    older.lastEvaluationTime = 1_000L;
+    ApplicationRiskScoreDTO newer = newDTO("Newer", 0, 0, 0, 0, 0);
+    newer.lastEvaluationTime = 2_000L;
+    assertComparison(new ApplicationRiskScoreDTOComparator("-lastEvaluationTime"), 1, older, newer);
+  }
+
+  @Test
+  public void testCompare_LastEvaluationTime_ASC_OlderFirst() {
+    ApplicationRiskScoreDTO older = newDTO("Older", 0, 0, 0, 0, 0);
+    older.lastEvaluationTime = 1_000L;
+    ApplicationRiskScoreDTO newer = newDTO("Newer", 0, 0, 0, 0, 0);
+    newer.lastEvaluationTime = 2_000L;
+    assertComparison(new ApplicationRiskScoreDTOComparator("lastEvaluationTime"), -1, older, newer);
+  }
+
+  @Test
+  public void testCompare_LastEvaluationTime_equalTimestamps_nameTiebreak() {
+    ApplicationRiskScoreDTO alpha = newDTO("Alpha", 0, 0, 0, 0, 0);
+    alpha.lastEvaluationTime = 1_000L;
+    ApplicationRiskScoreDTO beta = newDTO("Beta", 0, 0, 0, 0, 0);
+    beta.lastEvaluationTime = 1_000L;
+    assertComparison(new ApplicationRiskScoreDTOComparator("-lastEvaluationTime"), -1, alpha, beta);
+  }
+
+  @Test
+  public void testCompare_LastEvaluationTime_nullTimestamps_nameTiebreak() {
+    ApplicationRiskScoreDTO alpha = newDTO("Alpha", 0, 0, 0, 0, 0);
+    ApplicationRiskScoreDTO beta = newDTO("Beta", 0, 0, 0, 0, 0);
+    assertComparison(new ApplicationRiskScoreDTOComparator("-lastEvaluationTime"), -1, alpha, beta);
+  }
+
+  @Test
+  public void testCompare_LastEvaluationTime_nullLeftTime_sortsLast() {
+    ApplicationRiskScoreDTO withoutTime = newDTO("NoTime", 0, 0, 0, 0, 0);
+    ApplicationRiskScoreDTO withTime = newDTO("WithTime", 0, 0, 0, 0, 0);
+    withTime.lastEvaluationTime = 1_000L;
+    assertComparison(new ApplicationRiskScoreDTOComparator("-lastEvaluationTime"), 1, withoutTime, withTime);
+  }
+
+  @Test
+  public void testCompare_LastEvaluationTime_ASC_nullTimestamp_sortsLast() {
+    ApplicationRiskScoreDTO withoutTime = newDTO("NoTime", 0, 0, 0, 0, 0);
+    ApplicationRiskScoreDTO withTime = newDTO("WithTime", 0, 0, 0, 0, 0);
+    withTime.lastEvaluationTime = 1_000L;
+    assertComparison(new ApplicationRiskScoreDTOComparator("lastEvaluationTime"), 1, withoutTime, withTime);
+  }
+
+  @Test
+  public void testCompare_LastEvaluationTime_nullApplicationName_doesNotThrow() {
+    ApplicationRiskScoreDTO left = newDTO(null, 0, 0, 0, 0, 0);
+    ApplicationRiskScoreDTO right = newDTO("Named", 0, 0, 0, 0, 0);
+    assertThat(new ApplicationRiskScoreDTOComparator("-lastEvaluationTime").compare(left, right)).isGreaterThan(0);
+  }
+
+  @Test
   public void testCompare_InvalidOrderBy() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> assertComparison(new ApplicationRiskScoreDTOComparator("Invalid"), -1, newDTO("Name", 0, 0, 0, 0, 5),

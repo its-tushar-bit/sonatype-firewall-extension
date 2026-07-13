@@ -17,10 +17,10 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
+import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTOComparator;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
-import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -28,6 +28,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Index-backed Martha V1 Applications list.
@@ -37,11 +39,16 @@ import org.apache.commons.lang3.StringUtils;
  * so only the visible page pays SQL/policy-violation cost.
  * <p>
  * Request defaults: {@code page=0}, {@code pageSize=50}, {@code includeFacets=true} when omitted.
+ * <p>
+ * {@code orderBy=-lastEvaluationTime} sorts evaluation cards within each index page after enrichment.
+ * Cross-page ordering still follows index pagination until index-level sort lands (CLM-42230).
  */
 @Named
 @Singleton
 public class ApplicationsListService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApplicationsListService.class);
+
   public static final int DEFAULT_PAGE_SIZE = 50;
 
   public static final int MAX_PAGE_SIZE = 100;
@@ -56,17 +63,21 @@ public class ApplicationsListService
 
   private final ApplicationsListRequestValidator requestValidator;
 
+  private final ApplicationsListFacetsBuilder facetsBuilder;
+
   @Inject
   public ApplicationsListService(
       final SearchIndexClient searchIndexClient,
       final ApplicationRiskService applicationRiskService,
       final ApplicationsListIndexQueryBuilder indexQueryBuilder,
-      final ApplicationsListRequestValidator requestValidator)
+      final ApplicationsListRequestValidator requestValidator,
+      final ApplicationsListFacetsBuilder facetsBuilder)
   {
     this.searchIndexClient = searchIndexClient;
     this.applicationRiskService = applicationRiskService;
     this.indexQueryBuilder = indexQueryBuilder;
     this.requestValidator = requestValidator;
+    this.facetsBuilder = facetsBuilder;
   }
 
   public ApplicationsListResponseDTO listApplications(final ApplicationsListRequestDTO request) {
@@ -79,13 +90,18 @@ public class ApplicationsListService
     validateSearch(search);
     requestValidator.validate(request);
 
+    String orderBy = request == null || StringUtils.isBlank(request.orderBy)
+        ? ApplicationsListRequestValidator.DEFAULT_ORDER_BY
+        : request.orderBy;
+
     String query = indexQueryBuilder.buildApplicationQuery(request);
     SearchResultDTO searchResult =
         searchIndexClient.searchIndex(query, pageSize, toSearchIndexPage(page), false, false, List.of());
-    LinkedHashMap<String, SearchResultItemDTO> pageItems = extractApplicationPageItems(searchResult);
+    LinkedHashMap<String, SearchResultItemDTO> pageItems =
+        ApplicationsListIndexItems.extractApplicationItems(searchResult);
     Set<String> pageApplicationIds = pageItems.keySet();
 
-    List<ApplicationRiskScoreDTO> cards = List.of();
+    List<ApplicationRiskScoreDTO> cards = new ArrayList<>();
     if (!pageApplicationIds.isEmpty()) {
       List<ApplicationRiskScoreDTO> enriched = List.of();
       try {
@@ -105,6 +121,7 @@ public class ApplicationsListService
       }
       cards = mergeIndexPageWithEnrichment(pageItems, enriched);
     }
+    cards.sort(new ApplicationRiskScoreDTOComparator(orderBy));
 
     ApplicationsListResponseDTO response = new ApplicationsListResponseDTO();
     response.applications = new ArrayList<>(cards);
@@ -115,9 +132,12 @@ public class ApplicationsListService
     response.hasNextPage = consumed < searchResult.totalNumberOfHits;
     response.source = ApplicationsListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
-      ApplicationsListFacetsDTO facets = new ApplicationsListFacetsDTO();
-      facets.totalApplications = searchResult.totalNumberOfHits;
-      response.facets = facets;
+      try {
+        response.facets = facetsBuilder.buildFacets(query, searchResult.totalNumberOfHits);
+      }
+      catch (RuntimeException e) {
+        log.warn("Applications list facet build failed; returning page without facets", e);
+      }
     }
     return response;
   }
@@ -135,26 +155,6 @@ public class ApplicationsListService
 
   static String escapeLuceneTerm(final String input) {
     return DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(input);
-  }
-
-  private static LinkedHashMap<String, SearchResultItemDTO> extractApplicationPageItems(
-      final SearchResultDTO searchResult)
-  {
-    LinkedHashMap<String, SearchResultItemDTO> items = new LinkedHashMap<>();
-    if (searchResult.groupingByDTOS != null) {
-      for (var group : searchResult.groupingByDTOS) {
-        if (group.searchResultItemDTOS == null) {
-          continue;
-        }
-        for (SearchResultItemDTO item : group.searchResultItemDTOS) {
-          if (!ItemType.APPLICATION.name().equals(item.itemType) || StringUtils.isBlank(item.applicationId)) {
-            continue;
-          }
-          items.putIfAbsent(item.applicationId, item);
-        }
-      }
-    }
-    return items;
   }
 
   private static List<ApplicationRiskScoreDTO> mergeIndexPageWithEnrichment(

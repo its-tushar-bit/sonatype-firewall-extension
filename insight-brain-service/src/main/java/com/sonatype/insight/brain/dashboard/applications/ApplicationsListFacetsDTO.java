@@ -18,6 +18,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 public class ApplicationsListFacetsDTO
 {
+  /**
+   * RBAC-scoped total from the list query. Per-org/application facet counts are derived from at most
+   * {@link ApplicationsListFacetsBuilder#MAX_FACET_DISCOVERY_HITS} discovered APPLICATION hits.
+   */
   public long totalApplications;
 
   @JsonInclude(Include.NON_NULL)

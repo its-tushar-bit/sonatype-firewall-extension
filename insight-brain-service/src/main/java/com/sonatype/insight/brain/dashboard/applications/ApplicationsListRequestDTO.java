@@ -46,7 +46,8 @@ public class ApplicationsListRequestDTO
   public PolicyViolationStateFilter policyViolationStates;
 
   /**
-   * Reserved for latest-evaluation default sort. Non-null values return 400 until supported.
+   * Reserved for latest-evaluation default sort ({@link ApplicationsListRequestValidator#DEFAULT_ORDER_BY}).
+   * Only {@code lastEvaluationTime} / {@code -lastEvaluationTime} are accepted in Martha V1.
    */
   public String orderBy;
 

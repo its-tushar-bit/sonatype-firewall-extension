@@ -10,9 +10,9 @@ import java.util.Comparator;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
- * Sorts the component risk DTOs based on the orderBy property.
+ * Sorts application risk DTOs based on the orderBy property.
  */
-class ApplicationRiskScoreDTOComparator
+public class ApplicationRiskScoreDTOComparator
     implements Comparator<ApplicationRiskScoreDTO>
 {
   private ApplicationRiskScoreOrderBy applicationRiskScoreOrderBy;
@@ -35,11 +35,14 @@ class ApplicationRiskScoreDTOComparator
         case LOW_RISK:
           return ob1.totalApplicationRisk.lowRisk - ob2.totalApplicationRisk.lowRisk;
         case NAME:
-          return String.CASE_INSENSITIVE_ORDER.compare(ob1.applicationName, ob2.applicationName);
+          return compareApplicationName(ob1, ob2);
         case SEVERE_RISK:
           return ob1.totalApplicationRisk.severeRisk - ob2.totalApplicationRisk.severeRisk;
         case TOTAL_RISK:
           return ob1.totalApplicationRisk.totalRisk - ob2.totalApplicationRisk.totalRisk;
+        case LAST_EVALUATION_TIME:
+          // Direction is handled inside compareLastEvaluationTime (not via ob1/ob2 swap above).
+          return compareLastEvaluationTime(o1, o2, applicationRiskScoreOrderBy.isOrderByAsc());
         default:
           throw new IllegalArgumentException(
               "unsupported order by " + applicationRiskScoreOrderBy.applicationRiskOrderByEnum);
@@ -47,6 +50,39 @@ class ApplicationRiskScoreDTOComparator
     }
 
     return 0;
+  }
+
+  private static int compareLastEvaluationTime(
+      final ApplicationRiskScoreDTO left,
+      final ApplicationRiskScoreDTO right,
+      final boolean ascending)
+  {
+    Long leftTime = left.lastEvaluationTime;
+    Long rightTime = right.lastEvaluationTime;
+    if (leftTime == null && rightTime == null) {
+      // Name tiebreak is always ascending for stable secondary ordering.
+      return compareApplicationName(left, right);
+    }
+    if (leftTime == null) {
+      return 1;
+    }
+    if (rightTime == null) {
+      return -1;
+    }
+    int timeCompare = Long.compare(leftTime, rightTime);
+    if (!ascending) {
+      timeCompare = -timeCompare;
+    }
+    if (timeCompare != 0) {
+      return timeCompare;
+    }
+    // Name tiebreak is always ascending for stable secondary ordering.
+    return compareApplicationName(left, right);
+  }
+
+  static int compareApplicationName(final ApplicationRiskScoreDTO left, final ApplicationRiskScoreDTO right) {
+    return Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+        .compare(left.applicationName, right.applicationName);
   }
 
   private static class ApplicationRiskScoreOrderBy
@@ -66,8 +102,8 @@ class ApplicationRiskScoreDTOComparator
         if (orderByText != null) {
           boolean isOrderByDesc = orderByText.startsWith("-");
 
-          ApplicationRiskOrderByEnum orderByEnum = ApplicationRiskOrderByEnum
-              .valueOf(isOrderByDesc ? orderByText.substring(1) : orderByText);
+          String orderByToken = isOrderByDesc ? orderByText.substring(1) : orderByText;
+          ApplicationRiskOrderByEnum orderByEnum = ApplicationRiskOrderByEnum.fromOrderByToken(orderByToken);
           applicationRiskScoreOrderBy = new ApplicationRiskScoreOrderBy(orderByEnum, !isOrderByDesc);
         }
       }

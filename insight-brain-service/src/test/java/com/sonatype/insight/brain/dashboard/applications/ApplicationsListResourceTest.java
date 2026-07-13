@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import java.util.Date;
 import java.util.Set;
 
 import org.junit.After;
@@ -68,8 +69,9 @@ public class ApplicationsListResourceTest
     assertThat(body.applications.get(0).applicationName).isNotBlank();
     assertThat(body.facets).isNotNull();
     assertThat(body.facets.totalApplications).isGreaterThanOrEqualTo(1);
-    assertThat(body.facets.organizations).isNull();
-    assertThat(body.facets.applications).isNull();
+    assertThat(body.facets.organizations).isNotNull();
+    assertThat(body.facets.applications).isNotNull();
+    // No policy evaluations in this fixture, so stage violation counts are absent.
     assertThat(body.facets.stages).isNull();
   }
 
@@ -367,11 +369,40 @@ public class ApplicationsListResourceTest
   }
 
   @Test
+  public void listApplications_orderByLastEvaluationTime_sortsNewestFirstWithinPage() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("SortTribe");
+    Application olderApp = tempEntity.newApplication("Older App", "older-app", org.getId());
+    Application newerApp = tempEntity.newApplication("Newer App", "newer-app", org.getId());
+    tempEntity.newPolicyEvaluation(olderApp.getId(), Stage.ID_BUILD, "older-scan", new Date(1_000L));
+    tempEntity.newPolicyEvaluation(newerApp.getId(), Stage.ID_BUILD, "newer-scan", new Date(2_000L));
+    ApplicationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.organizationIds = Set.of(org.getId());
+    request.orderBy = "-lastEvaluationTime";
+
+    HttpResponse response = restRequest()
+        .path(ApplicationsListResource.APPLICATIONS_LIST_PATH)
+        .body(request)
+        .post();
+
+    assertResponseStatus(200, response);
+    ApplicationsListResponseDTO body = response.getBody(ApplicationsListResponseDTO.class);
+    assertThat(body.applications).hasSize(2);
+    assertThat(body.applications.get(0).applicationId).isEqualTo("newer-app");
+    assertThat(body.applications.get(1).applicationId).isEqualTo("older-app");
+    assertThat(body.applications.get(0).lastEvaluationTime).isEqualTo(2_000L);
+    assertThat(body.applications.get(1).lastEvaluationTime).isEqualTo(1_000L);
+  }
+
+  @Test
   public void listApplications_unsupportedOrderBy_returns400() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
-    request.orderBy = "-lastEvaluationTime";
+    request.orderBy = "-NAME";
 
     HttpResponse response = restRequest()
         .path(ApplicationsListResource.APPLICATIONS_LIST_PATH)

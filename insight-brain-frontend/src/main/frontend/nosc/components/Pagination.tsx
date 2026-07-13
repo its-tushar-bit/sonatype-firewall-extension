@@ -11,6 +11,8 @@ interface PaginationProps {
   readonly page: number;
   readonly pageSize: number;
   readonly totalItems: number;
+  /** When true, Next stays enabled even if {@code page >= totalPages} (API signalled more results). */
+  readonly hasNextPage?: boolean;
   /** Called with the new 1-based page when the user pages forward/back. */
   readonly onPageChange: (nextPage: number) => void;
   readonly 'data-testid'?: string;
@@ -22,8 +24,16 @@ interface PaginationProps {
  * ComponentsTab (CLM-39709 review #6). Pages are 1-based; callers that track
  * a 0-based index adapt at the boundary.
  */
-export function Pagination({ page, pageSize, totalItems, onPageChange, ...rest }: PaginationProps): JSX.Element {
+export function Pagination({
+  page,
+  pageSize,
+  totalItems,
+  hasNextPage = false,
+  onPageChange,
+  ...rest
+}: PaginationProps): JSX.Element {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const canGoNext = hasNextPage || page < totalPages;
   const firstShown = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const lastShown = Math.min(page * pageSize, totalItems);
   return (
@@ -50,8 +60,8 @@ export function Pagination({ page, pageSize, totalItems, onPageChange, ...rest }
           size="1"
           variant="soft"
           color="gray"
-          disabled={page >= totalPages}
-          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+          disabled={!canGoNext}
+          onClick={() => onPageChange(page + 1)}
           aria-label="Next page"
         >
           Next

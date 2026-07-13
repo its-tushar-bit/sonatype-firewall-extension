@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { screen, act } from '@testing-library/react';
+import { screen, act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import ApplicationsPage from 'MainRoot/nosc/applications/ApplicationsPage';
@@ -12,70 +12,196 @@ import {
   MOCK_APPLICATION_RISK_SCORES,
   MOCK_APPLICATIONS_FILTER_FACETS,
 } from 'MainRoot/nosc/applications/mockApplicationsListData';
+import { getApplicationsListUrl } from 'MainRoot/util/CLMLocation';
+import { nexusOneApplicationReportHref } from 'MainRoot/nexus-one/nexusOneApplicationReportHref';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
+import router from 'MainRoot/router/routerInstance';
+import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
 
-describe('ApplicationsList (CLM-42223)', () => {
+const API_LIST_RESPONSE = {
+  applications: [
+    {
+      organizationName: 'Java-team',
+      organizationId: 'org-java',
+      applicationName: 'Apple - Java',
+      applicationId: 'apple-java',
+      totalApplicationRisk: {
+        totalRisk: 47,
+        criticalRisk: 3,
+        severeRisk: 8,
+        moderateRisk: 21,
+        lowRisk: 15,
+      },
+      stageRisks: [
+        {
+          stageTypeId: 'develop',
+          stageTypeName: 'Develop',
+          scanId: 'scan-apple-develop',
+          evaluationTime: Date.parse('2026-07-08T14:22:00Z'),
+          risk: { totalRisk: 12, criticalRisk: 1, severeRisk: 2, moderateRisk: 5, lowRisk: 4 },
+        },
+        {
+          stageTypeId: 'build',
+          stageTypeName: 'Build',
+          scanId: 'scan-apple-build',
+          evaluationTime: Date.parse('2026-07-09T09:05:00Z'),
+          risk: { totalRisk: 47, criticalRisk: 3, severeRisk: 8, moderateRisk: 21, lowRisk: 15 },
+        },
+      ],
+    },
+    {
+      organizationName: 'Java-team',
+      organizationId: 'org-java',
+      applicationName: 'Banana - Java',
+      applicationId: 'banana-java',
+      totalApplicationRisk: {
+        totalRisk: 12,
+        criticalRisk: 0,
+        severeRisk: 2,
+        moderateRisk: 4,
+        lowRisk: 6,
+      },
+      stageRisks: [
+        {
+          stageTypeId: 'build',
+          stageTypeName: 'Build',
+          scanId: 'scan-banana-build',
+          evaluationTime: Date.parse('2026-07-06T11:30:00Z'),
+          risk: { totalRisk: 12, criticalRisk: 0, severeRisk: 2, moderateRisk: 4, lowRisk: 6 },
+        },
+      ],
+    },
+    {
+      organizationName: 'Platform',
+      organizationId: 'org-platform',
+      applicationName: 'Cherry - Platform',
+      applicationId: 'cherry-platform',
+      totalApplicationRisk: {
+        totalRisk: 0,
+        criticalRisk: 0,
+        severeRisk: 0,
+        moderateRisk: 0,
+        lowRisk: 0,
+      },
+      stageRisks: [
+        {
+          stageTypeId: 'develop',
+          stageTypeName: 'Develop',
+          scanId: 'scan-cherry-develop',
+          evaluationTime: Date.parse('2026-07-05T08:00:00Z'),
+          risk: { totalRisk: 0, criticalRisk: 0, severeRisk: 0, moderateRisk: 0, lowRisk: 0 },
+        },
+      ],
+    },
+  ],
+  facets: { totalApplications: 3 },
+  total: 3,
+  page: 0,
+  pageSize: 50,
+  hasNextPage: false,
+  source: 'index',
+};
+
+describe('ApplicationsList (CLM-42224)', () => {
+  let axiosMock: ReturnType<typeof axiosMockAdapter>;
+  let listUrl: string;
+
   beforeAll(() => {
     _setBaseUrlForTesting('http://localhost');
+    listUrl = getApplicationsListUrl();
+    axiosMock = axiosMockAdapter();
+    nexusOneApplicationReportStates().forEach((state) => {
+      if (!router.stateRegistry.get(state.name!)) {
+        router.stateRegistry.register(state);
+      }
+    });
+  });
+
+  afterEach(() => {
+    axiosMock.reset();
   });
 
   const renderList = () => renderNexusOneRoute(<ApplicationsList />, 'nexusOneApplications');
 
-  it('renders the two-column page shell with filter rail and content area', () => {
+  it('renders the two-column page shell with filter rail and content area', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
-    expect(screen.getByTestId('preview-applications-page')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-applications-page')).toBeInTheDocument();
+    });
     expect(screen.getByTestId('applications-page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('applications-filter-rail')).toBeInTheDocument();
     expect(screen.getByTestId('applications-page-content')).toBeInTheDocument();
   });
 
-  it('renders filter rail sections with stub facet counts', () => {
+  it('renders filter rail sections with facet labels derived from list rows', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
-    expect(screen.getByTestId('applications-filter-threat-level')).toBeInTheDocument();
-    expect(screen.getByTestId('applications-filter-stages')).toBeInTheDocument();
-    expect(screen.getByTestId('applications-filter-organizations')).toBeInTheDocument();
-    expect(screen.getByTestId('applications-filter-applications')).toBeInTheDocument();
-
+    await waitFor(() => {
+      expect(screen.getByTestId('applications-filter-stages')).toBeInTheDocument();
+    });
     const filterRail = screen.getByTestId('applications-filter-rail');
     expect(filterRail).toHaveTextContent('Develop');
     expect(filterRail).toHaveTextContent('Java-team');
     expect(filterRail).toHaveTextContent('Apple - Java');
   });
 
-  it('renders toolbar placeholders and total count from mock facets', () => {
+  it('renders toolbar placeholders and total count from the list API', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
-    expect(screen.getByTestId('applications-toolbar')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('applications-toolbar-count')).toHaveTextContent('3 applications');
+    });
     expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
     expect(screen.getByTestId('applications-toolbar-sort')).toHaveTextContent('Sort: Latest Evaluation');
     expect(screen.getByTestId('applications-toolbar-csv')).toBeInTheDocument();
-    expect(screen.getByTestId('applications-toolbar-count')).toHaveTextContent(
-      `${MOCK_APPLICATIONS_FILTER_FACETS.totalApplications} applications`,
-    );
   });
 
-  it('renders mocked evaluation cards instead of a data table', () => {
+  it('renders evaluation cards from the list API instead of a data table', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
+    await waitFor(() => {
+      expect(screen.getAllByTestId('evaluation-card')).toHaveLength(3);
+    });
     expect(screen.queryByTestId('applications-list-table')).not.toBeInTheDocument();
     expect(screen.getByTestId('evaluation-card-grid')).toBeInTheDocument();
-    expect(screen.getAllByTestId('evaluation-card')).toHaveLength(MOCK_APPLICATION_RISK_SCORES.length);
-    expect(screen.getAllByTestId('nosc-dashboard-app-link')).toHaveLength(MOCK_APPLICATION_RISK_SCORES.length);
-    expect(screen.getAllByTestId('evaluation-card-stage-tile').length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId('nosc-dashboard-app-link')).toHaveLength(3);
     expect(screen.getByRole('link', { name: /apple - java/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /banana - java/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /cherry - platform/i })).toBeInTheDocument();
   });
 
-  it('card app name links to the Preview Application Detail page', () => {
+  it('card app name links to the Preview Application Detail page', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
-    const nameLink = screen.getByRole('link', { name: /apple - java/i });
+    const nameLink = await screen.findByRole('link', { name: /apple - java/i });
     expect(nameLink).toHaveAttribute('href', expect.stringContaining('/applications/apple-java'));
   });
 
+  it('stage tiles link to the embedded Classic report route', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+    renderList();
+    await waitFor(() => {
+      expect(screen.getAllByTestId('evaluation-card')).toHaveLength(3);
+    });
+    const appleCard = screen.getAllByTestId('evaluation-card')[0];
+    const stageLink = within(appleCard).getByRole('link', {
+      name: /open build evaluation report/i,
+    });
+    expect(stageLink).toHaveAttribute(
+      'href',
+      nexusOneApplicationReportHref({
+        publicId: 'apple-java',
+        scanId: 'scan-apple-build',
+      }),
+    );
+  });
+
   it('page wrapper offsets reflow when LeftNav collapses', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     window.localStorage.removeItem('nosc.leftnav.collapsed');
     renderList();
-    const pageMain = screen.getByTestId('preview-applications-page') as HTMLElement;
+    const pageMain = (await screen.findByTestId('preview-applications-page')) as HTMLElement;
     expect(pageMain.style.left).toBe('256px');
 
     await act(async () => {
@@ -95,12 +221,20 @@ describe('ApplicationsList (CLM-42223)', () => {
 });
 
 describe('ApplicationsPage async states', () => {
+  const pageProps = {
+    totalCount: 0,
+    page: 1,
+    pageSize: 50,
+    onPageChange: jest.fn(),
+  };
+
   it('renders loading skeleton when loading', () => {
     renderNexusOneRoute(
       <ApplicationsPage
         applications={[]}
         facets={{ ...MOCK_APPLICATIONS_FILTER_FACETS, totalApplications: 0 }}
         loading
+        {...pageProps}
       />,
       'nexusOneApplications',
     );
@@ -115,6 +249,7 @@ describe('ApplicationsPage async states', () => {
         facets={{ ...MOCK_APPLICATIONS_FILTER_FACETS, totalApplications: 0 }}
         error="Backend unavailable"
         onRetry={onRetry}
+        {...pageProps}
       />,
       'nexusOneApplications',
     );
@@ -129,9 +264,79 @@ describe('ApplicationsPage async states', () => {
       <ApplicationsPage
         applications={[]}
         facets={{ ...MOCK_APPLICATIONS_FILTER_FACETS, totalApplications: 0 }}
+        {...pageProps}
       />,
       'nexusOneApplications',
     );
     expect(screen.getByTestId('applications-list-empty')).toBeInTheDocument();
+    expect(screen.getByText('No applications in scope')).toBeInTheDocument();
+  });
+
+  it('renders pagination when total exceeds page size', () => {
+    renderNexusOneRoute(
+      <ApplicationsPage
+        applications={MOCK_APPLICATION_RISK_SCORES}
+        facets={MOCK_APPLICATIONS_FILTER_FACETS}
+        totalCount={120}
+        page={1}
+        pageSize={50}
+        onPageChange={jest.fn()}
+      />,
+      'nexusOneApplications',
+    );
+    expect(screen.getByTestId('applications-list-pagination')).toBeInTheDocument();
+    expect(screen.getByText(/showing 1–50 of 120/i)).toBeInTheDocument();
+  });
+
+  it('keeps pagination visible on page 2 when total is within page size', () => {
+    renderNexusOneRoute(
+      <ApplicationsPage
+        applications={MOCK_APPLICATION_RISK_SCORES}
+        facets={MOCK_APPLICATIONS_FILTER_FACETS}
+        totalCount={3}
+        page={2}
+        pageSize={50}
+        onPageChange={jest.fn()}
+      />,
+      'nexusOneApplications',
+    );
+    expect(screen.getByTestId('applications-list-pagination')).toBeInTheDocument();
+  });
+
+  it('shows pagination on page 1 when hasNextPage is true but total is within page size', () => {
+    renderNexusOneRoute(
+      <ApplicationsPage
+        applications={MOCK_APPLICATION_RISK_SCORES}
+        facets={MOCK_APPLICATIONS_FILTER_FACETS}
+        totalCount={3}
+        page={1}
+        pageSize={50}
+        hasNextPage
+        onPageChange={jest.fn()}
+      />,
+      'nexusOneApplications',
+    );
+    expect(screen.getByTestId('applications-list-pagination')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next page' })).not.toBeDisabled();
+  });
+
+  it('renders index-not-ready info panel when info is set', () => {
+    renderNexusOneRoute(
+      <ApplicationsPage
+        applications={[]}
+        facets={{ ...MOCK_APPLICATIONS_FILTER_FACETS, totalApplications: 0 }}
+        info={{
+          title: 'Search index building',
+          message: 'The search index is still building. Please try again shortly.',
+          testId: 'applications-list-not-ready',
+        }}
+        onRetry={jest.fn()}
+        {...pageProps}
+      />,
+      'nexusOneApplications',
+    );
+    expect(screen.getByTestId('applications-list-not-ready')).toBeInTheDocument();
+    expect(screen.queryByTestId('applications-list-loading')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('applications-list-error')).not.toBeInTheDocument();
   });
 });

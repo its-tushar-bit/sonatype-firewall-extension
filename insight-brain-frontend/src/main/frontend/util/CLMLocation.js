@@ -139,6 +139,11 @@ export function getDashboardMetricsUrl() {
   return uriTemplate`/rest/dashboard/metrics`;
 }
 
+/** Martha V1 evaluation card list. POST with pagination + optional filters. */
+export function getApplicationsListUrl() {
+  return uriTemplate`/rest/dashboard/applications/list`;
+}
+
 export function getNewestRisksExportUrl() {
   return uriTemplate`/rest/dashboard/export/newestRisks`;
 }

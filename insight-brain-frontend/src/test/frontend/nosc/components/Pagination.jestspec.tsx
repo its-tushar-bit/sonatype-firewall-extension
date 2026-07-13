@@ -45,6 +45,11 @@ describe('Pagination', () => {
     expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled();
   });
 
+  it('enables Next when hasNextPage is true even on the computed last page', () => {
+    renderPagination({ page: 1, pageSize: 50, totalItems: 3, hasNextPage: true });
+    expect(screen.getByRole('button', { name: 'Next page' })).not.toBeDisabled();
+  });
+
   it('calls onPageChange when paging forward and back', async () => {
     const user = userEvent.setup();
     const onPageChange = renderPagination({ page: 2, pageSize: 10, totalItems: 25 });

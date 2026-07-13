@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { Box, Flex, Heading, Text } from '@radix-ui/themes';
-import { AsyncPageState } from 'MainRoot/nosc/components/AsyncPageState';
+import { AsyncPageState, AsyncPageStateInfoProps } from 'MainRoot/nosc/components/AsyncPageState';
 import { DomainIcons } from 'MainRoot/nosc/icons';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
 import ApplicationsFilterRail from 'MainRoot/nosc/applications/ApplicationsFilterRail';
@@ -15,6 +15,7 @@ import {
   ApplicationRiskScore,
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
+import { Pagination } from 'MainRoot/nosc/components/Pagination';
 
 import './applicationsPageLayout.css';
 
@@ -23,21 +24,35 @@ export interface ApplicationsPageProps {
   readonly facets: ApplicationsFilterFacetCounts;
   readonly loading?: boolean;
   readonly error?: string | null;
+  readonly info?: AsyncPageStateInfoProps | null;
   readonly onRetry?: () => void;
+  /** RBAC-scoped total from the list API (may exceed the current page length). */
+  readonly totalCount: number;
+  /** 1-based page index for {@link Pagination}. */
+  readonly page: number;
+  readonly pageSize: number;
+  readonly hasNextPage?: boolean;
+  readonly onPageChange: (nextPage: number) => void;
 }
 
 /**
  * Martha V1 Applications page shell (CLM-42223): filter rail + toolbar + card grid.
  *
- * Data wiring (POST /rest/dashboard/applications/list) lands in CLM-42228; filter
- * interactions in CLM-42225; card polish + stage navigation in CLM-42224.
+ * Data wiring (POST /rest/dashboard/applications/list) lands in CLM-42224; filter
+ * interactions in CLM-42225.
  */
 export default function ApplicationsPage({
   applications,
   facets,
   loading = false,
   error = null,
+  info = null,
   onRetry,
+  totalCount,
+  page,
+  pageSize,
+  hasNextPage = false,
+  onPageChange,
 }: ApplicationsPageProps): JSX.Element {
   const offsets = usePreviewShellOffsets();
 
@@ -69,16 +84,18 @@ export default function ApplicationsPage({
           <ApplicationsFilterRail facets={facets} />
           <Box className="applications-page__content" data-testid="applications-page-content">
             <Flex direction="column" gap="4">
-              <ApplicationsToolbar totalCount={applications.length} />
+              <ApplicationsToolbar totalCount={totalCount} />
 
               <AsyncPageState
                 loading={loading}
                 error={error}
+                info={info}
                 onRetry={onRetry}
                 loadingTestId="applications-list-loading"
                 errorTestId="applications-list-error"
                 errorTitle="Failed to load applications"
                 errorVariant="banner"
+                infoVariant="banner"
               >
                 {applications.length === 0 ? (
                   <Flex
@@ -90,14 +107,26 @@ export default function ApplicationsPage({
                   >
                     <DomainIcons.Applications size={32} color="var(--gray-9)" />
                     <Text size="3" color="gray">
-                      No applications to display.
+                      No applications in scope
                     </Text>
                     <Text size="2" color="gray">
-                      Applications visible to your account will appear here once data is loaded.
+                      Applications visible to your account will appear here once evaluations exist.
                     </Text>
                   </Flex>
                 ) : (
-                  <EvaluationCardGrid applications={applications} />
+                  <>
+                    <EvaluationCardGrid applications={applications} />
+                    {(totalCount > pageSize || page > 1 || hasNextPage) && (
+                      <Pagination
+                        page={page}
+                        pageSize={pageSize}
+                        totalItems={totalCount}
+                        hasNextPage={hasNextPage}
+                        onPageChange={onPageChange}
+                        data-testid="applications-list-pagination"
+                      />
+                    )}
+                  </>
                 )}
               </AsyncPageState>
             </Flex>

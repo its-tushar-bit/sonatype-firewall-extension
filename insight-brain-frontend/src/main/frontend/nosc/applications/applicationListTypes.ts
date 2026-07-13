@@ -38,6 +38,8 @@ export type ApplicationRiskScore = {
   readonly applicationId: string;
   readonly totalApplicationRisk: ApplicationRiskCounts;
   readonly stageRisks: ReadonlyArray<ApplicationStageRisk>;
+  /** Latest evaluation timestamp from the list API when provided. */
+  readonly lastEvaluationDate?: string;
 };
 
 /** Facet counts for the filter rail (CLM-42225 wires live facets from S6). */

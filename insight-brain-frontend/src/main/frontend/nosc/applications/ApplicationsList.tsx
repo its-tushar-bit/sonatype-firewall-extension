@@ -5,30 +5,44 @@
  */
 import React from 'react';
 import ApplicationsPage from 'MainRoot/nosc/applications/ApplicationsPage';
-// Mock imports are intentional for the CLM-42223 Martha layout shell until
-// CLM-42224 wires POST /rest/dashboard/applications/list (PREVIEW_NEXUS_ONE_UI).
-import {
-  MOCK_APPLICATION_RISK_SCORES,
-  MOCK_APPLICATIONS_FILTER_FACETS,
-} from 'MainRoot/nosc/applications/mockApplicationsListData';
+import { useApplicationsList } from 'MainRoot/nosc/applications/useApplicationsList';
 
 import '@radix-ui/themes/styles.css';
 
 /**
- * Preview Applications list page (CLM-42223).
+ * Preview Applications list page (CLM-42223 / CLM-42224).
  *
- * Martha V1 layout: filter sidebar + evaluation card grid inside the Nexus One
- * Preview shell. Uses mocked {@link ApplicationRiskScoreDTO}-shaped rows until
- * POST /rest/dashboard/applications/list merges (CLM-42228).
- *
- * PREVIEW_NEXUS_ONE_UI gates route registration; this component assumes the
- * Preview shell is active.
+ * Martha V1 layout: filter sidebar + evaluation card grid backed by
+ * POST /rest/dashboard/applications/list inside the Nexus One Preview shell.
  */
 export default function ApplicationsList() {
+  const {
+    applications,
+    facets,
+    loading,
+    error,
+    info,
+    retry,
+    total,
+    page,
+    pageSize,
+    hasNextPage,
+    setPage,
+  } = useApplicationsList();
+
   return (
     <ApplicationsPage
-      applications={MOCK_APPLICATION_RISK_SCORES}
-      facets={MOCK_APPLICATIONS_FILTER_FACETS}
+      applications={applications}
+      facets={facets}
+      loading={loading}
+      error={error}
+      info={info}
+      onRetry={retry}
+      totalCount={total}
+      page={page + 1}
+      pageSize={pageSize}
+      hasNextPage={hasNextPage}
+      onPageChange={(nextPage) => setPage(nextPage - 1)}
     />
   );
 }

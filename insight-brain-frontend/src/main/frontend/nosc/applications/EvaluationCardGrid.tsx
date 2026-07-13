@@ -11,6 +11,7 @@ import {
   ApplicationStageRisk,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { ApplicationSeverityBadge } from 'MainRoot/nosc/dashboard/tabs/ApplicationSeverityBadge';
+import { nexusOneApplicationReportHref } from 'MainRoot/nexus-one/nexusOneApplicationReportHref';
 
 function formatEvaluationDate(isoDate?: string): string {
   if (!isoDate) return '—';
@@ -40,6 +41,15 @@ function latestEvaluationDate(stageRisks: ReadonlyArray<ApplicationStageRisk>): 
   return latest;
 }
 
+const STAGE_TILE_STYLE = {
+  border: '1px solid var(--gray-6)',
+  borderRadius: 'var(--radius-2)',
+  backgroundColor: 'var(--gray-2)',
+  display: 'block',
+  textDecoration: 'none',
+  color: 'inherit',
+} as const;
+
 function StageTile({
   publicId,
   stage,
@@ -47,42 +57,45 @@ function StageTile({
   readonly publicId: string;
   readonly stage: ApplicationStageRisk;
 }): JSX.Element {
-  // TODO(CLM-42224): wire stage tile click to nexusOneApplicationReportHref(publicId, scanId).
-  void publicId;
-  void stage.scanId;
+  const reportHref = nexusOneApplicationReportHref({ publicId, scanId: stage.scanId });
+
+  const tileBody = (
+    <Flex direction="column" gap="2" align="start">
+      <Text size="1" weight="medium">
+        {stage.stageTypeName}
+      </Text>
+      <Text size="1" color="gray">
+        {formatEvaluationDate(stage.evaluationDate)}
+      </Text>
+      <Flex gap="1" wrap="wrap" aria-label="Policy violations by severity">
+        <ApplicationSeverityBadge value={stage.risk.criticalRisk} severity="critical" />
+        <ApplicationSeverityBadge value={stage.risk.severeRisk} severity="severe" />
+        <ApplicationSeverityBadge value={stage.risk.moderateRisk} severity="moderate" />
+        <ApplicationSeverityBadge value={stage.risk.lowRisk} severity="low" />
+      </Flex>
+    </Flex>
+  );
 
   return (
     <Box
+      asChild
       p="2"
-      role="group"
-      aria-label={`${stage.stageTypeName} stage evaluation`}
       data-testid="evaluation-card-stage-tile"
-      style={{
-        border: '1px solid var(--gray-6)',
-        borderRadius: 'var(--radius-2)',
-        backgroundColor: 'var(--gray-2)',
-      }}
+      style={STAGE_TILE_STYLE}
     >
-      <Flex direction="column" gap="2" align="start">
-        <Text size="1" weight="medium">
-          {stage.stageTypeName}
-        </Text>
-        <Text size="1" color="gray">
-          {formatEvaluationDate(stage.evaluationDate)}
-        </Text>
-        <Flex gap="1" wrap="wrap" aria-label="Policy violations by severity">
-          <ApplicationSeverityBadge value={stage.risk.criticalRisk} severity="critical" />
-          <ApplicationSeverityBadge value={stage.risk.severeRisk} severity="severe" />
-          <ApplicationSeverityBadge value={stage.risk.moderateRisk} severity="moderate" />
-          <ApplicationSeverityBadge value={stage.risk.lowRisk} severity="low" />
-        </Flex>
-      </Flex>
+      <a
+        href={reportHref}
+        aria-label={`Open ${stage.stageTypeName} evaluation report`}
+      >
+        {tileBody}
+      </a>
     </Box>
   );
 }
 
 function EvaluationCard({ application }: { readonly application: ApplicationRiskScore }): JSX.Element {
-  const lastEvaluation = latestEvaluationDate(application.stageRisks);
+  const lastEvaluation =
+    application.lastEvaluationDate ?? latestEvaluationDate(application.stageRisks);
   const { totalApplicationRisk } = application;
 
   return (

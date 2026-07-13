@@ -8,6 +8,7 @@ import {
   ApplicationRiskScore,
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
+import { deriveFacetsFromPageRows } from 'MainRoot/nosc/applications/deriveFacetsFromPageRows';
 
 /**
  * Development-only mock card rows shaped like POST /rest/dashboard/applications/list
@@ -103,33 +104,11 @@ export const MOCK_APPLICATION_RISK_SCORES: ReadonlyArray<ApplicationRiskScore> =
   },
 ];
 
-/** Stub facet counts derived from mock rows until CLM-42228 facets merge. */
+/** Stub facet counts derived from mock rows for tests and layout previews. */
 export function deriveMockApplicationsFilterFacets(
   applications: ReadonlyArray<ApplicationRiskScore>,
 ): ApplicationsFilterFacetCounts {
-  const stageCounts = new Map<string, { id: string; label: string; count: number }>();
-  const orgCounts = new Map<string, { id: string; label: string; count: number }>();
-  const appCounts = new Map<string, { id: string; label: string; count: number }>();
-
-  applications.forEach((app) => {
-    orgCounts.set(app.organizationId, {
-      id: app.organizationId,
-      label: app.organizationName,
-      count: (orgCounts.get(app.organizationId)?.count ?? 0) + 1,
-    });
-    appCounts.set(app.applicationId, {
-      id: app.applicationId,
-      label: app.applicationName,
-      count: 1,
-    });
-    app.stageRisks.forEach((stage) => {
-      stageCounts.set(stage.stageTypeId, {
-        id: stage.stageTypeId,
-        label: stage.stageTypeName,
-        count: (stageCounts.get(stage.stageTypeId)?.count ?? 0) + 1,
-      });
-    });
-  });
+  const { stages, organizations, applications: appFacets } = deriveFacetsFromPageRows(applications);
 
   return {
     totalApplications: applications.length,
@@ -138,9 +117,9 @@ export function deriveMockApplicationsFilterFacets(
       label: `${range} ${group}`,
       count: group === 'None' ? 1 : Math.max(0, applications.length - 1),
     })),
-    stages: Array.from(stageCounts.values()).sort((a, b) => a.label.localeCompare(b.label)),
-    organizations: Array.from(orgCounts.values()).sort((a, b) => a.label.localeCompare(b.label)),
-    applications: Array.from(appCounts.values()).sort((a, b) => a.label.localeCompare(b.label)),
+    stages,
+    organizations,
+    applications: appFacets,
   };
 }
 

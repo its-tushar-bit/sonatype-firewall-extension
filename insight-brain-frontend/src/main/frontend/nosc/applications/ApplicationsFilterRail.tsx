@@ -38,6 +38,7 @@ export default function ApplicationsFilterRail({ facets }: ApplicationsFilterRai
       </Flex>
 
       <Flex direction="column" gap="4">
+        {facets.threatLevels.length > 0 && (
         <fieldset className="nosc-applications-filter-group" data-testid="applications-filter-threat-level">
           <legend className="nosc-applications-filter-legend">Policy Threat Level</legend>
           <Flex direction="column" gap="1">
@@ -54,6 +55,7 @@ export default function ApplicationsFilterRail({ facets }: ApplicationsFilterRai
             ))}
           </Flex>
         </fieldset>
+        )}
 
         <fieldset className="nosc-applications-filter-group" data-testid="applications-filter-stages">
           <legend className="nosc-applications-filter-legend">Stages</legend>

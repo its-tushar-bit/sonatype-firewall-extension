@@ -41,6 +41,7 @@
     <slf4j.version>2.0.17</slf4j.version>
     <!-- logback 1.4.x requires Java 11 -->
     <logback.version>1.5.36</logback.version>
+    <log4j.version>2.26.1</log4j.version>
     <jackson.version>2.21.5</jackson.version>
     <jackson.tools.version>3.1.5</jackson.tools.version>
     <dropwizard-jackson.version>5.0.0</dropwizard-jackson.version>
@@ -799,6 +800,22 @@
         <groupId>tools.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
         <version>${jackson.tools.version}</version>
+      </dependency>
+
+      <!--
+       Override log4j-api pinned by spring-boot-dependencies (2.25.4) to mitigate
+       CVE-2026-49844; keep log4j-to-slf4j (Spring Boot's logging bridge) in lockstep.
+       Drop these once Spring Boot's BOM catches up to ${log4j.version}.
+       -->
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-to-slf4j</artifactId>
+        <version>${log4j.version}</version>
       </dependency>
 
       <dependency>

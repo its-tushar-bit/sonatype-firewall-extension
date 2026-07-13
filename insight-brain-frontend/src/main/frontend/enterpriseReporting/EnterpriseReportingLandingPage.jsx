@@ -112,7 +112,10 @@ export default function EnterpriseReportingLandingPage() {
         >
           <NxP>
             If you have disabled Advanced Reporting, application names will be obfuscated. To see application names,{' '}
-            <NxTextLink external href={'https://links.sonatype.com/products/nxiq/doc/data-insights-advanced-reporting'}>
+            <NxTextLink
+              external
+              href={'https://links.sonatype.com/products/nxiq/doc/enable-advanced-reporting-insights'}
+            >
               enable Advanced Reporting
             </NxTextLink>
             .

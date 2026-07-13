@@ -542,129 +542,81 @@ public class ApplicationServiceTest
   }
 
   @Test
-  public void testGetApplicationNamesForEvaluateComponent_ExcludesDockerApplications() {
-    // Create regular applications
+  public void testGetApplicationNamesForEvaluateComponent_ExcludesFirewallApplications() {
     Application regularApp1 = tempEntity.newApplicationWithParent("regular-app-1", "Regular Application 1");
     Application regularApp2 = tempEntity.newApplicationWithParent("regular-app-2", "Regular Application 2");
 
-    // Create library applications with -library- pattern (should be excluded)
-    Application libraryApp1 = tempEntity.newApplicationWithParent("app-library-123", "Library Application 1");
-    Application libraryApp2 = tempEntity.newApplicationWithParent("test-library-app", "Library Application 2");
+    // Exclusion is structural (parent org has a related repository), not name-based.
+    // firewallApp1 has "-library-" in the ID (old broken filter would exclude it by coincidence).
+    // firewallApp2 has no "-library-" — the old filter missed this case entirely.
+    Organization firewallOrg = tempEntity.newOrgWithRepoManagerAndProxyRepo(
+        "fw-proxy-org", "fw-proxy-repo", "docker", false, false);
+    Application firewallApp1 =
+        tempEntity.newApplication("Docker Library App", "fw-app-library-123", firewallOrg.getId());
+    Application firewallApp2 =
+        tempEntity.newApplication("Docker Centos App", "fw-docker-proxy-centos", firewallOrg.getId());
 
-    // Create applications with -docker- and -doc- patterns (should NOT be excluded)
-    Application dockerApp1 = tempEntity.newApplicationWithParent("app-docker-456", "Docker Application 1");
-    Application docApp1 = tempEntity.newApplicationWithParent("test-doc-app", "Doc Application 1");
-
-    // When
     var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
 
-    // Then - regular, docker, and doc applications should be included
     assertThat(applicationNames).containsKeys(
         app1.getPublicId(),
         app2.getPublicId(),
         regularApp1.getPublicId(),
-        regularApp2.getPublicId(),
-        dockerApp1.getPublicId(),
-        docApp1.getPublicId());
-
-    // Library applications should be excluded
+        regularApp2.getPublicId());
     assertThat(applicationNames).doesNotContainKeys(
-        libraryApp1.getPublicId(),
-        libraryApp2.getPublicId());
+        firewallApp1.getPublicId(),
+        firewallApp2.getPublicId());
+    assertThat(applicationNames.get(regularApp1.getPublicId())).isEqualTo("Regular Application 1");
+    assertThat(applicationNames.get(regularApp2.getPublicId())).isEqualTo("Regular Application 2");
+  }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_ExcludesAppsWithOnlyOneRelatedRepositoryFieldSet() {
+    // Production Firewall/hosted-repo apps attach to an org with exactly ONE related-repository field set
+    // (RELATED_REPOSITORY_ID on the repo-level org, RELATED_REPOSITORY_MANAGER_ID on the manager-level org) — never
+    // both. This locks in that the filter's AND semantics still exclude those apps.
+    Organization onlyRepoIdOrg = tempEntity.newOrgWithSingleRelatedRepositoryField("only-repo-id-org", true);
+    Organization onlyRepoManagerIdOrg =
+        tempEntity.newOrgWithSingleRelatedRepositoryField("only-repo-manager-id-org", false);
+    Application appUnderRepoId =
+        tempEntity.newApplication("Repo Id App", "app-only-repo-id", onlyRepoIdOrg.getId());
+    Application appUnderRepoManagerId =
+        tempEntity.newApplication("Repo Manager Id App", "app-only-repo-manager-id", onlyRepoManagerIdOrg.getId());
+
+    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+
+    assertThat(applicationNames).doesNotContainKeys(
+        appUnderRepoId.getPublicId(),
+        appUnderRepoManagerId.getPublicId());
   }
 
   @Test
   public void testGetApplicationNamesForEvaluateComponent_IncludesApplicationWithLibraryInName() {
-    // Create an application with "library" in the name but not in the ID pattern
     Application appWithLibraryInName = tempEntity.newApplicationWithParent(
         "regular-app-id",
         "My Library Management Application");
 
-    // When
     var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
 
-    // Then - should be included because the ID doesn't match the -library- pattern
     assertThat(applicationNames).containsKey(appWithLibraryInName.getPublicId());
     assertThat(applicationNames.get(appWithLibraryInName.getPublicId()))
         .isEqualTo("My Library Management Application");
   }
 
   @Test
-  public void testGetApplicationNamesForEvaluateComponent_HandlesEdgeCases() {
-    // Create applications with edge cases
-    Application app1 = tempEntity.newApplicationWithParent("libraryapp", "Library Without Dash");
-    Application app2 = tempEntity.newApplicationWithParent("lib", "Just Lib");
-    Application app3 = tempEntity.newApplicationWithParent("library", "Just Library");
-    Application app4 = tempEntity.newApplicationWithParent("app-libraryfile-123", "Contains Libraryfile");
-    Application app5 = tempEntity.newApplicationWithParent("dockerapp", "Docker Without Dash");
-    Application app6 = tempEntity.newApplicationWithParent("doc", "Just Doc");
+  public void testGetApplicationNamesForEvaluateComponent_IncludesApplicationsWithAnyPublicIdPatternWhenNoRelatedRepo() {
+    // Applications with any naming pattern are included as long as their org has no related repository
+    Application libPatternApp = tempEntity.newApplicationWithParent("app-library-123", "Library Pattern No Repo");
+    Application dockerPatternApp = tempEntity.newApplicationWithParent("docker-proxy-centos", "Docker Pattern No Repo");
+    Application mixedPatternApp =
+        tempEntity.newApplicationWithParent("app-docker-test-doc-456", "Mixed Pattern No Repo");
 
-    // When
     var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
 
-    // Then - these should all be included as they don't match the -library- pattern
     assertThat(applicationNames).containsKeys(
-        app1.getPublicId(),
-        app2.getPublicId(),
-        app3.getPublicId(),
-        app4.getPublicId(),
-        app5.getPublicId(),
-        app6.getPublicId());
-  }
-
-  @Test
-  public void testGetApplicationNamesForEvaluateComponent_LibraryPatternCaseSensitive() {
-    // Create applications with uppercase library patterns
-    Application app1 = tempEntity.newApplicationWithParent("app-LIBRARY-123", "Uppercase Library");
-    Application app2 = tempEntity.newApplicationWithParent("app-Library-456", "Mixed Case Library");
-    Application app3 = tempEntity.newApplicationWithParent("app-library-789", "Lowercase Library");
-
-    // When
-    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
-
-    // Then - uppercase and mixed case should be included (case-sensitive matching)
-    assertThat(applicationNames).containsKeys(
-        app1.getPublicId(),
-        app2.getPublicId());
-
-    // Lowercase -library- should be excluded
-    assertThat(applicationNames).doesNotContainKey(app3.getPublicId());
-  }
-
-  @Test
-  public void testGetApplicationNamesForEvaluateComponent_MultipleLibraryPatternsInId() {
-    // Create application with -library- pattern along with other patterns
-    Application app1 = tempEntity.newApplicationWithParent(
-        "app-library-test-doc-123",
-        "Library with Other Patterns");
-
-    // Create application with -docker- and -doc- but no -library-
-    Application app2 = tempEntity.newApplicationWithParent(
-        "app-docker-test-doc-456",
-        "Docker and Doc without Library");
-
-    // When
-    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
-
-    // Then - app1 should be excluded because it contains -library-
-    assertThat(applicationNames).doesNotContainKey(app1.getPublicId());
-
-    // app2 should be included because it doesn't contain -library-
-    assertThat(applicationNames).containsKey(app2.getPublicId());
-  }
-
-  @Test
-  public void testGetApplicationNamesForEvaluateComponent_ReturnsCorrectNames() {
-    // Create applications with specific names
-    Application app1 = tempEntity.newApplicationWithParent("test-app-1", "Test Application One");
-    Application app2 = tempEntity.newApplicationWithParent("test-app-2", "Test Application Two");
-
-    // When
-    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
-
-    // Then - verify the names are correctly mapped
-    assertThat(applicationNames.get(app1.getPublicId())).isEqualTo("Test Application One");
-    assertThat(applicationNames.get(app2.getPublicId())).isEqualTo("Test Application Two");
+        libPatternApp.getPublicId(),
+        dockerPatternApp.getPublicId(),
+        mixedPatternApp.getPublicId());
   }
 
   @Test

@@ -122,7 +122,9 @@ public class ApplicationService
    */
   @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION)
   protected List<Application> getApplicationsForEvaluateComponent() {
-    return applicationDAO.getAll();
+    // Exclude apps whose org has a related repository (Firewall proxy-backed apps and hosted-repository synthetic
+    // apps) — same structural filter used by the Sidebar/ApplicationSummaryService
+    return applicationDAO.getAllWithoutRelatedRepositories();
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -138,15 +140,9 @@ public class ApplicationService
 
     log.debug("getApplicationNamesForEvaluateComponent: Found {} applications.", applications.size());
     for (Application application : applications) {
-      if (!isDockerApplication(application.getPublicId())) {
-        applicationPublicIDNamePairs.put(application.getPublicId(), application.getName());
-      }
+      applicationPublicIDNamePairs.put(application.getPublicId(), application.getName());
     }
     return applicationPublicIDNamePairs;
-  }
-
-  private static boolean isDockerApplication(String applicationId) {
-    return applicationId.contains("-library-");
   }
 
   @Authorize(permission = Permission.READ)

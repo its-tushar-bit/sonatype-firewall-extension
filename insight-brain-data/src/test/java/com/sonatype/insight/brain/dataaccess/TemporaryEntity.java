@@ -1415,6 +1415,23 @@ public class TemporaryEntity
     return org;
   }
 
+  /**
+   * Creates an org with only one of the two related-repository fields populated. Mirrors how Firewall/hosted-repo
+   * orgs are actually stored in production (each org level in the hierarchy sets exactly one field), unlike
+   * {@link #newOrgWithRepoManagerAndProxyRepo} which co-sets both.
+   */
+  public Organization newOrgWithSingleRelatedRepositoryField(String name, boolean setRepositoryId) {
+    Organization org = new Organization(name);
+    if (setRepositoryId) {
+      org.setRelatedRepositoryId(uuid());
+    }
+    else {
+      org.setRelatedRepositoryManagerId(uuid());
+    }
+    orgDAO.insert(org);
+    return org;
+  }
+
   public Organization newOrganizationWithSpecificId(String id) {
     return newOrganizationWithSpecificId(id, null);
   }

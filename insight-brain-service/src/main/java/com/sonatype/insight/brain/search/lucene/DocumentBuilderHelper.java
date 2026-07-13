@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -251,45 +253,181 @@ public class DocumentBuilderHelper
       IndexingContext indexingContext,
       Collection<Organization> organizations)
   {
+    return buildOrganizationDocs(indexingContext, organizations, null);
+  }
+
+  /**
+   * Variant that consumes a precomputed {@code parentOrgsByOrganization} map (as built by
+   * {@code AbstractSearchIndexClient.computeParentsByOrganization}) so per-org indexing does not
+   * re-issue {@code OwnerDAO.walkHierarchy} for every document.
+   */
+  public List<Document> buildOrganizationDocs(
+      IndexingContext indexingContext,
+      Collection<Organization> organizations,
+      Map<Organization, Collection<Organization>> parentOrgsByOrganization)
+  {
     if (CollectionUtils.isEmpty(organizations)) {
       return Collections.emptyList();
     }
-    return organizations.stream().map(org -> buildDocument(indexingContext, org)).toList();
+    return organizations.stream()
+        .map(org -> buildDocument(indexingContext, org, parentOrgsByOrganization))
+        .toList();
   }
 
   public Document buildDocument(
-      @SuppressWarnings("unused") IndexingContext indexingContext,
+      IndexingContext indexingContext,
       Organization organization)
+  {
+    return buildDocument(indexingContext, organization, null);
+  }
+
+  public Document buildDocument(
+      IndexingContext indexingContext,
+      Organization organization,
+      Map<Organization, Collection<Organization>> parentOrgsByOrganization)
   {
     if (organization == null) {
       return null;
     }
+    List<String> allowedContextIds = resolveClosure(indexingContext, parentOrgsByOrganization, organization, null);
     return new DocumentBuilder(ItemType.ORGANIZATION)
         .setOwner(organization)
+        .setAllowedContextIds(allowedContextIds)
         .build();
+  }
+
+  /**
+   * The permission-filter closure for a document: the owning app id (if any) plus {@code org} and
+   * its ancestors. Sentinel ids ({@link Organization#ROOT_ORGANIZATION_ID},
+   * {@link MembershipMapping#GLOBAL_CONTEXT_ID}) are omitted — holders of either bypass the filter
+   * entirely, so indexing them would waste a term per doc.
+   *
+   * <p>
+   * Resolves ancestors via {@link IndexingContext#getAncestorOrgIds(Organization)}, which memoizes
+   * the {@code walkHierarchy} DB walk per org per run — so orgs shared across many docs
+   * (labels/policies/tags/apps under one org) walk once, not once per document. Prefer this over
+   * {@code OwnerDAO.getAncestorIdsByApplicationIds} (SQL per call, app-owned only).
+   */
+  List<String> computeAllowedContextIds(IndexingContext indexingContext, Organization org, String ownerAppId) {
+    // Route the hierarchy walk through IndexingContext's per-run cache so orgs shared across many
+    // docs (labels/policies/tags/apps under one org) walk at most once, not once per document.
+    List<String> ancestorOrgIds = org == null ? List.of() : indexingContext.getAncestorOrgIds(org);
+    return closureFrom(ancestorOrgIds, ownerAppId);
+  }
+
+  /**
+   * As {@link #computeAllowedContextIds(IndexingContext, Organization, String)} but for callers that
+   * already hold the precomputed ancestor chain ({org, parent, ..., root}).
+   *
+   * <p>
+   * Callers select this overload via {@code parentOrgsByOrganization.containsKey(org)} — an
+   * identity-keyed lookup (Organization overrides neither equals nor hashCode), safe only because
+   * the map and the doc builders share the same Organization instances via {@link IndexingContext}.
+   * A miss is not a correctness bug: it falls back to the (IndexingContext, Organization) overload,
+   * whose walk is itself memoized per org per run — so a mismatched instance costs one cached walk,
+   * not a per-document DB round-trip.
+   */
+  List<String> computeAllowedContextIds(Collection<Organization> ancestorOrgs, String ownerAppId) {
+    List<String> ancestorOrgIds = ancestorOrgs == null
+        ? List.of()
+        : ancestorOrgs.stream().filter(Objects::nonNull).map(Organization::getId).toList();
+    return closureFrom(ancestorOrgIds, ownerAppId);
+  }
+
+  /**
+   * Resolves the permission closure for a doc, preferring the precomputed ancestor map when it
+   * holds {@code org} (identity-keyed) and otherwise falling back to the IndexingContext-cached
+   * walk. Centralizes the map-dispatch ternary shared by the org/app/SBOM build paths.
+   */
+  private List<String> resolveClosure(
+      final IndexingContext indexingContext,
+      final Map<Organization, Collection<Organization>> parentOrgsByOrganization,
+      final Organization org,
+      final String ownerAppId)
+  {
+    // Identity-keyed lookup (Organization overrides neither equals nor hashCode): callers MUST pass
+    // the same Organization instance that built parentOrgsByOrganization — i.e. the org added to
+    // IndexingContext via addOwners in doPopulateIndex, NOT a separate ownerDAO.getById re-fetch.
+    // A re-fetched instance silently misses here and falls through to the IndexingContext-cached
+    // walk below (correctness-safe, but a per-doc perf/behavior surprise).
+    if (parentOrgsByOrganization != null && parentOrgsByOrganization.containsKey(org)) {
+      return computeAllowedContextIds(parentOrgsByOrganization.get(org), ownerAppId);
+    }
+    return computeAllowedContextIds(indexingContext, org, ownerAppId);
+  }
+
+  /**
+   * Shared closure builder: owning app id (if any) followed by the ancestor org ids, sentinels
+   * ({@code ROOT_ORGANIZATION_ID}, {@code GLOBAL_CONTEXT_ID}) omitted.
+   */
+  private List<String> closureFrom(final Collection<String> ancestorOrgIds, final String ownerAppId) {
+    List<String> ids = new ArrayList<>();
+    if (ownerAppId != null) {
+      ids.add(ownerAppId);
+    }
+    for (String id : ancestorOrgIds) {
+      if (id != null && !isSentinelContextId(id)) {
+        ids.add(id);
+      }
+    }
+    return ids;
+  }
+
+  private static boolean isSentinelContextId(String id) {
+    return Organization.ROOT_ORGANIZATION_ID.equals(id) || MembershipMapping.GLOBAL_CONTEXT_ID.equals(id);
   }
 
   public List<Document> buildApplicationDocs(
       IndexingContext indexingContext,
       Collection<Application> applications)
   {
+    return buildApplicationDocs(indexingContext, applications, null);
+  }
+
+  /**
+   * Variant that consumes a precomputed {@code parentOrgsByOrganization} map (as built by
+   * {@code AbstractSearchIndexClient.computeParentsByOrganization}) so per-application indexing
+   * does not re-issue {@code OwnerDAO.walkHierarchy} for every document.
+   */
+  public List<Document> buildApplicationDocs(
+      IndexingContext indexingContext,
+      Collection<Application> applications,
+      Map<Organization, Collection<Organization>> parentOrgsByOrganization)
+  {
     if (CollectionUtils.isEmpty(applications)) {
       return Collections.emptyList();
     }
-    return applications.stream().map(app -> buildDocument(indexingContext, app)).toList();
+    return applications.stream()
+        .map(app -> buildDocument(indexingContext, app, parentOrgsByOrganization))
+        .toList();
   }
 
   public Document buildDocument(IndexingContext indexingContext, Application application) {
+    return buildDocument(indexingContext, application, null);
+  }
+
+  public Document buildDocument(
+      IndexingContext indexingContext,
+      Application application,
+      Map<Organization, Collection<Organization>> parentOrgsByOrganization)
+  {
     if (application == null) {
       return null;
     }
     Owner owner = indexingContext.getOwner(application.getOrganizationId());
-    if (owner == null) {
+    if (!(owner instanceof Organization org)) {
+      log.warn("Application {} has non-organization owner {} (id={}); skipping",
+          application.getId(),
+          owner == null ? "null" : owner.getClass().getSimpleName(),
+          application.getOrganizationId());
       return null;
     }
+    List<String> allowedContextIds =
+        resolveClosure(indexingContext, parentOrgsByOrganization, org, application.getId());
     return new DocumentBuilder(ItemType.APPLICATION)
         .setOwner(application)
-        .setOwner(owner)
+        .setOwner(org)
+        .setAllowedContextIds(allowedContextIds)
         .build();
   }
 
@@ -311,7 +449,59 @@ public class DocumentBuilderHelper
         .setApplicationCategoryColor(tag.getColor())
         .setApplicationCategoryDescription(tag.getDescription())
         .setOwner(owner)
+        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
         .build();
+  }
+
+  /**
+   * Permission-filter closure for a doc with a polymorphic owner (org or app) — Labels, Policies,
+   * Tags/categories. Resolves the owner via {@code indexingContext.getOwner} to share one owner
+   * cache per run rather than a {@code getById} per document.
+   *
+   * <p>
+   * Fail-closed: if an app owner's org cannot be resolved (orphan app — e.g. a transient cache miss
+   * during a reindex/org-delete race) this returns an empty closure, matching the empty-closure
+   * semantics of {@code setAllowedContextIds}. An empty closure suppresses the doc from
+   * permission-filtered results (invisible) rather than leaving it app-only-visible, consistent with
+   * the rest of the permission model. The orphan is logged via {@link #logOrphanApp}.
+   */
+  List<String> computeAllowedContextIdsForOwner(IndexingContext indexingContext, Owner owner) {
+    if (owner == null) {
+      return Collections.emptyList();
+    }
+    if (owner instanceof Application app) {
+      Owner orgOwner = indexingContext.getOwner(app.getOrganizationId());
+      if (orgOwner instanceof Organization org) {
+        return computeAllowedContextIds(indexingContext, org, app.getId());
+      }
+      logOrphanApp(indexingContext, app.getOrganizationId(), app.getId());
+      return Collections.emptyList();
+    }
+    if (owner instanceof Organization org) {
+      return computeAllowedContextIds(indexingContext, org, null);
+    }
+    log.warn("Unsupported owner type for allowedContextIds closure: {}", owner.getClass().getSimpleName());
+    return Collections.emptyList();
+  }
+
+  /**
+   * Logs the "cannot resolve owning organization" condition: WARN the first time an app is seen this
+   * reindex run (so a systemic mis-config surfaces), DEBUG on repeats (so it does not flood). The
+   * per-run dedupe lives on {@link IndexingContext}, so a recurring orphan re-WARNs on the next run.
+   */
+  private void logOrphanApp(
+      final IndexingContext indexingContext,
+      final String organizationId,
+      final String applicationId)
+  {
+    String message = "Cannot resolve owning organization {} for application {}; permission closure is empty "
+        + "(fail-closed) so the doc is suppressed from permission-filtered results until the org resolves.";
+    if (indexingContext.shouldWarnOrphanApp(applicationId)) {
+      log.warn(message, organizationId, applicationId);
+    }
+    else {
+      log.debug(message, organizationId, applicationId);
+    }
   }
 
   public List<Document> buildLabelDocs(IndexingContext indexingContext) {
@@ -332,6 +522,7 @@ public class DocumentBuilderHelper
         .setComponentLabelColor(label.getColor())
         .setComponentLabelDescription(label.getDescription())
         .setOwner(owner)
+        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
         .build();
   }
 
@@ -353,17 +544,38 @@ public class DocumentBuilderHelper
         .setPolicyThreatCategory(policy.getThreatCategory())
         .setPolicyThreatLevel(policy.getThreatLevel())
         .setOwner(owner)
+        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
         .build();
   }
 
   public List<Document> buildSbomDocs(IndexingContext indexingContext) {
+    return buildSbomDocs(indexingContext, null);
+  }
+
+  /**
+   * Variant that consumes a precomputed {@code parentOrgsByOrganization} map (as built by
+   * {@code AbstractSearchIndexClient.computeParentsByOrganization}) so per-SBOM indexing does
+   * not re-issue {@code OwnerDAO.walkHierarchy} for every document.
+   */
+  public List<Document> buildSbomDocs(
+      IndexingContext indexingContext,
+      Map<Organization, Collection<Organization>> parentOrgsByOrganization)
+  {
     return thirdPartySbomMetadataDAO.getAll()
         .stream()
-        .map(sbomMetadata -> buildDocument(indexingContext, sbomMetadata))
+        .map(sbomMetadata -> buildDocument(indexingContext, sbomMetadata, parentOrgsByOrganization))
         .toList();
   }
 
   public Document buildDocument(IndexingContext indexingContext, ThirdPartySbomMetadata sbomMetadata) {
+    return buildDocument(indexingContext, sbomMetadata, null);
+  }
+
+  public Document buildDocument(
+      IndexingContext indexingContext,
+      ThirdPartySbomMetadata sbomMetadata,
+      Map<Organization, Collection<Organization>> parentOrgsByOrganization)
+  {
     if (sbomMetadata == null) {
       return null;
     }
@@ -375,15 +587,18 @@ public class DocumentBuilderHelper
       log.warn("ThirdPartySbomMetadata {} has owner that is not of type Application: {}", sbomMetadata.getId(), owner);
       return null;
     }
-    Organization org = (Organization) indexingContext.getOwner(application.getOrganizationId());
-    if (org == null) {
+    Owner orgOwner = indexingContext.getOwner(application.getOrganizationId());
+    if (!(orgOwner instanceof Organization org)) {
       return null;
     }
+    List<String> allowedContextIds =
+        resolveClosure(indexingContext, parentOrgsByOrganization, org, application.getId());
     return new DocumentBuilder(ItemType.SBOM_METADATA)
         .setOwner(application)
         .setOwner(org)
         .setApplicationVersion(sbomMetadata.getSbomVersion())
         .setSbomSpecification(sbomMetadata.getSpec())
+        .setAllowedContextIds(allowedContextIds)
         .build();
   }
 
@@ -593,6 +808,7 @@ public class DocumentBuilderHelper
         .setComponentName(component.getDisplayNameFromIdentifier())
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
+        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()))
         .build();
   }
 
@@ -627,6 +843,7 @@ public class DocumentBuilderHelper
         .setVulnerabilityDescription(getDescription(indexingContext.getVulnDescByVulnId(), vulnerability))
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
+        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()))
         .build();
   }
 
@@ -794,7 +1011,8 @@ public class DocumentBuilderHelper
         .setPolicyViolationThreatLevel(violation.getThreatLevel())
         .setPolicyViolationWaiverStatus(deriveWaiverStatus(violation))
         .setParentOrganizationNames(parentOrganizations)
-        .setParentOrganizationIds(parentOrganizations);
+        .setParentOrganizationIds(parentOrganizations)
+        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()));
 
     if (violation.getPolicyId() != null) {
       builder.setPolicyViolationPolicyId(violation.getPolicyId());
@@ -904,7 +1122,8 @@ public class DocumentBuilderHelper
         .setReportId(reportId)
         .setComponentEffectiveLicenseId(licenseId)
         .setParentOrganizationNames(parentOrganizations)
-        .setParentOrganizationIds(parentOrganizations);
+        .setParentOrganizationIds(parentOrganizations)
+        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()));
 
     if (component.getHash() != null) {
       builder.setComponentHash(component.getHash());
@@ -1044,6 +1263,7 @@ public class DocumentBuilderHelper
         .setComponentHash(thirdPartyFileCoord.getHash())
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
+        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()))
         .build();
   }
 
@@ -1083,6 +1303,7 @@ public class DocumentBuilderHelper
         .setVulnerabilityDescription(thirdPartyCoordinateSecurity.getDescription())
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
+        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()))
         .build();
   }
 

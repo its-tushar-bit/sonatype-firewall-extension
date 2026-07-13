@@ -106,6 +106,10 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label, createProperty("integer"));
 
+    // Denormalized permission-filter field. Case-sensitive keyword (no normalizer) so opaque
+    // context IDs are matched byte-for-byte. Multi-valued (set per document by DocumentBuilder).
+    propertyMappings.put(FieldIdentifier.ALLOWED_CONTEXT_IDS.label, createProperty("keyword_case_sensitive"));
+
     propertyMappings.put(CREATED_AT_EPOCH_MS, createProperty("long"));
 
     return propertyMappings;
@@ -114,6 +118,9 @@ public class IndexMapping
   private static Property createProperty(String type) {
     return switch (type) {
       case "keyword" -> new Property.Builder().keyword(k -> k.normalizer("lowercase")).build();
+      // No normalizer: preserve raw byte-for-byte match on opaque IDs. docValues / index defaults
+      // are true for keyword mappings so no explicit setters are needed here.
+      case "keyword_case_sensitive" -> new Property.Builder().keyword(k -> k).build();
       case "text" -> new Property.Builder().text(t -> t.analyzer("standard")).build();
       case "integer" -> new Property.Builder().integer(i -> i).build();
       case "float" -> new Property.Builder().float_(i -> i).build();

@@ -89,7 +89,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchNoDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryVisitor;
+import org.apache.lucene.search.TermInSetQuery;
+import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -744,6 +750,90 @@ public abstract class AbstractSearchIndexClient
   }
 
   /**
+   * Context IDs (org and/or app) on which the current user has READ; input to
+   * {@link #buildAllowedContextIdsFilter(Set)}.
+   */
+  public Set<String> getCurrentUserContextIdsWithReadPermission() {
+    return permissionService.getContextIdsForUserWithPermission(currentUser.getUserPrincipal(), Permission.READ);
+  }
+
+  /**
+   * Public entry point matching the {@link SearchIndexClient} interface default. Delegates to
+   * {@link #buildAllowedContextIdsLuceneFilter(Set)} for the actual Lucene-flavour composition.
+   */
+  @Override
+  public Query buildAllowedContextIdsFilter(final Set<String> userPermittedContextIds) {
+    return buildAllowedContextIdsLuceneFilter(userPermittedContextIds);
+  }
+
+  /**
+   * Permission filter over the denormalized {@link FieldIdentifier#ALLOWED_CONTEXT_IDS} field.
+   * Fail-closed contract: returns {@code null} ONLY for global/root access (no filter needed),
+   * a {@link MatchNoDocsQuery} whenever permissions are absent/unresolved, else a
+   * {@link TermInSetQuery} over the permitted IDs. A {@code null} return never means "deny".
+   * Match is case-sensitive — pass the raw {@code Owner.getId()}, do not lowercase.
+   * Wrap the result via {@link #wrapWithPermissionFilter(Query, Query)}.
+   *
+   * <p>
+   * Backward-compat contract (requires prior reindex): the returned {@link TermInSetQuery} matches
+   * on the denormalized {@link FieldIdentifier#ALLOWED_CONTEXT_IDS} field, which pre-existing
+   * (pre-upgrade) documents do not carry until the one-time backfill/reindex has run. It therefore
+   * matches nothing on un-backfilled docs, so a non-global user sees empty results for them
+   * (fail-closed/secure, but surprising). A consumer of this permission filter MUST NOT be enabled
+   * in production until the {@code allowedContextIds} backfill/reindex has completed for the tenant.
+   * That backfill is gated behind the reindex feature flag (default off) and ships with the first
+   * consuming feature, not in this foundations change.
+   */
+  protected Query buildAllowedContextIdsLuceneFilter(final Set<String> userPermittedContextIds) {
+    if (userPermittedContextIds == null) {
+      return new MatchNoDocsQuery("no permissions resolved");
+    }
+    if (userPermittedContextIds.contains(MembershipMapping.GLOBAL_CONTEXT_ID) ||
+        userPermittedContextIds.contains(Organization.ROOT_ORGANIZATION_ID))
+    {
+      return null;
+    }
+    if (userPermittedContextIds.isEmpty()) {
+      return new MatchNoDocsQuery("no permitted contexts");
+    }
+    List<BytesRef> terms = new ArrayList<>(userPermittedContextIds.size());
+    for (String id : userPermittedContextIds) {
+      if (id != null && !id.isEmpty()) {
+        terms.add(new BytesRef(id));
+      }
+    }
+    if (terms.isEmpty()) {
+      return new MatchNoDocsQuery("no permitted contexts");
+    }
+    return new TermInSetQuery(ALLOWED_CONTEXT_IDS.label, terms);
+  }
+
+  /**
+   * ANDs a base query with a permission filter from {@link #buildAllowedContextIdsFilter(Set)}. A
+   * {@code null} filter means global access (base query returned unchanged), never "deny" — so
+   * only ever pass a filter from that method, which fails closed on missing permissions.
+   *
+   * <p>
+   * Contract: when both {@code baseQuery} and {@code permissionFilter} are {@code null} this returns
+   * {@code null}. A searcher NPEs on a {@code null} query, so direct callers must pass a non-null
+   * {@code baseQuery}. The safe composed entry point is {@link #buildPermittedQuery(Query)}, which
+   * substitutes a {@link org.apache.lucene.search.MatchAllDocsQuery} instead of ever returning
+   * {@code null}.
+   */
+  public Query wrapWithPermissionFilter(final Query baseQuery, final Query permissionFilter) {
+    if (permissionFilter == null) {
+      return baseQuery;
+    }
+    if (baseQuery == null) {
+      return permissionFilter;
+    }
+    return new BooleanQuery.Builder()
+        .add(baseQuery, Occur.MUST)
+        .add(permissionFilter, Occur.FILTER)
+        .build();
+  }
+
+  /**
    * When the REST API is called in: <br/>
    * <br/>
    * SBOM Manager mode
@@ -880,12 +970,12 @@ public abstract class AbstractSearchIndexClient
     AtomicInteger consecutiveFailures = new AtomicInteger(0);
 
     CompletableFuture<Void> orgDocs = CompletableFuture.supplyAsync(
-        () -> documentBuilderHelper.buildOrganizationDocs(indexingContext, organizations),
+        () -> documentBuilderHelper.buildOrganizationDocs(indexingContext, organizations, parentsByOrganization),
         getIndexingExecutor())
         .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(
-        () -> documentBuilderHelper.buildApplicationDocs(indexingContext, applications),
+        () -> documentBuilderHelper.buildApplicationDocs(indexingContext, applications, parentsByOrganization),
         getIndexingExecutor())
         .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
@@ -921,7 +1011,7 @@ public abstract class AbstractSearchIndexClient
             .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> sbomDocs = CompletableFuture.supplyAsync(
-        () -> documentBuilderHelper.buildSbomDocs(indexingContext), getIndexingExecutor())
+        () -> documentBuilderHelper.buildSbomDocs(indexingContext, parentsByOrganization), getIndexingExecutor())
         .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     Function<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =

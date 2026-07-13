@@ -12,8 +12,11 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+
+import org.apache.lucene.search.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -388,6 +391,26 @@ public class HybridSearchIndexClient
               primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
           e);
     }
+  }
+
+  /**
+   * Permission-filter helpers delegate to the primary client: the filter is constructed against
+   * the primary index's {@code allowedContextIds} field, so there is no secondary fallback (unlike
+   * {@link #count}) — a permission filter from the wrong index would be meaningless.
+   */
+  @Override
+  public Set<String> getCurrentUserContextIdsWithReadPermission() {
+    return primaryClient.getCurrentUserContextIdsWithReadPermission();
+  }
+
+  @Override
+  public Query buildAllowedContextIdsFilter(final Set<String> userPermittedContextIds) {
+    return primaryClient.buildAllowedContextIdsFilter(userPermittedContextIds);
+  }
+
+  @Override
+  public Query wrapWithPermissionFilter(final Query baseQuery, final Query permissionFilter) {
+    return primaryClient.wrapWithPermissionFilter(baseQuery, permissionFilter);
   }
 
   /**

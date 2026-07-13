@@ -27,7 +27,10 @@ import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_COLOR;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION;
@@ -67,6 +70,7 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_POLICY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_CONSTRAINT_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.ALLOWED_CONTEXT_IDS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME;
@@ -74,7 +78,11 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_
 
 public class DocumentBuilder
 {
+  private static final Logger log = LoggerFactory.getLogger(DocumentBuilder.class);
+
   private Document document;
+
+  private final ItemType itemType;
 
   private Optional<Field> organizationId = Optional.empty();
 
@@ -160,7 +168,10 @@ public class DocumentBuilder
 
   private Optional<Field[]> componentLicenseThreatLevel = Optional.empty();
 
+  private Optional<Field[]> allowedContextIds = Optional.empty();
+
   public DocumentBuilder(ItemType itemType) {
+    this.itemType = itemType;
     document = new Document();
     document.add(new TextField(ITEM_TYPE.label, itemType.name(), Store.YES));
   }
@@ -456,6 +467,36 @@ public class DocumentBuilder
     return this;
   }
 
+  /**
+   * Sets the {@code allowedContextIds} permission-filter field: one {@link StringField} per id. A
+   * null/empty closure is left unwritten (and warned) — such a doc is then invisible to
+   * permission-filtered queries, so indexable docs must always supply a non-empty closure.
+   */
+  public DocumentBuilder setAllowedContextIds(final Collection<String> contextIds) {
+    if (contextIds == null || contextIds.isEmpty()) {
+      // Fail-closed: an empty closure leaves the field unwritten, so the doc is invisible to every
+      // permission-filtered query. A WARN alone makes systemic drop-out (e.g. an org purge) hard to
+      // spot at scale.
+      // TODO(CLM-41642): before the consuming endpoints ship, emit an indexing metric/counter for
+      // "docs indexed with empty allowedContextIds closure" so operators can detect drop-out.
+      log.warn("Refusing to write allowedContextIds for {} document: closure is null or empty; "
+          + "doc will be invisible to permission-filtered queries.", itemType);
+      return this;
+    }
+    Field[] fields = contextIds.stream()
+        .filter(id -> id != null && !id.isEmpty())
+        .distinct()
+        .map(id -> (Field) new StringField(ALLOWED_CONTEXT_IDS.label, id, Store.NO))
+        .toArray(Field[]::new);
+    if (fields.length == 0) {
+      log.warn("Refusing to write allowedContextIds for {} document: closure contained only null/empty "
+          + "entries; doc will be invisible to permission-filtered queries.", itemType);
+      return this;
+    }
+    this.allowedContextIds = Optional.of(fields);
+    return this;
+  }
+
   public Document build() {
     organizationId.ifPresent(this::setFields);
     organizationName.ifPresent(this::setFields);
@@ -499,6 +540,7 @@ public class DocumentBuilder
     componentEffectiveLicenseName.ifPresent(this::setFields);
     componentLicenseThreatGroupName.ifPresent(this::setFields);
     componentLicenseThreatLevel.ifPresent(this::setFields);
+    allowedContextIds.ifPresent(this::setFields);
     return document;
   }
 

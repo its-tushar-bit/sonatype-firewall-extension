@@ -53,6 +53,28 @@ public class HybridSearchIndexClientTest
   }
 
   @Test
+  public void buildPermittedQuery_delegatesToPrimaryClient_notThrowingDefault() {
+    // Given: the primary client resolves the permission filter (Hybrid must NOT hit the throwing
+    // interface default). Mirrors the count() delegation; no secondary fallback for permission.
+    java.util.Set<String> contexts = java.util.Set.of("org-1");
+    org.apache.lucene.search.Query base = new org.apache.lucene.search.MatchAllDocsQuery();
+    org.apache.lucene.search.Query filter = new org.apache.lucene.search.MatchNoDocsQuery("filter");
+    org.apache.lucene.search.Query wrapped = new org.apache.lucene.search.MatchNoDocsQuery("wrapped");
+    when(primaryClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(contexts);
+    when(primaryClient.buildAllowedContextIdsFilter(contexts)).thenReturn(filter);
+    when(primaryClient.wrapWithPermissionFilter(base, filter)).thenReturn(wrapped);
+
+    // When
+    org.apache.lucene.search.Query result = hybridClient.buildPermittedQuery(base);
+
+    // Then: the primary client's composed result is returned (proving Hybrid delegates rather than
+    // hitting the throwing interface default), and the secondary client is never consulted for
+    // permission resolution (no secondary fallback for permission — a real behavioral contract).
+    assertThat(result).isSameAs(wrapped);
+    verify(secondaryClient, never()).getCurrentUserContextIdsWithReadPermission();
+  }
+
+  @Test
   public void testCount_DelegatesToPrimaryClient() {
     // Given
     long expectedCount = 42L;

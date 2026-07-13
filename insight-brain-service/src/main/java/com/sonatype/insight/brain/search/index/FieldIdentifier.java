@@ -51,7 +51,20 @@ public enum FieldIdentifier
   COMPONENT_EFFECTIVE_LICENSE_ID("componentEffectiveLicenseId"),
   COMPONENT_EFFECTIVE_LICENSE_NAME("componentEffectiveLicenseName"),
   COMPONENT_LICENSE_THREAT_GROUP_NAME("componentLicenseThreatGroupName"),
-  COMPONENT_LICENSE_THREAT_LEVEL("componentLicenseThreatLevel");
+  COMPONENT_LICENSE_THREAT_LEVEL("componentLicenseThreatLevel"),
+
+  /**
+   * Denormalized, multi-valued permission filter: every context ID granting READ on this document
+   * — the owning app ID (if any) plus the doc's org and its ancestors, excluding the root sentinel
+   * — matched by a single terms query against the caller's READ context IDs.
+   * Case-sensitive: store/query the raw {@code Owner.getId()} verbatim (no normalizer). This is
+   * safe — and equivalent to the legacy lowercase-normalized ORGANIZATION_ID/APPLICATION_ID path
+   * — because entity IDs are lowercase-hex UUIDs ({@code IdUtil.newUUID()}), so raw already equals
+   * lowercased. If a non-lowercase context ID is ever introduced on either the index or the
+   * permission-lookup side, the failure mode is a silent filter miss (docs disappear), not an
+   * error; keep both sides emitting the raw lowercase-hex id.
+   */
+  ALLOWED_CONTEXT_IDS("allowedContextIds");
 
   public final String label;
 

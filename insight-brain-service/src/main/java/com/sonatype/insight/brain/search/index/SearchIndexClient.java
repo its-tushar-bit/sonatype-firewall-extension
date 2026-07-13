@@ -7,10 +7,14 @@ package com.sonatype.insight.brain.search.index;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 
 /**
  * Client methods for working with the search index
@@ -102,4 +106,77 @@ public interface SearchIndexClient
    * approximation; {@link HybridSearchIndexClient} falls back to the exact Lucene count when OpenSearch fails.
    */
   long countDistinct(String metricQuery, List<String> compositeKeyFields);
+
+  /**
+   * Permission-filters {@code baseQuery}: looks up the caller's READ contexts, builds the filter,
+   * and wraps. Prefer this over calling the three steps below by hand.
+   *
+   * <p>
+   * For global/root-access callers the permission filter is {@code null} (no filtering needed), so
+   * the base query is returned unchanged. If such a caller also passes a {@code null} base query, a
+   * {@link MatchAllDocsQuery} is returned rather than a bare {@code null} that a searcher would NPE
+   * on. A non-null base is always returned intact; this method never yields {@code null}.
+   *
+   * <p>
+   * For a non-global (restricted) caller passing a {@code null} base query, the permission filter
+   * alone is returned — semantically "all documents I'm permitted to see", i.e. equivalent to
+   * {@link MatchAllDocsQuery} AND the permission filter.
+   *
+   * <p>
+   * Backward-compat contract (requires prior reindex): the permission filter matches on the
+   * denormalized {@code allowedContextIds} field. Documents indexed before this field existed
+   * (pre-upgrade docs) do not carry it until the one-time backfill/reindex has run, so a non-global
+   * caller's filtered query matches nothing on those un-backfilled docs and returns empty results
+   * (fail-closed/secure, but surprising). A consumer of this permission filter therefore MUST NOT
+   * be enabled in production until the {@code allowedContextIds} backfill/reindex has completed for
+   * the tenant. That backfill is gated behind the reindex feature flag (default off) and ships with
+   * the first consuming feature, not in this foundations change.
+   */
+  default Query buildPermittedQuery(Query baseQuery) {
+    Query filter = buildAllowedContextIdsFilter(getCurrentUserContextIdsWithReadPermission());
+    Query permitted = wrapWithPermissionFilter(baseQuery, filter);
+    return permitted != null ? permitted : new MatchAllDocsQuery();
+  }
+
+  /**
+   * Context IDs (org and/or app) on which the current user has READ. Default impl throws so
+   * unimplemented backends fail loudly rather than returning an unsafe empty set.
+   *
+   * @apiNote Low-level step of the permission-filter pipeline; prefer the composed
+   *          {@link #buildPermittedQuery(Query)}, which cannot forget the lookup+build+wrap order.
+   */
+  default Set<String> getCurrentUserContextIdsWithReadPermission() {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement permission lookup");
+  }
+
+  /**
+   * Builds the permission-filter clause from the caller's READ contexts. See
+   * {@link com.sonatype.insight.brain.search.index.AbstractSearchIndexClient#buildAllowedContextIdsFilter(Set)}.
+   *
+   * @apiNote Low-level step of the permission-filter pipeline; prefer the composed
+   *          {@link #buildPermittedQuery(Query)}.
+   */
+  default Query buildAllowedContextIdsFilter(Set<String> userPermittedContextIds) {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement permission filter");
+  }
+
+  /**
+   * ANDs a base query with a permission filter. See
+   * {@link com.sonatype.insight.brain.search.index.AbstractSearchIndexClient#wrapWithPermissionFilter(Query, Query)}.
+   *
+   * <p>
+   * Contract: a {@code null} {@code baseQuery} combined with a {@code null} {@code permissionFilter}
+   * yields {@code null}. A searcher NPEs on a {@code null} query, so direct callers must pass a
+   * non-null {@code baseQuery}. The safe composed entry point is {@link #buildPermittedQuery(Query)},
+   * which substitutes a {@link MatchAllDocsQuery} instead of ever returning {@code null}.
+   *
+   * @apiNote Low-level step of the permission-filter pipeline; prefer the composed
+   *          {@link #buildPermittedQuery(Query)}.
+   */
+  default Query wrapWithPermissionFilter(Query baseQuery, Query permissionFilter) {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement permission wrap");
+  }
 }

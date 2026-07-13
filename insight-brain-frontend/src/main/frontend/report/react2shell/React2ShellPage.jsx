@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect } from 'react';
+import './_react2shell.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { NxPageMain, NxLoadWrapper, NxH2, NxPagination, NxTableContainer } from '@sonatype/react-shared-components';
 import React2ShellHeader from './React2ShellHeader';

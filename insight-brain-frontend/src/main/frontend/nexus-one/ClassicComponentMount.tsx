@@ -25,6 +25,7 @@ export function ClassicComponentMount({ children }: ClassicComponentMountProps):
   const offsets = usePreviewShellOffsets();
   return (
     <Theme
+      className="nosc-classic-mount"
       appearance={effectiveTheme}
       accentColor={BRAND_ACCENT}
       grayColor="slate"
@@ -50,9 +51,9 @@ export function ClassicComponentMount({ children }: ClassicComponentMountProps):
  * so it can be passed straight as a UI Router state's `component`.
  *
  * UI Router injects state props into route components; this wrapper renders
- * {@code <Component />} with no props. Use only for Classic pages that do not
- * read router params. CLM-41538 pages that need {@code $stateParams} must use
- * a custom route component instead of this helper.
+ * {@code <Component />} with no props. Safe for Classic pages that read params
+ * from Redux router state; pages that need UI-Router {@code $stateParams}
+ * injected as props must use a custom route component instead.
  */
 export function mountClassicComponent(Component: React.ComponentType<Record<string, never>>): React.ComponentType {
   return function MountedClassicComponent() {

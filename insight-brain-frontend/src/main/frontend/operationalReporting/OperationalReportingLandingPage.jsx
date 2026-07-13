@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import './_operationalReportingLandingPage.scss';
 import {
   NxFontAwesomeIcon,
   NxH1,

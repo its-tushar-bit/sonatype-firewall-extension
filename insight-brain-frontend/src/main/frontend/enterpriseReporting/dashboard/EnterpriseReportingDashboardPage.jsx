@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import './_enterpriseReportingDashboardPage.scss';
 import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {

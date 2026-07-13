@@ -34,7 +34,6 @@
 @use '../components/reachability/reachability';
 @use '../configuration/ldap/ldap';
 @use 'reports';
-@use '../report/react2shell/react2shell';
 @use '../mainHeader/mainHeader';
 @use '../react/iqViolationExclamation';
 @use '../react/ThreatDropdownSelector';
@@ -173,11 +172,7 @@
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
 @use '../configuration/userTokensConfiguration/userTokensConfiguration';
 @use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';
-@use '../enterpriseReporting/enterpriseReportingLandingPage';
-@use '../enterpriseReporting/card/enterpriseReportCard';
 @use '../enterpriseReporting/supportInfo/enterpriseReportingSupportInfo';
-@use '../enterpriseReporting/dashboard/enterpriseReportingDashboardPage';
-@use '../operationalReporting/operationalReportingLandingPage';
 @use '../OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 @use '../sbomManager/sbomManager';
 @use '../sbomManager/features/invalidSbomIndicator';

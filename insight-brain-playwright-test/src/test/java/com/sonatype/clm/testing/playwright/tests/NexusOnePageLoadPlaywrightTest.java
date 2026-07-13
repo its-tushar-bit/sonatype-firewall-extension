@@ -64,14 +64,14 @@ public class NexusOnePageLoadPlaywrightTest
 
   /**
    * Sibling of {@link #testNexusOneSpaLoads()}: confirms the SPA's hash router resolves
-   * routes other than the default {@code /home}. Uses {@code /coming-soon/reports} as a
+   * routes other than the default {@code /home}. Uses {@code /coming-soon/system-config} as a
    * representative non-home route since it exercises a distinct page component
    * ({@code ComingSoonPage}) with its own h1 ("Coming Soon") that we can assert on.
    */
   @Test
   @Category(SanityTest.class)
   public void testNexusOneSpaLoadsAtNonHomeRoute() {
-    playwrightRefreshOrOpen(NexusOnePage.url("/coming-soon/reports"));
+    playwrightRefreshOrOpen(NexusOnePage.url("/coming-soon/system-config"));
 
     NexusOnePage page = new NexusOnePage();
     NexusOnePageAssertions assertions = new NexusOnePageAssertions(page);

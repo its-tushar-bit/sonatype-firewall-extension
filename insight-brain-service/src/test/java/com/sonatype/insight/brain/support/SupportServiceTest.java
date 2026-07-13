@@ -388,7 +388,7 @@ public class SupportServiceTest
     IOFileFilter dirFilter = supportService.excludeDirFilter();
 
     assertThat(dirFilter.accept(insightWork.getReportDir())).isFalse();
-    assertThat(dirFilter.accept(new File("test-work/clm-cluster/logs/server/file.log"))).isTrue();
+    assertThat(dirFilter.accept(new File("/safe-dir/clm-cluster/logs/server/file.log"))).isTrue();
   }
 
   @Test

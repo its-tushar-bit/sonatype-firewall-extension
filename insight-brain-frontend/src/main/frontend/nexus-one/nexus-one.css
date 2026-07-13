@@ -43,3 +43,16 @@ html, body {
 .rt-TooltipContent {
   z-index: var(--nexus-one-z-popper);
 }
+
+/*
+ * Embedded Classic pages render inside .nosc-classic-mount, a fixed,
+ * vertically-scrolling wrapper whose scrollbar narrows the content region by
+ * ~15px versus Classic. That extra loss tips the React2Shell Impact Summary
+ * table, which opts into overflow-x: auto, into showing a horizontal scrollbar
+ * it never shows in Classic. Fall back to RSC's default clip-to-fit inside the
+ * mount so the embedded table matches Classic. Remove this rule to restore the
+ * horizontal scroll.
+ */
+.nosc-classic-mount .iq-react2shell-page .nx-table-container {
+  overflow-x: hidden;
+}

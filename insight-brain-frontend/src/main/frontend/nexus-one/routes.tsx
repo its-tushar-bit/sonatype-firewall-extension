@@ -18,6 +18,9 @@ import {
 import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/SuccessMetricsReportListContainer';
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
 import ApiPage from 'MainRoot/api/ApiPage';
+import React2ShellPage from 'MainRoot/report/react2shell/React2ShellPage';
+import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
+import { ReportingRoute } from 'MainRoot/nexus-one/ReportingRoute';
 import { ClassicComponentMount, mountClassicComponent } from 'MainRoot/nexus-one/ClassicComponentMount';
 import { NATIVE_CLASSIC_EMBED_SLUGS } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap';
@@ -138,6 +141,38 @@ router.stateRegistry.register({
   },
 } as ReactStateDeclaration);
 
+// Deep links from the embedded Reporting pages target these Classic states by name
+// (React2Shell card `href`, Enterprise dashboard cards `stateGo`). Register them in the
+// Nexus One bundle so the links resolve and open the target page in-shell rather than a
+// dead `#`. Both pages read their params from the Redux router state, so mountClassicComponent
+// (which injects no props) is sufficient.
+router.stateRegistry.register({
+  name: 'react2ShellReport',
+  url: '/reports/react2shell',
+  component: mountClassicComponent(React2ShellPage),
+  data: {
+    title: 'React2Shell Vulnerability Report',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'enterpriseReportingDashboardGroup',
+  url: '/enterpriseReportingDashboard/{groupId}/{id}',
+  component: mountClassicComponent(EnterpriseReportingDashboardPage),
+  data: {
+    title: 'Enterprise Reporting Dashboard',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'enterpriseReportingDashboard',
+  url: '/enterpriseReportingDashboard/{id}',
+  component: mountClassicComponent(EnterpriseReportingDashboardPage),
+  data: {
+    title: 'Enterprise Reporting Dashboard',
+  },
+} as ReactStateDeclaration);
+
 function SuccessMetricsRoute(): JSX.Element {
   return (
     <main className="nx-page-main">
@@ -149,11 +184,20 @@ function SuccessMetricsRoute(): JSX.Element {
 const NATIVE_CLASSIC_COMPONENTS: Partial<Record<ComingSoonModuleSlug, React.ComponentType>> = {
   'success-metrics': mountClassicComponent(SuccessMetricsRoute),
   api: mountClassicComponent(ApiPage),
+  reports: mountClassicComponent(ReportingRoute),
 };
 
-if (NATIVE_CLASSIC_EMBED_SLUGS.length !== Object.keys(NATIVE_CLASSIC_COMPONENTS).length) {
-  throw new Error('NATIVE_CLASSIC_EMBED_SLUGS must stay in sync with NATIVE_CLASSIC_COMPONENTS');
-}
+NATIVE_CLASSIC_EMBED_SLUGS.forEach((slug) => {
+  if (!(slug in NATIVE_CLASSIC_COMPONENTS)) {
+    throw new Error(`NATIVE_CLASSIC_EMBED_SLUGS lists '${slug}' but NATIVE_CLASSIC_COMPONENTS has no entry for it`);
+  }
+});
+
+Object.keys(NATIVE_CLASSIC_COMPONENTS).forEach((slug) => {
+  if (!NATIVE_CLASSIC_EMBED_SLUGS.includes(slug as ComingSoonModuleSlug)) {
+    throw new Error(`NATIVE_CLASSIC_COMPONENTS has '${slug}' but NATIVE_CLASSIC_EMBED_SLUGS has no entry for it`);
+  }
+});
 
 function LabsContainer(): JSX.Element {
   return (
@@ -183,6 +227,13 @@ router.stateRegistry.register({
   url: '/_classic-aliases/labs/successMetrics',
   redirectTo: comingSoonStateName('success-metrics'),
   data: { title: 'Success Metrics' },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'enterpriseReporting',
+  url: '/_classic-aliases/enterpriseReporting',
+  redirectTo: comingSoonStateName('reports'),
+  data: { title: 'Enterprise Reporting' },
 } as ReactStateDeclaration);
 
 router.stateRegistry.register({ name: 'dashboard', abstract: true, url: '' });

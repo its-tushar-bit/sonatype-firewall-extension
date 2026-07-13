@@ -45,6 +45,7 @@ import {
 const COLLAPSED_WIDTH = LEFT_NAV_COLLAPSED_WIDTH_PX + 'px';
 const EXPANDED_WIDTH = LEFT_NAV_EXPANDED_WIDTH_PX + 'px';
 const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
+const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '/reports/react2shell']);
 
 /**
  * Nexus One Preview LeftNav.
@@ -71,32 +72,40 @@ const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
  *
  * Hrefs all land inside the Nexus One Preview surface (`/preview/*`).
  * Per CLM-39640 review: clicking a Nexus One nav entry should keep
- * the user inside Nexus One — either landing on a native Preview page
- * (Dashboard, Applications, Advanced Search) or on a Coming Soon
- * stub that has a "Continue in Classic" escape hatch on the page
- * itself. The escape hatch belongs to the page, not the nav click.
+ * the user inside Nexus One: either landing on a native Preview page
+ * (Dashboard, Applications, Advanced Search), a Classic page mounted
+ * in-shell (embedded Classic mount), or a Coming Soon stub that has a
+ * "Continue in Classic" escape hatch on the page itself. The escape
+ * hatch belongs to the page, not the nav click.
  *
  * Stub-target mapping (Classic LeftNav module → /preview/* target):
  *   Dashboard            → /preview/dashboard            (native)
  *   Orgs and Policies    → /preview/organizations        (Coming Soon)
  *   Applications         → /preview/applications         (native)
- *   Reports              → /preview/reports              (Coming Soon)
+ *   Reports              → /coming-soon/reports          (shares the embedded
+ *                          Reporting mount until this entry is retired)
  *   Success Metrics      → /preview/success-metrics      (Coming Soon)
  *   Vulnerability Lookup → /preview/vulnerability-lookup (Coming Soon;
  *                          follow-on PR replaces with native CVE detail)
- *   Advanced Search      → /preview/search               (live — mounts the
+ *   Advanced Search      → /preview/search               (live - mounts the
  *                          full SearchResultsPage; the omnibar handles
  *                          typeahead and deep-links into this page)
  *   Legal                → /preview/legal                (Coming Soon)
  *   Hosted Repos         → /preview/repositories         (Coming Soon)
- *   Enterprise/Operational Reporting → /preview/reports  (consolidated
- *                          with Reports — same conceptual surface)
- *   API                  → /preview/api                  (Coming Soon)
+ *   Enterprise/Operational Reporting → embedded Classic mount (native;
+ *                          the /coming-soon/reports route gate-switches between
+ *                          the Classic Enterprise and Operational Reporting pages
+ *                          on integrated-enterprise-reporting support)
+ *   API                  → embedded Classic mount        (native ApiPage;
+ *                          the /coming-soon/api route mounts the Classic API
+ *                          page in-shell; no Coming Soon stub)
  */
 
 function readHashPath() {
   const rawHash = typeof window !== 'undefined' ? window.location.hash : '';
-  return rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
+  const withoutHash = rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
+  const qIndex = withoutHash.indexOf('?');
+  return qIndex === -1 ? withoutHash : withoutHash.slice(0, qIndex);
 }
 
 /** Hashchange-tracking hook returning the current `#path` segment. */
@@ -110,10 +119,17 @@ function useCurrentHashPath() {
   return path;
 }
 
-/** Active-route check — match exact path or descendant prefix. */
-function isPathActive(currentPath, itemHref) {
-  if (!itemHref) return false;
-  return currentPath === itemHref || currentPath.startsWith(itemHref + '/');
+function hrefMatches(currentPath, href) {
+  return currentPath === href || currentPath.startsWith(href + '/');
+}
+
+function isPathActive(currentPath, item) {
+  if (!item.href) return false;
+  if (hrefMatches(currentPath, item.href)) return true;
+  if (item.activeHrefs) {
+    return item.activeHrefs.some((h) => hrefMatches(currentPath, h));
+  }
+  return false;
 }
 
 /**
@@ -195,7 +211,7 @@ function NavItem({ id, label, Icon, href, isActive, isCollapsed, isSubEntry = fa
  * an unlicensed/SBOM-only/Firewall-only tenant sees the same modules in
  * Nexus One as they do in Classic.
  *
- * Returns an array of `{ id, label, Icon, href }` rows in display order.
+ * Returns an array of `{ id, label, Icon, href, activeHrefs? }` rows in display order.
  */
 function buildNavItems(flags) {
   const {
@@ -250,6 +266,7 @@ function buildNavItems(flags) {
       label: 'Reports',
       Icon: DomainIcons.ReportsBar,
       href: comingSoonHref('reports'),
+      activeHrefs: REPORTING_ACTIVE_HREFS,
     });
   }
   if (isSuccessMetricsEnabled && isOrgsAndAppsEnabled) {
@@ -297,9 +314,8 @@ function buildNavItems(flags) {
       id: 'enterprise-reporting',
       label: 'Enterprise Reporting',
       Icon: DomainIcons.EnterpriseReporting,
-      // Consolidated with Reports — same conceptual surface; the
-      // Reports stub will eventually grow to cover both.
       href: comingSoonHref('reports'),
+      activeHrefs: REPORTING_ACTIVE_HREFS,
     });
   }
   if (isLicensed && !isIntegratedEnterpriseReportingSupported) {
@@ -307,8 +323,8 @@ function buildNavItems(flags) {
       id: 'operational-reporting',
       label: 'Operational Reporting',
       Icon: DomainIcons.OperationalReporting,
-      // Consolidated with Reports — same conceptual surface.
       href: comingSoonHref('reports'),
+      activeHrefs: REPORTING_ACTIVE_HREFS,
     });
   }
   if (isApiPageEnabled) {
@@ -420,7 +436,7 @@ export default function LeftNav() {
                 label={item.label}
                 Icon={item.Icon}
                 href={item.href}
-                isActive={isPathActive(currentPath, item.href)}
+                isActive={isPathActive(currentPath, item)}
                 isCollapsed={isCollapsed}
                 isSubEntry={item.isSubEntry}
               />

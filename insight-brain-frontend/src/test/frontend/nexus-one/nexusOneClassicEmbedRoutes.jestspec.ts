@@ -35,6 +35,24 @@ describe('nexusOneClassicEmbedRoutes', () => {
     );
   });
 
+  it('registers reporting deep-link states so embedded card links resolve in-shell', () => {
+    const react2shell = router.stateRegistry.get('react2ShellReport');
+    expect(react2shell?.url).toBe('/reports/react2shell');
+    expect(react2shell?.component).toBeDefined();
+
+    expect(router.stateRegistry.get('enterpriseReportingDashboardGroup')?.url).toBe(
+      '/enterpriseReportingDashboard/{groupId}/{id}',
+    );
+    expect(router.stateRegistry.get('enterpriseReportingDashboard')?.url).toBe('/enterpriseReportingDashboard/{id}');
+
+    expect(router.stateRegistry.get('enterpriseReporting')?.redirectTo).toBe(
+      comingSoonStateName('reports'),
+    );
+
+    const twoSegmentMatch = router.urlService.match({ path: '/enterpriseReportingDashboard/security/sbom-scorecard' });
+    expect(twoSegmentMatch?.rule?.state?.name).toBe('enterpriseReportingDashboardGroup');
+  });
+
   it('registers Success Metrics detail and Classic alias states', () => {
     expect(router.stateRegistry.get('labs')?.abstract).toBe(true);
     expect(router.stateRegistry.get('labs.successMetricsReport')?.url).toBe(

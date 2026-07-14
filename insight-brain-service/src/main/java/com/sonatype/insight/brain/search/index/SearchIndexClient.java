@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
+import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -178,5 +180,40 @@ public interface SearchIndexClient
   default Query wrapWithPermissionFilter(Query baseQuery, Query permissionFilter) {
     throw new UnsupportedOperationException(
         getClass().getSimpleName() + " does not implement permission wrap");
+  }
+
+  /** Default {@code false} so clients fail closed: an unwired feature flag reads as disabled. */
+  default boolean isGlobalSearchEnabled() {
+    return false;
+  }
+
+  /**
+   * Global Search read path. Implementations must enforce the {@code track_total_hits} cap and
+   * honour the supplied {@link Query} verbatim. Default throws so hybrid impls can't accidentally
+   * serve this surface.
+   */
+  default GlobalSearchResult searchGlobal(GlobalSearchRequest request) {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement Global Search searchGlobal()");
+  }
+
+  /**
+   * Backend identifier embedded in the {@code GlobalSearchCursor} generation token so a cursor
+   * minted by one backend cannot be decoded by another. Default throws so impls fail loudly rather
+   * than return a falsely-shared id.
+   */
+  default String backendId() {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement Global Search backendId()");
+  }
+
+  /**
+   * Validate SBOM-Manager-vs-default mode against the license. Default throws so an unimplemented
+   * backend fails loudly rather than silently skipping the license/mode gate, consistent with
+   * {@link #searchGlobal(GlobalSearchRequest)} and {@link #backendId()}.
+   */
+  default void checkGlobalSearchMode(boolean isSbomManagerMode) {
+    throw new UnsupportedOperationException(
+        getClass().getSimpleName() + " does not implement Global Search mode check");
   }
 }

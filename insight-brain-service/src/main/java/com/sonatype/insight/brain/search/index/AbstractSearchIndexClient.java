@@ -150,6 +150,12 @@ public abstract class AbstractSearchIndexClient
           "Please try narrowing down the query as much as possible " +
           "and consider updating Advanced Search configuration to support larger queries.");
 
+  /**
+   * Total-hits cap for Global Search. Lucene truncates collected hits and OpenSearch passes this
+   * through as {@code track_total_hits}, so both backends report the same upper bound.
+   */
+  public static final int GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP = 10_000;
+
   private final ApplicationDAO applicationDAO;
 
   private final LabelDAO labelDAO;
@@ -1315,4 +1321,8 @@ public abstract class AbstractSearchIndexClient
   public abstract long countDistinct(String metricQuery, List<String> compositeKeyFields);
 
   protected abstract void updateMaxQueryClauseCount() throws IOException;
+
+  public static long capTotalHitsForGlobalSearch(final long total) {
+    return Math.min(total, GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP);
+  }
 }

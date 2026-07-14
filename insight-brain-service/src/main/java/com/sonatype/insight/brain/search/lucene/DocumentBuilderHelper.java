@@ -99,6 +99,18 @@ import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SEC
 @Singleton
 public class DocumentBuilderHelper
 {
+  /**
+   * Canonical indexed {@code policyViolationWaiverStatus} values written onto {@code POLICY_VIOLATION}
+   * documents. Exposed as constants so read-side consumers (e.g. {@code ViolationWaiverStatus} on the
+   * Nexus One violations list) bind to them directly and any change to the vocabulary is a compile-time
+   * break rather than a silent runtime divergence (CLM-42254 review).
+   */
+  public static final String POLICY_VIOLATION_WAIVER_STATUS_ACTIVE = "Active";
+
+  public static final String POLICY_VIOLATION_WAIVER_STATUS_WAIVED = "Waived";
+
+  public static final String POLICY_VIOLATION_WAIVER_STATUS_AUTO_WAIVED = "AutoWaived";
+
   private static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX_EVAL = "AdvancedSearch.createSearchIndex.eval";
 
   private static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX_COMPONENT =
@@ -894,12 +906,12 @@ public class DocumentBuilderHelper
    */
   private static String deriveWaiverStatus(PolicyViolation violation) {
     if (violation.getAutoPolicyWaiverId() != null) {
-      return "AutoWaived";
+      return POLICY_VIOLATION_WAIVER_STATUS_AUTO_WAIVED;
     }
     if (violation.getWaiveTime() != null) {
-      return "Waived";
+      return POLICY_VIOLATION_WAIVER_STATUS_WAIVED;
     }
-    return "Active";
+    return POLICY_VIOLATION_WAIVER_STATUS_ACTIVE;
   }
 
   /**

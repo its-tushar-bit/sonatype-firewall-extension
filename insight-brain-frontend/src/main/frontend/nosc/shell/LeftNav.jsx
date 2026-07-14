@@ -24,7 +24,6 @@ import {
   selectIsHostedRepositoryEvaluationEnabled,
   selectIsIntegratedEnterpriseReportingSupported,
   selectIsOrgsAndAppsEnabled,
-  selectIsReportListSupported,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsAdvancedSearchEnabled } from 'MainRoot/configuration/advancedSearch/advancedSearchSelectors';
@@ -50,11 +49,11 @@ const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '
 /**
  * Nexus One Preview LeftNav.
  *
- * Mirrors Classic's `react/iqSidebarNav/IqSidebarNav.jsx` exactly: same
- * module list, same display order, same Redux-driven permissioning. The
- * only Nexus-One-only addition is **Applications** (the Preview entity
- * browser introduced in P1-F7), inserted between "Orgs and Policies"
- * and "Reports" because it is a sibling-weight entity browser.
+ * Mirrors Classic's `react/iqSidebarNav/IqSidebarNav.jsx`: same
+ * module list, display order, and Redux-driven permissioning. The
+ * Nexus-One-only entry is **Applications** (the Preview entity browser
+ * introduced in P1-F7). The standalone Reports list is folded into it,
+ * so the rail carries no separate Reports entry.
  *
  * Per CLM-39640 user review: drop the Coming Soon stub registry and
  * the Home/Search/Settings/Waivers Nexus-One-only entries that were
@@ -66,9 +65,9 @@ const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '
  * Permissioning hooks the same Redux selectors `NavigationContainer.jsx`
  * uses for IqSidebarNav, so an unlicensed / SBOM-only / Firewall-only
  * tenant gets the same module visibility as in Classic. Applications
- * gates on `isLicensed && isOrgsAndAppsEnabled` (same gate as Reports),
- * which is the right read for the Phase-1 surface — it's an entity
- * browser of the apps the user already has access to.
+ * gates on `isLicensed && isOrgsAndAppsEnabled`, which is the right
+ * read for the Phase-1 surface: it's an entity browser of the apps
+ * the user already has access to.
  *
  * Hrefs all land inside the Nexus One Preview surface (`/preview/*`).
  * Per CLM-39640 review: clicking a Nexus One nav entry should keep
@@ -81,9 +80,8 @@ const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '
  * Stub-target mapping (Classic LeftNav module → /preview/* target):
  *   Dashboard            → /preview/dashboard            (native)
  *   Orgs and Policies    → /preview/organizations        (Coming Soon)
- *   Applications         → /preview/applications         (native)
- *   Reports              → /coming-soon/reports          (shares the embedded
- *                          Reporting mount until this entry is retired)
+ *   Applications         → /preview/applications         (native; the standalone
+ *                          Reports list folds in here, so no separate Reports entry)
  *   Success Metrics      → /preview/success-metrics      (Coming Soon)
  *   Vulnerability Lookup → /preview/vulnerability-lookup (Coming Soon;
  *                          follow-on PR replaces with native CVE detail)
@@ -217,7 +215,6 @@ function buildNavItems(flags) {
   const {
     isLicensed,
     isDashboardAvailable,
-    isReportsListAvailable,
     isSuccessMetricsEnabled,
     isAdvancedSearchEnabled,
     isLegalEnabled,
@@ -251,22 +248,13 @@ function buildNavItems(flags) {
     });
   }
   // Applications: Nexus-One-only entity browser, inserted next to other
-  // entity browsers. Same gate as Reports — `isLicensed && isOrgsAndAppsEnabled`.
+  // entity browsers. Gated on `isLicensed && isOrgsAndAppsEnabled`.
   if (isLicensed && isOrgsAndAppsEnabled) {
     items.push({
       id: 'applications',
       label: 'Applications',
       Icon: DomainIcons.Applications,
       href: '/applications',
-    });
-  }
-  if (isReportsListAvailable && isOrgsAndAppsEnabled) {
-    items.push({
-      id: 'reports',
-      label: 'Reports',
-      Icon: DomainIcons.ReportsBar,
-      href: comingSoonHref('reports'),
-      activeHrefs: REPORTING_ACTIVE_HREFS,
     });
   }
   if (isSuccessMetricsEnabled && isOrgsAndAppsEnabled) {
@@ -360,7 +348,6 @@ export default function LeftNav() {
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const isLicensed = useSelector(selectIsLicensed);
   const isDashboardAvailable = useSelector(selectIsDashboardSupported);
-  const isReportsListAvailable = useSelector(selectIsReportListSupported);
   const isSuccessMetricsEnabled = useSelector(selectIsSuccessMetricsEnabled);
   const isAdvancedSearchEnabled = useSelector(selectIsAdvancedSearchEnabled);
   const isLegalEnabled = useSelector(selectIsAdvancedLegalPackSupported);
@@ -397,7 +384,6 @@ export default function LeftNav() {
     : buildNavItems({
         isLicensed,
         isDashboardAvailable,
-        isReportsListAvailable,
         isSuccessMetricsEnabled,
         isAdvancedSearchEnabled,
         isLegalEnabled,

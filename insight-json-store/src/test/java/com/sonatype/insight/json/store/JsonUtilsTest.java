@@ -5,14 +5,18 @@
  */
 package com.sonatype.insight.json.store;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,6 +55,47 @@ public class JsonUtilsTest
 
     assertThat(JsonUtils.asTree(JsonUtils.aaData(words)).get("aaData")).isEqualTo(tree);
     assertThat(JsonUtils.aaDataNode(tree).get("aaData")).isEqualTo(tree);
+  }
+
+  @Test
+  public void testGenerateStreamsPojoToFile() throws IOException {
+    Map<String, Object> pojo = new TreeMap<>();
+    pojo.put("artifactId", "tomcat-util");
+    pojo.put("groupId", "tomcat");
+    pojo.put("version", "5.5.23");
+
+    File out = File.createTempFile("json-utils-generate", ".json");
+    try {
+      JsonUtils.generate(pojo, out);
+
+      String content = new String(Files.readAllBytes(out.toPath()), StandardCharsets.UTF_8);
+      // Pretty-printed output must be valid JSON that round-trips back to the same pojo.
+      Map<?, ?> parsed = JsonUtils.parse(content, Map.class);
+      assertThat(parsed).isEqualTo(pojo);
+    }
+    finally {
+      Files.deleteIfExists(out.toPath());
+    }
+  }
+
+  @Test
+  public void testGenerateCreatesParentDirectories() throws IOException {
+    File tmpDir = Files.createTempDirectory("json-utils-generate").toFile();
+    File out = new File(new File(tmpDir, "nested"), "sub.json");
+    try {
+      JsonUtils.generate(Map.of("k", "v"), out);
+
+      assertThat(out).exists();
+      @SuppressWarnings("unchecked")
+      Map<String, Object> parsed = JsonUtils.parse(
+          new String(Files.readAllBytes(out.toPath()), StandardCharsets.UTF_8), Map.class);
+      assertThat(parsed).containsEntry("k", "v");
+    }
+    finally {
+      Files.deleteIfExists(out.toPath());
+      Files.deleteIfExists(out.getParentFile().toPath());
+      Files.deleteIfExists(tmpDir.toPath());
+    }
   }
 
   @Test

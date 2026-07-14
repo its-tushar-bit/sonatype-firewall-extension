@@ -166,7 +166,8 @@ public class SupportInfoFilesTest
 
     // When
     when(systemInfo.getObfuscatedSystemProperties("java", "java-info")).thenReturn(wrapEntry("java-info", entries));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(writeFile(WORK_DIR, javaInfo, "java-info.json"));
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any()))
+        .thenReturn(writeFile(WORK_DIR, javaInfo, "java-info.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withJavaVersion().build().get(0);
 
@@ -252,7 +253,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getUser()).thenReturn(wrapEntry("user", users));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedUsers), "user.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withUsersDetails().build().get(0);
@@ -277,7 +278,7 @@ public class SupportInfoFilesTest
     expectedSamlUsers.put("user", samlUsers);
 
     // When
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedSamlUsers), "samlUser.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withSamlUsersDetails().build().get(0);
@@ -302,7 +303,7 @@ public class SupportInfoFilesTest
     expectedOAuth2Users.put("user", oAuth2Users);
 
     // When
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedOAuth2Users), "oauth2User.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withOauth2UsersDetails().build().get(0);
@@ -328,7 +329,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getRole()).thenReturn(wrapEntry("role", roles));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedRoles), "role.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withRolesDetails().build().get(0);
@@ -358,7 +359,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getRolePermission()).thenReturn(wrapEntry("rolePermission", rolePermissions));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedRoles), "rolePermission.json"));
     SupportFile supportFile = supportInfoFiles.aNewListOfSupportFiles().withRolePermissionDetails().build().get(0);
 
@@ -383,7 +384,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getMembershipMapping()).thenReturn(wrapEntry("membership_mapping", membershipMappings));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedMembershipMappings), "membership_mapping.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withMembershipMappings().build().get(0);
@@ -409,7 +410,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getPolicy()).thenReturn(wrapEntry("policy", policies));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedPolicies), "policy.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withPolicies().build().get(0);
@@ -436,7 +437,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getQuarantinedComponent()).thenReturn(wrapEntry("quarantinedComponent", quarantinedComponents));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedQuarantinedComponents),
             "components_in_quarantine.json"));
     SupportFile supportFile =
@@ -463,7 +464,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getWaiver()).thenReturn(wrapEntry("waiver", waivers));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedWaivers), "waiver.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withWaivers().build().get(0);
@@ -483,7 +484,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getRepositoryManager()).thenReturn(wrapEntry("repositoryManager", repositoryManager));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(repositoryManager), "repositoryManager.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withRepositoryManager().build().get(0);
@@ -503,7 +504,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getRepository()).thenReturn(wrapEntry("repository", repository));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(repository), "repository.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withRepositories().build().get(0);
@@ -524,7 +525,7 @@ public class SupportInfoFilesTest
     // When
     when(dbData.getSecurityVulnerabilityOverride()).thenReturn(
         wrapEntry("securityVulnerabilityOverride", securityVulnerabilityOverride));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(securityVulnerabilityOverride),
             "securityVulnerabilityOverride.json"));
     SupportFile supportFile =
@@ -546,7 +547,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getSystemConfiguration()).thenReturn(wrapEntry("systemConfiguration", systemConfigurationProperty));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(systemConfigurationProperty), "systemConfiguration.json"));
     SupportFile supportFile = supportInfoFiles.aNewListOfSupportFiles().withSystemConfigurationInfo().build().get(0);
 
@@ -566,7 +567,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getSystemNotice()).thenReturn(wrapEntry("systemNotice", systemNotice));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(systemNotice), "systemNotice.json"));
     SupportFile supportFile = supportInfoFiles.aNewListOfSupportFiles().withSystemNoticeInfo().build().get(0);
 
@@ -585,7 +586,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getWebhook()).thenReturn(wrapEntry("webhook", webhook));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(webhook), "webhook.json"));
     SupportFile supportFile = supportInfoFiles.aNewListOfSupportFiles().withWebhookInfo().build().get(0);
 
@@ -610,7 +611,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getOrganization()).thenReturn(wrapEntry("organization", expectedOrganizations));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedOrganizations), "organization.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withOrganizationInfo().build().get(0);
@@ -636,7 +637,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getApplication()).thenReturn(wrapEntry("application", expectedApplications));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedApplications), "application.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withApplicationInfo().build().get(0);
@@ -659,7 +660,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getApplicationTag()).thenReturn(wrapEntry("applicationTag", expectedApplicationTags));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedApplicationTags), "applicationTag.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withApplicationTagInfo().build().get(0);
@@ -685,7 +686,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getTag()).thenReturn(wrapEntry("tag", expectedTags));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedTags), "tag.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withTagInfo().build().get(0);
@@ -708,7 +709,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getPolicyTag()).thenReturn(wrapEntry("policyTags", expectedPolicyTags));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedPolicyTags), "policyTag.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withPolicyTagInfo().build().get(0);
@@ -731,7 +732,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getComponentLabel()).thenReturn(wrapEntry("componentLabel", expectedComponentLabels));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedComponentLabels), "componentLabel.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withComponentLabelInfo().build().get(0);
@@ -757,7 +758,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getLabel()).thenReturn(wrapEntry("label", expectedLabels));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedLabels), "label.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withLabelInfo().build().get(0);
@@ -787,7 +788,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getDataRetentionPolicy()).thenReturn(wrapEntry("dataRetentionPolicy", expectedDataRetentionPolicies));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedDataRetentionPolicies), "dataRetentionPolicy.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withDataRetentionPolicyInfo().build().get(0);
@@ -813,7 +814,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getLicense()).thenReturn(wrapEntry("license", expectedLicenses));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedLicenses), "license.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withLicenseInfo().build().get(0);
@@ -840,7 +841,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getMultiLicense()).thenReturn(wrapEntry("multiLicense", expectedMultiLicences));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedMultiLicences), "multiLicense.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withMultiLicenseInfo().build().get(0);
@@ -866,7 +867,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getLicenseThreatGroup()).thenReturn(wrapEntry("licenseThreatGroup", expectedLicenseTreatGroups));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedLicenseTreatGroups), "licenseThreatGroup.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withLicenseThreatGroupInfo().build().get(0);
@@ -897,7 +898,7 @@ public class SupportInfoFilesTest
     // When
     when(dbData.getLicenseThreatGroupLicense()).thenReturn(
         wrapEntry("licenseThreatGroupLicense", expectedLicenseTreatGroupLicenses));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedLicenseTreatGroupLicenses),
             "licenseThreatGroupLicense.json"));
     SupportFile supportFile =
@@ -923,7 +924,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getProprietaryConfig()).thenReturn(wrapEntry("proprietaryConfig", expectedProprietaryConfigs));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedProprietaryConfigs), "proprietaryConfig.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withProprietaryConfigInfo().build().get(0);
@@ -974,7 +975,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getSourceControl()).thenReturn(wrapEntry("sourceControl", expectedSourceControls));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedSourceControls), "sourceControl.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withSourceControlInfo().build().get(0);
@@ -1000,7 +1001,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getPolicyMonitoring()).thenReturn(wrapEntry("policyMonitoring", expectedPolicyMonitoring));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedPolicyMonitoring), "policyMonitoring.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withPolicyMonitoringInfo().build().get(0);
@@ -1026,7 +1027,7 @@ public class SupportInfoFilesTest
 
     // When
     when(dbData.getMigrationTracker()).thenReturn(wrapEntry("migrationTracker", expectedMigrationTrackers));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedMigrationTrackers), "migrationTracker.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withMigrationTrackerInfo().build().get(0);
@@ -1049,7 +1050,7 @@ public class SupportInfoFilesTest
     // When
     when(dbData.getInnerSourceRepositoriesConfiguration()).thenReturn(
         wrapEntry("innerSourceRepositoryConnection", expectedRepositoryConfigs));
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedRepositoryConfigs),
             "innerSourceRepositoryConnection.json"));
     SupportFile supportFile =
@@ -1105,7 +1106,7 @@ public class SupportInfoFilesTest
 
     // When
     when(featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures)).thenReturn(featureConfigProperties);
-    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, featureConfigPropertiesJson, "featuresConfigurationProperties.json"));
     SupportFile supportFile =
         supportInfoFiles.aNewListOfSupportFiles().withFeatureConfigPropertiesInfo().build().get(0);
@@ -1133,7 +1134,7 @@ public class SupportInfoFilesTest
 
     // When
     when(tenantMetadataDAO.get()).thenReturn(tenantMetadata);
-    when(supportInfoUtil.writeTextToFile(any(), any()))
+    when(supportInfoUtil.writePojoAsJsonToFile(any(), any()))
         .thenReturn(writeFile(WORK_DIR, tenantMetadataJson, "tenantMetadata.json"));
     SupportFile supportFile = supportInfoFiles.aNewListOfSupportFiles().withTenantMetadataInfo().build().get(0);
 

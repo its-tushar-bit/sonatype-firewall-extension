@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.json.store;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -187,6 +188,20 @@ public final class JsonUtils
       generator.useDefaultPrettyPrinter().writeObject(pojo);
     }
     return os.toByteArray();
+  }
+
+  /**
+   * Streams pretty-printed JSON for the given POJO directly to a file.
+   * Unlike {@link #format(Object)} / {@link #generate(Object)}, this does not materialize the JSON
+   * as an in-memory {@code String} or {@code byte[]} and therefore is not bounded by the
+   * {@code Integer.MAX_VALUE - 8} array-size limit. Use this for potentially large payloads
+   * (e.g. support-bundle DB dumps).
+   */
+  public static void generate(final Object pojo, final File file) throws IOException {
+    Files.createDirectories(file.getAbsoluteFile().getParentFile().toPath());
+    try (final OutputStream os = new BufferedOutputStream(Files.newOutputStream(file.toPath()))) {
+      write(os, pojo);
+    }
   }
 
   public static String format(Object pojo) {

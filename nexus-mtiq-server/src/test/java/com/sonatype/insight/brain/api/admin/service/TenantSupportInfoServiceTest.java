@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.support.SupportInfo;
 import com.sonatype.insight.brain.support.SupportInfoFiles;
 import com.sonatype.insight.brain.support.SupportInfoUtil;
+import com.sonatype.insight.brain.support.SupportZipInProgressException;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
@@ -26,6 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -44,18 +48,26 @@ public class TenantSupportInfoServiceTest
   @Mock
   private SupportInfoUtil supportInfoUtil;
 
+  @Mock
+  private ClusterLockManager clusterLockManager;
+
+  @Mock
+  private ClusterLock clusterLock;
+
   private TenantSupportInfoService underTest;
 
   @Before
   public void setup() {
     underTest = new TenantSupportInfoService(tenantUtil, tenantValidator,
-        supportInfoFiles, supportInfoUtil);
+        supportInfoFiles, supportInfoUtil, clusterLockManager);
+    when(clusterLockManager.createForSupportZip()).thenReturn(clusterLock);
   }
 
   @Test
   public void testGetSupportInfo() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(clusterLock.tryLock()).thenReturn(true);
       when(supportInfoFiles.aNewListOfSupportFiles()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withConfigPropertiesInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withJavaVersion()).thenReturn(supportInfoFiles);
@@ -100,10 +112,13 @@ public class TenantSupportInfoServiceTest
       when(supportInfoFiles.withTenantMetadataInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.build()).thenReturn(new ArrayList<>());
       when(supportInfoUtil.generateSupportInfo(any(), any())).thenReturn(
-          new SupportInfo(new ByteArrayOutputStream(), "tenant-support-mtiq"));
+          new SupportInfo(new File("tenant-support-mtiq.zip"), "tenant-support-mtiq"));
+
       SupportInfo supportInfo = underTest.getSupportInfo(tenant.tenantSlug);
 
       assertThat(supportInfo.getSupportInfoName()).isEqualTo("tenant-support-mtiq");
+      // The lock must be closed via try-with-resources whether generation succeeds or fails.
+      verify(clusterLock).close();
     });
   }
 
@@ -128,6 +143,22 @@ public class TenantSupportInfoServiceTest
       assertThatThrownBy(() -> underTest.getSupportInfo(tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(NotFoundException.class);
+    });
+  }
+
+  @Test
+  public void testGetSupportInfo_rejectsConcurrentGeneration() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(clusterLock.tryLock()).thenReturn(false);
+
+      assertThatThrownBy(() -> underTest.getSupportInfo(tenant.tenantSlug))
+          .isInstanceOf(SupportZipInProgressException.class)
+          .hasMessageContaining(tenant.tenantSlug)
+          .hasMessageContaining("already in progress");
+      // Even when we didn't take the lock, the try-with-resources still closes it. That is
+      // expected and harmless because the real implementation's close() is idempotent.
+      verify(clusterLock).close();
     });
   }
 }

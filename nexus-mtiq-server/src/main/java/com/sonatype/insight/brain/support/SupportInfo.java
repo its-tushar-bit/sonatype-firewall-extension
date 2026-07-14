@@ -5,21 +5,26 @@
  */
 package com.sonatype.insight.brain.support;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 
+/**
+ * A generated support bundle backed by a file on disk. The support ZIP is written straight to
+ * {@link #supportInfoFile} so that large bundles (e.g. a tenant with a multi-GiB waiver set) do
+ * not have to fit in a single {@code byte[]}, which is bounded by {@code Integer.MAX_VALUE - 8}.
+ */
 public class SupportInfo
 {
-  private final ByteArrayOutputStream supportInfoOutputStream;
+  private final File supportInfoFile;
 
   private final String supportInfoName;
 
-  public SupportInfo(ByteArrayOutputStream supportInfoOutputStream, String supportInfoName) {
-    this.supportInfoOutputStream = supportInfoOutputStream;
+  public SupportInfo(File supportInfoFile, String supportInfoName) {
+    this.supportInfoFile = supportInfoFile;
     this.supportInfoName = supportInfoName;
   }
 
-  public ByteArrayOutputStream getSupportInfoOutputStream() {
-    return supportInfoOutputStream;
+  public File getSupportInfoFile() {
+    return supportInfoFile;
   }
 
   public String getSupportInfoName() {

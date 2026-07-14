@@ -11,10 +11,13 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.support.SupportInfo;
 import com.sonatype.insight.brain.support.SupportInfoFiles;
 import com.sonatype.insight.brain.support.SupportInfoUtil;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
+import com.sonatype.insight.brain.support.SupportZipInProgressException;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -37,17 +40,21 @@ public class TenantSupportInfoService
 
   private final SupportInfoUtil supportInfoUtil;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
   public TenantSupportInfoService(
       TenantUtil tenantUtil,
       TenantValidator tenantValidator,
       SupportInfoFiles supportInfoFiles,
-      SupportInfoUtil supportInfoUtil)
+      SupportInfoUtil supportInfoUtil,
+      ClusterLockManager clusterLockManager)
   {
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
     this.supportInfoFiles = supportInfoFiles;
     this.supportInfoUtil = supportInfoUtil;
+    this.clusterLockManager = clusterLockManager;
   }
 
   public SupportInfo getSupportInfo(final String tenantSlug) throws IOException {
@@ -61,51 +68,61 @@ public class TenantSupportInfoService
       throw new NotFoundException("Tenant doesn't exist");
     }
 
-    final List<SupportFile> supportFiles = this.supportInfoFiles
-        .aNewListOfSupportFiles()
-        .withConfigPropertiesInfo()
-        .withJavaVersion()
-        .withProductVersion()
-        .withLicenseDetails()
-        .withTenantInfo()
-        .withUsersDetails()
-        .withSamlUsersDetails()
-        .withOauth2UsersDetails()
-        .withRolesDetails()
-        .withRolePermissionDetails()
-        .withMembershipMappings()
-        .withPolicies()
-        .withComponentsInQuarantine()
-        .withWaivers()
-        .withRepositoryManager()
-        .withRepositories()
-        .withSecurityVulnerabilityOverrides()
-        .withSystemConfigurationInfo()
-        .withSystemNoticeInfo()
-        .withWebhookInfo()
-        .withOrganizationInfo()
-        .withApplicationInfo()
-        .withApplicationTagInfo()
-        .withTagInfo()
-        .withPolicyTagInfo()
-        .withComponentLabelInfo()
-        .withLabelInfo()
-        .withDataRetentionPolicyInfo()
-        .withLicenseInfo()
-        .withMultiLicenseInfo()
-        .withLicenseThreatGroupInfo()
-        .withLicenseThreatGroupLicenseInfo()
-        .withProprietaryConfigInfo()
-        .withScmInfo()
-        .withSourceControlInfo()
-        .withPolicyMonitoringInfo()
-        .withMigrationTrackerInfo()
-        .withInnerSourceRepositoryInfo()
-        .withSystemConfigPropertiesInfo()
-        .withFeatureConfigPropertiesInfo()
-        .withTenantMetadataInfo()
-        .build();
+    // Mirrors on-prem SupportService.createSupportZip(): a concurrent generation for the same
+    // tenant (executed in the tenant's DB context) would double or triple the disk footprint of
+    // a large bundle on the shared MTIQ ECS task. Reject early instead of racing.
+    try (ClusterLock clusterLock = clusterLockManager.createForSupportZip()) {
+      if (!clusterLock.tryLock()) {
+        throw new SupportZipInProgressException("Support zip generation is already in progress " +
+            "for tenant '" + tenantSlug + "'. Please wait for the current operation to complete.");
+      }
 
-    return supportInfoUtil.generateSupportInfo(tenantSlug, supportFiles);
+      final List<SupportFile> supportFiles = this.supportInfoFiles
+          .aNewListOfSupportFiles()
+          .withConfigPropertiesInfo()
+          .withJavaVersion()
+          .withProductVersion()
+          .withLicenseDetails()
+          .withTenantInfo()
+          .withUsersDetails()
+          .withSamlUsersDetails()
+          .withOauth2UsersDetails()
+          .withRolesDetails()
+          .withRolePermissionDetails()
+          .withMembershipMappings()
+          .withPolicies()
+          .withComponentsInQuarantine()
+          .withWaivers()
+          .withRepositoryManager()
+          .withRepositories()
+          .withSecurityVulnerabilityOverrides()
+          .withSystemConfigurationInfo()
+          .withSystemNoticeInfo()
+          .withWebhookInfo()
+          .withOrganizationInfo()
+          .withApplicationInfo()
+          .withApplicationTagInfo()
+          .withTagInfo()
+          .withPolicyTagInfo()
+          .withComponentLabelInfo()
+          .withLabelInfo()
+          .withDataRetentionPolicyInfo()
+          .withLicenseInfo()
+          .withMultiLicenseInfo()
+          .withLicenseThreatGroupInfo()
+          .withLicenseThreatGroupLicenseInfo()
+          .withProprietaryConfigInfo()
+          .withScmInfo()
+          .withSourceControlInfo()
+          .withPolicyMonitoringInfo()
+          .withMigrationTrackerInfo()
+          .withInnerSourceRepositoryInfo()
+          .withSystemConfigPropertiesInfo()
+          .withFeatureConfigPropertiesInfo()
+          .withTenantMetadataInfo()
+          .build();
+
+      return supportInfoUtil.generateSupportInfo(tenantSlug, supportFiles);
+    }
   }
 }

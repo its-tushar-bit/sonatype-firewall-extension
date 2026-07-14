@@ -206,11 +206,23 @@ public class RepositoryEvaluationQueueSchedulerTest
     verifyNoInteractions(taskScheduler);
   }
 
+  /**
+   * SDEV-1312: {@code deregister()} must be a no-op. In MTIQ,
+   * {@code MultiTenantTenantManagedInitializer.stop()} invokes it on graceful shutdown
+   * with tenant context leaked as {@code global}, which {@code MultiTenantTaskScheduler}
+   * interprets as "delete for all tenants" — wiping the producer job and trigger
+   * cluster-wide. Sibling schedulers ({@code GitHubAppCleanupScheduler},
+   * {@code WaiverExpirationDetectionScheduler}, {@code WaivedComponentUpgradeScheduler},
+   * {@code PullRequestMonitor}, {@code PullRequestCommentPurger},
+   * {@code RelayEventLogCleanupScheduler}, {@code RelayLinkRetrySweepScheduler},
+   * {@code SourceControlStaleEventResetJob}, {@code ApplicationCountHistoryKeeper},
+   * {@code QuartzShiroSessionValidationScheduler}) already carry the same no-op.
+   */
   @Test
-  public void testDeregister_unschedulesProducer() {
+  public void testDeregister_isNoOpToPreserveTriggerAcrossGracefulShutdown() {
     underTest.deregister();
 
-    verify(taskScheduler).unscheduleTask(producer);
+    verifyNoInteractions(taskScheduler);
   }
 
   @Test

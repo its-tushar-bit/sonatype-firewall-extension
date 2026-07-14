@@ -100,7 +100,7 @@ public class RepositoryEvaluationQueueScheduler
 
   @Override
   public void deregister() {
-    stopScheduling();
+    // Do not unschedule task otherwise it will break MTIQ - SDEV-1312
   }
 
   public void reschedule() {

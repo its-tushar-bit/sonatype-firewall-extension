@@ -7,12 +7,14 @@ package com.sonatype.insight.brain.repository.hosted;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +25,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
 
 import jakarta.inject.Inject;
@@ -747,7 +750,16 @@ public class HostedComponentScanQueueConsumerTest
       final String[] innerSha1s,
       final String format) throws Exception
   {
-    Repository repo = enableMonitoring(tempEntity.newRepository(repoName));
+    // Set the DB Repository.format so runtime code paths that read it
+    // (HostedComponentScanQueueConsumer's format carveouts:
+    // KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER, ALWAYS_COLLAPSE_TO_OUTER_FORMATS, etc.)
+    // observe the same format string the scan XML declares. Prior versions of this helper
+    // only wrote the format into the scan XML, leaving repository.format null in the DB —
+    // fine for tests that never exercised a format-carveout branch, but wrong for tests
+    // that do (e.g. rubygems always-collapse).
+    // CLM-42122: enableMonitoring wrapper flips repository.monitoringEnabled=true so the
+    // consumer's per-job guard (introduced by CLM-42122) doesn't skip the job during test.
+    Repository repo = enableMonitoring(tempEntity.newRepository(UUID.randomUUID().toString(), repoName, format));
     tempEntity.newRepositoryComponent(repo.getId());
 
     StringBuilder dirs = new StringBuilder();
@@ -969,6 +981,65 @@ public class HostedComponentScanQueueConsumerTest
   }
 
   /**
+   * CLM-42119 regression guard: the identified-outer collapse gate fires unconditionally
+   * for {@code rubygems} — even when HDS returns {@link MatchState#UNKNOWN} on the outer
+   * — because iq-cli's rubygems scanner treats a {@code .gem} archive as opaque and
+   * surfaces exactly one row regardless of what the archive bundles. Without this behavior
+   * a CM scan of a custom gem (e.g. {@code bundled-gem-app-1.0.0.gem} bundling vendored
+   * copies of rack/nokogiri/actionpack) drills into HDS's expanded view and reports 5
+   * components while an iq-cli scan of the same file reports 1.
+   * <p>
+   * Symmetric to {@link #executeJob_identifiedOuterGate_mavenFormat_collapsesToOneComponent}
+   * which exercises the collapse-on-identified path; this test exercises the collapse-on-
+   * unknown path for a format in {@code ALWAYS_COLLAPSE_TO_OUTER_FORMATS}.
+   */
+  @Test
+  public void executeJob_alwaysCollapse_rubygems_unknownOuter_collapsesToOneComponent() throws Exception {
+    String outerPath = "gems/bundled-gem-app-1.0.0.gem";
+    String outerHash = "bundledgemapp0001";
+    String[] innerPaths = {"vendor/cache/rack-2.0.6.gem", "vendor/cache/nokogiri-1.8.2.gem"};
+    String[] innerHashes = {"rack_hash_042119", "nokogiri_hash_042119"};
+
+    HostedComponentScanQueue job = insertPendingJobWithMultiComponentScanXml(
+        "repo-rubygems-nested", "comp-bundled-gem",
+        outerPath, outerHash, innerPaths, innerHashes, "rubygems");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan-bundled-gem-1");
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    // UNKNOWN outer — the always-collapse behavior kicks in via the rubygems format carveout,
+    // NOT via HDS identifying the outer. This distinguishes the fix from the existing
+    // "identified outer + non-keep format" collapse path.
+    mockPolicyEvaluatorHdsResponseUnknown(outerHash, innerHashes[0], innerHashes[1]);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    RepositoryComponent outerRow = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath);
+    assertThat(outerRow).as("outer rubygems row").isNotNull();
+    assertThat(outerRow.getComponentCount())
+        .as("rubygems always-collapse: componentCount=1 regardless of UNKNOWN match state — "
+            + "matches iq-cli single-file behavior for opaque .gem archives")
+        .isEqualTo(1);
+
+    // Inner-pathname rows deleted by the collapse cleanup — same behavior as the identified-
+    // outer maven test above.
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath + "!/" + innerPaths[0]))
+            .as("inner rack row should not survive rubygems always-collapse")
+            .isNull();
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath + "!/" + innerPaths[1]))
+            .as("inner nokogiri row should not survive rubygems always-collapse")
+            .isNull();
+  }
+
+  /**
    * Idempotency: re-running the same job (e.g. a producer-cycle replay after a restart) must
    * not double-count or duplicate rows. The repository_component is unique on
    * {@code (repository_id, pathname)}, so a re-run UPSERT-style should leave exactly one outer
@@ -1029,6 +1100,90 @@ public class HostedComponentScanQueueConsumerTest
         .isNotNull();
   }
 
+  // ---- CLM-42118 follow-up regression guard ----
+
+  /**
+   * Regression guard for CLM-42118 and the follow-up commit on CLM-41737's branch: the
+   * repository_component.component_count column MUST be stamped from HDS's
+   * {@code data.json.totalArtifactCount} via an unconditional UPDATE — not from
+   * {@code bom.json.aaData.length} via {@code raiseComponentCountIfHigher}.
+   * <p>
+   * The bug this test guards: prior behavior stamped {@code max(scanner_count, bom.aaData.length)}
+   * using raise-only semantics, which for pub .tar.gz (scanner enumerates ~39 files inside) let
+   * the scanner's over-count lock in even though HDS identified only 4 real components. The
+   * drill-in Build Report reads {@code data.json.totalArtifactCount} directly (4), producing a
+   * list-page vs report-page divergence.
+   * <p>
+   * Fixture: scan.xml with 1 outer {@code
+   *
+  <dir>
+   * } (scanner-count = 1); HDS report bundle whose
+   * {@code data.json.totalArtifactCount = 4} and {@code bom.aaData.length = 0}. If the code
+   * regresses to raise-only + scanner source, {@code component_count} lands on 1. If it regresses
+   * to reading {@code bom.aaData.length}, it lands on 0. Only the correct behavior (unconditional
+   * stamp from {@code totalArtifactCount}) produces 4.
+   * <p>
+   * The outer is mocked as UNKNOWN so the identified-outer collapse gate (deferred to a
+   * follow-up ticket) does not fire and rewrite the count to 1. Empty {@code bom.aaData} keeps
+   * {@code ScanPolicyEvaluator}'s drill-down path a no-op so the mirror method's ScanPolicyEvaluator
+   * call completes without producing policy_violation rows — isolating this test to the count
+   * stamp behavior.
+   */
+  @Test
+  public void executeJob_stampsComponentCountFromDataJsonTotalArtifactCount() throws Exception {
+    // Zero-retry config so the mirror's rethrow surfaces the job into FAILED quickly (~1s) instead
+    // of the default 3 attempts (~15-30s). This test doesn't care whether the job COMPLETED — it
+    // asserts on the DB stamp, which happens in saveReportFiles BEFORE the mirror runs. The mirror
+    // itself is expected to fail here because the minimal report bundle intentionally omits files
+    // ScanPolicyEvaluator would need (index.html for embedApplicationPublicId, etc.); that's a
+    // deliberate simplification for this test, not the fix's behavior in production.
+    setQueueConfig(
+        "{\"enabled\":true,\"workerThreadsPerTenant\":1,\"pollIntervalMilliseconds\":30000,"
+            + "\"maxQueuedRows\":10,\"maxRetries\":0}");
+
+    String pathname = "com/example/postfix/1.0/postfix-1.0.jar";
+    String outerHash = "postfix_hash_00001";
+    HostedComponentScanQueue job = insertPendingJobWithScanXml(
+        "repo-postfix-count", "comp-postfix-count",
+        "pkg:maven/com.example/postfix@1.0.0", null,
+        pathname, outerHash, "maven2");
+
+    String scanId = "scan-postfix-count-1";
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId(scanId);
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+
+    // Outer as UNKNOWN — skips the identified-outer collapse gate so the drill path (where this
+    // test's stamp change lives) is exercised.
+    mockPolicyEvaluatorHdsResponseUnknown(outerHash);
+
+    // Report bundle with data.json.totalArtifactCount=4 and bom.aaData.length=0.
+    URL zippedReport = ReportHelper.zipReport(
+        "/HostedComponentScanQueueConsumerTest/postProcessingFixReport", tempDir);
+    hdsMockServer.respondWith(zippedReport).atUri("rest/application/analysis/" + scanId);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    // Assert on the stamp itself — happens in saveReportFiles on the first (and only, given
+    // maxRetries=0) attempt. Regardless of whether the job ultimately COMPLETED or FAILED, the
+    // component_count must reflect HDS's data.json.totalArtifactCount.
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> {
+          RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+              job.getRepositoryId(), pathname);
+          assertThat(rc).as("outer repository_component row").isNotNull();
+          assertThat(rc.getComponentCount())
+              .as("component_count must be stamped from data.json.totalArtifactCount (=4). "
+                  + "If this reads 1, the stamp regressed to raise-only + scanner-count source. "
+                  + "If this reads 0, the stamp regressed to reading bom.aaData.length. "
+                  + "If null, saveReportFiles never reached the stamp — check HDS mock wiring.")
+              .isEqualTo(4);
+        });
+  }
+
+  // ---- CLM-42122 monitoring-disabled guard tests (from origin/main) ----
+
   @Test
   public void executeJob_dropsJobWhenRepositoryMonitoringDisabled() throws Exception {
     // newRepository defaults monitoring off, so this repo is disabled.
@@ -1078,5 +1233,25 @@ public class HostedComponentScanQueueConsumerTest
     await().atMost(10, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+  }
+
+  /**
+   * Companion to {@link #mockPolicyEvaluatorHdsResponseForHashes} that returns
+   * {@link MatchState#UNKNOWN} instead of EXACT. Used by tests that need to bypass the
+   * identified-outer collapse gate and exercise the drill-down path.
+   */
+  private void mockPolicyEvaluatorHdsResponseUnknown(final String... hashes) {
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    for (int i = 0; i < hashes.length; i++) {
+      ComponentEvaluationData ced = new ComponentEvaluationData();
+      ced.requestIndex = i;
+      ced.hash = hashes[i];
+      ced.matchState = MatchState.UNKNOWN.getId();
+      ced.declaredLicenses = new HashSet<>();
+      ced.observedLicenses = new HashSet<>();
+      hdsResult.components.add(ced);
+    }
+    hdsMockServer.respondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
   }
 }

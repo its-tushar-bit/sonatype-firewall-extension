@@ -1503,7 +1503,10 @@ public class ScanPolicyEvaluator
       }
       if (summaryEntry != null) {
         JsonNode content = JsonUtils.parse(summaryEntry.buf);
-        return content.get("totalArtifactCount").asInt();
+        JsonNode totalNode = content.get("totalArtifactCount");
+        if (totalNode != null) {
+          return totalNode.asInt();
+        }
       }
     }
     catch (IOException | NotFoundException e) {

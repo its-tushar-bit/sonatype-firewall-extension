@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomCVSSVectorStringConditionType;
@@ -315,6 +316,36 @@ public class RepositoryPolicyEvaluatorTest
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
         repository, before, after, policyViolations, currentUser.getUsernameOrSystem());
+  }
+
+  @Test
+  public void isComponentUnknownPolicy_matchesMatchStateUnknown_notNameNorSimilar() {
+    // The Component-Unknown policy is identified by its MatchState-is-unknown condition, not its
+    // (renamed) display name — so a renamed policy with that condition still matches, and the
+    // Component-Similar policy (MatchState is similar) does not.
+    assertThat(HostedReportFileBuilder.isComponentUnknownPolicy(
+        policyWithMatchState("Renamed-Unknown", "unknown")))
+            .as("renamed policy with MatchState-is-unknown condition is recognised")
+            .isTrue();
+    assertThat(HostedReportFileBuilder.isComponentUnknownPolicy(
+        policyWithMatchState("Component-Similar", "similar")))
+            .as("MatchState-is-similar is NOT the component-unknown policy")
+            .isFalse();
+    assertThat(HostedReportFileBuilder.isComponentUnknownPolicy(
+        tempEntity.newPolicy(tempEntity.newRepository().getId())))
+            .as("a plain policy with no MatchState condition is not the component-unknown policy")
+            .isFalse();
+    assertThat(HostedReportFileBuilder.isComponentUnknownPolicy(null)).isFalse();
+  }
+
+  private static Policy policyWithMatchState(final String name, final String matchStateValue) {
+    Policy policy = new Policy("id-" + name, name);
+    policy.setThreatLevel(8);
+    Constraint constraint = new Constraint("c1", "c1", LogicalOperator.AND);
+    constraint.setConditions(
+        List.of(new Condition(MatchStateConditionType.ID, "is", matchStateValue)));
+    policy.addConstraint(constraint);
+    return policy;
   }
 
   @Test

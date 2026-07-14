@@ -85,6 +85,9 @@ public class HostedComponentScanQueueConsumerTelemetryTest
   private PolicyEvaluationDAO policyEvaluationDAO;
 
   @Mock
+  private com.sonatype.insight.brain.dataaccess.policy.PolicyDAO policyDAO;
+
+  @Mock
   private jakarta.inject.Provider<ReportDataStore> reportDataStoreProvider;
 
   @Mock
@@ -123,6 +126,7 @@ public class HostedComponentScanQueueConsumerTelemetryTest
         repositoryPolicyEvaluatorProvider,
         applicationForHostedComponentService,
         policyEvaluationDAO,
+        policyDAO,
         reportDataStoreProvider,
         applicationReportPersistenceService,
         scanPolicyEvaluatorProvider,

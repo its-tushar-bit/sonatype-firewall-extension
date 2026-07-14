@@ -452,7 +452,7 @@ public class ReportServiceTest
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
         mockScanUploadService, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService,
-        scanPersistenceService, repositoryComponentDAO, null, null, null, null,
+        scanPersistenceService, repositoryComponentDAO, null, null, null, null, null,
         innerSourceCleanupPendingService, thirdPartySbomMetadataDAO,
         mock(com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer.class),
         mock(com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager.class));

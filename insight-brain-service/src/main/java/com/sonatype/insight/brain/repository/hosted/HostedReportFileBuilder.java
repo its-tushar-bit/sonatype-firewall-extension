@@ -14,10 +14,14 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.utils.ThreatLevel;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +39,169 @@ public class HostedReportFileBuilder
 {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  /**
+   * Formats whose outer artifact is not a real Lifecycle component: LC resolves only the inner
+   * (transitive) dependencies and represents the outer as a single {@code Component-Unknown}(2).
+   * For these, the outer's own violations are replaced with that row so the report matches LC.
+   */
+  private static final Set<String> OUTER_AS_UNKNOWN_FORMATS = Set.of("go");
+
+  /**
+   * Fallback name/threat for the synthetic outer row, used only when the caller could not resolve
+   * the tenant's Component-Unknown policy (e.g. it was deleted). Normal path stamps the resolved
+   * policy's own id/name/threat so the row matches whatever LC emits for the same owner.
+   */
+  private static final String DEFAULT_COMPONENT_UNKNOWN_POLICY_NAME = "Component-Unknown";
+
+  private static final int DEFAULT_COMPONENT_UNKNOWN_THREAT_LEVEL = 2;
+
   private HostedReportFileBuilder() {
+  }
+
+  /**
+   * Reshapes the hosted violation rows so the report matches a same-file Lifecycle scan, keyed on
+   * component identity (not hash, which collides for nuget framework DLLs):
+   * <ul>
+   * <li>go ({@link #OUTER_AS_UNKNOWN_FORMATS}): replace the outer's violations with a single
+   * Component-Unknown row (from the resolved policy), keep the inners.</li>
+   * <li>other formats: drop the outer row when its identity also appears on an inner row (the
+   * npm self-mirror duplicate); nuget fan-out is kept since the outer identity differs.</li>
+   * </ul>
+   * Read-time only — no stored rows are modified; enforcement paths read the outer row directly.
+   */
+  public static List<RepositoryPolicyViolation> excludeOuterViolationsForFormat(
+      final RepositoryComponent outerComponent,
+      final List<RepositoryPolicyViolation> violations,
+      final String repositoryFormat)
+  {
+    return excludeOuterViolationsForFormat(outerComponent, violations, repositoryFormat, null);
+  }
+
+  /**
+   * Overload that takes the tenant's resolved Component-Unknown policy so the synthetic outer row
+   * (go format) carries the same policy id, name and threat level LC emits when it evaluates a bare
+   * {@code .zip} whose matchState is unknown. The caller resolves the policy for the scan's owning
+   * org (inheritance honored) by its {@code MatchState is unknown} condition, not by name — the name
+   * and threat are tenant-editable, so hardcoding either diverges from LC once a tenant customizes
+   * the policy. When the policy cannot be resolved the synthetic row falls back to the defaults.
+   */
+  public static List<RepositoryPolicyViolation> excludeOuterViolationsForFormat(
+      final RepositoryComponent outerComponent,
+      final List<RepositoryPolicyViolation> violations,
+      final String repositoryFormat,
+      final Policy componentUnknownPolicy)
+  {
+    if (violations == null || violations.isEmpty()) {
+      return violations;
+    }
+    final String outerPathname = outerComponent != null ? outerComponent.getPathname() : null;
+    if (outerPathname == null) {
+      return violations;
+    }
+
+    if (repositoryFormat != null && OUTER_AS_UNKNOWN_FORMATS.contains(repositoryFormat.toLowerCase())) {
+      List<RepositoryPolicyViolation> inners = violations.stream()
+          .filter(v -> !outerPathname.equals(v.getPathname()))
+          .collect(java.util.stream.Collectors.toList());
+      List<RepositoryPolicyViolation> result = new java.util.ArrayList<>(inners.size() + 1);
+      result.add(buildOuterUnknownViolation(outerComponent, componentUnknownPolicy));
+      result.addAll(inners);
+      return result;
+    }
+
+    Set<String> innerIdentities = new java.util.HashSet<>();
+    for (RepositoryPolicyViolation v : violations) {
+      if (v.getPathname() != null && v.getPathname().startsWith(outerPathname + "!/")) {
+        String id = componentIdentity(v);
+        if (id != null) {
+          innerIdentities.add(id);
+        }
+      }
+    }
+    if (innerIdentities.isEmpty()) {
+      return violations;
+    }
+    return violations.stream()
+        .filter(v -> {
+          boolean isOuter = outerPathname.equals(v.getPathname());
+          return !(isOuter && innerIdentities.contains(componentIdentity(v)));
+        })
+        .collect(java.util.stream.Collectors.toList());
+  }
+
+  /**
+   * True when {@code policy} is the Component-Unknown policy — identified by its {@code MatchState is
+   * unknown} condition, the same condition LC's evaluator fires on for an unidentified component.
+   * Keyed on the condition (stable code enums) rather than the policy name or id, both of which are
+   * tenant-editable. Callers use this to resolve the effective policy for a scan's owner.
+   */
+  public static boolean isComponentUnknownPolicy(final Policy policy) {
+    if (policy == null || policy.getConstraints() == null) {
+      return false;
+    }
+    return policy.getConstraints()
+        .stream()
+        .filter(c -> c != null && c.getConditions() != null)
+        .flatMap(c -> c.getConditions().stream())
+        .anyMatch(cond -> cond != null
+            && MatchStateConditionType.ID.equals(cond.getConditionTypeId())
+            && MatchState.UNKNOWN.getId().equals(cond.getValue()));
+  }
+
+  /**
+   * Resolves the effective Component-Unknown policy for a scan whose leaf owner is {@code ownerId}
+   * (typically {@code Application.getId()}), using
+   * {@link PolicyDAO#getApplicableByOwnerIdWithHierarchy} so the result reflects the
+   * inherited-and-overridden policy the LC evaluator would fire for the same owner. The policy is
+   * identified by its {@code MatchState is unknown} condition ({@link #isComponentUnknownPolicy}),
+   * not by name — name and threat are tenant-editable, so keying on either diverges from LC once a
+   * tenant customizes the policy. Returns {@code null} when no such policy is applicable (the
+   * caller falls back to defaults).
+   */
+  public static Policy resolveComponentUnknownPolicy(final PolicyDAO policyDAO, final String ownerId) {
+    if (ownerId == null) {
+      return null;
+    }
+    try (TransactionContext tx = policyDAO.createTransactionContext()) {
+      return policyDAO.getApplicableByOwnerIdWithHierarchy(tx, ownerId)
+          .stream()
+          .filter(HostedReportFileBuilder::isComponentUnknownPolicy)
+          .findFirst()
+          .orElse(null);
+    }
+  }
+
+  /** Component identity used to detect the outer self-mirror: format + coordinates (never the hash). */
+  private static String componentIdentity(final RepositoryPolicyViolation v) {
+    ComponentIdentifier ci = v.getComponentIdentifier();
+    if (ci == null || ci.getCoordinates() == null || ci.getCoordinates().isEmpty()) {
+      return null;
+    }
+    return ci.getFormat() + "::" + ci.getCoordinates();
+  }
+
+  /**
+   * Builds the single Component-Unknown row that represents a Go outer module in the hosted report,
+   * mirroring LC. Stamps the resolved policy's id, name and threat level so the row matches whatever
+   * LC emits for the scan's owner; when no policy was resolved, falls back to the defaults.
+   */
+  private static RepositoryPolicyViolation buildOuterUnknownViolation(
+      final RepositoryComponent outerComponent,
+      final Policy componentUnknownPolicy)
+  {
+    RepositoryPolicyViolation unknown = new RepositoryPolicyViolation();
+    unknown.setPathname(outerComponent != null ? outerComponent.getPathname() : null);
+    unknown.setHash(outerComponent != null ? outerComponent.getHash() : null);
+    if (componentUnknownPolicy != null) {
+      unknown.setPolicyId(componentUnknownPolicy.getId());
+      unknown.setPolicyName(componentUnknownPolicy.getName());
+      unknown.setThreatLevel(componentUnknownPolicy.getThreatLevel());
+    }
+    else {
+      unknown.setPolicyName(DEFAULT_COMPONENT_UNKNOWN_POLICY_NAME);
+      unknown.setThreatLevel(DEFAULT_COMPONENT_UNKNOWN_THREAT_LEVEL);
+    }
+    return unknown;
   }
 
   public static byte[] build(
@@ -590,7 +756,7 @@ public class HostedReportFileBuilder
 
   /**
    * Overwrites {@code totalArtifactCount} and {@code knownArtifactCount} in the HDS-supplied
-   * {@code data.json} so the Build Report header ("X COMPONENTS, 100% of all components
+   * {@code data.json} so the Build Report header ("X COMPONENTS, N% of all components
    * identified") matches the Hosted Repos list COMPONENTS column for the same outer artifact.
    * <p>
    * HDS's view of {@code totalArtifactCount} reflects its full bom expansion, which for
@@ -598,9 +764,16 @@ public class HostedReportFileBuilder
    * requirements.txt inside a sdist, package-lock.json inside an npm tarball) inflates beyond
    * what is physically present in the artifact. Per Ross's guidance the hosted-repo scan
    * should report only physically-present components, so this method writes the directly-
-   * identified count both as {@code totalArtifactCount} (the "X COMPONENTS" total) and as
-   * {@code knownArtifactCount} (the numerator of the "% identified" percentage) so the header
-   * stays internally consistent.
+   * identified count as {@code totalArtifactCount} (the "X COMPONENTS" total).
+   * <p>
+   * <b>Single-arg overload behavior</b>: also writes {@code knownArtifactCount = directCount},
+   * which is only correct when the caller has already established that every counted component
+   * is a known match (e.g. the CLM-42117 identified-outer collapse gate where the outer's
+   * matchState was verified before invoking this patcher). For paths where the counted
+   * components may include {@code matchState=unknown} entries (e.g. helm charts of custom
+   * operators, proprietary archives), use {@link #patchDataJsonTotalArtifactCount(byte[], int, int)}
+   * to pass an explicit {@code knownCount} so the header "% identified" percentage reflects the
+   * real matchState distribution rather than falsely reading 100%.
    * <p>
    * Returns the original bytes unchanged if {@code directCount} is negative or
    * {@code originalDataJson} cannot be parsed as an object node — fail-soft.
@@ -609,7 +782,27 @@ public class HostedReportFileBuilder
       final byte[] originalDataJson,
       final int directCount)
   {
-    if (originalDataJson == null || originalDataJson.length == 0 || directCount < 0) {
+    return patchDataJsonTotalArtifactCount(originalDataJson, directCount, directCount);
+  }
+
+  /**
+   * Overload that accepts an explicit {@code knownCount} — the number of components whose
+   * {@code matchState} is one of {@code exact}, {@code similar}, or {@code embedded}. Use this
+   * from paths where {@code directCount} may include unknown-matchState components so the
+   * "% identified" percentage reports the true fraction rather than falsely reading 100%.
+   * <p>
+   * {@code knownCount} is clamped to {@code [0, directCount]} defensively; a caller that
+   * over-counts will still produce a well-formed &lt;=100% percentage in the UI.
+   * <p>
+   * Returns the original bytes unchanged if either count is negative or the JSON cannot be
+   * parsed as an object node — fail-soft.
+   */
+  public static byte[] patchDataJsonTotalArtifactCount(
+      final byte[] originalDataJson,
+      final int directCount,
+      final int knownCount)
+  {
+    if (originalDataJson == null || originalDataJson.length == 0 || directCount < 0 || knownCount < 0) {
       return originalDataJson;
     }
     try {
@@ -619,11 +812,189 @@ public class HostedReportFileBuilder
       }
       ObjectNode data = (ObjectNode) parsed;
       data.put("totalArtifactCount", directCount);
-      data.put("knownArtifactCount", directCount);
+      data.put("knownArtifactCount", Math.min(knownCount, directCount));
       return MAPPER.writeValueAsBytes(data);
     }
     catch (Exception e) {
       return originalDataJson;
+    }
+  }
+
+  /**
+   * Dedupe HDS's {@code bom.json.aaData} by dropping "sparse" file-SHA1 self-mirror shadows
+   * whose {@code (format, coordinates)} is already covered by a "rich" HDS-identified entry.
+   * Rich and sparse are distinguished by identification-metadata presence, not by hash or
+   * pathnames (both of which differ across the two shapes in real HDS output).
+   * <p>
+   * <b>Rich:</b> carries at least one of {@code packageUrl}, {@code identificationSource}, or
+   * {@code aggregateFiles} — HDS's real identification with full metadata.
+   * <br>
+   * <b>Sparse:</b> file-SHA1 self-mirror shadow with none of those — {@code createTime=0},
+   * empty inner {@code aaData}. HDS emits these alongside the rich entry for npm/pypi/rubygems
+   * singles; without dedupe, {@code knownArtifactCount} exceeds {@code totalArtifactCount}
+   * (dot-prop 4.2.0 reads 200% identified).
+   * <p>
+   * <b>Nuget framework fanout preserved:</b> distinct DLLs at {@code /lib/net40/} vs
+   * {@code /lib/net45/} inside a {@code .nupkg} are both rich (both are first-class HDS
+   * identifications) with the same {@code (format, coordinates)} but different hashes — the
+   * shape check keeps both because neither is a sparse shadow of the other.
+   * <p>
+   * <b>Unknown matchState:</b> preserved as-is regardless of coord collision — HDS uses those
+   * for placeholders whose meaning may differ.
+   * <p>
+   * <b>Keep-first invariant:</b> callers downstream ({@link com.sonatype.insight.brain.repository
+   * .hosted.HostedComponentScanQueueConsumer#extractBomOuterHash}, {@link #patchBomKeepOuterOnly})
+   * read {@code aaData[0].hash} as the outer's join key. Only sparse duplicates are dropped, so
+   * the original first entry survives when it's the rich one; when the sparse one happens to
+   * come first (uncommon), we still keep the rich entry — the caller reads whichever entry now
+   * sits at index 0, and either hash is a valid join key since both derive from the same coord.
+   * <p>
+   * Returns the original bytes unchanged when {@code aaData} has less than 2 entries, when no
+   * sparse duplicates are found, or when parsing fails — fail-soft.
+   */
+  public static byte[] dedupeBomIdentifiedRows(final byte[] bomBytes) {
+    if (bomBytes == null || bomBytes.length == 0) {
+      return bomBytes;
+    }
+    try {
+      JsonNode root = MAPPER.readTree(bomBytes);
+      if (!(root instanceof ObjectNode)) {
+        return bomBytes;
+      }
+      JsonNode aa = root.path("aaData");
+      if (!aa.isArray() || aa.size() < 2) {
+        return bomBytes;
+      }
+      // Pass 1: collect (format, coords) keys that have at least one rich entry. Any sparse
+      // entry sharing that key is a self-mirror shadow and gets dropped in pass 2.
+      java.util.Set<String> keysWithRichEntry = new java.util.HashSet<>();
+      for (JsonNode e : aa) {
+        if (!isKnownMatchState(e) || !isRichIdentifiedBomEntry(e)) {
+          continue;
+        }
+        keysWithRichEntry.add(bomCoordKey(e));
+      }
+      // Pass 2: keep every rich, every unknown-matchState, every sparse whose coord has no
+      // rich counterpart. Drop only sparse entries that are shadowed by a rich sibling.
+      ArrayNode kept = MAPPER.createArrayNode();
+      int dropped = 0;
+      for (JsonNode e : aa) {
+        if (!isKnownMatchState(e)) {
+          kept.add(e);
+          continue;
+        }
+        if (!isRichIdentifiedBomEntry(e) && keysWithRichEntry.contains(bomCoordKey(e))) {
+          dropped++;
+          continue;
+        }
+        kept.add(e);
+      }
+      if (dropped == 0) {
+        return bomBytes;
+      }
+      ((ObjectNode) root).set("aaData", kept);
+      return MAPPER.writeValueAsBytes(root);
+    }
+    catch (Exception ex) {
+      return bomBytes;
+    }
+  }
+
+  private static boolean isKnownMatchState(final JsonNode entry) {
+    String ms = entry.path("matchState").asText("").toLowerCase();
+    return "exact".equals(ms) || "similar".equals(ms) || "embedded".equals(ms);
+  }
+
+  /**
+   * A rich HDS-identified bom entry carries at least one of {@code packageUrl},
+   * {@code identificationSource}, or {@code aggregateFiles}. The complementary sparse shape
+   * (HDS's file-SHA1 self-mirror shadow) has none of these — {@code createTime=0}, empty inner
+   * {@code aaData}. The three fields are checked with {@link JsonNode#hasNonNull(String)} so an
+   * explicitly-null field is treated the same as an absent one.
+   */
+  private static boolean isRichIdentifiedBomEntry(final JsonNode entry) {
+    return entry.hasNonNull("packageUrl")
+        || entry.hasNonNull("identificationSource")
+        || entry.hasNonNull("aggregateFiles");
+  }
+
+  private static String bomCoordKey(final JsonNode entry) {
+    JsonNode ci = entry.path("componentIdentifier");
+    String format = ci.path("format").asText("");
+    JsonNode coords = ci.path("coordinates");
+    return format + "::" + (coords.isObject() ? coords.toString() : "");
+  }
+
+  /**
+   * Overwrites just {@code knownArtifactCount} in {@code data.json} to the given value,
+   * clamped to {@code [0, totalArtifactCount]}. Leaves {@code totalArtifactCount} and every
+   * other field untouched. Used after {@link #dedupeBomIdentifiedRows} in the non-collapse
+   * path where {@code totalArtifactCount} is whatever HDS wrote but {@code knownArtifactCount}
+   * needs to be reduced to the deduped known-match count so the header shows a
+   * &lt;=100% percentage instead of HDS's over-count.
+   * <p>
+   * Returns the original bytes unchanged when {@code newKnownCount} is negative, when
+   * {@code data.json} cannot be parsed, or when the existing {@code knownArtifactCount}
+   * already equals the clamped value — fail-soft.
+   */
+  public static byte[] patchDataJsonKnownArtifactCountOnly(
+      final byte[] originalDataJson,
+      final int newKnownCount)
+  {
+    if (originalDataJson == null || originalDataJson.length == 0 || newKnownCount < 0) {
+      return originalDataJson;
+    }
+    try {
+      JsonNode parsed = MAPPER.readTree(originalDataJson);
+      if (!(parsed instanceof ObjectNode)) {
+        return originalDataJson;
+      }
+      ObjectNode data = (ObjectNode) parsed;
+      int total = data.path("totalArtifactCount").asInt(-1);
+      int clamped = total >= 0 ? Math.min(newKnownCount, total) : newKnownCount;
+      int existing = data.path("knownArtifactCount").asInt(-1);
+      if (existing == clamped) {
+        return originalDataJson;
+      }
+      data.put("knownArtifactCount", clamped);
+      return MAPPER.writeValueAsBytes(data);
+    }
+    catch (Exception e) {
+      return originalDataJson;
+    }
+  }
+
+  /**
+   * Counts entries in a {@code bom.json} byte payload whose {@code matchState} is one of
+   * {@code exact}, {@code similar}, or {@code embedded} (case-insensitive). Returns 0 when the
+   * payload is null/empty, {@code aaData} is missing/not-array, or parsing fails — fail-soft.
+   * <p>
+   * Callers use this to compute {@code knownArtifactCount} for {@link
+   * #patchDataJsonTotalArtifactCount(byte[], int, int)}. The three known match states match
+   * what LC's iq-cli counts toward "identified"; anything else ({@code unknown}, {@code partial},
+   * absent) is treated as not identified.
+   */
+  public static int countKnownMatchesInBom(final byte[] bomBytes) {
+    if (bomBytes == null || bomBytes.length == 0) {
+      return 0;
+    }
+    try {
+      JsonNode root = MAPPER.readTree(bomBytes);
+      JsonNode aa = root.path("aaData");
+      if (!aa.isArray()) {
+        return 0;
+      }
+      int n = 0;
+      for (JsonNode e : aa) {
+        String ms = e.path("matchState").asText("").toLowerCase();
+        if ("exact".equals(ms) || "similar".equals(ms) || "embedded".equals(ms)) {
+          n++;
+        }
+      }
+      return n;
+    }
+    catch (Exception ex) {
+      return 0;
     }
   }
 
@@ -711,6 +1082,162 @@ public class HostedReportFileBuilder
     catch (Exception e) {
       return originalDataJson;
     }
+  }
+
+  /**
+   * Zero {@code policyCounts[]} and {@code policyComponentCount} in {@code data.json}. Used by
+   * the collapse gate's rebuild path when the surviving outer-violation set is empty —
+   * {@link #patchDataJsonPolicyCounts} short-circuits on empty input and returns the original
+   * bytes unchanged, which would leave HDS's pre-collapse expanded counts in the file even
+   * though the collapse decision reports one component with no active violations.
+   * <p>
+   * Returns the original bytes unchanged when the JSON can't be parsed as an object — fail-soft.
+   */
+  public static byte[] zeroDataJsonPolicyCounts(final byte[] originalDataJson) {
+    if (originalDataJson == null || originalDataJson.length == 0) {
+      return originalDataJson;
+    }
+    try {
+      JsonNode parsed = MAPPER.readTree(originalDataJson);
+      if (!(parsed instanceof ObjectNode)) {
+        return originalDataJson;
+      }
+      ObjectNode data = (ObjectNode) parsed;
+      ArrayNode counts = data.putArray("policyCounts");
+      for (int i = 0; i < 11; i++) {
+        counts.add(0);
+      }
+      data.put("policyComponentCount", 0);
+      return MAPPER.writeValueAsBytes(data);
+    }
+    catch (Exception e) {
+      return originalDataJson;
+    }
+  }
+
+  /**
+   * Writes {@code policyComponentCount} into the HDS-supplied {@code data.json} ONLY when the
+   * field is absent. HDS emits the field for nested/bundled formats (nuget, helm, pub, conda,
+   * npm/pypi/rubygems bundled) but omits it for non-nested single artifacts (Maven, PyPI single,
+   * RubyGems single, R CRAN); when absent, the report header's "Affecting N components" pill
+   * falls back to 0 in the UI even when violations exist ({@code ReportStatusBar.jsx:21,90}).
+   * <p>
+   * Companion to {@link #patchDataJsonPolicyCounts} that ONLY touches this single field —
+   * {@code policyCounts[]} is left untouched so HDS's threat-level breakdowns (Critical/Severe/
+   * Moderate pills) flow through unchanged. That was the reason the full-recompute
+   * {@code patchDataJsonPolicyCounts} was removed in CLM-41737: recomputing {@code policyCounts[]}
+   * from IQ-side rolled-up violations diverged from HDS's view for archives that bundle other
+   * components. Restoring only the missing field closes the "Affecting 0" gap without
+   * re-introducing that divergence.
+   * <p>
+   * The count is computed from {@code violations} using the same pathname-group + effective-hash
+   * dedup as {@link #buildPolicyThreats}, so the number here matches
+   * {@code policythreats.json.aaData.length} by construction. Waived violations are excluded.
+   * <p>
+   * Returns the original bytes unchanged when {@code policyComponentCount} is already present in
+   * {@code originalDataJson}, or when the JSON cannot be parsed as an object — fail-soft.
+   */
+  public static byte[] patchDataJsonPolicyComponentCountIfAbsent(
+      final byte[] originalDataJson,
+      final RepositoryComponent outerComponent,
+      final List<RepositoryPolicyViolation> violations,
+      final String outerHashOverride)
+  {
+    if (originalDataJson == null || originalDataJson.length == 0) {
+      return originalDataJson;
+    }
+    try {
+      JsonNode parsed = MAPPER.readTree(originalDataJson);
+      if (!(parsed instanceof ObjectNode)) {
+        return originalDataJson;
+      }
+      ObjectNode data = (ObjectNode) parsed;
+      if (!data.path("policyComponentCount").isMissingNode()) {
+        return originalDataJson;
+      }
+      int policyComponentCount = countPolicyAffectedComponents(outerComponent, violations, outerHashOverride);
+      data.put("policyComponentCount", policyComponentCount);
+      return MAPPER.writeValueAsBytes(data);
+    }
+    catch (Exception e) {
+      return originalDataJson;
+    }
+  }
+
+  /**
+   * Counts unique components (deduped by effective hash, same key as {@link #buildPolicyThreats})
+   * whose max active-violation threat level is at least 2. Mirrors the {@code maxThreat >= 2}
+   * threshold used by {@link #patchDataJsonPolicyCounts} and {@code ScanPolicyEvaluator.updateDataJson}
+   * so hosted-repo and application-evaluation paths compute the same value for the same violation set.
+   */
+  private static int countPolicyAffectedComponents(
+      final RepositoryComponent outerComponent,
+      final List<RepositoryPolicyViolation> violations,
+      final String outerHashOverride)
+  {
+    if (violations == null || violations.isEmpty()) {
+      return 0;
+    }
+    Map<String, List<RepositoryPolicyViolation>> byPathname = new LinkedHashMap<>();
+    for (RepositoryPolicyViolation v : violations) {
+      if (v.isWaived() || v.getPathname() == null) {
+        continue;
+      }
+      byPathname.computeIfAbsent(v.getPathname(), k -> new java.util.ArrayList<>()).add(v);
+    }
+    String outerPathname = outerComponent != null ? outerComponent.getPathname() : null;
+    Set<String> seenHashes = new java.util.HashSet<>();
+    int count = 0;
+    for (Map.Entry<String, List<RepositoryPolicyViolation>> entry : byPathname.entrySet()) {
+      List<RepositoryPolicyViolation> group = entry.getValue();
+      boolean isOuter = outerHashOverride != null && outerPathname != null
+          && outerPathname.equals(entry.getKey());
+      String effectiveHash = effectiveHashForGroup(group, outerComponent, isOuter ? outerHashOverride : null);
+      String dedupKey = effectiveHash != null ? effectiveHash : "__null_hash__::" + entry.getKey();
+      if (!seenHashes.add(dedupKey)) {
+        continue;
+      }
+      int maxThreat = group.stream()
+          .mapToInt(RepositoryPolicyViolation::getThreatLevel)
+          .max()
+          .orElse(0);
+      if (maxThreat >= 2) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Sums {@code max(threatLevel)} over distinct {@code (hash, constraintFactsId)}, mirroring LC's
+   * {@code PolicyViolationComparator}: distinct CVEs and distinct binary instances each count.
+   * Waived rows are excluded; a null hash or constraintFactsId falls back to the row id so the row
+   * contributes once (never over-collapses). Since constraintFactsId is backfilled asynchronously,
+   * not-yet-backfilled rows use that fallback until the backfill completes.
+   * <p>
+   * Callers pass the {@link #excludeOuterViolationsForFormat} output so the row set already matches
+   * LC's component set. {@code outerComponent} is unused, kept for call-site symmetry.
+   */
+  public static int totalRisk(
+      final RepositoryComponent outerComponent,
+      final List<RepositoryPolicyViolation> violations)
+  {
+    if (violations == null || violations.isEmpty()) {
+      return 0;
+    }
+    Map<String, Integer> maxThreatByKey = new LinkedHashMap<>();
+    for (RepositoryPolicyViolation v : violations) {
+      if (v.isWaived()) {
+        continue;
+      }
+      String hashKey = v.getHash() != null ? v.getHash() : "__id__::" + v.getId();
+      String constraintKey = v.getConstraintFactsId() != null ? v.getConstraintFactsId() : "__id__::" + v.getId();
+      maxThreatByKey.merge(hashKey + "::" + constraintKey, v.getThreatLevel(), Math::max);
+    }
+    return maxThreatByKey.values()
+        .stream()
+        .mapToInt(Integer::intValue)
+        .sum();
   }
 
   private static byte[] buildData(

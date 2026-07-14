@@ -6,16 +6,22 @@
 package com.sonatype.insight.brain.report;
 
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
 import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -38,6 +44,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -56,6 +63,9 @@ public class ReportServiceHostedComponentTest
 
   @Mock
   private PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Mock
+  private com.sonatype.insight.brain.dataaccess.policy.PolicyDAO policyDAO;
 
   // Only the two fields above are exercised in these tests — all others remain null mocks
   @Mock
@@ -171,6 +181,14 @@ public class ReportServiceHostedComponentTest
         .thenReturn(clusterLock);
     TransactionContext tx = Mockito.mock(TransactionContext.class);
     Mockito.lenient().when(policyEvaluationDAO.createTransactionContext()).thenReturn(tx);
+    // resolveComponentUnknownPolicy opens a tx on policyDAO and lists applicable policies; stub it
+    // to return none so the synthetic go-outer row falls back to the default (these tests don't
+    // exercise a customized Component-Unknown policy).
+    TransactionContext policyTx = Mockito.mock(TransactionContext.class);
+    Mockito.lenient().when(policyDAO.createTransactionContext()).thenReturn(policyTx);
+    Mockito.lenient()
+        .when(policyDAO.getApplicableByOwnerIdWithHierarchy(Mockito.any(), Mockito.anyString()))
+        .thenReturn(java.util.List.of());
   }
 
   // ---- isHostedRepositoryComponent ----
@@ -305,6 +323,153 @@ public class ReportServiceHostedComponentTest
   public void build_securityJson_emptyAaData() throws Exception {
     assertThat(new String(HostedReportFileBuilder.build("security.json", null, List.of())))
         .contains("\"aaData\":[]");
+  }
+
+  // Risk-total dedup tests live in HostedReportFileBuilderTest, where HostedReportFileBuilder.totalRisk
+  // now dedups by (hash, constraintFactsId).
+
+  // ---- metadata-path reshape wiring ----
+
+  @Mock
+  private ApplicationReport applicationReport;
+
+  /**
+   * Guards that the metadata path reshapes violations before computing totalRisk: an npm outer row
+   * whose identity is mirrored by an inner row must be dropped, so the reported risk counts the
+   * shared finding once (14) rather than twice (28).
+   */
+  @Test
+  public void getReportMetadata_npmOuterMirror_totalRiskUsesReshapedViolations() throws Exception {
+    String pubId = "app-pub";
+    String scanId = "scan-npm";
+    String repoId = "repo-npm";
+    String outerPath = "axios-0.18.0.tgz";
+
+    Application application = new Application();
+    application.setId("app-id");
+    application.setPublicId(pubId);
+    application.setOrganizationId("org-id");
+    when(applicationDAO.getByPublicIdNotNull(pubId)).thenReturn(application);
+    when(organizationDAO.getByIdNotNull("org-id")).thenReturn(new Organization());
+
+    when(reportDataStore.getApplicationReport(application, scanId)).thenReturn(applicationReport);
+    when(applicationReport.exists()).thenReturn(true);
+    ReportEntry dataEntry = new ReportEntry("data.json", 0L,
+        "{\"policyComponentCount\":1,\"globals\":{}}".getBytes());
+    lenient().when(applicationReport.getEntries(List.of("data.json", "template.properties", "summary.json")))
+        .thenReturn(Map.of("data.json", dataEntry));
+
+    PolicyEvaluation evaluation = org.mockito.Mockito.mock(PolicyEvaluation.class);
+    when(evaluation.getStageTypeId()).thenReturn(BuildStageType.ID);
+    when(evaluation.getScanTriggerType()).thenReturn(ScanTriggerType.REPOSITORY_MANAGER);
+    when(policyEvaluationDAO.getLastByApplicationIdAndScanId("app-id", scanId)).thenReturn(evaluation);
+
+    RepositoryComponent comp = newComponent(repoId, outerPath, "file_sha1");
+    when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
+
+    Repository repository = new Repository();
+    repository.setFormat("npm");
+    when(repositoryDAO.getById(repoId)).thenReturn(repository);
+
+    ComponentIdentifier axios = newNpmIdentifier("axios", "0.18.0");
+    RepositoryPolicyViolation outer =
+        newInnerViolation(outerPath, "file_sha1", axios, "cve-1", 14);
+    RepositoryPolicyViolation innerMirror =
+        newInnerViolation(outerPath + "!/axios@0.18.0", "hds_hash", axios, "cve-1", 14);
+    when(repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repoId, outerPath))
+        .thenReturn(List.of(outer, innerMirror));
+
+    ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(pubId, scanId);
+
+    assertThat(metadata.getTotalRisk())
+        .as("outer self-mirror dropped before totalRisk, so the shared finding counts once")
+        .isEqualTo(14);
+  }
+
+  /**
+   * Guards the recovery path (saveOverlayFiles): when a hosted scan's data.json lacks
+   * policyComponentCount, getReportMetadataNoAuth regenerates the overlay. The persisted
+   * policythreats.json must be built from the reshaped violation set, so an npm outer self-mirror
+   * is dropped (one aaData entry, not two).
+   */
+  @Test
+  public void getReportMetadata_recoveryPath_persistsReshapedPolicyThreats() throws Exception {
+    String pubId = "app-pub";
+    String scanId = "scan-npm";
+    String repoId = "repo-npm";
+    String outerPath = "axios-0.18.0.tgz";
+
+    Application application = new Application();
+    application.setId("app-id");
+    application.setPublicId(pubId);
+    application.setOrganizationId("org-id");
+    when(applicationDAO.getByPublicIdNotNull(pubId)).thenReturn(application);
+    when(applicationDAO.getByIdNotNull("app-id")).thenReturn(application);
+    when(organizationDAO.getByIdNotNull("org-id")).thenReturn(new Organization());
+
+    // data.json WITHOUT policyComponentCount => triggers the saveOverlayFiles recovery branch.
+    ReportEntry dataEntry = new ReportEntry("data.json", 0L, "{\"globals\":{}}".getBytes());
+    when(reportDataStore.getApplicationReport(application, scanId)).thenReturn(applicationReport);
+    when(applicationReport.exists()).thenReturn(true);
+    lenient().when(applicationReport.getEntries(List.of("data.json", "template.properties", "summary.json")))
+        .thenReturn(Map.of("data.json", dataEntry));
+    lenient().when(applicationReport.getEntry("bom.json")).thenReturn(null);
+    lenient().when(applicationReport.getEntry("data.json")).thenReturn(dataEntry);
+
+    PolicyEvaluation evaluation = Mockito.mock(PolicyEvaluation.class);
+    lenient().when(evaluation.getStageTypeId()).thenReturn(BuildStageType.ID);
+    when(evaluation.getScanTriggerType()).thenReturn(ScanTriggerType.REPOSITORY_MANAGER);
+    when(policyEvaluationDAO.getLastByApplicationIdAndScanId("app-id", scanId)).thenReturn(evaluation);
+
+    RepositoryComponent comp = newComponent(repoId, outerPath, "file_sha1");
+    when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
+
+    Repository repository = new Repository();
+    repository.setFormat("npm");
+    when(repositoryDAO.getById(repoId)).thenReturn(repository);
+
+    ComponentIdentifier axios = newNpmIdentifier("axios", "0.18.0");
+    RepositoryPolicyViolation outer = newInnerViolation(outerPath, "file_sha1", axios, "cve-1", 14);
+    RepositoryPolicyViolation innerMirror =
+        newInnerViolation(outerPath + "!/axios@0.18.0", "hds_hash", axios, "cve-1", 14);
+    when(repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repoId, outerPath))
+        .thenReturn(List.of(outer, innerMirror));
+
+    reportService.getReportMetadataNoAuth(pubId, scanId);
+
+    ArgumentCaptor<java.io.InputStream> captor = ArgumentCaptor.forClass(java.io.InputStream.class);
+    verify(applicationReportPersistenceService)
+        .saveReportFile(eq("app-id"), eq(scanId), eq("policythreats.json"), captor.capture());
+    String json = new String(captor.getValue().readAllBytes());
+    int aaDataEntries = new com.fasterxml.jackson.databind.ObjectMapper()
+        .readTree(json)
+        .path("aaData")
+        .size();
+    assertThat(aaDataEntries)
+        .as("recovery path persists reshaped policythreats.json: npm outer self-mirror dropped, one entry")
+        .isEqualTo(1);
+  }
+
+  private static ComponentIdentifier newNpmIdentifier(String packageId, String version) {
+    TreeMap<String, String> coords = new TreeMap<>();
+    coords.put("packageId", packageId);
+    coords.put("version", version);
+    return new ComponentIdentifier("npm", coords);
+  }
+
+  private static RepositoryPolicyViolation newInnerViolation(
+      String pathname,
+      String hash,
+      ComponentIdentifier ci,
+      String constraintFactsId,
+      int threatLevel)
+  {
+    RepositoryPolicyViolation v = newViolation("vid-" + pathname, "pol-sec", "Security-High", threatLevel, false);
+    v.setPathname(pathname);
+    v.setHash(hash);
+    v.setComponentIdentifier(ci);
+    v.setConstraintFactsId(constraintFactsId);
+    return v;
   }
 
   // ---- CLM-42080: reevaluateHostedComponent invokes the nested-violation mirror ----
@@ -490,6 +655,28 @@ public class ReportServiceHostedComponentTest
     return v;
   }
 
+  private static RepositoryPolicyViolation newViolationForRiskSum(
+      String id,
+      String pathname,
+      String hash,
+      ComponentIdentifier ci,
+      String policyId,
+      int threatLevel)
+  {
+    RepositoryPolicyViolation v = newViolation(id, policyId, "Policy-" + policyId, threatLevel, false);
+    v.setPathname(pathname);
+    v.setHash(hash);
+    v.setComponentIdentifier(ci);
+    return v;
+  }
+
+  private static ComponentIdentifier ci(String format, String packageId, String version) {
+    TreeMap<String, String> coords = new TreeMap<>();
+    coords.put("packageId", packageId);
+    coords.put("version", version);
+    return new ComponentIdentifier(format, coords);
+  }
+
   // ---- persistHostedComponentReevaluation (CLM-41904) ----
 
   private TransactionContext stubPersistPlumbing() {
@@ -622,6 +809,7 @@ public class ReportServiceHostedComponentTest
     when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
     com.sonatype.insight.brain.model.repository.Repository repo =
         mock(com.sonatype.insight.brain.model.repository.Repository.class);
+    when(repo.getId()).thenReturn("repo-1");
     when(repo.getFormat()).thenReturn("maven");
     when(repositoryDAO.getById("repo-1")).thenReturn(repo);
     Application application = mock(Application.class);
@@ -709,5 +897,184 @@ public class ReportServiceHostedComponentTest
     verify(applicationReportPersistenceService, never()).saveReportFile(
         org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
         org.mockito.ArgumentMatchers.eq("summary.json"), any());
+  }
+
+  // CLM-42080 followup: mirror must run before the outer cluster lock is acquired.
+  @Test
+  public void reevaluateHostedComponent_mirrorRunsBeforeClusterLockAcquired() throws Exception {
+    stubReevaluatePlumbing("app-1", "scan-1");
+    Application application = applicationDAO.getByIdNotNull("app-1");
+    ClusterLock lock = mock(ClusterLock.class);
+    when(clusterLockManager.createForPolicyEvaluation(application, "scan-1")).thenReturn(lock);
+
+    reportService.reevaluateHostedComponent("app-1", "scan-1");
+
+    // stubReevaluatePlumbing leaves getLastByApplicationIdAndScanId unstubbed → null →
+    // ReportService falls back to ComplianceStageType.ID ("compliance"), same as the sibling
+    // reevaluateHostedComponent_usesComplianceStageWhenNoPriorPolicyEvaluation test.
+    org.mockito.InOrder inOrder = org.mockito.Mockito.inOrder(hostedComponentScanQueueConsumer, lock);
+    inOrder.verify(hostedComponentScanQueueConsumer)
+        .mirrorNestedComponentViolationsFromApplicationEvaluation(
+            eq("scan-1"),
+            eq("repo-1"),
+            eq("com/example/lib.jar"),
+            eq("hash-abc"),
+            same(application),
+            eq("scan-1"),
+            eq("compliance"),
+            isNull());
+    inOrder.verify(lock).lock();
+    inOrder.verify(lock).close();
+  }
+
+  // Pins the fail-soft contract: even when the mirror throws, reevaluateHostedComponent must
+  // still acquire the outer cluster lock, run the outer evaluate, and release the lock.
+  @Test
+  public void reevaluateHostedComponent_mirrorFailure_stillAcquiresLockAndRunsOuterEval() throws Exception {
+    stubReevaluatePlumbing("app-1", "scan-1");
+    Application application = applicationDAO.getByIdNotNull("app-1");
+    ClusterLock lock = mock(ClusterLock.class);
+    when(clusterLockManager.createForPolicyEvaluation(application, "scan-1")).thenReturn(lock);
+    doThrow(new RuntimeException("simulated mirror crash"))
+        .when(hostedComponentScanQueueConsumer)
+        .mirrorNestedComponentViolationsFromApplicationEvaluation(
+            anyString(), anyString(), anyString(), anyString(),
+            any(Application.class), anyString(), anyString(), any());
+
+    assertThatCode(() -> reportService.reevaluateHostedComponent("app-1", "scan-1"))
+        .doesNotThrowAnyException();
+
+    verify(lock).lock();
+    verify(repositoryPolicyEvaluator).evaluate(any(), any(), org.mockito.ArgumentMatchers.eq(false),
+        org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.anyString());
+    verify(lock).close();
+  }
+
+  // ---- refreshHostedComponentAfterEvaluation (CLM-42136 shared helper) ----
+  //
+  // Direct unit tests on the public helper used by both the Re-Evaluate button and the CM flow
+  // processor. Coverage locks in the flag-driven persist behavior and the fail-soft contract on
+  // the mirror step so future refactors can't quietly change either.
+
+  @Test
+  public void refreshHostedComponentAfterEvaluation_persistFlagTrue_insertsPolicyEvaluationRow() {
+    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash123");
+    Repository repository = new Repository();
+    repository.setId("repo1");
+    Application application = new Application();
+    application.setId("app-1");
+
+    reportService.refreshHostedComponentAfterEvaluation(
+        component, repository, application, "app-1", "scan-1", "build", true);
+
+    verify(hostedComponentScanQueueConsumer)
+        .mirrorNestedComponentViolationsFromApplicationEvaluation(
+            eq("scan-1"), eq("repo1"), eq("outer.zip"), eq("outerhash123"),
+            same(application), eq("scan-1"), eq("build"), isNull());
+    // Explicit persist call — Re-Evaluate button path.
+    verify(policyEvaluationDAO).insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+  }
+
+  @Test
+  public void refreshHostedComponentAfterEvaluation_persistFlagFalse_skipsExplicitPolicyEvaluationInsert() {
+    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash123");
+    Repository repository = new Repository();
+    repository.setId("repo1");
+    Application application = new Application();
+    application.setId("app-1");
+
+    reportService.refreshHostedComponentAfterEvaluation(
+        component, repository, application, "app-1", "scan-1", "build", false);
+
+    verify(hostedComponentScanQueueConsumer)
+        .mirrorNestedComponentViolationsFromApplicationEvaluation(
+            anyString(), anyString(), anyString(), anyString(),
+            any(Application.class), anyString(), anyString(), any());
+    // The explicit persist call this flag controls must NOT fire; NOTE: the mirror step itself
+    // (via ScanPolicyEvaluator.evaluate) still inserts its own policy_evaluation row in the
+    // real implementation — this test uses a mocked consumer so the mirror side-effect is a
+    // no-op and we can assert cleanly that policyEvaluationDAO.insert isn't invoked from
+    // refreshHostedComponentAfterEvaluation itself.
+    verify(policyEvaluationDAO, never()).insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+  }
+
+  /**
+   * Fail-soft contract on the mirror step: a mirror crash must not skip the overlay-file save.
+   * The mirror is idempotent — the next successful re-evaluation retries — but a stale overlay
+   * would leave the UI showing pre-refresh threat levels indefinitely.
+   */
+  @Test
+  public void refreshHostedComponentAfterEvaluation_mirrorFailureDoesNotBlockOverlaySave() {
+    RepositoryComponent component = newComponent("repoY", "archive.zip", "hashY");
+    Repository repository = new Repository();
+    repository.setId("repoY");
+    Application application = new Application();
+    application.setId("appY");
+    doThrow(new RuntimeException("simulated mirror crash"))
+        .when(hostedComponentScanQueueConsumer)
+        .mirrorNestedComponentViolationsFromApplicationEvaluation(
+            anyString(), anyString(), anyString(), anyString(),
+            any(Application.class), anyString(), anyString(), any());
+
+    assertThatCode(() -> reportService.refreshHostedComponentAfterEvaluation(
+        component, repository, application, "appY", "scanY", "build", true))
+            .as("mirror failure must not propagate — outer eval has already persisted, "
+                + "and the mirror is idempotent (next re-eval retries)")
+            .doesNotThrowAnyException();
+    // Persist still fires because the mirror failure was swallowed.
+    verify(policyEvaluationDAO).insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+  }
+
+  /**
+   * Overlay-save failure is fatal to the Re-Evaluate button path: a stale {@code policythreats.json}
+   * would leave the UI showing pre-refresh threat levels, so the checked exception is wrapped in
+   * a 500. persistHostedComponentReevaluation must NOT run afterwards — advancing the "Triggered
+   * by" timestamp on top of a stale overlay would be worse than not advancing it at all.
+   */
+  @Test
+  public void refreshHostedComponentAfterEvaluation_overlayCheckedException_wrappedAndPersistNotCalled() throws Exception {
+    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash");
+    Repository repository = new Repository();
+    repository.setId("repo1");
+    Application application = new Application();
+    application.setId("app-1");
+    when(repositoryComponentDAO.getByScanId("scan-1")).thenReturn(component);
+    when(applicationDAO.getByIdNotNull("app-1")).thenReturn(application);
+    // Force saveOverlayFiles to throw a checked Exception via applicationReportPersistenceService
+    // (its saveReportFile declares throws IOException).
+    doThrow(new java.io.IOException("simulated disk failure writing policythreats.json"))
+        .when(applicationReportPersistenceService)
+        .saveReportFile(anyString(), anyString(), anyString(), any());
+
+    assertThatThrownBy(() -> reportService.refreshHostedComponentAfterEvaluation(
+        component, repository, application, "app-1", "scan-1", "build", true))
+            .isInstanceOf(jakarta.ws.rs.InternalServerErrorException.class)
+            .hasMessageContaining("scan-1");
+    verify(policyEvaluationDAO, never()).insert(any(TransactionContext.class), any(PolicyEvaluation.class));
+  }
+
+  /**
+   * Unchecked exceptions from saveOverlayFiles must propagate as-is so the caller sees the
+   * original type rather than a wrapped 500. The CM flow processor relies on this to record its
+   * drop metric with the underlying failure type.
+   */
+  @Test
+  public void refreshHostedComponentAfterEvaluation_overlayRuntimeException_propagatesAsIs() throws Exception {
+    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash");
+    Repository repository = new Repository();
+    repository.setId("repo1");
+    Application application = new Application();
+    application.setId("app-1");
+    when(repositoryComponentDAO.getByScanId("scan-1")).thenReturn(component);
+    when(applicationDAO.getByIdNotNull("app-1")).thenReturn(application);
+    IllegalStateException runtimeBoom = new IllegalStateException("disk full");
+    doThrow(runtimeBoom)
+        .when(applicationReportPersistenceService)
+        .saveReportFile(anyString(), anyString(), anyString(), any());
+
+    assertThatThrownBy(() -> reportService.refreshHostedComponentAfterEvaluation(
+        component, repository, application, "app-1", "scan-1", "build", true))
+            .isSameAs(runtimeBoom);
+    verify(policyEvaluationDAO, never()).insert(any(TransactionContext.class), any(PolicyEvaluation.class));
   }
 }

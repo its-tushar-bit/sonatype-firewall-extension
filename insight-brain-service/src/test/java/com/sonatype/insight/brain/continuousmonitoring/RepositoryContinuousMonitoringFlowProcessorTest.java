@@ -13,12 +13,15 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -32,7 +35,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,6 +71,12 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
   private RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
   @Mock
+  private ReportService reportService;
+
+  @Mock
+  private ApplicationForHostedRepositoryComponentService applicationForHostedRepositoryComponentService;
+
+  @Mock
   private TransactionContext tx;
 
   private SimpleMeterRegistry meterRegistry;
@@ -77,7 +89,8 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     meterRegistry = new SimpleMeterRegistry();
     underTest =
         new RepositoryContinuousMonitoringFlowProcessor(hostedRepoItemDAO, repositoryDAO, repositoryComponentDAO,
-            repositoryPolicyEvaluator, meterRegistry);
+            repositoryPolicyEvaluator, reportService, applicationForHostedRepositoryComponentService,
+            meterRegistry);
   }
 
   @Test
@@ -249,6 +262,153 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     assertThat(captor.getValue().components).hasSize(1);
   }
 
+  @Test
+  public void processRefreshesOverlaysAfterEvaluation() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    RepositoryComponent c = component(HASH, "lib/a.jar", "stage-release", "scan-1");
+    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
+    Application app = application("app-1");
+    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
+        .thenReturn(app);
+
+    underTest.process(queueItem());
+
+    verify(repositoryPolicyEvaluator).evaluateForMonitoring(any(Repository.class),
+        any(RepositoryComponentEvaluationDataRequestList.class), any(String.class));
+    // CM must NOT persist a new policy_evaluation row on every cycle (would bloat Latest Evaluations),
+    // so persistPolicyEvaluationRow=false. ReportService does the mirror + overlay writes internally.
+    verify(reportService).refreshHostedComponentAfterEvaluation(
+        eq(c), eq(repo), eq(app), eq("app-1"), eq("scan-1"), eq("stage-release"), eq(false));
+  }
+
+  @Test
+  public void processSkipsRefreshWhenScanIdIsNull() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    // Component was never NXRM-scanned so no scanId exists — nothing on disk to refresh.
+    RepositoryComponent c = component(HASH, "lib/a.jar", null, null);
+    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
+
+    underTest.process(queueItem());
+
+    verify(repositoryPolicyEvaluator).evaluateForMonitoring(any(Repository.class),
+        any(RepositoryComponentEvaluationDataRequestList.class), any(String.class));
+    verify(reportService, never()).refreshHostedComponentAfterEvaluation(
+        any(), any(), any(), any(), any(), any(), anyBoolean());
+    verify(applicationForHostedRepositoryComponentService, never()).getOrCreateApplication(any(), any());
+  }
+
+  @Test
+  public void processSwallowsRefreshExceptionAndContinuesBatch() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    RepositoryComponent c1 = component(HASH, "lib/a.jar", null, "scan-1");
+    RepositoryComponent c2 = component(HASH, "lib/b.jar", null, "scan-2");
+    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2));
+    Application app1 = application("app-1");
+    Application app2 = application("app-2");
+    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
+        .thenReturn(app1);
+    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/b.jar"))
+        .thenReturn(app2);
+    doThrow(new RuntimeException("disk full")).when(reportService)
+        .refreshHostedComponentAfterEvaluation(
+            eq(c1), any(Repository.class), eq(app1), eq("app-1"), eq("scan-1"), any(), anyBoolean());
+
+    underTest.process(queueItem());
+
+    // First component blew up; second must still be attempted so a single bad component doesn't
+    // poison the whole CM batch.
+    verify(reportService).refreshHostedComponentAfterEvaluation(
+        eq(c1), eq(repo), eq(app1), eq("app-1"), eq("scan-1"), any(), eq(false));
+    verify(reportService).refreshHostedComponentAfterEvaluation(
+        eq(c2), eq(repo), eq(app2), eq("app-2"), eq("scan-2"), any(), eq(false));
+    assertDropMetric("overlay-refresh-failed", 1L);
+  }
+
+  /**
+   * CLM-42136 (F1): {@code getOrCreateApplication} returns null when the repository has no
+   * valid parent organization (root-org lookup would fail). We must not NPE on
+   * {@code application.getId()} — instead skip the component with a dedicated drop metric
+   * so operators can distinguish this case from a mid-refresh exception.
+   */
+  @Test
+  public void processSkipsRefreshWhenApplicationCannotBeCreated() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    RepositoryComponent c = component(HASH, "lib/a.jar", null, "scan-1");
+    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
+    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
+        .thenReturn(null);
+
+    underTest.process(queueItem());
+
+    verify(reportService, never()).refreshHostedComponentAfterEvaluation(
+        any(), any(), any(), any(), any(), any(), anyBoolean());
+    assertDropMetric("overlay-refresh-no-application", 1L);
+  }
+
+  /**
+   * CLM-42136 (F5): the refresh loop must record a drop metric when a component is missing
+   * its scanId or pathname, rather than silently continuing. Previously the {@code continue}
+   * was silent, leaving no signal for operators.
+   */
+  @Test
+  public void processRecordsDropMetricWhenComponentMissingIdentifier() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    // Two components in the batch: one has a valid pathname but no scanId (never persisted to
+    // a scan file yet), one is a valid target for refresh. Only the first should be dropped.
+    RepositoryComponent noScanId = component(HASH, "lib/a.jar", null, null);
+    RepositoryComponent good = component(HASH, "lib/b.jar", null, "scan-b");
+    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(noScanId, good));
+    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/b.jar"))
+        .thenReturn(application("app-b"));
+
+    underTest.process(queueItem());
+
+    assertDropMetric("overlay-refresh-missing-identifier", 1L);
+    verify(reportService).refreshHostedComponentAfterEvaluation(
+        eq(good), eq(repo), any(), eq("app-b"), eq("scan-b"), any(), eq(false));
+    verify(reportService, never()).refreshHostedComponentAfterEvaluation(
+        eq(noScanId), any(), any(), any(), any(), any(), anyBoolean());
+  }
+
+  @Test
+  public void processRefreshesOverlaysForEachComponentInBatch() throws Exception {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    RepositoryComponent c1 = component(HASH, "lib/a.jar", null, "scan-1");
+    RepositoryComponent c2 = component(HASH, "lib/b.jar", null, "scan-2");
+    RepositoryComponent c3 = component(HASH, "lib/c.jar", null, "scan-3");
+    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2, c3));
+    Application app1 = application("app-1");
+    Application app2 = application("app-2");
+    Application app3 = application("app-3");
+    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
+        .thenReturn(app1);
+    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/b.jar"))
+        .thenReturn(app2);
+    when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/c.jar"))
+        .thenReturn(app3);
+
+    underTest.process(queueItem());
+
+    verify(reportService).refreshHostedComponentAfterEvaluation(
+        eq(c1), eq(repo), eq(app1), eq("app-1"), eq("scan-1"), any(), eq(false));
+    verify(reportService).refreshHostedComponentAfterEvaluation(
+        eq(c2), eq(repo), eq(app2), eq("app-2"), eq("scan-2"), any(), eq(false));
+    verify(reportService).refreshHostedComponentAfterEvaluation(
+        eq(c3), eq(repo), eq(app3), eq("app-3"), eq("scan-3"), any(), eq(false));
+  }
+
   // --- helpers -----------------------------------------------------------
 
   private static ContinuousMonitoringQueueItem queueItem() {
@@ -287,11 +447,27 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
   }
 
   private static RepositoryComponent component(final String hash, final String pathname, final String stage) {
+    return component(hash, pathname, stage, null);
+  }
+
+  private static RepositoryComponent component(
+      final String hash,
+      final String pathname,
+      final String stage,
+      final String scanId)
+  {
     RepositoryComponent c = new RepositoryComponent();
     c.setRepositoryId(REPO_ID);
     c.setHash(hash);
     c.setPathname(pathname);
     c.setLastEvaluationStage(stage);
+    c.setScanId(scanId);
     return c;
+  }
+
+  private static Application application(final String id) {
+    Application app = new Application();
+    app.setId(id);
+    return app;
   }
 }

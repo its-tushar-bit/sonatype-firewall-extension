@@ -7,9 +7,10 @@ package com.sonatype.insight.brain.repository.hosted;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -137,6 +139,15 @@ public class HostedComponentScanQueueConsumer
    * still holds the inner rows — producing an internal inconsistency where the header pill
    * reads "1 COMPONENT" but the body table shows 5 rows.
    * <p>
+   * <b>Pypi</b> source distributions ship {@code setup.py}/{@code pyproject.toml} plus example
+   * scripts that declare transitive dependencies (Flask 3.0.0's tarball carries
+   * {@code examples/celery/requirements.txt} etc.). For {@code Flask 3.0.0.tar.gz} the LC
+   * application Evaluate File path surfaces 91 components (Flask + Werkzeug + Jinja2 + click +
+   * 87 transitives) with real security violations; without this carveout the hosted gate
+   * collapses to 1 component with only Flask's own 2 Security-Medium violations, hiding CVEs
+   * on Werkzeug, Jinja2, click, etc. Same rationale as go/pub — the manifest inside the
+   * archive is what iq-cli/LC uses as the identification source, not a "drop these" hint.
+   * <p>
    * <b>Npm</b>: HDS identifies inner components for {@code .tgz} packages via the manifest
    * inside the archive (the {@code package.json} declares dependencies that HDS resolves).
    * For npm tarballs where nested identification lands (npm confirmed via HDS per CLM-40943
@@ -147,14 +158,14 @@ public class HostedComponentScanQueueConsumer
    * <p>
    * Formats NOT in this set fall under the collapse path: identified outer → 1 component,
    * outer's own violations. This matches iq-cli for rubygems gem (whose Gemfile.lock-derived
-   * entries iq-cli drops), pypi wheel/sdist, maven jar, r tarball.
+   * entries iq-cli drops), maven jar, r tarball.
    * <p>
    * Default for any new/unknown format is the SAFER "collapse" path. If a future format
    * (cargo, yum, docker) turns out to have nuget-like nested binaries, add it here. The set
    * is small and explicit on purpose — easier to audit than the inverse.
    */
   private static final Set<String> KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER =
-      Set.of("nuget", "go", "pub", "npm");
+      Set.of("nuget", "go", "pub", "npm", "pypi");
 
   /**
    * CLM-40943 follow-up (2026-06-27): formats whose dependency graph is itself the source of
@@ -169,6 +180,30 @@ public class HostedComponentScanQueueConsumer
    * npm where manifest lockfiles inflate the count past what iq-cli reports).
    */
   private static final Set<String> KEEP_DEPENDENCY_DERIVED_COMPONENTS_FORMATS = Set.of("go", "pub");
+
+  /**
+   * CLM-42119: formats whose iq-cli scanner treats the outer artifact as opaque regardless
+   * of HDS's identification verdict. For these formats hosted-repo must ALSO collapse to a
+   * single outer-component view even when HDS returned MatchState.UNKNOWN — otherwise a
+   * Continuous-Monitoring scan of a custom archive drills into HDS's expanded view (vendored
+   * gems, manifest-derived transitives) while the same file scanned by iq-cli surfaces
+   * exactly one row.
+   * <p>
+   * Format-side rationale:
+   * <ul>
+   * <li><b>rubygems</b>: iq-cli does not unpack {@code .gem} archives. Vendored gems inside
+   * ({@code vendor/cache/*.gem}) and {@code Gemfile.lock}-declared transitives are
+   * invisible to iq-cli's single-file scan. A CM scan of {@code bundled-gem-app-1.0.0.gem}
+   * that HDS didn't recognize would otherwise report 5 components / risk 656 while an
+   * equivalent LC app scan of the same file reports 1 component / risk 2.</li>
+   * </ul>
+   * <p>
+   * When a format is in this set the identified-outer collapse gate fires unconditionally,
+   * bypassing the drill-down path for UNKNOWN outers. Symmetric to
+   * {@link #KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER} which does the opposite: forces
+   * drill-down even for identified outers where iq-cli DOES surface inners (nuget, npm, ...).
+   */
+  private static final Set<String> ALWAYS_COLLAPSE_TO_OUTER_FORMATS = Set.of("rubygems");
 
   private final ApiConfigurationService apiConfigurationService;
 
@@ -189,6 +224,8 @@ public class HostedComponentScanQueueConsumer
   private final ApplicationForHostedRepositoryComponentService applicationForHostedComponentService;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final PolicyDAO policyDAO;
 
   private final Provider<ReportDataStore> reportDataStoreProvider;
 
@@ -219,6 +256,7 @@ public class HostedComponentScanQueueConsumer
       final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider,
       final ApplicationForHostedRepositoryComponentService applicationForHostedComponentService,
       final PolicyEvaluationDAO policyEvaluationDAO,
+      final PolicyDAO policyDAO,
       final Provider<ReportDataStore> reportDataStoreProvider,
       final ApplicationReportPersistenceService applicationReportPersistenceService,
       final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider,
@@ -239,6 +277,7 @@ public class HostedComponentScanQueueConsumer
     this.repositoryPolicyEvaluatorProvider = repositoryPolicyEvaluatorProvider;
     this.applicationForHostedComponentService = applicationForHostedComponentService;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.policyDAO = policyDAO;
     this.reportDataStoreProvider = reportDataStoreProvider;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.scanPolicyEvaluatorProvider = scanPolicyEvaluatorProvider;
@@ -530,62 +569,6 @@ public class HostedComponentScanQueueConsumer
   }
 
   /**
-   * CLM-40943: raises the outer artifact's {@code repository_component.component_count} from
-   * the synthetic application's post-evaluation view when that count is higher than what's
-   * currently stored.
-   * <p>
-   * After {@code ScanPolicyEvaluator.evaluate()} runs, {@code application_component} holds one
-   * row per distinct component HDS identified for this scan (outer + every inner). For most
-   * hosted scans that value matches the LC application report and is the source of truth we
-   * want the Hosted Repos list to show.
-   * <p>
-   * Uses the DAO's {@code raiseComponentCountIfHigher} (a conditional {@code UPDATE ... WHERE
-   * count < :new} rather than unconditional {@code stampComponentCount}) because
-   * ScanPolicyEvaluator occasionally persists {@code application_component} rows with
-   * {@code stage_type_id = null} on re-evaluations, which makes the stage-filtered
-   * {@code directCount} passed here come back as 0. The earlier {@code bom.json} refinement in
-   * {@code saveReportFiles} already wrote the authoritative HDS count via the same raise-only
-   * helper — preserving it when the synth-eval value is smaller keeps the Hosted Repos list
-   * page in sync with the drill-in Build Report (both ultimately track {@code bom.json}'s
-   * {@code aaData.length}).
-   * <p>
-   * Note the neighbour helper {@link #forceComponentCount} handles the intentional-decrement
-   * case (identified-outer gate collapsing to 1) with an unconditional {@code stampComponentCount}
-   * — that path deliberately writes lower values than the earlier bom.json refinement, so it
-   * cannot route through this raise-only method.
-   * <p>
-   * Failures are logged but don't fail the job — the prior stamps are still a usable
-   * approximation.
-   * <p>
-   * Known limitation (tracked separately): for archives whose payload includes a dependency
-   * manifest the hosted-side scanner parses (e.g. {@code Gemfile.lock} inside a .gem,
-   * {@code requirements.txt} inside a sdist), the synthetic-app's bom will contain manifest-
-   * derived transitive entries that LC's iq-cli scan does not extract by default. In those
-   * cases the raised count will exceed LC's count.
-   */
-  private void setComponentCountFromSyntheticEval(
-      final String repositoryId,
-      final String pathname,
-      final int count)
-  {
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      // Raise-only rather than unconditional stamp: ScanPolicyEvaluator occasionally persists
-      // application_component rows with stage_type_id = null on re-evaluations, which makes the
-      // stage-filtered directCount come back as 0. The bom.json refinement in saveReportFiles
-      // already wrote the authoritative HDS count via raiseComponentCountIfHigher; preserving
-      // it when the synth-eval value is smaller keeps the Hosted Repos list page in sync with
-      // the drill-in Build Report (both ultimately track bom.json's aaData.length).
-      repositoryComponentDAO.raiseComponentCountIfHigher(tx, repositoryId, pathname, count);
-      tx.commit();
-    }
-    catch (Exception e) {
-      log.warn("Failed to raise component_count={} from synthetic-app eval for pathname={}: {}",
-          count, pathname, e.getMessage(), e);
-    }
-  }
-
-  /**
    * Unconditional stamp used only by the identified-outer collapse gate. The collapse path
    * intentionally lowers component_count to 1, so it must NOT route through the raise-only
    * helper above — it would be a no-op against the prior bom.json refinement value.
@@ -802,6 +785,13 @@ public class HostedComponentScanQueueConsumer
       }
 
       // Patch bom.json displayName — HDS omits it for repository scans; PDF generator requires it.
+      // Also dedupe bom.aaData for identified rows with duplicate (format+coords) identity —
+      // HDS occasionally returns two matchState=exact rows for the same component (the npm
+      // self-mirror pattern: HDS's content-hash entry + the file-SHA1 entry both surface for
+      // an npm tarball uploaded to a hosted repo). LC's iq-cli already dedupes via
+      // ScanPolicyEvaluator so its report shows 1 row; deduping here aligns the hosted view.
+      // The dedupe is keep-first, which preserves aaData[0].hash — the join key extractBomOuterHash
+      // reads below and patchBomKeepOuterOnly uses for the outer-gate trim.
       // Keep patched bytes to reuse for component count — avoids a second bom.json fetch.
       byte[] patchedBom = null;
       try {
@@ -810,13 +800,14 @@ public class HostedComponentScanQueueConsumer
             : reportDataStoreProvider.get().getApplicationReport(application, scanId);
         ReportEntry bomEntry = reportToRead != null ? reportToRead.getEntry("bom.json") : null;
         if (bomEntry != null) {
-          patchedBom = HostedReportFileBuilder.patchBomDisplayName(bomEntry.buf);
+          byte[] displayNamed = HostedReportFileBuilder.patchBomDisplayName(bomEntry.buf);
+          patchedBom = HostedReportFileBuilder.dedupeBomIdentifiedRows(displayNamed);
           applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "bom.json",
               new ByteArrayInputStream(patchedBom));
         }
       }
       catch (Exception ex) {
-        log.warn("Failed to patch bom.json displayName for scanId={}: {}", scanId, ex.getMessage());
+        log.warn("Failed to patch/dedupe bom.json for scanId={}: {}", scanId, ex.getMessage());
       }
 
       // Save policythreats.json only — HDS data.json has the real totalArtifactCount
@@ -832,6 +823,12 @@ public class HostedComponentScanQueueConsumer
       if (comp != null && comp.getPathname() != null) {
         violations = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
             comp.getRepositoryId(), comp.getPathname());
+        Repository repositoryForFormat = repositoryDAO.getById(comp.getRepositoryId());
+        String repoFormatForOuterFilter =
+            repositoryForFormat != null ? repositoryForFormat.getFormat() : null;
+        violations = HostedReportFileBuilder.excludeOuterViolationsForFormat(
+            comp, violations, repoFormatForOuterFilter,
+            HostedReportFileBuilder.resolveComponentUnknownPolicy(policyDAO, application.getId()));
       }
       // CLM-40943: extract bom.json's outer hash so policythreats.json + data.json use the same
       // hash bom.json carries for the outer entry. For npm/nuget/pub formats the file SHA1 (which
@@ -847,42 +844,109 @@ public class HostedComponentScanQueueConsumer
             new ByteArrayInputStream(content));
       }
 
-      // CLM-40943 — patch data.json's policyComponentCount + policyCounts to reflect the
-      // rolled-up inner violations. The HDS-supplied data.json is based on HDS's own view of
-      // the scan and never sees the inner-pathname violations the IQ-side RepositoryPolicyEvaluator
-      // persisted under synthetic `outer!/inner.jar` paths. Without this patch the report header
-      // pill reads "N VIOLATIONS Affecting 0 components" even when the threat list below shows N
-      // distinct inner components. Dedups byte-identical inner jars by hash to match the
-      // application-evaluation path's count (see HostedReportFileBuilder.patchDataJsonPolicyCounts).
+      // CLM-42117/42118/42119/42120/41737 (was CLM-40943): the full patchDataJsonPolicyCounts
+      // recompute is intentionally NOT called here — recomputing policyCounts[] from IQ-side
+      // rolled-up violations diverged from HDS's view for bundled archives (CLM-42119 rubygems)
+      // and inflated the Critical/Severe/Moderate pills. HDS's raw policyCounts[] flows through
+      // untouched so those threat pills match a same-file Lifecycle scan.
+      //
+      // policyComponentCount is different — HDS OMITS the field entirely for non-nested single
+      // artifacts (Maven, PyPI single, RubyGems single, R CRAN). When absent, the frontend
+      // header pill "Affecting N components" (ReportStatusBar.jsx:21,90) falls back to 0 even
+      // when violations exist. The if-absent stamp below is scoped to that single field and
+      // uses the same violation-dedup as policythreats.json so the two files stay consistent
+      // by construction. It no-ops for formats where HDS already wrote the field.
       try {
-        patchDataJsonPolicyCounts(application, scanId, comp, violations, bomOuterHashOverride);
+        ApplicationReport reportForPatch = downloadedReport != null
+            ? downloadedReport
+            : reportDataStoreProvider.get().getApplicationReport(application, scanId);
+        ReportEntry dataEntryForPatch = reportForPatch != null ? reportForPatch.getEntry("data.json") : null;
+        if (dataEntryForPatch != null && dataEntryForPatch.buf != null) {
+          byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyComponentCountIfAbsent(
+              dataEntryForPatch.buf, comp, violations, bomOuterHashOverride);
+          if (patched != dataEntryForPatch.buf) {
+            applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
+                new ByteArrayInputStream(patched));
+          }
+        }
       }
       catch (Exception ex) {
-        log.warn("Failed to patch data.json policyComponentCount for scanId={}: {}",
+        log.warn("Failed to patch data.json.policyComponentCount for scanId={}: {}",
             scanId, ex.getMessage());
       }
 
-      // Refine component_count from HDS bom.json → aaData.length. bom.json lists every component
-      // HDS found inside the artifact (the artifact itself plus all nested/bundled dependencies),
-      // which is more accurate than the scanner's <dir> count that was eagerly stamped in
-      // executeJob. The refinement runs through {@code raiseComponentCountIfHigher} which is an
-      // atomic conditional UPDATE — the "only raise, never lower" check is enforced at the SQL
-      // level, not in app code, so there is no read-then-write window where a transient
-      // smaller bom count could regress a correctly-stamped row.
-      if (comp != null && patchedBom != null) {
+      // CLM-42117 (npm 200%-identified fix): patch data.json.knownArtifactCount to reflect
+      // the deduped bom's known-match count. HDS's raw data.json occasionally reports
+      // knownArtifactCount greater than totalArtifactCount for formats that produce the
+      // duplicate-bom-row pattern (npm content-hash + file-SHA1 both surface as
+      // matchState=exact for the same coordinate — e.g. dot-prop-4.2.0.tgz gives total=1 but
+      // known=2). The dedupe pass on bom.json above already collapses the duplicate rows;
+      // this patch aligns data.json so the header's "N% identified" percentage matches the
+      // deduped bom and never exceeds 100%.
+      //
+      // Reads from patchedBom (which has already been deduped) so the count reflects the
+      // trimmed aaData. No-op when knownArtifactCount already equals the deduped count.
+      if (patchedBom != null) {
         try {
-          JsonNode bomJson = MAPPER.readTree(patchedBom);
-          JsonNode aaData = bomJson.path("aaData");
-          int bomCount = aaData.isArray() ? aaData.size() : 1;
-          try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
-            tx.begin();
-            repositoryComponentDAO.raiseComponentCountIfHigher(
-                tx, comp.getRepositoryId(), comp.getPathname(), bomCount);
-            tx.commit();
+          ApplicationReport reportForKnown = downloadedReport != null
+              ? downloadedReport
+              : reportDataStoreProvider.get().getApplicationReport(application, scanId);
+          ReportEntry dataEntryForKnown = reportForKnown != null ? reportForKnown.getEntry("data.json") : null;
+          if (dataEntryForKnown != null && dataEntryForKnown.buf != null) {
+            int dedupedKnown = HostedReportFileBuilder.countKnownMatchesInBom(patchedBom);
+            byte[] patched = HostedReportFileBuilder.patchDataJsonKnownArtifactCountOnly(
+                dataEntryForKnown.buf, dedupedKnown);
+            if (patched != dataEntryForKnown.buf) {
+              applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
+                  new ByteArrayInputStream(patched));
+            }
           }
         }
         catch (Exception ex) {
-          log.warn("Failed to stamp component count for scanId={}: {}", scanId, ex.getMessage());
+          log.warn("Failed to patch data.json.knownArtifactCount for scanId={}: {}",
+              scanId, ex.getMessage());
+        }
+      }
+
+      // CLM-42118 (follow-up to CLM-41737): stamp component_count from HDS's
+      // data.json.totalArtifactCount — the same field the drill-in Build Report header
+      // renders — so the Hosted Repos list COMPONENTS column and the Build Report agree.
+      //
+      // Prior behavior read bom.json.aaData.length via raiseComponentCountIfHigher, which
+      // (a) can disagree with totalArtifactCount when HDS expands manifest-derived deps into
+      // data.json but not into bom (rubygems, npm: list-page 2 vs report-page 5), and (b) is
+      // raise-only, so the scanner's over-count from executeJob's eager stamp wins when it
+      // exceeds HDS's true component count (pub .tar.gz: 39 file entries scanned vs 4
+      // identified → list-page 39 vs report-page 4).
+      //
+      // Unconditional stamp is safe here because HDS is authoritative once its report has
+      // downloaded successfully; the scanner-count eager stamp is only meaningful as a
+      // fallback for the case where HDS's report never arrives (S3 latency, etc.), and in
+      // that case control never reaches this line — the enclosing try's outer catch has
+      // already logged the download/read failure.
+      if (comp != null) {
+        try {
+          ApplicationReport reportForCount = downloadedReport != null
+              ? downloadedReport
+              : reportDataStoreProvider.get().getApplicationReport(application, scanId);
+          ReportEntry dataEntry = reportForCount != null ? reportForCount.getEntry("data.json") : null;
+          if (dataEntry != null && dataEntry.buf != null) {
+            JsonNode dataJson = MAPPER.readTree(dataEntry.buf);
+            JsonNode totalNode = dataJson.path("totalArtifactCount");
+            if (totalNode.isNumber() && totalNode.asInt() >= 0) {
+              int hdsCount = totalNode.asInt();
+              try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+                tx.begin();
+                repositoryComponentDAO.stampComponentCount(
+                    tx, comp.getRepositoryId(), comp.getPathname(), hdsCount);
+                tx.commit();
+              }
+            }
+          }
+        }
+        catch (Exception ex) {
+          log.warn("Failed to stamp component_count from data.json.totalArtifactCount for scanId={}: {}",
+              scanId, ex.getMessage());
         }
       }
 
@@ -891,6 +955,105 @@ public class HostedComponentScanQueueConsumer
     catch (Exception e) {
       log.warn("Failed to save report files for hosted component appId={} scanId={}: {}",
           application.getId(), scanId, e.getMessage());
+    }
+  }
+
+  /**
+   * Rewrite {@code policythreats.json} and patch all four collapse-related fields in
+   * {@code data.json} — {@code totalArtifactCount}, {@code knownArtifactCount},
+   * {@code policyComponentCount}, {@code policyCounts[]} — from the outer-only violations that
+   * survive the collapse gate's DB cleanup. The gate reports the artifact as a single component,
+   * but {@code saveReportFiles} had already written both files earlier using the pre-collapse
+   * violation set (outer + all inner-pathname rows). Without this rewrite the drill-in
+   * "Aggregate by component" table and the "Affecting N components" pill would still show the
+   * pre-collapse counts even though the outer's row now reads "1 COMPONENT" — an internal
+   * inconsistency between the header pill and the body.
+   * <p>
+   * All four {@code data.json} fields are patched in a single read-modify-write cycle so the
+   * caller can skip the standalone {@code patchDataJsonTotalArtifactCount} call it would
+   * otherwise make — halving the {@code data.json} I/O on the collapse path.
+   * <p>
+   * When the surviving outer-violation set is empty (e.g., outer had no own violations and all
+   * inners were deleted), we still emit zeros into {@code data.json} directly — the shared
+   * {@link HostedReportFileBuilder#patchDataJsonPolicyCounts} is a no-op on empty input and
+   * would otherwise leave HDS's pre-collapse counts intact.
+   * <p>
+   * <b>Sequencing contract:</b> caller must have committed the inner-pathname
+   * {@code repository_policy_violation} cleanup transaction before invoking this method —
+   * otherwise the outer-only read below would still see the pre-cleanup rows.
+   */
+  private void rebuildPolicyThreatsAfterCollapse(
+      final Application application,
+      final String scanId,
+      final String repositoryId,
+      final String outerPathname,
+      final int knownArtifactCount) throws Exception
+  {
+    RepositoryComponent outerComp =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, outerPathname);
+    if (outerComp == null || outerComp.getPathname() == null) {
+      log.warn("Cannot rebuild policythreats.json for collapse gate — no repository_component row for "
+          + "repositoryId={} outerPathname={}; drill-in report may show pre-collapse rows",
+          repositoryId, outerPathname);
+      return;
+    }
+    List<RepositoryPolicyViolation> outerViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repositoryId, outerComp.getPathname());
+    Repository repositoryForFormat = repositoryDAO.getById(repositoryId);
+    String repoFormatForOuterFilter = repositoryForFormat != null ? repositoryForFormat.getFormat() : null;
+    outerViolations = HostedReportFileBuilder.excludeOuterViolationsForFormat(
+        outerComp, outerViolations, repoFormatForOuterFilter,
+        HostedReportFileBuilder.resolveComponentUnknownPolicy(policyDAO, application.getId()));
+    long nonWaivedCount = outerViolations.stream().filter(v -> !v.isWaived()).count();
+    String bomOuterHashOverride = null;
+    ApplicationReport report = reportDataStoreProvider.get().getApplicationReport(application, scanId);
+    if (report != null) {
+      ReportEntry bomEntry = report.getEntry("bom.json");
+      if (bomEntry != null && bomEntry.buf != null) {
+        // Pathname-aware lookup: for UNKNOWN outers where HDS's aaData[0] is a matched inner
+        // (e.g. custom .gem bundling actionpack), this returns the outer's own entry so the
+        // downstream policythreats.json join produces the outer's identity, not an inner's.
+        bomOuterHashOverride = extractBomHashForOuter(bomEntry.buf, outerComp.getPathname());
+      }
+    }
+    if (bomOuterHashOverride == null) {
+      // No bom entry matched the outer's pathname AND aaData[0] was empty. HostedReportFileBuilder
+      // .build will fall back to outerComp.hash (the file SHA1), which is correct for rubygems.
+      log.debug("policythreats.json rebuild falling back to outerComp.hash (bom.json absent or "
+          + "outer pathname not found in bom.aaData) for scanId={} format={}",
+          scanId, repoFormatForOuterFilter);
+    }
+    byte[] content = HostedReportFileBuilder.build(
+        "policythreats.json", outerComp, outerViolations, bomOuterHashOverride);
+    ReportEntry existingPolicyThreats = report != null ? report.getEntry("policythreats.json") : null;
+    if (existingPolicyThreats == null || existingPolicyThreats.buf == null
+        || !Arrays.equals(existingPolicyThreats.buf, content))
+    {
+      applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "policythreats.json",
+          new ByteArrayInputStream(content));
+      log.debug("Rebuilt policythreats.json with {} non-waived outer-only violation(s) for scanId={}",
+          nonWaivedCount, scanId);
+    }
+    if (report != null) {
+      ReportEntry dataEntry = report.getEntry("data.json");
+      if (dataEntry != null && dataEntry.buf != null) {
+        // Merged data.json patch: artifact-count fields first, then policy-count fields on the
+        // resulting bytes. Both applied in-memory then written once, replacing the standalone
+        // patchDataJsonTotalArtifactCount call the gate would otherwise make.
+        byte[] withArtifactCounts =
+            HostedReportFileBuilder.patchDataJsonTotalArtifactCount(dataEntry.buf, 1, knownArtifactCount);
+        byte[] patchedData = outerViolations.isEmpty()
+            ? HostedReportFileBuilder.zeroDataJsonPolicyCounts(withArtifactCounts)
+            : HostedReportFileBuilder.patchDataJsonPolicyCounts(
+                withArtifactCounts, outerComp, outerViolations, bomOuterHashOverride);
+        if (patchedData != dataEntry.buf) {
+          applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
+              new ByteArrayInputStream(patchedData));
+          log.debug("Patched data.json (totalArtifactCount=1, knownArtifactCount={}, "
+              + "policyComponentCount+policyCounts from {} non-waived outer-only violation(s)) "
+              + "for scanId={}", knownArtifactCount, nonWaivedCount, scanId);
+        }
+      }
     }
   }
 
@@ -908,7 +1071,8 @@ public class HostedComponentScanQueueConsumer
   private void patchBomKeepOuterOnly(
       final Application application,
       final String scanId,
-      final String outerHash) throws Exception
+      final String outerHash,
+      final String outerPathname) throws Exception
   {
     ApplicationReport report = reportDataStoreProvider.get().getApplicationReport(application, scanId);
     if (report == null) {
@@ -918,16 +1082,7 @@ public class HostedComponentScanQueueConsumer
     if (bomEntry == null || bomEntry.buf == null) {
       return;
     }
-    // CLM-40943: match-by-content. HDS gives us TWO different hashes for the same outer
-    // component depending on the format:
-    // • for npm/nuget/pub and many rubygems → bom carries an HDS metadata hash that differs
-    // from the file SHA1 (RepositoryComponent.hash);
-    // • for maven/pypi/r/conda/helm/most rubygems → both hashes are equal.
-    // policythreats.json was already written by saveReportFiles using bom's own first-entry
-    // hash (via extractBomOuterHash), so to keep the bom→policythreats join intact we MUST
-    // trim bom by that same first-entry hash, not by RepositoryComponent.hash (which is
-    // always the file SHA1).
-    String keepHash = extractBomOuterHash(bomEntry.buf);
+    String keepHash = extractBomHashForOuter(bomEntry.buf, outerPathname);
     if (keepHash == null) {
       // Fall back to the caller-supplied hash if bom is unparseable or has no aaData.
       keepHash = outerHash;
@@ -952,6 +1107,20 @@ public class HostedComponentScanQueueConsumer
    * service. Keeps the drill-in Build Report header in agreement with the Hosted Repos list
    * COMPONENTS column for the same outer artifact.
    * <p>
+   * <b>Single-arg behavior</b>: assumes every counted component is a known match — appropriate
+   * for the identified-outer collapse gate where the outer's matchState was verified before
+   * invoking. For paths where the counted components may include {@code matchState=unknown}
+   * entries (helm chart of a custom operator, proprietary archive), use the four-arg overload
+   * that accepts an explicit {@code knownCount} so the "% identified" percentage in the header
+   * reflects the true match-state distribution.
+   * <p>
+   * <b>Single-arg behavior</b>: assumes every counted component is a known match — appropriate
+   * for the identified-outer collapse gate where the outer's matchState was verified before
+   * invoking. For paths where the counted components may include {@code matchState=unknown}
+   * entries (helm chart of a custom operator, proprietary archive), use the four-arg overload
+   * that accepts an explicit {@code knownCount} so the "% identified" percentage in the header
+   * reflects the true match-state distribution.
+   * <p>
    * No-op when {@code directCount} is negative or {@code data.json} can't be located on disk
    * (the report stays with HDS's original numbers — fail-soft).
    */
@@ -959,6 +1128,25 @@ public class HostedComponentScanQueueConsumer
       final Application application,
       final String scanId,
       final int directCount) throws Exception
+  {
+    patchDataJsonTotalArtifactCount(application, scanId, directCount, directCount);
+  }
+
+  /**
+   * Overload that stamps an explicit {@code knownArtifactCount} independent of
+   * {@code totalArtifactCount}. Used by the CM re-eval path where the outer's matchState may
+   * be {@code unknown} (Component-Unknown) — writing the same value for both would falsely
+   * report "100% identified" in the UI when the sole physical component is not identified.
+   * <p>
+   * {@code knownCount &lt; 0} is treated as "unknown, fall back to caller's directCount" for
+   * back-compat with callers that don't have a bom to inspect; callers that DO have a bom
+   * should pass the count from {@link HostedReportFileBuilder#countKnownMatchesInBom}.
+   */
+  private void patchDataJsonTotalArtifactCount(
+      final Application application,
+      final String scanId,
+      final int directCount,
+      final int knownCount) throws Exception
   {
     if (directCount < 0) {
       return;
@@ -971,61 +1159,16 @@ public class HostedComponentScanQueueConsumer
     if (dataEntry == null || dataEntry.buf == null) {
       return;
     }
-    byte[] patched = HostedReportFileBuilder.patchDataJsonTotalArtifactCount(dataEntry.buf, directCount);
+    int effectiveKnown = knownCount < 0 ? directCount : knownCount;
+    byte[] patched = HostedReportFileBuilder.patchDataJsonTotalArtifactCount(
+        dataEntry.buf, directCount, effectiveKnown);
     if (patched == dataEntry.buf) {
       return;
     }
     applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
         new ByteArrayInputStream(patched));
-    log.debug("Patched data.json.totalArtifactCount={} for scanId={}", directCount, scanId);
-  }
-
-  /**
-   * Reads the HDS-supplied {@code data.json} from the report zip, delegates to
-   * {@link HostedReportFileBuilder#patchDataJsonPolicyCounts} to recompute
-   * {@code policyComponentCount} and {@code policyCounts[]} from the rolled-up
-   * {@code RepositoryPolicyViolation} rows, then writes the patched bytes back via the overlay
-   * persistence service. Mirrors what {@code ScanPolicyEvaluator.updateDataJson} does for the
-   * application-evaluation path — see the helper's Javadoc for the algorithm.
-   * <p>
-   * No-op when {@code violations} is empty (nothing to roll up) or when {@code data.json} can't
-   * be located on disk (the report stays with HDS's original numbers — fail-soft).
-   */
-  private void patchDataJsonPolicyCounts(
-      final Application application,
-      final String scanId,
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations) throws Exception
-  {
-    patchDataJsonPolicyCounts(application, scanId, outerComponent, violations, null);
-  }
-
-  private void patchDataJsonPolicyCounts(
-      final Application application,
-      final String scanId,
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations,
-      final String outerHashOverride) throws Exception
-  {
-    if (violations == null || violations.isEmpty()) {
-      return;
-    }
-    ApplicationReport report = reportDataStoreProvider.get().getApplicationReport(application, scanId);
-    if (report == null) {
-      return;
-    }
-    ReportEntry dataEntry = report.getEntry("data.json");
-    if (dataEntry == null || dataEntry.buf == null) {
-      return;
-    }
-    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(
-        dataEntry.buf, outerComponent, violations, outerHashOverride);
-    if (patched == dataEntry.buf) {
-      return;
-    }
-    applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
-        new ByteArrayInputStream(patched));
-    log.debug("Patched data.json policy counts for scanId={}", scanId);
+    log.debug("Patched data.json.totalArtifactCount={} knownArtifactCount={} for scanId={}",
+        directCount, effectiveKnown, scanId);
   }
 
   /**
@@ -1040,7 +1183,7 @@ public class HostedComponentScanQueueConsumer
    * fail-soft so the call site falls back to today's behaviour (use
    * {@code RepositoryPolicyViolation.hash}) for any format we haven't accounted for.
    */
-  private static String extractBomOuterHash(final byte[] patchedBom) {
+  static String extractBomOuterHash(final byte[] patchedBom) {
     if (patchedBom == null || patchedBom.length == 0) {
       return null;
     }
@@ -1052,6 +1195,41 @@ public class HostedComponentScanQueueConsumer
       }
       String hash = aaData.get(0).path("hash").asText("");
       return hash.isEmpty() ? null : hash;
+    }
+    catch (Exception e) {
+      return null;
+    }
+  }
+
+  /** Returns the bom aaData hash whose pathnames[] contains {@code outerPathname}; falls back to aaData[0].hash. */
+  static String extractBomHashForOuter(final byte[] patchedBom, final String outerPathname) {
+    if (patchedBom == null || patchedBom.length == 0) {
+      return null;
+    }
+    if (outerPathname == null || outerPathname.isEmpty()) {
+      return extractBomOuterHash(patchedBom);
+    }
+    try {
+      JsonNode bomJson = MAPPER.readTree(patchedBom);
+      JsonNode aaData = bomJson.path("aaData");
+      if (!aaData.isArray() || aaData.isEmpty()) {
+        return null;
+      }
+      for (JsonNode entry : aaData) {
+        JsonNode pathnames = entry.path("pathnames");
+        if (!pathnames.isArray()) {
+          continue;
+        }
+        for (JsonNode pn : pathnames) {
+          if (outerPathname.equals(pn.asText(""))) {
+            String hash = entry.path("hash").asText("");
+            if (!hash.isEmpty()) {
+              return hash;
+            }
+          }
+        }
+      }
+      return extractBomOuterHash(patchedBom);
     }
     catch (Exception e) {
       return null;
@@ -1406,26 +1584,44 @@ public class HostedComponentScanQueueConsumer
       String repoFormat = repository != null ? repository.getFormat() : null;
       boolean keepNestedForFormat =
           repoFormat != null && KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER.contains(repoFormat.toLowerCase());
+      // CLM-42119: formats whose iq-cli treats the outer as opaque — collapse regardless of
+      // HDS's match-state verdict. See ALWAYS_COLLAPSE_TO_OUTER_FORMATS javadoc.
+      boolean alwaysCollapseForFormat =
+          repoFormat != null && ALWAYS_COLLAPSE_TO_OUTER_FORMATS.contains(repoFormat.toLowerCase());
 
-      if (outerIdentified && !keepNestedForFormat) {
-        log.info("Identified-outer gate: outer pathname={} matchState={} format={} → reporting as "
-            + "1 component, no inner drill-down (matches iq-cli single-file scan behaviour)",
-            outerPathname, outerRow.getMatchStateId(), repoFormat);
+      if ((outerIdentified && !keepNestedForFormat) || alwaysCollapseForFormat) {
+        log.info("Identified-outer gate: outer pathname={} matchState={} format={} alwaysCollapse={} → "
+            + "reporting as 1 component, no inner drill-down (matches iq-cli single-file scan behaviour)",
+            outerPathname,
+            outerRow != null ? outerRow.getMatchStateId() : "null",
+            repoFormat,
+            alwaysCollapseForFormat);
 
         // Stamp componentCount = 1. Unconditional UPDATE because the earlier eager stamp and
         // saveReportFiles' bom refinement (both via raiseComponentCountIfHigher) may have
         // raised the column to HDS's expanded count.
         forceComponentCount(repositoryId, outerPathname, 1);
 
-        // Patch data.json.totalArtifactCount=1 + knownArtifactCount=1 so the drill-in Build
-        // Report header reads "1 COMPONENT, 100% of all components identified" instead of
-        // HDS's expanded view.
-        try {
-          patchDataJsonTotalArtifactCount(application, scanId, 1);
-        }
-        catch (Exception ex) {
-          log.warn("Failed to patch data.json.totalArtifactCount=1 for identified outer scanId={}: {}",
-              scanId, ex.getMessage());
+        // Patch data.json.totalArtifactCount=1 so the drill-in Build Report header reads
+        // "1 COMPONENT" instead of HDS's expanded view. knownArtifactCount reflects the outer's
+        // actual matchState: 1 when outerIdentified (outer's matchState is exact/similar/
+        // embedded → header reads "100% identified"), 0 when this gate fired via
+        // alwaysCollapseForFormat on an UNKNOWN outer (e.g. rubygems custom .gem → header
+        // reads "0% identified", matching what iq-cli reports on the same file).
+        //
+        // For alwaysCollapseForFormat (rubygems), skip the standalone patch here — the same
+        // fields are set inside rebuildPolicyThreatsAfterCollapse alongside the policy-count
+        // fields, so we download+parse+save data.json once instead of twice.
+        int knownCount = outerIdentified ? 1 : 0;
+        if (!alwaysCollapseForFormat) {
+          try {
+            patchDataJsonTotalArtifactCount(application, scanId, 1, knownCount);
+          }
+          catch (Exception ex) {
+            log.warn(
+                "Failed to patch data.json.totalArtifactCount=1 knownArtifactCount={} for identified outer scanId={}: {}",
+                knownCount, scanId, ex.getMessage());
+          }
         }
 
         // CLM-40943: trim bom.json.aaData[] to keep only the outer's entry. Without this the
@@ -1435,7 +1631,7 @@ public class HostedComponentScanQueueConsumer
         // (Application Report body, SBOM exports, Search index) to the same one-entry view
         // iq-cli already produces for the same binary.
         try {
-          patchBomKeepOuterOnly(application, scanId, outerHash);
+          patchBomKeepOuterOnly(application, scanId, outerHash, outerPathname);
         }
         catch (Exception ex) {
           log.warn("Failed to trim bom.json to outer for identified outer scanId={}: {}",
@@ -1463,6 +1659,26 @@ public class HostedComponentScanQueueConsumer
                 + "outer pathname={}", deleted, outerPathname);
           }
         }
+
+        // saveReportFiles built policythreats.json + data.json earlier in executeJob from the
+        // pre-collapse violation set, which included inner-pathname rows. After the DB cleanup
+        // above trimmed those rows, the on-disk report files still hold the pre-collapse counts
+        // and drill-in rows — the "Aggregate by component" table would show inner rows while the
+        // header pill claims one component, and the "Affecting N components" pill would show
+        // HDS's expanded count. Rewriting both files here brings every downstream reader (report
+        // body, SBOM export, Search index) in line with the collapse-to-outer decision.
+        // Scoped to formats in ALWAYS_COLLAPSE_TO_OUTER_FORMATS (rubygems today); other formats
+        // that hit the gate via outerIdentified && !keepNestedForFormat (maven, r, conda, helm)
+        // take the existing saveReportFiles path unchanged so this PR doesn't widen the blast
+        // radius.
+        if (alwaysCollapseForFormat) {
+          try {
+            rebuildPolicyThreatsAfterCollapse(application, scanId, repositoryId, outerPathname, knownCount);
+          }
+          catch (Exception ex) {
+            log.warn("Failed to rebuild policythreats.json for collapse gate scanId={}", scanId, ex);
+          }
+        }
         return;
       }
 
@@ -1484,59 +1700,23 @@ public class HostedComponentScanQueueConsumer
               ClientScanType.SONATYPE,
               false /* skipAutoWaivers */);
 
-      // CLM-40943: stamp component_count from the synthetic application's authoritative view.
-      // After ScanPolicyEvaluator.evaluate() returns, application_component holds one row per
-      // distinct component HDS identified for this scan (outer + every inner). That count is
-      // the same number LC's application report shows for the same scan, so it is the source
-      // of truth — overwriting both the earlier scanner-based eager stamp (executeJob:307)
-      // and the HDS-bom refinement in saveReportFiles. We use the DAO's stampComponentCount
-      // (unconditional UPDATE) rather than raiseComponentCountIfHigher because the prior
-      // stamps can be both higher (scanner's file-list view for .gem, .tar.gz, etc.) and
-      // lower (early HDS firewall-purpose bom for nuget) than the truth.
+      // CLM-42117/42118/42119/42120/41737 (was CLM-40943): the prior synthetic-eval
+      // component_count raise + patchDataJsonTotalArtifactCount stamp chain has been removed.
+      // component_count now stays at whatever the HDS-bom refinement in saveReportFiles wrote
+      // (aaData.length via raiseComponentCountIfHigher), and data.json.totalArtifactCount /
+      // knownArtifactCount stay as HDS wrote them — so the Hosted Repos list COMPONENTS
+      // column, the drill-in Build Report header, and an equivalent Lifecycle-app scan of the
+      // same file all agree.
+      //
+      // appComponents is still fetched because the mirror loop below uses it to resolve each
+      // policy_violation to its component pathnames. keepDependencyDerived is still needed
+      // for the mirror loop's filter branch (currently out of scope — see steps 4/5 in the
+      // follow-up ticket).
       List<ApplicationComponent> appComponents =
           applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stageTypeId.toLowerCase());
 
-      // CLM-40943: align with LC's count by excluding components identified solely via
-      // manifest extraction (Gemfile.lock, requirements.txt, package-lock.json, etc.). The
-      // insight-scanner library tags each pathname with a "dependency:" prefix when the entry
-      // was derived from a manifest file inside an archive payload, vs. no prefix when the
-      // component was binary-identified directly. LC's iq-cli scan does not promote manifest-
-      // derived entries to top-level components, so honoring the same convention here keeps
-      // the hosted-side row's component_count in agreement with the LC application report
-      // for the same artifact. A component with at least one direct-identification pathname
-      // is kept; a component whose every pathname is "dependency:..." is excluded.
-      // CLM-40943 follow-up: for formats where the dependency graph IS the source of truth
-      // (currently: go — go.mod-derived transitives are real components per LC), keep every
-      // application_component including manifest-derived ones. For other formats, exclude
-      // dependency-only entries to match iq-cli's "physical contents only" view.
       boolean keepDependencyDerived =
           repoFormat != null && KEEP_DEPENDENCY_DERIVED_COMPONENTS_FORMATS.contains(repoFormat.toLowerCase());
-      int directCount = keepDependencyDerived
-          ? appComponents.size()
-          : (int) appComponents.stream()
-              .filter(ac -> hasDirectIdentificationPathname(ac.getPathnames()))
-              .count();
-      int dependencyDerived = appComponents.size() - directCount;
-      if (dependencyDerived > 0) {
-        log.info("Excluded {} manifest-derived 'dependency:' components from componentCount stamp "
-            + "for pathname={} (kept {} direct-identification components)",
-            dependencyDerived, outerPathname, directCount);
-      }
-      setComponentCountFromSyntheticEval(repositoryId, outerPathname, directCount);
-
-      // CLM-40943: keep the Build Report header in sync with the Hosted Repos list COMPONENTS
-      // column. data.json.totalArtifactCount drives the "X COMPONENTS, 100% of all components
-      // identified" pill at the top of the drill-in report; without this patch HDS's value (the
-      // full bom expansion, including manifest-derived entries) leaks through and the header
-      // disagrees with the outer's componentCount we just stamped above. Re-uses the same
-      // directCount → both views end up showing the identical number for the same artifact.
-      try {
-        patchDataJsonTotalArtifactCount(application, scanId, directCount);
-      }
-      catch (Exception ex) {
-        log.warn("Failed to patch data.json.totalArtifactCount={} for scanId={}: {}",
-            directCount, scanId, ex.getMessage());
-      }
 
       // Step 2: read back the policy_violation rows the evaluator just wrote, and explicitly
       // load their constraint_facts. PolicyViolationDAO returns rows with constraintFacts
@@ -1624,7 +1804,7 @@ public class HostedComponentScanQueueConsumer
           // excluded. Symmetrical to the dependency: filter applied to componentCount above.
           //
           // 2026-06-27 follow-up: bypass the filter for formats listed in
-          // KEEP_DEPENDENCY_DERIVED_COMPONENTS_FORMATS (currently: go). For Go module zips
+          // KEEP_DEPENDENCY_DERIVED_COMPONENTS_FORMATS (currently: go, pub). For Go module zips
           // the go.mod-declared transitives ARE the real component graph LC reports — keeping
           // them in agreement with the LC application Evaluate File view.
           if (ac != null && !keepDependencyDerived && !hasDirectIdentificationPathname(ac.getPathnames())) {

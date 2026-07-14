@@ -13,13 +13,16 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -38,6 +41,12 @@ import org.slf4j.LoggerFactory;
  * shared executor surface — Section 4.3 / STRIDE Section 9), then re-evaluates the component
  * via {@link RepositoryPolicyEvaluator#evaluateForMonitoring}. The evaluator updates
  * {@code last_evaluation_time} as part of evaluation.
+ * <p>
+ * <b>CLM-42136:</b> after the outer evaluation, {@link #refreshHostedComponentOverlays} mirrors
+ * nested-component violations and regenerates the on-disk Build Report overlay files
+ * ({@code policythreats.json}, {@code bom.json}, {@code data.json}) so the Application Report
+ * page and Latest Evaluations feed reflect the freshly-evaluated state rather than the initial
+ * scan snapshot.
  * <p>
  * Note: This processor does NOT call {@code stampComponentId} on the
  * {@code repository_policy_violation} table. That method is specific to NXRM-hosted repositories
@@ -66,6 +75,10 @@ public class RepositoryContinuousMonitoringFlowProcessor
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
+  private final ReportService reportService;
+
+  private final ApplicationForHostedRepositoryComponentService applicationForHostedRepositoryComponentService;
+
   private final MeterRegistry meterRegistry;
 
   @Inject
@@ -74,12 +87,16 @@ public class RepositoryContinuousMonitoringFlowProcessor
       final RepositoryDAO repositoryDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      final ReportService reportService,
+      final ApplicationForHostedRepositoryComponentService applicationForHostedRepositoryComponentService,
       @Nullable final MeterRegistry meterRegistry)
   {
     this.hostedRepoItemDAO = hostedRepoItemDAO;
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
+    this.reportService = reportService;
+    this.applicationForHostedRepositoryComponentService = applicationForHostedRepositoryComponentService;
     this.meterRegistry = meterRegistry;
   }
 
@@ -204,6 +221,67 @@ public class RepositoryContinuousMonitoringFlowProcessor
     }
 
     repositoryPolicyEvaluator.evaluateForMonitoring(repository, request, stage);
+
+    refreshHostedComponentOverlays(repository, components, stage);
+  }
+
+  /**
+   * Post-evaluation Build Report refresh (CLM-42136). Runs after
+   * {@link RepositoryPolicyEvaluator#evaluateForMonitoring} has refreshed the outer's
+   * {@code repository_policy_violation} rows. For each component in the batch, delegates to
+   * {@link ReportService#refreshHostedComponentAfterEvaluation} which mirrors nested-component
+   * violations and regenerates the on-disk overlay files ({@code policythreats.json},
+   * {@code bom.json}, {@code data.json}). Without this step the outer's report would carry
+   * stale inner-pathname violations from the initial scan.
+   * <p>
+   * Per-component failures are logged, counted on the drop meter, and swallowed — a single
+   * failing component must not poison the rest of the batch, and the queue item's outer
+   * evaluation has already succeeded.
+   */
+  private void refreshHostedComponentOverlays(
+      final Repository repository,
+      final List<RepositoryComponent> components,
+      final String stage)
+  {
+    for (RepositoryComponent component : components) {
+      String componentScanId = component.getScanId();
+      String componentPathname = component.getPathname();
+      if (componentScanId == null || componentPathname == null) {
+        // Component is missing the identifiers we need to address its overlay files on disk.
+        // Log + drop-meter so this doesn't hide silently if it starts happening at scale.
+        log.info("Continuous monitoring (hosted_repo): skipping overlay refresh for repository={} "
+            + "pathname={} scanId={}; missing identifier.",
+            repository.getId(), componentPathname, componentScanId);
+        recordDrop("overlay-refresh-missing-identifier");
+        continue;
+      }
+      try {
+        Application application = applicationForHostedRepositoryComponentService
+            .getOrCreateApplication(repository.getId(), componentPathname);
+        if (application == null) {
+          // getOrCreateApplication returns null when the repository has no valid organization
+          // (root-org lookup would fail). Distinguishing this from a mid-refresh exception keeps
+          // the drop reason unambiguous for operators.
+          log.warn("Continuous monitoring (hosted_repo): synthetic application unavailable for "
+              + "repository={} pathname={} scanId={}; skipping overlay refresh.",
+              repository.getId(), componentPathname, componentScanId);
+          recordDrop("overlay-refresh-no-application");
+          continue;
+        }
+        // persistPolicyEvaluationRow=false — the mirror step invoked by
+        // refreshHostedComponentAfterEvaluation already persists a policy_evaluation row via
+        // ScanPolicyEvaluator; the extra insert this flag controls is only useful on the
+        // Re-Evaluate button path.
+        reportService.refreshHostedComponentAfterEvaluation(
+            component, repository, application, application.getId(), componentScanId, stage, false);
+      }
+      catch (Exception e) {
+        log.warn("Continuous monitoring (hosted_repo): post-evaluation refresh failed for repository={}"
+            + " pathname={} scanId={}; DB is fresh but Build Report files remain stale until next refresh.",
+            repository.getId(), componentPathname, componentScanId, e);
+        recordDrop("overlay-refresh-failed");
+      }
+    }
   }
 
   private ContinuousMonitoringHostedRepoItem loadSatellite(final String queueId) {

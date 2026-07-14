@@ -30,6 +30,7 @@ import {
   Bell,
   LayoutGrid,
   AlertCircle,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 /**
@@ -78,6 +79,8 @@ export const ActionIcons = {
   SolutionSwitcher: LayoutGrid,
   /** Alert circle — used in error Callouts. */
   AlertCircle,
+  /** Sliders — filter controls (e.g. the mobile filter-drawer trigger). */
+  Filter: SlidersHorizontal,
 } as const;
 
 export type ActionIconName = keyof typeof ActionIcons;

@@ -6,7 +6,10 @@
 import { useMemo } from 'react';
 import { getViolationsListUrl } from 'MainRoot/util/CLMLocation';
 import { useTile, UseTileResult } from 'MainRoot/nosc/dashboard/useTile';
-import { ViolationsListResponse } from 'MainRoot/nosc/violations/violationListTypes';
+import {
+  ViolationsFilterState,
+  ViolationsListResponse,
+} from 'MainRoot/nosc/violations/violationListTypes';
 import { buildViolationsListRequest, VIOLATIONS_PAGE_SIZE } from 'MainRoot/nosc/violations/violationsListApi';
 
 export interface UseViolationsListParams {
@@ -15,6 +18,7 @@ export interface UseViolationsListParams {
   readonly pageSize?: number;
   readonly search?: string;
   readonly includeFacets?: boolean;
+  readonly filters?: ViolationsFilterState;
 }
 
 /**
@@ -22,17 +26,17 @@ export interface UseViolationsListParams {
  *
  * Wraps the shared {@link useTile} POST state machine (loading / ready / error / retry) so the
  * page component stays presentational. useTile keys its refetch on the stringified request body, so
- * a fetch happens whenever any of page / pageSize / search / includeFacets changes; the useMemo here
- * only stabilizes the body's object identity across renders (it does not gate the refetch itself).
+ * a fetch happens whenever any of page / pageSize / search / includeFacets / filters changes; the
+ * useMemo here only stabilizes the body's object identity across renders (it does not gate refetch).
  */
 export function useViolationsList(
   params: UseViolationsListParams,
 ): UseTileResult<ViolationsListResponse> {
-  const { page, pageSize = VIOLATIONS_PAGE_SIZE, search, includeFacets = true } = params;
+  const { page, pageSize = VIOLATIONS_PAGE_SIZE, search, includeFacets = true, filters } = params;
 
   const body = useMemo(
-    () => buildViolationsListRequest({ page, pageSize, search, includeFacets }),
-    [page, pageSize, search, includeFacets],
+    () => buildViolationsListRequest({ page, pageSize, search, includeFacets, filters }),
+    [page, pageSize, search, includeFacets, filters],
   );
 
   return useTile<ViolationsListResponse>(getViolationsListUrl(), undefined, {

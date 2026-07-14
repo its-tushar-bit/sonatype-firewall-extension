@@ -24,8 +24,38 @@
   flex-shrink: 0;
 }
 
+.nosc-violations-filter-option {
+  cursor: pointer;
+}
+
+// The truncating label only ellipsizes if every flex ancestor up to the fixed-width rail can shrink;
+// this row is the checkbox/label/count line, so it must also allow shrinking below its content size.
+.nosc-violations-filter-option-row {
+  min-width: 0;
+}
+
+// Keep a long org/app name from stretching the fixed-width rail; truncate with the count still visible.
+.nosc-violations-filter-option-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Cap tall facet lists (estates can have many orgs/apps; the stage list can also grow) so the rail
+// stays usable; the list scrolls within. Applied to both the searchable and plain checkbox sections.
+.nosc-violations-filter-scroll {
+  max-height: 200px;
+}
+
 @media (max-width: 768px) {
   .nosc-violations-filter-rail {
     width: 100%;
   }
+}
+
+// Inside the mobile filter drawer the rail should always fill the dialog width.
+.violations-page__filter-drawer .nosc-violations-filter-rail {
+  width: 100%;
 }

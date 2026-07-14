@@ -5,7 +5,11 @@
  */
 import {
   ViolationRow,
+  ViolationsFilterState,
   ViolationsListRequest,
+  ViolationThreatRange,
+  VIOLATION_THREAT_MAX,
+  VIOLATION_THREAT_MIN,
 } from 'MainRoot/nosc/violations/violationListTypes';
 
 /** Default page size for the Violations card list. */
@@ -14,23 +18,84 @@ export const VIOLATIONS_PAGE_SIZE = 25;
 /** Default sort — highest threat first (backend default; see ViolationsListRequestDTO). */
 export const VIOLATIONS_DEFAULT_ORDER_BY = '-policyThreatLevel';
 
+/** Full [0, 10] policy-threat-level range — the "no narrowing" default. */
+export const DEFAULT_VIOLATION_THREAT_RANGE: ViolationThreatRange = [
+  VIOLATION_THREAT_MIN,
+  VIOLATION_THREAT_MAX,
+];
+
+/** A fresh, empty filter selection (all groups cleared, threat range at the full [0, 10] domain). */
+export function createDefaultViolationsFilterState(): ViolationsFilterState {
+  return {
+    states: new Set<string>(),
+    threatCategories: new Set<string>(),
+    stageIds: new Set<string>(),
+    organizationIds: new Set<string>(),
+    applicationIds: new Set<string>(),
+    threatRange: DEFAULT_VIOLATION_THREAT_RANGE,
+  };
+}
+
+/** True when the threat range covers the whole [0, 10] domain (so it needn't be sent to the API). */
+export function isDefaultThreatRange(range: ViolationThreatRange): boolean {
+  return range[0] <= VIOLATION_THREAT_MIN && range[1] >= VIOLATION_THREAT_MAX;
+}
+
+/** True when any filter group is narrowing the result set (drives the Reset control's enabled state). */
+export function hasActiveViolationFilters(filters: ViolationsFilterState): boolean {
+  return (
+    filters.states.size > 0 ||
+    filters.threatCategories.size > 0 ||
+    filters.stageIds.size > 0 ||
+    filters.organizationIds.size > 0 ||
+    filters.applicationIds.size > 0 ||
+    !isDefaultThreatRange(filters.threatRange)
+  );
+}
+
+/** Sorted array from a selection set, or undefined when empty (so the field is omitted from the body). */
+function toSortedArray(ids: ReadonlySet<string>): ReadonlyArray<string> | undefined {
+  return ids.size > 0 ? Array.from(ids).sort() : undefined;
+}
+
 /**
- * Build the POST body for a Violations list request. Only validator-safe fields are sent;
- * {@code page} is 0-based to match the backend contract.
+ * Build the POST body for a Violations list request. Only validator-safe fields are sent; {@code page}
+ * is 0-based. Filter selections are serialized to the backend wire formats: state names as an array,
+ * categories and the threat range as comma-delimited strings, and stage/org/app ids as arrays.
+ * A default [0, 10] threat range and empty groups are omitted so an unfiltered request stays minimal.
  */
 export function buildViolationsListRequest(params: {
   readonly page: number;
   readonly pageSize?: number;
   readonly search?: string;
   readonly includeFacets?: boolean;
+  readonly filters?: ViolationsFilterState;
 }): ViolationsListRequest {
   const search = params.search?.trim();
+  const filters = params.filters;
+
+  const states = filters ? toSortedArray(filters.states) : undefined;
+  const stageIds = filters ? toSortedArray(filters.stageIds) : undefined;
+  const organizationIds = filters ? toSortedArray(filters.organizationIds) : undefined;
+  const applicationIds = filters ? toSortedArray(filters.applicationIds) : undefined;
+  const categories = filters ? toSortedArray(filters.threatCategories) : undefined;
+  const threatRange =
+    filters && !isDefaultThreatRange(filters.threatRange)
+      ? `${filters.threatRange[0]},${filters.threatRange[1]}`
+      : undefined;
+
   return {
     page: params.page,
     pageSize: params.pageSize ?? VIOLATIONS_PAGE_SIZE,
     includeFacets: params.includeFacets ?? true,
     orderBy: VIOLATIONS_DEFAULT_ORDER_BY,
     ...(search ? { search } : {}),
+    ...(states ? { policyViolationStates: states } : {}),
+    ...(categories ? { policyThreatCategories: categories.join(',') } : {}),
+    ...(threatRange ? { policyThreatLevelRange: threatRange } : {}),
+    ...(stageIds ? { stageIds } : {}),
+    ...(organizationIds ? { organizationIds } : {}),
+    ...(applicationIds ? { applicationIds } : {}),
   };
 }
 
@@ -94,9 +159,15 @@ export function stageLabel(id: string): string {
  * Derive id→display-name maps for the org / application facets from the current page of rows. Facet
  * maps are keyed by internal id only; org/app rows carry both the id and the human-readable name, so
  * we use them to label the sidebar for entities visible on the page. Ids with no matching row fall
- * back to the raw id (full name resolution lands with the filter sidebar work, CLM-42258). Stage
- * facets are labeled by {@link stageLabel} instead — a row's {@code stage} is a display name, not the
- * id the facet is keyed by, so it cannot seed an id→name map.
+ * back to the raw id when no row supplies a name. Stage facets are labeled by {@link stageLabel}
+ * instead — a row's {@code stage} is a display name, not the id the facet is keyed by, so it cannot
+ * seed an id→name map.
+ *
+ * Known V1 limitation (accepted tradeoff): labels only cover entities present on the current page of
+ * rows (pageSize 25). Org/app facet entries for entities not on the page therefore render their raw
+ * id and can't be matched by the sidebar's name-search. The durable fix is server-side — return an
+ * id→name map in the facets payload (or a dedicated labels endpoint) so labels don't depend on which
+ * rows happen to be visible — tracked in CLM-42443. Until then this row-derived map is the V1 behavior.
  */
 export function deriveViolationFacetLabels(rows: ReadonlyArray<ViolationRow>): {
   readonly organizations: Readonly<Record<string, string>>;

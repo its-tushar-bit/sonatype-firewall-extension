@@ -13,16 +13,21 @@ import ViolationsList from 'MainRoot/nosc/violations/ViolationsList';
 import { getViolationsListUrl } from 'MainRoot/util/CLMLocation';
 import { MOCK_VIOLATIONS_LIST_RESPONSE } from 'MainRoot/nosc/violations/mockViolationsListData';
 import { ViolationsListResponse } from 'MainRoot/nosc/violations/violationListTypes';
+import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 
-describe('ViolationsList (CLM-42257 / CLM-42254 wire)', () => {
+describe('ViolationsList', () => {
   let axiosMock: ReturnType<typeof axiosMockAdapter>;
+  let user: ReturnType<typeof userEvent.setup>;
 
   beforeAll(() => {
     _setBaseUrlForTesting('http://localhost');
+    // Interactive filter rail uses Radix Slider + ScrollArea (need ResizeObserver / Pointer shims).
+    installRadixJsdomShims();
   });
 
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
+    user = userEvent.setup();
   });
 
   afterEach(() => {
@@ -149,12 +154,61 @@ describe('ViolationsList (CLM-42257 / CLM-42254 wire)', () => {
 
     await screen.findByTestId('violation-card-grid');
     const searchBox = screen.getByTestId('violations-toolbar-search');
-    await userEvent.type(searchBox, 'log4j{enter}');
+    await user.type(searchBox, 'log4j{enter}');
 
     await waitFor(() => {
       const last = JSON.parse(axiosMock.history.post[axiosMock.history.post.length - 1].data);
       expect(last.search).toBe('log4j');
       expect(last.page).toBe(0);
+    });
+  });
+
+  it('applies a state filter, refetching with policyViolationStates and page 0', async () => {
+    axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+    renderList();
+
+    await screen.findByTestId('violation-card-grid');
+    await user.click(screen.getByTestId('violations-filter-state-option-OPEN'));
+
+    await waitFor(() => {
+      const last = JSON.parse(axiosMock.history.post[axiosMock.history.post.length - 1].data);
+      expect(last.policyViolationStates).toEqual(['OPEN']);
+      expect(last.page).toBe(0);
+    });
+  });
+
+  it('resets filters back to an unfiltered request', async () => {
+    axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+    renderList();
+
+    await screen.findByTestId('violation-card-grid');
+    await user.click(screen.getByTestId('violations-filter-state-option-OPEN'));
+    await waitFor(() => {
+      const last = JSON.parse(axiosMock.history.post[axiosMock.history.post.length - 1].data);
+      expect(last.policyViolationStates).toEqual(['OPEN']);
+    });
+
+    await user.click(screen.getByTestId('violations-filter-reset'));
+    await waitFor(() => {
+      const last = JSON.parse(axiosMock.history.post[axiosMock.history.post.length - 1].data);
+      expect(last.policyViolationStates).toBeUndefined();
+    });
+  });
+
+  it('sends a narrowed threat range once the slider commits', async () => {
+    axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+    renderList();
+
+    await screen.findByTestId('violation-card-grid');
+    // Focus the first slider thumb and nudge the min up; Radix commits on keyup.
+    const slider = screen.getByTestId('violations-filter-threat-slider');
+    const thumb = slider.querySelector('[role="slider"]') as HTMLElement;
+    thumb.focus();
+    await user.keyboard('{ArrowRight}');
+
+    await waitFor(() => {
+      const last = JSON.parse(axiosMock.history.post[axiosMock.history.post.length - 1].data);
+      expect(last.policyThreatLevelRange).toBe('1,10');
     });
   });
 
@@ -179,7 +233,7 @@ describe('ViolationsList (CLM-42257 / CLM-42254 wire)', () => {
 
     const retry = await screen.findByRole('button', { name: /retry/i });
     expect(screen.getByTestId('violations-list-error')).toBeInTheDocument();
-    await userEvent.click(retry);
+    await user.click(retry);
 
     expect(await screen.findByTestId('violation-card-grid')).toBeInTheDocument();
   });
@@ -191,7 +245,7 @@ describe('ViolationsList (CLM-42257 / CLM-42254 wire)', () => {
 
     await screen.findByTestId('violation-card-grid');
     const next = screen.getByRole('button', { name: /next page/i });
-    await userEvent.click(next);
+    await user.click(next);
 
     await waitFor(() => {
       const last = JSON.parse(axiosMock.history.post[axiosMock.history.post.length - 1].data);

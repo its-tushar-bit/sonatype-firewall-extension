@@ -3,13 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { Box, Button, Flex, Heading, Text } from '@radix-ui/themes';
+import React, { useState } from 'react';
+import { Box, Button, Dialog, Flex, Heading, Text } from '@radix-ui/themes';
 import { AsyncPageState } from 'MainRoot/nosc/components/AsyncPageState';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
-import { ViolationRow, ViolationsListFacets } from 'MainRoot/nosc/violations/violationListTypes';
+import {
+  ViolationFilterSetGroup,
+  ViolationRow,
+  ViolationsFilterState,
+  ViolationsListFacets,
+  ViolationThreatRange,
+} from 'MainRoot/nosc/violations/violationListTypes';
+import { hasActiveViolationFilters } from 'MainRoot/nosc/violations/violationsListApi';
 import ViolationsFilterRail from 'MainRoot/nosc/violations/ViolationsFilterRail';
 import ViolationsToolbar from 'MainRoot/nosc/violations/ViolationsToolbar';
 import ViolationCardGrid from 'MainRoot/nosc/violations/ViolationCardGrid';
@@ -23,6 +30,10 @@ export interface ViolationsPageProps {
     readonly organizations: Readonly<Record<string, string>>;
     readonly applications: Readonly<Record<string, string>>;
   };
+  readonly filters: ViolationsFilterState;
+  readonly onFilterToggle: (group: ViolationFilterSetGroup, id: string) => void;
+  readonly onThreatRangeChange: (range: ViolationThreatRange) => void;
+  readonly onResetFilters: () => void;
   readonly loading?: boolean;
   readonly error?: string | null;
   readonly onRetry?: () => void;
@@ -37,14 +48,18 @@ export interface ViolationsPageProps {
 }
 
 /**
- * Martha V1 Violations page shell (CLM-42257): filter rail + toolbar + card list + pagination inside
- * the Nexus One Preview shell. Data is wired to POST /rest/dashboard/violations/list by
- * {@link ViolationsList}; filter interactions land in CLM-42258 and CSV export in CLM-42260.
+ * Martha V1 Violations page shell: filter rail + toolbar + card list + pagination inside the Nexus One
+ * Preview shell. Data is wired to POST /rest/dashboard/violations/list by {@link ViolationsList}; CSV
+ * export is deferred. The same filter rail is reused inside a mobile drawer on small screens.
  */
 export default function ViolationsPage({
   violations,
   facets,
   labels,
+  filters,
+  onFilterToggle,
+  onThreatRangeChange,
+  onResetFilters,
   loading = false,
   error = null,
   onRetry,
@@ -56,9 +71,19 @@ export default function ViolationsPage({
   onPageChange,
 }: ViolationsPageProps): JSX.Element {
   const offsets = usePreviewShellOffsets();
-  // TODO: when interactive filters land, revisit pagination visibility for filter-only empty pages
-  // (e.g. zero rows on the current page while facet counts still show matches elsewhere).
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const showPagination = totalCount > pageSize || page > 1;
+  const filtersActive = hasActiveViolationFilters(filters);
+  const hasSearch = Boolean(searchValue);
+
+  const railProps = {
+    facets,
+    labels,
+    selected: filters,
+    onToggle: onFilterToggle,
+    onThreatRangeChange,
+    onReset: onResetFilters,
+  };
 
   return (
     <Box
@@ -85,9 +110,59 @@ export default function ViolationsPage({
         </Flex>
 
         <Flex gap="4" align="start" wrap="wrap" data-testid="violations-page-layout">
-          <ViolationsFilterRail facets={facets} labels={labels} />
+          {/* Desktop rail; on small screens it is replaced by the mobile drawer below. */}
+          <Box display={{ initial: 'none', sm: 'block' }}>
+            <ViolationsFilterRail {...railProps} />
+          </Box>
           <Box className="violations-page__content" data-testid="violations-page-content">
             <Flex direction="column" gap="4">
+              {/* Mobile-only trigger for the filter drawer (same rail, different id namespace). */}
+              <Box display={{ initial: 'block', sm: 'none' }}>
+                <Dialog.Root open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                  <Dialog.Trigger>
+                    <Button
+                      variant="outline"
+                      color="gray"
+                      size="2"
+                      data-testid="violations-filters-mobile-trigger"
+                      aria-label={filtersActive ? 'Filters (active)' : 'Filters'}
+                    >
+                      <ActionIcons.Filter size={14} aria-hidden />
+                      Filters
+                      {filtersActive && (
+                        <Box
+                          data-testid="violations-filters-mobile-active-dot"
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: 'var(--accent-9)',
+                          }}
+                        />
+                      )}
+                    </Button>
+                  </Dialog.Trigger>
+                  <Dialog.Content
+                    maxWidth="360px"
+                    className="violations-page__filter-drawer"
+                    data-testid="violations-filters-mobile-drawer"
+                  >
+                    <Dialog.Title size="3">Filters</Dialog.Title>
+                    <Dialog.Description size="1" color="gray" mb="3">
+                      Narrow violations by state, threat, stage, organization, and application.
+                    </Dialog.Description>
+                    <ViolationsFilterRail {...railProps} idPrefix="violations-filter-mobile" />
+                    <Flex justify="end" mt="4">
+                      <Dialog.Close>
+                        <Button size="2" data-testid="violations-filters-mobile-apply">
+                          Done
+                        </Button>
+                      </Dialog.Close>
+                    </Flex>
+                  </Dialog.Content>
+                </Dialog.Root>
+              </Box>
+
               <ViolationsToolbar
                 totalCount={totalCount}
                 searchValue={searchValue}
@@ -113,27 +188,50 @@ export default function ViolationsPage({
                   >
                     <DomainIcons.Vulnerability size={32} color="var(--gray-9)" />
                     <Text size="3" color="gray">
-                      {searchValue ? 'No violations match your search.' : 'No violations to display.'}
+                      {hasSearch && filtersActive
+                        ? 'No violations match your search and filters.'
+                        : hasSearch
+                          ? 'No violations match your search.'
+                          : filtersActive
+                            ? 'No violations match your filters.'
+                            : 'No violations to display.'}
                     </Text>
                     <Text size="2" color="gray">
-                      {searchValue
-                        ? 'Try a different search term or clear the search.'
-                        : 'Violations visible to your account will appear here once data is loaded.'}
+                      {hasSearch && filtersActive
+                        ? 'Try adjusting or clearing your search and filters.'
+                        : hasSearch
+                          ? 'Try adjusting or clearing your search.'
+                          : filtersActive
+                            ? 'Try adjusting or resetting your filters.'
+                            : 'Violations visible to your account will appear here once data is loaded.'}
                     </Text>
-                    {/* TODO: when interactive filters land, add a "Reset filters" action for filter-only
-                        empties and tailor the copy for search vs filter causes. For now, clearing the
-                        committed search is the only reset available in V1. */}
-                    {searchValue && (
-                      <Button
-                        variant="soft"
-                        size="2"
-                        mt="1"
-                        onClick={() => onSearchSubmit('')}
-                        data-testid="violations-empty-clear-search"
-                      >
-                        <ActionIcons.Refresh size={14} aria-hidden />
-                        Clear search
-                      </Button>
+                    {/* Give the empty state actionable recovery controls: clear the committed search
+                        and/or reset the filter selection so a zero-result narrowing isn't a dead end. */}
+                    {(searchValue || filtersActive) && (
+                      <Flex gap="2" mt="1">
+                        {searchValue && (
+                          <Button
+                            variant="soft"
+                            size="2"
+                            onClick={() => onSearchSubmit('')}
+                            data-testid="violations-empty-clear-search"
+                          >
+                            <ActionIcons.Refresh size={14} aria-hidden />
+                            Clear search
+                          </Button>
+                        )}
+                        {filtersActive && (
+                          <Button
+                            variant="soft"
+                            size="2"
+                            onClick={onResetFilters}
+                            data-testid="violations-empty-reset-filters"
+                          >
+                            <ActionIcons.Refresh size={14} aria-hidden />
+                            Reset filters
+                          </Button>
+                        )}
+                      </Flex>
                     )}
                   </Flex>
                 ) : (

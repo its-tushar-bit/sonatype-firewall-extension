@@ -1,0 +1,182 @@
+#
+# Sonatype Guide — Agent P (AGP) Workflow
+# Learn more: https://guide.sonatype.com
+#
+# File: .github/workflows/agp-workflow.yml
+#
+# Authentication: Uses GitHub OIDC (id-token: write) to authenticate with Sonatype Guide.
+#
+# How this works:
+#   1. The lightweight `gate` job calls Sonatype Guide over OIDC to fetch your organization's
+#      governed configuration and a run/pause directive. It runs no container, so it is fast/cheap.
+#   2. The `agp` job only runs when the gate says `run`. If your repository is paused in Guide — or
+#      Guide is unreachable — the `agp` job is skipped entirely (no runner, no image pull).
+#
+# Configuration is governed centrally in Sonatype Guide; there is no agp.yml to edit in this repo —
+# the gate writes the effective configuration at run time.
+#
+# GitHub write access (push branch + open PR) is brokered by Sonatype Guide: the action exchanges
+# its OIDC identity for a short-lived Guide-App installation token (PRs authored by
+# sonatype-guide[bot]). No GITHUB_TOKEN/PAT is needed in this workflow.
+#
+# Required secrets (private-registry access for building this repo's dependencies):
+#   - RC_USERNAME / RC_PASSWORD: Sonatype private registry credentials (org secrets)
+# Optional variables:
+#   - AGP_API_URL: target a specific Sonatype Guide environment (defaults to production if unset)
+
+name: Sonatype Guide - Agent P
+
+on:
+  schedule:
+    # Run Monday to Friday at 8:07 UTC
+    # Minute :07 dodges GitHub's top-of-hour queue contention.
+    - cron: '7 6 * * 1-5'   # 06:07 UTC
+  workflow_dispatch:
+    inputs:
+      verbose:
+        description: 'Enable verbose output'
+        required: false
+        default: 'false'
+        type: boolean
+      # Declared so Sonatype Guide can start this workflow via the dispatch API: GitHub rejects a
+      # workflow_dispatch carrying inputs the workflow does not declare. Full runs send mode;
+      # targeted security-fix runs also send vulnerabilities; heal runs also send repo_id.
+      mode:
+        description: 'Run mode (full, security, or heal)'
+        required: false
+        default: 'full'
+        type: string
+      repo_id:
+        description: 'Sonatype Guide repository id (required for heal mode)'
+        required: false
+        type: number
+      vulnerabilities:
+        description: 'JSON array of vulnerabilities to target (security mode)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write # Required for Sonatype Guide OIDC authentication
+
+concurrency:
+  group: agp-workflow
+  cancel-in-progress: false
+
+jobs:
+  # Cheap, Docker-free gate. Determines whether AGP should run for this repo and, when it should,
+  # writes the governed effective agp.yml to the workspace (fail-closed).
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      directive: ${{ steps.gate.outputs.directive }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Sonatype Guide gate
+        id: gate
+        uses: sonatype/agp-action/gate@v1
+        with:
+          guide-url: ${{ vars.AGP_API_URL }}
+
+  agp:
+    needs: gate
+    if: needs.gate.outputs.directive == 'run'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Fetch governed configuration
+        # GitHub jobs run separately and don't share files, so fetch the governed configuration
+        # again here for the AGP run below to use.
+        uses: sonatype/agp-action/gate@v1
+        with:
+          guide-url: ${{ vars.AGP_API_URL }}
+
+      - name: Generate .npmrc
+        # Private npm registry auth for this repo's JS/TS modules (package.json subdirs).
+        id: npmrc
+        run: |
+          AUTH_TOKEN=$(echo -n "${RC_USERNAME}:${RC_PASSWORD}" | base64)
+          NPMRC_CONTENT=$(cat <<'NPMRC'
+          always-auth=true
+          registry=https://sonatype.repo.sonatype.app/repository/npm-all/
+          //sonatype.repo.sonatype.app/repository/npm-all/:_auth=AUTH_TOKEN_PLACEHOLDER
+          NPMRC
+          )
+          NPMRC_CONTENT="${NPMRC_CONTENT//AUTH_TOKEN_PLACEHOLDER/$AUTH_TOKEN}"
+          NPMRC_BASE64=$(echo -n "$NPMRC_CONTENT" | base64 -w 0)
+          echo "content=$NPMRC_BASE64" >> "$GITHUB_OUTPUT"
+        env:
+          RC_USERNAME: ${{ secrets.RC_USERNAME }}
+          RC_PASSWORD: ${{ secrets.RC_PASSWORD }}
+
+      - name: Run AGP
+        uses: sonatype/agp-action@v1
+        with:
+          # Forward the dispatch inputs so a backend-triggered run targets the right mode.
+          # full/scheduled -> mode=full; security-fix -> mode=security + vulnerabilities; heal -> repo_id.
+          mode: ${{ inputs.mode || 'full' }}
+          repo_id: ${{ inputs.repo_id || '' }}
+          vulnerabilities: ${{ inputs.vulnerabilities }}
+          verbose: ${{ inputs.verbose || 'false' }}
+          # --- Private-registry build tooling for this repo (Maven + npm) ---
+          npmrc-content: ${{ steps.npmrc.outputs.content }}
+          maven-settings-xml: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+              <servers>
+                <server>
+                  <id>sonatype-repo-cloud</id>
+                  <username>${{ secrets.RC_USERNAME }}</username>
+                  <password>${{ secrets.RC_PASSWORD }}</password>
+                </server>
+              </servers>
+              <mirrors>
+                <mirror>
+                  <id>sonatype-repo-cloud</id>
+                  <mirrorOf>*</mirrorOf>
+                  <url>https://sonatype.repo.sonatype.app/repository/maven-private/</url>
+                </mirror>
+              </mirrors>
+              <profiles>
+                <profile>
+                  <id>repository-manager-support</id>
+                  <repositories>
+                    <repository>
+                      <id>central</id>
+                      <url>https://repo1.maven.org/maven2</url>
+                      <snapshots>
+                        <enabled>true</enabled>
+                      </snapshots>
+                    </repository>
+                  </repositories>
+                  <pluginRepositories>
+                    <pluginRepository>
+                      <id>central</id>
+                      <url>https://repo1.maven.org/maven2</url>
+                      <snapshots>
+                        <enabled>true</enabled>
+                      </snapshots>
+                    </pluginRepository>
+                  </pluginRepositories>
+                </profile>
+              </profiles>
+              <activeProfiles>
+                <activeProfile>repository-manager-support</activeProfile>
+              </activeProfiles>
+            </settings>
+          # --- Optional: only if the default public agp image can't be pulled. Uncomment to use the
+          #     private mirror (and provide the docker-* creds below).
+          # docker-image: sonatype.repo.sonatype.app/docker-all/sonatype/agp:latest
+          # docker-username: ${{ secrets.RC_USERNAME }}
+          # docker-password: ${{ secrets.RC_PASSWORD }}
+        env:
+          AGP_API_URL: ${{ vars.AGP_API_URL }}

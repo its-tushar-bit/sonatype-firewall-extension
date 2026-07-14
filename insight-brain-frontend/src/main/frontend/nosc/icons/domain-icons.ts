@@ -21,6 +21,7 @@ import {
   History,
   Home,
   Key,
+  Layers,
   LayoutDashboard,
   MessageSquareWarning,
   Microscope,
@@ -61,6 +62,8 @@ export const DomainIcons = {
   Policies: Shield,
   /** Organizations (hierarchical tenancy unit above Applications). */
   Organizations: Building2,
+  /** Pipeline/lifecycle stage (build, stage-release, release, …). */
+  Stage: Layers,
   /** Repositories (upstream package sources scanned by Firewall/Lifecycle). */
   Repositories: Database,
   /** Users & Groups (identity management). */

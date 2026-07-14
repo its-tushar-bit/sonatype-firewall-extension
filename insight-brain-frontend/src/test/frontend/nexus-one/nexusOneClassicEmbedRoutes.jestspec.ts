@@ -187,7 +187,12 @@ describe('nexusOneClassicEmbedRoutes', () => {
     );
     expect(router.stateRegistry.get('labs.successMetrics')?.redirectTo).toBe(comingSoonStateName('success-metrics'));
     expect(router.stateRegistry.get('dashboard.overview.violations')?.redirectTo).toBe('nexusOneDashboard.violations');
-    expect(router.stateRegistry.get('nexusOneViolations')?.redirectTo).toBe('nexusOneDashboard.violations');
+    // /violations is now the Martha V1 Violations card list (CLM-42257), not a redirect to the
+    // dashboard tab. It is a sibling of the embedded detail state at /violations/{id} (CLM-42256).
+    const violations = router.stateRegistry.get('nexusOneViolations');
+    expect(violations?.url).toBe('/violations');
+    expect(violations?.redirectTo).toBeUndefined();
+    expect(violations?.component).toBeDefined();
     expect(router.stateRegistry.get('nexusOneComponents')?.redirectTo).toBe('nexusOneDashboard.components');
   });
 

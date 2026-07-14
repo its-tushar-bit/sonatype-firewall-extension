@@ -49,6 +49,7 @@ const STATES: ReactStateDeclaration[] = [
   ...nexusOneApplicationDetailStates(),
   { name: 'nexusOneWaivers', url: '/waivers' },
   { name: 'nexusOneWaiverDetail', url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from' },
+  { name: 'nexusOneViolations', url: '/violations' },
   { name: 'platformHome', url: '/home' },
   ...nexusOneDashboardStates(),
 ];

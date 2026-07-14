@@ -57,7 +57,11 @@ import 'MainRoot/violation/route';
 import 'MainRoot/waivers/route';
 import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage';
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
-import { WaiversListPage as PreviewWaiversList, WaiverDetailPage as PreviewWaiverDetail } from 'MainRoot/nosc/waivers';
+import PreviewViolationsList from 'MainRoot/nosc/violations/ViolationsList';
+import {
+  WaiversListPage as PreviewWaiversList,
+  WaiverDetailPage as PreviewWaiverDetail,
+} from 'MainRoot/nosc/waivers';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 
 router.stateRegistry.register({
@@ -131,14 +135,17 @@ router.stateRegistry.register({
   },
 } as ReactStateDeclaration);
 
-// Interim top-level aliases until native entity-list pages own these paths (CLM-40905).
+// Martha V1 Violations card list (CLM-42257), wired to POST /rest/dashboard/violations/list
+// (CLM-42254). Sibling of the embedded violation detail state registered at /violations/{id}
+// (nexusOneViolationDetail, CLM-42256) — the card drill-in target.
 router.stateRegistry.register({
   name: 'nexusOneViolations',
   url: '/violations',
-  redirectTo: 'nexusOneDashboard.violations',
+  component: PreviewViolationsList,
   data: { title: 'Nexus One — Violations' },
 } as ReactStateDeclaration);
 
+// Interim top-level aliases until native entity-list pages own these paths (CLM-40905).
 router.stateRegistry.register({
   name: 'nexusOneComponents',
   url: '/components',

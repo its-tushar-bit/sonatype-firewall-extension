@@ -149,6 +149,14 @@ export function getNewestRisksExportUrl() {
 }
 
 /**
+ * Nexus One Violations card list (Martha V1, CLM-42254). POST with
+ * `{ page, pageSize, search?, includeFacets, orderBy }`; gated by PREVIEW_NEXUS_ONE_UI.
+ */
+export function getViolationsListUrl() {
+  return uriTemplate`/rest/dashboard/violations/list`;
+}
+
+/**
  * Retrieve the list of application risk in the most recent stage.  Supports filters
  * @since 1.11
  */

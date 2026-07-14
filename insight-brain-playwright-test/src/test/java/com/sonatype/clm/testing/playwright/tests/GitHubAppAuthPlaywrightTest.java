@@ -11,8 +11,8 @@ import com.sonatype.clm.testing.playwright.pages.GitHubAppAuthPage;
 import com.sonatype.clm.testing.playwright.pages.GitHubAppAuthPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
@@ -27,6 +27,8 @@ public class GitHubAppAuthPlaywrightTest
 {
   /** Dummy PAT for seed-only source-control records; no GitHub API calls are made. */
   private static final String GITHUB_PAT_PLACEHOLDER = "test-token-pw";
+
+  private static final String PROVIDER_GITHUB = "GitHub";
 
   private GitHubAppAuthPage authPage;
 
@@ -71,6 +73,41 @@ public class GitHubAppAuthPlaywrightTest
   }
 
   /**
+   * "Add GitHub App" button is visible in the Authentication Method section when
+   * GitHub App radio is selected and no apps have been registered yet.
+   * <p>
+   * Manual steps navigate via the sidebar tree; automated via direct URL since
+   * root-org navigation does not require dynamic sidebar resolution.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testAddGitHubAppButton_visibleWhenNoAppsConfigured() {
+    openSourceControlAtRoot();
+    authPage.authTypeGitHubAppRadio().label().click();
+    assertThat(authPage.addGitHubAppButton()).isVisible();
+  }
+
+  /**
+   * Registration form required-field validation: after the org name is filled the
+   * validation error clears, confirming the form accepts the required field.
+   * <p>
+   * Clicking "Register &amp; Create GitHub App" opens a real GitHub OAuth flow that cannot be
+   * intercepted in the embedded test framework; the automatable assertion is that the
+   * Organisation Name required-field error clears once a value is entered.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testRegistrationModal_orgNameFilledClearsValidationError() {
+    openRegistrationModalAtRoot();
+    authPage.registrationModalOrgAccountRadio().label().click();
+    authAssertions.shouldShowOrgNameInput();
+    authPage.registrationModalSubmitButton().click();
+    authAssertions.shouldShowOrgNameValidationError();
+    authPage.registrationModalOrgNameInput().fill("my-github-org");
+    assertThat(authPage.registrationModalValidationError()).isHidden();
+  }
+
+  /**
    * Child org renders Inherit/Override radios. Seeds GitHub on the parent so the child
    * inherits the provider ({@code GitHubAppAuthenticationMethod} only renders then).
    */
@@ -109,11 +146,10 @@ public class GitHubAppAuthPlaywrightTest
 
   /** Seeds a parent org with GitHub SCM configured, plus a child org that inherits from it. */
   private Organization createChildOrgInheritingGitHub() {
-    String suffix = TemporaryEntity.uuid();
-    Organization parentOrg = tempEntity.newOrganization("GitHubAppParent-" + suffix);
+    Organization parentOrg = tempEntity.newOrganization();
     tempEntity.newSourceControl(
         parentOrg.getId(), null, GITHUB_PAT_PLACEHOLDER, SourceControlProvider.GITHUB);
-    return tempEntity.newOrganization("GitHubAppChild-" + suffix, parentOrg);
+    return tempEntity.newOrganization(parentOrg);
   }
 
   /** GitHub App → PAT reveals the token input. */
@@ -143,11 +179,57 @@ public class GitHubAppAuthPlaywrightTest
     authAssertions.shouldShowGitHubAppSection();
   }
 
+  /**
+   * Switching auth method from PAT to GitHub App and saving persists the selection across
+   * a page reload. Precondition: a GitHub App is seeded at root org so the form allows
+   * saving with GitHub App selected; a PAT source-control record ensures the form loads
+   * in "Update" mode with PAT as the initial active method.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testAuthMethodSwitch_patToGitHubApp_savesPersistsAfterReload() {
+    // Seed a source control record with authenticationType=PAT explicitly so the form loads
+    // with PAT as its initial auth method. Without this, the UI infers GitHub App from the
+    // registered app even when a PAT token is stored, making the form non-dirty on load and
+    // preventing a clean PAT→GitHub App switch.
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(Organization.ROOT_ORGANIZATION_ID)
+        .setToken(GITHUB_PAT_PLACEHOLDER)
+        .setProvider(SourceControlProvider.GITHUB)
+        .setBaseBranch("master")
+        .setAuthenticationType(SourceControl.AuthenticationType.PAT)
+        .build();
+    tempEntity.newSourceControl(sourceControl);
+    tempEntity.newGitHubApp(Organization.ROOT_ORGANIZATION_ID);
+
+    openSourceControlAtRoot();
+
+    assertThat(authPage.authTypePatRadio().input()).isChecked();
+
+    authPage.authTypeGitHubAppRadio().label().click();
+    authAssertions.shouldShowGitHubAppSection();
+
+    // Save and wait for the PUT sourceControl response to complete before reloading.
+    SourceControlConfigurationPage editor = new SourceControlConfigurationPage();
+    page.waitForResponse(
+        r -> r.url().contains("/api/v2/sourceControl/")
+            && "PUT".equalsIgnoreCase(r.request().method()),
+        () -> editor.submitButton().click());
+
+    // Reload without re-logging in (session is still active from the first login).
+    playwrightRefreshOrOpen(OwnerSummaryPage.editOrganizationUrl(
+        Organization.ROOT_ORGANIZATION_ID, SourceControlConfigurationPage.URL_FRAGMENT));
+    new SourceControlConfigurationPage().selectProvider(PROVIDER_GITHUB);
+    assertThat(authPage.authMethodSection()).isVisible();
+
+    assertThat(authPage.authTypeGitHubAppRadio().input()).isChecked();
+  }
+
   private void openRegistrationModalAtRoot() {
     playwrightRefreshOrOpen(OwnerSummaryPage.editOrganizationUrl(
         Organization.ROOT_ORGANIZATION_ID, SourceControlConfigurationPage.URL_FRAGMENT));
     playwrightLogin();
-    new SourceControlConfigurationPage().selectProvider("GitHub");
+    new SourceControlConfigurationPage().selectProvider(PROVIDER_GITHUB);
 
     authPage.authTypeGitHubAppRadio().label().click();
     authPage.addGitHubAppButton().click();
@@ -158,7 +240,7 @@ public class GitHubAppAuthPlaywrightTest
     playwrightRefreshOrOpen(OwnerSummaryPage.editOrganizationUrl(
         Organization.ROOT_ORGANIZATION_ID, SourceControlConfigurationPage.URL_FRAGMENT));
     playwrightLogin();
-    new SourceControlConfigurationPage().selectProvider("GitHub");
+    new SourceControlConfigurationPage().selectProvider(PROVIDER_GITHUB);
     assertThat(authPage.authMethodSection()).isVisible();
   }
 

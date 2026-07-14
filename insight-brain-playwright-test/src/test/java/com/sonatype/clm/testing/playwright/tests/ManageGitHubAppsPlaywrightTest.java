@@ -11,7 +11,8 @@ import com.sonatype.clm.testing.playwright.pages.GitHubAppAuthPage;
 import com.sonatype.clm.testing.playwright.pages.ManageGitHubAppsPage;
 import com.sonatype.clm.testing.playwright.pages.ManageGitHubAppsPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.SourceControlRegressionPage;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 
@@ -25,8 +26,6 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 public class ManageGitHubAppsPlaywrightTest
     extends AbstractIqUiTest
 {
-  private static final String ORG_NAME_PREFIX = "ManageGitHubAppsOrg";
-
   private Organization org;
 
   private GitHubApp seededApp;
@@ -37,8 +36,7 @@ public class ManageGitHubAppsPlaywrightTest
 
   @Before
   public void seedAndOpen() {
-    String suffix = TemporaryEntity.uuid();
-    org = tempEntity.newOrganization(ORG_NAME_PREFIX + "-" + suffix);
+    org = tempEntity.newOrganization();
     seededApp = tempEntity.newGitHubApp(org.getId());
 
     openManageGitHubAppsPage();
@@ -98,6 +96,33 @@ public class ManageGitHubAppsPlaywrightTest
     manageAppsPage.deleteConfirmButton().click();
     manageAppsAssertions.shouldHideDeleteConfirmModal();
     manageAppsAssertions.shouldShowEmptyState();
+  }
+
+  /**
+   * After the sole GitHub App is deleted, the Source Control Configuration page still offers
+   * PAT as an accessible authentication method. No residual GitHub App config blocks switching to PAT.
+   * <p>
+   * Manual steps navigate via the sidebar tree; automated via direct URL since org-level SC
+   * config does not require dynamic sidebar resolution.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testDeleteApp_afterConfirm_patAuthAccessibleInScConfig() {
+    manageAppsAssertions.shouldBeLoaded();
+    manageAppsPage.deleteButtonForApp(seededApp.getSlug()).click();
+    manageAppsAssertions.shouldShowDeleteConfirmModal();
+    manageAppsPage.deleteConfirmButton().click();
+    manageAppsAssertions.shouldShowEmptyState();
+
+    playwrightRefreshOrOpen(OwnerSummaryPage.editOrganizationUrl(
+        org.getId(), SourceControlConfigurationPage.URL_FRAGMENT));
+
+    SourceControlRegressionPage scRegressionPage = new SourceControlRegressionPage();
+    scRegressionPage.providerOverrideRadio().click();
+
+    SourceControlConfigurationPage scPage = new SourceControlConfigurationPage();
+    scPage.selectGitHubPersonalAccessTokenCredentials();
+    assertThat(scPage.accessTokenInput()).isVisible();
   }
 
   private void openManageGitHubAppsPage() {

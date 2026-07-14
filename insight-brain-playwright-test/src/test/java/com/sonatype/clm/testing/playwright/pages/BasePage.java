@@ -288,10 +288,19 @@ public abstract class BasePage
   }
 
   /**
+   * MUI tooltip popup rendered in a portal — only present in the DOM after the trigger element
+   * is hovered. Use {@code assertThat(tooltip()).containsText("...")} after calling
+   * {@code trigger.hover()} to verify the tooltip text.
+   */
+  public Locator tooltip() {
+    return page.getByRole(AriaRole.TOOLTIP);
+  }
+
+  /**
    * JS-RegExp-safe escape for runtime input interpolated into a Playwright {@link Pattern}.
    * Don't use {@link Pattern#quote(String)} — its {@code \Q…\E} silently breaks under JS RegExp.
    */
-  protected static String escapeForJsRegex(String text) {
+  public static String escapeForJsRegex(String text) {
     return text.replaceAll("[\\\\^$.|?*+()\\[\\]{}]", "\\\\$0");
   }
 }

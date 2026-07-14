@@ -17,6 +17,7 @@ import {
 } from 'MainRoot/nosc/comingSoon';
 import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/SuccessMetricsReportListContainer';
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
+import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
 import ApiPage from 'MainRoot/api/ApiPage';
 import React2ShellPage from 'MainRoot/report/react2shell/React2ShellPage';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
@@ -48,10 +49,7 @@ import 'MainRoot/violation/route';
 import 'MainRoot/waivers/route';
 import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage';
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
-import {
-  WaiversListPage as PreviewWaiversList,
-  WaiverDetailPage as PreviewWaiverDetail,
-} from 'MainRoot/nosc/waivers';
+import { WaiversListPage as PreviewWaiversList, WaiverDetailPage as PreviewWaiverDetail } from 'MainRoot/nosc/waivers';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 
 router.stateRegistry.register({
@@ -247,6 +245,26 @@ router.stateRegistry.register({
   url: '/_classic-aliases/labs/successMetrics',
   redirectTo: comingSoonStateName('success-metrics'),
   data: { title: 'Success Metrics' },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'successMetricsConfiguration',
+  url: '/successMetricsConfiguration',
+  component: mountClassicComponent(SuccessMetricsConfiguration),
+  // mountClassicComponent applies the shell's fixed-position offsets via
+  // usePreviewShellOffsets — same primitive every native NOSC page uses to sit
+  // clear of the LeftNav + TopNav. Without it, .nx-page-main's `grid-area`
+  // declaration falls through (NOSC shell isn't a CSS Grid ancestor) and
+  // content underruns the sidebar. Sibling api and labs.successMetrics routes
+  // use the same wrapper.
+  redirectTo: async () => {
+    const authorized = await isAuthorized(['CONFIGURE_SYSTEM']);
+    return authorized ? undefined : 'nexusOneDashboard.violations';
+  },
+  data: {
+    title: 'Success Metrics Configuration',
+    isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
+  },
 } as ReactStateDeclaration);
 
 router.stateRegistry.register({

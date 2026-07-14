@@ -57,6 +57,10 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/previewUiSettings')).toBe('/ui-settings');
     });
 
+    it('keeps the Success Metrics admin path identical on both bundles (CLM-42186)', () => {
+      expect(toNexusOneEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
+    });
+
     it('falls back to NEXUS_ONE_DEFAULT_PATH for unmapped Classic URLs', () => {
       // `/orgsAndPolicies` (with the typo'd lowercase first letter)
       // and a fake nonsense path are both genuinely unmapped — they
@@ -104,6 +108,10 @@ describe('classicPreviewMap', () => {
 
     it('maps /ui-settings back to Classic admin settings', () => {
       expect(toClassicEquivalent('/ui-settings')).toBe('/previewUiSettings');
+    });
+
+    it('maps Success Metrics admin back to the same Classic path (CLM-42186)', () => {
+      expect(toClassicEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
     });
 
     it('falls back to CLASSIC_DEFAULT_PATH for unmapped Preview URLs', () => {
@@ -204,6 +212,7 @@ describe('classicPreviewMap', () => {
       ['/dashboard'],
       ['/applications'],
       ['/ui-settings'],
+      ['/successMetricsConfiguration'],
     ])('nexus-one %s -> classic -> nexus-one returns to a path that maps back', (previewPath) => {
       const classicEquivalent = toClassicEquivalent(previewPath);
       const backToPreview = toNexusOneEquivalent(classicEquivalent);

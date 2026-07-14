@@ -250,7 +250,12 @@ function isPageDirty() {
 }
 
 /**
- * Handles browser unload event, submitting telemetry and warning about unsaved changes
+ * Handles browser unload event, submitting telemetry and warning about unsaved changes.
+ *
+ * TODO(CLM-42220): the Nexus One bundle wires the same guard via
+ * `nosc/shell/installDirtyGuard.ts`. Consolidate so both bundles share one
+ * implementation, extracting the GETTING_STARTED_STATE telemetry as a separate
+ * transition listener in Classic.
  */
 function unloadListener(stateService) {
   if (stateService.current.name === GETTING_STARTED_STATE) {
@@ -310,7 +315,11 @@ function handleTransitionError(transition) {
 }
 
 /**
- * Handles transition start event, checking for unsaved changes and clearing toasts
+ * Handles transition start event, checking for unsaved changes and clearing toasts.
+ *
+ * TODO(CLM-42220): the toast-clearing behaviour is Classic-only; the shared
+ * `nosc/shell/installDirtyGuard.ts` handles dirty-check only. Split this into
+ * two listeners so both bundles can share the guard.
  */
 function handleTransitionStart() {
   const state = store.getState();

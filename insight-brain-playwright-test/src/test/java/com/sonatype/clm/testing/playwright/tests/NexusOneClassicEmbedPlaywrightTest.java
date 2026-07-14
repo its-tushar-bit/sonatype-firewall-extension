@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.playwright.tests;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPage;
@@ -18,8 +19,10 @@ import com.sonatype.clm.testing.playwright.pages.NexusOnePage;
 import com.sonatype.clm.testing.playwright.pages.NexusOnePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OperationalReportingPage;
 import com.sonatype.clm.testing.playwright.pages.OperationalReportingPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.SuccessMetricsConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -64,6 +67,9 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   @After
   public void resetPreviewUiAndSuccessMetricsConfig() {
+    // Dismiss any dirty-guard modal a failed test may have left open, so the
+    // next test doesn't hit a blocked transition on refresh.
+    new UnsavedChangesModalComponent().continueIfOpen();
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
     if (originalSuccessMetricsEnabled != null) {
       lookup(SystemConfigurationPropertyDAO.class)
@@ -161,5 +167,79 @@ public class NexusOneClassicEmbedPlaywrightTest
     NexusOnePageAssertions assertions = new NexusOnePageAssertions(new NexusOnePage());
     assertions.shouldBeVisible();
     assertions.shouldHaveHeadingText("Coming Soon");
+  }
+
+  /**
+   * CLM-42186: Success Metrics admin configuration mounts natively at
+   * {@code /successMetricsConfiguration} on the Nexus One bundle, rendering
+   * the Classic form as-is inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedSuccessMetricsConfiguration_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    SuccessMetricsConfigurationPage configPage = new SuccessMetricsConfigurationPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(configPage.container()).isVisible();
+    assertThat(configPage.pageHeading()).isVisible();
+    assertThat(configPage.tileHeading()).isVisible();
+    assertThat(configPage.enabledToggle()).isVisible();
+    assertThat(configPage.updateButton()).isVisible();
+  }
+
+  /**
+   * CLM-42186 dirty-guard cancel path: toggling the switch dirties the form; a
+   * hash navigation triggers the shell dirty-guard; Cancel keeps the user on
+   * the config page with the dirty state intact.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedSuccessMetricsConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
+
+    SuccessMetricsConfigurationPage configPage = new SuccessMetricsConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    configPage.container().waitFor();
+    configPage.enabledToggle().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(configPage.container()).isVisible();
+  }
+
+  /**
+   * CLM-42186 dirty-guard continue path: Continue closes the modal and lets
+   * the transition proceed; the config page unmounts and the user lands on
+   * the target route.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedSuccessMetricsConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
+
+    SuccessMetricsConfigurationPage configPage = new SuccessMetricsConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    configPage.container().waitFor();
+    configPage.enabledToggle().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(configPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
   }
 }

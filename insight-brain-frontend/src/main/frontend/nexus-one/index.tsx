@@ -18,6 +18,7 @@ import store from 'MainRoot/reduxConfig/store';
 import router from 'MainRoot/router/routerInstance';
 import { initializeRouterListener } from 'MainRoot/reduxUiRouter/routerListener';
 import { setStateService } from 'MainRoot/reduxUiRouter/routerMiddleware';
+import { installDirtyGuard } from 'MainRoot/nosc/shell/installDirtyGuard';
 import App from './App';
 import { ensureNexusOneShellAccess } from './ensureNexusOneShellAccess';
 import './routes';
@@ -26,7 +27,7 @@ import './routes';
 // service, which instantiates `new window.classyBrew()` for risk heat-map color scaling. The Classic
 // bundle sets this global in index.jsx; the Nexus One bundle must mirror it or those tabs throw
 // "window.classyBrew is not a constructor".
-(window as unknown as { classyBrew: unknown }).classyBrew = ClassyBrew;
+((window as unknown) as { classyBrew: unknown }).classyBrew = ClassyBrew;
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!(await ensureNexusOneShellAccess())) {
@@ -56,6 +57,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initializeRouterListener(router.transitionService);
   setStateService(router.stateService);
+  // Cleanup fn intentionally discarded: the guard lives for the bundle's
+  // lifetime, and full page unload tears both hook registrations down. The
+  // return is kept on the helper so tests can drive teardown.
+  installDirtyGuard(router.transitionService, store);
 
   router.start();
   const container = document.getElementById('nexus-one-root');

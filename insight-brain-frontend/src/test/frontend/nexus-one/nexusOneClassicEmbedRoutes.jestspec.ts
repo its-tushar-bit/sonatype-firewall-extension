@@ -3,6 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+jest.mock('MainRoot/util/permissionService', () => ({
+  isAuthorized: jest.fn(),
+}));
+
 import router from 'MainRoot/router/routerInstance';
 import {
   COMING_SOON_MODULE_ORDER,
@@ -12,6 +16,7 @@ import {
 } from 'MainRoot/nosc/comingSoon';
 import { isNativeClassicEmbedSlug } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import { NEXUS_ONE_APPLICATION_REPORT_STATE } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
+import { isAuthorized } from 'MainRoot/util/permissionService';
 import { NEXUS_ONE_VIOLATION_DETAIL_STATE } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
 import 'MainRoot/nexus-one/routes';
 
@@ -63,15 +68,46 @@ describe('nexusOneClassicEmbedRoutes', () => {
   it('registers Success Metrics detail and Classic alias states', () => {
     expect(router.stateRegistry.get('labs')?.abstract).toBe(true);
     expect(router.stateRegistry.get('labs.successMetricsReport')?.url).toBe(
-      '/coming-soon/success-metrics/{successMetricsReportId}',
+      '/coming-soon/success-metrics/{successMetricsReportId}'
     );
-    expect(router.stateRegistry.get('labs.successMetrics')?.redirectTo).toBe(
-      comingSoonStateName('success-metrics'),
-    );
-    expect(router.stateRegistry.get('dashboard.overview.violations')?.redirectTo).toBe(
-      'nexusOneDashboard.violations',
-    );
+    expect(router.stateRegistry.get('labs.successMetrics')?.redirectTo).toBe(comingSoonStateName('success-metrics'));
+    expect(router.stateRegistry.get('dashboard.overview.violations')?.redirectTo).toBe('nexusOneDashboard.violations');
     expect(router.stateRegistry.get('nexusOneViolations')?.redirectTo).toBe('nexusOneDashboard.violations');
     expect(router.stateRegistry.get('nexusOneComponents')?.redirectTo).toBe('nexusOneDashboard.components');
+  });
+
+  // Guards the Classic-embed admin route's dirty-guard wiring: a typo in the
+  // `data.isDirty` path array would silently disable the unsaved-changes
+  // prompt, and the only other coverage is heavyweight Playwright suites.
+  describe('successMetricsConfiguration Classic-embed admin route', () => {
+    const state = () => router.stateRegistry.get('successMetricsConfiguration');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /successMetricsConfiguration', () => {
+      expect(state()?.url).toBe('/successMetricsConfiguration');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('wires the dirty guard through the exact state-path array the router selector reads', () => {
+      expect(state()?.data?.isDirty).toEqual(['successMetricsConfiguration', 'viewState', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
   });
 });

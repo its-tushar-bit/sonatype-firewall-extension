@@ -25,6 +25,10 @@ public class ComponentLegalOverviewPage
     return "/assets/index.html#/legal/application/" + publicAppId + "/component/" + componentHash;
   }
 
+  public static String hashRoute(String publicAppId, String stageTypeId, String componentHash) {
+    return "/legal/application/" + publicAppId + "/stage/" + stageTypeId + "/component/" + componentHash;
+  }
+
   public Locator container() {
     return locator(ROOT);
   }

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import './_legalShared.scss';
 
 import { NxBinaryDonutChart, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faCheckCircle } from '@fortawesome/pro-solid-svg-icons';

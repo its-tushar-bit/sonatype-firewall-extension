@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useState } from 'react';
+import './_copyrightOverrideForm.scss';
 import {
   NxButton,
   NxFontAwesomeIcon,

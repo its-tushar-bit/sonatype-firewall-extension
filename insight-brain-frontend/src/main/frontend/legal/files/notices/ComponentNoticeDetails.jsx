@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import './_componentNoticeDetails.scss';
 import { UIView } from '@uirouter/react';
 import NoticeDetailsHeaderContainer from './NoticeDetailsHeaderContainer';
 import NoticeDetailsListContainer from './NoticeDetailsListContainer';

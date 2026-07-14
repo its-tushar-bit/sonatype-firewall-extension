@@ -15,24 +15,139 @@ import {
   ComingSoonRoute,
 } from 'MainRoot/nosc/comingSoon';
 import { isNativeClassicEmbedSlug } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
+import { LEGAL_DEEP_LINK_STATES } from 'MainRoot/legal/legalDeepLinkStates';
 import { NEXUS_ONE_APPLICATION_REPORT_STATE } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 import { NEXUS_ONE_VIOLATION_DETAIL_STATE } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
 import 'MainRoot/nexus-one/routes';
 
 describe('nexusOneClassicEmbedRoutes', () => {
-  it('registers native Classic mount for POC slugs and Coming Soon stubs for the rest', () => {
+  it('registers native Classic mounts / redirects for embedded slugs and Coming Soon stubs for the rest', () => {
     COMING_SOON_MODULE_ORDER.forEach((slug) => {
       const state = router.stateRegistry.get(comingSoonStateName(slug));
       expect(state).toBeDefined();
       expect(state?.url).toBe(comingSoonHref(slug));
 
-      if (isNativeClassicEmbedSlug(slug)) {
-        expect(state?.component).not.toBe(ComingSoonRoute);
-      } else {
+      if (!isNativeClassicEmbedSlug(slug)) {
         expect(state?.component).toBe(ComingSoonRoute);
+      } else if (slug === 'legal') {
+        // Legal's entry redirects rather than mounting a component of its own — see the
+        // dedicated tests below for why.
+        expect(state?.component).toBeUndefined();
+        expect(state?.redirectTo).toBe('legal.applicationsDashboard');
+      } else {
+        expect(state?.component).not.toBe(ComingSoonRoute);
       }
     });
+  });
+
+  it('redirects the Legal Coming Soon entry straight to the Applications tab', () => {
+    // The entry never mounts LegalDashboardMount itself: it's a flat top-level state, one UIView
+    // level shallower than legal.applicationsDashboard (a child of the abstract 'legal' state).
+    // Mounting it directly there would change the root UIView's resolved component type from
+    // LegalDashboardMount to UIView on the very first tab transition, forcing an unmount/remount
+    // regardless of the shared reference asserted below. Redirecting sidesteps that entirely —
+    // the user always lands directly on a legal.*Dashboard child.
+    const state = router.stateRegistry.get(comingSoonStateName('legal'));
+    expect(state?.component).toBeUndefined();
+    expect(state?.redirectTo).toBe('legal.applicationsDashboard');
+  });
+
+  it('registers Legal tab-switch states so in-page tab clicks resolve in-shell', () => {
+    expect(router.stateRegistry.get('legal')?.abstract).toBe(true);
+
+    const applicationsTab = router.stateRegistry.get('legal.applicationsDashboard');
+    expect(applicationsTab?.url).toBe('/legal/applicationsDashboard');
+    expect(applicationsTab?.data?.activeTab).toBe('applications');
+    expect(applicationsTab?.component).toBeDefined();
+
+    const componentsTab = router.stateRegistry.get('legal.componentsDashboard');
+    expect(componentsTab?.url).toBe('/legal/componentsDashboard');
+    expect(componentsTab?.data?.activeTab).toBe('components');
+    expect(componentsTab?.component).toBeDefined();
+  });
+
+  it('mounts both Legal tab states with the same component reference', () => {
+    // Regression guard: a distinct mountClassicComponent(...) wrapper per state would force
+    // React to fully unmount/remount LegalDashboardContainer on every tab switch (different
+    // component reference == different type at the same UIView position). Both children of the
+    // abstract 'legal' state must share one reference, exactly like Classic's own legal/route.js
+    // reuses one LegalDashboardContainer import across its sibling states.
+    const applicationsComponent = router.stateRegistry.get('legal.applicationsDashboard')?.component;
+    const componentsComponent = router.stateRegistry.get('legal.componentsDashboard')?.component;
+
+    expect(applicationsComponent).toBeDefined();
+    expect(componentsComponent).toBe(applicationsComponent);
+  });
+
+  it('mounts Application Details and Component Overview in-shell for row clicks', () => {
+    // LegalDashboardApplicationRow / LegalDashboardComponentRow stateGo() to these exact names —
+    // without a registration here, that stateGo silently fails (routerMiddleware.js's STATE_GO
+    // handler has no .catch()). Both containers read params from Redux state.router.currentParams
+    // (see their mapStateToProps), not from injected props, so mountClassicComponent works.
+    const applicationDetails = router.stateRegistry.get('legal.applicationDetails');
+    expect(applicationDetails?.url).toBe('/legal/application/{applicationPublicId}/stage/{stageTypeId}');
+    expect(applicationDetails?.component).toBeDefined();
+
+    const componentOverview = router.stateRegistry.get('legal.componentOverview');
+    expect(componentOverview?.url).toBe('/legal/component/{hash}');
+    expect(componentOverview?.component).toBeDefined();
+  });
+
+  it('registers every state in LEGAL_DEEP_LINK_STATES with a matching url and a defined component', () => {
+    // Data-driven so this test can't drift from the shared table it's verifying — adding a state
+    // to legalDeepLinkStates.ts automatically gets covered here, no manual update needed.
+    LEGAL_DEEP_LINK_STATES.forEach((stateDef) => {
+      const registered = router.stateRegistry.get(stateDef.name);
+      expect(registered?.url).toBe(stateDef.url);
+      expect(registered?.component).toBeDefined();
+      if (stateDef.abstract) {
+        expect(registered?.abstract).toBe(true);
+      }
+    });
+  });
+
+  it('registers legal.dashboard (Classic nav-entry target) so Back-button $state.href resolves', () => {
+    const state = router.stateRegistry.get('legal.dashboard');
+    expect(state?.url).toBe('/legal/dashboard');
+    expect(state?.data?.activeTab).toBe('applications');
+    // Shares the same mount as the two tab states — same reasoning as the sibling-tab test above.
+    expect(state?.component).toBe(router.stateRegistry.get('legal.applicationsDashboard')?.component);
+  });
+
+  it('shares one mounted reference across every component-overview entry-point shape', () => {
+    // legal.componentOverview plus every by-identifier / by-owner variant all render the same
+    // ComponentLegalOverviewContainer — navigating between them (e.g. a Back link) must not remount.
+    const names = [
+      'legal.componentOverview',
+      'legal.componentOverviewByComponentIdentifier',
+      'legal.applicationComponentOverviewByComponentIdentifier',
+      'legal.organizationComponentOverview',
+      'legal.applicationComponentOverview',
+      'legal.applicationStageTypeComponentOverview',
+    ];
+    const components = names.map((name) => router.stateRegistry.get(name)?.component);
+    expect(components[0]).toBeDefined();
+    components.forEach((component) => expect(component).toBe(components[0]));
+  });
+
+  it('mounts each abstract detail-parent once and leaves its dotted child unwrapped', () => {
+    // legal.componentNoticeDetails is abstract with a real Classic component (ComponentNoticeDetails,
+    // which itself renders a nested <UIView />) — the parent gets wrapped in ClassicComponentMount;
+    // the child (.noticeDetails) must render with its own bare component, or the page double-wraps.
+    const parentEntry = LEGAL_DEEP_LINK_STATES.find((s) => s.name === 'legal.componentNoticeDetails')!;
+    const childEntry = LEGAL_DEEP_LINK_STATES.find((s) => s.name === 'legal.componentNoticeDetails.noticeDetails')!;
+
+    const registeredParent = router.stateRegistry.get('legal.componentNoticeDetails');
+    const registeredChild = router.stateRegistry.get('legal.componentNoticeDetails.noticeDetails');
+
+    expect(registeredParent?.component).not.toBe(parentEntry.component); // wrapped, not the raw Classic component
+    expect(registeredChild?.component).toBe(childEntry.component); // bare — renders in the parent's own UIView
+
+    // The three notice-details abstract parents all render ComponentNoticeDetails — they must
+    // share the same wrapped reference too.
+    const otherNoticeParent = router.stateRegistry.get('legal.noticeFilesByComponentIdentifier');
+    expect(otherNoticeParent?.component).toBe(registeredParent?.component);
   });
 
   it('registers the embedded application report state (CLM-41538)', () => {

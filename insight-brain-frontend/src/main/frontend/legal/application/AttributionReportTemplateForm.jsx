@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
+import './_attributionReportForm.scss';
 import * as PropTypes from 'prop-types';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import ConfirmationModal from './ConfirmationModal';

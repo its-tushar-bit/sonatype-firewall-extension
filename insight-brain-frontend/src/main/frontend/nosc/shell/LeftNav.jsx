@@ -10,6 +10,10 @@ import { Box, Flex, IconButton, ScrollArea, Tooltip } from '@radix-ui/themes';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { DomainIcons } from 'MainRoot/nosc/icons';
 import { comingSoonHref } from 'MainRoot/nosc/comingSoon';
+import {
+  LEGAL_APPLICATIONS_DASHBOARD_URL,
+  LEGAL_COMPONENTS_DASHBOARD_URL,
+} from 'MainRoot/legal/dashboard/legalDashboardRouteData';
 import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
 import { useLeftNavCollapsed } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 import {
@@ -43,6 +47,12 @@ import {
 
 const COLLAPSED_WIDTH = LEFT_NAV_COLLAPSED_WIDTH_PX + 'px';
 const EXPANDED_WIDTH = LEFT_NAV_EXPANDED_WIDTH_PX + 'px';
+// '/legal' is a prefix match (see hrefMatches) covering every deep-link page mounted in-shell —
+// application details, component overview, attribution reports, and the copyright/notice/
+// license-file/license-details families (legalDeepLinkStates.ts) — not just the two dashboard
+// tabs. Without it, the rail entry would de-highlight the moment a user drills into any of those
+// pages from the dashboard, even though they're still within the embedded Legal experience.
+const LEGAL_ACTIVE_HREFS = Object.freeze([LEGAL_APPLICATIONS_DASHBOARD_URL, LEGAL_COMPONENTS_DASHBOARD_URL, '/legal']);
 const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
 const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '/reports/react2shell']);
 
@@ -88,7 +98,13 @@ const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '
  *   Advanced Search      → /preview/search               (live - mounts the
  *                          full SearchResultsPage; the omnibar handles
  *                          typeahead and deep-links into this page)
- *   Legal                → /preview/legal                (Coming Soon)
+ *   Legal                → embedded Classic mount        (native
+ *                          LegalDashboardContainer; the /coming-soon/legal
+ *                          route mounts the Classic Legal Dashboard in-shell.
+ *                          Every reachable deep link also mounts in-shell —
+ *                          application details, component overview, attribution
+ *                          reports, and the copyright/notice/license-file/
+ *                          license-details families — none of it exits to Classic)
  *   Hosted Repos         → /preview/repositories         (Coming Soon)
  *   Enterprise/Operational Reporting → embedded Classic mount (native;
  *                          the /coming-soon/reports route gate-switches between
@@ -121,11 +137,17 @@ function hrefMatches(currentPath, href) {
   return currentPath === href || currentPath.startsWith(href + '/');
 }
 
+/**
+ * Active-route check — match the item's own href (exact or descendant prefix),
+ * or any of its `activeHrefs` alternates. `activeHrefs` covers embedded-mount
+ * items whose in-page navigation (e.g. tab switches) lands on a different path
+ * than the nav entry's own href but should still keep the rail entry highlighted.
+ */
 function isPathActive(currentPath, item) {
   if (!item.href) return false;
   if (hrefMatches(currentPath, item.href)) return true;
   if (item.activeHrefs) {
-    return item.activeHrefs.some((h) => hrefMatches(currentPath, h));
+    return item.activeHrefs.some((href) => hrefMatches(currentPath, href));
   }
   return false;
 }
@@ -287,6 +309,7 @@ function buildNavItems(flags) {
       label: 'Legal',
       Icon: DomainIcons.Legal,
       href: comingSoonHref('legal'),
+      activeHrefs: LEGAL_ACTIVE_HREFS,
     });
   }
   if (isLicensed && isHostedRepositoryEvaluationEnabled) {

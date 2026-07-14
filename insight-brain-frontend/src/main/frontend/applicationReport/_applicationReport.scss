@@ -11,6 +11,11 @@
 @use 'rawData/applicationReportRawData';
 @use '../DependencyTree/DependencyTree';
 
+// ReportStatusBar renders Classic global widget classes (scss/_widgets.scss) that the Classic
+// bundle already loads via scss.scss; the Nexus One bundle only loads what this file imports,
+// so widgets must be pulled in explicitly here too.
+@use '../scss/widgets';
+
 $-application-report-policy-threat-level-width: 90px;
 $-application-report-policy-name-width: 225px;
 $-application-report-policy-name-filter-width: $-application-report-policy-threat-level-width +

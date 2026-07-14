@@ -22,10 +22,12 @@ export interface ClassicComponentMountProps {
 
 export function ClassicComponentMount({ children }: ClassicComponentMountProps): JSX.Element {
   const { effectiveTheme } = useNoscTheme();
-  const offsets = usePreviewShellOffsets();
+  // zIndex excluded here and set via CSS instead (nexus-one.css) so its
+  // `:has(.nx-modal-backdrop)` rule can override it without `!important`.
+  const { zIndex: _unusedZIndex, ...restOffsets } = usePreviewShellOffsets();
   return (
     <Theme
-      className="nosc-classic-mount"
+      className="nosc-classic-mount nx-page"
       appearance={effectiveTheme}
       accentColor={BRAND_ACCENT}
       grayColor="slate"
@@ -34,9 +36,11 @@ export function ClassicComponentMount({ children }: ClassicComponentMountProps):
       data-testid="nexus-one-classic-component-mount"
       style={{
         position: 'fixed',
-        ...offsets,
+        ...restOffsets,
         right: 0,
         bottom: 0,
+        width: 'auto',
+        minWidth: 0,
         overflowY: 'auto',
         backgroundColor: 'var(--nx-color-site-background)',
       }}

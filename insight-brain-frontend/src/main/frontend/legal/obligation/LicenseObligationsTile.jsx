@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment, useState } from 'react';
+import './_licenseObligationsTile.scss';
 import {
   NxAccordion,
   NxButton,

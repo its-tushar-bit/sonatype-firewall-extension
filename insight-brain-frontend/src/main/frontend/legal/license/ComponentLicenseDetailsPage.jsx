@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import './_componentLicenseDetails.scss';
 import { availableScopesPropType, componentPropType, licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
 import LoadWrapper from '../../react/LoadWrapper';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';

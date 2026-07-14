@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
+import './_legalDashboard-filter.scss';
 import { NxDrawer, NxErrorAlert, NxStatefulTreeViewMultiSelect, NxFooter } from '@sonatype/react-shared-components';
 import PortalDrawer from 'MainRoot/react/PortalDrawer';
 import LoadWrapper from '../../../react/LoadWrapper';

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import './_componentLegalFileDetails.scss';
 import { attributionStatus, legalFileSource } from './utils';
 import { getRelevantScope } from '../../legalUtility';
 import React from 'react';

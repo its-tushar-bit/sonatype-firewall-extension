@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useMemo } from 'react';
+import './_componentLegalOverview.scss';
 import * as PropTypes from 'prop-types';
 import { NxWarningAlert, useToggle } from '@sonatype/react-shared-components';
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';

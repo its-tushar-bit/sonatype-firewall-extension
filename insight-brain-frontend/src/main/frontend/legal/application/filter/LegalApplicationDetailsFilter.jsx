@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import './_legalApplicationDetailsFilter.scss';
 import { NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { curryN, prop, sortBy } from 'ramda';

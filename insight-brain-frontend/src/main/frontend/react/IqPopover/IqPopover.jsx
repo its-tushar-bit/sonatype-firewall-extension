@@ -12,6 +12,7 @@ import { groupBy } from 'ramda';
 
 import useClickAway from '../useClickAway';
 import useEscapeKeyStack from '../useEscapeKeyStack';
+import './_iqPopover.scss';
 
 export const IqPopover = forwardRef(({ children, className, onClose = noop, size = 'small', ...props }, ref) => {
   const childNodes = groupChildrenByType(Children.toArray(children));

@@ -12,6 +12,7 @@ import { EFFECTIVELY_UNSPECIFIED_LICENSES, STAGE_NAME_TO_DISPLAY, STAGE_NAME_TO_
 import { NxPolicyViolationIndicator, NxTextLink } from '@sonatype/react-shared-components';
 import { inc, prop, reduceBy } from 'ramda';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { isNexusOneBundle } from 'MainRoot/util/urlUtil';
 
 export default function ComponentOverviewTile(props) {
   const { applicationPublicId, component, isSbomManager } = props;
@@ -105,10 +106,20 @@ export default function ComponentOverviewTile(props) {
   })();
 
   const getStageScanHref = (stageScan) =>
-    $state.href('applicationReport.policy', {
-      publicId: applicationPublicId,
-      scanId: stageScan.scanId,
-    });
+    $state.href(
+      // The Nexus One bundle embeds this same report under a differently-named state (see
+      // nexus-one/nexusOneApplicationReportStates.ts's NEXUS_ONE_APPLICATION_REPORT_STATE) rather
+      // than reusing 'applicationReport.policy' — that name isn't registered in this bundle's own
+      // router, so $state.href would return null there and this link would render with no href at
+      // all. Classic modules don't import from nexus-one/* (it would pull Nexus One's
+      // ClassicComponentMount/Radix Theme deps into the Classic bundle), so the target name is a
+      // literal here rather than an import of that constant.
+      isNexusOneBundle() ? 'nexusOneApplicationReport' : 'applicationReport.policy',
+      {
+        publicId: applicationPublicId,
+        scanId: stageScan.scanId,
+      }
+    );
 
   const createStageScan = (stageScan) => (
     <span

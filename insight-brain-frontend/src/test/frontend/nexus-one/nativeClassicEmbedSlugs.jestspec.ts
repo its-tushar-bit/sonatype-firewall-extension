@@ -9,14 +9,14 @@ import {
 } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 
 describe('nativeClassicEmbedSlugs', () => {
-  it('embeds Success Metrics, API, and Enterprise/Operational Reporting', () => {
-    expect(NATIVE_CLASSIC_EMBED_SLUGS).toEqual(['success-metrics', 'api', 'reports']);
+  it('embeds Success Metrics, API, Legal, and Enterprise/Operational Reporting', () => {
+    expect(NATIVE_CLASSIC_EMBED_SLUGS).toEqual(['success-metrics', 'api', 'legal', 'reports']);
   });
 
   it('classifies embed slugs', () => {
     expect(isNativeClassicEmbedSlug('success-metrics')).toBe(true);
     expect(isNativeClassicEmbedSlug('api')).toBe(true);
+    expect(isNativeClassicEmbedSlug('legal')).toBe(true);
     expect(isNativeClassicEmbedSlug('reports')).toBe(true);
-    expect(isNativeClassicEmbedSlug('legal')).toBe(false);
   });
 });

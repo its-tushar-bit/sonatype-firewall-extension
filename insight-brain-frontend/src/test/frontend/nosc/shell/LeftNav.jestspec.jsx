@@ -3,13 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-env jest */
 import React from 'react';
 import { Theme } from '@radix-ui/themes';
 import { BRAND_ACCENT } from 'MainRoot/nosc/theme';
 import { render, screen } from 'TestRoot/SpecUtil';
 import LeftNav from 'MainRoot/nosc/shell/LeftNav';
+import * as urlUtil from 'MainRoot/util/urlUtil';
+import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 import { COLLAPSED_KEY } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
-import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
+
+beforeAll(installRadixJsdomShims);
+
+// bundleIndexUrl() builds an absolute URL from window.location.href, which jsdom's default
+// test URL doesn't satisfy (no `/assets/` segment) — see ClassicToggleButton.jestspec.tsx for
+// the same mock, used there for the same reason.
+beforeEach(() => {
+  urlUtil._setBaseUrlForTesting('http://localhost');
+  jest
+    .spyOn(urlUtil, 'bundleIndexUrl')
+    .mockImplementation((_bundle, hashPath) => `http://localhost/assets/nexus-one/index.html#${hashPath ?? ''}`);
+});
 
 // Licensed Lifecycle tenant with the report-list feature ON, so a lingering
 // Reports entry would render if it were still built.
@@ -29,6 +43,19 @@ const licensedLifecycleState = {
   successMetricsConfiguration: {},
 };
 
+// Preloaded state with advanced-legal-pack enabled for Legal navigation tests
+const legalEnabledState = {
+  ...licensedLifecycleState,
+  userSession: { data: { username: 'jdoe' } },
+  productFeatures: {
+    ...licensedLifecycleState.productFeatures,
+    productFeatures: {
+      ...licensedLifecycleState.productFeatures.productFeatures,
+      'advanced-legal-pack': true,
+    },
+  },
+};
+
 function renderLeftNav({ hash = '#/home', preloadedState = licensedLifecycleState } = {}) {
   window.location.hash = hash;
   return render(
@@ -40,12 +67,8 @@ function renderLeftNav({ hash = '#/home', preloadedState = licensedLifecycleStat
 }
 
 describe('LeftNav', () => {
-  beforeEach(() => {
-    _setBaseUrlForTesting('http://localhost');
-  });
-
   afterEach(() => {
-    _setBaseUrlForTesting('');
+    urlUtil._setBaseUrlForTesting('');
     window.location.hash = '';
     window.localStorage.removeItem(COLLAPSED_KEY);
   });
@@ -93,5 +116,43 @@ describe('LeftNav', () => {
     });
 
     expect(screen.queryByRole('link', { name: 'Applications' })).not.toBeInTheDocument();
+  });
+
+  it('highlights Legal on its own Coming Soon entry route', () => {
+    renderLeftNav({ hash: '#/coming-soon/legal', preloadedState: legalEnabledState });
+    expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('keeps Legal highlighted on the Applications tab sub-route via activeHrefs', () => {
+    renderLeftNav({ hash: '#/legal/applicationsDashboard', preloadedState: legalEnabledState });
+    expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('keeps Legal highlighted on the Components tab sub-route via activeHrefs', () => {
+    renderLeftNav({ hash: '#/legal/componentsDashboard', preloadedState: legalEnabledState });
+    expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('does not highlight Legal on an unrelated route', () => {
+    renderLeftNav({ hash: '#/dashboard', preloadedState: legalEnabledState });
+    expect(screen.getByRole('link', { name: 'Legal' })).not.toHaveAttribute('aria-current', 'page');
+  });
+
+  it('keeps Legal highlighted on an Application Details deep-link sub-route', () => {
+    // Regression guard: every legalDeepLinkStates.ts state mounts in-shell now, not just the two
+    // dashboard tabs — a user drilling into a row from the dashboard must not see the rail entry
+    // de-highlight.
+    renderLeftNav({ hash: '#/legal/application/app/stage/release', preloadedState: legalEnabledState });
+    expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('keeps Legal highlighted on a Component Overview deep-link sub-route', () => {
+    renderLeftNav({ hash: '#/legal/component/abc123hash', preloadedState: legalEnabledState });
+    expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('keeps Legal highlighted when the hash carries a query string', () => {
+    renderLeftNav({ hash: '#/legal/applicationsDashboard?tab=foo', preloadedState: legalEnabledState });
+    expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
   });
 });

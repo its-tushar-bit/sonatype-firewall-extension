@@ -20,6 +20,7 @@ import ReportContent from './ReportContent';
 import ReportFilterPopover from './ReportFilterPopover';
 import ReportTitle from './ReportTitle';
 import UnscannedComponentsTable from './unscannedComponentsTable/UnscannedComponentsTable';
+import './_applicationReport.scss';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import {
   selectApplicationReportLoading,

@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import '../../_legalFileTile.scss';
 import { NxButton, NxFontAwesomeIcon, NxAccordion, useToggle } from '@sonatype/react-shared-components';
 import { availableScopesPropType, legalFilesPropType } from '../../advancedLegalPropTypes';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';

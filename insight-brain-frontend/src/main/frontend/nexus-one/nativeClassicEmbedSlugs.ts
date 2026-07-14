@@ -5,7 +5,12 @@
  */
 import { ComingSoonModuleSlug } from 'MainRoot/nosc/comingSoon';
 
-export const NATIVE_CLASSIC_EMBED_SLUGS: readonly ComingSoonModuleSlug[] = ['success-metrics', 'api', 'reports'];
+export const NATIVE_CLASSIC_EMBED_SLUGS: readonly ComingSoonModuleSlug[] = [
+  'success-metrics',
+  'api',
+  'legal',
+  'reports',
+];
 
 export function isNativeClassicEmbedSlug(slug: ComingSoonModuleSlug): boolean {
   return (NATIVE_CLASSIC_EMBED_SLUGS as readonly string[]).includes(slug);

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import './_componentLicenseFilesDetails.scss';
 import { UIView } from '@uirouter/react';
 import LicenseFilesDetailsHeaderContainer from './LicenseFilesDetailsHeaderContainer';
 import LicenseFilesDetailsListContainer from './LicenseFilesDetailsListContainer';

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useState, Fragment } from 'react';
+import './_legalDashboard.scss';
 import {
   NxButton,
   NxFontAwesomeIcon,

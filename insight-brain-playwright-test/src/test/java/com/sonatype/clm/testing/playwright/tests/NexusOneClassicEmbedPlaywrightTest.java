@@ -5,14 +5,24 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import java.util.regex.Pattern;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.TimeoutError;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
+import com.sonatype.clm.testing.playwright.pages.CopyrightOverrideFormPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.LegalApplicationDetailsPage;
+import com.sonatype.clm.testing.playwright.pages.LegalDashboardPage;
+import com.sonatype.clm.testing.playwright.pages.LegalDashboardPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.LoginPage;
 import com.sonatype.clm.testing.playwright.pages.NexusOneClassicEmbedPage;
 import com.sonatype.clm.testing.playwright.pages.NexusOnePage;
@@ -24,8 +34,12 @@ import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
+import com.sonatype.clm.testing.playwright.utils.HdsStubs;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -34,24 +48,27 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
- * AT-EMBED regression coverage for Classic Success Metrics, API, and Enterprise/Operational
- * Reporting pages mounted natively inside the Nexus One shell without duplicate Classic chrome.
+ * AT-EMBED regression coverage for Classic Success Metrics, API, Legal Dashboard, and
+ * Enterprise/Operational Reporting pages mounted natively inside the Nexus One shell without
+ * duplicate Classic chrome.
  */
 public class NexusOneClassicEmbedPlaywrightTest
     extends AbstractIqUiTest
 {
-  private record HdsStubs(JsonNode currentVersion, JsonNode dashboards)
+  private record EnterpriseReportingHdsStubs(JsonNode currentVersion, JsonNode dashboards)
   {
   }
 
   private static final String SUCCESS_METRICS_DESCRIPTION_SUBSTRING =
       "Success Metrics is an experimental feature providing high-level statistics on the past performance of Sonatype Lifecycle.";
 
-  private static final HdsStubs ENTERPRISE_REPORTING_HDS =
-      TestDataManager.load("enterprise-reporting-hds-stubs", HdsStubs.class);
+  private static final EnterpriseReportingHdsStubs ENTERPRISE_REPORTING_HDS =
+      TestDataManager.load("enterprise-reporting-hds-stubs", EnterpriseReportingHdsStubs.class);
 
   private String originalSuccessMetricsEnabled;
 
@@ -109,6 +126,140 @@ public class NexusOneClassicEmbedPlaywrightTest
     successMetricsAssertions.shouldBeLoaded();
     successMetricsAssertions.shouldHaveHeading("Success Metrics");
     successMetricsAssertions.shouldHaveDescriptionContaining(SUCCESS_METRICS_DESCRIPTION_SUBSTRING);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedLegal_rendersClassicLandingInsideNexusOneShell() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/legal"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    LegalDashboardPage legalDashboard = new LegalDashboardPage();
+    LegalDashboardPageAssertions legalAssertions = new LegalDashboardPageAssertions(legalDashboard);
+
+    // The Coming Soon entry redirects straight to the Applications tab rather than mounting a
+    // component of its own — see nexus-one/routes.tsx's NATIVE_CLASSIC_EMBED_REDIRECTS comment.
+    assertThat(page).hasURL(Pattern.compile(".*/legal/applicationsDashboard.*"));
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.leftNavLink("Legal")).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    legalAssertions.shouldBeVisible();
+
+    // The PR's headline behavior: tab clicks must resolve in-shell rather than failing silently
+    // (the tab-switch states live in the nexus-one bundle's own router, not Classic's).
+    legalDashboard.componentsTab().click();
+
+    assertThat(page).hasURL(Pattern.compile(".*/legal/componentsDashboard.*"));
+    legalAssertions.shouldShowComponentsTabActive();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+    assertThat(embedPage.leftNavLink("Legal")).hasAttribute("aria-current", "page");
+
+    // The filter toggle's Redux state always flipped correctly, but the drawer it opens is a
+    // PortalDrawer targeting document.querySelector('.nx-page') — a class only Classic's own root
+    // App.jsx provided, not the Nexus One shell. Without it here, the drawer silently rendered null.
+    legalDashboard.openFilterDrawer();
+    assertThat(legalDashboard.filterDrawer()).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedLegalApplicationDetails_filterOpensAsOverlayNotInline() throws Exception {
+    setFeatures(LicensedFeature.values());
+
+    Application app = tempEntity.newApplicationWithParent();
+    String hash = TemporaryEntity.uuid().replace("-", "").substring(0, 20);
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("org.package", "component1", "1.0");
+    tempEntity.newApplicationComponentLicense(
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, componentIdentifier).getId(),
+        "Apache-2.0");
+    HdsStubs.legalOverview(testCLMServer.getHdsServer());
+
+    playwrightRefreshOrOpen(
+        NexusOneClassicEmbedPage.embedUrl("/legal/application/" + app.getPublicId() + "/stage/" + BuildStageType.ID));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
+
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    legalPage.openFilterSidebar();
+    assertThat(legalPage.reviewStatusFilterGroup()).isVisible();
+
+    // Regression guard: LegalApplicationDetailsFilter renders via IqPopover (position: absolute),
+    // a different Classic UI pattern than the Legal Dashboard's PortalDrawer-based filter above.
+    // IqPopover's own stylesheet (_iqPopover.scss) is only pulled in by Classic's central
+    // scss.scss, which the Nexus One bundle never loads — without IqPopover.jsx importing it
+    // directly, `position: absolute` never applies and the filter renders inline (position:
+    // static) as a normal child of the page instead of an overlay, matching Classic's real
+    // computed width/position exactly once the stylesheet loads (verified against Classic itself:
+    // both render this popover at ~300px via the same .nx-viewport-sized > .iq-popover CSS rule).
+    String position = (String) legalPage.filterSidebar()
+        .evaluate("el => getComputedStyle(el.closest('.iq-popover')).position");
+    assertEquals("absolute", position);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedComponentLegalOverview_copyrightModalBlocksLeftNav() throws Exception {
+    setFeatures(LicensedFeature.values());
+
+    Application app = tempEntity.newApplicationWithParent();
+    String hash = TemporaryEntity.uuid().replace("-", "").substring(0, 20);
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("org.package", "component1", "1.0");
+    tempEntity.newApplicationComponentLicense(
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, componentIdentifier).getId(),
+        "Apache-2.0");
+    HdsStubs.legalOverview(testCLMServer.getHdsServer());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl(
+        ComponentLegalOverviewPage.hashRoute(app.getPublicId(), BuildStageType.ID, hash)));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    CopyrightOverrideFormPage copyrightPage = new CopyrightOverrideFormPage();
+
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    copyrightPage.openCopyrightModal();
+    assertThat(copyrightPage.modal()).isVisible();
+
+    // No setForce(true): an unforced click times out if the modal backdrop covers the link,
+    // which is the signal this regression test needs.
+    Locator dashboardLink = embedPage.leftNavLink("Dashboard");
+    boolean navigatedWhileBlocked;
+    try {
+      dashboardLink.click(new Locator.ClickOptions().setTimeout(1500));
+      navigatedWhileBlocked = true;
+    }
+    catch (TimeoutError expected) {
+      navigatedWhileBlocked = false;
+    }
+    assertFalse("LeftNav must not be clickable while the copyright modal is open", navigatedWhileBlocked);
+    assertThat(copyrightPage.modal()).isVisible();
+
+    copyrightPage.clickCancel();
+    assertThat(copyrightPage.modal()).not().isVisible();
+    dashboardLink.click();
+    assertThat(page).hasURL(Pattern.compile(".*/dashboard.*"));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedLegal_advancedLegalPackUnlicensed_hidesNavEntry() {
+    // AC #5 (CLM-42162): the Legal rail entry only shows for tenants entitled to it — gate is
+    // unchanged from Classic's own IqSidebarNav (isLicensed && isLegalEnabled).
+    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/home"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.leftNavLink("Legal")).not().isVisible();
   }
 
   @Test

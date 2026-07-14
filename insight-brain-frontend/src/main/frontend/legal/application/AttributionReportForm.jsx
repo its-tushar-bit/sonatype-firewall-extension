@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import './_attributionReportForm.scss';
 import * as PropTypes from 'prop-types';
 import {
   NxStatefulForm,

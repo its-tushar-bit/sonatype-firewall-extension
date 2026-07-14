@@ -7,6 +7,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
+import '../scss/_icons.scss';
 
 export default function Hexagon({ className }) {
   const classes = classnames('hexagon nx-icon', className);

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import './_legalApplicationDetails.scss';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 import {

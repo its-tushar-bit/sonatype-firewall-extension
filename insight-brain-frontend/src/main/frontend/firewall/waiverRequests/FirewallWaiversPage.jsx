@@ -5,16 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  NxH1,
-  NxTab,
-  NxTabList,
-  NxTabPanel,
-  NxTabs,
-  NxPageMain,
-  NxP,
-  NxErrorAlert,
-} from '@sonatype/react-shared-components';
+import { NxH1, NxTab, NxTabList, NxTabPanel, NxTabs, NxPageMain, NxP } from '@sonatype/react-shared-components';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterState as selectRouterCurrentState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
@@ -61,10 +52,6 @@ export default function FirewallWaiversPage() {
     }
   }, [isContainersTab]);
 
-  const limitedAccessAlert = (
-    <NxErrorAlert>An error occurred loading data. Don&rsquo;t have required access to access waivers.</NxErrorAlert>
-  );
-
   const onTopTabSelect = (index) => {
     if (index === CONTAINERS_TOP_TAB) {
       dispatch(stateGo('firewall.waivers.containers'));
@@ -102,49 +89,37 @@ export default function FirewallWaiversPage() {
           </NxTabList>
 
           <NxTabPanel id="firewall-waivers-components-tab-panel">
-            {showLimitedFirewallAccessAlert ? (
-              limitedAccessAlert
-            ) : (
-              <NxTabs activeTab={activeSubTab} onTabSelect={onSubTabSelect}>
-                <NxTabList>
-                  <NxTab id="firewall-waivers-components-approved-tab">
-                    Existing Waivers ({componentExistingCount})
-                  </NxTab>
-                  <NxTab id="firewall-waivers-components-requested-tab">
-                    Requested Waivers ({componentRequestedCount})
-                  </NxTab>
-                </NxTabList>
-                <NxTabPanel id="firewall-waivers-components-approved-panel">
-                  <DashboardWaivers repositoryFormat="component" />
-                </NxTabPanel>
-                <NxTabPanel id="firewall-waivers-components-requested-panel">
-                  <FirewallRequestedWaiversTable repositoryFormat="component" />
-                </NxTabPanel>
-              </NxTabs>
-            )}
+            <NxTabs activeTab={activeSubTab} onTabSelect={onSubTabSelect}>
+              <NxTabList>
+                <NxTab id="firewall-waivers-components-approved-tab">Existing Waivers ({componentExistingCount})</NxTab>
+                <NxTab id="firewall-waivers-components-requested-tab">
+                  Requested Waivers ({componentRequestedCount})
+                </NxTab>
+              </NxTabList>
+              <NxTabPanel id="firewall-waivers-components-approved-panel">
+                <DashboardWaivers repositoryFormat="component" />
+              </NxTabPanel>
+              <NxTabPanel id="firewall-waivers-components-requested-panel">
+                <FirewallRequestedWaiversTable repositoryFormat="component" />
+              </NxTabPanel>
+            </NxTabs>
           </NxTabPanel>
 
           <NxTabPanel id="firewall-waivers-containers-tab-panel">
-            {showLimitedFirewallAccessAlert ? (
-              limitedAccessAlert
-            ) : (
-              <NxTabs activeTab={activeSubTab} onTabSelect={onSubTabSelect}>
-                <NxTabList>
-                  <NxTab id="firewall-waivers-containers-approved-tab">
-                    Existing Waivers ({containerExistingCount})
-                  </NxTab>
-                  <NxTab id="firewall-waivers-containers-requested-tab">
-                    Requested Waivers ({containerRequestedCount})
-                  </NxTab>
-                </NxTabList>
-                <NxTabPanel id="firewall-waivers-containers-approved-panel">
-                  <ContainerImageWaiversTable />
-                </NxTabPanel>
-                <NxTabPanel id="firewall-waivers-containers-requested-panel">
-                  <FirewallRequestedWaiversTable repositoryFormat="docker" />
-                </NxTabPanel>
-              </NxTabs>
-            )}
+            <NxTabs activeTab={activeSubTab} onTabSelect={onSubTabSelect}>
+              <NxTabList>
+                <NxTab id="firewall-waivers-containers-approved-tab">Existing Waivers ({containerExistingCount})</NxTab>
+                <NxTab id="firewall-waivers-containers-requested-tab">
+                  Requested Waivers ({containerRequestedCount})
+                </NxTab>
+              </NxTabList>
+              <NxTabPanel id="firewall-waivers-containers-approved-panel">
+                <ContainerImageWaiversTable />
+              </NxTabPanel>
+              <NxTabPanel id="firewall-waivers-containers-requested-panel">
+                <FirewallRequestedWaiversTable repositoryFormat="docker" />
+              </NxTabPanel>
+            </NxTabs>
           </NxTabPanel>
         </NxTabs>
       </div>

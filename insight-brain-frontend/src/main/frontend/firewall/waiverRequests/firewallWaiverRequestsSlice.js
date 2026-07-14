@@ -12,7 +12,6 @@ import {
   getViewOrUpdatePolicyWaiverRequestUrl,
   getReviewPolicyWaiverRequestUrl,
 } from 'MainRoot/util/CLMLocation';
-import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { setShowLimitedFirewallAccessAlert } from 'MainRoot/firewall/firewallActions';
 
 const ROOT_ORG_OWNER_TYPE = 'organization';
@@ -58,13 +57,16 @@ const loadWaiverRequestForReview = createAsyncThunk(
   `${REDUCER_NAME}/loadWaiverRequestForReview`,
   async ({ ownerType, ownerId, policyWaiverRequestId }, { rejectWithValue }) => {
     try {
-      const [response, hasWaivePermission] = await Promise.all([
-        axios.get(getViewOrUpdatePolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId)),
-        checkPermissions(['WAIVE_POLICY_VIOLATIONS'], ownerType, ownerId)
-          .then(() => true)
-          .catch(() => false),
-      ]);
-      return { waiverRequest: response.data, hasWaivePermission };
+      const response = await axios.get(
+        getViewOrUpdatePolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId)
+      );
+      // canReview is computed server-side to handle container-image waivers correctly: a
+      // scoped Firewall approver has WAIVE_POLICY_VIOLATIONS on a specific Docker repo but not
+      // on the virtual REPOSITORY_CONTAINER_ID the request is parked under. Falling back to a
+      // client-side checkPermissions on (ownerType, ownerId) would return false here even when
+      // the backend would accept the approval. Older backends omit the field; treat missing as
+      // false so the UI errs on the safe side.
+      return { waiverRequest: response.data, hasWaivePermission: Boolean(response.data?.canReview) };
     } catch (error) {
       return rejectWithValue(error);
     }

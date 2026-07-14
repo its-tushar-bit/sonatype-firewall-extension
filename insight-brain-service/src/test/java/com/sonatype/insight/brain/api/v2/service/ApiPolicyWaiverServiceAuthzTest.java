@@ -782,6 +782,9 @@ public class ApiPolicyWaiverServiceAuthzTest
 
   @Test(expected = NotFoundException.class)
   public void testDeleteContainerImageWaivers_Authorized() {
+    // Container READ grants full Firewall access (permittedRepositoryIds = null),
+    // which lets the Firewall repo-scope gate pass through to the @Authorize WAIVE check.
+    grantPermission(REPOSITORY_CONTAINER_ID, Permission.READ);
     grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiPolicyWaiverService.deleteContainerImageWaiver(app.getId());
   }

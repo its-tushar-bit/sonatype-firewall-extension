@@ -7,9 +7,9 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
 import { Messages } from 'MainRoot/util/CommonServices';
-import { getWaiverDetailsUrl } from 'MainRoot/util/CLMLocation';
+import { getFirewallWaiverDetailsUrl, getWaiverDetailsUrl } from 'MainRoot/util/CLMLocation';
 import { prop } from 'ramda';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsStandaloneFirewall, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 
 const REDUCER_NAME = 'waiverDetails';
@@ -28,10 +28,17 @@ const mapWaiverOwnerType = {
 
 // Axios request to get waiver details
 const loadWaiver = createAsyncThunk(`${REDUCER_NAME}/loadWaiver`, async (_, { getState, rejectWithValue }) => {
-  const { ownerType: ownerTypeRaw, ownerId, waiverId } = selectRouterCurrentParams(getState());
+  const state = getState();
+  const { ownerType: ownerTypeRaw, ownerId, waiverId } = selectRouterCurrentParams(state);
   const ownerType = mapWaiverOwnerType[ownerTypeRaw] || ownerTypeRaw;
+  // On Firewall routes, use the Firewall-scoped detail endpoint, which authorizes callers
+  // based on their permitted proxy repositories rather than owner-level READ. Scoped users
+  // (e.g. READ on a single Docker repo) can then open the waiver detail without a 403.
+  const detailsUrl = selectIsStandaloneFirewall(state)
+    ? getFirewallWaiverDetailsUrl(ownerType, ownerId, waiverId)
+    : getWaiverDetailsUrl(ownerType, ownerId, waiverId);
   try {
-    const waiverDetails = await axios.get(getWaiverDetailsUrl(ownerType, ownerId, waiverId)).then(prop('data'));
+    const waiverDetails = await axios.get(detailsUrl).then(prop('data'));
     const isGlobalScope = ownerTypeRaw === 'root_organization' || ownerTypeRaw === 'all_repositories';
     const permissionCheck = isGlobalScope
       ? checkPermissions(['WAIVE_POLICY_VIOLATIONS'])

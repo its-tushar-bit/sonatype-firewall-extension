@@ -3,18 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-jest.mock('MainRoot/util/authorizationUtil', () => ({
-  checkPermissions: jest.fn(),
-}));
-
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { configureStore } from '@reduxjs/toolkit';
-import reducer, {
-  actions,
-  initialState,
-} from 'MainRoot/firewall/waiverRequests/firewallWaiverRequestsSlice';
+import reducer, { actions, initialState } from 'MainRoot/firewall/waiverRequests/firewallWaiverRequestsSlice';
 import { getListPolicyWaiverRequestsUrl, getViewOrUpdatePolicyWaiverRequestUrl } from 'MainRoot/util/CLMLocation';
-import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 
 const LIST_URL = getListPolicyWaiverRequestsUrl('organization', 'ROOT_ORGANIZATION_ID');
 
@@ -50,36 +42,39 @@ describe('firewallWaiverRequestsSlice', () => {
     const mockWaiverRequest = { id: policyWaiverRequestId, status: 'REQUESTED', policyName: 'Security-Critical' };
 
     it('sets reviewPage.loading true while fetching', () => {
-      checkPermissions.mockReturnValue(new Promise(() => {}));
       axiosMock.onGet(REVIEW_URL).reply(() => new Promise(() => {}));
       const store = makeStore();
       store.dispatch(actions.loadWaiverRequestForReview({ ownerType, ownerId, policyWaiverRequestId }));
       expect(store.getState().firewallWaiverRequests.reviewPage.loading).toBe(true);
     });
 
-    it('sets waiverRequest and hasWaivePermission true when user has WAIVE_POLICY_VIOLATIONS', async () => {
-      checkPermissions.mockResolvedValue();
-      axiosMock.onGet(REVIEW_URL).reply(200, mockWaiverRequest);
+    it('sets hasWaivePermission true when the response has canReview=true', async () => {
+      axiosMock.onGet(REVIEW_URL).reply(200, { ...mockWaiverRequest, canReview: true });
       const store = makeStore();
       await store.dispatch(actions.loadWaiverRequestForReview({ ownerType, ownerId, policyWaiverRequestId }));
       const { reviewPage } = store.getState().firewallWaiverRequests;
-      expect(reviewPage.waiverRequest).toEqual(mockWaiverRequest);
+      expect(reviewPage.waiverRequest).toEqual({ ...mockWaiverRequest, canReview: true });
       expect(reviewPage.hasWaivePermission).toBe(true);
       expect(reviewPage.loading).toBe(false);
     });
 
-    it('sets waiverRequest and hasWaivePermission false when user lacks WAIVE_POLICY_VIOLATIONS', async () => {
-      checkPermissions.mockRejectedValue(new Error('Forbidden'));
+    it('sets hasWaivePermission false when the response has canReview=false', async () => {
+      axiosMock.onGet(REVIEW_URL).reply(200, { ...mockWaiverRequest, canReview: false });
+      const store = makeStore();
+      await store.dispatch(actions.loadWaiverRequestForReview({ ownerType, ownerId, policyWaiverRequestId }));
+      const { reviewPage } = store.getState().firewallWaiverRequests;
+      expect(reviewPage.hasWaivePermission).toBe(false);
+    });
+
+    it('sets hasWaivePermission false when canReview is missing from the response', async () => {
       axiosMock.onGet(REVIEW_URL).reply(200, mockWaiverRequest);
       const store = makeStore();
       await store.dispatch(actions.loadWaiverRequestForReview({ ownerType, ownerId, policyWaiverRequestId }));
       const { reviewPage } = store.getState().firewallWaiverRequests;
-      expect(reviewPage.waiverRequest).toEqual(mockWaiverRequest);
       expect(reviewPage.hasWaivePermission).toBe(false);
     });
 
     it('sets reviewPage.error on fetch failure', async () => {
-      checkPermissions.mockResolvedValue();
       axiosMock.onGet(REVIEW_URL).reply(500, { message: 'Server error' });
       const store = makeStore();
       await store.dispatch(actions.loadWaiverRequestForReview({ ownerType, ownerId, policyWaiverRequestId }));
@@ -154,9 +149,7 @@ describe('firewallWaiverRequestsSlice', () => {
       expect(state.loading).toBe(false);
       expect(state.error).toBeNull();
       expect(
-        dispatched.some(
-          (a) => a?.type === 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT' && a.payload === true
-        )
+        dispatched.some((a) => a?.type === 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT' && a.payload === true)
       ).toBe(true);
     });
   });

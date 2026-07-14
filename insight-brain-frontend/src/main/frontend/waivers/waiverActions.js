@@ -438,8 +438,19 @@ export function deleteWaiver(ownerType, ownerId, waiverId, ownerName, forContain
 
     const isStandaloneFirewall = selectIsStandaloneFirewall(state);
 
-    const endpointUrl = forContainerImage
-      ? getDeleteContainerImagePolicyWaiverUrl(ownerName)
+    // Two flavors of container-image waiver deletion, distinguished by the ownerType the row
+    // arrived with (both flavors now store owner_id = the container-image application id
+    // server-side; the distinction is purely how the UI reached this action):
+    //   - "Direct-add" rows come from the container-image waivers endpoint and carry
+    //     ownerType = 'application'. The /firewall/container-image/{id}/policyWaiver endpoint
+    //     batch-deletes every waiver on that image in one call.
+    //   - Approval-flow rows come from the Firewall Existing Waivers list keyed by
+    //     REPOSITORY_CONTAINER_ID and carry ownerType = 'repository_container' (or anything
+    //     other than 'application'). Each waiver must be deleted individually via the standard
+    //     /policyWaivers/{ownerType}/{ownerId}/{waiverId} endpoint.
+    const isDirectAddContainerWaiver = forContainerImage && ownerType === 'application';
+    const endpointUrl = isDirectAddContainerWaiver
+      ? getDeleteContainerImagePolicyWaiverUrl(ownerId)
       : deleteWaiverUrl(ownerType, ownerId, waiverId);
 
     return axios

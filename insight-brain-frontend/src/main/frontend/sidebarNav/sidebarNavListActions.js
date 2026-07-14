@@ -8,6 +8,8 @@ import { loadFilter } from '../dashboard/filter/dashboardFilterActions';
 import { payloadParamActionCreator } from '../util/reduxUtil';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
+import { loadContainerWaiverList } from 'MainRoot/firewall/firewallActions';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const LOAD_SIDEBAR_NAV_LIST_REQUESTED = 'LOAD_SIDEBAR_NAV_LIST_REQUESTED';
 export const LOAD_SIDEBAR_NAV_LIST_FULFILLED = 'LOAD_SIDEBAR_NAV_LIST_FULFILLED';
@@ -73,13 +75,35 @@ function loadWaivers(dispatch, getState, sidebarReference) {
       return dispatch(loadSidebarNavListFailed(`Unknown sidebarReference: ${sidebarReference}`));
   }
 
-  return filterPromise
+  const isFirewall = selectIsStandaloneFirewall(getState());
+  const containerPromise = isFirewall ? Promise.resolve(dispatch(loadContainerWaiverList())) : Promise.resolve();
+
+  return Promise.all([filterPromise, containerPromise])
     .then(() => {
       const state = getState();
-      const { dashboard } = state;
+      const componentWaivers = state.dashboard.waivers.results;
+      const containerList = isFirewall ? state.firewall?.containerWaiverGridState?.containerWaiverList || [] : [];
+      // Only re-shape into a merged array when there are container waivers to fold in; otherwise
+      // preserve the original component-waivers payload shape (may be an array OR the legacy
+      // object emitted by dashboard filters) so downstream consumers of the sidebar list don't
+      // regress.
+      const data = containerList.length
+        ? [
+            ...(Array.isArray(componentWaivers) ? componentWaivers : []),
+            ...containerList.map((w) => ({
+              ...w,
+              id: w.policyWaiverId,
+              threatLevel: w.maxThreatLevel || 0,
+              policyName: `Multiple-Policy-Types(${w.uniquePolicyCount || 0})`,
+              ownerName: w.applicationScope,
+              ownerType: 'application',
+              forContainerImage: true,
+            })),
+          ]
+        : componentWaivers;
       return dispatch(
         loadSidebarNavListFulfilled({
-          data: dashboard.waivers.results,
+          data,
           contentType: 'waivers',
         })
       );

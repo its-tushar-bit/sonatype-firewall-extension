@@ -421,12 +421,11 @@ export function loadConfiguration() {
         dispatch(loadConfigurationFulfilled(data));
       })
       .catch((error) => {
-        if (error?.response?.status === 403) {
-          dispatch(setShowLimitedFirewallAccessAlert(true));
-        } else {
-          dispatch(setShowLimitedFirewallAccessAlert(false));
-          dispatch(loadConfigurationFailed(Messages.getHttpErrorMessage(error)));
-        }
+        // A 403 here means the caller lacks admin-level Firewall config edit permission,
+        // not that they lack View IQ Elements. Don't flip the limited-access banner on
+        // that signal — the waiver-list slices set the banner from their own 403s, which
+        // is the accurate signal for "user cannot see any firewall content".
+        dispatch(loadConfigurationFailed(Messages.getHttpErrorMessage(error)));
       });
   };
 }

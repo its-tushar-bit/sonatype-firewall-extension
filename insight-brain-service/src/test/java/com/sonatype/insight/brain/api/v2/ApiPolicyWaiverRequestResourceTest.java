@@ -10,16 +10,19 @@ import java.util.List;
 
 import jakarta.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestReviewDTO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.db.jooq.JooqSqlCounterListener;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.db.jooq.JooqSqlCounterListener;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -27,13 +30,16 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -64,11 +70,17 @@ public class ApiPolicyWaiverRequestResourceTest
 
   private PolicyWaiverDAO policyWaiverDAO;
 
+  private OrganizationDAO organizationDAO;
+
+  private RepositoryDAO repositoryDAO;
+
   @Before
   public void setUp() {
     repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
     policyWaiverRequestDAO = lookup(PolicyWaiverRequestDAO.class);
     policyWaiverDAO = lookup(PolicyWaiverDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
   }
 
   @Override
@@ -252,14 +264,85 @@ public class ApiPolicyWaiverRequestResourceTest
 
   @Test
   public void testReviewPolicyWaiverRequest_RepositoryContainer() throws Exception {
-    Repository repository = tempEntity.newRepository();
+    // Container-image waiver requests are parked under the virtual REPOSITORY_CONTAINER_ID scope
+    // but must resolve to a real container-image application on approval — applyContainerImageWaivers
+    // validates the underlying app has a docker-proxy repo link and active fail-stage violations.
+    Application containerImageApp = newContainerImageApplication();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(containerImageApp.getId(), ProxyStageType.ID, "scanIdContainer");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, policy.getThreatLevel(),
+        PolicyThreatCategory.SECURITY, "g1", "a1", "v1", "hashContainer", FailActionType.ID);
 
-    RepositoryPolicyViolation policyViolation =
-        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+    // Seed the container-image waiver request directly. The public add endpoint requires the
+    // violation to walk up to the caller's scope; container-image apps live under an organization
+    // (not the repository container hierarchy), so we seed the request in the shape produced by
+    // addContainerImagePolicyWaiverRequest and exercise only the review path here.
+    Date expiryDate = DateUtils.addDays(new Date(), 1);
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequest().setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+            .setPolicyId(policy.getId())
+            .setPolicyViolationId(policyViolation.getId())
+            .setHash(policyViolation.getHash())
+            .setConstraintFacts(policyViolation.getConstraintFacts())
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setExpiryTime(expiryDate)
+            .setComment("waiver comment")
+            .setStatus(REQUESTED));
+    String policyWaiverRequestId = policyWaiverRequest.getId();
 
-    testReviewPolicyWaiverRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy,
-        policyViolation);
+    // Review/approve the policy waiver request using a different user
+    User reviewer =
+        tempEntity.newUser("reviewerUsername", "reviewerFirstName", "reviewerLastName", "reviewer@example.com");
+    Role role = tempEntity.newRole(false /* global */, Permission.WAIVE_POLICY_VIOLATIONS);
+    tempEntity.newMembershipMapping(RepositoryContainer.REPOSITORY_CONTAINER_ID, role.getId(), reviewer.getUsername());
+    ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO = new ApiPolicyWaiverRequestReviewDTO();
+    apiPolicyWaiverRequestReviewDTO.comment = "updated waiver comment";
+    Date updatedExpiryDate = DateUtils.addDays(new Date(), 2);
+    apiPolicyWaiverRequestReviewDTO.expiryTime = updatedExpiryDate;
+    apiPolicyWaiverRequestReviewDTO.matcherStrategy = ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+    apiPolicyWaiverRequestReviewDTO.status = APPROVED.name();
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_REVIEW_PATH)
+        .parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policyWaiverRequestId)
+        .body(apiPolicyWaiverRequestReviewDTO, MediaType.APPLICATION_JSON)
+        .auth(reviewer)
+        .post();
+
+    assertResponseStatus(200, response);
+
+    // The waiver request itself stays scoped to the virtual REPOSITORY_CONTAINER_ID (storage semantics).
+    PolicyWaiverRequest reviewedRequest = policyWaiverRequestDAO.getById(policyWaiverRequestId);
+    assertThat(reviewedRequest.getStatus()).isEqualTo(APPROVED);
+    assertThat(reviewedRequest.getOwnerId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(reviewedRequest.getReviewerId()).isEqualTo("reviewerUsername");
+    assertThat(reviewedRequest.getReviewerName()).isEqualTo("reviewerFirstName reviewerLastName");
+
+    // The linked container-level waiver is owned by the container-image application, not the
+    // REPOSITORY_CONTAINER virtual scope — this is the storage-narrowing behavior of NEXUS-53680.
+    PolicyWaiver containerLevelWaiver = policyWaiverDAO.getById(reviewedRequest.getPolicyWaiverId());
+    assertThat(containerLevelWaiver.getOwnerId()).isEqualTo(containerImageApp.getId());
+    assertThat(containerLevelWaiver.isForContainerImage()).isTrue();
+    assertThat(containerLevelWaiver.getComponentMatchStrategy())
+        .isEqualTo(ComponentMatcherStrategyForWaiver.ALL_COMPONENTS);
+    assertThat(containerLevelWaiver.getComment()).isEqualTo("updated waiver comment");
+    assertThat(containerLevelWaiver.getExpiryTime()).isEqualTo(updatedExpiryDate);
+    assertThat(containerLevelWaiver.getCreatorId()).isEqualTo("reviewerUsername");
+  }
+
+  /**
+   * Creates an Application wired up like a real container image: its Organization has a
+   * relatedRepositoryId pointing to a docker-proxy repository, matching what
+   * {@link com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService} validates.
+   */
+  private Application newContainerImageApplication() {
+    Organization containerOrg = tempEntity.newOrganization();
+    Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager(),
+        "docker-repo-" + containerOrg.getId(), RepositoryType.proxy, "docker");
+    repository.setRelatedOrganizationId(containerOrg.getId());
+    repositoryDAO.update(repository);
+    containerOrg.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(containerOrg);
+    return tempEntity.newApplication(containerOrg.getId());
   }
 
   private void testReviewPolicyWaiverRequest(

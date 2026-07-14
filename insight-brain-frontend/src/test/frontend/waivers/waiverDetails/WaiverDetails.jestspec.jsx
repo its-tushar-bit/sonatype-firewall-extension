@@ -13,7 +13,7 @@ import {
   WAIVER_CREATE_TIME,
   WAIVER_EXPIRATION_TIME,
 } from 'TestRoot/SpecUtil';
-import { getWaiverDetailsUrl, deleteWaiverUrl } from 'MainRoot/util/CLMLocation';
+import { getFirewallWaiverDetailsUrl, getWaiverDetailsUrl, deleteWaiverUrl } from 'MainRoot/util/CLMLocation';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import WaiverDetails from 'MainRoot/waivers/waiverDetails/WaiverDetails';
 import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -425,7 +425,7 @@ describe('When the WaiverDetailsPage', function () {
 
     it('renders renewal comment before creation comment (latest first)', async function () {
       jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
-      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, {
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(ownerType, ownerId, waiverId)).reply(200, {
         ...waiverDetails,
         lastRenewedBy: 'admin',
         lastRenewedAt: '2024-01-15T10:00:00.000Z',
@@ -446,7 +446,7 @@ describe('When the WaiverDetailsPage', function () {
 
     it('renders renewal reason with dash when absent', async function () {
       jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
-      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(ownerType, ownerId, waiverId)).reply(200, waiverDetails);
       renderComponent();
 
       await screen.findByText('a comment'); // wait for load
@@ -457,7 +457,7 @@ describe('When the WaiverDetailsPage', function () {
 
     it('shows dash when renewal comment is empty', async function () {
       jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
-      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, {
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(ownerType, ownerId, waiverId)).reply(200, {
         ...waiverDetails,
         lastRenewedAt: '2024-01-15T10:00:00.000Z',
         lastRenewedBy: 'admin',
@@ -504,7 +504,7 @@ describe('When the WaiverDetailsPage', function () {
       jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
       axiosMock.reset();
       axiosMock.onPut(/\/rest\/user\/permissions\//).reply(200, []);
-      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(ownerType, ownerId, waiverId)).reply(200, waiverDetails);
       renderComponent();
 
       expect(await screen.findByText('test policy')).toBeVisible();

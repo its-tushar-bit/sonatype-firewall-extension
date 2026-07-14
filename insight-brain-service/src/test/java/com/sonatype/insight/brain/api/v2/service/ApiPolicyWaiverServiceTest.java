@@ -734,8 +734,14 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testGetPolicyWaivers_RepositoryContainer() {
+    // Post NEXUS-53680: the virtual REPOSITORY_CONTAINER_ID scope is a query-key only. Container-image
+    // waivers are stored under their container-image APPLICATION id and each DTO renders with the
+    // underlying application scope (not "Repository Managers"). See buildPolicyWaiverDTOsPerOwner.
+    Application containerImageApp = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy();
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID, "comment");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        new PolicyWaiver("hash", policy.getId(), containerImageApp.getId(), "comment")
+            .setForContainerImage(true));
 
     List<ApiPolicyWaiverDTO> policyWaiverDtoList =
         apiPolicyWaiverService.getPolicyWaivers(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID);
@@ -747,9 +753,9 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
     assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
     assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
-    assertThat(actual.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(actual.scopeOwnerName).isEqualTo("Repository Managers");
-    assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
+    assertThat(actual.scopeOwnerId).isEqualTo(containerImageApp.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(containerImageApp.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("application");
   }
 
   @Test
@@ -760,11 +766,20 @@ public class ApiPolicyWaiverServiceTest
     Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
     Date aWeekAgo = Date.from(now.minus(7, ChronoUnit.DAYS));
 
+    // Post NEXUS-53680: container-image waivers surface via REPOSITORY_CONTAINER but are stored
+    // under (and rendered against) their container-image APPLICATION.
+    Application containerImageApp = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy();
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID,
-        null, "comment", today, aWeekFromNow);
-    tempEntity.newWaiver(null, policy.getId(), REPOSITORY_CONTAINER_ID,
-        null, "comment", aWeekAgo, yesterday);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        new PolicyWaiver("hash", policy.getId(), containerImageApp.getId(), "comment")
+            .setForContainerImage(true)
+            .setCreateTime(today)
+            .setExpiryTime(aWeekFromNow));
+    tempEntity.newWaiver(
+        new PolicyWaiver(null, policy.getId(), containerImageApp.getId(), "comment")
+            .setForContainerImage(true)
+            .setCreateTime(aWeekAgo)
+            .setExpiryTime(yesterday));
 
     List<ApiPolicyWaiverDTO> policyWaiverDtoList =
         apiPolicyWaiverService.getPolicyWaivers(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID);
@@ -776,9 +791,9 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
     assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
     assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
-    assertThat(actual.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(actual.scopeOwnerName).isEqualTo("Repository Managers");
-    assertThat(actual.scopeOwnerType).isEqualTo("all_repositories");
+    assertThat(actual.scopeOwnerId).isEqualTo(containerImageApp.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(containerImageApp.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("application");
     assertThat(actual.expiryTime).isEqualTo(aWeekFromNow);
   }
 
@@ -1366,19 +1381,28 @@ public class ApiPolicyWaiverServiceTest
       final OwnerType ownerType,
       final String ownerId)
   {
+    assertTelemetry(ownerType, ownerId, 1);
+  }
+
+  private void assertTelemetry(
+      final OwnerType ownerType,
+      final String ownerId,
+      final int expectedInvocations)
+  {
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
-    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    verify(telemetrySenderMock, times(expectedInvocations)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("owner_type", ownerType.toString());
 
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
     expectedAttributes.put("real_owner_id", ownerId);
 
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_WAIVER_API);
-    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
-    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+    for (TelemetryData telemetryData : telemetryDataArgumentCaptor.getAllValues()) {
+      assertThat(telemetryData).isNotNull();
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_WAIVER_API);
+      assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+      assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+    }
   }
 
   private void assertWaiverTelemetry(
@@ -2487,26 +2511,31 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testAddBulkPolicyWaivers_RepositoryContainer_Success() {
-    Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repoPolicyViolation = tempEntity.newRepositoryPolicyViolation(
-        repository.getId(), policy.getId(), policy.getThreatLevel());
+    // Post NEXUS-53680: container-image bulk waivers go through applyContainerImageWaivers
+    // (invoked by addContainerImageWaiver), which stores per-violation waivers plus a summary
+    // marker under the container-image APPLICATION id. The virtual REPOSITORY_CONTAINER_ID is
+    // a query-key only and is no longer a valid write target.
+    relateOrganizationWithRepository();
+    policy = tempEntity.newPolicy(app.getId());
+    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, "scanId1App1");
+    tempEntity.newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,
+        "g1", "a1", "v1", "hash1", FailActionType.ID);
 
-    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
-    waiverOptions.comment = "Container bulk waiver";
-    waiverOptions.matcherStrategy = EXACT_COMPONENT;
-    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
-        Collections.singletonList(repoPolicyViolation.getId()),
-        waiverOptions);
+    ApiContainerImageWaiverDTO waiverDTO = new ApiContainerImageWaiverDTO();
+    waiverDTO.comment = "Container bulk waiver";
 
-    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, bulkWaiversDTO);
+    apiPolicyWaiverService.addContainerImageWaiver(app.getId(), waiverDTO);
 
-    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    assertThat(waivers).hasSize(1);
-    assertThat(waivers.get(0).getComment()).isEqualTo("Container bulk waiver");
-    assertThat(waivers.get(0).getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(2);
+    assertThat(waivers).allSatisfy(w -> assertThat(w.getComment()).isEqualTo("Container bulk waiver"));
+    // Per-violation waiver stored with EXACT_COMPONENT + isForContainerImageComponent;
+    // summary marker stored with ALL_COMPONENTS + isForContainerImage.
+    assertThat(waivers).extracting(PolicyWaiver::isForContainerImage).containsExactlyInAnyOrder(true, false);
+    assertThat(waivers).extracting(PolicyWaiver::isForContainerImageComponent)
+        .containsExactlyInAnyOrder(true, false);
 
-    assertTelemetry(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertTelemetry(OwnerType.APPLICATION, app.getPublicId(), 2);
   }
 
   @Test

@@ -189,8 +189,15 @@ public class ApiPolicyWaiverResourceAuditTest
 
   @Test
   public void testDeletePolicyWaiver_RepositoryContainer_Unauthorized() throws Exception {
+    // Container-image waivers are stored under the container-image APPLICATION owner, not
+    // REPOSITORY_CONTAINER_ID. Seed one so the delete re-routes to an app-scoped auth check
+    // (rather than 404'ing on lookup before the auth check fires).
+    PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), app.getId(), "comment");
+    policyWaiver.setForContainerImage(true);
+    policyWaiverDAO.insert(policyWaiver);
+
     restRequest().path(BY_POLICY_WAIVER_ID_PATH)
-        .parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, "policy-waiver-id")
+        .parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, policyWaiver.getId())
         .with(unauthorizedUser())
         .delete();
 
@@ -271,7 +278,12 @@ public class ApiPolicyWaiverResourceAuditTest
 
   @Test
   public void testGetPolicyWaivers_RepositoryContainer() throws Exception {
-    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), REPOSITORY_CONTAINER_ID);
+    // Container-image waivers are stored under the container-image APPLICATION owner (not
+    // REPOSITORY_CONTAINER_ID) and flagged is_for_container_image=true. The Firewall
+    // Containers → Existing Waivers list surfaces them via the virtual REPOSITORY_CONTAINER_ID.
+    PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), app.getId(), "comment");
+    policyWaiver.setForContainerImage(true);
+    policyWaiverDAO.insert(policyWaiver);
 
     restRequest().path(OWNERS_PATH)
         .parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, policyWaiver.getId())

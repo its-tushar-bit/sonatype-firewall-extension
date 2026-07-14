@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, waitFor, act } from 'TestRoot/SpecUtil';
+import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
@@ -36,7 +36,12 @@ const waiverRequest = {
 const baseState = {
   router: {
     currentState: { name: 'firewall.reviewWaiverRequest' },
-    currentParams: { waiverRequestId: 'req-1', ownerType: 'repository', ownerId: 'npm-central', origin: 'firewall.waivers.components.requested' },
+    currentParams: {
+      waiverRequestId: 'req-1',
+      ownerType: 'repository',
+      ownerId: 'npm-central',
+      origin: 'firewall.waivers.components.requested',
+    },
   },
   firewallWaiverRequests: {
     loading: false,
@@ -82,8 +87,12 @@ describe('FirewallReviewWaiverRequestPage', () => {
     });
     // Mock checkPermissions to resolve (grant permission) by default
     authorizationUtil.checkPermissions.mockResolvedValue(true);
-    // Respond to the GET triggered by useEffect on mount
-    axiosMock.onGet(getViewOrUpdatePolicyWaiverRequestUrl('repository', 'npm-central', 'req-1')).reply(200, waiverRequest);
+    // Respond to the GET triggered by useEffect on mount. The backend now returns canReview
+    // on the DTO, and the slice uses it to derive hasWaivePermission — default to true here so
+    // existing "user has waive permission" assertions continue to hold.
+    axiosMock
+      .onGet(getViewOrUpdatePolicyWaiverRequestUrl('repository', 'npm-central', 'req-1'))
+      .reply(200, { ...waiverRequest, canReview: true });
     // Also handle the POST for review actions
     axiosMock.onPost(getReviewPolicyWaiverRequestUrl('repository', 'npm-central', 'req-1')).reply(200, {});
   });
@@ -205,7 +214,10 @@ describe('FirewallReviewWaiverRequestPage', () => {
   });
 
   it('hides Approve and Reject buttons and shows only Cancel for non-admin user', async () => {
-    authorizationUtil.checkPermissions.mockRejectedValue(new Error('Forbidden'));
+    // Backend signals no review permission by returning canReview=false on the DTO.
+    axiosMock
+      .onGet(getViewOrUpdatePolicyWaiverRequestUrl('repository', 'npm-central', 'req-1'))
+      .reply(200, { ...waiverRequest, canReview: false });
     render(<FirewallReviewWaiverRequestPage />, { preloadedState: nonAdminState });
     await waitFor(() => expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();

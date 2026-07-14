@@ -110,4 +110,13 @@ public class ApiPolicyWaiverRequestDTO
   public String policyWaiverReasonId;
 
   public String status;
+
+  /**
+   * Whether the current caller may approve/reject this waiver request. Computed server-side so
+   * the UI can gate the Approve/Reject buttons correctly even when the request is scoped to a
+   * virtual owner (e.g. REPOSITORY_CONTAINER_ID) that the caller lacks direct permission on but
+   * whose underlying repository the caller can actually waive on.
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Boolean canReview;
 }

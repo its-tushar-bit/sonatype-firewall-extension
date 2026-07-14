@@ -391,7 +391,12 @@ public class PolicyWaiverService
   }
 
   private Predicate<PolicyWaiver> getFilteringPredicateForContainerImageComponent() {
-    return policyWaiver -> !policyWaiver.isForContainerImageComponent();
+    // Exclude container-image waivers from the Components tab entirely. Two flags matter:
+    // - isForContainerImageComponent: waiver on the docker manifest itself (narrow, rare)
+    // - isForContainerImage: waiver created via the container-image waiver flow (any component
+    // format — apk, pypi, deb — inside a scanned container image)
+    // Either one means the waiver belongs in the Containers tab, not Components.
+    return policyWaiver -> !policyWaiver.isForContainerImageComponent() && !policyWaiver.isForContainerImage();
   }
 
   private Predicate<PolicyWaiver> getFilteringPredicateForWaiverReasons(final Set<String> policyWaiverReasonIds) {

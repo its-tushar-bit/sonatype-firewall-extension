@@ -592,6 +592,39 @@ public class PolicyWaiverDAO
         .fetch(this::toEntity);
   }
 
+  /**
+   * Returns active container-image waivers (those flagged {@code is_for_container_image = true}).
+   * Container-image waivers are stored with {@code owner_id} equal to the container-image
+   * application id, so this method filters directly on {@code owner_id}.
+   *
+   * @param allowedApplicationIds {@code null} = no application filter (caller sees every
+   *          container-image waiver). Non-null set = only waivers whose {@code owner_id} is in
+   *          that set. Empty set short-circuits to {@code []}.
+   */
+  public List<PolicyWaiver> getActiveContainerImageWaiversFilteredByApplicationIds(
+      java.util.Set<String> allowedApplicationIds)
+  {
+    if (allowedApplicationIds != null && allowedApplicationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      var activeContainerImageCondition = POLICY_WAIVER.IS_FOR_CONTAINER_IMAGE.isTrue()
+          .and(POLICY_WAIVER.EXPIRY_TIME.isNull().or(POLICY_WAIVER.EXPIRY_TIME.gt(new Date())));
+      if (allowedApplicationIds == null) {
+        return tx.dsl()
+            .selectFrom(POLICY_WAIVER)
+            .where(activeContainerImageCondition)
+            .fetch(this::toEntity);
+      }
+      return getListWithSqlInClause(allowedApplicationIds,
+          chunk -> tx.dsl()
+              .selectFrom(POLICY_WAIVER)
+              .where(activeContainerImageCondition)
+              .and(POLICY_WAIVER.OWNER_ID.in(chunk))
+              .fetch(this::toEntity));
+    }
+  }
+
   public List<PolicyWaiver> getByPolicyId(String policyId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByPolicyId(tx, policyId);
@@ -913,6 +946,8 @@ public class PolicyWaiverDAO
 
       var condition = pw.IS_FOR_CONTAINER_IMAGE.eq(true);
       if (accessibleOwnerIds != null) {
+        // Container-image waivers (both direct-add and approval-flow) are stored with
+        // owner_id = the container-image application id. Filter directly on that.
         condition = condition.and(pw.OWNER_ID.in(accessibleOwnerIds));
       }
 
@@ -1003,6 +1038,8 @@ public class PolicyWaiverDAO
 
       var condition = pw.IS_FOR_CONTAINER_IMAGE.eq(true);
       if (accessibleOwnerIds != null) {
+        // Container-image waivers (both direct-add and approval-flow) are stored with
+        // owner_id = the container-image application id. Filter directly on that.
         condition = condition.and(pw.OWNER_ID.in(accessibleOwnerIds));
       }
 

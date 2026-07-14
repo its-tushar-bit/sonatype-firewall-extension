@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.PolicyContainerWaiverData;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -75,6 +76,7 @@ import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedReposito
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.owner.OwnerService;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
@@ -150,6 +152,8 @@ public class ApiPolicyWaiverService
 
   private final PolicyViolationDAO policyViolationDAO;
 
+  private final PolicyWaiverRequestDAO policyWaiverRequestDAO;
+
   private final OrganizationDAO organizationDAO;
 
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
@@ -176,6 +180,7 @@ public class ApiPolicyWaiverService
       OwnerService ownerService,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       PolicyViolationDAO policyViolationDAO,
+      PolicyWaiverRequestDAO policyWaiverRequestDAO,
       OrganizationDAO organizationDAO,
       PolicyWaiverReasonDAO policyWaiverReasonDAO,
       RepositoryDAO repositoryDAO,
@@ -195,6 +200,7 @@ public class ApiPolicyWaiverService
     this.ownerService = ownerService;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.policyViolationDAO = policyViolationDAO;
+    this.policyWaiverRequestDAO = policyWaiverRequestDAO;
     this.organizationDAO = organizationDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
     this.repositoryDAO = repositoryDAO;
@@ -446,7 +452,98 @@ public class ApiPolicyWaiverService
   }
 
   public List<ApiPolicyWaiverDTO> getPolicyWaivers(OwnerType ownerType, String ownerId, Integer expiringWithin) {
-    return getPolicyWaiversWithAuthzCheck(idUtils.getOwnerNotNull(ownerType, ownerId), expiringWithin);
+    Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
+    // Container-image waivers are stored under their container-image application (per approval
+    // flow, matching direct-add). Calls scoped to the virtual REPOSITORY_CONTAINER_ID are the
+    // Firewall Containers → Existing Waivers view — return all container-image waivers the
+    // caller can see (filtered by their accessible container-image apps), regardless of the
+    // waiver's raw owner_id. Firewall-scoped users lack READ at the container-container level;
+    // the gate throws only when they have zero Firewall access, preserving 403 in that case.
+    if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(owner.getId())) {
+      Set<String> accessibleContainerImageOwnerIds = resolveAccessibleContainerImageOwnerIds();
+      return getContainerImageWaiversForFirewallView(owner, expiringWithin, accessibleContainerImageOwnerIds);
+    }
+    return getPolicyWaiversWithAuthzCheck(owner, expiringWithin);
+  }
+
+  private List<ApiPolicyWaiverDTO> getContainerImageWaiversForFirewallView(
+      Owner owner,
+      Integer expiringWithin,
+      Set<String> accessibleContainerImageOwnerIds)
+  {
+    // accessibleContainerImageOwnerIds:
+    // null → caller has container-level READ (admin / unscoped), no filter.
+    // empty → scoped user with no matching container-image apps → empty result.
+    // non-empty set → filter to those app IDs.
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO
+        .getActiveContainerImageWaiversFilteredByApplicationIds(accessibleContainerImageOwnerIds);
+
+    // Container-image waivers are stored with owner_id = container-image application id, so each row
+    // must render its scope as the underlying application name (e.g. the image path), not the
+    // virtual "Repository Managers" owner the caller addressed the list through.
+    Set<String> ownerIds = policyWaivers.stream()
+        .map(PolicyWaiver::getOwnerId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Map<String, Owner> ownersById = ownerIds.isEmpty()
+        ? Collections.emptyMap()
+        : applicationDAO.getByIds(ownerIds)
+            .stream()
+            .collect(Collectors.toMap(Application::getId, app -> app));
+    List<ApiPolicyWaiverDTO> dtos = buildPolicyWaiverDTOsPerOwner(owner, ownersById, policyWaivers, expiringWithin);
+    // Preserve audit behavior of the legacy per-owner query path: emit a VIEW_WAIVER sub-event
+    // per waiver so audit logs still carry policyId/policyWaiverId/etc. for the Firewall
+    // Containers → Existing Waivers view.
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.VIEW_WAIVER, true)) {
+      policyWaivers.forEach(this::auditPolicyWaiver);
+    }
+    return dtos;
+  }
+
+  private List<ApiPolicyWaiverDTO> buildPolicyWaiverDTOsPerOwner(
+      Owner fallbackOwner,
+      Map<String, Owner> ownersById,
+      List<PolicyWaiver> policyWaivers,
+      Integer expiringWithin)
+  {
+    if (expiringWithin != null) {
+      if (expiringWithin <= 0) {
+        throw new BadRequestException("expiringWithin must be a positive integer");
+      }
+      final Instant cutoff = Instant.now().plus(expiringWithin, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+      policyWaivers = policyWaivers.stream()
+          .filter(w -> w.getExpiryTime() != null
+              && !w.getExpiryTime().toInstant().truncatedTo(ChronoUnit.DAYS).isAfter(cutoff))
+          .collect(Collectors.toList());
+    }
+
+    List<String> waiverReasonIds = policyWaivers.stream().map(PolicyWaiver::getWaiverReasonId).collect(toList());
+    List<PolicyWaiverReason> policyWaiverReasons =
+        waiverReasonIds.isEmpty() ? new ArrayList<>() : policyWaiverReasonDAO.getAllByIds(waiverReasonIds);
+    Map<String, PolicyWaiverReason> reasonsById = policyWaiverReasons.stream()
+        .collect(Collectors.toMap(PolicyWaiverReason::getId, r -> r));
+
+    Set<String> policyIds = policyWaivers.stream()
+        .map(PolicyWaiver::getPolicyId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Map<String, Policy> policiesById = policyDAO.getByIds(policyIds)
+        .stream()
+        .collect(Collectors.toMap(Policy::getId, p -> p));
+
+    List<ApiPolicyWaiverDTO> dtos = new ArrayList<>();
+    for (PolicyWaiver policyWaiver : policyWaivers) {
+      PolicyWaiverReason policyWaiverReason = reasonsById.get(policyWaiver.getWaiverReasonId());
+      Owner perWaiverOwner = ownersById.getOrDefault(policyWaiver.getOwnerId(), fallbackOwner);
+      ApiPolicyWaiverDTO dto = ApiPolicyWaiverDTO.toDto(policyWaiver, policyWaiverReason, perWaiverOwner);
+      Policy policy = policiesById.get(policyWaiver.getPolicyId());
+      if (policy != null) {
+        dto.policyName = policy.getName();
+        dto.threatLevel = policy.getThreatLevel();
+      }
+      dtos.add(dto);
+    }
+    return dtos;
   }
 
   @Authorize(permission = Permission.READ)
@@ -606,6 +703,17 @@ public class ApiPolicyWaiverService
 
   public void deletePolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId) {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    // Callers that address a container-image waiver via the virtual REPOSITORY_CONTAINER_ID scope
+    // will fail the ownerId equality check inside deletePolicyWaiverWithAuthzCheck (waivers now
+    // live under their container-image application). Look the waiver up and re-authorize against
+    // its actual application owner in that case.
+    if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(internalOwnerId)) {
+      PolicyWaiver policyWaiver = policyWaiverDAO.getById(policyWaiverId);
+      if (policyWaiver != null && policyWaiver.isForContainerImage()) {
+        deletePolicyWaiverWithAuthzCheck(OwnerType.APPLICATION, policyWaiver.getOwnerId(), policyWaiverId);
+        return;
+      }
+    }
     deletePolicyWaiverWithAuthzCheck(ownerType, internalOwnerId, policyWaiverId);
   }
 
@@ -1183,6 +1291,28 @@ public class ApiPolicyWaiverService
     if (permittedRepositoryIds != null) {
       checkOwnerInFirewallScope(owner, permittedRepositoryIds);
     }
+    // The Firewall Containers → Existing Waivers list returns container-image waivers under the
+    // virtual REPOSITORY_CONTAINER_ID scope for uniformity, but each waiver row is actually
+    // stored under its container-image application. Re-resolve the owner from the waiver row so
+    // the standard getPolicyWaiverInternal ownerId equality check succeeds.
+    if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(owner.getId())) {
+      // Use the nullable lookup here: if the waiver ID does not exist, fall through with the
+      // original REPOSITORY_CONTAINER owner and let getPolicyWaiverInternal below produce the
+      // standard NotFoundException. Using getByIdNotNull would work at runtime, but avoiding the
+      // extra "not found" throw here also lets tests that don't exercise the container-image
+      // branch skip mocking this lookup.
+      PolicyWaiver stored = policyWaiverDAO.getById(policyWaiverId);
+      if (stored != null && stored.isForContainerImage()) {
+        owner = idUtils.getOwnerNotNull(OwnerType.APPLICATION, stored.getOwnerId());
+        // Re-check scope on the resolved container-image APPLICATION. The initial check above
+        // saw owner=REPOSITORY_CONTAINER_ID (default branch = allow), so without this second
+        // check a scoped Firewall user could fetch any container-image waiver by ID via the
+        // REPOSITORY_CONTAINER_ID URL, regardless of which Docker repo it belongs to.
+        if (permittedRepositoryIds != null) {
+          checkOwnerInFirewallScope(owner, permittedRepositoryIds);
+        }
+      }
+    }
     return getPolicyWaiverInternal(owner, policyWaiverId);
   }
 
@@ -1375,6 +1505,19 @@ public class ApiPolicyWaiverService
 
   public void deleteContainerImageWaiver(String containerId) {
     String internalOwnerId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, containerId);
+    // Defence-in-depth: @Authorize(WAIVE_POLICY_VIOLATIONS) on the container-image app's owner
+    // hierarchy is the primary gate, but Firewall repo scope is orthogonal to Shiro's org-level
+    // permission model. A caller with WAIVE granted broadly could otherwise reach a
+    // container-image application whose shadow org points to a Docker repo outside their
+    // Firewall scope. Verify the container image's Docker repo is within the caller's permitted
+    // set before delegating to the authz-annotated method.
+    Set<String> permittedRepositoryIds = firewallPermissionGate.resolvePermittedRepositoryIds();
+    if (permittedRepositoryIds != null) {
+      String dockerRepoId = getDockerRepositoryIdForContainerImageApp(internalOwnerId);
+      if (dockerRepoId == null || !permittedRepositoryIds.contains(dockerRepoId)) {
+        throw new UnauthorizedException("Access denied");
+      }
+    }
     deletePolicyWaiverContainerImageWithAuthzCheck(internalOwnerId);
   }
 
@@ -1404,16 +1547,11 @@ public class ApiPolicyWaiverService
   public ApiPageResult<PolicyContainerWaiverData> getAllPolicyContainerWaivers(final int page, final int pageSize) {
     checkAuthenticated();
 
-    Set<String> permittedRepositoryIds = firewallPermissionGate.resolvePermittedRepositoryIds();
-
     // For scoped users, scope to container images linked to their permitted repositories.
-    // For full-access users (permittedRepositoryIds == null), pass null to the DAO (no owner filter).
-    Set<String> ownerFilter = null;
-    if (permittedRepositoryIds != null) {
-      ownerFilter = getContainerImageOwnerIdsByRepositoryIds(permittedRepositoryIds);
-      if (ownerFilter.isEmpty()) {
-        return new ApiPageResult<>(0L, page, pageSize, Collections.emptyList());
-      }
+    // For full-access users, resolveAccessibleContainerImageOwnerIds returns null (no owner filter).
+    Set<String> ownerFilter = resolveAccessibleContainerImageOwnerIds();
+    if (ownerFilter != null && ownerFilter.isEmpty()) {
+      return new ApiPageResult<>(0L, page, pageSize, Collections.emptyList());
     }
 
     List<PolicyContainerWaiverData> policyContainerWaivers =
@@ -1424,6 +1562,39 @@ public class ApiPolicyWaiverService
         page,
         pageSize,
         policyContainerWaivers);
+  }
+
+  /**
+   * Resolves the set of container-image application (owner) IDs the current user may access.
+   *
+   * <p>
+   * Returns {@code null} when the caller has container-level READ (i.e. no scoping — see all
+   * container-image applications). Returns a (possibly empty) set of application IDs otherwise;
+   * an empty set means the caller is scoped but has no matching container-image applications.
+   */
+  public Set<String> resolveAccessibleContainerImageOwnerIds() {
+    Set<String> permittedRepositoryIds = firewallPermissionGate.resolvePermittedRepositoryIds();
+    if (permittedRepositoryIds == null) {
+      return null;
+    }
+    return getContainerImageOwnerIdsByRepositoryIds(permittedRepositoryIds);
+  }
+
+  /**
+   * Returns the Docker proxy repository ID linked to a container-image application via its
+   * shadow organization's {@code relatedRepositoryId}. {@code null} if the application does not
+   * exist or is not a container-image app (org has no relatedRepositoryId).
+   */
+  public String getDockerRepositoryIdForContainerImageApp(String applicationId) {
+    Application app = applicationDAO.getById(applicationId);
+    if (app == null) {
+      return null;
+    }
+    Organization org = organizationDAO.getById(app.getOrganizationId());
+    if (org == null) {
+      return null;
+    }
+    return org.getRelatedRepositoryId();
   }
 
   /**

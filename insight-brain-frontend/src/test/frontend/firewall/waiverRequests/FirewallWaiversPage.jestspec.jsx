@@ -218,25 +218,23 @@ describe('FirewallWaiversPage', () => {
       ).toBeInTheDocument();
     });
 
-    it('shows the required-access error inside the Components tab and hides sub-tabs/tables', () => {
+    it('still renders the Components sub-tabs when limited access is set', () => {
       render(<FirewallWaiversPage />, { preloadedState: limitedAccessState });
       expect(
-        screen.getByText(/An error occurred loading data\. Don.t have required access to access waivers\./i)
-      ).toBeInTheDocument();
-      expect(screen.queryByRole('tab', { name: /existing waivers/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('tab', { name: /requested waivers/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+        screen.queryByText(/An error occurred loading data\. Don.t have required access to access waivers\./i)
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /existing waivers/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /requested waivers/i })).toBeInTheDocument();
     });
 
-    it('shows the required-access error inside the Containers tab and hides sub-tabs/tables', () => {
+    it('still renders the Containers sub-tabs when limited access is set', () => {
       render(<FirewallWaiversPage />, {
         preloadedState: { ...containerExistingTabState, firewall: { showLimitedFirewallAccessAlert: true } },
       });
       expect(
-        screen.getByText(/An error occurred loading data\. Don.t have required access to access waivers\./i)
-      ).toBeInTheDocument();
-      expect(screen.queryByRole('tab', { name: /existing waivers/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+        screen.queryByText(/An error occurred loading data\. Don.t have required access to access waivers\./i)
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /existing waivers/i })).toBeInTheDocument();
     });
 
     it('still shows top-level Components and Containers tabs', () => {

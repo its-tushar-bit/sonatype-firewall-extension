@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +35,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.jooq.Table;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolation.POLICY_VIOLATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyWaiverRequest.POLICY_WAIVER_REQUEST;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
@@ -239,6 +241,38 @@ public class PolicyWaiverRequestDAO
             .selectFrom(POLICY_WAIVER_REQUEST)
             .where(POLICY_WAIVER_REQUEST.OWNER_ID.in(idChunk))
             .fetch(this::toEntity));
+  }
+
+  /**
+   * Returns waiver requests scoped to the given owner (typically {@code REPOSITORY_CONTAINER_ID}),
+   * further filtered to those whose underlying policy violation is on an application in
+   * {@code allowedApplicationIds}.
+   *
+   * <p>
+   * Pass {@code null} for {@code allowedApplicationIds} to disable the application filter
+   * (behaves like {@link #getByOwnerId(String)}). An empty set short-circuits to an empty result.
+   */
+  public List<PolicyWaiverRequest> getByOwnerIdFilteredByApplicationIds(
+      String ownerId,
+      Set<String> allowedApplicationIds)
+  {
+    if (allowedApplicationIds != null && allowedApplicationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      if (allowedApplicationIds == null) {
+        return getByOwnerId(tx, ownerId);
+      }
+      return getListWithSqlInClause(allowedApplicationIds,
+          chunk -> tx.dsl()
+              .select(POLICY_WAIVER_REQUEST.fields())
+              .from(POLICY_WAIVER_REQUEST)
+              .join(POLICY_VIOLATION)
+              .on(POLICY_VIOLATION.POLICY_VIOLATION_ID.eq(POLICY_WAIVER_REQUEST.POLICY_VIOLATION_ID))
+              .where(POLICY_WAIVER_REQUEST.OWNER_ID.eq(ownerId))
+              .and(POLICY_VIOLATION.APPLICATION_ID.in(chunk))
+              .fetch(r -> toEntity(r.into(POLICY_WAIVER_REQUEST))));
+    }
   }
 
   public List<PolicyWaiverRequest> getActiveByPolicyId(String policyId) {

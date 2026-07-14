@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -95,6 +96,9 @@ public class ApiPolicyWaiverServiceFirewallScopeTest
   private PolicyViolationDAO policyViolationDAO;
 
   @Mock
+  private PolicyWaiverRequestDAO policyWaiverRequestDAO;
+
+  @Mock
   private OrganizationDAO organizationDAO;
 
   @Mock
@@ -130,8 +134,8 @@ public class ApiPolicyWaiverServiceFirewallScopeTest
         telemetrySender, policyWaiverDAO, policyDAO, applicationDAO, ownerDAO,
         policyEvaluationDAO, apiPolicyViolationServiceV2, policyWaiverTelemetryCreator,
         currentUser, ownerService, repositoryPolicyViolationDAO, policyViolationDAO,
-        organizationDAO, policyWaiverReasonDAO, repositoryDAO, idUtils, telemetryUtils,
-        firewallPermissionGate);
+        policyWaiverRequestDAO, organizationDAO, policyWaiverReasonDAO, repositoryDAO,
+        idUtils, telemetryUtils, firewallPermissionGate);
 
     waiver = new PolicyWaiver();
     waiver.setId(WAIVER_ID);

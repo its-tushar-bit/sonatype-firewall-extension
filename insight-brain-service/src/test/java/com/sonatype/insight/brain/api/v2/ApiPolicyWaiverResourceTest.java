@@ -237,12 +237,17 @@ public class ApiPolicyWaiverResourceTest
   @Test
   public void testGetPolicyWaivers_RepositoryContainer() throws Exception {
     Instant now = Instant.now();
-    Date today = Date.from(now);
     Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
 
+    // Container-image waivers are stored under the container-image APPLICATION id (not
+    // REPOSITORY_CONTAINER_ID) and flagged is_for_container_image=true. The Firewall Containers →
+    // Existing Waivers view (addressed via REPOSITORY_CONTAINER_ID) filters directly on that flag.
+    Application containerApp = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy();
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID,
-        null, EXACT_COMPONENT, "comment", today, aWeekFromNow);
+    PolicyWaiver waiverToInsert = new PolicyWaiver("hash", policy.getId(), containerApp.getId(), "comment");
+    waiverToInsert.setForContainerImage(true);
+    waiverToInsert.setExpiryTime(aWeekFromNow);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(waiverToInsert);
 
     HttpResponse response =
         restRequest().path(OWNERS_PATH).parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID).get();
@@ -258,9 +263,11 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.createTime).isEqualTo(policyWaiver.getCreateTime());
     assertThat(apiPolicyWaiverDTO.hash).isEqualTo(policyWaiver.getHash());
     assertThat(apiPolicyWaiverDTO.policyId).isEqualTo(policyWaiver.getPolicyId());
-    assertThat(apiPolicyWaiverDTO.scopeOwnerId).isEqualTo(REPOSITORY_CONTAINER_ID);
-    assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo("Repository Managers");
-    assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo("all_repositories");
+    // scopeOwner is re-resolved to the container-image application per buildPolicyWaiverDTOsPerOwner,
+    // not the REPOSITORY_CONTAINER owner the caller addressed the list through.
+    assertThat(apiPolicyWaiverDTO.scopeOwnerId).isEqualTo(containerApp.getId());
+    assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo(containerApp.getName());
+    assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo(OwnerType.APPLICATION.toString());
     assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
   }
 

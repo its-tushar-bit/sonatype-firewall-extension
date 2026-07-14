@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.api.v2.FirewallPermissionGate;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.containerimagewaiver.ApiContainerImageWaiverRequestDTO;
@@ -134,6 +136,8 @@ public class ApiPolicyWaiverRequestService
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
+  private final FirewallPermissionGate firewallPermissionGate;
+
   @Inject
   public ApiPolicyWaiverRequestService(
       ApiPolicyWaiverService apiPolicyWaiverService,
@@ -151,7 +155,8 @@ public class ApiPolicyWaiverRequestService
       RequestPolicyWaiverEventService requestPolicyWaiverEventService,
       LicenseNameProvider licenseNameProvider,
       RepositoryService repositoryService,
-      RepositoryManagerDAO repositoryManagerDAO)
+      RepositoryManagerDAO repositoryManagerDAO,
+      FirewallPermissionGate firewallPermissionGate)
   {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
     this.telemetrySender = telemetrySender;
@@ -169,6 +174,7 @@ public class ApiPolicyWaiverRequestService
     this.licenseNameProvider = licenseNameProvider;
     this.repositoryService = repositoryService;
     this.repositoryManagerDAO = repositoryManagerDAO;
+    this.firewallPermissionGate = firewallPermissionGate;
   }
 
   /**
@@ -504,8 +510,27 @@ public class ApiPolicyWaiverRequestService
         + "policy waiver request ID {}", ownerType, ownerId, policyWaiverRequestId);
 
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
-    // Check permission before any other validation, to avoid giving away extra information to an unauthorized user.
-    checkWaivePolicyViolationsPermission(ownerType, internalOwnerId);
+    // Try the strict per-scope permission check. For container-image waiver requests (owner_id =
+    // REPOSITORY_CONTAINER_ID), Firewall-scoped users lack WAIVE at that virtual owner but do
+    // have WAIVE on the Docker repo the waiver actually applies to — the fallback check below
+    // grants them approval on requests within their scope only.
+    boolean strictWaiveCheckPassed = false;
+    try {
+      checkWaivePolicyViolationsPermission(ownerType, internalOwnerId);
+      strictWaiveCheckPassed = true;
+    }
+    catch (UnauthorizedException ignored) {
+      // Fall through — we may still allow approval via the docker-repo fallback below.
+    }
+
+    // Any URL scope other than REPOSITORY_CONTAINER_ID must pass the strict WAIVE check. Reject
+    // before touching the DB, matching the pre-PR guarantee that a caller without WAIVE on the
+    // addressed scope cannot probe waiver-request IDs via 403/404 divergence.
+    if (!strictWaiveCheckPassed
+        && !RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(internalOwnerId))
+    {
+      throw new UnauthorizedException("Access denied");
+    }
 
     PolicyWaiverRequest policyWaiverRequest = policyWaiverRequestDAO.getById(policyWaiverRequestId);
     if (policyWaiverRequest == null) {
@@ -515,6 +540,28 @@ public class ApiPolicyWaiverRequestService
     // Throws NotFoundException if the policy violation does not exist.
     AbstractPolicyViolation abstractPolicyViolation =
         getAbstractPolicyViolation(policyWaiverRequest.getPolicyViolationId());
+
+    if (!strictWaiveCheckPassed) {
+      // Fallback path (URL scope is REPOSITORY_CONTAINER_ID). Any mismatch between the fetched
+      // request and the caller's Firewall scope is reported as 404 rather than 403 so a scoped
+      // caller cannot use the response code to distinguish "exists but out of my scope" from
+      // "does not exist".
+      String notFoundMessage = "Could not find policy waiver request with ID " + policyWaiverRequestId + ".";
+      if (!RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(policyWaiverRequest.getOwnerId())) {
+        throw new NotFoundException(notFoundMessage);
+      }
+      String dockerRepoId =
+          apiPolicyWaiverService.getDockerRepositoryIdForContainerImageApp(abstractPolicyViolation.getOwnerId());
+      if (dockerRepoId == null) {
+        throw new NotFoundException(notFoundMessage);
+      }
+      try {
+        checkWaivePolicyViolationsPermission(OwnerType.REPOSITORY, dockerRepoId);
+      }
+      catch (UnauthorizedException hideAsNotFound) {
+        throw new NotFoundException(notFoundMessage);
+      }
+    }
     // REPOSITORY_CONTAINER_ID is a virtual scope that covers all container image violations.
     // Container image applications live in the org hierarchy, not the repository hierarchy,
     // so isViolationOwnerId would always return false for that scope — skip the check.
@@ -631,14 +678,33 @@ public class ApiPolicyWaiverRequestService
     validateExpireWhenRemediationAvailable(apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable,
         matcherStrategy);
 
+    // Container-image approvals (owner_id=REPOSITORY_CONTAINER_ID + PolicyViolation anchor) are
+    // routed to approveContainerImagePolicyWaiverRequest by the dispatcher. A request that lands
+    // here with REPOSITORY_CONTAINER_ID would have to come from a code path that anchors on
+    // something other than a PolicyViolation — no such producer exists today, so this is a
+    // programming-error guard rather than a fallback.
+    if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(policyWaiverRequest.getOwnerId())) {
+      throw new IllegalStateException(
+          "Container-image waiver requests must be approved via approveContainerImagePolicyWaiverRequest");
+    }
+
+    boolean isDockerComponent = abstractPolicyViolation.getComponentIdentifier() != null
+        && "docker".equalsIgnoreCase(abstractPolicyViolation.getComponentIdentifier().getFormat());
+
+    // Persist the policy waiver and the policy waiver request
     PolicyWaiver policyWaiver;
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
       policyWaiver = apiPolicyWaiverService.savePolicyWaiver(tx, owner.getId(), abstractPolicyViolation,
           apiPolicyWaiverRequestReviewDTO.comment, matcherStrategy, apiPolicyWaiverRequestReviewDTO.expiryTime,
           apiPolicyWaiverRequestReviewDTO.waiverReasonId,
-          apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable);
+          apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable,
+          isDockerComponent, // isForContainerImageComponent
+          false // isForContainerImage — only true for container-image waivers, handled elsewhere
+      );
 
+      // Update the policy waiver request — link to the summary marker so the UI (and cascade
+      // deletes) can find the "primary" waiver produced by this approval.
       policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
       UserPrincipal userPrincipal = currentUser.getUserPrincipal();
       policyWaiverRequest.setReviewerId(userPrincipal.getUsername());
@@ -787,7 +853,21 @@ public class ApiPolicyWaiverRequestService
         ownerType, ownerId, repositoryFormat);
 
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
-    checkReadPermission(ownerType, internalOwnerId);
+    // The Firewall Waivers page calls this endpoint scoped to (organization, ROOT_ORGANIZATION_ID).
+    // Users with Firewall-only access (READ scoped to a Docker repository) do not have READ on
+    // the root organization, so the strict entry check would 403 them out even though the inner
+    // logic already scopes results to their permitted repos and container images. Fall back to
+    // the Firewall permission gate in that case — it throws UnauthorizedException when the caller
+    // has zero Firewall access, preserving the 403 for truly-unauthorized users.
+    try {
+      checkReadPermission(ownerType, internalOwnerId);
+    }
+    catch (UnauthorizedException e) {
+      // Throws UnauthorizedException when the caller has zero Firewall access, keeping
+      // truly-unauthorized users at 403. Otherwise the caller may proceed and see waivers
+      // scoped to their permitted repositories by the filtering logic below.
+      firewallPermissionGate.resolvePermittedRepositoryIds();
+    }
 
     // Collect owner IDs that waiver requests could be stored against.
     // Requests can be scoped to a repository, repository_manager, or repository_container.
@@ -800,15 +880,28 @@ public class ApiPolicyWaiverRequestService
         .map(Repository::getId)
         .collect(Collectors.toSet());
 
-    // Also include parent repository managers and the repository container,
-    // since waiver requests can be scoped at those levels too.
+    // Also include parent repository managers, since waiver requests can be scoped there too.
     Set<String> repoManagerIds = matchingRepos.stream()
         .map(Repository::getRepositoryManagerId)
         .collect(Collectors.toSet());
     allowedOwnerIds.addAll(repoManagerIds);
-    allowedOwnerIds.add(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByOwnerIds(allowedOwnerIds);
+    List<PolicyWaiverRequest> policyWaiverRequests =
+        new ArrayList<>(policyWaiverRequestDAO.getByOwnerIds(allowedOwnerIds));
+
+    // Container-image waiver requests are stored under REPOSITORY_CONTAINER_ID (a virtual owner),
+    // so the repo-based ownerId filter above cannot include them. Resolve the container-image
+    // applications the caller may access (via FirewallPermissionGate) and filter waiver requests
+    // through the underlying policy_violation.application_id. Skip when the caller explicitly
+    // restricted to non-container ("component") formats.
+    if (!"component".equalsIgnoreCase(repositoryFormat)) {
+      Set<String> allowedContainerImageOwnerIds =
+          apiPolicyWaiverService.resolveAccessibleContainerImageOwnerIds();
+      if (allowedContainerImageOwnerIds == null || !allowedContainerImageOwnerIds.isEmpty()) {
+        policyWaiverRequests.addAll(policyWaiverRequestDAO.getByOwnerIdFilteredByApplicationIds(
+            RepositoryContainer.REPOSITORY_CONTAINER_ID, allowedContainerImageOwnerIds));
+      }
+    }
 
     // Prefetch to keep toDto from re-introducing per-record lookups.
     Map<String, PolicyWaiverReason> reasonsById =
@@ -994,13 +1087,84 @@ public class ApiPolicyWaiverRequestService
         ownerType, ownerId, policyWaiverRequestId);
 
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
-    // Check permission before anything else, to avoid giving away extra information to an unauthorized user.
-    checkReadPermission(ownerType, internalOwnerId);
+    // Same fallback as the list method: Firewall-scoped users lack READ on the aggregate owner
+    // (REPOSITORY_CONTAINER_ID / ROOT_ORGANIZATION_ID). The Firewall gate throws for users with
+    // zero Firewall access, preserving 403. We then scope the visible-request check below to the
+    // caller's permitted container-image applications so out-of-scope requests aren't leaked.
+    Set<String> allowedContainerImageOwnerIdsForScopedUser = null;
+    boolean isScopedFirewallUser = false;
+    try {
+      checkReadPermission(ownerType, internalOwnerId);
+    }
+    catch (UnauthorizedException e) {
+      firewallPermissionGate.resolvePermittedRepositoryIds();
+      isScopedFirewallUser = true;
+      allowedContainerImageOwnerIdsForScopedUser =
+          apiPolicyWaiverService.resolveAccessibleContainerImageOwnerIds();
+    }
 
     PolicyWaiverRequest policyWaiverRequest =
         policyWaiverRequestDAO.getByIdAndOwnerIdNotNull(policyWaiverRequestId, internalOwnerId);
+
+    // For Firewall-scoped users viewing a container-image waiver request, verify the underlying
+    // policy violation's application is one the caller can read. Full-access users
+    // (allowedContainerImageOwnerIdsForScopedUser == null) skip this check.
+    if (isScopedFirewallUser
+        && RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(policyWaiverRequest.getOwnerId())
+        && allowedContainerImageOwnerIdsForScopedUser != null)
+    {
+      AbstractPolicyViolation violation = policyViolationDAO.getById(policyWaiverRequest.getPolicyViolationId());
+      if (violation == null
+          || !allowedContainerImageOwnerIdsForScopedUser.contains(violation.getOwnerId()))
+      {
+        throw new NotFoundException(
+            "Cannot find a policy waiver request with ID " + policyWaiverRequestId + " for owner " + internalOwnerId
+                + ".");
+      }
+    }
+
     PolicyWaiverReason policyWaiverReason = policyWaiverReasonDAO.getById(policyWaiverRequest.getWaiverReasonId());
-    return toDto(policyWaiverRequest, policyWaiverReason);
+    ApiPolicyWaiverRequestDTO dto = toDto(policyWaiverRequest, policyWaiverReason);
+    dto.canReview = computeCanReview(policyWaiverRequest, ownerType, internalOwnerId);
+    return dto;
+  }
+
+  /**
+   * True when the current caller may approve/reject this request. Mirrors the fallback logic in
+   * {@link #reviewPolicyWaiverRequest}: strict WAIVE at the request's scope succeeds, OR (for
+   * container-image waiver requests parked under REPOSITORY_CONTAINER_ID) the caller has WAIVE
+   * on the Docker repo the underlying violation traces back to. Returns false on any exception
+   * so the UI degrades cleanly rather than propagating auth errors as page errors.
+   */
+  private boolean computeCanReview(
+      PolicyWaiverRequest policyWaiverRequest,
+      OwnerType ownerType,
+      String internalOwnerId)
+  {
+    try {
+      checkWaivePolicyViolationsPermission(ownerType, internalOwnerId);
+      return true;
+    }
+    catch (UnauthorizedException ignored) {
+      // continue to fallback
+    }
+    if (!RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(policyWaiverRequest.getOwnerId())) {
+      return false;
+    }
+    try {
+      AbstractPolicyViolation violation =
+          getAbstractPolicyViolation(policyWaiverRequest.getPolicyViolationId());
+      String dockerRepoId =
+          apiPolicyWaiverService.getDockerRepositoryIdForContainerImageApp(violation.getOwnerId());
+      if (dockerRepoId == null) {
+        return false;
+      }
+      checkWaivePolicyViolationsPermission(OwnerType.REPOSITORY, dockerRepoId);
+      return true;
+    }
+    catch (UnauthorizedException | NotFoundException e) {
+      return false;
+    }
   }
 
   public ApiPolicyWaiverRequestsApplicableToViolationDTO getApplicableWaiverRequests(String policyViolationId) {

@@ -102,6 +102,18 @@ public class EnterpriseReportingNavigationPlaywrightTest
     setFeatures(merged.toArray(new LicensedFeature[0]));
   }
 
+  @Test
+  @Category(RegressionTest.class)
+  public void testEnterpriseReporting_react2ShellCardIsVisible() {
+    SidebarComponent sidebar = new SidebarComponent();
+    EnterpriseReportingPage enterpriseReporting = new EnterpriseReportingPage();
+    EnterpriseReportingPageAssertions assertions = new EnterpriseReportingPageAssertions(enterpriseReporting);
+
+    sidebar.clickEnterpriseReportingNavigation();
+    assertions.shouldBeLoaded();
+    assertions.shouldShowReact2ShellCard();
+  }
+
   /** Asserts the iframe-host mount; the iframe content (Looker) has no test connection. */
   @Test
   @Category(RegressionTest.class)
@@ -139,9 +151,6 @@ public class EnterpriseReportingNavigationPlaywrightTest
     assertions.shouldShowCheckmarkIcon();
   }
 
-  /**
-   * Documented exception to the no-IQ-backend-mocking rule (guardrails §13.6): no real telemetry-failure path exists.
-   */
   @Test
   @Category(RegressionTest.class)
   public void testEnterpriseReporting_supportInfoLoadError() {
@@ -163,7 +172,6 @@ public class EnterpriseReportingNavigationPlaywrightTest
     SidebarComponent sidebar = new SidebarComponent();
     sidebar.clickEnterpriseReportingNavigation();
     EnterpriseReportingPage enterpriseReporting = new EnterpriseReportingPage();
-    // Anchor before the card-click so a card failure points at the right line.
     EnterpriseReportingPageAssertions assertions = new EnterpriseReportingPageAssertions(enterpriseReporting);
     assertions.shouldBeLoaded();
     enterpriseReporting.dashboardCardViewButton(

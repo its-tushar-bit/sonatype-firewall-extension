@@ -9,9 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -22,10 +24,13 @@ import com.sonatype.clm.testing.playwright.pages.SbomApplicationsRegressionPage;
 import com.sonatype.clm.testing.playwright.pages.SbomManagerBomRegressionPage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
@@ -37,6 +42,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.microsoft.playwright.Download;
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Route;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 
@@ -89,9 +95,19 @@ public class SbomManagerBomPlaywrightTest
 
   private static final String XML_FORMAT = SbomFormat.XML.name();
 
+  private static final String JSON_FORMAT = SbomFormat.JSON.name();
+
+  private static final String SBOM_VERSION_ID_JSON = "bom-regression-json-v1";
+
+  private static final String SBOM_VERSION_ID_ALIASES = "bom-regression-aliases-v1";
+
+  private static final String SIMPLE_BOM_JSON = "simple-bom.json";
+
   private static final String BOM_SPEC_VERSION = "0.0";
 
   private static final String SIMPLE_BOM_XML = "simple-bom.xml";
+
+  private static final String SIMPLE_BOM_ALIASES_XML = "simple-bom-aliases.xml";
 
   private static final String REPORT_RESOURCE_DIR = "/sbom/ComponentDetailsTest/reportWithComponentRef";
 
@@ -215,11 +231,6 @@ public class SbomManagerBomPlaywrightTest
     assertThat(page.exportDropdownPdfLink()).isDisabled();
   }
 
-  /**
-   * Uses the {@code SBOM_VERSION_ID_INVALID} seed so the primary button maps to
-   * {@code downloadOriginalSbomFile} (direct GET) rather than {@code downloadLatestSbomFile}
-   * (async Redux thunk + back-end job).
-   */
   @Test
   @Category(RegressionTest.class)
   public void testExportSbom_downloadFiresAndProducesNonEmptyFile() throws IOException {
@@ -228,21 +239,13 @@ public class SbomManagerBomPlaywrightTest
     assertThat(page.exportButton()).isVisible(VISIBLE_OPTS);
 
     Download download = page.clickExportPrimaryAndWaitForDownload();
-    Assertions.assertThat(download.suggestedFilename())
-        .as("download has a suggested filename")
-        .isNotBlank();
+    Assertions.assertThat(download.suggestedFilename()).isNotBlank();
 
     Path savedPath = tempDir.newFile("exported-sbom").toPath();
     download.saveAs(savedPath);
-    Assertions.assertThat(savedPath.toFile().length())
-        .as("exported SBOM file is non-empty")
-        .isGreaterThan(0);
+    Assertions.assertThat(savedPath.toFile().length()).isGreaterThan(0);
   }
 
-  /**
-   * Reload required after enabling {@code SBOM_POLICIES} so the SPA re-fetches productFeatures; flag reset in
-   * {@link #disableSbomPoliciesFlag()}.
-   */
   @Test
   @Category(RegressionTest.class)
   public void testSummaryTile_withPoliciesSupported_showsPolicyViolationSection() {
@@ -260,10 +263,6 @@ public class SbomManagerBomPlaywrightTest
         .containsText(POLICY_VIOLATION_SUMMARY_HEADING);
   }
 
-  /**
-   * Uses {@code page.route} to simulate a 500 on the summary API — the only way to trigger {@code NxLoadError} without
-   * a real server failure.
-   */
   @Test
   @Category(RegressionTest.class)
   public void testLoadError_retryReloadsPage() {
@@ -278,7 +277,6 @@ public class SbomManagerBomPlaywrightTest
     assertThat(bomPage.loadError())
         .isVisible(VISIBLE_OPTS);
 
-    // Unroute before retry so the real API responds; @After unroute is the safety-net if the test fails here.
     page.unroute(SUMMARY_API_PATTERN);
     bomPage.clickRetry();
 
@@ -290,6 +288,107 @@ public class SbomManagerBomPlaywrightTest
   public void disableSbomPoliciesFlag() {
     page.unroute(SUMMARY_API_PATTERN);
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testOriginalBom_expandCollapseNode() {
+    SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
+    page.clickOriginalBomTab();
+    assertThat(page.originalBomViewerTitle())
+        .containsText(ORIGINAL_BOM_VIEWER_TITLE,
+            new LocatorAssertions.ContainsTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+
+    Locator firstCollapsible = page.originalBomCollapsibleItems().first();
+    assertThat(firstCollapsible).isVisible(VISIBLE_OPTS);
+    assertThat(firstCollapsible).hasAttribute("aria-expanded", "true",
+        new LocatorAssertions.HasAttributeOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+
+    page.firstCollapsibleItemToggle().click();
+    assertThat(firstCollapsible).hasAttribute("aria-expanded", "false",
+        new LocatorAssertions.HasAttributeOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+
+    page.firstCollapsibleItemToggle().click();
+    assertThat(firstCollapsible).hasAttribute("aria-expanded", "true",
+        new LocatorAssertions.HasAttributeOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testOriginalBom_smallSbomAutoExpandsOnLoad() {
+    SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
+    page.clickOriginalBomTab();
+    assertThat(page.originalBomViewerTitle())
+        .containsText(ORIGINAL_BOM_VIEWER_TITLE,
+            new LocatorAssertions.ContainsTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+
+    Locator firstCollapsible = page.originalBomCollapsibleItems().first();
+    assertThat(firstCollapsible).isVisible(VISIBLE_OPTS);
+    assertThat(firstCollapsible).hasAttribute("aria-expanded", "true",
+        new LocatorAssertions.HasAttributeOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+
+    assertThat(page.originalBomViewer().locator(".nx-tree__item--collapsible[aria-expanded='false']"))
+        .hasCount(0, new LocatorAssertions.HasCountOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testOriginalBom_searchShowsCountAndHighlightsMatchingText() {
+    SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
+    page.clickOriginalBomTab();
+    assertThat(page.originalBomViewerTitle())
+        .containsText(ORIGINAL_BOM_VIEWER_TITLE,
+            new LocatorAssertions.ContainsTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+
+    page.originalBomSearchInput().fill("guava");
+    assertThat(page.originalBomSearchResultsCount())
+        .hasText(Pattern.compile("[1-9][0-9]* results? found"),
+            new LocatorAssertions.HasTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(page.originalBomHighlightMarks().first()).isVisible(VISIBLE_OPTS);
+    assertThat(page.originalBomHighlightMarks().first())
+        .containsText("guava", new LocatorAssertions.ContainsTextOptions().setIgnoreCase(true));
+
+    page.originalBomSearchInput().fill("zzz-no-match-" + TemporaryEntity.uuid());
+    assertThat(page.originalBomSearchResultsCount())
+        .hasText("0 results found",
+            new LocatorAssertions.HasTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(page.originalBomHighlightMarks())
+        .hasCount(0, new LocatorAssertions.HasCountOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testOriginalBom_arrayNodesShowIntelligentTitles() {
+    SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
+    page.clickOriginalBomTab();
+    assertThat(page.originalBomViewerTitle())
+        .containsText(ORIGINAL_BOM_VIEWER_TITLE,
+            new LocatorAssertions.ContainsTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+
+    assertThat(page.originalBomKeyLabels()
+        .filter(new Locator.FilterOptions().setHasText("guava@30.1-jre"))
+        .first()).isVisible(VISIBLE_OPTS);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testOriginalBom_jsonFormatSbomRendersAndSearchWorks() {
+    playwrightRefreshOrOpen(SbomManagerBomRegressionPage.url(seedApp.getPublicId(), SBOM_VERSION_ID_JSON));
+    SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
+    assertThat(page.reportTab()).isVisible(VISIBLE_OPTS);
+
+    page.clickOriginalBomTab();
+    assertThat(page.originalBomViewerTitle())
+        .containsText(ORIGINAL_BOM_VIEWER_TITLE,
+            new LocatorAssertions.ContainsTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+
+    assertThat(page.originalBomCollapsibleItems().first()).isVisible(VISIBLE_OPTS);
+
+    page.originalBomSearchInput().fill("alpha");
+    assertThat(page.originalBomSearchResultsCount())
+        .hasText(Pattern.compile("[1-9][0-9]* results? found"),
+            new LocatorAssertions.HasTextOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    assertThat(page.originalBomHighlightMarks().first()).isVisible(VISIBLE_OPTS);
   }
 
   private void seedBomPage() {
@@ -326,19 +425,69 @@ public class SbomManagerBomPlaywrightTest
         mockSbomForApp(insightWork).getFileName().toString(),
         CYCLONEDX_SPEC, XML_FORMAT, BOM_SPEC_VERSION, now, false);
 
+    // JSON format BOM — tests cross-format rendering and search in the Original BOM viewer.
+    // Uses CYCLONEDX_SPEC (name() = "CYCLONEDX") rather than SbomSpecification.CYCLONEDX.toString()
+    // ("CycloneDx") because this seed does not need SbomSpecification.fromValue matching. The aliases
+    // BOM at seedAliasedVulnSbom() intentionally uses toString() to exercise that exact path.
+    ThirdPartyFile jsonFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan jsonScan = tempEntity.newThirdPartyScan(jsonFile);
+    tempEntity.newThirdPartySbomMetadata(
+        jsonFile.getId(), seedApp.getId(), SBOM_VERSION_ID_JSON, ACTIVE,
+        mockSbomForApp(insightWork, SIMPLE_BOM_JSON).getFileName().toString(),
+        CYCLONEDX_SPEC, JSON_FORMAT, BOM_SPEC_VERSION, now);
+
     seedCannedReport(scan);
     seedCannedReport(invalidScan);
+    seedCannedReport(jsonScan);
+
+    seedAliasedVulnSbom();
+  }
+
+  private void seedAliasedVulnSbom() {
+    InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    ThirdPartyFile aliasFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan aliasScan = tempEntity.newThirdPartyScan(aliasFile);
+    Date now = Date.from(Instant.now());
+    Path zippedBom = mockSbomForApp(insightWork, SIMPLE_BOM_ALIASES_XML);
+
+    // SbomSpecification.fromValue matches "CycloneDx" (toString), not "CYCLONEDX" (name()).
+    ThirdPartySbomMetadata aliasesMeta = tempEntity.newThirdPartySbomMetadata(
+        aliasFile.getId(), seedApp.getId(), SBOM_VERSION_ID_ALIASES, ACTIVE,
+        zippedBom.getFileName().toString(),
+        SbomSpecification.CYCLONEDX.toString(), XML_FORMAT, "1.4", now);
+
+    ThirdPartyFileCoordinate fc = tempEntity.newThirdPartyFileCoordinate(
+        aliasFile.getId(), "log4j-core-ref", "maven", "log4j-core", "2.14.1",
+        "log4j-hash-001", "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1");
+
+    // TemporaryEntity.newThirdPartyCoordinateSecurity() has no vulnIds parameter and
+    // ThirdPartyCoordinateSecurityDAO has no update() method, so vulnIds must be set before the
+    // initial insert. The direct DAO insert is safe: TemporaryEntity.after() calls
+    // thirdPartyCoordinateSecurityDAO.getAll() to delete every coordinate_security row
+    // regardless of how it was inserted (TemporaryEntity.java ~line 1053).
+    ThirdPartyCoordinateSecurity cs = new ThirdPartyCoordinateSecurity(
+        fc.getId(), "CVE-2021-44228", aliasesMeta.getId(),
+        "Apache Log4j2 remote code execution vulnerability",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-44228", 10.0d, "2.17.1");
+    cs.setVulnIdsFromList(List.of("CVE-2021-44228", "GHSA-jfh8-c2jp-hdp2"));
+    lookup(ThirdPartyCoordinateSecurityDAO.class).insert(cs);
+
+    seedCannedReport(aliasScan);
   }
 
   private Path mockSbomForApp(InsightWork insightWork) {
+    return mockSbomForApp(insightWork, SIMPLE_BOM_XML);
+  }
+
+  private Path mockSbomForApp(InsightWork insightWork, String fileName) {
     try {
       return mockOriginalSbom(
           SbomManagerBomPlaywrightTest.class,
-          SIMPLE_BOM_XML,
+          fileName,
           insightWork.getSbomDir(seedApp.getId()).toPath());
     }
     catch (Exception e) {
-      throw new RuntimeException("Failed to mock original SBOM", e);
+      throw new RuntimeException("Failed to mock original SBOM for " + fileName, e);
     }
   }
 
@@ -349,6 +498,23 @@ public class SbomManagerBomPlaywrightTest
         thirdPartyFileId, ref,
         purl.getFormat(), purl.getName(), purl.getVersion(),
         hash, purl.getPackageUrl());
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testExportSbom_enrichedExportContainsVulnAliasUrls() throws IOException {
+    playwrightRefreshOrOpen(
+        SbomManagerBomRegressionPage.url(seedApp.getPublicId(), SBOM_VERSION_ID_ALIASES));
+    SbomManagerBomRegressionPage page = new SbomManagerBomRegressionPage();
+    assertThat(page.reportTab()).isVisible(VISIBLE_OPTS);
+
+    Download download = page.clickExportPrimaryAndWaitForDownload();
+    Path savedPath = tempDir.newFile("exported-sbom-aliases.xml").toPath();
+    download.saveAs(savedPath);
+
+    String content = Files.readString(savedPath);
+    Assertions.assertThat(content).contains("https://github.com/advisories/GHSA-jfh8-c2jp-hdp2");
+    Assertions.assertThat(content).contains("https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44228");
   }
 
   private void seedCannedReport(ThirdPartyScan scan) {

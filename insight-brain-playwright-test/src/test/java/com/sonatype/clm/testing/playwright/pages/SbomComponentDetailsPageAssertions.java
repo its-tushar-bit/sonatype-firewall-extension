@@ -6,14 +6,13 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.assertions.LocatorAssertions;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import java.util.regex.Pattern;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link SbomComponentDetailsPage}.
- */
 public class SbomComponentDetailsPageAssertions
 {
   private final SbomComponentDetailsPage page;
@@ -113,5 +112,14 @@ public class SbomComponentDetailsPageAssertions
   public void shouldShowVulnerabilityDetailsPopover(String expectedTitle) {
     assertThat(page.vulnerabilityDetailsPopover()).isVisible();
     assertThat(page.popoverTitle()).containsText(expectedTitle);
+  }
+
+  public void shouldShowLegalTabWith3ColumnLayout() {
+    LocatorAssertions.IsVisibleOptions opts =
+        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS);
+    assertThat(page.legalLicenseDetectionsTile()).isVisible(opts);
+    for (String label : new String[]{"Effective Licenses", "Declared Licenses", "Observed Licenses"}) {
+      assertThat(page.legalColumnLabel(label)).isVisible(opts);
+    }
   }
 }

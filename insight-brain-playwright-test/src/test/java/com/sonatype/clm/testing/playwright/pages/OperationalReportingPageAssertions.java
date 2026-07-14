@@ -7,9 +7,6 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link OperationalReportingPage}.
- */
 public class OperationalReportingPageAssertions
 {
   private final OperationalReportingPage page;
@@ -34,5 +31,11 @@ public class OperationalReportingPageAssertions
   public void shouldShowReportingSections() {
     assertThat(page.rapidResponseReportsHeading()).isVisible();
     assertThat(page.contactUsHeading()).isVisible();
+  }
+
+  public void shouldShowReact2ShellCard() {
+    assertThat(page.react2ShellCard()).isVisible();
+    assertThat(page.react2ShellCardHeading()).isVisible();
+    assertThat(page.react2ShellViewLink()).isVisible();
   }
 }

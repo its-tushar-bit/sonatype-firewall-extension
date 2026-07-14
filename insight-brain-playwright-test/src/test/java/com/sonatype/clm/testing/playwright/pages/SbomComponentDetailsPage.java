@@ -11,13 +11,7 @@ import com.microsoft.playwright.options.AriaRole;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Playwright page object for the SBOM Manager Component Details page
- * ({@code sbomManager.component} route).
- * <p>
- * Route: {@code /sbomManager/application/{appPublicId}/bom/{sbomVersion}/componentDetails/{componentHash}/overview}
- * Root element: {@code #sbom-manager-component-details}
- */
+/** SBOM Manager Component Details page — root: {@code #sbom-manager-component-details}. */
 public class SbomComponentDetailsPage
     extends BasePage
 {
@@ -135,7 +129,16 @@ public class SbomComponentDetailsPage
     return locator("#vulnerability-detail-header .iq-popover-header__title-text");
   }
 
-  // --------------- Interactions ---------------
+  /** The shared {@code LicenseDetectionsTile} section rendered inside the Legal tab. */
+  public Locator legalLicenseDetectionsTile() {
+    return locator("#component-details-legal-license-detections-tile");
+  }
+
+  /** Valid labels: "Effective Licenses", "Declared Licenses", "Observed Licenses". */
+  public Locator legalColumnLabel(String label) {
+    return legalLicenseDetectionsTile().locator("dt.nx-read-only__label")
+        .filter(new Locator.FilterOptions().setHasText(label));
+  }
 
   public void clickTab(String label) {
     tab(label).click();

@@ -1,0 +1,31 @@
+{
+  "apiResponse": {
+    "pageNumber": 1,
+    "pageSize": 50,
+    "totalCount": 1,
+    "aggregates": {
+      "totalAffectedApplications": 1,
+      "affectedComponents": 1,
+      "violatingComponents": 1,
+      "activeWaivers": 0
+    },
+    "results": [
+      {
+        "applicationName": "TestReact2ShellApp",
+        "applicationPublicId": "test-react2shell-app",
+        "applicationInternalId": "internal-r2s-001",
+        "stage": "build",
+        "reportId": "report-r2s-001",
+        "componentDisplayName": "react-server-components",
+        "packageUrl": "pkg:npm/%40react/server-components@18.3.0",
+        "hash": null,
+        "cveId": "CVE-2025-55182",
+        "recommendedAction": "Upgrade to 19.0.0",
+        "activeWaiver": false,
+        "violating": true,
+        "evaluationDate": "2025-06-01 10:00:00",
+        "baseUrl": "http://localhost"
+      }
+    ]
+  }
+}

@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.microsoft.playwright.Route;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 
 import org.apache.commons.io.FileUtils;
@@ -165,6 +166,41 @@ public class SbomComponentDetailsRegressionPlaywrightTest
         .isVisible(VISIBLE_OPTS);
     assertThat(regressionPage.copyAnnotationModalTitle())
         .containsText(COPY_ANNOTATION_MODAL_TITLE);
+  }
+
+  /**
+   * Both license endpoints stubbed: {@code multiLicenses} returns 200 with empty lists for the synthetic PURL;
+   * stubs installed before load as NxTabPanel mounts tabs eagerly.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSbomComponentDetails_legalTabShowsConsistent3ColumnLayout() {
+    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.SUCCESS_METRICS, LicensedFeature.COMPONENT_EVALUATION);
+    page.route("**/multiLicenses*",
+        route -> route.fulfill(new Route.FulfillOptions()
+            .setStatus(200)
+            .setContentType("application/json")
+            .setBody("{\"declaredLicenses\":[],\"observedLicenses\":[],\"effectiveLicenses\":[],"
+                + "\"selectableLicenses\":[],\"hiddenObservedLicenses\":false,\"supportAlpObservedLicenses\":false}")));
+    page.route("**/api/v2/licenseOverrides/**",
+        route -> route.fulfill(new Route.FulfillOptions()
+            .setStatus(200)
+            .setContentType("application/json")
+            .setBody("[]")));
+    try {
+      playwrightRefresh();
+
+      SbomComponentDetailsPage detailsPage = new SbomComponentDetailsPage();
+      SbomComponentDetailsPageAssertions detailsAssertions = new SbomComponentDetailsPageAssertions(detailsPage);
+      detailsAssertions.shouldBeLoaded();
+
+      detailsPage.clickTab("Legal");
+      detailsAssertions.shouldShowLegalTabWith3ColumnLayout();
+    }
+    finally {
+      page.unrouteAll();
+    }
   }
 
   /** Precondition: {@code abcCoordinateSecurity} must have a VEX annotation so the delete button is rendered. */

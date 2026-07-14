@@ -6,14 +6,26 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
+import com.sonatype.clm.testing.playwright.pages.ApplicationCategoryEditorPage;
+import com.sonatype.clm.testing.playwright.pages.ApplicationCategoryEditorPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.AutoWaiversPage;
 import com.sonatype.clm.testing.playwright.pages.AutoWaiversPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.ComponentLabelEditorPage;
+import com.sonatype.clm.testing.playwright.pages.ComponentLabelEditorPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.LicenseThreatGroupEditorPage;
+import com.sonatype.clm.testing.playwright.pages.LicenseThreatGroupEditorPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.After;
@@ -55,6 +67,9 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
   }
 
   private static final Data DATA = TestDataManager.load("auto-waivers", Data.class);
+
+  private static final LocatorAssertions.IsVisibleOptions VISIBLE_OPTS =
+      new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS);
 
   private AutoWaiversPage autoWaiversPage;
 
@@ -234,6 +249,72 @@ public class OrgsAndPoliciesAutoWaiversPlaywrightTest
 
     assertions.shouldShowDetailsEditAndDeleteButtonsDisabledForInherited(
         DATA.editInheritedTooltip(), DATA.deleteInheritedTooltip());
+  }
+
+  // Distinct from testAutoWaiversPage_enterprisePreviewMode: that test sets only POLICY_MANAGEMENT +
+  // POLICY_READ_ONLY; this one enables ALL features except AUTO_WAIVER_MANAGEMENT, exercising the
+  // enterprise-gating path when the full feature set is otherwise licensed.
+  @Test
+  @Category(RegressionTest.class)
+  public void testEnterpriseGating_autoWaiversPage_showsPreviewBanner() {
+    setMissingFeatures(LicensedFeature.AUTO_WAIVER_MANAGEMENT);
+    Organization org = tempEntity.newOrganization("tier-gate-aw-" + System.nanoTime());
+    playwrightRefreshOrOpen(AutoWaiversPage.url(org.getPublicId()));
+    playwrightLogin();
+    assertions.shouldShowEnterprisePreviewMode();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEnterpriseGating_policyEditor_showsLockIcon() {
+    setMissingFeatures(LicensedFeature.CUSTOM_POLICIES);
+    Organization org = tempEntity.newOrganization("tier-gate-pe-" + System.nanoTime());
+    Policy policy = tempEntity.newPolicy(org.getId(), "tier-gate-policy", 5);
+    PolicyEditorPage policyEditor = new PolicyEditorPage();
+    playwrightRefreshOrOpen(PolicyEditorPage.url(org, policy));
+    playwrightLogin();
+    assertThat(policyEditor.customModeButtonLockIcon()).isVisible(VISIBLE_OPTS);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEnterpriseGating_componentLabels_showsAddButtonInPreviewMode() {
+    setMissingFeatures(LicensedFeature.CUSTOM_COMPONENT_LABELS);
+    Organization org = tempEntity.newOrganization("tier-gate-cl-" + System.nanoTime());
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    playwrightRefreshOrOpen(OwnerSummaryPage.url(org.getId()));
+    playwrightLogin();
+    new OwnerSummaryPageAssertions(ownerSummary).shouldBeVisible();
+    ownerSummary.openOwnerSummarySectionFromNavPills(OwnerSummaryPage.OWNER_PILL_COMPONENT_LABELS);
+    new ComponentLabelEditorPageAssertions(new ComponentLabelEditorPage()).shouldShowAddLabelButtonInPreviewMode();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEnterpriseGating_licenseThreatGroups_showsAddButtonInPreviewMode() {
+    setMissingFeatures(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS);
+    Organization org = tempEntity.newOrganization("tier-gate-ltg-" + System.nanoTime());
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    playwrightRefreshOrOpen(OwnerSummaryPage.url(org.getId()));
+    playwrightLogin();
+    new OwnerSummaryPageAssertions(ownerSummary).shouldBeVisible();
+    ownerSummary.openOwnerSummarySectionFromNavPills(OwnerSummaryPage.OWNER_PILL_LICENSE_THREAT_GROUPS);
+    new LicenseThreatGroupEditorPageAssertions(new LicenseThreatGroupEditorPage())
+        .shouldShowAddThreatGroupButtonInPreviewMode();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEnterpriseGating_applicationCategories_showsAddButtonInPreviewMode() {
+    setMissingFeatures(LicensedFeature.CUSTOM_APPLICATION_CATEGORIES);
+    Organization org = tempEntity.newOrganization("tier-gate-ac-" + System.nanoTime());
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    playwrightRefreshOrOpen(OwnerSummaryPage.url(org.getId()));
+    playwrightLogin();
+    new OwnerSummaryPageAssertions(ownerSummary).shouldBeVisible();
+    ownerSummary.openOwnerSummarySectionFromNavPills(OwnerSummaryPage.OWNER_PILL_APP_CATEGORIES);
+    new ApplicationCategoryEditorPageAssertions(new ApplicationCategoryEditorPage())
+        .shouldShowAddCategoryButtonInPreviewMode();
   }
 
   private Organization seedOrgWithNoWaivers() {

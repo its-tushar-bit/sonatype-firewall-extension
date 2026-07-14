@@ -71,6 +71,20 @@ public class OperationalReportingPlaywrightTest
 
   @Test
   @Category(RegressionTest.class)
+  public void testOperationalReporting_react2ShellCardIsVisible() {
+    SidebarComponent sidebar = new SidebarComponent();
+    sidebar.clickOperationalReportingNavigation();
+
+    OperationalReportingPage operationalReporting = new OperationalReportingPage();
+    OperationalReportingPageAssertions assertions =
+        new OperationalReportingPageAssertions(operationalReporting);
+
+    assertions.shouldBeLoaded();
+    assertions.shouldShowReact2ShellCard();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
   public void testOperationalReporting_landingPageContentSections() {
     SidebarComponent sidebar = new SidebarComponent();
     sidebar.clickOperationalReportingNavigation();

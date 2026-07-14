@@ -48,6 +48,12 @@ public class EnterpriseReportingPageAssertions
     assertThat(page.dashboardSubpageHeading()).hasText(expectedTitle);
   }
 
+  public void shouldShowReact2ShellCard() {
+    assertThat(page.react2ShellCard()).isVisible();
+    assertThat(page.react2ShellCardHeading()).hasText("React2Shell Impact");
+    assertThat(page.react2ShellViewLink()).isVisible();
+  }
+
   public void shouldShowSupportInfoSection() {
     assertThat(page.supportInfoSection()).isVisible();
   }

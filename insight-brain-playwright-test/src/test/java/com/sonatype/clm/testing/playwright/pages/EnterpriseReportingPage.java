@@ -25,10 +25,7 @@ public class EnterpriseReportingPage
 
   private static final String DASHBOARD_ROOT_ID = "enterprise-reporting-dashboard-page";
 
-  /**
-   * Looker iframe-host id; ALWAYS use scoped to {@link #dashboardPageContainer()} — bare {@code "#dashboard"} is
-   * collision-prone.
-   */
+  /** Always scope to {@link #dashboardPageContainer()} — bare {@code "#dashboard"} is collision-prone. */
   private static final String LOOKER_IFRAME_ID = "dashboard";
 
   public EnterpriseReportingPage() {
@@ -52,8 +49,28 @@ public class EnterpriseReportingPage
         new Locator.GetByRoleOptions().setName(ENTERPRISE_DASHBOARDS_SECTION_TITLE));
   }
 
+  /**
+   * Card for a specific dashboard on the Enterprise Reporting landing page.
+   * ID selector used: each card is a generic {@code <div>} stamped with a data-driven id;
+   * no ARIA role or accessible name is available to scope it.
+   *
+   * @param dashboardId the dashboard identifier, e.g. {@code "react2shell"} or {@code "sbom-scorecard"}
+   */
   public Locator enterpriseDashboardCard(String dashboardId) {
     return container().locator("#enterprise-reporting-dashboard-" + dashboardId);
+  }
+
+  public Locator react2ShellCard() {
+    return enterpriseDashboardCard("react2shell");
+  }
+
+  public Locator react2ShellCardHeading() {
+    return react2ShellCard().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(3));
+  }
+
+  public Locator react2ShellViewLink() {
+    return react2ShellCard().getByRole(AriaRole.LINK,
+        new Locator.GetByRoleOptions().setName("View React2Shell Impact"));
   }
 
   public Locator dashboardCardViewButton(String dashboardId, String accessButtonText) {
@@ -69,7 +86,7 @@ public class EnterpriseReportingPage
     return dashboardPageContainer().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(1));
   }
 
-  /** Frontend stamps a bogus non-standard {@code role="enterprise-reporting-dashboard"}; we anchor on the id. */
+  /** Non-standard role on element; anchor on id instead. */
   public Locator dashboardIframeContainer() {
     return dashboardPageContainer().locator("#" + LOOKER_IFRAME_ID);
   }

@@ -30,7 +30,6 @@ import {
   selectIsOrgsAndAppsEnabled,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectIsAdvancedSearchEnabled } from 'MainRoot/configuration/advancedSearch/advancedSearchSelectors';
 import { selectIsSuccessMetricsEnabled } from 'MainRoot/configuration/successMetricsConfiguration/successMetricsConfigurationSelectors';
 import {
   selectIsLicensed,
@@ -82,10 +81,15 @@ const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '
  * Hrefs all land inside the Nexus One Preview surface (`/preview/*`).
  * Per CLM-39640 review: clicking a Nexus One nav entry should keep
  * the user inside Nexus One: either landing on a native Preview page
- * (Dashboard, Applications, Advanced Search), a Classic page mounted
- * in-shell (embedded Classic mount), or a Coming Soon stub that has a
- * "Continue in Classic" escape hatch on the page itself. The escape
- * hatch belongs to the page, not the nav click.
+ * (Dashboard, Applications), a Classic page mounted in-shell (embedded
+ * Classic mount), or a Coming Soon stub that has a "Continue in
+ * Classic" escape hatch on the page itself. The escape hatch belongs
+ * to the page, not the nav click.
+ *
+ * Per CLM-42168: Advanced Search and Vulnerability Lookup are no
+ * longer separate LeftNav entries — Global Search (the top-nav
+ * omnibar) and the unified search results surface at `/preview/search`
+ * replace both as the single entry point.
  *
  * Stub-target mapping (Classic LeftNav module → /preview/* target):
  *   Dashboard            → /preview/dashboard            (native)
@@ -93,11 +97,6 @@ const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '
  *   Applications         → /preview/applications         (native; the standalone
  *                          Reports list folds in here, so no separate Reports entry)
  *   Success Metrics      → /preview/success-metrics      (Coming Soon)
- *   Vulnerability Lookup → /preview/vulnerability-lookup (Coming Soon;
- *                          follow-on PR replaces with native CVE detail)
- *   Advanced Search      → /preview/search               (live - mounts the
- *                          full SearchResultsPage; the omnibar handles
- *                          typeahead and deep-links into this page)
  *   Legal                → embedded Classic mount        (native
  *                          LegalDashboardContainer; the /coming-soon/legal
  *                          route mounts the Classic Legal Dashboard in-shell.
@@ -238,7 +237,6 @@ function buildNavItems(flags) {
     isLicensed,
     isDashboardAvailable,
     isSuccessMetricsEnabled,
-    isAdvancedSearchEnabled,
     isLegalEnabled,
     isApiPageEnabled,
     isOrgsAndAppsEnabled,
@@ -285,22 +283,6 @@ function buildNavItems(flags) {
       label: 'Success Metrics',
       Icon: DomainIcons.SuccessMetrics,
       href: comingSoonHref('success-metrics'),
-    });
-  }
-  if (isLicensed) {
-    items.push({
-      id: 'vulnerability-lookup',
-      label: 'Vulnerability Lookup',
-      Icon: DomainIcons.VulnerabilityLookup,
-      href: comingSoonHref('vulnerability-lookup'),
-    });
-  }
-  if (isLicensed && isAdvancedSearchEnabled) {
-    items.push({
-      id: 'advanced-search',
-      label: 'Advanced Search',
-      Icon: DomainIcons.AdvancedSearch,
-      href: '/search',
     });
   }
   if (isLicensed && isLegalEnabled) {
@@ -372,7 +354,6 @@ export default function LeftNav() {
   const isLicensed = useSelector(selectIsLicensed);
   const isDashboardAvailable = useSelector(selectIsDashboardSupported);
   const isSuccessMetricsEnabled = useSelector(selectIsSuccessMetricsEnabled);
-  const isAdvancedSearchEnabled = useSelector(selectIsAdvancedSearchEnabled);
   const isLegalEnabled = useSelector(selectIsAdvancedLegalPackSupported);
   const isApiPageEnabled = useSelector(selectIsApiPageSupported);
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
@@ -408,7 +389,6 @@ export default function LeftNav() {
         isLicensed,
         isDashboardAvailable,
         isSuccessMetricsEnabled,
-        isAdvancedSearchEnabled,
         isLegalEnabled,
         isApiPageEnabled,
         isOrgsAndAppsEnabled,

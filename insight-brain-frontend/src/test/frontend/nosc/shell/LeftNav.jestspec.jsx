@@ -39,7 +39,6 @@ const licensedLifecycleState = {
       'reports-list': true,
     },
   },
-  advancedSearchConfig: {},
   successMetricsConfiguration: {},
 };
 
@@ -78,6 +77,8 @@ describe('LeftNav', () => {
 
     expect(screen.getByRole('link', { name: 'Applications' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Reports' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Advanced Search' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).not.toBeInTheDocument();
   });
 
   it('marks Applications active on the unified surface', () => {

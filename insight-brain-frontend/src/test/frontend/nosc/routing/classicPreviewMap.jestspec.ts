@@ -164,6 +164,38 @@ describe('classicPreviewMap', () => {
     });
   });
 
+  describe('Violation detail page round-trip (CLM-42256)', () => {
+    it('maps /violations/{id} -> Classic violation detail page', () => {
+      expect(toClassicEquivalent('/violations/violation-123')).toBe('/violation/violation-123');
+    });
+
+    it('maps Classic /violation/{id} -> Nexus One embedded detail page', () => {
+      expect(toNexusOneEquivalent('/violation/violation-123')).toBe('/violations/violation-123');
+    });
+
+    it('round-trips detail-page mapping for an arbitrary violation id', () => {
+      const id = 'a2e3c6037a6a46bd8b769729c76cbb20';
+      const classicPath = toClassicEquivalent(`/violations/${id}`);
+      expect(toNexusOneEquivalent(classicPath)).toBe(`/violations/${id}`);
+    });
+
+    it('still maps the bare /violations list page back to the Classic violations tab', () => {
+      // Detail mapping must NOT shadow the list page; /violations (no id)
+      // falls through to the Classic dashboard violations tab.
+      expect(toClassicEquivalent('/violations')).toBe(CLASSIC_DEFAULT_PATH);
+    });
+
+    it('maps /violations/{id} with query params -> Classic violation detail page', () => {
+      expect(toClassicEquivalent('/violations/abc?type=violation')).toBe('/violation/abc');
+    });
+
+    it('preserves URL-encoded violation id segments verbatim', () => {
+      // Encoding integrity: an id arriving already encoded must not be
+      // double-encoded or decoded by the mapping (mirrors the app-detail guard).
+      expect(toClassicEquivalent('/violations/id%2Fwith%2Fslashes')).toBe('/violation/id%2Fwith%2Fslashes');
+    });
+  });
+
   describe('round-trip stability for known mappings', () => {
     // For pages that have Classic AND Preview equivalents, going one way and
     // back should land on a Classic URL that maps back to the same Preview URL.

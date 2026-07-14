@@ -59,6 +59,26 @@ function stripHashPrefix(path: string): string {
   return p;
 }
 
+/**
+ * Strips a query (`?…`) and/or fragment (`#…`) suffix so detail-page regexes match the path segment
+ * only. Cuts at whichever delimiter appears first, so a `/violations/abc#section` (or `?foo`) never
+ * leaks `#section`/`?foo` into the captured id and on into the Classic template. Callers already pass
+ * hash-prefix-stripped paths (via {@link stripHashPrefix}); handling `#` here as well keeps the helper
+ * self-contained and matches this docstring.
+ */
+function stripQuerySuffix(path: string): string {
+  let end = path.length;
+  const queryIndex = path.indexOf('?');
+  if (queryIndex >= 0) {
+    end = Math.min(end, queryIndex);
+  }
+  const fragmentIndex = path.indexOf('#');
+  if (fragmentIndex >= 0) {
+    end = Math.min(end, fragmentIndex);
+  }
+  return path.slice(0, end);
+}
+
 const SHARED_PATHS: ReadonlySet<string> = new Set(['/previewUiSettings']);
 
 function isSharedPath(path: string): boolean {
@@ -72,6 +92,7 @@ function isNexusOnePath(path: string): boolean {
   if (path === '/home' || path.startsWith('/home/')) return true;
   if (path === '/dashboard' || path.startsWith('/dashboard/')) return true;
   if (path === '/applications' || path.startsWith('/applications/')) return true;
+  if (path === '/violations' || path.startsWith('/violations/')) return true;
   if (path === '/search' || path.startsWith('/search/')) return true;
   if (path === '/waivers' || path.startsWith('/waivers/')) return true;
   if (path === '/ui-settings' || path.startsWith('/ui-settings/')) return true;
@@ -97,19 +118,29 @@ const DETAIL_PAGE_MAPPINGS: ReadonlyArray<DetailPageMapping> = [
     classicMatch: /^\/management\/view\/application\/([^/]+)\/?$/,
     nexusOneTemplate: (id) => `/applications/${id}`,
   },
+  {
+    // Embedded violation detail (CLM-42256): Nexus One /violations/{id} <->
+    // Classic sidebarView.violation at /violation/{id} (singular).
+    nexusOneMatch: /^\/violations\/([^/]+)\/?$/,
+    classicTemplate: (id) => `/violation/${id}`,
+    classicMatch: /^\/violation\/([^/]+)\/?$/,
+    nexusOneTemplate: (id) => `/violations/${id}`,
+  },
 ];
 
 function findDetailPageNexusOneToClassic(path: string): string | null {
+  const matchPath = stripQuerySuffix(path);
   for (const m of DETAIL_PAGE_MAPPINGS) {
-    const match = path.match(m.nexusOneMatch);
+    const match = matchPath.match(m.nexusOneMatch);
     if (match) return m.classicTemplate(match[1]);
   }
   return null;
 }
 
 function findDetailPageClassicToNexusOne(path: string): string | null {
+  const matchPath = stripQuerySuffix(path);
   for (const m of DETAIL_PAGE_MAPPINGS) {
-    const match = path.match(m.classicMatch);
+    const match = matchPath.match(m.classicMatch);
     if (match) return m.nexusOneTemplate(match[1]);
   }
   return null;

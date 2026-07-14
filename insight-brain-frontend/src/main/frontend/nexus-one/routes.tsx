@@ -28,9 +28,24 @@ import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage'
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
 import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
 import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
+import { nexusOneViolationDetailStates } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
+// NOTE: the three side-import route modules below call router.stateRegistry.register(...) at import
+// time with no stateRegistry.get() idempotency guard, so this module (and any test) must import each
+// exactly once. That holds today because they are only pulled into the single nexus-one bundle entry;
+// a second import in the same runtime (e.g. a jest that imports both nexus-one/routes and one of these
+// modules directly) would throw a duplicate-registration error. Keep them single-entry.
 // Classic applicationReport child states (component details, raw data, etc.) so
 // in-report links from the embedded ReportPage resolve inside the Nexus One bundle.
 import 'MainRoot/applicationReport/route';
+// Classic violation child states (sidebarView.violation, transitive violations)
+// so in-detail links from the embedded ViolationPage resolve inside the Nexus One
+// bundle. Registered at the singular /violation/{id} path — distinct from the
+// nexusOneViolationDetail embed state at /violations/{id}.
+import 'MainRoot/violation/route';
+// Classic waiver states (addWaiver, requestWaiver, etc.) so the embedded
+// ViolationPage's Add/Request Waiver actions resolve inside the Nexus One bundle
+// (CLM-42256). ViolationDetailsTile stateGo's to these states directly.
+import 'MainRoot/waivers/route';
 import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage';
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import {
@@ -93,6 +108,11 @@ nexusOneApplicationDetailStates().forEach((state) => {
 
 // Embedded Classic application policy report (CLM-41538).
 nexusOneApplicationReportStates().forEach((state) => {
+  router.stateRegistry.register(state);
+});
+
+// Embedded Classic violation detail (CLM-42256).
+nexusOneViolationDetailStates().forEach((state) => {
   router.stateRegistry.register(state);
 });
 

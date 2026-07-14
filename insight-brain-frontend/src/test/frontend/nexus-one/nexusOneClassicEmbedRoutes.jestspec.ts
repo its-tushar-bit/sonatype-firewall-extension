@@ -12,6 +12,7 @@ import {
 } from 'MainRoot/nosc/comingSoon';
 import { isNativeClassicEmbedSlug } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import { NEXUS_ONE_APPLICATION_REPORT_STATE } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
+import { NEXUS_ONE_VIOLATION_DETAIL_STATE } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
 import 'MainRoot/nexus-one/routes';
 
 describe('nexusOneClassicEmbedRoutes', () => {
@@ -32,6 +33,12 @@ describe('nexusOneClassicEmbedRoutes', () => {
   it('registers the embedded application report state (CLM-41538)', () => {
     expect(router.stateRegistry.get(NEXUS_ONE_APPLICATION_REPORT_STATE)?.url).toBe(
       '/applications/{publicId}/report/{scanId}?componentHash&tabId',
+    );
+  });
+
+  it('registers the embedded violation detail state (CLM-42256)', () => {
+    expect(router.stateRegistry.get(NEXUS_ONE_VIOLATION_DETAIL_STATE)?.url).toBe(
+      '/violations/{id}?type&sidebarReference&sidebarId&page',
     );
   });
 

@@ -5,11 +5,7 @@
  */
 package com.sonatype.insight.brain.continuousmonitoring;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,17 +24,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Schedules the unified continuous monitoring producer cycle for the Hosted Repo flow
- * (CLM-40039 Section 6.1). Replaces the legacy {@code HostedRepositoryMonitorScheduler} —
- * instead of running an in-line monitor, this scheduler fires the
- * {@link RepositoryEvaluationQueueProducerJob} which enqueues parent + satellite rows into the
- * unified {@code continuous_monitoring_queue}; the {@link RepositoryEvaluationQueueConsumer}
- * dispatches the work asynchronously.
+ * Schedules the continuous monitoring producer cycle for the Hosted Repo flow. Fires the
+ * {@link RepositoryEvaluationQueueProducerJob} daily via {@link TaskScheduler#scheduleDailyTask}
+ * at {@code policyMonitoringHour + 10 minutes ± continuousMonitoringJitterMinutes}. Jitter is
+ * re-rolled per scheduling call (matches the peer pattern in
+ * {@link com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler} and
+ * {@link com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler}), which keeps
+ * per-tenant fires de-correlated across an MTIQ cluster.
  * <p>
- * Active when {@link SystemConfigurationPropertyFeature#HOSTED_REPOSITORY_EVALUATION} is
- * enabled. Anchored at {@code policyMonitoringHour + 10 minutes} with a random jitter window
- * of {@code ±continuousMonitoringJitterMinutes} (default 5) per CLM-40039 §6.1 / AT-011, then
- * repeats every 24 hours via {@link TaskScheduler#schedulePeriodicTask}.
+ * Re-registration idempotence is provided by cron itself: {@code scheduleDailyTask} installs a
+ * cron trigger anchored to a wall-clock time-of-day, and Quartz's {@code scheduleJobs(replace=true)}
+ * replaces the trigger in place — the next fire is always the next occurrence of the current cron
+ * expression, so back-to-back re-registers never push the fire past 24 hours (the failure mode
+ * that {@link TaskScheduler#schedulePeriodicTask}'s absolute-{@code START_TIME} SimpleTrigger had).
  */
 @Named
 @Singleton
@@ -49,15 +47,13 @@ public class RepositoryEvaluationQueueScheduler
 
   private static final int PRODUCER_OFFSET_MINUTES = 10;
 
-  private static final Duration PRODUCER_INTERVAL = Duration.ofHours(24);
+  private static final int DEFAULT_JITTER_MINUTES = 5;
 
   private final Configuration configuration;
 
   private final TaskScheduler taskScheduler;
 
   private final RepositoryEvaluationQueueProducerJob producer;
-
-  private final Clock clock;
 
   @VisibleForTesting
   public volatile boolean disableForTesting;
@@ -68,24 +64,9 @@ public class RepositoryEvaluationQueueScheduler
       final TaskScheduler taskScheduler,
       final RepositoryEvaluationQueueProducerJob producer)
   {
-    this(configuration, taskScheduler, producer, Clock.systemDefaultZone());
-  }
-
-  /**
-   * Test-only constructor allowing a fixed {@link Clock} so {@link #computeStartTime()} can be
-   * pinned for boundary tests near the anchor hour (CLM-40971 I2).
-   */
-  @VisibleForTesting
-  public RepositoryEvaluationQueueScheduler(
-      final Configuration configuration,
-      final TaskScheduler taskScheduler,
-      final RepositoryEvaluationQueueProducerJob producer,
-      final Clock clock)
-  {
     this.configuration = configuration;
     this.taskScheduler = taskScheduler;
     this.producer = producer;
-    this.clock = clock;
   }
 
   @Override
@@ -111,9 +92,6 @@ public class RepositoryEvaluationQueueScheduler
 
   @Override
   public void configurationChanged(final Set<String> propertyNames) {
-    // Reschedule when the feature flag toggles or when any scheduling-relevant property changes.
-    // Note: jitter changes trigger reschedule; monitoring hour changes are picked up via the
-    // parent configuration listener in Configuration.
     boolean flagChanged = propertyNames.contains(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION);
     boolean jitterChanged = propertyNames.contains(SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES);
     if (!flagChanged && !jitterChanged) {
@@ -126,14 +104,10 @@ public class RepositoryEvaluationQueueScheduler
       startScheduling();
     }
     else if (flagChanged) {
-      // Feature flag was just toggled off — explicitly stop the running schedule.
       log.info("Hosted repository evaluation feature disabled, stopping producer scheduling");
       stopScheduling();
     }
     else {
-      // Jitter changed while the feature is (and remained) disabled — nothing to do beyond a
-      // diagnostic log so an operator who tuned jitter doesn't conclude CM was unexpectedly
-      // stopped.
       log.info("Hosted repository evaluation is disabled; ignoring jitter-minutes change. "
           + "Enable the feature flag for the new jitter to take effect on next scheduling cycle.");
     }
@@ -143,32 +117,32 @@ public class RepositoryEvaluationQueueScheduler
     if (disableForTesting) {
       return;
     }
-    taskScheduler.unscheduleTask(producer);
-    Date startAt = computeStartTime();
-    taskScheduler.schedulePeriodicTask(producer, PRODUCER_INTERVAL, startAt);
-    log.info("Hosted repository continuous monitoring producer scheduled at {} (interval {})",
-        startAt, PRODUCER_INTERVAL);
+    LocalTime startTime = computeStartTime();
+    taskScheduler.scheduleDailyTask(producer, startTime);
+    log.info("Hosted repository continuous monitoring producer scheduled daily at {}, next fire {}",
+        startTime, taskScheduler.getNextExecutionTime(producer));
   }
 
-  private Date computeStartTime() {
+  /**
+   * Time-of-day when the producer fires each day: {@code policyMonitoringHour:10} shifted by a
+   * fresh random offset in {@code ±continuousMonitoringJitterMinutes} (default ±5, config range
+   * 0..240). {@link LocalTime#plusMinutes} wraps mod-24, so large jitter values may push the
+   * effective time across midnight (e.g. {@code hour=23} with {@code jitter=+240} → {@code 03:10})
+   * — expected and harmless for a daily cadence.
+   */
+  private LocalTime computeStartTime() {
     Integer hour = configuration.getPolicyMonitoringHour();
+    int baseHour = hour != null ? hour : 0;
+    return LocalTime.of(baseHour, 0).plusMinutes(PRODUCER_OFFSET_MINUTES + rollJitterOffset(configuration));
+  }
+
+  private static int rollJitterOffset(final Configuration configuration) {
     Integer jitterMinutes = configuration.getContinuousMonitoringJitterMinutes();
-    int jitterWindow = jitterMinutes != null ? jitterMinutes : 5;
-    int jitterOffset = jitterWindow > 0
-        ? ThreadLocalRandom.current().nextInt(-jitterWindow, jitterWindow + 1)
-        : 0;
-    // Use LocalDateTime arithmetic throughout to avoid LocalTime.plusMinutes wraparound at midnight.
-    // When hour=23 and jitter=60, the anchor math correctly lands on tomorrow rather than wrapping
-    // back to today at 00:10 (which would be in the past).
-    // Both timestamps below come from the injected Clock (CLM-40971 I2) so a test fixture can
-    // pin "now" deterministically and verify boundary behaviour around the anchor hour.
-    LocalDateTime now = LocalDateTime.now(clock);
-    LocalDateTime anchor = LocalDateTime.of(now.toLocalDate(), LocalTime.of(hour != null ? hour : 0, 0))
-        .plusMinutes(PRODUCER_OFFSET_MINUTES + jitterOffset);
-    if (anchor.isBefore(now)) {
-      anchor = anchor.plusDays(1);
+    int jitterWindow = jitterMinutes != null ? jitterMinutes : DEFAULT_JITTER_MINUTES;
+    if (jitterWindow <= 0) {
+      return 0;
     }
-    return Date.from(anchor.atZone(clock.getZone()).toInstant());
+    return ThreadLocalRandom.current().nextInt(-jitterWindow, jitterWindow + 1);
   }
 
   private synchronized void stopScheduling() {

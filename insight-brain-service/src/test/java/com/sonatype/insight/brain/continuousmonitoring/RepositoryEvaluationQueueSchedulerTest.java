@@ -5,13 +5,7 @@
  */
 package com.sonatype.insight.brain.continuousmonitoring;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.Set;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -38,19 +32,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-/**
- * Tests for {@link RepositoryEvaluationQueueScheduler} (CLM-40039 §6.1, AT-011):
- * feature-flag gating, periodic 24h cadence at {@code policyMonitoringHour + 10m ± jitter},
- * config-change start/stop transitions.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class RepositoryEvaluationQueueSchedulerTest
 {
-  private static final Duration EXPECTED_INTERVAL = Duration.ofHours(24);
-
   private static final int POLICY_MONITORING_HOUR = 2;
 
   private static final int JITTER_MINUTES = 5;
+
+  private static final int PRODUCER_OFFSET_MINUTES = 10;
 
   @Mock
   private Configuration configuration;
@@ -94,15 +83,15 @@ public class RepositoryEvaluationQueueSchedulerTest
   }
 
   @Test
-  public void testRegister_schedulesPeriodicWithinJitterWindowWhenEnabled() {
+  public void testRegister_schedulesDailyWithinJitterWindowWhenEnabled() {
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
 
     underTest.register();
 
-    ArgumentCaptor<Date> startTime = ArgumentCaptor.forClass(Date.class);
-    verify(taskScheduler).schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), startTime.capture());
+    ArgumentCaptor<LocalTime> startTime = ArgumentCaptor.forClass(LocalTime.class);
+    verify(taskScheduler).scheduleDailyTask(eq(producer), startTime.capture());
 
-    assertWithinJitterWindowOfDailyAnchor(startTime.getValue().toInstant(), POLICY_MONITORING_HOUR, JITTER_MINUTES);
+    assertWithinJitterWindow(startTime.getValue(), POLICY_MONITORING_HOUR, JITTER_MINUTES);
   }
 
   @Test
@@ -112,10 +101,10 @@ public class RepositoryEvaluationQueueSchedulerTest
 
     underTest.register();
 
-    ArgumentCaptor<Date> startTime = ArgumentCaptor.forClass(Date.class);
-    verify(taskScheduler).schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), startTime.capture());
+    ArgumentCaptor<LocalTime> startTime = ArgumentCaptor.forClass(LocalTime.class);
+    verify(taskScheduler).scheduleDailyTask(eq(producer), startTime.capture());
 
-    assertWithinJitterWindowOfDailyAnchor(startTime.getValue().toInstant(), 0, JITTER_MINUTES);
+    assertWithinJitterWindow(startTime.getValue(), 0, JITTER_MINUTES);
   }
 
   @Test
@@ -125,38 +114,10 @@ public class RepositoryEvaluationQueueSchedulerTest
 
     underTest.register();
 
-    ArgumentCaptor<Date> startTime = ArgumentCaptor.forClass(Date.class);
-    verify(taskScheduler).schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), startTime.capture());
+    ArgumentCaptor<LocalTime> startTime = ArgumentCaptor.forClass(LocalTime.class);
+    verify(taskScheduler).scheduleDailyTask(eq(producer), startTime.capture());
 
-    assertWithinJitterWindowOfDailyAnchor(startTime.getValue().toInstant(), POLICY_MONITORING_HOUR, 5);
-  }
-
-  /**
-   * Asserts that {@code captured} falls within {@code ±jitterMinutes} of either today's or tomorrow's
-   * anchor (computed from {@code anchorHour:10}). Uses {@link Instant} arithmetic throughout so the
-   * assertion is calendar-safe — does not break when the anchor hour and jitter combine to roll
-   * past midnight, where a {@link LocalTime}-based {@code isBetween} would silently fail because
-   * {@code LocalTime} ordering does not wrap (see CLAUDE.md §6 / PR #15402 calendar-flaky bug class).
-   */
-  private static void assertWithinJitterWindowOfDailyAnchor(
-      final Instant captured,
-      final int anchorHour,
-      final int jitterMinutes)
-  {
-    Instant todayAnchor = LocalDateTime
-        .of(LocalDate.now(), LocalTime.of(anchorHour, 10))
-        .atZone(ZoneId.systemDefault())
-        .toInstant();
-    Instant tomorrowAnchor = todayAnchor.plus(Duration.ofDays(1));
-    Duration jitter = Duration.ofMinutes(jitterMinutes);
-    boolean inToday = !captured.isBefore(todayAnchor.minus(jitter))
-        && !captured.isAfter(todayAnchor.plus(jitter));
-    boolean inTomorrow = !captured.isBefore(tomorrowAnchor.minus(jitter))
-        && !captured.isAfter(tomorrowAnchor.plus(jitter));
-    assertThat(inToday || inTomorrow)
-        .as("captured %s should fall within ±%d min of today's or tomorrow's anchor at %02d:10",
-            captured, jitterMinutes, anchorHour)
-        .isTrue();
+    assertWithinJitterWindow(startTime.getValue(), POLICY_MONITORING_HOUR, 5);
   }
 
   @Test
@@ -166,34 +127,31 @@ public class RepositoryEvaluationQueueSchedulerTest
 
     underTest.register();
 
-    ArgumentCaptor<Date> startTime = ArgumentCaptor.forClass(Date.class);
-    verify(taskScheduler).schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), startTime.capture());
-
-    LocalTime captured = startTime.getValue().toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
-    assertThat(captured).isEqualTo(LocalTime.of(POLICY_MONITORING_HOUR, 10));
+    verify(taskScheduler).scheduleDailyTask(producer, LocalTime.of(POLICY_MONITORING_HOUR, PRODUCER_OFFSET_MINUTES));
   }
 
   @Test
-  public void testRegister_startTimeIsTodayOrTomorrowDependingOnAnchor() {
+  public void testRegister_withNegativeJitterConfigPinsToAnchorMinute() {
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
+    when(configuration.getContinuousMonitoringJitterMinutes()).thenReturn(-10);
 
     underTest.register();
 
-    ArgumentCaptor<Date> startTime = ArgumentCaptor.forClass(Date.class);
-    verify(taskScheduler).schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), startTime.capture());
+    verify(taskScheduler).scheduleDailyTask(producer, LocalTime.of(POLICY_MONITORING_HOUR, PRODUCER_OFFSET_MINUTES));
+  }
 
-    Instant capturedInstant = startTime.getValue().toInstant();
-    Instant todayAnchor = LocalDateTime
-        .of(LocalDate.now(), LocalTime.of(POLICY_MONITORING_HOUR, 10))
-        .atZone(ZoneId.systemDefault())
-        .toInstant();
-    Instant tomorrowAnchor = todayAnchor.plus(Duration.ofDays(1));
-    Duration jitter = Duration.ofMinutes(JITTER_MINUTES);
-    boolean inToday = !capturedInstant.isBefore(todayAnchor.minus(jitter))
-        && !capturedInstant.isAfter(todayAnchor.plus(jitter));
-    boolean inTomorrow = !capturedInstant.isBefore(tomorrowAnchor.minus(jitter))
-        && !capturedInstant.isAfter(tomorrowAnchor.plus(jitter));
-    assertThat(inToday || inTomorrow).isTrue();
+  @Test
+  public void testRegister_lateHourWithLargeJitterWrapsAcrossMidnight() {
+    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
+    when(configuration.getPolicyMonitoringHour()).thenReturn(23);
+    when(configuration.getContinuousMonitoringJitterMinutes()).thenReturn(240);
+
+    underTest.register();
+
+    ArgumentCaptor<LocalTime> startTime = ArgumentCaptor.forClass(LocalTime.class);
+    verify(taskScheduler).scheduleDailyTask(eq(producer), startTime.capture());
+
+    assertWithinJitterWindow(startTime.getValue(), 23, 240);
   }
 
   @Test
@@ -206,17 +164,36 @@ public class RepositoryEvaluationQueueSchedulerTest
     verifyNoInteractions(taskScheduler);
   }
 
+  @Test
+  public void testRegister_repeatedCallsStayWithinJitterWindow() {
+    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
+
+    underTest.register();
+    underTest.register();
+    underTest.register();
+
+    ArgumentCaptor<LocalTime> startTime = ArgumentCaptor.forClass(LocalTime.class);
+    verify(taskScheduler, times(3)).scheduleDailyTask(eq(producer), startTime.capture());
+    for (LocalTime captured : startTime.getAllValues()) {
+      assertWithinJitterWindow(captured, POLICY_MONITORING_HOUR, JITTER_MINUTES);
+    }
+  }
+
+  @Test
+  public void testStartScheduling_doesNotUnscheduleBeforeRescheduling() {
+    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
+
+    underTest.register();
+    underTest.reschedule();
+
+    verify(taskScheduler, never()).unscheduleTask(producer);
+    verify(taskScheduler, times(2)).scheduleDailyTask(eq(producer), any(LocalTime.class));
+  }
+
   /**
-   * SDEV-1312: {@code deregister()} must be a no-op. In MTIQ,
-   * {@code MultiTenantTenantManagedInitializer.stop()} invokes it on graceful shutdown
-   * with tenant context leaked as {@code global}, which {@code MultiTenantTaskScheduler}
-   * interprets as "delete for all tenants" — wiping the producer job and trigger
-   * cluster-wide. Sibling schedulers ({@code GitHubAppCleanupScheduler},
-   * {@code WaiverExpirationDetectionScheduler}, {@code WaivedComponentUpgradeScheduler},
-   * {@code PullRequestMonitor}, {@code PullRequestCommentPurger},
-   * {@code RelayEventLogCleanupScheduler}, {@code RelayLinkRetrySweepScheduler},
-   * {@code SourceControlStaleEventResetJob}, {@code ApplicationCountHistoryKeeper},
-   * {@code QuartzShiroSessionValidationScheduler}) already carry the same no-op.
+   * SDEV-1312: {@code deregister()} must be a no-op — on MTIQ graceful shutdown the tenant
+   * context leaks to global and {@code MultiTenantTaskScheduler.unscheduleTask} would delete
+   * the producer trigger cluster-wide.
    */
   @Test
   public void testDeregister_isNoOpToPreserveTriggerAcrossGracefulShutdown() {
@@ -238,7 +215,7 @@ public class RepositoryEvaluationQueueSchedulerTest
 
     underTest.reschedule();
 
-    verify(taskScheduler).schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), any(Date.class));
+    verify(taskScheduler).scheduleDailyTask(eq(producer), any(LocalTime.class));
   }
 
   @Test
@@ -254,7 +231,7 @@ public class RepositoryEvaluationQueueSchedulerTest
 
     underTest.configurationChanged(Set.of(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION));
 
-    verify(taskScheduler).schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), any(Date.class));
+    verify(taskScheduler).scheduleDailyTask(eq(producer), any(LocalTime.class));
   }
 
   @Test
@@ -265,25 +242,20 @@ public class RepositoryEvaluationQueueSchedulerTest
     underTest.configurationChanged(Set.of(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION));
 
     verify(taskScheduler).unscheduleTask(producer);
-    verify(taskScheduler, never()).schedulePeriodicTask(any(), any(Duration.class), any(Date.class));
+    verify(taskScheduler, never()).scheduleDailyTask(any(), any(LocalTime.class));
   }
 
   @Test
   public void testConfigurationChanged_reschedulesWhenJitterChangesWhileEnabled() {
-    // Operator tunes the jitter property while the feature is enabled — we must re-anchor the
-    // scheduled start time so the new jitter takes effect without a server restart.
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
 
     underTest.configurationChanged(Set.of(SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES));
 
-    verify(taskScheduler).schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), any(Date.class));
+    verify(taskScheduler).scheduleDailyTask(eq(producer), any(LocalTime.class));
   }
 
   @Test
   public void testConfigurationChanged_jitterChangeWhileDisabledIsNoOp() {
-    // Operator tunes the jitter property while the feature is disabled — nothing should be
-    // scheduled or unscheduled. A diagnostic log fires (not asserted here) so the operator who
-    // tuned jitter sees that the new value is queued for next enable.
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
 
     underTest.configurationChanged(Set.of(SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES));
@@ -291,15 +263,19 @@ public class RepositoryEvaluationQueueSchedulerTest
     verifyNoInteractions(taskScheduler);
   }
 
-  @Test
-  public void testStartScheduling_firstUnschedulesPriorRunBeforeRescheduling() {
-    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
-
-    underTest.register();
-    underTest.reschedule();
-
-    verify(taskScheduler, times(2)).unscheduleTask(producer);
-    verify(taskScheduler, times(2))
-        .schedulePeriodicTask(eq(producer), eq(EXPECTED_INTERVAL), any(Date.class));
+  private static void assertWithinJitterWindow(
+      final LocalTime captured,
+      final int anchorHour,
+      final int jitterMinutes)
+  {
+    int anchorMinuteOfDay = (anchorHour * 60 + PRODUCER_OFFSET_MINUTES) % (24 * 60);
+    int capturedMinuteOfDay = captured.getHour() * 60 + captured.getMinute();
+    int forward = Math.floorMod(capturedMinuteOfDay - anchorMinuteOfDay, 24 * 60);
+    int backward = Math.floorMod(anchorMinuteOfDay - capturedMinuteOfDay, 24 * 60);
+    int distance = Math.min(forward, backward);
+    assertThat(distance)
+        .as("captured %s should be within ±%d min of anchor %02d:%02d",
+            captured, jitterMinutes, anchorMinuteOfDay / 60, anchorMinuteOfDay % 60)
+        .isLessThanOrEqualTo(jitterMinutes);
   }
 }

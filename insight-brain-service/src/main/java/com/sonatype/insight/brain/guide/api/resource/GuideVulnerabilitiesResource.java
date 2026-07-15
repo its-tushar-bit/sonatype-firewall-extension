@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.guide.api.resource;
 
 import static com.sonatype.insight.brain.guide.policy.GuidePolicyService.requireLimitWithinPolicyEnrichmentCap;
+import static com.sonatype.insight.brain.guide.policy.GuidePolicyService.requireValidStage;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -96,6 +98,18 @@ public class GuideVulnerabilitiesResource
     return searchApiClient.getVulnerabilityByRefId(id);
   }
 
+  @Override
+  public ApiSearchResponse<AffectedComponentVersion> getVulnerabilityAffectedComponents(
+      String id,
+      String query,
+      Integer offset,
+      Integer limit,
+      String sortField,
+      String sortOrder) throws IOException
+  {
+    return getVulnerabilityAffectedComponents(id, query, offset, limit, sortField, sortOrder, null, null);
+  }
+
   @GET
   @Path("/{id}/components")
   @Override
@@ -105,14 +119,19 @@ public class GuideVulnerabilitiesResource
       @QueryParam("offset") Integer offset,
       @QueryParam("limit") Integer limit,
       @QueryParam("sortField") String sortField,
-      @QueryParam("sortOrder") String sortOrder) throws IOException
+      @QueryParam("sortOrder") String sortOrder,
+      @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
+          + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
+      @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
   {
     requireNonBlankId(id);
     requireLimitWithinPolicyEnrichmentCap(limit);
+    requireValidStage(stage);
     GuideAffectedComponentVersionRequest request = new GuideAffectedComponentVersionRequest(
         id, query, offset, limit, sortField, sortOrder);
     return guidePolicyService.enrichAffectedSearch(
-        searchApiClient.getVulnerabilityAffectedComponents(request));
+        searchApiClient.getVulnerabilityAffectedComponents(request), ownerId, stage);
   }
 
   private static void requireNonBlankId(String id) {

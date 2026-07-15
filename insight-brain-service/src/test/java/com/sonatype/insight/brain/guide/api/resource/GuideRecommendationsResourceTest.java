@@ -70,7 +70,7 @@ public class GuideRecommendationsResourceTest
 
   @Test
   public void getRecommendations_returnsBadRequest_whenPurlIsNull() {
-    RecommendationRequest request = new RecommendationRequest(null);
+    RecommendationRequest request = new RecommendationRequest(null, null, null);
 
     assertThatThrownBy(() -> underTest.getRecommendations(request))
         .isInstanceOf(GuideApiException.class)
@@ -81,7 +81,7 @@ public class GuideRecommendationsResourceTest
 
   @Test
   public void getRecommendations_returnsBadRequest_whenPurlIsBlank() {
-    RecommendationRequest request = new RecommendationRequest("   ");
+    RecommendationRequest request = new RecommendationRequest("   ", null, null);
 
     assertThatThrownBy(() -> underTest.getRecommendations(request))
         .isInstanceOf(GuideApiException.class)
@@ -92,7 +92,7 @@ public class GuideRecommendationsResourceTest
 
   @Test
   public void getRecommendations_propagatesNotFoundFromClient_withUpstreamMessage() throws Exception {
-    RecommendationRequest request = new RecommendationRequest(PURL);
+    RecommendationRequest request = new RecommendationRequest(PURL, null, null);
     when(searchApiClient.getRecommendations(PURL))
         .thenThrow(new GuideNotFoundException("Recommendations not found for PURL: " + PURL));
 
@@ -114,7 +114,7 @@ public class GuideRecommendationsResourceTest
         "pkg:maven/org.apache.logging.log4j/log4j-core@2.21.0?type=jar", nonCompliantOf(),
         CANDIDATE_PURL, compliant));
 
-    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL));
+    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL, null, null));
 
     assertThat(result.toVersions()).hasSize(1);
     assertThat(((RecommendedVersionInfo) result.toVersions().get(0)).version()).isEqualTo("2.21.1");
@@ -137,7 +137,7 @@ public class GuideRecommendationsResourceTest
     when(searchApiClient.getRecommendations(PURL)).thenReturn(upstream);
     when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of(CANDIDATE_PURL, nonCompliantOf()));
 
-    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL));
+    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL, null, null));
 
     assertThat(result.outcome()).isEqualTo(RecommendationResponse.Outcome.BLOCKED_BY_POLICY);
     assertThat(result.toVersions()).isEmpty();
@@ -152,7 +152,7 @@ public class GuideRecommendationsResourceTest
     when(searchApiClient.getRecommendations(PURL)).thenReturn(upstream);
     when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of());
 
-    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL));
+    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL, null, null));
 
     assertThat(result.toVersions()).hasSize(1);
     RecommendedVersionInfo v = (RecommendedVersionInfo) result.toVersions().get(0);

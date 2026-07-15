@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.guide.api.resource;
 
 import static com.sonatype.insight.brain.guide.policy.GuidePolicyService.requireLimitWithinPolicyEnrichmentCap;
+import static com.sonatype.insight.brain.guide.policy.GuidePolicyService.requireValidStage;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -60,8 +62,39 @@ public class GuideComponentsResource
     this.guidePolicyService = guidePolicyService;
   }
 
+  @Override
+  public ApiSearchResponse<ComponentDocument> searchComponents(
+      String query,
+      Integer offset,
+      Integer limit,
+      String sortField,
+      String sortOrder,
+      List<String> formats,
+      List<String> categories,
+      List<String> severities,
+      Double minCvss,
+      Double maxCvss,
+      Double minEpss,
+      Double maxEpss,
+      List<String> licenseFamilies,
+      List<String> licenses,
+      Integer minVersionScore,
+      Integer maxVersionScore,
+      String latestStable,
+      String publishedWindow,
+      Boolean hasMalware,
+      Integer minDocCount) throws IOException
+  {
+    return searchComponents(
+        query, offset, limit, sortField, sortOrder, formats, categories, severities,
+        minCvss, maxCvss, minEpss, maxEpss, licenseFamilies, licenses,
+        minVersionScore, maxVersionScore, latestStable, publishedWindow,
+        hasMalware, minDocCount, null, null);
+  }
+
   @GET
   @Path("/search")
+  @Override
   public ApiSearchResponse<ComponentDocument> searchComponents(
       @QueryParam("query") String query,
       @QueryParam("offset") Integer offset,
@@ -82,15 +115,20 @@ public class GuideComponentsResource
       @QueryParam("latestStable") String latestStable,
       @QueryParam("publishedWindow") String publishedWindow,
       @QueryParam("hasMalware") Boolean hasMalware,
-      @QueryParam("minDocCount") Integer minDocCount) throws IOException
+      @QueryParam("minDocCount") Integer minDocCount,
+      @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
+          + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
+      @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
   {
     requireLimitWithinPolicyEnrichmentCap(limit);
+    requireValidStage(stage);
     GuideComponentSearchRequest request = new GuideComponentSearchRequest(
         query, offset, limit, sortField, sortOrder, formats, categories, severities,
         minCvss, maxCvss, minEpss, maxEpss, licenseFamilies, licenses,
         minVersionScore, maxVersionScore, latestStable, publishedWindow,
         hasMalware, minDocCount);
-    return guidePolicyService.enrichComponentSearch(searchApiClient.searchComponents(request));
+    return guidePolicyService.enrichComponentSearch(searchApiClient.searchComponents(request), ownerId, stage);
   }
 
   @GET
@@ -100,18 +138,19 @@ public class GuideComponentsResource
       @QueryParam("format") String format,
       @QueryParam("namespace") String namespace,
       @QueryParam("name") String name,
-      @QueryParam("version") String version) throws IOException
+      @QueryParam("version") String version,
+      @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
+          + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
+      @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
   {
-    if (purl != null) {
-      return getComponentDetailByPurlQueryParam(purl);
-    }
-    return getComponentDetailByQueryParams(format, namespace, name, version);
+    String resolvedPurl = purl != null ? purl : GuidePurlAssembler.buildPurl(format, namespace, name, version);
+    return resolveAndEnrichDetail(resolvedPurl, ownerId, stage);
   }
 
   @Override
   public ComponentDetailDocument getComponentDetailByPurlQueryParam(String purl) throws IOException {
-    GuidePurlValidator.validate(purl);
-    return guidePolicyService.enrichComponentDetail(searchApiClient.getComponentDetailByPurl(purl));
+    return resolveAndEnrichDetail(purl, null, null);
   }
 
   @Override
@@ -119,11 +158,23 @@ public class GuideComponentsResource
       String format,
       String namespace,
       String name,
-      String version) throws IOException
+      String version,
+      // extension/classifier: unrelated contract addition (predates GUIDE-3059) that insight-brain
+      // hasn't wired up yet — accepted here only so this override still compiles against any
+      // api-contract version past 0.9.0-01, and ignored just like GuidePurlAssembler.buildPurl
+      // ignores them today.
+      String extension,
+      String classifier) throws IOException
   {
-    // Build PURL from query params and delegate
     String purl = GuidePurlAssembler.buildPurl(format, namespace, name, version);
-    return getComponentDetailByPurlQueryParam(purl);
+    return resolveAndEnrichDetail(purl, null, null);
+  }
+
+  /** Shared by the {@code /detail} wrapper and both interface-bound detail overrides. */
+  private ComponentDetailDocument resolveAndEnrichDetail(String purl, String ownerId, String stage) throws IOException {
+    requireValidStage(stage);
+    GuidePurlValidator.validate(purl);
+    return guidePolicyService.enrichComponentDetail(searchApiClient.getComponentDetailByPurl(purl), ownerId, stage);
   }
 
   @GET
@@ -146,17 +197,17 @@ public class GuideComponentsResource
       @QueryParam("versionQuery") String versionQuery,
       @QueryParam("publishedWindow") String publishedWindow,
       @QueryParam("hasMalware") Boolean hasMalware,
-      @QueryParam("isStable") Boolean isStable) throws IOException
+      @QueryParam("isStable") Boolean isStable,
+      @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
+          + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
+      @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
   {
     requireLimitWithinPolicyEnrichmentCap(limit);
-    if (purl != null) {
-      return getComponentVersionsByPurlQueryParam(
-          purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore, maxVersionScore,
-          versionQuery, publishedWindow, hasMalware, isStable);
-    }
-    return getComponentVersionsByQueryParams(
-        format, namespace, name, version, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
-        minVersionScore, maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable);
+    String resolvedPurl = purl != null ? purl : GuidePurlAssembler.buildPurl(format, namespace, name, version);
+    return resolveAndEnrichVersions(
+        resolvedPurl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore,
+        maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable, ownerId, stage);
   }
 
   @Override
@@ -176,11 +227,9 @@ public class GuideComponentsResource
       Boolean hasMalware,
       Boolean isStable) throws IOException
   {
-    GuidePurlValidator.validate(purl);
-    GuideComponentVersionsRequest request = new GuideComponentVersionsRequest(
-        purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
-        minVersionScore, maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable);
-    return guidePolicyService.enrichComponentDetailSearch(searchApiClient.getComponentVersions(request));
+    return resolveAndEnrichVersions(
+        purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore,
+        maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable, null, null);
   }
 
   @Override
@@ -201,12 +250,46 @@ public class GuideComponentsResource
       String versionQuery,
       String publishedWindow,
       Boolean hasMalware,
-      Boolean isStable) throws IOException
+      Boolean isStable,
+      // extension/classifier: unrelated contract addition (predates GUIDE-3059) that insight-brain
+      // hasn't wired up yet — accepted here only so this override still compiles against any
+      // api-contract version past 0.9.0-01, and ignored just like GuidePurlAssembler.buildPurl
+      // ignores them today.
+      String extension,
+      String classifier) throws IOException
   {
     String purl = GuidePurlAssembler.buildPurl(format, namespace, name, version);
-    return getComponentVersionsByPurlQueryParam(
+    return resolveAndEnrichVersions(
+        purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore,
+        maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable, null, null);
+  }
+
+  /** Shared by the {@code /versions} wrapper and both interface-bound versions overrides. */
+  private ApiSearchResponse<ComponentDetailDocument> resolveAndEnrichVersions(
+      String purl,
+      Integer offset,
+      Integer limit,
+      String sortField,
+      String sortOrder,
+      List<String> severities,
+      Double minCvss,
+      Double maxCvss,
+      Integer minVersionScore,
+      Integer maxVersionScore,
+      String versionQuery,
+      String publishedWindow,
+      Boolean hasMalware,
+      Boolean isStable,
+      String ownerId,
+      String stage) throws IOException
+  {
+    requireValidStage(stage);
+    GuidePurlValidator.validate(purl);
+    GuideComponentVersionsRequest request = new GuideComponentVersionsRequest(
         purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
         minVersionScore, maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable);
+    return guidePolicyService.enrichComponentDetailSearch(
+        searchApiClient.getComponentVersions(request), ownerId, stage);
   }
 
   @GET
@@ -240,7 +323,7 @@ public class GuideComponentsResource
     }
     return getComponentVulnerabilitiesByQueryParams(
         format, namespace, name, version, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minEpss,
-        maxEpss, hasMalware, patchAvailable, policyCompliant, cwes, exploitationKnown, publishedWindow);
+        maxEpss, hasMalware, patchAvailable, policyCompliant, cwes, exploitationKnown, publishedWindow, null, null);
   }
 
   @Override
@@ -291,7 +374,13 @@ public class GuideComponentsResource
       Boolean policyCompliant,
       List<String> cwes,
       Boolean exploitationKnown,
-      String publishedWindow) throws IOException
+      String publishedWindow,
+      // extension/classifier: unrelated contract addition (predates GUIDE-3059) that insight-brain
+      // hasn't wired up yet — accepted here only so this override still compiles against any
+      // api-contract version past 0.9.0-01, and ignored just like GuidePurlAssembler.buildPurl
+      // ignores them today.
+      String extension,
+      String classifier) throws IOException
   {
     String purl = GuidePurlAssembler.buildPurl(format, namespace, name, version);
     return getComponentVulnerabilitiesByPurlQueryParam(
@@ -321,17 +410,17 @@ public class GuideComponentsResource
       @QueryParam("maxVersionScore") Integer maxVersionScore,
       @QueryParam("licenseFamilies") List<String> licenseFamilies,
       @QueryParam("licenses") List<String> licenses,
-      @QueryParam("latestStable") String latestStable) throws IOException
+      @QueryParam("latestStable") String latestStable,
+      @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
+          + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
+      @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
   {
     requireLimitWithinPolicyEnrichmentCap(limit);
-    if (purl != null) {
-      return getComponentDependenciesByPurlQueryParam(
-          purl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss, maxCvss,
-          minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable);
-    }
-    return getComponentDependenciesByQueryParams(
-        format, namespace, name, version, query, offset, limit, sortField, sortOrder, formats, categories, severities,
-        minCvss, maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable);
+    String resolvedPurl = purl != null ? purl : GuidePurlAssembler.buildPurl(format, namespace, name, version);
+    return resolveAndEnrichDependencies(
+        resolvedPurl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss,
+        maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, ownerId, stage);
   }
 
   @Override
@@ -353,12 +442,9 @@ public class GuideComponentsResource
       List<String> licenses,
       String latestStable) throws IOException
   {
-    GuidePurlValidator.validate(purl);
-    GuideComponentDependenciesRequest request = new GuideComponentDependenciesRequest(
-        purl, null, null, null, null, query, offset, limit, sortField, sortOrder,
-        formats, categories, severities, minCvss, maxCvss,
-        minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable);
-    return guidePolicyService.enrichComponentSearch(searchApiClient.getComponentDependencies(request));
+    return resolveAndEnrichDependencies(
+        purl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss,
+        maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, null, null);
   }
 
   @Override
@@ -381,26 +467,76 @@ public class GuideComponentsResource
       Integer maxVersionScore,
       List<String> licenseFamilies,
       List<String> licenses,
-      String latestStable) throws IOException
+      String latestStable,
+      // extension/classifier: unrelated contract addition (predates GUIDE-3059) that insight-brain
+      // hasn't wired up yet — accepted here only so this override still compiles against any
+      // api-contract version past 0.9.0-01, and ignored just like GuidePurlAssembler.buildPurl
+      // ignores them today.
+      String extension,
+      String classifier) throws IOException
   {
     String purl = GuidePurlAssembler.buildPurl(format, namespace, name, version);
-    return getComponentDependenciesByPurlQueryParam(
-        purl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss, maxCvss,
+    return resolveAndEnrichDependencies(
+        purl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss,
+        maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, null, null);
+  }
+
+  /** Shared by the {@code /dependencies} wrapper and both interface-bound dependencies overrides. */
+  private ApiSearchResponse<ComponentDocument> resolveAndEnrichDependencies(
+      String purl,
+      String query,
+      Integer offset,
+      Integer limit,
+      String sortField,
+      String sortOrder,
+      List<String> formats,
+      List<String> categories,
+      List<String> severities,
+      Double minCvss,
+      Double maxCvss,
+      Integer minVersionScore,
+      Integer maxVersionScore,
+      List<String> licenseFamilies,
+      List<String> licenses,
+      String latestStable,
+      String ownerId,
+      String stage) throws IOException
+  {
+    requireValidStage(stage);
+    GuidePurlValidator.validate(purl);
+    GuideComponentDependenciesRequest request = new GuideComponentDependenciesRequest(
+        purl, null, null, null, null, query, offset, limit, sortField, sortOrder,
+        formats, categories, severities, minCvss, maxCvss,
         minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable);
+    return guidePolicyService.enrichComponentSearch(
+        searchApiClient.getComponentDependencies(request), ownerId, stage);
+  }
+
+  @Override
+  public ComponentDetailDocument getLatestVersion(LatestVersionRequest request) throws IOException {
+    return getLatestVersion(request, null, null);
   }
 
   @POST
   @Path("/latest-version")
   @Consumes(MediaType.APPLICATION_JSON)
   @Override
-  public ComponentDetailDocument getLatestVersion(LatestVersionRequest request) throws IOException {
+  public ComponentDetailDocument getLatestVersion(
+      LatestVersionRequest request,
+      @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
+          + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
+      @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
+  {
     // request itself is null when JAX-RS receives an empty or JSON-`null` body. Without this
     // guard the next line NPEs and Dropwizard's default handler returns a non-Guide envelope.
     if (request == null || request.purl() == null || request.purl().isBlank()) {
       throw new GuideApiException(Response.Status.BAD_REQUEST, "Purl is required");
     }
+    requireValidStage(stage);
     GuidePurlValidator.validate(request.purl());
-    return guidePolicyService.enrichComponentDetail(searchApiClient.getLatestVersionDetail(request.purl()));
+    return guidePolicyService.enrichComponentDetail(
+        searchApiClient.getLatestVersionDetail(request.purl()), ownerId, stage);
   }
 
 }

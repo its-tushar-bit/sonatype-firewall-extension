@@ -52,6 +52,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import jakarta.ws.rs.core.Response;
 import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,6 +113,24 @@ public class GuidePolicyService
     }
   }
 
+  /**
+   * Validates {@code stage} before the resource method makes its upstream call, so an invalid
+   * value fails fast with a 400 instead of wasting a search/HDS round trip that {@link
+   * #resolveScope} would only reject afterward. {@link #resolveScope} re-validates {@code stage}
+   * itself (it needs the resolved {@link Stage} for evaluation) — that duplication is intentional
+   * and cheap; this method exists purely for the resource layer to call up front.
+   *
+   * @throws GuideApiException 400 if {@code stage} is non-blank and not a valid stage id.
+   */
+  public static void requireValidStage(String stage) {
+    try {
+      McpStageResolver.resolve(stage);
+    }
+    catch (IllegalArgumentException e) {
+      throw new GuideApiException(Response.Status.BAD_REQUEST, "Invalid stage: " + stage);
+    }
+  }
+
   private final GuidePolicyEvaluator guidePolicyEvaluator;
 
   private final ApplicationDAO applicationDAO;
@@ -145,6 +164,33 @@ public class GuidePolicyService
             hits, upstream.total(), upstream.offset(), upstream.limit(), upstream.aggregations()));
   }
 
+  /**
+   * Owner/stage-scoped variant of {@link #enrichComponentSearch(ApiSearchResponse)}. Both blank
+   * delegates straight to the unscoped overload — byte-identical to the GUIDE-2745 default behavior.
+   * Otherwise evaluates against the resolved owner/stage, or leaves {@code upstream} untouched
+   * ({@code policyCompliance} omitted) when the owner is unknown or the caller lacks {@link
+   * Permission#EVALUATE_COMPONENT} on it — see {@link #resolveScope}.
+   */
+  public ApiSearchResponse<ComponentDocument> enrichComponentSearch(
+      ApiSearchResponse<ComponentDocument> upstream,
+      String ownerId,
+      String stage)
+  {
+    if (isBlank(ownerId) && isBlank(stage)) {
+      return enrichComponentSearch(upstream);
+    }
+    ScopedEvaluation scope = resolveScope(ownerId, stage);
+    if (!scope.enrichmentAllowed()) {
+      return upstream;
+    }
+    return enrich(upstream, GuideComponentDocument.class,
+        GuidePurlAssembler::purlFor,
+        (g, c) -> GuidePolicyResponseEnricher.enrichComponent(g, c, COMPLIANT_ONLY),
+        hits -> new GuideComponentSearchResponse(
+            hits, upstream.total(), upstream.offset(), upstream.limit(), upstream.aggregations()),
+        scope.ownerId(), scope.stage());
+  }
+
   public ApiSearchResponse<ComponentDetailDocument> enrichComponentDetailSearch(
       ApiSearchResponse<ComponentDetailDocument> upstream)
   {
@@ -153,6 +199,27 @@ public class GuidePolicyService
         (g, c) -> GuidePolicyResponseEnricher.enrichDetail(g, c, COMPLIANT_ONLY),
         hits -> new GuideComponentDetailSearchResponse(
             hits, upstream.total(), upstream.offset(), upstream.limit(), upstream.aggregations()));
+  }
+
+  /** Owner/stage-scoped variant of {@link #enrichComponentDetailSearch(ApiSearchResponse)}. */
+  public ApiSearchResponse<ComponentDetailDocument> enrichComponentDetailSearch(
+      ApiSearchResponse<ComponentDetailDocument> upstream,
+      String ownerId,
+      String stage)
+  {
+    if (isBlank(ownerId) && isBlank(stage)) {
+      return enrichComponentDetailSearch(upstream);
+    }
+    ScopedEvaluation scope = resolveScope(ownerId, stage);
+    if (!scope.enrichmentAllowed()) {
+      return upstream;
+    }
+    return enrich(upstream, GuideComponentDetailDocument.class,
+        GuidePurlAssembler::purlFor,
+        (g, c) -> GuidePolicyResponseEnricher.enrichDetail(g, c, COMPLIANT_ONLY),
+        hits -> new GuideComponentDetailSearchResponse(
+            hits, upstream.total(), upstream.offset(), upstream.limit(), upstream.aggregations()),
+        scope.ownerId(), scope.stage());
   }
 
   public ApiSearchResponse<SearchResult> enrichGlobalSearch(ApiSearchResponse<SearchResult> upstream) {
@@ -167,6 +234,27 @@ public class GuidePolicyService
             hits, upstream.total(), upstream.offset(), upstream.limit(), upstream.aggregations()));
   }
 
+  /** Owner/stage-scoped variant of {@link #enrichGlobalSearch(ApiSearchResponse)}. */
+  public ApiSearchResponse<SearchResult> enrichGlobalSearch(
+      ApiSearchResponse<SearchResult> upstream,
+      String ownerId,
+      String stage)
+  {
+    if (isBlank(ownerId) && isBlank(stage)) {
+      return enrichGlobalSearch(upstream);
+    }
+    ScopedEvaluation scope = resolveScope(ownerId, stage);
+    if (!scope.enrichmentAllowed()) {
+      return upstream;
+    }
+    return enrich(upstream, GuideComponentDocument.class,
+        GuidePurlAssembler::purlFor,
+        (g, c) -> GuidePolicyResponseEnricher.enrichComponent(g, c, COMPLIANT_ONLY),
+        hits -> new GuideGlobalSearchResponse(
+            hits, upstream.total(), upstream.offset(), upstream.limit(), upstream.aggregations()),
+        scope.ownerId(), scope.stage());
+  }
+
   public ApiSearchResponse<AffectedComponentVersion> enrichAffectedSearch(
       ApiSearchResponse<AffectedComponentVersion> upstream)
   {
@@ -175,6 +263,27 @@ public class GuidePolicyService
         (g, c) -> GuidePolicyResponseEnricher.enrichAffected(g, c, COMPLIANT_ONLY),
         hits -> new GuideAffectedComponentVersionSearchResponse(
             hits, upstream.total(), upstream.offset(), upstream.limit(), upstream.aggregations()));
+  }
+
+  /** Owner/stage-scoped variant of {@link #enrichAffectedSearch(ApiSearchResponse)}. */
+  public ApiSearchResponse<AffectedComponentVersion> enrichAffectedSearch(
+      ApiSearchResponse<AffectedComponentVersion> upstream,
+      String ownerId,
+      String stage)
+  {
+    if (isBlank(ownerId) && isBlank(stage)) {
+      return enrichAffectedSearch(upstream);
+    }
+    ScopedEvaluation scope = resolveScope(ownerId, stage);
+    if (!scope.enrichmentAllowed()) {
+      return upstream;
+    }
+    return enrich(upstream, GuideAffectedComponentVersion.class,
+        GuidePurlAssembler::purlFor,
+        (g, c) -> GuidePolicyResponseEnricher.enrichAffected(g, c, COMPLIANT_ONLY),
+        hits -> new GuideAffectedComponentVersionSearchResponse(
+            hits, upstream.total(), upstream.offset(), upstream.limit(), upstream.aggregations()),
+        scope.ownerId(), scope.stage());
   }
 
   // --- REST: single-component detail surfaces (full shape) -----------------------------------------
@@ -197,6 +306,43 @@ public class GuidePolicyService
     return GuidePolicyResponseEnricher.enrichDetail(detail, compliance, policyDetail);
   }
 
+  /**
+   * Owner/stage-scoped variant of {@link #enrichComponentDetail(ComponentDetailDocument)}. An explicit
+   * {@code ownerId} is all-or-nothing: {@link #resolveScope} already applies the {@code
+   * EVALUATE_COMPONENT} gate for that specific owner, so once enrichment is allowed here the full card
+   * is attached unconditionally. But a <b>blank</b> {@code ownerId} (only {@code stage} given) resolves
+   * to the root org in {@code resolveScope} without a permission check — that shortcut exists for the
+   * list/search surfaces, which show the {@code COMPLIANT_ONLY} badge to everyone regardless of
+   * permission. This method is the one surface that must not inherit that shortcut, so it re-applies
+   * the same {@code canSeePolicyDetail} gate the unscoped path uses whenever {@code ownerId} is blank.
+   */
+  public ComponentDetailDocument enrichComponentDetail(
+      ComponentDetailDocument upstream,
+      String ownerId,
+      String stage)
+  {
+    if (isBlank(ownerId) && isBlank(stage)) {
+      return enrichComponentDetail(upstream);
+    }
+    if (!(upstream instanceof GuideComponentDetailDocument detail)) {
+      return upstream;
+    }
+    String purl = GuidePurlAssembler.purlFor(detail);
+    if (purl == null) {
+      return upstream;
+    }
+    ScopedEvaluation scope = resolveScope(ownerId, stage);
+    if (!scope.enrichmentAllowed()) {
+      return upstream;
+    }
+    PolicyDetail policyDetail = isBlank(ownerId)
+        ? (canSeePolicyDetail(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID) ? FULL : COMPLIANT_ONLY)
+        : FULL;
+    Map<String, GuidePolicyCompliance> compliance =
+        guidePolicyEvaluator.evaluate(List.of(purl), scope.ownerId(), scope.stage());
+    return GuidePolicyResponseEnricher.enrichDetail(detail, compliance, policyDetail);
+  }
+
   // --- REST: recommendations (filter non-compliant candidates) -------------------------------------
 
   public GuideRecommendationResult filterRecommendations(GuideRecommendationResult upstream, String parentPurl) {
@@ -210,6 +356,37 @@ public class GuidePolicyService
     Map<String, GuidePolicyCompliance> compliance = purlByVersion.isEmpty()
         ? Map.of()
         : guidePolicyEvaluator.evaluate(new ArrayList<>(purlByVersion.values()));
+    return GuideRecommendationsPolicyFilter.apply(upstream, purlByVersion, compliance);
+  }
+
+  /**
+   * Owner/stage-scoped variant of {@link #filterRecommendations(GuideRecommendationResult, String)}.
+   * When the owner is unknown or unauthorized, {@code upstream} is returned <b>unfiltered</b> rather
+   * than run through {@link GuideRecommendationsPolicyFilter#apply}: that filter treats a candidate
+   * absent from the compliance map as {@code BLOCKED_BY_POLICY} (the correct call for a genuine
+   * HDS/Drools failure), but applying that here would wrongly block every recommendation just because
+   * the caller requested owner scoping it isn't authorized for.
+   */
+  public GuideRecommendationResult filterRecommendations(
+      GuideRecommendationResult upstream,
+      String parentPurl,
+      String ownerId,
+      String stage)
+  {
+    if (upstream == null) {
+      return upstream;
+    }
+    if (isBlank(ownerId) && isBlank(stage)) {
+      return filterRecommendations(upstream, parentPurl);
+    }
+    ScopedEvaluation scope = resolveScope(ownerId, stage);
+    if (!scope.enrichmentAllowed()) {
+      return upstream;
+    }
+    Map<String, String> purlByVersion = candidatePurlsByVersion(parentPurl, upstream);
+    Map<String, GuidePolicyCompliance> compliance = purlByVersion.isEmpty()
+        ? Map.of()
+        : guidePolicyEvaluator.evaluate(new ArrayList<>(purlByVersion.values()), scope.ownerId(), scope.stage());
     return GuideRecommendationsPolicyFilter.apply(upstream, purlByVersion, compliance);
   }
 
@@ -299,6 +476,19 @@ public class GuidePolicyService
       BiFunction<G, Map<String, GuidePolicyCompliance>, G> enrichOne,
       Function<List<T>, ApiSearchResponse<T>> rebuild)
   {
+    return enrich(upstream, guideType, purlOf, enrichOne, rebuild, null, null);
+  }
+
+  /** Owner/stage-scoped variant: {@code ownerId}/{@code stage} null means root-org/release. */
+  private <T, G extends T> ApiSearchResponse<T> enrich(
+      ApiSearchResponse<T> upstream,
+      Class<G> guideType,
+      Function<G, String> purlOf,
+      BiFunction<G, Map<String, GuidePolicyCompliance>, G> enrichOne,
+      Function<List<T>, ApiSearchResponse<T>> rebuild,
+      String ownerId,
+      Stage stage)
+  {
     if (upstream == null || upstream.hits().isEmpty()) {
       return upstream;
     }
@@ -313,7 +503,9 @@ public class GuidePolicyService
     if (purls.isEmpty()) {
       return upstream;
     }
-    Map<String, GuidePolicyCompliance> compliance = guidePolicyEvaluator.evaluate(purls);
+    Map<String, GuidePolicyCompliance> compliance = ownerId == null
+        ? guidePolicyEvaluator.evaluate(purls)
+        : guidePolicyEvaluator.evaluate(purls, ownerId, stage);
     List<T> enriched = upstream.hits()
         .stream()
         .map(h -> guideType.isInstance(h) ? enrichOne.apply(guideType.cast(h), compliance) : h)
@@ -375,5 +567,51 @@ public class GuidePolicyService
   /** A resolved evaluation owner: its {@link OwnerType} and internal id, for the authz context. */
   private record ResolvedOwner(OwnerType type, String id)
   {
+  }
+
+  /**
+   * Resolved scope for a REST caller's optional {@code ownerId}/{@code stage} query params.
+   * {@code ownerId} here is null exactly when {@code enrichmentAllowed} is false — callers must check
+   * {@code enrichmentAllowed} before using it.
+   */
+  private record ScopedEvaluation(String ownerId, Stage stage, boolean enrichmentAllowed)
+  {
+  }
+
+  /**
+   * Resolves the effective owner/stage for a scoped Guide REST request. Reuses {@link
+   * #resolveOwner(String)} (the same lookup the MCP path uses) and {@link McpStageResolver#resolve}
+   * so MCP and REST owner/stage resolution never drift apart.
+   *
+   * <p>
+   * Both an unresolvable {@code ownerId} and a resolvable owner the caller lacks {@link
+   * Permission#EVALUATE_COMPONENT} on come back as {@code enrichmentAllowed = false} — deliberately
+   * indistinguishable to the caller, mirroring the MCP path's existing silent soft-fail
+   * (evaluatePolicies returns no data for an unresolvable applicationId; it never falls back to the
+   * root organization). Per GUIDE-3045's acceptance criteria: an unknown owner is a silent 200,
+   * not an HTTP 400.
+   *
+   * @throws GuideApiException 400 if {@code stage} is non-blank and not a valid stage id.
+   */
+  private ScopedEvaluation resolveScope(String ownerId, String stage) {
+    Stage resolvedStage;
+    try {
+      resolvedStage = McpStageResolver.resolve(stage);
+    }
+    catch (IllegalArgumentException e) {
+      throw new GuideApiException(Response.Status.BAD_REQUEST, "Invalid stage: " + stage);
+    }
+    if (ownerId == null || ownerId.isBlank()) {
+      return new ScopedEvaluation(Organization.ROOT_ORGANIZATION_ID, resolvedStage, true);
+    }
+    ResolvedOwner owner = resolveOwner(ownerId);
+    if (owner == null || !canSeePolicyDetail(owner.type(), owner.id())) {
+      return new ScopedEvaluation(null, resolvedStage, false);
+    }
+    return new ScopedEvaluation(owner.id(), resolvedStage, true);
+  }
+
+  private static boolean isBlank(String s) {
+    return s == null || s.isBlank();
   }
 }

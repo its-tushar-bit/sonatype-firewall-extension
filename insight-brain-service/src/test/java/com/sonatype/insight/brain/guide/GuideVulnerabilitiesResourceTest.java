@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersionSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -137,5 +138,53 @@ public class GuideVulnerabilitiesResourceTest
 
     assertThat(response.getStatusCode()).isEqualTo(400);
     assertThat(response.getBodyText()).contains("limit must not exceed 25");
+  }
+
+  // --- GUIDE-3045: ownerId/stage query params -------------------------------------------------------
+
+  @Test
+  public void getVulnerabilityAffectedComponents_bothOmitted_matchesDefaultBehavior() throws Exception {
+    GuideAffectedComponentVersionSearchResponse hdsResponse =
+        new GuideAffectedComponentVersionSearchResponse(List.of(), 0, 0, 20, null);
+    hdsRespondWith(hdsResponse).atUri("/rest/search/vulnerabilities/CVE-2021-44228/components");
+
+    HttpResponse response = restRequest()
+        .path("api/v2/guide/vulnerabilities/CVE-2021-44228/components")
+        .get();
+
+    // Byte-identical to the GUIDE-2745 default now that the resource also accepts ownerId/stage.
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    assertThat(response.getBodyText()).contains("\"hits\":[]");
+    assertThat(response.getBodyText()).contains("\"total\":0");
+  }
+
+  @Test
+  public void getVulnerabilityAffectedComponents_invalidStage_returns400() throws Exception {
+    // Stage is validated up front (GuidePolicyService.requireValidStage) before the upstream HDS
+    // fetch, so no HDS mock is needed here.
+    HttpResponse response = restRequest()
+        .path("api/v2/guide/vulnerabilities/CVE-2021-44228/components")
+        .query("stage", "not-a-stage")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).contains("not-a-stage");
+  }
+
+  @Test
+  public void getVulnerabilityAffectedComponents_unknownOwnerId_returns200WithoutPolicyCompliance() throws Exception {
+    GuideAffectedComponentVersionSearchResponse hdsResponse =
+        new GuideAffectedComponentVersionSearchResponse(List.of(), 0, 0, 20, null);
+    hdsRespondWith(hdsResponse).atUri("/rest/search/vulnerabilities/CVE-2021-44228/components");
+
+    HttpResponse response = restRequest()
+        .path("api/v2/guide/vulnerabilities/CVE-2021-44228/components")
+        .query("ownerId", "does-not-exist")
+        .get();
+
+    // Per GUIDE-3045 AC #3: unknown owner mirrors MCP's silent soft-fail (200, no enrichment),
+    // not HTTP 400 — see GuidePolicyService.resolveScope javadoc.
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    assertThat(response.getBodyText()).doesNotContain("policyCompliance");
   }
 }

@@ -292,4 +292,52 @@ public class GuideGlobalSearchResourceTest
     assertThat(response.getStatusCode()).isEqualTo(502);
     assertThat(response.getBodyText()).contains("Bad Gateway");
   }
+
+  // --- GUIDE-3045: ownerId/stage query params -------------------------------------------------------
+
+  @Test
+  public void bothOmitted_matchesDefaultBehavior() throws Exception {
+    GuideGlobalSearchResponse hdsResponse = new GuideGlobalSearchResponse(List.of(), 0, 0, 20, null);
+    hdsRespondWith(hdsResponse).atUri("/rest/search/global");
+
+    HttpResponse response = restRequest()
+        .path(SEARCH_PATH)
+        .parameter("query", "log4j")
+        .get();
+
+    // Identical assertions to noParams_returns200WithEmptyResults — locks in AC #1 (byte-identical
+    // to the GUIDE-2745 default) now that the resource also accepts ownerId/stage.
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    assertThat(response.getBodyText()).contains("\"hits\":[]");
+    assertThat(response.getBodyText()).contains("\"total\":0");
+  }
+
+  @Test
+  public void invalidStage_returns400() throws Exception {
+    HttpResponse response = restRequest()
+        .path(SEARCH_PATH)
+        .query("query", "log4j")
+        .query("stage", "not-a-stage")
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).contains("not-a-stage");
+  }
+
+  @Test
+  public void unknownOwnerId_returns200WithoutPolicyCompliance() throws Exception {
+    GuideGlobalSearchResponse hdsResponse = new GuideGlobalSearchResponse(List.of(), 0, 0, 20, null);
+    hdsRespondWith(hdsResponse).atUri("/rest/search/global");
+
+    HttpResponse response = restRequest()
+        .path(SEARCH_PATH)
+        .query("query", "log4j")
+        .query("ownerId", "does-not-exist")
+        .get();
+
+    // Per GUIDE-3045 AC #3: unknown owner mirrors MCP's silent soft-fail (200, no enrichment),
+    // not HTTP 400 — see GuidePolicyService.resolveScope javadoc.
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    assertThat(response.getBodyText()).doesNotContain("policyCompliance");
+  }
 }

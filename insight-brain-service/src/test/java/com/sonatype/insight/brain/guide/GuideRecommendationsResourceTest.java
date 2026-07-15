@@ -48,7 +48,7 @@ public class GuideRecommendationsResourceTest
   public void unauthenticatedRequest_returns401() throws Exception {
     HttpResponse response = restRequest()
         .path(RECOMMENDATIONS_PATH)
-        .body(new RecommendationRequest("pkg:maven/org.example/lib@1.0.0"))
+        .body(new RecommendationRequest("pkg:maven/org.example/lib@1.0.0", null, null))
         .anon()
         .post();
 
@@ -61,7 +61,7 @@ public class GuideRecommendationsResourceTest
 
     HttpResponse response = restRequest()
         .path(RECOMMENDATIONS_PATH)
-        .body(new RecommendationRequest("pkg:maven/org.example/lib@1.0.0"))
+        .body(new RecommendationRequest("pkg:maven/org.example/lib@1.0.0", null, null))
         .post();
 
     assertThat(response.getStatusCode()).isEqualTo(403);
@@ -75,7 +75,7 @@ public class GuideRecommendationsResourceTest
     HttpResponse response = restRequest()
         .auth(userWithoutPermissions)
         .path(RECOMMENDATIONS_PATH)
-        .body(new RecommendationRequest("pkg:maven/org.example/lib@1.0.0"))
+        .body(new RecommendationRequest("pkg:maven/org.example/lib@1.0.0", null, null))
         .post();
 
     assertThat(response.getStatusCode()).isEqualTo(403);
@@ -85,7 +85,7 @@ public class GuideRecommendationsResourceTest
   public void blankPurl_returns400() throws Exception {
     HttpResponse response = restRequest()
         .path(RECOMMENDATIONS_PATH)
-        .body(new RecommendationRequest(""))
+        .body(new RecommendationRequest("", null, null))
         .post();
 
     assertThat(response.getStatusCode()).isEqualTo(400);
@@ -96,7 +96,7 @@ public class GuideRecommendationsResourceTest
   public void nullPurl_returns400() throws Exception {
     HttpResponse response = restRequest()
         .path(RECOMMENDATIONS_PATH)
-        .body(new RecommendationRequest(null))
+        .body(new RecommendationRequest(null, null, null))
         .post();
 
     assertThat(response.getStatusCode()).isEqualTo(400);
@@ -123,7 +123,7 @@ public class GuideRecommendationsResourceTest
   public void validPurl_componentNotFound_returns404() throws Exception {
     HttpResponse response = restRequest()
         .path(RECOMMENDATIONS_PATH)
-        .body(new RecommendationRequest("pkg:maven/org.nonexistent/fake@1.0.0"))
+        .body(new RecommendationRequest("pkg:maven/org.nonexistent/fake@1.0.0", null, null))
         .post();
 
     assertThat(response.getStatusCode()).isEqualTo(404);
@@ -140,7 +140,7 @@ public class GuideRecommendationsResourceTest
 
     HttpResponse response = restRequest()
         .path(RECOMMENDATIONS_PATH)
-        .body(new RecommendationRequest("pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"))
+        .body(new RecommendationRequest("pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1", null, null))
         .post();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
@@ -155,10 +155,52 @@ public class GuideRecommendationsResourceTest
 
     HttpResponse response = restRequest()
         .path(RECOMMENDATIONS_PATH)
-        .body(new RecommendationRequest("pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"))
+        .body(new RecommendationRequest("pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1", null, null))
         .post();
 
     assertThat(response.getStatusCode()).isEqualTo(502);
     assertThat(response.getBodyText()).contains("Bad Gateway");
+  }
+
+  // --- GUIDE-3045: ownerId/stage query params -------------------------------------------------------
+
+  @Test
+  public void unknownOwnerId_returnsUpstreamCandidatesUnfiltered() throws Exception {
+    // Candidates missing from the compliance map are normally treated as compliant (kept) — see
+    // GuideRecommendationsPolicyFilter — but an unknown ownerId must skip the filter entirely
+    // (GuidePolicyService.filterRecommendations scoped overload), not just fall through to that
+    // same "no data" branch. Both land on FOUND_RECOMMENDATIONS here, so this test's real
+    // assertion is that the candidate survives — the corresponding GuidePolicyServiceTest case
+    // (filterRecommendations_scoped_unknownOwner_returnsUpstreamUnfiltered) pins down the "skip the
+    // filter, don't just no-op through it" distinction at the unit level.
+    GuideRecommendationResult hdsResponse = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        new RecommendedVersionInfo("2.14.1", "0", Map.of(), Map.of(), Map.of(), List.of(), 85, 10.0, null),
+        List.of(new RecommendedVersionInfo("2.21.1", "0", Map.of(), Map.of(), Map.of(), List.of(), 99, null, null)));
+    hdsRespondWith(hdsResponse).atUri("/rest/search/recommendations");
+
+    HttpResponse response = restRequest()
+        .path(RECOMMENDATIONS_PATH)
+        .query("ownerId", "does-not-exist")
+        .body(new RecommendationRequest("pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1", null, null))
+        .post();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    assertThat(response.getBodyText()).contains("FOUND_RECOMMENDATIONS");
+    assertThat(response.getBodyText()).contains("2.21.1");
+  }
+
+  @Test
+  public void invalidStage_returns400() throws Exception {
+    // Stage is validated up front (GuidePolicyService.requireValidStage) before the upstream HDS
+    // fetch, so no HDS mock is needed here — an invalid stage 400s without ever calling out.
+    HttpResponse response = restRequest()
+        .path(RECOMMENDATIONS_PATH)
+        .query("stage", "not-a-stage")
+        .body(new RecommendationRequest("pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1", null, null))
+        .post();
+
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).contains("not-a-stage");
   }
 }

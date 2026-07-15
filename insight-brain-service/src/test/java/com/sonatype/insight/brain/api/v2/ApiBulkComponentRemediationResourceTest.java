@@ -374,9 +374,10 @@ public class ApiBulkComponentRemediationResourceTest
   @Test
   public void testBulk_MalformedPurl_ReportedAsPerItemError() throws Exception {
     // A syntactically-invalid packageUrl is a per-component input error, not a batch-level failure.
-    // Before InvalidComponentException was introduced, the raw InvalidPackageURLException from
-    // PackageUrlIdentifier propagated (mapped to HTTP 400 via @HttpStatusCode) and failed the whole
-    // batch — inconsistent with the componentIdentifier path, which had always been per-item.
+    // The single-component endpoint lets InvalidPackageURLException propagate (its @HttpStatusCode(400)
+    // surfaces the 400); the bulk endpoint catches it in the per-task try/catch alongside
+    // InvalidComponentException so a bad purl in one component doesn't fail the whole batch —
+    // consistent with the componentIdentifier path, which had always been per-item.
     mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
     mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
     createPolicyWithSecurityVulnerabilityConstraint(app.getId());

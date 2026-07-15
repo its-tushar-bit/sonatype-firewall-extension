@@ -227,11 +227,14 @@ public class ApiComponentRemediationService
             return new ApiBulkComponentRemediationResultDTO(componentDTO,
                 remediation == null ? null : remediation.remediation);
           }
-          catch (InvalidComponentException e) {
+          catch (InvalidComponentException | InvalidPackageURLException e) {
             // Only per-component input-validation failures become per-item errors. Anything else
             // (batch-level BadRequestException, downstream failures, unexpected exceptions) propagates
             // through ExecutionException and fails the whole batch — the correct HTTP response, not
-            // N identical 200-response per-item errors.
+            // N identical 200-response per-item errors. InvalidPackageURLException is caught alongside
+            // InvalidComponentException because the single-component endpoint lets it propagate (its
+            // @HttpStatusCode(400) is what surfaces the 400) — here we treat it as another per-item
+            // input error rather than a batch failure.
             return new ApiBulkComponentRemediationResultDTO(componentDTO, e.getMessage());
           }
         }));
@@ -442,16 +445,7 @@ public class ApiComponentRemediationService
   }
 
   private ComponentIdentifier validatePackageUrl(ApiComponentDTOV2 componentDTO) {
-    try {
-      return new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
-    }
-    catch (InvalidPackageURLException e) {
-      // Malformed purl is a per-component input error. Without this rewrap the exception would
-      // propagate as HTTP 400 (via @HttpStatusCode on InvalidPackageURLException) and fail the whole
-      // bulk batch — inconsistent with how the componentIdentifier path above surfaces the same class
-      // of error as a per-item error.
-      throw new InvalidComponentException(e.getMessage(), e);
-    }
+    return new PackageUrlIdentifier(componentDTO.packageUrl).ensureCompleteIdentifier();
   }
 
   private ComponentSummary getComponentSummary(final ComponentIdentifier componentIdentifier) {

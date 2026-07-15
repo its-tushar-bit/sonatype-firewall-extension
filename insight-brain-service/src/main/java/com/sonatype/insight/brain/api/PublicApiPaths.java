@@ -89,6 +89,9 @@ public class PublicApiPaths
   public static final String COMPONENT_REMEDIATION_PATH_V2 =
       API_VERSION_PATH_V2 + "components/remediation/{ownerType: application|organization|repository}/{ownerId}";
 
+  public static final String COMPONENT_REMEDIATION_BULK_PATH_V2 =
+      API_VERSION_PATH_V2 + "components/remediation/{ownerType: application|organization|repository}/{ownerId}/bulk";
+
   public static final String SECURITY_VIOLATION_OVERRIDE_PATH_V2 = API_VERSION_PATH_V2 + "securityOverrides";
 
   public static final String PROXY_SERVER_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/httpProxyServer";

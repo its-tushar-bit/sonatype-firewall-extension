@@ -36,6 +36,8 @@ export type ViolationRow = {
   readonly applicationPublicId?: string;
   readonly applicationName?: string;
   readonly componentName?: string;
+  /** Component version; will mirror the backend row DTO field once it lands (added frontend-first). */
+  readonly componentVersion?: string;
   readonly componentIdentifier?: ViolationComponentIdentifier;
   /** Latest policy evaluation stage (display name). */
   readonly stage?: string;
@@ -44,6 +46,12 @@ export type ViolationRow = {
   /** True when waived by an auto-waiver rather than a manual waiver. */
   readonly waivedWithAutoWaiver?: boolean;
   readonly constraintName?: string;
+  /**
+   * Epoch millis the violation was first seen — powers the card's "first seen … ago" line. The list
+   * API does not index the violation timestamp yet, so this is undefined today; the card renders the
+   * relative time only once the backend returns it.
+   */
+  readonly firstOccurredTime?: number;
 };
 
 /**

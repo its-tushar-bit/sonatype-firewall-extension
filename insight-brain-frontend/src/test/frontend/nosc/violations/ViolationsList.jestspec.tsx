@@ -76,7 +76,7 @@ describe('ViolationsList', () => {
     await screen.findByTestId('violation-card-grid');
     expect(
       screen.getByRole('link', {
-        name: /waived violation for quality - standards on busybox : 1\.33,.*auto-waived/i,
+        name: /waived violation for quality - standards on busybox : 1\.33 in cherry - platform,.*auto-waived/i,
       }),
     ).toBeInTheDocument();
   });
@@ -85,6 +85,7 @@ describe('ViolationsList', () => {
     const rowWithoutName = {
       ...MOCK_VIOLATIONS_LIST_RESPONSE.violations[0],
       componentName: '',
+      componentVersion: undefined,
       componentIdentifier: undefined,
     };
     const response: ViolationsListResponse = {

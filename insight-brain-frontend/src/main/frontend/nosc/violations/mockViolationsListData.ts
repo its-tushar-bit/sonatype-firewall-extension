@@ -5,9 +5,12 @@
  */
 import { ViolationsListResponse } from 'MainRoot/nosc/violations/violationListTypes';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 /**
- * Test/preview fixture shaped like POST /rest/dashboard/violations/list (CLM-42254). Used by jest
- * specs and local previews; not imported by production code paths.
+ * Test/preview fixture shaped like POST /rest/dashboard/violations/list. Used by jest specs and local
+ * previews; not imported by production code paths. {@code firstOccurredTime} is a preview-only field
+ * the real API does not return yet.
  */
 export const MOCK_VIOLATIONS_LIST_RESPONSE: ViolationsListResponse = {
   violations: [
@@ -24,10 +27,12 @@ export const MOCK_VIOLATIONS_LIST_RESPONSE: ViolationsListResponse = {
       applicationPublicId: 'apple-java',
       applicationName: 'Apple - Java',
       componentName: 'log4j-core',
-      componentIdentifier: { format: 'maven', coordinates: { version: '2.14.0' } },
+      componentVersion: '2.14.0',
+      componentIdentifier: { format: 'maven' },
       stage: 'Build',
       state: 'OPEN',
       waivedWithAutoWaiver: false,
+      firstOccurredTime: Date.now() - 2 * DAY_MS,
     },
     {
       policyViolationId: 'pv-lodash-license',
@@ -42,10 +47,12 @@ export const MOCK_VIOLATIONS_LIST_RESPONSE: ViolationsListResponse = {
       applicationPublicId: 'banana-java',
       applicationName: 'Banana - Java',
       componentName: 'lodash',
-      componentIdentifier: { format: 'npm', coordinates: { version: '4.17.15' } },
+      componentVersion: '4.17.15',
+      componentIdentifier: { format: 'npm' },
       stage: 'Release',
       state: 'OPEN',
       waivedWithAutoWaiver: false,
+      firstOccurredTime: Date.now() - 40 * DAY_MS,
     },
     {
       policyViolationId: 'pv-busybox-quality',
@@ -60,10 +67,12 @@ export const MOCK_VIOLATIONS_LIST_RESPONSE: ViolationsListResponse = {
       applicationPublicId: 'cherry-platform',
       applicationName: 'Cherry - Platform',
       componentName: 'busybox',
-      componentIdentifier: { format: 'maven', coordinates: { version: '1.33' } },
+      componentVersion: '1.33',
+      componentIdentifier: { format: 'maven' },
       stage: 'Build',
       state: 'WAIVED',
       waivedWithAutoWaiver: true,
+      firstOccurredTime: Date.now() - 400 * DAY_MS,
     },
   ],
   facets: {

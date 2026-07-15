@@ -66,4 +66,102 @@ public class PrioritiesPage
     return byRole(AriaRole.BUTTON, "Create PR");
   }
 
+  public Locator pageMain() {
+    return page.getByRole(AriaRole.MAIN);
+  }
+
+  /** Scoped under {@link #pageMain()} so future pages reusing this test-id don't collide. */
+  public Locator pageHeader() {
+    return pageMain().getByTestId("iq-priorities-page-summary-section");
+  }
+
+  public Locator pageHeaderTitle() {
+    return pageHeader().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(2));
+  }
+
+  public Locator breadcrumbLink(String linkText) {
+    return pageHeader().getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName(linkText));
+  }
+
+  public Locator metadataRowTriggeredByLabel() {
+    return pageHeader().getByText("Triggered by:");
+  }
+
+  public Locator viewDropdownButton() {
+    return pageHeader().getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("View"));
+  }
+
+  public Locator viewDropdownLifecycleReportLink() {
+    return pageHeader().getByRole(AriaRole.LINK,
+        new Locator.GetByRoleOptions().setName("Lifecycle Report"));
+  }
+
+  public Locator viewDropdownDependenciesLink() {
+    return pageHeader().getByRole(AriaRole.LINK,
+        new Locator.GetByRoleOptions().setName("Dependencies"));
+  }
+
+  public void openViewDropdown() {
+    viewDropdownButton().click();
+  }
+
+  /**
+   * TODO(a11y): frontend renders this as an unlabelled clickable SVG; switch to
+   * {@code getByRole(BUTTON, "Copy commit hash")} once an accessible name is added.
+   */
+  public Locator commitCopyButton() {
+    return pageHeader().locator(".iq-priorities-page-copy-commit-btn");
+  }
+
+  /** NxTooltip title portals outside the page header — scope by role=tooltip. */
+  public Locator commitCopyTooltipCopiedText() {
+    return page.getByRole(AriaRole.TOOLTIP).getByText("Copied");
+  }
+
+  public Locator componentFilterInput() {
+    return page.getByPlaceholder("Filter by component");
+  }
+
+  /** NxToggle: click via the label. {@link #failWarnToggleInput()} for {@code isChecked()}. */
+  public Locator failWarnToggleLabel() {
+    return nxToggleLabel("Fail/Warn Policy Actions only");
+  }
+
+  /** NxToggle: hidden {@code role="switch"} input for state assertions. */
+  public Locator failWarnToggleInput() {
+    return nxToggleInput("Fail/Warn Policy Actions only");
+  }
+
+  /**
+   * Column header inside the priorities NxTable.
+   * {@code
+   *
+  <th>} elements have implicit role {@code columnheader} per ARIA, but
+   * {@code getByRole(COLUMNHEADER)} does not resolve reliably inside an RSC NxTable scope
+   * (same workaround as {@code FirewallRegressionPage#autoUnquarantineComponentHeader}) —
+   * filtered by role {@code CELL} + exact accessible name instead.
+   */
+  public Locator columnHeaderByText(String label) {
+    return container().locator("thead")
+        .getByRole(AriaRole.CELL,
+            new Locator.GetByRoleOptions().setName(label).setExact(true));
+  }
+
+  public Locator dependencyIndicatorByTitle(String tooltipTitle) {
+    return container().getByTitle(tooltipTitle);
+  }
+
+  /**
+   * License lock screen scoped to {@link #pageMain()} — {@code LicenseLockScreen} REPLACES the
+   * priorities table container, so {@link #container()} is not present when the alert renders
+   * (see {@code prioritiesPage/PrioritiesPage.jsx} — the switch is at the {@code PageContents}
+   * level, both branches nested inside {@code NxPageMain}). Scoping under {@code role=MAIN}
+   * avoids collisions with global banner alerts sharing similar text.
+   */
+  public Locator licenseLockScreen() {
+    return pageMain().getByRole(AriaRole.ALERT)
+        .filter(
+            new Locator.FilterOptions().setHasText("Sonatype Developer is not enabled."));
+  }
+
 }

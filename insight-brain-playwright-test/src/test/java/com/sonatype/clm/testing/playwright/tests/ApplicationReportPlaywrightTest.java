@@ -48,6 +48,7 @@ import com.sonatype.insight.mock.hds.HdsMockServer;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Route;
 import com.microsoft.playwright.options.WaitForSelectorState;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -75,6 +76,16 @@ public class ApplicationReportPlaywrightTest
     playwrightLogin();
     new ApplicationReportPageAssertions(new ApplicationReportPage())
         .shouldShowReportHeaderContaining(appName);
+  }
+
+  /**
+   * Clear any {@code page.route(...)} intercepts registered by individual tests so they don't
+   * bleed into siblings running in the same BrowserContext fork ({@code AbstractIqUiTest.afterTest()}
+   * doesn't call this).
+   */
+  @After
+  public void unrouteAll() {
+    page.unrouteAll();
   }
 
   @Test
@@ -460,6 +471,65 @@ public class ApplicationReportPlaywrightTest
     detailsPage.navigateBackToApplicationReport();
     playwrightWaitUntilUrlContains("/policy");
     assertThat(reportPage.appReportMain()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+  }
+
+  /**
+   * In embedded/popover mode the ViolationPage renders with {@code isFromPolicyViolations=true},
+   * which drops the MenuBarBackButton and applies the {@code iq-violation-details-popover-section}
+   * layout class. Verifies:
+   * <ul>
+   * <li>No page-level back button inside the popover's {@code #violation-page} container</li>
+   * <li>Popover section class is applied</li>
+   * <li>Applicable Waivers and Similar Waivers tabs render — Vulnerability Details is
+   * security-policy-only and this test seeds a License-Banned violation, so that tab is
+   * deliberately not asserted (see body comment on the tab assertions)</li>
+   * </ul>
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testComponentDetails_violationPopoverHasNoBackButtonAndAllThreeTabsPresent() throws IOException {
+    PolicyEvaluationSeeder seeder = new PolicyEvaluationSeeder(
+        tempEntity, tempDir, testCLMServer.getCLMServer().getConfiguration(),
+        baseUrlFromTest, SmallReportFixture.CANNED_REPORT_DIR);
+    // No manual UUID suffix required — PolicyEvaluationSeeder#seedSingleConditionAndEvaluate
+    // already appends TemporaryEntity.uuid() to each prefix internally, so the seeded names are
+    // parallel-fork-safe (SONATYPE-001) without further mangling. Adding a second UUID pushed
+    // the policy name past the 60-char InvalidPolicyException limit.
+    SeededEvaluation seeded = seeder.seedSingleConditionAndEvaluate(
+        "PopoverOrg", "PopoverApp", "popover-pub", "popover-scan",
+        "PopoverPol", "c", "MatchState", "is", "exact", 7);
+
+    stubComponentHdsEndpoints();
+
+    navigateAndWaitForUrl(
+        ApplicationReportPage.url(seeded.app(), seeded.scanId()), "/applicationReport/");
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    assertThat(reportPage.appReportMain()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+
+    reportPage.openFirstComponentFromReport();
+    playwrightWaitUntilUrlContains("/componentDetails/");
+
+    ComponentDetailsPage detailsPage = new ComponentDetailsPage();
+    detailsPage.clickComponentDetailsTab("Policy Violations");
+    playwrightWaitUntilUrlContains("/violations");
+
+    detailsPage.policyViolationRows().first().waitFor();
+    detailsPage.policyViolationRows().first().click();
+
+    // Positive scope first (popover mounted + its section class applied) so the count-0 below
+    // cannot trivially pass by locating nothing at all — if the popover were misconfigured or
+    // renamed, the two isVisible assertions above would fail before we get here.
+    assertThat(detailsPage.popoverViolationPage()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
+    assertThat(detailsPage.popoverSection()).isVisible();
+    assertThat(detailsPage.popoverPageLevelBackButton()).hasCount(0);
+    // "Applicable Waivers" appends a dynamic count suffix ("Applicable Waivers (N)") — regex
+    // matches the stable prefix. "Similar Waivers" doesn't get a suffix so an exact string works.
+    // Do NOT normalise both to exact strings; the regex is deliberate.
+    // Vulnerability Details is security-policy-only (see ViolationPage.jsx
+    // `shouldShowVulnerabilityTab`) and the seeded policy here is a License-Banned violation,
+    // so we don't assert it.
+    assertThat(detailsPage.popoverTab(Pattern.compile("Applicable Waivers"))).isVisible();
+    assertThat(detailsPage.popoverTab("Similar Waivers")).isVisible();
   }
 
   private void stubComponentHdsEndpoints() {

@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import java.util.regex.Pattern;
+
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
@@ -304,6 +306,25 @@ public class ComponentDetailsPage
 
   public Locator popoverSection() {
     return policyViolationDetailsPopover().locator(".iq-violation-details-popover-section").first();
+  }
+
+  public Locator popoverTab(String accessibleName) {
+    return policyViolationDetailsPopover().getByRole(AriaRole.TAB,
+        new Locator.GetByRoleOptions().setName(accessibleName));
+  }
+
+  public Locator popoverTab(Pattern accessibleNamePattern) {
+    return policyViolationDetailsPopover().getByRole(AriaRole.TAB,
+        new Locator.GetByRoleOptions().setName(accessibleNamePattern));
+  }
+
+  /**
+   * MenuBarBackButton has no accessible name — scoped under {@code #violation-page} inside the
+   * popover to avoid matching the popover's own chevron/close button.
+   * TODO(a11y): once MenuBarBackButton gains an accessible name, switch to getByRole(LINK, ...).
+   */
+  public Locator popoverPageLevelBackButton() {
+    return popoverViolationPage().locator(":scope > .nx-back-button");
   }
 
   public Locator popoverAddWaiverButton() {

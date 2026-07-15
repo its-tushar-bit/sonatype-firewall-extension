@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflic
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
-import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -206,16 +205,23 @@ public class FirewallDashboardPlaywrightTest
     User limitedUser = tempEntity.newUser();
     tempEntity.newMembershipMapping(childOrg.getId(), Role.DEVELOPER_ROLE_ID, limitedUser.getUsername());
     playwrightLogout();
-    playwrightLoginAt(FirewallPage.url(), limitedUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+    // NEXUS-53680: LimitedFirewallAccessAlert is no longer set by /firewall/releaseQuarantine/configuration
+    // (loadConfiguration's 403 branch was removed in PR #16520). The banner is now driven only by the
+    // waiver-list slices, so a limited user sees it on the Firewall Waivers page, not the dashboard.
+    playwrightLoginAt(FirewallRegressionPage.waiversContainersApprovedUrl(), limitedUser.getUsername(),
+        TemporaryEntity.USER_PASSWORD_CLEAR);
+    playwrightRefresh();
     assertions.shouldShowLimitedAccessAlert();
-    assertions.shouldHideDashboardContent();
   }
 
   @Test
   @Category(RegressionTest.class)
   public void testFirewallDashboard_quarantineTableFilters_eachFilterReducesVisibleRows() {
     seedQuarantineFilterComponents();
+    // Full reload — FirewallPage's loadPolicies() runs in a mount-only useEffect, and hash-only
+    // navigations (dashboard → quarantine tab) don't remount the SPA so cached empty state sticks.
     playwrightRefreshOrOpen(FirewallPage.quarantineTabUrl());
+    playwrightRefresh();
 
     FirewallRegressionPage firewallPage = new FirewallRegressionPage();
     // Scope via name filter — under forkCount=4 even recent components can be pushed past page 1.
@@ -514,13 +520,16 @@ public class FirewallDashboardPlaywrightTest
   private void seedQuarantineFilterComponents() {
     String uuid = TemporaryEntity.uuid();
     String suffix = "-" + uuid;
-    filterAlphaPolicyName = DATA.alphaPolicyName() + suffix;
-    Policy policyAlpha = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, filterAlphaPolicyName);
-    Policy policyBeta = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, DATA.betaPolicyName() + suffix);
-
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repoAlpha = tempEntity.newRepository(repositoryManager, DATA.alphaRepoPublicId() + suffix, true, true);
     Repository repoBeta = tempEntity.newRepository(repositoryManager, DATA.betaRepoPublicId() + suffix, true, true);
+
+    // Attach policies to the seeded repositories so they surface in /api/v2/policies for the admin —
+    // root-org-owned policies don't reach ApiPolicyService.filterPolicies when the fork has no apps.
+    filterAlphaPolicyName = DATA.alphaPolicyName() + suffix;
+    Policy policyAlpha = tempEntity.newPolicy(repoAlpha.getId(), filterAlphaPolicyName, DATA.violationThreatLevel());
+    Policy policyBeta =
+        tempEntity.newPolicy(repoBeta.getId(), DATA.betaPolicyName() + suffix, DATA.violationThreatLevel());
 
     Date now = Date.from(Instant.now());
     Date oldDate = Date.from(Instant.now().minus(DATA.oldQuarantineDays(), ChronoUnit.DAYS));
@@ -697,10 +706,24 @@ public class FirewallDashboardPlaywrightTest
   }
 
   private void seedContainerWaivers() {
+    // NEXUS-53680 rewrote container-waiver scoping: /rest/policyWaivers/repository_container/... now
+    // filters by owner_id = container-image application, not the virtual REPOSITORY_CONTAINER_ID.
+    // Waivers must be stored under a container-image app (proxy repo → org.relatedRepositoryId → app)
+    // with isForContainerImage=true.
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository proxyRepo =
+        tempEntity.newProxyRepository(repoManager, "cw-repo-" + TemporaryEntity.uuid(), DATA.dockerFormat(), true,
+            true);
+    Organization containerImageOrg = tempEntity.newOrganization();
+    containerImageOrg.setRelatedRepositoryId(proxyRepo.getId());
+    lookup(OrganizationDAO.class).update(containerImageOrg);
+    Application containerImage = tempEntity.newApplication(containerImageOrg.getId());
+
     containerWaiverPolicyName = "cw-p1-" + TemporaryEntity.uuid();
-    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, containerWaiverPolicyName);
-    PolicyWaiver waiver = new PolicyWaiver(
-        null, policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, DATA.waiverComment());
+    Policy policy = tempEntity.newPolicy(containerImage.getOrganizationId(), containerWaiverPolicyName);
+    PolicyWaiver waiver =
+        new PolicyWaiver(null, policy.getId(), containerImage.getId(), DATA.waiverComment());
+    waiver.setForContainerImage(true);
     tempEntity.newWaiver(waiver);
   }
 

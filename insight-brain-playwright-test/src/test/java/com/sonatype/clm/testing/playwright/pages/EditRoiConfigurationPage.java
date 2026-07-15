@@ -5,17 +5,15 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 
 public class EditRoiConfigurationPage
     extends BasePage
 {
+  // role=main is claimed by every route; anchor by id.
   private static final String ROOT = "#edit-roi-configuration-page";
-
-  private static final String RESTORE_DEFAULTS_MODAL = "#edit-roi-configuration-page__restore-defaults-modal";
 
   public EditRoiConfigurationPage() {
     super();
@@ -58,31 +56,53 @@ public class EditRoiConfigurationPage
         new Locator.GetByRoleOptions().setName("Restore Default Values").setExact(true));
   }
 
+  /** NxModal portals outside {@link #container()} — anchor on {@code page} and filter by heading. */
   public Locator restoreDefaultsModal() {
-    return locator(RESTORE_DEFAULTS_MODAL);
+    return page.getByRole(AriaRole.DIALOG)
+        .filter(new Locator.FilterOptions().setHas(page.getByRole(AriaRole.HEADING,
+            new Page.GetByRoleOptions().setName("Restore Default Values").setExact(true))));
   }
 
   public Locator restoreDefaultsModalRestoreButton() {
-    return locator(RESTORE_DEFAULTS_MODAL + " .restore-defaults-modal__restore-button");
+    return restoreDefaultsModal().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Restore").setExact(true));
   }
 
   public Locator restoreDefaultsModalCancelButton() {
-    return locator(RESTORE_DEFAULTS_MODAL + " .restore-defaults-modal__cancel-button");
+    return restoreDefaultsModal().getByRole(AriaRole.BUTTON, CommonButtonOptions.CANCEL_BUTTON_OPTS);
   }
 
-  /** Click the Restore Default Values button and wait for the confirmation modal to render. */
+  public Locator backButton() {
+    return byRole(AriaRole.LINK, "Back");
+  }
+
+  public Locator infoAlertText() {
+    return container()
+        .getByText("ROI values are displayed in the Lifecycle and Repository Firewall dashboards.");
+  }
+
+  public Locator lifecycleMetricsHeading() {
+    return container().getByRole(AriaRole.HEADING,
+        new Locator.GetByRoleOptions().setName("Lifecycle Metrics").setExact(true).setLevel(2));
+  }
+
+  public Locator malwareAttacksPreventedInput() {
+    return container().getByLabel("Detected violations for security-malicious components.");
+  }
+
+  public Locator namespaceAttacksPreventedInput() {
+    return container().getByLabel("Detected violations for namespace-conflict components.");
+  }
+
+  public Locator safeComponentsAutoSelectedInput() {
+    return container().getByLabel("Policy compliant components found when installing dependencies.");
+  }
+
+  public Locator validationErrorAlert() {
+    return byTestId("edit-roi-configuration-page__alert__validation-error");
+  }
+
   public void openRestoreDefaultsModal() {
     restoreDefaultsButton().click();
-    assertThat(restoreDefaultsModal()).isVisible();
-  }
-
-  /**
-   * Waits until the in-flight save has settled. The form is wrapped in {@code NxLoadWrapper} which
-   * unmounts its children while the save POST is in flight ({@code loading=true}) and remounts them
-   * once the save settles, so the Update button becoming visible again is a deterministic UI-level
-   * signal that the save has finished.
-   */
-  public void waitUntilSaved() {
-    assertThat(updateButton()).isVisible();
   }
 }

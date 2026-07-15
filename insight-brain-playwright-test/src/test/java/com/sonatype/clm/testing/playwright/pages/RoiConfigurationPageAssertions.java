@@ -29,4 +29,12 @@ public class RoiConfigurationPageAssertions
   public void shouldShowDailyRiskContaining(String expectedDigits) {
     assertThat(page.dailyRiskValue()).containsText(expectedDigits);
   }
+
+  public void shouldShowFirewallMetricsSection() {
+    assertThat(page.container()).isVisible();
+    assertThat(page.firewallMetricsHeading()).isVisible();
+    assertThat(page.container().getByText("Malware attacks prevented")).isVisible();
+    assertThat(page.container().getByText("Namespace attacks prevented")).isVisible();
+    assertThat(page.container().getByText("Safe components auto-selected")).isVisible();
+  }
 }

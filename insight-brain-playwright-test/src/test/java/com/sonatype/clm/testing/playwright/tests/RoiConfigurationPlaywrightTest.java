@@ -5,38 +5,28 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
-import java.math.BigDecimal;
-
-import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.EditRoiConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.EditRoiConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.RoiConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.RoiConfigurationPageAssertions;
-import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
-import com.sonatype.insight.brain.model.roi.CurrencyTypes;
-import com.sonatype.insight.brain.model.roi.RoiConfiguration;
-import com.sonatype.insight.brain.model.roi.RoiConfigurationDefaultValues;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
+/**
+ * ROI Configuration view + Edit pages under a Lifecycle license.
+ * Firewall-license variants live in {@link RoiConfigurationFirewallPlaywrightTest}.
+ */
 public class RoiConfigurationPlaywrightTest
-    extends AbstractIqUiTest
+    extends AbstractRoiConfigurationPlaywrightTest
 {
-  private static final Logger log = LoggerFactory.getLogger(RoiConfigurationPlaywrightTest.class);
-
   private static final String NEW_BASELINE_DAYS = "42";
-
-  private static final Integer SEED_BASELINE_DAYS = 30;
-
-  private static final BigDecimal SEED_DAILY_RISK = new BigDecimal("800");
 
   private RoiConfigurationPage roiPage;
 
@@ -44,12 +34,12 @@ public class RoiConfigurationPlaywrightTest
 
   private EditRoiConfigurationPage editRoiPage;
 
+  private EditRoiConfigurationPageAssertions editRoiAssertions;
+
   @Before
   public void setUp() {
-    // Explicitly pin license to PRODUCT_RISK_AND_REMEDIATION — narrows from the default broader set
-    // so the ROI page renders with a deterministic license context. Empirically, removing this call
-    // makes the Update button intermittently not re-appear after save (likely a license-dependent
-    // re-render path).
+    // Pin to PRODUCT_RISK_AND_REMEDIATION — without it the Update button intermittently fails to
+    // re-appear after save (license-dependent re-render path).
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
 
     seedRoiConfigurationDefaultsIfMissing();
@@ -60,6 +50,7 @@ public class RoiConfigurationPlaywrightTest
     roiPage = new RoiConfigurationPage();
     roiAssertions = new RoiConfigurationPageAssertions(roiPage);
     editRoiPage = new EditRoiConfigurationPage();
+    editRoiAssertions = new EditRoiConfigurationPageAssertions(editRoiPage);
   }
 
   @After
@@ -68,55 +59,87 @@ public class RoiConfigurationPlaywrightTest
     deleteRoiConfiguration();
   }
 
-  private void seedRoiConfigurationDefaultsIfMissing() {
-    RoiConfigurationDefaultValuesDAO dao = lookup(RoiConfigurationDefaultValuesDAO.class);
-    if (dao.getByCurrencyType(CurrencyTypes.USD) != null) {
-      return;
-    }
-
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.insert(tx, new RoiConfigurationDefaultValues(
-          CurrencyTypes.USD,
-          new BigDecimal("4350000"),
-          new BigDecimal("500000"),
-          new BigDecimal("35000"),
-          new BigDecimal("10000"),
-          new BigDecimal("25000"),
-          new BigDecimal("5000"),
-          30,
-          15,
-          new BigDecimal("800"),
-          new BigDecimal("400")));
-      tx.commit();
-    }
+  @Test
+  @Category(RegressionTest.class)
+  public void testRoiConfiguration_lifecycleMetricsSectionRendersWithLifecycleLicense() {
+    assertThat(roiPage.lifecycleMetricsHeading()).isVisible();
+    assertThat(roiPage.baselineDaysValue()).isVisible();
+    assertThat(roiPage.dailyRiskValue()).isVisible();
+    assertThat(roiPage.container().getByText("United States Dollar (USD)")).isVisible();
   }
 
-  private void seedRoiConfigurationIfMissing() {
-    RoiConfigurationDAO dao = lookup(RoiConfigurationDAO.class);
-    if (dao.getByCurrencyType(CurrencyTypes.USD) != null) {
-      return;
-    }
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.insert(tx, new RoiConfiguration(CurrencyTypes.USD, SEED_BASELINE_DAYS, SEED_DAILY_RISK));
-      tx.commit();
-    }
+  @Test
+  @Category(RegressionTest.class)
+  public void testRoiConfiguration_editLinkNavigatesToEditPage() {
+    roiPage.editLink().click();
+
+    assertThat(editRoiPage.container()).isVisible();
+    assertThat(editRoiPage.pageHeading()).isVisible();
+    assertThat(editRoiPage.updateButton()).isVisible();
   }
 
-  private void deleteRoiConfiguration() {
-    RoiConfigurationDAO dao = lookup(RoiConfigurationDAO.class);
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      RoiConfiguration current = dao.getByCurrencyType(CurrencyTypes.USD);
-      if (current != null) {
-        dao.delete(tx, current);
-      }
-      tx.commit();
-    }
-    catch (Exception e) {
-      log.debug("Failed to delete ROI configuration during cleanup", e);
-    }
+  @Test
+  @Category(RegressionTest.class)
+  public void testEditRoiConfiguration_pageRendersWithLifecycleFieldsAndInfoAlert() {
+    roiPage.editLink().click();
+
+    assertThat(editRoiPage.container()).isVisible();
+    assertThat(editRoiPage.pageHeading()).isVisible();
+    assertThat(editRoiPage.backButton()).isVisible();
+    assertThat(editRoiPage.infoAlertText()).isVisible();
+    assertThat(editRoiPage.lifecycleMetricsHeading()).isVisible();
+    assertThat(editRoiPage.baselineDaysInput()).isVisible();
+    assertThat(editRoiPage.dailyRiskInput()).isVisible();
+  }
+
+  /** Update button is unmounted (not disabled) when {@code hasValidationError} is true — hence {@code isHidden()}. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEditRoiConfiguration_validationErrorHidesUpdateButtonAndCancelReturnsToView() {
+    roiPage.editLink().click();
+
+    editRoiPage.baselineDaysInput().clear();
+    assertThat(editRoiPage.validationErrorAlert()).isVisible();
+    assertThat(editRoiPage.updateButton()).isHidden();
+
+    editRoiPage.cancelLink().click();
+    assertThat(roiPage.container()).isVisible();
+    assertThat(roiPage.pageHeading()).isVisible();
+  }
+
+  /** Cancel path — Confirm path is covered by {@link #testRoiConfiguration_restoreDefaultsResetsValues()}. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEditRoiConfiguration_restoreDefaultsModalCancelPreservesValues() {
+    roiPage.editLink().click();
+
+    editRoiPage.baselineDaysInput().clear();
+    editRoiPage.baselineDaysInput().fill(NEW_BASELINE_DAYS);
+
+    editRoiPage.openRestoreDefaultsModal();
+    editRoiAssertions.shouldShowRestoreDefaultsModal();
+    editRoiPage.restoreDefaultsModalCancelButton().click();
+
+    assertThat(editRoiPage.restoreDefaultsModal()).isHidden();
+    assertThat(editRoiPage.baselineDaysInput()).hasValue(NEW_BASELINE_DAYS);
+  }
+
+  /**
+   * JSX has no post-save transition — form stays on /edit; complements
+   * {@link #testRoiConfiguration_editPersistsAcrossReload}.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEditRoiConfiguration_updateSavesAndFormRemainsOnEditPage() {
+    roiPage.editLink().click();
+
+    editRoiPage.baselineDaysInput().clear();
+    editRoiPage.baselineDaysInput().fill(NEW_BASELINE_DAYS);
+    editRoiPage.updateButton().click();
+    editRoiAssertions.shouldHaveSettledAfterSave();
+
+    assertThat(editRoiPage.container()).isVisible();
+    assertThat(editRoiPage.baselineDaysInput()).hasValue(NEW_BASELINE_DAYS);
   }
 
   @Test
@@ -127,11 +150,12 @@ public class RoiConfigurationPlaywrightTest
     editRoiPage.baselineDaysInput().clear();
     editRoiPage.baselineDaysInput().fill(NEW_BASELINE_DAYS);
     editRoiPage.updateButton().click();
-    editRoiPage.waitUntilSaved();
+    editRoiAssertions.shouldHaveSettledAfterSave();
 
     editRoiPage.openRestoreDefaultsModal();
+    editRoiAssertions.shouldShowRestoreDefaultsModal();
     editRoiPage.restoreDefaultsModalRestoreButton().click();
-    editRoiPage.waitUntilSaved();
+    editRoiAssertions.shouldHaveSettledAfterSave();
 
     playwrightRefreshOrOpen(RoiConfigurationPage.url());
     roiAssertions.shouldShowBaselineDaysContaining(SEED_BASELINE_DAYS.toString());
@@ -146,7 +170,7 @@ public class RoiConfigurationPlaywrightTest
     editRoiPage.baselineDaysInput().clear();
     editRoiPage.baselineDaysInput().fill(NEW_BASELINE_DAYS);
     editRoiPage.updateButton().click();
-    editRoiPage.waitUntilSaved();
+    editRoiAssertions.shouldHaveSettledAfterSave();
 
     playwrightRefreshOrOpen(RoiConfigurationPage.url());
     roiAssertions.shouldShowBaselineDaysContaining(NEW_BASELINE_DAYS);

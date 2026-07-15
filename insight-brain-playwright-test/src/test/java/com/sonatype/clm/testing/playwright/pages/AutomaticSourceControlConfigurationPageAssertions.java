@@ -15,29 +15,27 @@ public class AutomaticSourceControlConfigurationPageAssertions
     this.page = page;
   }
 
-  public void shouldRenderPageLayout() {
+  public void shouldRenderFormLayout() {
     assertThat(page.container()).isVisible();
     assertThat(page.pageHeading()).isVisible();
-    assertThat(page.tile()).isVisible();
-    assertThat(page.tileHeading()).isVisible();
-    assertThat(page.enabledToggleLabel()).isVisible();
+    assertThat(page.toggleLabel()).isVisible();
     assertThat(page.updateButton()).isVisible();
     assertThat(page.cancelButton()).isVisible();
   }
 
-  public void shouldHaveEnabledToggleChecked() {
-    assertThat(page.enabledToggleInput()).isChecked();
+  public void shouldHaveToggleChecked() {
+    assertThat(page.toggleInput()).isChecked();
   }
 
-  public void shouldHaveEnabledToggleUnchecked() {
-    assertThat(page.enabledToggleInput()).not().isChecked();
+  public void shouldHaveToggleUnchecked() {
+    assertThat(page.toggleInput()).not().isChecked();
   }
 
-  public void shouldHaveCancelDisabled() {
+  public void shouldHaveCancelButtonDisabled() {
     assertThat(page.cancelButton()).isDisabled();
   }
 
-  public void shouldHaveCancelEnabled() {
+  public void shouldHaveCancelButtonEnabled() {
     assertThat(page.cancelButton()).isEnabled();
   }
 }

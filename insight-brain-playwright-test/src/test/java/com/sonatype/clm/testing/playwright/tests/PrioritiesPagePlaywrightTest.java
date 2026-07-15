@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -34,13 +35,15 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.microsoft.playwright.Route;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/** Regression tests for the Developer Priorities page (waiver indicators). */
+/** Regression tests for the Developer Priorities page. */
 public class PrioritiesPagePlaywrightTest
     extends AbstractIqUiTest
 {
@@ -61,6 +64,14 @@ public class PrioritiesPagePlaywrightTest
   @Before
   public void prepareApp() throws IOException {
     seedDb();
+  }
+
+  @After
+  public void resetContextState() {
+    // BrowserContext is reused across tests in the same fork — clear clipboard grants and any
+    // page.route intercepts to avoid leaking them into sibling tests.
+    context.clearPermissions();
+    page.unrouteAll();
   }
 
   private void openPrioritiesPage() {
@@ -114,16 +125,8 @@ public class PrioritiesPagePlaywrightTest
 
     PolicyViolation representative = firstSeedableViolation();
     // Soon-to-expire icon requires isAllViolationsWaived=true. Waive every violation on the
-    // component hash, dedup by policyId (waiver unique key is hash+policyId+ownerId).
-    PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
-    List<PolicyViolation> allViolations = dao.getByApplicationId(app.getId());
-    Map<String, PolicyViolation> uniqueByPolicyId = allViolations.stream()
-        .filter(v -> representative.getHash().equals(v.getHash()) && v.getPolicyId() != null)
-        .collect(Collectors.toMap(PolicyViolation::getPolicyId, v -> v, (a, b) -> a));
-    List<PolicyViolation> componentViolations = List.copyOf(uniqueByPolicyId.values());
-
-    // Fail closed if the canned report drifts — otherwise zero seeded waivers would silently pass.
-    assertThat(componentViolations).as("violations on the seeded component (precondition)").isNotEmpty();
+    // component hash (deduped by policyId — waiver's unique key is hash+policyId+ownerId).
+    List<PolicyViolation> componentViolations = uniqueViolationsForHash(representative.getHash());
 
     Date nearFutureExpiry = Date.from(Instant.now().plus(7, ChronoUnit.DAYS));
     for (PolicyViolation v : componentViolations) {
@@ -144,6 +147,144 @@ public class PrioritiesPagePlaywrightTest
     assertions.shouldShowSoonToExpireWaiverIconOnRow(prioritiesPage.rowByArtifactId(artifactId));
   }
 
+  @Test
+  @Category(RegressionTest.class)
+  public void testPrioritiesPage_rendersWithHeaderAndTitleForNoBranch() throws IOException {
+    evaluator.evaluatePolicy();
+    openPrioritiesPage();
+
+    PrioritiesPageAssertions assertions = new PrioritiesPageAssertions(new PrioritiesPage());
+    assertions.shouldShowPageHeader();
+    assertions.shouldShowBreadcrumbLink("Priorities");
+    assertions.shouldHaveHeaderTitleText(appName + " - Priorities");
+    assertions.shouldShowTableColumnHeaders();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testPrioritiesPage_headerShowsMetadataAndViewDropdown() throws IOException {
+    evaluator.evaluatePolicy();
+    openPrioritiesPage();
+
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    PrioritiesPageAssertions assertions = new PrioritiesPageAssertions(prioritiesPage);
+
+    assertions.shouldShowPageHeader();
+    prioritiesPage.openViewDropdown();
+    assertions.shouldShowViewDropdownLinks();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testPrioritiesPage_commitCopyButtonShowsCheckIconAfterClick() throws IOException {
+    // Scope clipboard permissions to this test: BrowserContext is reused across tests in the
+    // same fork, so revoke in finally to avoid leaking the grant to siblings even if this test
+    // fails. @After.clearPermissions() is a belt-and-braces backstop.
+    context.grantPermissions(List.of("clipboard-read", "clipboard-write"));
+    try {
+      evaluator.evaluatePolicy();
+      openPrioritiesPage();
+
+      PrioritiesPage prioritiesPage = new PrioritiesPage();
+      assertThat(prioritiesPage.commitCopyButton()).isVisible();
+      prioritiesPage.commitCopyButton().click();
+      // Hover after click because NxTooltip only mounts its title portal on hover — click alone
+      // triggers the copy action but does not surface the "Copied" tooltip text.
+      prioritiesPage.commitCopyButton().hover();
+      assertThat(prioritiesPage.commitCopyTooltipCopiedText()).isVisible();
+    }
+    finally {
+      context.clearPermissions();
+    }
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testPrioritiesPage_filterInputAndFailWarnToggleUpdateUrlParams() throws IOException {
+    evaluator.evaluatePolicy();
+    openPrioritiesPage();
+
+    PolicyViolation violation = firstSeedableViolation();
+    String artifactId = violation.getComponentIdentifier().getCoordinates().get("artifactId");
+
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    PrioritiesPageAssertions assertions = new PrioritiesPageAssertions(prioritiesPage);
+
+    prioritiesPage.componentFilterInput().fill(artifactId);
+    assertions.shouldHaveComponentNameFilterUrlParam(artifactId);
+    assertThat(prioritiesPage.rows().first()).isVisible();
+
+    prioritiesPage.failWarnToggleLabel().click();
+    assertions.shouldHaveFilterOnPolicyActionsUrlParamOn();
+    assertThat(prioritiesPage.failWarnToggleInput())
+        .isChecked();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testPrioritiesPage_fullyWaivedRowShowsWaivedLabel() throws IOException {
+    evaluator.evaluatePolicy();
+    openPrioritiesPage();
+
+    PolicyViolation representative = firstSeedableViolation();
+    List<PolicyViolation> componentViolations = uniqueViolationsForHash(representative.getHash());
+
+    Date farFutureExpiry = Date.from(Instant.now().plus(365, ChronoUnit.DAYS));
+    for (PolicyViolation v : componentViolations) {
+      tempEntity.newWaiver(v.getHash(), v.getPolicyId(), app.getId(),
+          "Fully-waived row label regression check", farFutureExpiry);
+    }
+
+    evaluator.reevaluatePolicy();
+
+    String artifactId = representative.getComponentIdentifier().getCoordinates().get("artifactId");
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    PrioritiesPageAssertions assertions = reopenPrioritiesPageFilteredBy(artifactId);
+    assertions.shouldShowFullyWaivedLabelOnRow(prioritiesPage.rowByArtifactId(artifactId));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testPrioritiesPage_recommendationCellShowsWaiveViolationsForUnknownReachability() throws IOException {
+    evaluator.evaluatePolicy();
+    openPrioritiesPage();
+
+    PolicyViolation violation = firstSeedableViolation();
+    String artifactId = violation.getComponentIdentifier().getCoordinates().get("artifactId");
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    PrioritiesPageAssertions assertions = reopenPrioritiesPageFilteredBy(artifactId);
+    assertions.shouldShowWaiveViolationsRecommendationOnRow(prioritiesPage.rowByArtifactId(artifactId));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testPrioritiesPage_dependencyIndicatorsRenderInComponentCell() throws IOException {
+    evaluator.evaluatePolicy();
+    openPrioritiesPage();
+
+    new PrioritiesPageAssertions(new PrioritiesPage()).shouldShowAtLeastOneDependencyIndicatorInTable();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testPrioritiesPage_licenseLockScreenShownWhenDeveloperDashboardDisabled() throws IOException {
+    evaluator.evaluatePolicy();
+    page.route(Pattern.compile(".*/rest/product/features([?#][^/]*)?$"),
+        route -> route.fulfill(new Route.FulfillOptions()
+            .setStatus(200)
+            .setContentType("application/json")
+            .setBody("[]")));
+
+    playwrightRefreshOrOpen(PrioritiesPage.url(app.getPublicId(), SCAN_ID));
+    playwrightLogin();
+    // Explicit reload is load-bearing (not a double-nav): the SPA cached productFeatures at first
+    // load, so we reload to force `fetchProductFeaturesIfNeeded` to re-fire through the intercept.
+    // Same pattern used in OrganizationRegressionPlaywrightTest#testLegacyViolationsLicenseGate*.
+    page.reload();
+
+    new PrioritiesPageAssertions(new PrioritiesPage()).shouldShowLicenseLockScreen();
+  }
+
   private PolicyViolation firstSeedableViolation() {
     PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
     List<PolicyViolation> violations = dao.getByApplicationId(app.getId());
@@ -155,6 +296,33 @@ public class PrioritiesPagePlaywrightTest
         .findFirst()
         .orElseThrow(() -> new IllegalStateException(
             "No suitable PolicyViolation found after canned-report evaluation for app=" + app.getId()));
+  }
+
+  /**
+   * All violations on {@code hash} deduped by {@code policyId} (waiver's unique key is
+   * {@code (hash, policyId, ownerId)}). Fails closed if the canned report drifts.
+   */
+  private List<PolicyViolation> uniqueViolationsForHash(String hash) {
+    PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
+    Map<String, PolicyViolation> uniqueByPolicyId = dao.getByApplicationId(app.getId())
+        .stream()
+        .filter(v -> hash.equals(v.getHash()) && v.getPolicyId() != null)
+        .collect(Collectors.toMap(PolicyViolation::getPolicyId, v -> v, (a, b) -> a));
+    List<PolicyViolation> componentViolations = List.copyOf(uniqueByPolicyId.values());
+    requireNonEmptyPrecondition(componentViolations,
+        "violations on the seeded component (precondition)");
+    return componentViolations;
+  }
+
+  /**
+   * Precondition check on a Java collection (not a Playwright web element). Kept as a helper so
+   * the file's only {@code assertThat} import remains Playwright's — callers use one assertion
+   * style, and the AssertJ FQN is confined here.
+   */
+  private static void requireNonEmptyPrecondition(List<?> items, String description) {
+    if (items == null || items.isEmpty()) {
+      throw new IllegalStateException(description + " must not be empty");
+    }
   }
 
   /**

@@ -9,121 +9,82 @@ import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.pages.AutomaticSourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.AutomaticSourceControlConfigurationPageAssertions;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 
-import com.microsoft.playwright.Route;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
 /**
- * Automatic Source Control configuration page ({@code /automaticSourceControlConfiguration}).
- *
- * <p>
- * The backing {@code AutomaticSourceControlConfigurationResource.get()} is gated by
- * {@code @HasFeature(SAAS_LIFECYCLE_SCM_ENABLED)} which is not on the default test license,
- * so the page's config-load call is stubbed via {@code page.route(...)} for all tests. This
- * lets the page render deterministically under whatever seeded state the test needs without
- * touching the DB.
+ * Feature-flag-gate note: the row's original claim ("Access when
+ * {@code selectIsAutomaticScmConfigurationEnabled=false} — {@code LicenseLockScreen} renders
+ * instead of the form") does NOT match the code — the route (see {@code configuration/route.js})
+ * mounts the form component unconditionally; only the sidebar menu link is feature-flag-gated
+ * ({@code SystemPreferencesMenu.jsx}). See divergences log.
  */
 public class AutomaticSourceControlConfigurationPlaywrightTest
     extends AbstractIqUiTest
 {
-  private static final String AUTO_SCM_CONFIG_ROUTE = "**/rest/config/automaticScmConfiguration**";
+  private AutomaticSourceControlConfigurationPage scmPage;
 
-  private static final String AUTO_APP_CONFIG_ROUTE = "**/rest/config/automaticApplications**";
+  private AutomaticSourceControlConfigurationPageAssertions scmAssertions;
 
-  private static final String ORGANIZATIONS_ROUTE = "**/rest/organization";
+  @Before
+  public void openAsAdmin() {
+    // Seed the toggle to a known-off state so every test starts identical — avoids branching
+    // assertions on the toggle's live value. DAO write is fork-wide state; @After resets it.
+    lookup(AutomaticSourceControlConfigurationDAO.class).setSourceControlConfigurationEnabled(false);
 
-  // `/*` (single-segment star) instead of `/**` to guarantee the tail `pw-root-org` matches —
-  // trailing `/**` in Playwright globs can silently skip requests when the tail is a single
-  // segment, which would let the composite request escape the stub and hit the (feature-gated)
-  // backend, freezing the load thunk (the composite promise has no .catch).
-  private static final String COMPOSITE_SC_ROUTE = "**/api/v2/compositeSourceControl/organization/*";
-
-  private static final String SCM_CONFIG_JSON_DISABLED = "{\"enabled\":false}";
-
-  private static final String AUTO_APP_CONFIG_DISABLED_JSON =
-      "{\"enabled\":false,\"parentOrganizationId\":null}";
-
-  private static final String ORGANIZATIONS_JSON =
-      "[{\"id\":\"pw-root-org\",\"name\":\"pw-root-org\"}]";
-
-  private static final String COMPOSITE_SC_EMPTY_JSON = "{\"provider\":null}";
-
-  private AutomaticSourceControlConfigurationPage configPage;
-
-  private AutomaticSourceControlConfigurationPageAssertions configAssertions;
+    playwrightLoginAdminAt(AutomaticSourceControlConfigurationPage.url());
+    scmPage = new AutomaticSourceControlConfigurationPage();
+    scmAssertions = new AutomaticSourceControlConfigurationPageAssertions(scmPage);
+  }
 
   @After
-  public void unrouteAll() {
-    page.unroute(AUTO_SCM_CONFIG_ROUTE);
-    page.unroute(AUTO_APP_CONFIG_ROUTE);
-    page.unroute(ORGANIZATIONS_ROUTE);
-    page.unroute(COMPOSITE_SC_ROUTE);
+  public void resetSourceControlConfiguration() {
+    // Reset any mutation the test made — the DAO write is fork-wide state shared across tests.
+    lookup(AutomaticSourceControlConfigurationDAO.class).setSourceControlConfigurationEnabled(false);
   }
 
   @Test
   @Category(RegressionTest.class)
-  public void testPageRenders_toggleAndUpdate() {
-    stubLoadEndpoints();
-    openConfigPage();
-
-    configAssertions.shouldRenderPageLayout();
-    configAssertions.shouldHaveEnabledToggleUnchecked();
-
-    configPage.enabledToggleLabel().click();
-    configAssertions.shouldHaveEnabledToggleChecked();
-    configAssertions.shouldHaveCancelEnabled();
+  public void testAutomaticScm_pageRendersWithFormControls() {
+    scmAssertions.shouldRenderFormLayout();
+    scmAssertions.shouldHaveToggleUnchecked();
   }
 
-  /** Cancel disabled when clean; Cancel reverts when dirty. */
   @Test
   @Category(RegressionTest.class)
-  public void testCancel_disabledWhenClean_revertsWhenDirty() {
-    stubLoadEndpoints();
-    openConfigPage();
+  public void testAutomaticScm_cancelTracksDirtyAndResetsToggle() {
+    scmAssertions.shouldRenderFormLayout();
+    scmAssertions.shouldHaveToggleUnchecked();
+    scmAssertions.shouldHaveCancelButtonDisabled();
 
-    configAssertions.shouldRenderPageLayout();
-    configAssertions.shouldHaveCancelDisabled();
+    scmPage.toggleLabel().click();
+    scmAssertions.shouldHaveToggleChecked();
+    scmAssertions.shouldHaveCancelButtonEnabled();
 
-    configPage.enabledToggleLabel().click();
-    configAssertions.shouldHaveEnabledToggleChecked();
-    configAssertions.shouldHaveCancelEnabled();
-
-    configPage.cancelButton().click();
-    configAssertions.shouldHaveEnabledToggleUnchecked();
-    configAssertions.shouldHaveCancelDisabled();
+    scmPage.cancelButton().click();
+    scmAssertions.shouldHaveToggleUnchecked();
+    scmAssertions.shouldHaveCancelButtonDisabled();
   }
 
-  /**
-   * Installs the four endpoints the {@code loadAutomaticSourceControlConfiguration} thunk calls.
-   * Both tests drive the "toggle OFF, no auto-apps, no SCM provider" branch.
-   *
-   * <p>
-   * Note: don't stub {@code PUT /rest/user/permissions/global/global} — that route is on
-   * the login critical path and stubbing it breaks session establishment. The embedded IQ
-   * admin's native permissions are sufficient here.
-   */
-  private void stubLoadEndpoints() {
-    stubJson(AUTO_SCM_CONFIG_ROUTE, SCM_CONFIG_JSON_DISABLED);
-    stubJson(AUTO_APP_CONFIG_ROUTE, AUTO_APP_CONFIG_DISABLED_JSON);
-    stubJson(ORGANIZATIONS_ROUTE, ORGANIZATIONS_JSON);
-    stubJson(COMPOSITE_SC_ROUTE, COMPOSITE_SC_EMPTY_JSON);
-  }
+  @Test
+  @Category(RegressionTest.class)
+  public void testAutomaticScm_toggleAndUpdatePersistsAcrossReload() {
+    scmAssertions.shouldHaveToggleUnchecked();
 
-  private void stubJson(String routePattern, String body) {
-    page.route(routePattern, route -> route.fulfill(new Route.FulfillOptions()
-        .setStatus(200)
-        .setContentType("application/json")
-        .setBody(body)));
-  }
+    scmPage.toggleLabel().click();
+    assertThat(scmPage.updateButton()).isEnabled();
+    scmPage.updateButton().click();
+    waitForSubmitMaskSuccess();
+    scmAssertions.shouldHaveCancelButtonDisabled();
 
-  private void openConfigPage() {
-    // Atomic login (navigate + login + wait-for-auth-header) — otherwise route guards can
-    // race the login POST and issue 401s that never recover.
-    playwrightLoginAdminAt(AutomaticSourceControlConfigurationPage.url());
-
-    configPage = new AutomaticSourceControlConfigurationPage();
-    configAssertions = new AutomaticSourceControlConfigurationPageAssertions(configPage);
+    playwrightRefreshOrOpen(AutomaticSourceControlConfigurationPage.url());
+    scmAssertions.shouldRenderFormLayout();
+    scmAssertions.shouldHaveToggleChecked();
   }
 }

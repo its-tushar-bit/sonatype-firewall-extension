@@ -47,4 +47,14 @@ public class RoiConfigurationPage
   public Locator dailyRiskValue() {
     return locator("#roi-configuration-page__numeric-value__daily-risk-cost-of-unfixed-violation");
   }
+
+  public Locator lifecycleMetricsHeading() {
+    return container().getByRole(AriaRole.HEADING,
+        new Locator.GetByRoleOptions().setName("Lifecycle Metrics").setExact(true).setLevel(2));
+  }
+
+  public Locator firewallMetricsHeading() {
+    return container().getByRole(AriaRole.HEADING,
+        new Locator.GetByRoleOptions().setName("Repository Firewall Metrics").setExact(true).setLevel(2));
+  }
 }

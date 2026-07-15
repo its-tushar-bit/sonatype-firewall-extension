@@ -1449,6 +1449,7 @@ public class ApiConfigFeaturesServiceTest
 
     expectedFeatureConfigMap.put("ADVANCED_SEARCH_CONFIGURATION", true);
     expectedFeatureConfigMap.put("ADVANCED_SEARCH_ENABLED", false);
+    expectedFeatureConfigMap.put("GLOBAL_SEARCH", false);
     expectedFeatureConfigMap.put("alpForSbomManager", false);
     expectedFeatureConfigMap.put("API_PAGE", true);
     expectedFeatureConfigMap.put("AUTOMATIC_APPLICATION_CONFIGURATION", true);

@@ -97,6 +97,26 @@ public class ApplicationsListViolationScopeResolverTest
   }
 
   @Test
+  public void resolveApplicationIds_skipsBlankApplicationIdsWithoutThrowingOrInflatingIdCount() {
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+    AtomicInteger pageCalls = new AtomicInteger();
+    when(searchIndexClient.searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+        .thenAnswer(invocation -> {
+          pageCalls.incrementAndGet();
+          return fullPageWithBlankApplicationIds();
+        });
+
+    ApplicationsListViolationScopeResolver resolver =
+        new ApplicationsListViolationScopeResolver(searchIndexClient, configuration);
+
+    Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", null, List.of());
+
+    assertThat(applicationIds).isEmpty();
+    assertThat(pageCalls.get())
+        .isEqualTo(ApplicationsListViolationScopeResolver.MAX_CONSECUTIVE_VIOLATION_PAGES_WITHOUT_NEW_APPLICATION_IDS);
+  }
+
+  @Test
   public void resolveApplicationIds_continuesPagingWhenEachPageAddsNewApplicationIds() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     AtomicInteger pageCalls = new AtomicInteger();
@@ -137,6 +157,20 @@ public class ApplicationsListViolationScopeResolverTest
 
   private static SearchResultDTO fullPageWithApplicationIds(String... applicationIds) {
     return pageWithApplicationIds(500, applicationIds);
+  }
+
+  private static SearchResultDTO fullPageWithBlankApplicationIds() {
+    SearchResultDTO searchResult = new SearchResultDTO();
+    GroupingByDTO group = new GroupingByDTO();
+    List<SearchResultItemDTO> items = new ArrayList<>(500);
+    for (int i = 0; i < 500; i++) {
+      SearchResultItemDTO item = new SearchResultItemDTO();
+      item.applicationId = null;
+      items.add(item);
+    }
+    group.searchResultItemDTOS = items;
+    searchResult.groupingByDTOS = List.of(group);
+    return searchResult;
   }
 
   private static SearchResultDTO fullPageHittingMaxIdsOnLastHit(String firstId, String lastId) {

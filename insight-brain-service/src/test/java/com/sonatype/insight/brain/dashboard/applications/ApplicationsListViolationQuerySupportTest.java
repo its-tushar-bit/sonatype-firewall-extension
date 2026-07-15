@@ -95,6 +95,36 @@ public class ApplicationsListViolationQuerySupportTest
   }
 
   @Test
+  public void effectiveThreatFilters_nonNullEmptyPluralIgnoresSingular() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatLevelRanges = List.of();
+    request.policyThreatLevelRange = new PolicyThreatLevelFilter(8, 10);
+
+    assertThat(ApplicationsListViolationQuerySupport.effectiveThreatFilters(request)).isEmpty();
+  }
+
+  @Test
+  public void effectiveThreatFilters_omittedPluralFallsBackToSingular() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatLevelRanges = null;
+    request.policyThreatLevelRange = new PolicyThreatLevelFilter(8, 10);
+
+    assertThat(ApplicationsListViolationQuerySupport.effectiveThreatFilters(request))
+        .containsExactly(request.policyThreatLevelRange);
+  }
+
+  @Test
+  public void effectiveThreatFilters_nonEmptyPluralWinsOverSingular() {
+    PolicyThreatLevelFilter plural = new PolicyThreatLevelFilter(1, 1);
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatLevelRanges = List.of(plural);
+    request.policyThreatLevelRange = new PolicyThreatLevelFilter(8, 10);
+
+    assertThat(ApplicationsListViolationQuerySupport.effectiveThreatFilters(request))
+        .containsExactly(plural);
+  }
+
+  @Test
   public void policyThreatLevelOrFilter_rejectsEmptyRanges() {
     assertThatThrownBy(() -> new PolicyThreatLevelOrFilter(List.of()))
         .isInstanceOf(IllegalArgumentException.class)

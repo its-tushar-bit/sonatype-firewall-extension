@@ -104,6 +104,8 @@ final class ApplicationsListRequestValidator
       }
     }
     // Legacy singular field is accepted (not 400) so Classic/API callers still get violation scope.
+    // When policyThreatLevelRanges is non-null (including empty), effectiveThreatFilters treats it as
+    // authoritative and ignores policyThreatLevelRange. Singular applies only when plural is omitted.
     validateThreatLevelFilterBounds(request.policyThreatLevelRange);
   }
 

@@ -104,15 +104,27 @@ final class ApplicationsListViolationQuerySupport
     return "(" + String.join(" OR ", rangeClauses) + ")";
   }
 
+  /**
+   * Resolve threat filters used for violation-scoped discovery.
+   * <p>
+   * When {@code policyThreatLevelRanges} is non-null it is authoritative — including an empty
+   * list, which means no threat filter (do not fall through to singular
+   * {@code policyThreatLevelRange}). Singular is used only when the plural field is omitted
+   * ({@code null}), for Classic/API compatibility. The validator accepts both fields.
+   */
   static List<PolicyThreatLevelFilter> effectiveThreatFilters(final ApplicationsListRequestDTO request) {
     if (request == null) {
       return List.of();
     }
-    if (request.policyThreatLevelRanges != null && !request.policyThreatLevelRanges.isEmpty()) {
-      return request.policyThreatLevelRanges;
+    List<PolicyThreatLevelFilter> ranges = request.policyThreatLevelRanges;
+    if (ranges != null) {
+      return ranges;
     }
-    if (request.policyThreatLevelRange != null && buildThreatFilterClause(request.policyThreatLevelRange) != null) {
-      return List.of(request.policyThreatLevelRange);
+    PolicyThreatLevelFilter singular = request.policyThreatLevelRange;
+    if (singular != null) {
+      if (buildThreatFilterClause(singular) != null) {
+        return List.of(singular);
+      }
     }
     return List.of();
   }

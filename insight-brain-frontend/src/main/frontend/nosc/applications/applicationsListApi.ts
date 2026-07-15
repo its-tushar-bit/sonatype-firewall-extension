@@ -11,6 +11,9 @@ import {
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { deriveFacetsFromPageRows } from 'MainRoot/nosc/applications/deriveFacetsFromPageRows';
 import { staticThreatLevelFacets } from 'MainRoot/nosc/applications/applicationsListFilters';
+import type { ApplicationsListOrderBy } from 'MainRoot/nosc/applications/applicationsListQuery';
+
+export type { ApplicationsListOrderBy };
 
 /** Mirrors backend {@code RiskDTO}. */
 export type ApiRiskCounts = {
@@ -66,6 +69,8 @@ export type ApplicationsListRequest = {
   readonly page?: number;
   readonly pageSize?: number;
   readonly includeFacets?: boolean;
+  readonly search?: string;
+  readonly orderBy?: ApplicationsListOrderBy;
   readonly organizationIds?: ReadonlyArray<string>;
   readonly applicationIds?: ReadonlyArray<string>;
   readonly stageIds?: ReadonlyArray<string>;

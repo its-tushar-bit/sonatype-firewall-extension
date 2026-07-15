@@ -9,7 +9,7 @@ import type { AsyncPageStateInfoProps } from 'MainRoot/nosc/components/AsyncPage
 import {
   APPLICATIONS_LIST_PAGE_SIZE,
   ApplicationsListApiResponse,
-  ApplicationsListRequest,
+  ApplicationsListOrderBy,
   mapApplicationsListResponse,
 } from 'MainRoot/nosc/applications/applicationsListApi';
 import {
@@ -23,13 +23,27 @@ import {
   hasActiveApplicationsListFilters,
   toggleApplicationsListFilterId,
 } from 'MainRoot/nosc/applications/applicationsListFilters';
+import {
+  DEFAULT_APPLICATIONS_LIST_ORDER_BY,
+  filtersEqual,
+} from 'MainRoot/nosc/applications/applicationsListQuery';
 import { getApplicationsListUrl } from 'MainRoot/util/CLMLocation';
+
+export interface ApplicationsListQueryState {
+  readonly search: string;
+  readonly orderBy: ApplicationsListOrderBy;
+  /** 0-based page index for the list API. */
+  readonly page: number;
+  readonly filters: ApplicationsListFilterState;
+}
 
 export interface UseApplicationsListResult {
   readonly applications: ReadonlyArray<ApplicationRiskScore>;
   readonly facets: ApplicationsFilterFacetCounts;
   readonly filters: ApplicationsListFilterState;
   readonly hasActiveFilters: boolean;
+  readonly search: string;
+  readonly orderBy: ApplicationsListOrderBy;
   readonly loading: boolean;
   readonly error: string | null;
   readonly info: AsyncPageStateInfoProps | null;
@@ -40,11 +54,19 @@ export interface UseApplicationsListResult {
   readonly pageSize: number;
   readonly hasNextPage: boolean;
   readonly setPage: (page: number) => void;
+  readonly submitSearch: (term: string) => void;
+  readonly changeOrderBy: (orderBy: ApplicationsListOrderBy) => void;
   readonly toggleFilter: (
     field: keyof ApplicationsListFilterState,
     id: string,
   ) => void;
   readonly resetFilters: () => void;
+  readonly syncQueryState: (state: {
+    readonly search: string;
+    readonly orderBy: ApplicationsListOrderBy;
+    readonly page: number;
+    readonly filters: ApplicationsListFilterState;
+  }) => void;
 }
 
 const EMPTY_FACETS: ApplicationsFilterFacetCounts = {
@@ -58,29 +80,47 @@ const EMPTY_FACETS: ApplicationsFilterFacetCounts = {
 export const APPLICATIONS_INDEX_NOT_READY_MESSAGE =
   'The search index is still building. Please try again shortly.';
 
+export interface UseApplicationsListOptions {
+  readonly pageSize?: number;
+  readonly includeFacets?: boolean;
+  /** Seed list state from the route so the first fetch matches deep-linked hash params. */
+  readonly initialState?: ApplicationsListQueryState;
+  /** When false, defers the list POST until route state is hydrated (default true). */
+  readonly enabled?: boolean;
+}
+
 /**
  * Martha V1 Applications list data hook.
- * Fetches POST /rest/dashboard/applications/list with server pagination and sidebar filters.
+ * Fetches POST /rest/dashboard/applications/list with server pagination, search, sort, and filters.
  */
 export function useApplicationsList(
-  options: ApplicationsListRequest = {},
+  options: UseApplicationsListOptions = {},
 ): UseApplicationsListResult {
   const {
-    page: initialPage = 0,
     pageSize = APPLICATIONS_LIST_PAGE_SIZE,
     includeFacets = true,
+    initialState,
+    enabled = true,
   } = options;
-  const [page, setPage] = useState(initialPage);
-  const [filters, setFilters] = useState<ApplicationsListFilterState>(EMPTY_APPLICATIONS_LIST_FILTERS);
+  const [page, setPage] = useState(() => initialState?.page ?? 0);
+  const [search, setSearch] = useState(() => initialState?.search ?? '');
+  const [orderBy, setOrderBy] = useState<ApplicationsListOrderBy>(
+    () => initialState?.orderBy ?? DEFAULT_APPLICATIONS_LIST_ORDER_BY,
+  );
+  const [filters, setFilters] = useState<ApplicationsListFilterState>(
+    () => initialState?.filters ?? EMPTY_APPLICATIONS_LIST_FILTERS,
+  );
 
   const requestBody = useMemo(
     () => ({
       page,
       pageSize,
       includeFacets,
+      orderBy,
+      ...(search.trim() ? { search: search.trim() } : {}),
       ...applicationsListFiltersToRequest(filters),
     }),
-    [page, pageSize, includeFacets, filters],
+    [page, pageSize, includeFacets, search, orderBy, filters],
   );
 
   const { status, data, error, retry } = useTile<ApplicationsListApiResponse>(
@@ -90,6 +130,7 @@ export function useApplicationsList(
       method: 'post',
       body: requestBody,
       mapErrorStatus: (statusCode) => (statusCode === 409 ? 'not-ready' : 'error'),
+      enabled,
     },
   );
 
@@ -116,6 +157,16 @@ export function useApplicationsList(
     setPage(Math.max(0, nextPage));
   }, []);
 
+  const submitSearch = useCallback((term: string) => {
+    setSearch(term);
+    setPage(0);
+  }, []);
+
+  const changeOrderBy = useCallback((nextOrderBy: ApplicationsListOrderBy) => {
+    setOrderBy(nextOrderBy);
+    setPage(0);
+  }, []);
+
   const toggleFilter = useCallback((
     field: keyof ApplicationsListFilterState,
     id: string,
@@ -136,6 +187,18 @@ export function useApplicationsList(
     setPage(0);
   }, []);
 
+  const syncQueryState = useCallback((state: {
+    readonly search: string;
+    readonly orderBy: ApplicationsListOrderBy;
+    readonly page: number;
+    readonly filters: ApplicationsListFilterState;
+  }) => {
+    setSearch((current) => (current === state.search ? current : state.search));
+    setOrderBy((current) => (current === state.orderBy ? current : state.orderBy));
+    setPage((current) => (current === state.page ? current : state.page));
+    setFilters((current) => (filtersEqual(current, state.filters) ? current : state.filters));
+  }, []);
+
   const info: AsyncPageStateInfoProps | null =
     status === 'not-ready'
       ? {
@@ -150,6 +213,8 @@ export function useApplicationsList(
     facets: mapped?.facets ?? EMPTY_FACETS,
     filters,
     hasActiveFilters: hasActiveApplicationsListFilters(filters),
+    search,
+    orderBy,
     loading: status === 'loading',
     error: status === 'error' ? (error?.message ?? null) : null,
     info,
@@ -159,7 +224,10 @@ export function useApplicationsList(
     pageSize: mapped?.pageSize ?? pageSize,
     hasNextPage: mapped?.hasNextPage ?? false,
     setPage: goToPage,
+    submitSearch,
+    changeOrderBy,
     toggleFilter,
     resetFilters,
+    syncQueryState,
   };
 }

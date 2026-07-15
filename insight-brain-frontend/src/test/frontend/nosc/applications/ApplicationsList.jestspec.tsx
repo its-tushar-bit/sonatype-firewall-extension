@@ -20,6 +20,7 @@ import router from 'MainRoot/router/routerInstance';
 import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
+import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 
 const API_LIST_RESPONSE = {
   applications: [
@@ -110,6 +111,7 @@ describe('ApplicationsList (CLM-42224)', () => {
   let listUrl: string;
 
   beforeAll(() => {
+    installRadixJsdomShims();
     _setBaseUrlForTesting('http://localhost');
     listUrl = getApplicationsListUrl();
     axiosMock = axiosMockAdapter();
@@ -125,6 +127,78 @@ describe('ApplicationsList (CLM-42224)', () => {
   });
 
   const renderList = () => renderNexusOneRoute(<ApplicationsList />, 'nexusOneApplications');
+
+  it('hydrates list state from deep-linked route params on the first fetch', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+
+    renderNexusOneRoute(
+      <ApplicationsList />,
+      'nexusOneApplications',
+      { q: 'apple', sort: 'oldest', page: '2', stage: 'build' },
+    );
+
+    await waitFor(() => {
+      const hydrated = axiosMock.history.post.find((request) => {
+        const body = JSON.parse(String(request.data));
+        return body.search === 'apple'
+          && body.orderBy === 'lastEvaluationTime'
+          && body.page === 1
+          && body.stageIds?.includes('build');
+      });
+      expect(hydrated).toBeDefined();
+    });
+  });
+
+  it('replaces invalid threat tokens in the address bar on hydrate', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+    const goSpy = jest.spyOn(router.stateService, 'go');
+
+    renderNexusOneRoute(
+      <ApplicationsList />,
+      'nexusOneApplications',
+      { threat: 'Bogus,Critical' },
+    );
+
+    await waitFor(() => {
+      expect(goSpy).toHaveBeenCalledWith(
+        'nexusOneApplications',
+        expect.objectContaining({ threat: 'Critical' }),
+        expect.objectContaining({ notify: false, location: 'replace' }),
+      );
+    });
+
+    goSpy.mockRestore();
+  });
+
+  it('updates the list request when search is submitted from a deep-linked view', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+
+    renderNexusOneRoute(
+      <ApplicationsList />,
+      'nexusOneApplications',
+      { q: 'apple' },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByLabelText('Search applications');
+    await userEvent.clear(searchInput);
+    await userEvent.type(searchInput, 'banana');
+    await userEvent.keyboard('{Enter}');
+
+    await waitFor(() => {
+      const lastRequest = axiosMock.history.post.at(-1);
+      const body = JSON.parse(String(lastRequest?.data));
+      expect(body).toEqual(
+        expect.objectContaining({
+          search: 'banana',
+          page: 0,
+        }),
+      );
+    });
+  });
 
   it('renders the two-column page shell with filter rail and content area', async () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
@@ -171,6 +245,11 @@ describe('ApplicationsList (CLM-42224)', () => {
         }),
       );
     });
+
+    expect(screen.getByTestId('applications-toolbar-csv')).toHaveAttribute(
+      'title',
+      'CSV export caveat: stage filter uses Classic matching and may differ from this list',
+    );
   });
 
   it('reset filters clears selection and posts an unfiltered request', async () => {
@@ -196,21 +275,55 @@ describe('ApplicationsList (CLM-42224)', () => {
           page: 0,
           pageSize: 50,
           includeFacets: true,
+          orderBy: '-lastEvaluationTime',
         }),
       );
       expect(body.stageIds).toBeUndefined();
     });
   });
 
-  it('renders toolbar placeholders and total count from the list API', async () => {
+  it('renders toolbar controls and total count from the list API', async () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
     await waitFor(() => {
       expect(screen.getByTestId('applications-toolbar-count')).toHaveTextContent('3 applications');
     });
     expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
-    expect(screen.getByTestId('applications-toolbar-sort')).toHaveTextContent('Sort: Latest Evaluation');
-    expect(screen.getByTestId('applications-toolbar-csv')).toBeInTheDocument();
+    expect(screen.getByTestId('applications-toolbar-sort')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sort')).toHaveTextContent('Latest evaluation');
+    expect(screen.getByTestId('applications-toolbar-csv')).toBeEnabled();
+    expect(screen.getByTestId('applications-toolbar-export-form')).toHaveAttribute(
+      'action',
+      expect.stringContaining('/rest/dashboard/export/applicationRisks'),
+    );
+  });
+
+  it('submits search to the list API on Enter and resets page', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+    renderList();
+    await waitFor(() => {
+      expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByLabelText('Search applications');
+    await userEvent.type(searchInput, 'apple{enter}');
+
+    await waitFor(() => {
+      const lastRequest = axiosMock.history.post.at(-1);
+      const body = JSON.parse(String(lastRequest?.data));
+      expect(body).toEqual(
+        expect.objectContaining({
+          search: 'apple',
+          page: 0,
+          orderBy: '-lastEvaluationTime',
+        }),
+      );
+    });
+
+    expect(screen.getByTestId('applications-toolbar-csv')).toHaveAttribute(
+      'title',
+      'CSV export caveat: search term is not included',
+    );
   });
 
   it('renders evaluation cards from the list API instead of a data table', async () => {
@@ -281,12 +394,19 @@ describe('ApplicationsPage async states', () => {
     onToggleFilter: jest.fn(),
     onResetFilters: jest.fn(),
   };
+  const toolbarProps = {
+    searchValue: '',
+    onSearchSubmit: jest.fn(),
+    orderBy: '-lastEvaluationTime' as const,
+    onOrderByChange: jest.fn(),
+  };
   const pageProps = {
     totalCount: 0,
     page: 1,
     pageSize: 50,
     onPageChange: jest.fn(),
     ...filterProps,
+    ...toolbarProps,
   };
 
   it('renders loading skeleton when loading', () => {
@@ -343,6 +463,7 @@ describe('ApplicationsPage async states', () => {
         pageSize={50}
         onPageChange={jest.fn()}
         {...filterProps}
+        {...toolbarProps}
       />,
       'nexusOneApplications',
     );
@@ -360,6 +481,7 @@ describe('ApplicationsPage async states', () => {
         pageSize={50}
         onPageChange={jest.fn()}
         {...filterProps}
+        {...toolbarProps}
       />,
       'nexusOneApplications',
     );
@@ -377,6 +499,7 @@ describe('ApplicationsPage async states', () => {
         hasNextPage
         onPageChange={jest.fn()}
         {...filterProps}
+        {...toolbarProps}
       />,
       'nexusOneApplications',
     );

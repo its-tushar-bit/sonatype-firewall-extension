@@ -104,7 +104,7 @@ nexusOneDashboardStates().forEach((state) => {
 
 router.stateRegistry.register({
   name: 'nexusOneApplications',
-  url: '/applications',
+  url: '/applications?q&sort&page&stage&org&app&threat',
   component: PreviewApplicationsList,
   data: {
     title: 'Nexus One — Applications',

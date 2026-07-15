@@ -109,6 +109,29 @@ describe('useApplicationsList', () => {
     expect(result.current.hasNextPage).toBe(true);
   });
 
+  it('posts search and orderBy in the list request body', async () => {
+    axiosMock.onPost(getApplicationsListUrl()).reply(200, OK_BODY);
+
+    const { result } = renderHook(() => useApplicationsList());
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.submitSearch('apple'));
+    act(() => result.current.changeOrderBy('lastEvaluationTime'));
+
+    await waitFor(() => {
+      const lastRequest = axiosMock.history.post.at(-1);
+      const body = JSON.parse(String(lastRequest?.data));
+      expect(body).toEqual(
+        expect.objectContaining({
+          search: 'apple',
+          orderBy: 'lastEvaluationTime',
+          page: 0,
+        }),
+      );
+    });
+  });
+
   it('posts filter fields when sidebar selections change', async () => {
     axiosMock.onPost(getApplicationsListUrl()).reply(200, OK_BODY);
 
@@ -147,6 +170,66 @@ describe('useApplicationsList', () => {
 
     expect(result.current.page).toBe(1);
     expect(axiosMock.history.post.length).toBe(postsBefore);
+  });
+
+  it('seeds initial state from route without a default-scope fetch first', async () => {
+    axiosMock.onPost(getApplicationsListUrl()).reply(200, OK_BODY);
+
+    const { result } = renderHook(() =>
+      useApplicationsList({
+        initialState: {
+          search: 'apple',
+          orderBy: 'lastEvaluationTime',
+          page: 1,
+          filters: {
+            stageIds: new Set(['build']),
+            organizationIds: new Set(),
+            applicationIds: new Set(),
+            threatLevelIds: new Set(),
+          },
+        },
+      }),
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const firstRequest = axiosMock.history.post[0];
+    const body = JSON.parse(String(firstRequest?.data));
+    expect(body).toEqual(
+      expect.objectContaining({
+        search: 'apple',
+        orderBy: 'lastEvaluationTime',
+        page: 1,
+        stageIds: ['build'],
+      }),
+    );
+  });
+
+  it('syncQueryState hydrates search, sort, page, and filters from route params', async () => {
+    axiosMock.onPost(getApplicationsListUrl()).reply(200, OK_BODY);
+
+    const { result } = renderHook(() => useApplicationsList());
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() =>
+      result.current.syncQueryState({
+        search: 'banana',
+        orderBy: 'lastEvaluationTime',
+        page: 1,
+        filters: {
+          stageIds: new Set(['build']),
+          organizationIds: new Set(['org-java']),
+          applicationIds: new Set(),
+          threatLevelIds: new Set(),
+        },
+      }),
+    );
+
+    expect(result.current.search).toBe('banana');
+    expect(result.current.orderBy).toBe('lastEvaluationTime');
+    expect(result.current.filters.stageIds.has('build')).toBe(true);
+    expect(result.current.filters.organizationIds.has('org-java')).toBe(true);
   });
 
   it('resetFilters clears active selections and resets page', async () => {

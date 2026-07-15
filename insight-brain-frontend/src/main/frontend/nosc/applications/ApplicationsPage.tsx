@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { Box, Flex, Heading, Text } from '@radix-ui/themes';
+import { Box, Button, Flex, Heading, Text } from '@radix-ui/themes';
 import { AsyncPageState, AsyncPageStateInfoProps } from 'MainRoot/nosc/components/AsyncPageState';
-import { DomainIcons } from 'MainRoot/nosc/icons';
+import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
 import ApplicationsFilterRail from 'MainRoot/nosc/applications/ApplicationsFilterRail';
 import ApplicationsToolbar from 'MainRoot/nosc/applications/ApplicationsToolbar';
@@ -16,6 +16,7 @@ import {
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { ApplicationsListFilterState } from 'MainRoot/nosc/applications/applicationsListFilters';
+import { ApplicationsListOrderBy } from 'MainRoot/nosc/applications/applicationsListApi';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 
 import './applicationsPageLayout.css';
@@ -34,6 +35,10 @@ export interface ApplicationsPageProps {
   readonly error?: string | null;
   readonly info?: AsyncPageStateInfoProps | null;
   readonly onRetry?: () => void;
+  readonly searchValue: string;
+  readonly onSearchSubmit: (term: string) => void;
+  readonly orderBy: ApplicationsListOrderBy;
+  readonly onOrderByChange: (orderBy: ApplicationsListOrderBy) => void;
   /** RBAC-scoped total from the list API (may exceed the current page length). */
   readonly totalCount: number;
   /** 1-based page index for {@link Pagination}. */
@@ -47,7 +52,7 @@ export interface ApplicationsPageProps {
  * Martha V1 Applications page shell (CLM-42223): filter rail + toolbar + card grid.
  *
  * Data wiring (POST /rest/dashboard/applications/list) lands in CLM-42224; filter
- * interactions in CLM-42225.
+ * interactions in CLM-42225; toolbar search/sort/export in CLM-42226.
  */
 export default function ApplicationsPage({
   applications,
@@ -60,6 +65,10 @@ export default function ApplicationsPage({
   error = null,
   info = null,
   onRetry,
+  searchValue,
+  onSearchSubmit,
+  orderBy,
+  onOrderByChange,
   totalCount,
   page,
   pageSize,
@@ -102,7 +111,14 @@ export default function ApplicationsPage({
           />
           <Box className="applications-page__content" data-testid="applications-page-content">
             <Flex direction="column" gap="4">
-              <ApplicationsToolbar totalCount={totalCount} />
+              <ApplicationsToolbar
+                totalCount={totalCount}
+                searchValue={searchValue}
+                onSearchSubmit={onSearchSubmit}
+                orderBy={orderBy}
+                onOrderByChange={onOrderByChange}
+                filters={filters}
+              />
 
               <AsyncPageState
                 loading={loading}
@@ -125,11 +141,47 @@ export default function ApplicationsPage({
                   >
                     <DomainIcons.Applications size={32} color="var(--gray-9)" />
                     <Text size="3" color="gray">
-                      No applications in scope
+                      {searchValue && hasActiveFilters
+                        ? 'No applications match your search and filters.'
+                        : searchValue
+                          ? 'No applications match your search.'
+                          : hasActiveFilters
+                            ? 'No applications match the selected filters.'
+                            : 'No applications in scope'}
                     </Text>
                     <Text size="2" color="gray">
-                      Applications visible to your account will appear here once evaluations exist.
+                      {searchValue && hasActiveFilters
+                        ? 'Try adjusting or clearing your search and filters.'
+                        : searchValue
+                          ? 'Try a different search term or clear the search.'
+                          : hasActiveFilters
+                            ? 'Adjust the sidebar filters or reset them to see more applications.'
+                            : 'Applications visible to your account will appear here once evaluations exist.'}
                     </Text>
+                    <Flex gap="2" mt="1">
+                      {searchValue && (
+                        <Button
+                          variant="soft"
+                          size="2"
+                          onClick={() => onSearchSubmit('')}
+                          data-testid="applications-empty-clear-search"
+                        >
+                          <ActionIcons.Refresh size={14} aria-hidden />
+                          Clear search
+                        </Button>
+                      )}
+                      {hasActiveFilters && (
+                        <Button
+                          variant="soft"
+                          size="2"
+                          onClick={onResetFilters}
+                          data-testid="applications-empty-reset-filters"
+                        >
+                          <ActionIcons.Refresh size={14} aria-hidden />
+                          Reset filters
+                        </Button>
+                      )}
+                    </Flex>
                   </Flex>
                 ) : (
                   <>

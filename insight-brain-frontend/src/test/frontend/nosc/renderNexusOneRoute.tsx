@@ -45,7 +45,7 @@ function NexusOneTestTheme({ children }: { children: React.ReactNode }): ReactEl
 // Mirrors production registrations in nexus-one/routes.tsx. Dashboard + application
 // detail child states are shared with production via the exported state factories.
 const STATES: ReactStateDeclaration[] = [
-  { name: 'nexusOneApplications', url: '/applications' },
+  { name: 'nexusOneApplications', url: '/applications?q&sort&page&stage&org&app&threat' },
   ...nexusOneApplicationDetailStates(),
   { name: 'nexusOneWaivers', url: '/waivers' },
   { name: 'nexusOneWaiverDetail', url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from' },

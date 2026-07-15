@@ -10,6 +10,7 @@ import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
 import ViolationsList from 'MainRoot/nosc/violations/ViolationsList';
+import { NEXUS_ONE_VIOLATIONS_STATE_NAME } from 'MainRoot/nosc/violations/violationsRoute';
 import { getViolationsListUrl } from 'MainRoot/util/CLMLocation';
 import { MOCK_VIOLATIONS_LIST_RESPONSE } from 'MainRoot/nosc/violations/mockViolationsListData';
 import { ViolationsListResponse } from 'MainRoot/nosc/violations/violationListTypes';
@@ -279,5 +280,144 @@ describe('ViolationsList', () => {
     // Cached page-1 facets keep the policy-type counts visible while on page 2.
     const rail = screen.getByTestId('violations-filter-rail');
     expect(within(rail).getByTestId('violations-filter-policy-type')).toHaveTextContent('Security');
+  });
+
+  describe('URL state (CLM-42260)', () => {
+    it('hydrates search, filters, and page from deep-linked route params', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations', {
+        q: 'log4j',
+        state: 'OPEN',
+        page: '2',
+        threat: '4-10',
+      });
+
+      // The initial transition can fire a pre-hydration request, so look for the request that carries
+      // the restored deep-link state rather than assuming it is the first POST.
+      await waitFor(() => {
+        const hydrated = axiosMock.history.post.find((request) => {
+          const body = JSON.parse(String(request.data));
+          return body.search === 'log4j' && body.page === 1;
+        });
+        expect(hydrated).toBeDefined();
+        const body = JSON.parse(String(hydrated!.data));
+        // List API wire format for threat range is the comma string "min,max". Classic CSV export
+        // uses the object form { minPolicyThreatLevel, maxPolicyThreatLevel } — keep those distinct.
+        expect(body).toEqual(
+          expect.objectContaining({
+            search: 'log4j',
+            page: 1, // page=2 (1-based) → 0-based index 1
+            policyViolationStates: expect.arrayContaining(['OPEN']),
+            policyThreatLevelRange: '4,10',
+          }),
+        );
+      });
+    });
+
+    it('restores the sidebar checkbox selection from a bookmarked filter URL', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations', { state: 'OPEN' });
+
+      await screen.findByTestId('violation-card-grid');
+      expect(screen.getByTestId('violations-filter-state-option-OPEN')).toBeChecked();
+      expect(screen.getByTestId('violations-filter-state-option-WAIVED')).not.toBeChecked();
+    });
+
+    it('shows facet counts in the rail when deep-linked directly to page 2', async () => {
+      // page=2 would normally send includeFacets:false, but with an empty cache the container must still
+      // request facets so the rail is not count-less on a bookmarked deep link.
+      const paged: ViolationsListResponse = { ...MOCK_VIOLATIONS_LIST_RESPONSE, total: 30, hasNextPage: true };
+      axiosMock.onPost(getViolationsListUrl()).reply(200, paged);
+      renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations', { page: '2' });
+
+      await screen.findByTestId('violation-card-grid');
+      expect(JSON.parse(axiosMock.history.post[0].data).includeFacets).toBe(true);
+      const rail = screen.getByTestId('violations-filter-rail');
+      expect(within(rail).getByTestId('violations-filter-policy-type')).toHaveTextContent('Security');
+    });
+
+    it('clamps a deep-linked page beyond the result set back to the last page with rows', async () => {
+      // total 30 / pageSize 25 → max UI page 2; a stale ?page=99 bookmark must settle on page=2.
+      const paged: ViolationsListResponse = {
+        ...MOCK_VIOLATIONS_LIST_RESPONSE,
+        total: 30,
+        hasNextPage: false,
+      };
+      axiosMock.onPost(getViolationsListUrl()).reply(200, paged);
+      const { router } = renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations', { page: '99' });
+
+      await screen.findByTestId('violation-card-grid');
+      await waitFor(() => {
+        expect(router.urlService.url()).toContain('page=2');
+        expect(router.urlService.url()).not.toContain('page=99');
+      });
+    });
+
+    it('writes the committed search back to the hash query via the shared router', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      const { router } = renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations');
+
+      await screen.findByTestId('violation-card-grid');
+      await user.type(screen.getByTestId('violations-toolbar-search'), 'log4j{enter}');
+
+      // Assert a real round-trip on the harness router the component reads from, not a spied singleton.
+      await waitFor(() => expect(router.urlService.url()).toContain('q=log4j'));
+    });
+
+    it('writes selected filters to the hash query when a filter is toggled', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      const { router } = renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations');
+
+      await screen.findByTestId('violation-card-grid');
+      await user.click(screen.getByTestId('violations-filter-state-option-OPEN'));
+
+      await waitFor(() => expect(router.urlService.url()).toContain('state=OPEN'));
+    });
+
+    it('follows a real back/forward navigation without clobbering it', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      const { router } = renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations');
+      await screen.findByTestId('violation-card-grid');
+
+      // Drive a real navigation to a populated state (as browser back/forward would).
+      await router.stateService.go(NEXUS_ONE_VIOLATIONS_STATE_NAME, { q: 'apple' });
+
+      // The component hydrates to the navigated state...
+      await waitFor(() =>
+        expect(screen.getByTestId('violations-toolbar-search')).toHaveValue('apple'),
+      );
+      // ...and does not spuriously navigate back: the URL stays on the navigated state.
+      expect(router.urlService.url()).toContain('q=apple');
+      const last = JSON.parse(axiosMock.history.post[axiosMock.history.post.length - 1].data);
+      expect(last.search).toBe('apple');
+    });
+
+    it('normalizes a junk-carrying deep-link URL to its canonical form', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      // threat=abc is malformed and state=BOGUS is unsupported — both are dropped by the codec, so the
+      // container must rewrite the address bar to drop them (leaving only the valid state=OPEN).
+      const { router } = renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations', {
+        state: 'OPEN,BOGUS',
+        threat: 'abc',
+      });
+
+      await screen.findByTestId('violation-card-grid');
+      await waitFor(() => {
+        expect(router.urlService.url()).not.toContain('threat=');
+        expect(router.urlService.url()).not.toContain('BOGUS');
+      });
+      expect(router.urlService.url()).toContain('state=OPEN');
+    });
+
+    it('clears the hash query when filters are reset to default', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      const { router } = renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations', { state: 'OPEN' });
+
+      await screen.findByTestId('violation-card-grid');
+      expect(router.urlService.url()).toContain('state=OPEN');
+
+      await user.click(screen.getByTestId('violations-filter-reset'));
+      await waitFor(() => expect(router.urlService.url()).not.toContain('state=OPEN'));
+    });
   });
 });

@@ -19,6 +19,10 @@ import { LEGAL_DEEP_LINK_STATES } from 'MainRoot/legal/legalDeepLinkStates';
 import { NEXUS_ONE_APPLICATION_REPORT_STATE } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 import { NEXUS_ONE_VIOLATION_DETAIL_STATE } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
+import {
+  NEXUS_ONE_VIOLATIONS_STATE_NAME,
+  NEXUS_ONE_VIOLATIONS_URL,
+} from 'MainRoot/nosc/violations/violationsRoute';
 import 'MainRoot/nexus-one/routes';
 
 describe('nexusOneClassicEmbedRoutes', () => {
@@ -189,8 +193,9 @@ describe('nexusOneClassicEmbedRoutes', () => {
     expect(router.stateRegistry.get('dashboard.overview.violations')?.redirectTo).toBe('nexusOneDashboard.violations');
     // /violations is now the Martha V1 Violations card list (CLM-42257), not a redirect to the
     // dashboard tab. It is a sibling of the embedded detail state at /violations/{id} (CLM-42256).
-    const violations = router.stateRegistry.get('nexusOneViolations');
-    expect(violations?.url).toBe('/violations');
+    // The optional query params persist search + filters + page in the hash (CLM-42260).
+    const violations = router.stateRegistry.get(NEXUS_ONE_VIOLATIONS_STATE_NAME);
+    expect(violations?.url).toBe(NEXUS_ONE_VIOLATIONS_URL);
     expect(violations?.redirectTo).toBeUndefined();
     expect(violations?.component).toBeDefined();
     expect(router.stateRegistry.get('nexusOneComponents')?.redirectTo).toBe('nexusOneDashboard.components');

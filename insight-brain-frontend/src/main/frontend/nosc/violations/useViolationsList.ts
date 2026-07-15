@@ -19,6 +19,8 @@ export interface UseViolationsListParams {
   readonly search?: string;
   readonly includeFacets?: boolean;
   readonly filters?: ViolationsFilterState;
+  /** When false, defers the list POST until route state is hydrated from the URL (default true). */
+  readonly enabled?: boolean;
 }
 
 /**
@@ -28,11 +30,21 @@ export interface UseViolationsListParams {
  * page component stays presentational. useTile keys its refetch on the stringified request body, so
  * a fetch happens whenever any of page / pageSize / search / includeFacets / filters changes; the
  * useMemo here only stabilizes the body's object identity across renders (it does not gate refetch).
+ * {@code enabled} lets the container defer the first fetch until deep-linked URL params are applied, so
+ * a bookmarked search/filter view fetches with the restored state rather than the pre-hydration default
+ * (avoiding a throwaway default request in the common case where params are present at mount).
  */
 export function useViolationsList(
   params: UseViolationsListParams,
 ): UseTileResult<ViolationsListResponse> {
-  const { page, pageSize = VIOLATIONS_PAGE_SIZE, search, includeFacets = true, filters } = params;
+  const {
+    page,
+    pageSize = VIOLATIONS_PAGE_SIZE,
+    search,
+    includeFacets = true,
+    filters,
+    enabled = true,
+  } = params;
 
   const body = useMemo(
     () => buildViolationsListRequest({ page, pageSize, search, includeFacets, filters }),
@@ -42,5 +54,6 @@ export function useViolationsList(
   return useTile<ViolationsListResponse>(getViolationsListUrl(), undefined, {
     method: 'post',
     body,
+    enabled,
   });
 }

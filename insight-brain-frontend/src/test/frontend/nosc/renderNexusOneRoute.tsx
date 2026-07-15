@@ -16,6 +16,10 @@ import { BRAND_ACCENT } from 'MainRoot/nosc/theme';
 import { render } from 'TestRoot/SpecUtil';
 import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
+import {
+  NEXUS_ONE_VIOLATIONS_STATE_NAME,
+  NEXUS_ONE_VIOLATIONS_URL,
+} from 'MainRoot/nosc/violations/violationsRoute';
 
 /**
  * Mirrors the Radix Theme that {@code NexusOneShellLayout} provides in
@@ -49,7 +53,7 @@ const STATES: ReactStateDeclaration[] = [
   ...nexusOneApplicationDetailStates(),
   { name: 'nexusOneWaivers', url: '/waivers' },
   { name: 'nexusOneWaiverDetail', url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from' },
-  { name: 'nexusOneViolations', url: '/violations' },
+  { name: NEXUS_ONE_VIOLATIONS_STATE_NAME, url: NEXUS_ONE_VIOLATIONS_URL },
   { name: 'platformHome', url: '/home' },
   ...nexusOneDashboardStates(),
 ];

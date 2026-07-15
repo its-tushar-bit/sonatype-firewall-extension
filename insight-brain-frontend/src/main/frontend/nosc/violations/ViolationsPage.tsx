@@ -49,8 +49,9 @@ export interface ViolationsPageProps {
 
 /**
  * Martha V1 Violations page shell: filter rail + toolbar + card list + pagination inside the Nexus One
- * Preview shell. Data is wired to POST /rest/dashboard/violations/list by {@link ViolationsList}; CSV
- * export is deferred. The same filter rail is reused inside a mobile drawer on small screens.
+ * Preview shell. Data is wired to POST /rest/dashboard/violations/list by {@link ViolationsList}; the
+ * toolbar's CSV export posts the active filters to the Classic violations export. The same filter rail
+ * is reused inside a mobile drawer on small screens.
  */
 export default function ViolationsPage({
   violations,
@@ -167,6 +168,7 @@ export default function ViolationsPage({
                 totalCount={totalCount}
                 searchValue={searchValue}
                 onSearchSubmit={onSearchSubmit}
+                filters={filters}
               />
 
               <AsyncPageState

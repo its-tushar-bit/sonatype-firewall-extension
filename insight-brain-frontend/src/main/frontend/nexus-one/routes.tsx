@@ -59,6 +59,10 @@ import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import PreviewViolationsList from 'MainRoot/nosc/violations/ViolationsList';
 import {
+  NEXUS_ONE_VIOLATIONS_STATE_NAME,
+  NEXUS_ONE_VIOLATIONS_URL,
+} from 'MainRoot/nosc/violations/violationsRoute';
+import {
   WaiversListPage as PreviewWaiversList,
   WaiverDetailPage as PreviewWaiverDetail,
 } from 'MainRoot/nosc/waivers';
@@ -137,10 +141,12 @@ router.stateRegistry.register({
 
 // Martha V1 Violations card list (CLM-42257), wired to POST /rest/dashboard/violations/list
 // (CLM-42254). Sibling of the embedded violation detail state registered at /violations/{id}
-// (nexusOneViolationDetail, CLM-42256) — the card drill-in target.
+// (nexusOneViolationDetail, CLM-42256) — the card drill-in target. The optional query params persist
+// search + sidebar filters + page in the hash for bookmarks/back-forward (CLM-42260); name + url come
+// from violationsRoute.ts so the container's round-trip go(...) calls can't drift from this state.
 router.stateRegistry.register({
-  name: 'nexusOneViolations',
-  url: '/violations',
+  name: NEXUS_ONE_VIOLATIONS_STATE_NAME,
+  url: NEXUS_ONE_VIOLATIONS_URL,
   component: PreviewViolationsList,
   data: { title: 'Nexus One — Violations' },
 } as ReactStateDeclaration);

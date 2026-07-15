@@ -53,8 +53,11 @@ export function hasActiveViolationFilters(filters: ViolationsFilterState): boole
   );
 }
 
-/** Sorted array from a selection set, or undefined when empty (so the field is omitted from the body). */
-function toSortedArray(ids: ReadonlySet<string>): ReadonlyArray<string> | undefined {
+/**
+ * Sorted array from a selection set, or undefined when empty (so the field is omitted from the body).
+ * Exported so the list-request body and the CSV export payload share one serialization helper.
+ */
+export function toSortedArray(ids: ReadonlySet<string>): ReadonlyArray<string> | undefined {
   return ids.size > 0 ? Array.from(ids).sort() : undefined;
 }
 
@@ -99,14 +102,20 @@ export function buildViolationsListRequest(params: {
   };
 }
 
-/** Friendly labels for the enum-keyed violation-state facet (OPEN / WAIVED). */
-const STATE_LABELS: Readonly<Record<string, string>> = {
+/**
+ * Friendly labels for the enum-keyed violation-state facet (OPEN / WAIVED). Exported so the URL codec
+ * can derive its accepted-token allow-list from these keys instead of duplicating the set.
+ */
+export const STATE_LABELS: Readonly<Record<string, string>> = {
   OPEN: 'Open',
   WAIVED: 'Waived',
 };
 
-/** Friendly labels for the policy threat-category facet. */
-const THREAT_CATEGORY_LABELS: Readonly<Record<string, string>> = {
+/**
+ * Friendly labels for the policy threat-category facet. Exported so the URL codec can derive its
+ * accepted-token allow-list from these keys instead of duplicating the set.
+ */
+export const THREAT_CATEGORY_LABELS: Readonly<Record<string, string>> = {
   security: 'Security',
   license: 'License',
   quality: 'Quality',

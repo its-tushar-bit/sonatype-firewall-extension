@@ -134,7 +134,15 @@ public class LuceneSearchIndexClientTest
 
   private void assertFields(Document document, Tuple... fields) {
     assertThat(document).isNotNull();
+    // Built docs carry the DOCUMENT_KEY as a single stored keyword; the Lucene sort doc-values twin
+    // is added later in LuceneIndexingContext, not by DocumentBuilder. Exclude it from the exact
+    // field-set comparison so the per-type expectations stay focused on the type's own fields.
     assertThat(document.getFields())
+        .filteredOn(f -> FieldIdentifier.DOCUMENT_KEY.label.equals(f.name()))
+        .extracting(Object::getClass, f -> f.fieldType().stored())
+        .containsExactly(tuple(org.apache.lucene.document.StringField.class, true));
+    assertThat(document.getFields())
+        .filteredOn(f -> !FieldIdentifier.DOCUMENT_KEY.label.equals(f.name()))
         .extracting(IndexableField::name, this::fieldValue, Object::getClass, field -> field.fieldType().stored())
         .containsExactlyInAnyOrder(fields);
   }

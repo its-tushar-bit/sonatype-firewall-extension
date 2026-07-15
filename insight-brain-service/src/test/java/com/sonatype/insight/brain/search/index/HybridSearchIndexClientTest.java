@@ -13,7 +13,14 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.search.global.StaleCursorException;
+import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
+import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
+import org.apache.lucene.search.MatchAllDocsQuery;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -54,22 +61,18 @@ public class HybridSearchIndexClientTest
 
   @Test
   public void buildPermittedQuery_delegatesToPrimaryClient_notThrowingDefault() {
-    // Given: the primary client resolves the permission filter (Hybrid must NOT hit the throwing
-    // interface default). Mirrors the count() delegation; no secondary fallback for permission.
+    // Hybrid must resolve the permission filter through the primary client, never the throwing
+    // interface default, and must never consult the secondary for permission resolution.
     java.util.Set<String> contexts = java.util.Set.of("org-1");
-    org.apache.lucene.search.Query base = new org.apache.lucene.search.MatchAllDocsQuery();
+    org.apache.lucene.search.Query base = new MatchAllDocsQuery();
     org.apache.lucene.search.Query filter = new org.apache.lucene.search.MatchNoDocsQuery("filter");
     org.apache.lucene.search.Query wrapped = new org.apache.lucene.search.MatchNoDocsQuery("wrapped");
     when(primaryClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(contexts);
     when(primaryClient.buildAllowedContextIdsFilter(contexts)).thenReturn(filter);
     when(primaryClient.wrapWithPermissionFilter(base, filter)).thenReturn(wrapped);
 
-    // When
     org.apache.lucene.search.Query result = hybridClient.buildPermittedQuery(base);
 
-    // Then: the primary client's composed result is returned (proving Hybrid delegates rather than
-    // hitting the throwing interface default), and the secondary client is never consulted for
-    // permission resolution (no secondary fallback for permission — a real behavioral contract).
     assertThat(result).isSameAs(wrapped);
     verify(secondaryClient, never()).getCurrentUserContextIdsWithReadPermission();
   }
@@ -687,5 +690,142 @@ public class HybridSearchIndexClientTest
     // Then - should delegate to the primary client
     verify(mockPrimaryAbstract).deleteSearchIndexChange(any());
     verify(mockSecondaryAbstract, never()).deleteSearchIndexChange(any());
+  }
+
+  // ---- searchGlobal -------------------------------------------------------------------------
+
+  private static GlobalSearchRequest globalSearchRequest(final List<String> searchAfter) {
+    return new GlobalSearchRequest(new MatchAllDocsQuery(), null, 25, searchAfter);
+  }
+
+  private static GlobalSearchResult globalSearchResult() {
+    return new GlobalSearchResult(List.<SearchResultItemDTO>of(), 0L, List.of());
+  }
+
+  @Test
+  public void searchGlobal_primarySucceeds_noFallback() {
+    GlobalSearchResult expected = globalSearchResult();
+    when(primaryClient.searchGlobal(any())).thenReturn(expected);
+
+    GlobalSearchResult actual = hybridClient.searchGlobal(globalSearchRequest(Collections.emptyList()));
+
+    assertThat(actual).isSameAs(expected);
+    verify(primaryClient, times(1)).searchGlobal(any());
+    verify(secondaryClient, never()).searchGlobal(any());
+  }
+
+  @Test
+  public void searchGlobal_primaryInfraFail_noCursor_fallsBackToSecondary() {
+    // The secondary's page is re-wrapped (not returned verbatim) so it can be pinned to the
+    // secondary's backendId; assert the payload is preserved rather than object identity.
+    GlobalSearchResult secondaryResult =
+        new GlobalSearchResult(List.<SearchResultItemDTO>of(), 7L, List.of(), false);
+    when(primaryClient.searchGlobal(any())).thenThrow(new RuntimeException("boom"));
+    when(secondaryClient.searchGlobal(any())).thenReturn(secondaryResult);
+    when(secondaryClient.backendId()).thenReturn("lucene");
+
+    GlobalSearchResult actual = hybridClient.searchGlobal(globalSearchRequest(Collections.emptyList()));
+
+    assertThat(actual.rows()).isEqualTo(secondaryResult.rows());
+    assertThat(actual.totalHits()).isEqualTo(7L);
+    assertThat(actual.exactTotalHits()).isFalse();
+    assertThat(actual.servingBackendId()).isEqualTo("lucene");
+    verify(primaryClient, times(1)).searchGlobal(any());
+    verify(secondaryClient, times(1)).searchGlobal(any());
+  }
+
+  @Test
+  public void searchGlobal_primaryInfraFail_page1FallsBackToSecondary_pinsCursorToSecondaryBackend() {
+    // Page 1 (empty cursor): primary fails, Hybrid serves from the secondary. The result must be
+    // pinned to the secondary's backendId so the next-page cursor minted from it carries the
+    // secondary's generation token. If the primary recovers before page 2 (cursor in flight, which
+    // Hybrid routes to the primary), the primary-expected token will not match and the follow-up
+    // cursor is rejected as stale instead of being silently mis-paginated by the primary.
+    GlobalSearchResult secondaryResult =
+        new GlobalSearchResult(List.<SearchResultItemDTO>of(), 3L, List.of("acme-prod"));
+    when(primaryClient.searchGlobal(any())).thenThrow(new RuntimeException("boom"));
+    when(secondaryClient.searchGlobal(any())).thenReturn(secondaryResult);
+    when(secondaryClient.backendId()).thenReturn("lucene");
+
+    GlobalSearchResult actual = hybridClient.searchGlobal(globalSearchRequest(Collections.emptyList()));
+
+    assertThat(actual.servingBackendId()).isEqualTo("lucene");
+    assertThat(actual.nextSearchAfter()).containsExactly("acme-prod");
+    assertThat(actual.totalHits()).isEqualTo(3L);
+    verify(primaryClient, times(1)).searchGlobal(any());
+    verify(secondaryClient, times(1)).searchGlobal(any());
+  }
+
+  @Test
+  public void searchGlobal_primaryInfraFail_withCursor_throwsStaleCursorException() {
+    when(primaryClient.searchGlobal(any())).thenThrow(new RuntimeException("boom"));
+
+    assertThatThrownBy(() -> hybridClient.searchGlobal(globalSearchRequest(List.of("0.7", "3"))))
+        .isInstanceOf(StaleCursorException.class);
+
+    verify(primaryClient, times(1)).searchGlobal(any());
+    verify(secondaryClient, never()).searchGlobal(any());
+  }
+
+  @Test
+  public void searchGlobal_primaryBadRequest_surfacesWithoutFallback() {
+    when(primaryClient.searchGlobal(any())).thenThrow(new BadRequestException("bad"));
+
+    assertThatThrownBy(() -> hybridClient.searchGlobal(globalSearchRequest(Collections.emptyList())))
+        .isInstanceOf(BadRequestException.class);
+
+    verify(primaryClient, times(1)).searchGlobal(any());
+    verify(secondaryClient, never()).searchGlobal(any());
+  }
+
+  @Test
+  public void searchGlobal_primaryConflict_surfacesWithoutFallback() {
+    when(primaryClient.searchGlobal(any())).thenThrow(new ConflictException("conflict"));
+
+    assertThatThrownBy(() -> hybridClient.searchGlobal(globalSearchRequest(Collections.emptyList())))
+        .isInstanceOf(ConflictException.class);
+
+    verify(primaryClient, times(1)).searchGlobal(any());
+    verify(secondaryClient, never()).searchGlobal(any());
+  }
+
+  @Test
+  public void searchGlobal_primaryStaleCursor_surfacesWithoutFallback() {
+    // A StaleCursorException from the primary maps downstream to HTTP 410; it must never be masked
+    // by falling back to the secondary, even with an empty cursor on the request.
+    when(primaryClient.searchGlobal(any())).thenThrow(new StaleCursorException("stale"));
+
+    assertThatThrownBy(() -> hybridClient.searchGlobal(globalSearchRequest(Collections.emptyList())))
+        .isInstanceOf(StaleCursorException.class);
+
+    verify(primaryClient, times(1)).searchGlobal(any());
+    verify(secondaryClient, never()).searchGlobal(any());
+  }
+
+  @Test
+  public void searchGlobal_bothFail_wrappedInSearchIndexExceptionWithSuppressedPrimary() {
+    RuntimeException primaryFail = new RuntimeException("primary boom");
+    RuntimeException secondaryFail = new RuntimeException("secondary boom");
+    when(primaryClient.searchGlobal(any())).thenThrow(primaryFail);
+    when(secondaryClient.searchGlobal(any())).thenThrow(secondaryFail);
+
+    assertThatThrownBy(() -> hybridClient.searchGlobal(globalSearchRequest(Collections.emptyList())))
+        .isInstanceOf(SearchIndexException.class)
+        .satisfies(t -> {
+          assertThat(t.getCause()).isSameAs(secondaryFail);
+          assertThat(t.getSuppressed()).containsExactly(primaryFail);
+        });
+  }
+
+  @Test
+  public void searchGlobal_secondaryStaleCursor_surfacesWithSuppressedPrimary() {
+    RuntimeException primaryFail = new RuntimeException("primary boom");
+    StaleCursorException secondaryStale = new StaleCursorException("stale");
+    when(primaryClient.searchGlobal(any())).thenThrow(primaryFail);
+    when(secondaryClient.searchGlobal(any())).thenThrow(secondaryStale);
+
+    assertThatThrownBy(() -> hybridClient.searchGlobal(globalSearchRequest(Collections.emptyList())))
+        .isInstanceOf(StaleCursorException.class)
+        .satisfies(t -> assertThat(t.getSuppressed()).containsExactly(primaryFail));
   }
 }

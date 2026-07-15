@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -59,6 +61,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
+import com.sonatype.insight.brain.search.global.GlobalSearchSortAllowlist;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
@@ -94,6 +97,8 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryVisitor;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
@@ -359,6 +364,11 @@ public abstract class AbstractSearchIndexClient
     return childContextIds;
   }
 
+  @Override
+  public void checkGlobalSearchMode(final boolean isSbomManagerMode) {
+    checkMode(isSbomManagerMode);
+  }
+
   protected void checkMode(final boolean isSbomManagerMode) {
     if (isSbomManagerMode && !productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
       log.error("License does not have the SBOM Manager feature.");
@@ -384,6 +394,19 @@ public abstract class AbstractSearchIndexClient
         // Foundation
         || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_FOUNDATION)
         || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS);
+  }
+
+  /** Bounded audit description of the sort — field names only, never the unbounded Sort.toString(). */
+  protected static String describeSort(final Sort sort) {
+    if (sort == null) {
+      return "relevance";
+    }
+    List<String> fields = new ArrayList<>();
+    for (SortField sf : sort.getSort()) {
+      // SortField.FIELD_SCORE has a null field name; render it as the relevance sort token.
+      fields.add(sf.getField() == null ? GlobalSearchSortAllowlist.RELEVANCE : sf.getField());
+    }
+    return String.join(",", fields);
   }
 
   protected void sendAdvancedSearchIndexingTelemetry(final long durationMillis) {
@@ -1324,5 +1347,36 @@ public abstract class AbstractSearchIndexClient
 
   public static long capTotalHitsForGlobalSearch(final long total) {
     return Math.min(total, GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP);
+  }
+
+  /** Controls code-path selection and visibility only, never security. */
+  @Override
+  public boolean isGlobalSearchEnabled() {
+    return SystemConfigurationPropertyFeature.GLOBAL_SEARCH.isEnabled();
+  }
+
+  /**
+   * Composed permission-wrap surface; prefer this over calling the lookup/filter/wrap steps directly.
+   * Kept {@code final} to fix the lookup+filter+wrap order at the abstract layer, delegating to the
+   * single interface default so the permission-sensitive decision is not duplicated.
+   */
+  @Override
+  public final Query buildPermittedQuery(final Query baseQuery) {
+    return SearchIndexClient.super.buildPermittedQuery(baseQuery);
+  }
+
+  public static <T> HasMoreResult<T> detectHasMore(final List<T> overfetched, final int pageSize) {
+    Objects.requireNonNull(overfetched, "overfetched");
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be > 0");
+    }
+    boolean hasMore = overfetched.size() > pageSize;
+    int returnCount = Math.min(overfetched.size(), pageSize);
+    // Independent copy so the overfetch window is not retained by a live subList view.
+    return new HasMoreResult<>(List.copyOf(overfetched.subList(0, returnCount)), hasMore);
+  }
+
+  public record HasMoreResult<T>(List<T> rows, boolean hasMore)
+  {
   }
 }

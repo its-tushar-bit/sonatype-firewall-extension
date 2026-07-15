@@ -6,7 +6,11 @@
 package com.sonatype.insight.brain.search.index;
 
 import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.search.global.StaleCursorException;
+import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
+import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -15,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-
 import org.apache.lucene.search.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -394,6 +397,68 @@ public class HybridSearchIndexClient
   }
 
   /**
+   * Falls back to the secondary only on infrastructure failure, never on client errors. Fallback is
+   * refused once {@code searchAfter} is non-empty since cursor tuples are backend-specific.
+   */
+  @Override
+  public GlobalSearchResult searchGlobal(final GlobalSearchRequest request) {
+    Exception primary;
+    try {
+      return primaryClient.searchGlobal(request);
+    }
+    catch (BadRequestException | ConflictException | StaleCursorException clientError) {
+      throw clientError;
+    }
+    catch (Exception infra) {
+      if (!request.searchAfter().isEmpty()) {
+        log.warn("Primary search failed with a cursor in flight; refusing fallback to preserve cursor pinning",
+            infra);
+        StaleCursorException stale =
+            new StaleCursorException("Primary backend unavailable mid-pagination; retry from page 1");
+        stale.addSuppressed(infra);
+        throw stale;
+      }
+      log.warn("Primary search failed, falling back to secondary", infra);
+      primary = infra;
+    }
+
+    try {
+      GlobalSearchResult secondaryResult = secondaryClient.searchGlobal(request);
+      // Pin the page to the secondary's backendId so the next-page cursor minted from it embeds the
+      // secondary's generation token. If the primary recovers before the follow-up request, the
+      // primary-expected token will not match and the cursor is rejected as stale (retry from page
+      // 1) instead of feeding a secondary-format cursor to the primary.
+      return new GlobalSearchResult(
+          secondaryResult.rows(),
+          secondaryResult.totalHits(),
+          secondaryResult.nextSearchAfter(),
+          secondaryResult.exactTotalHits(),
+          secondaryClient.backendId());
+    }
+    catch (BadRequestException | ConflictException | StaleCursorException clientError) {
+      clientError.addSuppressed(primary);
+      throw clientError;
+    }
+    catch (Exception secondary) {
+      log.warn("Search failed on secondary after primary failure", secondary);
+      SearchIndexException wrapped =
+          new SearchIndexException("Search failed on both primary and secondary clients", secondary);
+      wrapped.addSuppressed(primary);
+      throw wrapped;
+    }
+  }
+
+  @Override
+  public String backendId() {
+    return primaryClient.backendId();
+  }
+
+  @Override
+  public boolean isGlobalSearchEnabled() {
+    return primaryClient.isGlobalSearchEnabled();
+  }
+
+  /**
    * Permission-filter helpers delegate to the primary client: the filter is constructed against
    * the primary index's {@code allowedContextIds} field, so there is no secondary fallback (unlike
    * {@link #count}) — a permission filter from the wrong index would be meaningless.
@@ -411,6 +476,11 @@ public class HybridSearchIndexClient
   @Override
   public Query wrapWithPermissionFilter(final Query baseQuery, final Query permissionFilter) {
     return primaryClient.wrapWithPermissionFilter(baseQuery, permissionFilter);
+  }
+
+  @Override
+  public void checkGlobalSearchMode(final boolean isSbomManagerMode) {
+    primaryClient.checkGlobalSearchMode(isSbomManagerMode);
   }
 
   /**

@@ -31,7 +31,9 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -124,11 +126,19 @@ public class IqLocalSearchService
     int pageSize = clampPageSize(inputs.pageSize());
     String validatedSortKey = GlobalSearchSortAllowlist.requireAllowed(inputs.tab(), inputs.sortKey());
 
-    // Re-validate the cursor token against the current preimage; any drift (reindex, allowlist
-    // change, backend switch, tenant boundary) forces the client back to page 1.
-    if (inputs.cursor() != null) {
+    // Decode the raw client cursor here (the service owns cursor internals), then re-validate its
+    // token against the current preimage; any drift (reindex, allowlist change, backend switch,
+    // tenant boundary) forces the client back to page 1. Malformed input is a 400, not a 500.
+    GlobalSearchCursor cursor = null;
+    if (!StringUtils.isBlank(inputs.cursor())) {
+      try {
+        cursor = GlobalSearchCursor.decodeUnvalidated(inputs.cursor());
+      }
+      catch (IllegalArgumentException e) {
+        throw new BadRequestException("Invalid pagination cursor.", e);
+      }
       String expected = expectedGenerationToken(inputs.tab(), validatedSortKey, pageSize);
-      if (!inputs.cursor().generationToken().equals(expected)) {
+      if (!cursor.generationToken().equals(expected)) {
         throw new StaleCursorException("Cursor generation token mismatch");
       }
     }
@@ -150,7 +160,7 @@ public class IqLocalSearchService
 
     Sort sort = sortFor(inputs.tab(), validatedSortKey);
 
-    List<String> searchAfter = inputs.cursor() == null ? Collections.emptyList() : inputs.cursor().sortValues();
+    List<String> searchAfter = cursor == null ? Collections.emptyList() : cursor.sortValues();
     GlobalSearchRequest request = new GlobalSearchRequest(finalQuery, sort, pageSize, searchAfter);
 
     GlobalSearchResult result = searchIndexClient.searchGlobal(request);
@@ -181,11 +191,31 @@ public class IqLocalSearchService
       final int pageSize,
       final List<String> sortValues)
   {
+    return mintNextCursor(tab, sortKey, pageSize, sortValues, null);
+  }
+
+  /**
+   * As {@link #mintNextCursor(Tab, String, int, List)}, but pins the cursor to the backend that
+   * actually served the page ({@link GlobalSearchResult#servingBackendId()}) rather than the
+   * request's default backend. Under a Hybrid primary-failure fallback the secondary serves the
+   * page; pinning to the secondary's id makes the primary reject the follow-up cursor as stale once
+   * it recovers, instead of silently mis-paginating a secondary-format cursor. Pass {@code null} to
+   * use the default backend.
+   */
+  public GlobalSearchCursor mintNextCursor(
+      final Tab tab,
+      final String sortKey,
+      final int pageSize,
+      final List<String> sortValues,
+      final String servingBackendId)
+  {
     if (sortValues == null || sortValues.isEmpty()) {
       return null;
     }
     String validatedSortKey = GlobalSearchSortAllowlist.requireAllowed(tab, sortKey);
-    String token = expectedGenerationToken(tab, validatedSortKey, clampPageSize(pageSize));
+    String token = servingBackendId == null
+        ? expectedGenerationToken(tab, validatedSortKey, clampPageSize(pageSize))
+        : computeGenerationToken(tab, validatedSortKey, clampPageSize(pageSize), servingBackendId);
     return GlobalSearchCursor.newCursor(token, sortValues);
   }
 
@@ -207,8 +237,6 @@ public class IqLocalSearchService
 
   /** Generation token expected for the current request; must match what {@link #mintNextCursor} minted. */
   String expectedGenerationToken(final Tab tab, final String sortKey, final int pageSize) {
-    Long lastIndexTime = searchIndexClient.getLastIndexTime();
-    String indexGen = lastIndexTime == null ? "0" : Long.toString(lastIndexTime);
     String backendId;
     try {
       backendId = searchIndexClient.backendId();
@@ -217,11 +245,21 @@ public class IqLocalSearchService
       throw new IllegalStateException(
           "search backend does not implement backendId(); Global Search backend is misconfigured", e);
     }
-    if (backendId == null) {
-      backendId = "";
-    }
+    return computeGenerationToken(tab, sortKey, pageSize, backendId);
+  }
+
+  /** Generation token for an explicit backend id (null coalesces to empty), matching the mint preimage. */
+  private String computeGenerationToken(
+      final Tab tab,
+      final String sortKey,
+      final int pageSize,
+      final String backendId)
+  {
+    Long lastIndexTime = searchIndexClient.getLastIndexTime();
+    String indexGen = lastIndexTime == null ? "0" : Long.toString(lastIndexTime);
+    String resolvedBackendId = backendId == null ? "" : backendId;
     return GlobalSearchCursor.computeGenerationToken(
-        indexGen, tab.name(), sortKey, pageSize, backendId, currentTenantId());
+        indexGen, tab.name(), sortKey, pageSize, resolvedBackendId, currentTenantId());
   }
 
   private static String currentTenantId() {
@@ -347,7 +385,7 @@ public class IqLocalSearchService
       Set<ItemType> itemTypes,
       int pageSize,
       String sortKey,
-      GlobalSearchCursor cursor,
+      String cursor,
       boolean isSbomManagerMode)
   {
     public SearchInputs {
@@ -371,7 +409,7 @@ public class IqLocalSearchService
         final Set<ItemType> itemTypes,
         final int pageSize,
         final String sortKey,
-        final GlobalSearchCursor cursor)
+        final String cursor)
     {
       this(query, tab, itemTypes, pageSize, sortKey, cursor, false);
     }

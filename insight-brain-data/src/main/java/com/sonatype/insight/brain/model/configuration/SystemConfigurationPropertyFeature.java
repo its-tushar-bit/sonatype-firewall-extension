@@ -64,6 +64,11 @@ public enum SystemConfigurationPropertyFeature
   PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK(
       SystemConfigurationProperty.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK,
       false),
+  /**
+   * Gates the Global Search backend. Default OFF; legacy {@code /api/v2/search/advanced}
+   * is unaffected.
+   */
+  GLOBAL_SEARCH(SystemConfigurationProperty.GLOBAL_SEARCH, false),
   CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true),
   WEBHOOK_CONFIGURATION(SystemConfigurationProperty.WEBHOOK_CONFIGURATION, true),
   PRODUCT_LICENSE_CONFIGURATION(SystemConfigurationProperty.PRODUCT_LICENSE_CONFIGURATION, true),

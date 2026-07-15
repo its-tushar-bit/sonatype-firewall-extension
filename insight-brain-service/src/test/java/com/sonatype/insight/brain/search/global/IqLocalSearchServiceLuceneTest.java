@@ -311,7 +311,7 @@ public class IqLocalSearchServiceLuceneTest
     // Feed the minted cursor back into a real second search(): the generation-token check in
     // search() must accept it (no StaleCursorException) and return the expected page.
     SearchInputs followUp = new SearchInputs("acme", tab,
-        Set.of(ItemType.APPLICATION), pageSize, sortKey, minted);
+        Set.of(ItemType.APPLICATION), pageSize, sortKey, minted.encode());
     IqLocalSearchResponse response = service.search(followUp);
     assertThat(response).isNotNull();
     assertThat(response.sortKey()).isEqualTo(sortKey);
@@ -328,7 +328,7 @@ public class IqLocalSearchServiceLuceneTest
     String sortKey = "relevance";
     GlobalSearchCursor mintedForPage10 = service.mintNextCursor(tab, sortKey, 10, List.of("acme-prod"));
     SearchInputs followUp = new SearchInputs("acme", tab,
-        Set.of(ItemType.APPLICATION), 25, sortKey, mintedForPage10);
+        Set.of(ItemType.APPLICATION), 25, sortKey, mintedForPage10.encode());
     assertThatCode(() -> service.search(followUp)).isInstanceOf(StaleCursorException.class);
   }
 

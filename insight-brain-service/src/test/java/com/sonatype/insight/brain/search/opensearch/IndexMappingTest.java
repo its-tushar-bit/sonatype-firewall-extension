@@ -93,6 +93,14 @@ public class IndexMappingTest
         .isNull();
   }
 
+  @Test
+  public void documentKey_isCaseSensitiveSortableKeyword() {
+    KeywordProperty keyword = keywordPropertyFor(FieldIdentifier.DOCUMENT_KEY.label);
+    // Case-sensitive (no normalizer) so the stored hash sorts byte-for-byte, matching the Lucene
+    // doc-values order for the cursor tie-breaker.
+    assertThat(keyword.normalizer()).isNull();
+  }
+
   private static KeywordProperty keywordPropertyFor(final String fieldName) {
     Property property = new IndexMapping().getMappings().get(fieldName);
     assertThat(property).isNotNull();

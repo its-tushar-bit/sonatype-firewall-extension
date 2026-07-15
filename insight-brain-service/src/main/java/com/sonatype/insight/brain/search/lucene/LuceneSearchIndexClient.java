@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,6 +24,9 @@ import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
+import com.sonatype.insight.brain.search.global.GlobalSearchResult;
+import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
@@ -37,6 +41,7 @@ import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -67,9 +72,12 @@ import org.apache.lucene.index.SegmentInfos;
 import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.index.TwoPhaseCommitTool.CommitFailException;
 import org.apache.lucene.index.TwoPhaseCommitTool.PrepareCommitFailException;
+import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.IndexSearcher.TooManyClauses;
-import org.apache.lucene.search.BooleanClause;
+import static org.apache.lucene.search.BooleanClause.Occur.FILTER;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST;
+import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.MatchNoDocsQuery;
@@ -78,13 +86,16 @@ import org.apache.lucene.search.SimpleCollector;
 import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopFieldCollectorManager;
+import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.search.TotalHits.Relation;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.LockReleaseFailedException;
-import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.ThreadInterruptedException;
 
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
@@ -98,6 +109,8 @@ import org.slf4j.LoggerFactory;
 public class LuceneSearchIndexClient
     extends AbstractSearchIndexClient
 {
+  public static final String BACKEND_ID = "lucene";
+
   private static final Logger log = LoggerFactory.getLogger(LuceneSearchIndexClient.class);
 
   private static final Set<Class<?>> SYSTEMIC_LUCENE_EXCEPTIONS = Set.of(
@@ -298,6 +311,133 @@ public class LuceneSearchIndexClient
       }
       throw new SearchIndexException(e);
     }
+  }
+
+  @Override
+  public String backendId() {
+    return BACKEND_ID;
+  }
+
+  /** {@code request.baseQuery()} MUST already be permission-wrapped; this runs it verbatim. */
+  @Override
+  public GlobalSearchResult searchGlobal(final GlobalSearchRequest request) {
+    if (!isGlobalSearchEnabled()) {
+      throw new ConflictException("Global Search is disabled");
+    }
+    updateMaxQueryClauseCount();
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+      int pageSize = request.pageSize();
+      AuditData.get()
+          .setData("searchPageSize", pageSize)
+          .setData("searchSort", describeSort(request.sort()))
+          .setData("searchAfterPresent", !request.searchAfter().isEmpty())
+          .setData("searchBackend", BACKEND_ID);
+      int collectCap = Math.max(1, pageSize + 1);
+      int totalHitsThreshold = AbstractSearchIndexClient.GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP;
+      Sort sort = effectiveSort(request.sort());
+      List<String> searchAfter = request.searchAfter();
+
+      FieldDoc after = searchAfter.isEmpty() ? null : decodeFieldDocAfter(searchAfter, sort);
+      TopDocs topDocs = indexSearcher.search(request.baseQuery(),
+          new TopFieldCollectorManager(sort, collectCap, after, totalHitsThreshold, true));
+
+      ScoreDoc[] hits = topDocs.scoreDocs;
+      int returnCount = Math.min(hits.length, pageSize);
+      List<SearchResultItemDTO> rows = new ArrayList<>(returnCount);
+      for (int i = 0; i < returnCount; i++) {
+        Document doc = indexSearcher.storedFields().document(hits[i].doc);
+        rows.add(new SearchResultItemDTO(doc));
+      }
+
+      List<String> nextSearchAfter = List.of();
+      if (hits.length > pageSize && returnCount > 0) {
+        ScoreDoc last = hits[returnCount - 1];
+        nextSearchAfter = encodeNextSearchAfter(last, sort);
+      }
+
+      long capped = AbstractSearchIndexClient.capTotalHitsForGlobalSearch(topDocs.totalHits.value);
+      boolean exactTotal = topDocs.totalHits.relation == Relation.EQUAL_TO;
+      AuditData.get().setData("resultRecordCount", rows.size());
+      return new GlobalSearchResult(rows, capped, nextSearchAfter, exactTotal);
+    }
+    catch (SearchIndexException searchIndexException) {
+      throw searchIndexException;
+    }
+    catch (Exception e) {
+      throw mapSearchException(e);
+    }
+  }
+
+  /** Appends the per-doc-unique {@link FieldIdentifier#DOCUMENT_KEY} tie-breaker for a stable searchAfter cursor. */
+  private static Sort effectiveSort(final Sort requestSort) {
+    SortField docKey = new SortField(FieldIdentifier.DOCUMENT_KEY.label, SortField.Type.STRING);
+    if (requestSort == null) {
+      return new Sort(SortField.FIELD_SCORE, docKey);
+    }
+    SortField[] base = requestSort.getSort();
+    SortField[] withKey = Arrays.copyOf(base, base.length + 1);
+    withKey[base.length] = docKey;
+    return new Sort(withKey);
+  }
+
+  private static FieldDoc decodeFieldDocAfter(final List<String> searchAfter, final Sort sort) {
+    SortField[] sortFields = sort.getSort();
+    if (searchAfter.size() != sortFields.length) {
+      throw new BadRequestException("Invalid searchAfter tuple for Global Search sort.");
+    }
+    Object[] fieldValues = new Object[sortFields.length];
+    for (int i = 0; i < sortFields.length; i++) {
+      fieldValues[i] = decodeSortValue(sortFields[i].getType(), searchAfter.get(i));
+    }
+    // Sentinel docId: the DOCUMENT_KEY tuple slot is the tie-breaker, so Lucene never consults it.
+    return new FieldDoc(Integer.MAX_VALUE, Float.NaN, fieldValues);
+  }
+
+  private static Object decodeSortValue(final SortField.Type type, final String raw) {
+    try {
+      return switch (type) {
+        case STRING, STRING_VAL -> new BytesRef(raw);
+        case LONG -> "MIN".equals(raw) ? Long.MIN_VALUE : Long.parseLong(raw);
+        case INT -> "MIN".equals(raw) ? Integer.MIN_VALUE : Integer.parseInt(raw);
+        case FLOAT, SCORE -> "NaN".equals(raw) ? Float.NaN : Float.parseFloat(raw);
+        case DOUBLE -> "NaN".equals(raw) ? Double.NaN : Double.parseDouble(raw);
+        default -> throw new BadRequestException("Unsupported SortField.Type in searchAfter: " + type);
+      };
+    }
+    catch (NumberFormatException nfe) {
+      throw new BadRequestException("Invalid searchAfter value for SortField.Type " + type + ": " + raw);
+    }
+  }
+
+  private static List<String> encodeNextSearchAfter(final ScoreDoc last, final Sort sort) {
+    List<String> out = new ArrayList<>();
+    SortField[] sortFields = sort.getSort();
+    if (last instanceof FieldDoc fieldDoc && fieldDoc.fields != null) {
+      for (int i = 0; i < fieldDoc.fields.length; i++) {
+        out.add(encodeSortValue(sortFields[i].getType(), fieldDoc.fields[i]));
+      }
+    }
+    return out;
+  }
+
+  /** Encodes a sort-tuple slot; null encodes to a re-decodable sentinel so a null boundary round-trips. */
+  private static String encodeSortValue(final SortField.Type type, final Object v) {
+    if (v == null) {
+      return switch (type) {
+        case LONG, INT -> "MIN";
+        case FLOAT, DOUBLE, SCORE -> "NaN";
+        case STRING, STRING_VAL -> "";
+        default -> throw new BadRequestException("Unsupported SortField.Type in searchAfter: " + type);
+      };
+    }
+    return switch (type) {
+      case STRING, STRING_VAL -> v instanceof BytesRef br ? br.utf8ToString() : v.toString();
+      case LONG, INT, FLOAT, DOUBLE, SCORE -> v.toString();
+      default -> throw new BadRequestException("Unsupported SortField.Type in searchAfter: " + type);
+    };
   }
 
   // Update the static setting within lucene for the max query clause count, based on the current value in the
@@ -525,10 +665,10 @@ public class LuceneSearchIndexClient
     checkFieldNames(fieldNames);
     Query metric = conversionHelper.stringToQuery(initialQuery);
     BooleanQuery.Builder combined = new BooleanQuery.Builder();
-    combined.add(metric, BooleanClause.Occur.MUST);
-    combined.add(rbac, BooleanClause.Occur.FILTER);
+    combined.add(metric, MUST);
+    combined.add(rbac, FILTER);
     if (extraFilter != null) {
-      combined.add(extraFilter, BooleanClause.Occur.FILTER);
+      combined.add(extraFilter, FILTER);
     }
     return combined.build();
   }
@@ -567,10 +707,10 @@ public class LuceneSearchIndexClient
 
     BooleanQuery.Builder rbac = new BooleanQuery.Builder();
     if (!applicationTerms.isEmpty()) {
-      rbac.add(new TermInSetQuery(APPLICATION_ID.label, applicationTerms), BooleanClause.Occur.SHOULD);
+      rbac.add(new TermInSetQuery(APPLICATION_ID.label, applicationTerms), SHOULD);
     }
     if (!organizationTerms.isEmpty()) {
-      rbac.add(new TermInSetQuery(ORGANIZATION_ID.label, organizationTerms), BooleanClause.Occur.SHOULD);
+      rbac.add(new TermInSetQuery(ORGANIZATION_ID.label, organizationTerms), SHOULD);
     }
     rbac.setMinimumNumberShouldMatch(1);
     return rbac.build();

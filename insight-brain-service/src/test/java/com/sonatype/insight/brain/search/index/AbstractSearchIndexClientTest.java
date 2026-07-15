@@ -26,6 +26,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import jakarta.inject.Inject;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -49,6 +51,12 @@ public class AbstractSearchIndexClientTest
   @Before
   public void setup() throws Exception {
     client = spy(new TestSearchIndexClient());
+  }
+
+  @Test
+  public void describeSort_relevanceSort_rendersReadableToken() {
+    Sort sort = new Sort(SortField.FIELD_SCORE, new SortField("documentKey", SortField.Type.STRING));
+    assertThat(AbstractSearchIndexClient.describeSort(sort)).isEqualTo("relevance,documentKey");
   }
 
   @Test

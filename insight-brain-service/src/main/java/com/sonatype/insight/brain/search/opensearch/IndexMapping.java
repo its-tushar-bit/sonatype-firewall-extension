@@ -110,6 +110,9 @@ public class IndexMapping
     // context IDs are matched byte-for-byte. Multi-valued (set per document by DocumentBuilder).
     propertyMappings.put(FieldIdentifier.ALLOWED_CONTEXT_IDS.label, createProperty("keyword_case_sensitive"));
 
+    // Case-sensitive so the hash sorts identically to the Lucene doc-values order.
+    propertyMappings.put(FieldIdentifier.DOCUMENT_KEY.label, createProperty("keyword_case_sensitive"));
+
     propertyMappings.put(CREATED_AT_EPOCH_MS, createProperty("long"));
 
     return propertyMappings;

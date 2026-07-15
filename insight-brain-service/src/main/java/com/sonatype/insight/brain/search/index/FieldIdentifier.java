@@ -74,7 +74,10 @@ public enum FieldIdentifier
    * permission-lookup side, the failure mode is a silent filter miss (docs disappear), not an
    * error; keep both sides emitting the raw lowercase-hex id.
    */
-  ALLOWED_CONTEXT_IDS("allowedContextIds");
+  ALLOWED_CONTEXT_IDS("allowedContextIds"),
+
+  /** Content-derived cursor tie-breaker; stable across reindex and both backends, unlike a transient docId/_id. */
+  DOCUMENT_KEY("documentKey");
 
   public final String label;
 

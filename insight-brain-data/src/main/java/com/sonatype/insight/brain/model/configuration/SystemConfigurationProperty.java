@@ -66,6 +66,12 @@ public class SystemConfigurationProperty
   public static final String PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK =
       "PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK";
 
+  /**
+   * Gates the Global Search backend. Default OFF (row absent). See
+   * {@link SystemConfigurationPropertyFeature#GLOBAL_SEARCH}.
+   */
+  public static final String GLOBAL_SEARCH = "GLOBAL_SEARCH";
+
   public static final String CROWD_INTEGRATION = "CROWD_INTEGRATION";
 
   public static final String WEBHOOK_CONFIGURATION = "WEBHOOK_CONFIGURATION";

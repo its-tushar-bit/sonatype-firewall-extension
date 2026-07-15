@@ -10,10 +10,13 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.search.ConversionHelper;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexingContext;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.util.BytesRef;
 
 public class LuceneIndexingContext
     extends IndexingContext
@@ -36,6 +39,14 @@ public class LuceneIndexingContext
 
   @Override
   public void addDocuments(final List<Document> documents) throws IOException {
+    // Sort doc-values live only here, not in DocumentBuilder: a same-named field would serialize a
+    // null into the OpenSearch _source and NPE on read-back. OpenSearch sorts on its keyword mapping.
+    for (Document document : documents) {
+      String key = document.get(FieldIdentifier.DOCUMENT_KEY.label);
+      if (key != null) {
+        document.add(new SortedDocValuesField(FieldIdentifier.DOCUMENT_KEY.label, new BytesRef(key)));
+      }
+    }
     indexWriter.addDocuments(documents);
   }
 }

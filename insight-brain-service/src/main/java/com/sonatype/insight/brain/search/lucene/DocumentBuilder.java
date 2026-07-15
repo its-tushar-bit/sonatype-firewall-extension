@@ -5,9 +5,15 @@
  */
 package com.sonatype.insight.brain.search.lucene;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -29,6 +35,7 @@ import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexableField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +82,7 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.DOCUMENT_KEY;
 
 public class DocumentBuilder
 {
@@ -541,7 +549,42 @@ public class DocumentBuilder
     componentLicenseThreatGroupName.ifPresent(this::setFields);
     componentLicenseThreatLevel.ifPresent(this::setFields);
     allowedContextIds.ifPresent(this::setFields);
+    addDocumentKey();
     return document;
+  }
+
+  /**
+   * Stable {@link FieldIdentifier#DOCUMENT_KEY} tie-breaker (SHA-256 over sorted field pairs).
+   * {@code allowedContextIds} is excluded because that permission closure can change without the
+   * document's identity changing. The Lucene sort doc-values twin is added separately in
+   * {@link LuceneIndexingContext}, not here: a same-named doc-values field would serialize a null
+   * into the OpenSearch {@code _source} and NPE on read-back.
+   */
+  private void addDocumentKey() {
+    List<String> parts = new ArrayList<>();
+    for (IndexableField field : document.getFields()) {
+      if (ALLOWED_CONTEXT_IDS.label.equals(field.name())) {
+        continue;
+      }
+      String value = field.stringValue();
+      if (value == null && field.numericValue() != null) {
+        value = field.numericValue().toString();
+      }
+      parts.add(field.name() + '=' + (value == null ? "" : value));
+    }
+    Collections.sort(parts);
+    String key = sha256Hex(String.join("\n", parts));
+    document.add(new StringField(DOCUMENT_KEY.label, key, Store.YES));
+  }
+
+  private static String sha256Hex(final String input) {
+    try {
+      MessageDigest md = MessageDigest.getInstance("SHA-256");
+      return HexFormat.of().formatHex(md.digest(input.getBytes(StandardCharsets.UTF_8)));
+    }
+    catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   private void setFields(Field... fields) {

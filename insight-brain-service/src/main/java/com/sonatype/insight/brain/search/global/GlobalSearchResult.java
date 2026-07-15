@@ -29,6 +29,8 @@ public final class GlobalSearchResult
 
   private final boolean exactTotalHits;
 
+  private final String servingBackendId;
+
   /**
    * Convenience constructor that defaults {@code exactTotalHits} to {@code true}. Any backend whose
    * count stops at a cap (so the real total may be higher) MUST use the four-argument constructor
@@ -48,6 +50,16 @@ public final class GlobalSearchResult
       final List<String> nextSearchAfter,
       final boolean exactTotalHits)
   {
+    this(rows, totalHits, nextSearchAfter, exactTotalHits, null);
+  }
+
+  public GlobalSearchResult(
+      final List<SearchResultItemDTO> rows,
+      final long totalHits,
+      final List<String> nextSearchAfter,
+      final boolean exactTotalHits,
+      final String servingBackendId)
+  {
     this.rows = Collections.unmodifiableList(Objects.requireNonNull(rows, "rows"));
     if (totalHits < 0) {
       throw new IllegalArgumentException("totalHits must be >= 0");
@@ -55,6 +67,7 @@ public final class GlobalSearchResult
     this.totalHits = totalHits;
     this.nextSearchAfter = nextSearchAfter == null ? Collections.emptyList() : List.copyOf(nextSearchAfter);
     this.exactTotalHits = exactTotalHits;
+    this.servingBackendId = servingBackendId;
   }
 
   public List<SearchResultItemDTO> rows() {
@@ -74,5 +87,16 @@ public final class GlobalSearchResult
   /** {@code false} when the backend stopped counting at the cap and the real total may be higher. */
   public boolean exactTotalHits() {
     return exactTotalHits;
+  }
+
+  /**
+   * Backend that actually produced this page (its {@code backendId()}), or {@code null} when the
+   * serving backend is the request's default. Used to pin the next-page cursor to the serving
+   * backend so a cross-backend switch on the follow-up request is rejected as a stale cursor rather
+   * than silently mis-paginated. Set by {@code HybridSearchIndexClient} when it falls back to the
+   * secondary; single-backend clients leave it {@code null}.
+   */
+  public String servingBackendId() {
+    return servingBackendId;
   }
 }

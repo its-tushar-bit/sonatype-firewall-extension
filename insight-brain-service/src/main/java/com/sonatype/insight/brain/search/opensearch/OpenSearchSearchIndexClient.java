@@ -39,6 +39,9 @@ import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.SearchConfig;
+import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
+import com.sonatype.insight.brain.search.global.GlobalSearchResult;
+import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
@@ -60,6 +63,8 @@ import com.sonatype.insight.error.exception.ConflictException;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.inject.Inject;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.ErrorCause;
 import org.opensearch.client.opensearch._types.FieldSort;
@@ -79,6 +84,7 @@ import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.core.search.HitsMetadata;
+import org.opensearch.client.opensearch.core.search.SourceConfig;
 import org.opensearch.client.opensearch.core.search.TotalHits;
 import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
 import org.opensearch.client.opensearch.core.search.TrackHits;
@@ -116,6 +122,8 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATI
 public class OpenSearchSearchIndexClient
     extends AbstractSearchIndexClient
 {
+  public static final String BACKEND_ID = "opensearch";
+
   private static final Logger log = LoggerFactory.getLogger(OpenSearchSearchIndexClient.class);
 
   private static final int DEFAULT_MAX_RESULT_WINDOW = 10000;
@@ -465,6 +473,119 @@ public class OpenSearchSearchIndexClient
       }
       throw new SearchIndexException(e);
     }
+  }
+
+  @Override
+  public String backendId() {
+    return BACKEND_ID;
+  }
+
+  /** {@code request.baseQuery()} MUST already be permission-wrapped; this runs it verbatim. */
+  @Override
+  public GlobalSearchResult searchGlobal(final GlobalSearchRequest request) {
+    if (!isGlobalSearchEnabled()) {
+      throw new ConflictException("Global Search is disabled");
+    }
+    try {
+      int pageSize = request.pageSize();
+      AuditData.get()
+          .setData("searchPageSize", pageSize)
+          .setData("searchSort", describeSort(request.sort()))
+          .setData("searchAfterPresent", !request.searchAfter().isEmpty())
+          .setData("searchBackend", BACKEND_ID);
+      org.opensearch.client.opensearch._types.query_dsl.Query openSearchQuery =
+          LuceneToOpenSearchQueryAdapter.toOpenSearch(request.baseQuery());
+      List<SortOptions> sortOptions = buildSortOptionsForGlobalSearch(request);
+      SearchRequest.Builder builder = new SearchRequest.Builder()
+          .index(indexConfigProvider.getIndexConfig().getIndexName())
+          .query(openSearchQuery)
+          .size(pageSize + 1)
+          .trackTotalHits(t -> t.count(AbstractSearchIndexClient.GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP))
+          .source(SourceConfig.of(s -> s.fetch(true)))
+          .sort(sortOptions);
+      if (!request.searchAfter().isEmpty()) {
+        if (request.searchAfter().size() != sortOptions.size()) {
+          throw new BadRequestException("Invalid searchAfter tuple for Global Search sort.");
+        }
+        builder.searchAfter(request.searchAfter());
+      }
+      SearchRequest searchRequest = builder.build();
+
+      SearchResponse<Map> response = getClient().search(searchRequest, Map.class);
+      HitsMetadata<Map> hitsMetadata = response.hits();
+      TotalHits totalHits = hitsMetadata.total();
+      long total = totalHits == null ? 0L : totalHits.value();
+      boolean exactTotal = totalHits == null || totalHits.relation() == TotalHitsRelation.Eq;
+      List<Hit<Map>> fetchedHits = hitsMetadata.hits();
+      AbstractSearchIndexClient.HasMoreResult<Hit<Map>> paged =
+          AbstractSearchIndexClient.detectHasMore(fetchedHits, pageSize);
+      List<Hit<Map>> pageHits = paged.rows();
+      boolean hasMore = paged.hasMore();
+
+      List<SearchResultItemDTO> rows = new ArrayList<>(pageHits.size());
+      for (Hit<Map> hit : pageHits) {
+        Map<String, Object> source = hit.source();
+        if (source == null) {
+          throw new SearchIndexException("OpenSearch search hit " + hit.id() + " carried a null _source", null);
+        }
+        Document doc = conversionHelper.mapToDocument(source);
+        rows.add(new SearchResultItemDTO(doc));
+      }
+
+      List<String> nextSearchAfter = List.of();
+      if (hasMore && !pageHits.isEmpty()) {
+        Hit<Map> last = pageHits.get(pageHits.size() - 1);
+        List<String> sortValues = last.sort();
+        if (sortValues == null || sortValues.isEmpty()) {
+          throw new SearchIndexException(
+              "overfetch indicated a next page but the last hit carried no sort tuple", null);
+        }
+        nextSearchAfter = List.copyOf(sortValues);
+      }
+
+      long capped = AbstractSearchIndexClient.capTotalHitsForGlobalSearch(total);
+      AuditData.get().setData("resultRecordCount", rows.size());
+      return new GlobalSearchResult(rows, capped, nextSearchAfter, exactTotal);
+    }
+    catch (SearchIndexException searchIndexException) {
+      throw searchIndexException;
+    }
+    catch (Exception e) {
+      throwIfIndexNotFound(e);
+      if (e instanceof OpenSearchException openSearchException
+          && openSearchException.response().toJsonString().contains("too_many_clauses"))
+      {
+        throw TOO_MANY_CLAUSES_EXCEPTION;
+      }
+      if (e instanceof BadRequestException badRequestException) {
+        throw badRequestException;
+      }
+      throw new SearchIndexException(e);
+    }
+  }
+
+  private static List<SortOptions> buildSortOptionsForGlobalSearch(final GlobalSearchRequest request) {
+    List<SortOptions> options = new ArrayList<>();
+    Sort sort = request.sort();
+    if (sort != null) {
+      for (SortField sf : sort.getSort()) {
+        String field = sf.getField();
+        SortOrder order = sf.getReverse() ? SortOrder.Desc : SortOrder.Asc;
+        options.add(new SortOptions.Builder()
+            .field(new FieldSort.Builder().field(field).order(order).build())
+            .build());
+      }
+    }
+    else {
+      options.add(new SortOptions.Builder()
+          .score(new ScoreSort.Builder().order(SortOrder.Desc).build())
+          .build());
+    }
+    // Deterministic tie-breaker; sortable without fielddata, unlike _id.
+    options.add(new SortOptions.Builder()
+        .field(new FieldSort.Builder().field(FieldIdentifier.DOCUMENT_KEY.label).order(SortOrder.Asc).build())
+        .build());
+    return options;
   }
 
   private int getMaxResultWindow() throws IOException {

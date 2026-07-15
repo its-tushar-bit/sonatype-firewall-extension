@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.search.global;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.never;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -170,7 +172,7 @@ public class IqLocalSearchServiceTest
   }
 
   @Test
-  public void search_throwsWhenV2Disabled() {
+  public void search_throwsWhenGlobalSearchDisabled() {
     when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(false);
     SearchInputs inputs = new SearchInputs("q", Tab.APPLICATION,
         Set.of(ItemType.APPLICATION), 25, "relevance", null);
@@ -324,7 +326,7 @@ public class IqLocalSearchServiceTest
     String token = service.expectedGenerationToken(Tab.APPLICATION, "relevance", 25);
     GlobalSearchCursor cursor = GlobalSearchCursor.newCursor(token, List.of("0.7", "23"));
     SearchInputs inputs = new SearchInputs("q", Tab.APPLICATION,
-        Set.of(ItemType.APPLICATION), 25, "relevance", cursor);
+        Set.of(ItemType.APPLICATION), 25, "relevance", cursor.encode());
 
     service.search(inputs);
 
@@ -340,10 +342,21 @@ public class IqLocalSearchServiceTest
     // string, so the mismatch guard fires.
     GlobalSearchCursor cursor = GlobalSearchCursor.newCursor("stale-generation-token", List.of("a"));
     SearchInputs inputs = new SearchInputs("q", Tab.APPLICATION,
-        Set.of(ItemType.APPLICATION), 25, "relevance", cursor);
+        Set.of(ItemType.APPLICATION), 25, "relevance", cursor.encode());
 
     assertThatExceptionOfType(StaleCursorException.class)
         .isThrownBy(() -> service.search(inputs));
+    verify(searchIndexClient, never()).searchGlobal(any());
+  }
+
+  @Test
+  public void search_malformedCursor_throwsBadRequest() {
+    // A structurally invalid cursor string is client input, so it must surface as a 400
+    // (BadRequestException), never a raw IllegalArgumentException that would map to a 500.
+    SearchInputs inputs = new SearchInputs("q", Tab.APPLICATION,
+        Set.of(ItemType.APPLICATION), 25, "relevance", "!!!not-base64!!!");
+
+    assertThatThrownBy(() -> service.search(inputs)).isInstanceOf(BadRequestException.class);
     verify(searchIndexClient, never()).searchGlobal(any());
   }
 
@@ -368,7 +381,7 @@ public class IqLocalSearchServiceTest
     // Page 2: permission is revoked mid-pagination — the client now reports the narrow set.
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(narrow);
     SearchInputs page2 = new SearchInputs("q", Tab.APPLICATION,
-        Set.of(ItemType.APPLICATION), 25, "relevance", cursor);
+        Set.of(ItemType.APPLICATION), 25, "relevance", cursor.encode());
 
     // No StaleCursorException: the generation token is unaffected by the permission change.
     service.search(page2);
@@ -392,7 +405,7 @@ public class IqLocalSearchServiceTest
     // A supplied cursor drives the generation-token re-validation path, which calls backendId().
     GlobalSearchCursor cursor = GlobalSearchCursor.newCursor("any-token", List.of("a"));
     SearchInputs inputs = new SearchInputs("q", Tab.APPLICATION,
-        Set.of(ItemType.APPLICATION), 25, "relevance", cursor);
+        Set.of(ItemType.APPLICATION), 25, "relevance", cursor.encode());
 
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> service.search(inputs))

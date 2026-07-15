@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.search.index;
 
+import static com.sonatype.insight.brain.search.index.AbstractSearchIndexClient.GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP;
+import static com.sonatype.insight.brain.search.index.AbstractSearchIndexClient.capTotalHitsForGlobalSearch;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.model.Organization;
@@ -45,10 +47,19 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Asserts the {@code TermInSetQuery} permission envelope matches an independently-modeled
- * ancestor-closure oracle on a 200-org fixture: intersecting a doc's denormalized closure with a
- * user's permitted contexts must equal expanding each permitted org into its subtree. In-memory
- * only (no Spring/DI/DB); the legacy query path is covered by the advanced-search ITs.
+ * Asserts the new {@code TermInSetQuery} permission envelope matches an independently-modeled
+ * ancestor-closure oracle on a 200-org fixture. The new envelope's correctness rests on the
+ * invariant that every doc's denormalized {@code allowedContextIds} field contains its full
+ * ancestor-org closure (plus its owning app id when applicable); given a user's
+ * permitted-context-id set, intersecting that closure is equivalent to expanding each permitted
+ * org id into its subtree and matching the doc's primary org id.
+ *
+ * <p>
+ * This test does <b>not</b> invoke the legacy
+ * {@code appendAllowedApplicationsAndOrganizationsToQuery} production code; that path is
+ * exercised by the existing advanced-search integration tests. The oracle here is a hand-built
+ * model of the ancestor-closure semantics we expect the new envelope to preserve, so the test
+ * stays in-memory (no Spring / DI / database).
  */
 public class AbstractSearchIndexClientPermissionFilterTest
 {
@@ -129,6 +140,9 @@ public class AbstractSearchIndexClientPermissionFilterTest
 
     // A null filter means the caller has global access and the base query is returned unchanged.
     assertThat(filter).isNull();
+
+    assertThat(capTotalHitsForGlobalSearch(50_000L)).isEqualTo(GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP);
+    assertThat(capTotalHitsForGlobalSearch(123L)).isEqualTo(123L);
   }
 
   @Test
@@ -227,10 +241,12 @@ public class AbstractSearchIndexClientPermissionFilterTest
   }
 
   @Test
-  public void buildPermittedQuery_globalAccessWithNullBase_returnsMatchAllNotNull() {
-    // Global-access caller (permission filter is null) passing a null base query must not yield a
-    // bare null that a searcher would NPE on; buildPermittedQuery substitutes a MatchAllDocsQuery.
-    TestSearchIndexClient client = newClientWithReadContexts(Set.of(MembershipMapping.GLOBAL_CONTEXT_ID));
+  public void buildPermittedQuery_globalUserNullBase_substitutesMatchAllDocsNeverNull() {
+    // Global access => null filter; a null base query would leave wrapWithPermissionFilter
+    // returning null. buildPermittedQuery must substitute MatchAllDocsQuery instead, mirroring
+    // the SearchIndexClient interface default's never-null contract.
+    TestSearchIndexClient client = newClient();
+    client.stubReadContextIds(Set.of(MembershipMapping.GLOBAL_CONTEXT_ID));
 
     Query permitted = client.buildPermittedQuery(null);
 
@@ -238,21 +254,35 @@ public class AbstractSearchIndexClientPermissionFilterTest
   }
 
   @Test
-  public void buildPermittedQuery_globalAccessWithBase_returnsBaseUnchanged() {
-    // Global access + a non-null base returns the base intact (no filtering, no substitution).
-    TestSearchIndexClient client = newClientWithReadContexts(Set.of(MembershipMapping.GLOBAL_CONTEXT_ID));
+  public void buildPermittedQuery_globalUserWithBase_returnsBaseUnchanged() {
+    TestSearchIndexClient client = newClient();
+    client.stubReadContextIds(Set.of(MembershipMapping.GLOBAL_CONTEXT_ID));
     Query base = new MatchAllDocsQuery();
 
     assertThat(client.buildPermittedQuery(base)).isSameAs(base);
   }
 
+  /**
+   * Guard for the fail-open concern: a user with an empty read-context set must get zero results,
+   * NOT the MatchAllDocsQuery substitution. The empty set flows through buildAllowedContextIdsFilter
+   * as a MatchNoDocsQuery (not null), so wrapWithPermissionFilter never yields null and the MatchAll
+   * substitution is never reached. Locks that the empty-set path stays fail-closed.
+   */
+  @Test
+  public void buildPermittedQuery_emptyReadContexts_returnsZeroDocs() throws IOException {
+    TestSearchIndexClient client = newClient();
+    client.stubReadContextIds(Collections.emptySet());
+
+    Query permitted = client.buildPermittedQuery(new MatchAllDocsQuery());
+
+    assertThat(permitted).isNotInstanceOf(MatchAllDocsQuery.class);
+    assertThat(executeAndCollectOrgIds(permitted)).isEmpty();
+  }
+
   @Test
   public void permissionFilter_isCaseSensitive_matchesRawContextIdOnly() throws IOException {
-    // The mapping uses a case-sensitive keyword (no normalizer): a doc whose allowedContextIds
-    // holds a MIXED-CASE id must match a permitted set containing that exact id, and must NOT
-    // match a lowercased variant. Pins the "context IDs are lowercase-hex" invariant that makes
-    // case-sensitive matching equivalent to the legacy lowercase-normalized path — if broken, the
-    // failure is a silent filter miss, so assert it explicitly.
+    // Context-id matching is case-sensitive (keyword field, no normalizer): a lowercased variant
+    // must NOT match, else a broken filter is a silent security miss. Assert both directions.
     String mixedCaseId = "MixedCaseOrg-AbC123";
     try (Directory dir = new ByteBuffersDirectory()) {
       try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new KeywordAnalyzer()))) {
@@ -388,36 +418,34 @@ public class AbstractSearchIndexClientPermissionFilterTest
     return new TestSearchIndexClient();
   }
 
-  private static TestSearchIndexClient newClientWithReadContexts(Set<String> readContextIds) {
-    TestSearchIndexClient client = new TestSearchIndexClient();
-    client.readContextIds = readContextIds;
-    return client;
-  }
-
   /**
    * Minimal AbstractSearchIndexClient subclass that surfaces the protected new-path helpers for
-   * testing. Pure pass-through: no DAOs touched, no DI configured.
-   *
-   * <p>
-   * TODO(CLM-41642): Extract permission-filter helpers to a stateless class; testing here
-   * shouldn't require an 18-arg superclass ctor. Until then the all-null ctor is intentional —
-   * none of the base deps are touched by the two permission-filter methods.
+   * testing. Pure pass-through: no DAOs touched, no DI configured. Extending here (rather than a
+   * stateless helper class) is what forces the 18-arg superclass ctor below.
    */
   private static final class TestSearchIndexClient
       extends AbstractSearchIndexClient
   {
-    private Set<String> readContextIds;
+    private Set<String> stubbedReadContextIds;
 
-    private TestSearchIndexClient() {
-      // All-null super ctor: none of its deps are exercised by the two permission-filter methods.
-      super(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-          null, null, null, null);
+    void stubReadContextIds(Set<String> ids) {
+      this.stubbedReadContextIds = ids;
     }
 
     @Override
     public Set<String> getCurrentUserContextIdsWithReadPermission() {
-      // Bypass the (null) permissionService for buildPermittedQuery tests.
-      return readContextIds;
+      return stubbedReadContextIds;
+    }
+
+    private TestSearchIndexClient() {
+      // AbstractSearchIndexClient ctor params (order):
+      // applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
+      // tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense,
+      // telemetrySender, luceneComponents, advancedSearchTelemetryMetrics, configuration,
+      // permissionService, currentUser, conversionHelper, shutdownHandler.
+      // None are exercised by buildAllowedContextIdsLuceneFilter / wrapWithPermissionFilter.
+      super(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+          null, null, null, null);
     }
 
     Query buildAllowedContextIdsFilterForTest(Set<String> permittedContextIds) {

@@ -15,6 +15,7 @@ import {
   ApplicationRiskScore,
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
+import { ApplicationsListFilterState } from 'MainRoot/nosc/applications/applicationsListFilters';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 
 import './applicationsPageLayout.css';
@@ -22,6 +23,13 @@ import './applicationsPageLayout.css';
 export interface ApplicationsPageProps {
   readonly applications: ReadonlyArray<ApplicationRiskScore>;
   readonly facets: ApplicationsFilterFacetCounts;
+  readonly filters: ApplicationsListFilterState;
+  readonly hasActiveFilters: boolean;
+  readonly onToggleFilter: (
+    field: keyof ApplicationsListFilterState,
+    id: string,
+  ) => void;
+  readonly onResetFilters: () => void;
   readonly loading?: boolean;
   readonly error?: string | null;
   readonly info?: AsyncPageStateInfoProps | null;
@@ -44,6 +52,10 @@ export interface ApplicationsPageProps {
 export default function ApplicationsPage({
   applications,
   facets,
+  filters,
+  hasActiveFilters,
+  onToggleFilter,
+  onResetFilters,
   loading = false,
   error = null,
   info = null,
@@ -81,7 +93,13 @@ export default function ApplicationsPage({
         </Flex>
 
         <Flex gap="4" align="start" wrap="wrap" data-testid="applications-page-layout">
-          <ApplicationsFilterRail facets={facets} />
+          <ApplicationsFilterRail
+            facets={facets}
+            filters={filters}
+            hasActiveFilters={hasActiveFilters}
+            onToggleFilter={onToggleFilter}
+            onResetFilters={onResetFilters}
+          />
           <Box className="applications-page__content" data-testid="applications-page-content">
             <Flex direction="column" gap="4">
               <ApplicationsToolbar totalCount={totalCount} />

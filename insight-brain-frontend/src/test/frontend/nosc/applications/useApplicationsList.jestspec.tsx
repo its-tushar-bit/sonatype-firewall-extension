@@ -108,4 +108,65 @@ describe('useApplicationsList', () => {
     expect(result.current.page).toBe(1);
     expect(result.current.hasNextPage).toBe(true);
   });
+
+  it('posts filter fields when sidebar selections change', async () => {
+    axiosMock.onPost(getApplicationsListUrl()).reply(200, OK_BODY);
+
+    const { result } = renderHook(() => useApplicationsList());
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.toggleFilter('organizationIds', 'org-java'));
+
+    await waitFor(() => {
+      const lastRequest = axiosMock.history.post.at(-1);
+      const body = JSON.parse(String(lastRequest?.data));
+      expect(body).toEqual(
+        expect.objectContaining({
+          organizationIds: ['org-java'],
+          page: 0,
+        }),
+      );
+    });
+  });
+
+  it('ignores no-op threat toggles without resetting page', async () => {
+    axiosMock.onPost(getApplicationsListUrl()).reply(200, {
+      ...OK_BODY,
+      page: 1,
+      hasNextPage: true,
+    });
+
+    const { result } = renderHook(() => useApplicationsList());
+
+    act(() => result.current.setPage(1));
+    await waitFor(() => expect(result.current.page).toBe(1));
+    const postsBefore = axiosMock.history.post.length;
+
+    act(() => result.current.toggleFilter('threatLevelIds', 'None'));
+
+    expect(result.current.page).toBe(1);
+    expect(axiosMock.history.post.length).toBe(postsBefore);
+  });
+
+  it('resetFilters clears active selections and resets page', async () => {
+    axiosMock.onPost(getApplicationsListUrl()).reply(200, OK_BODY);
+
+    const { result } = renderHook(() => useApplicationsList());
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.toggleFilter('stageIds', 'build'));
+    await waitFor(() => expect(result.current.hasActiveFilters).toBe(true));
+
+    act(() => result.current.resetFilters());
+
+    await waitFor(() => {
+      expect(result.current.hasActiveFilters).toBe(false);
+      const lastRequest = axiosMock.history.post.at(-1);
+      const body = JSON.parse(String(lastRequest?.data));
+      expect(body.stageIds).toBeUndefined();
+      expect(body.page).toBe(0);
+    });
+  });
 });

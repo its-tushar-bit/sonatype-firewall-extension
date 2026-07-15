@@ -19,6 +19,8 @@ export default function ApplicationsList() {
   const {
     applications,
     facets,
+    filters,
+    hasActiveFilters,
     loading,
     error,
     info,
@@ -28,12 +30,18 @@ export default function ApplicationsList() {
     pageSize,
     hasNextPage,
     setPage,
+    toggleFilter,
+    resetFilters,
   } = useApplicationsList();
 
   return (
     <ApplicationsPage
       applications={applications}
       facets={facets}
+      filters={filters}
+      hasActiveFilters={hasActiveFilters}
+      onToggleFilter={toggleFilter}
+      onResetFilters={resetFilters}
       loading={loading}
       error={error}
       info={info}

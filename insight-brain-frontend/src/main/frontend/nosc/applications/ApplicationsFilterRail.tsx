@@ -7,20 +7,33 @@ import React from 'react';
 import { Badge, Box, Button, Checkbox, Flex, Text } from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import { ApplicationsFilterFacetCounts } from 'MainRoot/nosc/applications/applicationListTypes';
+import { ApplicationsListFilterState } from 'MainRoot/nosc/applications/applicationsListFilters';
 import './ApplicationsFilterRail.scss';
 
 export interface ApplicationsFilterRailProps {
   readonly facets: ApplicationsFilterFacetCounts;
+  readonly filters: ApplicationsListFilterState;
+  readonly hasActiveFilters: boolean;
+  readonly onToggleFilter: (
+    field: keyof ApplicationsListFilterState,
+    id: string,
+  ) => void;
+  readonly onResetFilters: () => void;
 }
 
 /**
- * Filter sidebar scaffold for the Martha V1 Applications page (CLM-42223 / CLM-42225).
+ * Filter sidebar for the Martha V1 Applications page.
  *
- * Renders threat level, stages, organizations, and applications sections with
- * stub facet counts. Selection and server refresh are wired in CLM-42225 once
- * POST /rest/dashboard/applications/list facets land (CLM-42228).
+ * Selection state is local to the list page and refreshes via POST
+ * /rest/dashboard/applications/list with stage/org/app/threat filters.
  */
-export default function ApplicationsFilterRail({ facets }: ApplicationsFilterRailProps): JSX.Element {
+export default function ApplicationsFilterRail({
+  facets,
+  filters,
+  hasActiveFilters,
+  onToggleFilter,
+  onResetFilters,
+}: ApplicationsFilterRailProps): JSX.Element {
   return (
     <Box asChild className="nosc-applications-filter-rail" data-testid="applications-filter-rail">
       <aside aria-label="Application filters">
@@ -29,7 +42,8 @@ export default function ApplicationsFilterRail({ facets }: ApplicationsFilterRai
           variant="outline"
           color="gray"
           size="2"
-          disabled
+          disabled={!hasActiveFilters}
+          onClick={onResetFilters}
           data-testid="applications-filter-reset"
         >
           <ActionIcons.Refresh size={12} />
@@ -45,11 +59,16 @@ export default function ApplicationsFilterRail({ facets }: ApplicationsFilterRai
             {facets.threatLevels.map(({ id, label, count }) => (
               <Text key={id} as="label" size="2" color="gray">
                 <Flex align="center" gap="2">
-                  <Checkbox checked={false} disabled onCheckedChange={() => {}} />
+                  <Checkbox
+                    checked={filters.threatLevelIds.has(id)}
+                    onCheckedChange={() => onToggleFilter('threatLevelIds', id)}
+                  />
                   {label}
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {count}
-                  </Badge>
+                  {count > 0 && (
+                    <Badge size="1" color="gray" variant="soft" radius="full">
+                      {count}
+                    </Badge>
+                  )}
                 </Flex>
               </Text>
             ))}
@@ -63,11 +82,16 @@ export default function ApplicationsFilterRail({ facets }: ApplicationsFilterRai
             {facets.stages.map(({ id, label, count }) => (
               <Text key={id} as="label" size="2" color="gray">
                 <Flex align="center" gap="2">
-                  <Checkbox checked={false} disabled onCheckedChange={() => {}} />
+                  <Checkbox
+                    checked={filters.stageIds.has(id)}
+                    onCheckedChange={() => onToggleFilter('stageIds', id)}
+                  />
                   {label}
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {count}
-                  </Badge>
+                  {count > 0 && (
+                    <Badge size="1" color="gray" variant="soft" radius="full">
+                      {count}
+                    </Badge>
+                  )}
                 </Flex>
               </Text>
             ))}
@@ -80,11 +104,16 @@ export default function ApplicationsFilterRail({ facets }: ApplicationsFilterRai
             {facets.organizations.map(({ id, label, count }) => (
               <Text key={id} as="label" size="2" color="gray">
                 <Flex align="center" gap="2">
-                  <Checkbox checked={false} disabled onCheckedChange={() => {}} />
+                  <Checkbox
+                    checked={filters.organizationIds.has(id)}
+                    onCheckedChange={() => onToggleFilter('organizationIds', id)}
+                  />
                   {label}
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {count}
-                  </Badge>
+                  {count > 0 && (
+                    <Badge size="1" color="gray" variant="soft" radius="full">
+                      {count}
+                    </Badge>
+                  )}
                 </Flex>
               </Text>
             ))}
@@ -97,11 +126,16 @@ export default function ApplicationsFilterRail({ facets }: ApplicationsFilterRai
             {facets.applications.map(({ id, label, count }) => (
               <Text key={id} as="label" size="2" color="gray">
                 <Flex align="center" gap="2">
-                  <Checkbox checked={false} disabled onCheckedChange={() => {}} />
+                  <Checkbox
+                    checked={filters.applicationIds.has(id)}
+                    onCheckedChange={() => onToggleFilter('applicationIds', id)}
+                  />
                   {label}
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {count}
-                  </Badge>
+                  {count > 0 && (
+                    <Badge size="1" color="gray" variant="soft" radius="full">
+                      {count}
+                    </Badge>
+                  )}
                 </Flex>
               </Text>
             ))}

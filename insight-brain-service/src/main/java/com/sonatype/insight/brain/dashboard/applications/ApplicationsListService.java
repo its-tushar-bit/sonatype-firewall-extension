@@ -111,7 +111,7 @@ public class ApplicationsListService
             request == null ? null : request.stageIds,
             null,
             request == null ? null : request.policyThreatCategories,
-            request == null ? null : request.policyThreatLevelRange,
+            ApplicationsListViolationQuerySupport.threatLevelFilterForCardEnrichment(request),
             request == null ? null : request.policyViolationStates);
         enriched = risks.dashboardResults == null ? List.of() : risks.dashboardResults;
       }
@@ -133,6 +133,9 @@ public class ApplicationsListService
     response.source = ApplicationsListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
       try {
+        // CLM-42230: facets use the same filtered query as the list, so stage/threat filters
+        // narrow org/stage bucket counts in the sidebar. Full RBAC-scoped aggregate facets
+        // independent of the active filter selection are tracked under CLM-42230.
         response.facets = facetsBuilder.buildFacets(query, searchResult.totalNumberOfHits);
       }
       catch (RuntimeException e) {

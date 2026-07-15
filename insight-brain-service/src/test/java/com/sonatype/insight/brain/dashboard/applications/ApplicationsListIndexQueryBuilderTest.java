@@ -6,10 +6,13 @@
 package com.sonatype.insight.brain.dashboard.applications;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -21,6 +24,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -29,8 +34,16 @@ public class ApplicationsListIndexQueryBuilderTest
   @Mock
   private Configuration configuration;
 
+  @Mock
+  private OrganizationDAO organizationDAO;
+
+  @Mock
+  private ApplicationsListViolationScopeResolver violationScopeResolver;
+
   private ApplicationsListIndexQueryBuilder newBuilder() {
-    return new ApplicationsListIndexQueryBuilder(new DashboardIndexDimensionQueryBuilder(null, configuration));
+    return new ApplicationsListIndexQueryBuilder(
+        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
+        violationScopeResolver);
   }
 
   @Test
@@ -116,5 +129,60 @@ public class ApplicationsListIndexQueryBuilderTest
     String query = newBuilder().buildApplicationQuery(request);
     assertThat(query).isEqualTo(
         "itemType:APPLICATION AND ((applicationName:*apple* OR applicationPublicId:*apple* OR organizationName:*apple*) AND (applicationName:*pie* OR applicationPublicId:*pie* OR organizationName:*pie*))");
+  }
+
+  @Test
+  public void buildApplicationQuery_stageFilter_usesViolationScopedApplicationIdsOnly() {
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
+    when(violationScopeResolver.resolveApplicationIds(any(), eq(Set.of("build")), eq(List.of())))
+        .thenReturn(Set.of("build-app"));
+
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.organizationIds = Set.of("org-a");
+    request.stageIds = Set.of("build");
+
+    String query = newBuilder().buildApplicationQuery(request);
+
+    assertThat(query).isEqualTo("itemType:APPLICATION AND (applicationId:(build\\-app))");
+    assertThat(query).doesNotContain("organizationId:");
+  }
+
+  @Test
+  public void buildApplicationQuery_threatFilter_usesViolationScopedApplicationIdsOnly() {
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
+    PolicyThreatLevelFilter threatFilter = new PolicyThreatLevelFilter(8, 10);
+    when(violationScopeResolver.resolveApplicationIds(any(), eq(null), eq(List.of(threatFilter))))
+        .thenReturn(Set.of("critical-app"));
+
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.organizationIds = Set.of("org-a");
+    request.policyThreatLevelRanges = List.of(threatFilter);
+
+    String query = newBuilder().buildApplicationQuery(request);
+
+    assertThat(query).isEqualTo("itemType:APPLICATION AND (applicationId:(critical\\-app))");
+    assertThat(query).doesNotContain("organizationId:");
+  }
+
+  @Test
+  public void buildApplicationQuery_orgAndApplicationAndStageFilter_keepsAllViolationScopedOrgApps() {
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+    when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
+    when(violationScopeResolver.resolveApplicationIds(any(), eq(Set.of("build")), eq(List.of())))
+        .thenReturn(Set.of("org-app-1", "org-app-2", "app-b"));
+
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.organizationIds = Set.of("org-a");
+    request.applicationIds = Set.of("app-b");
+    request.stageIds = Set.of("build");
+
+    String query = newBuilder().buildApplicationQuery(request);
+
+    assertThat(query).contains("org\\-app\\-1");
+    assertThat(query).contains("org\\-app\\-2");
+    assertThat(query).contains("app\\-b");
+    assertThat(query).doesNotContain("organizationId:");
   }
 }

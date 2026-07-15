@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -354,10 +355,29 @@ public class ApplicationsListResourceTest
   }
 
   @Test
-  public void listApplications_unsupportedStageIdsFilter_returns400() throws Exception {
+  public void listApplications_stageIdsFilter_returnsMatchingApplications() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
+    Organization org = tempEntity.newOrganization("StageFilterTribe");
+    Application buildApp = tempEntity.newApplication("Build App", "build-app", org.getId());
+    Application developApp = tempEntity.newApplication("Develop App", "develop-app", org.getId());
+    Policy buildPolicy = tempEntity.newPolicy(buildApp);
+    Policy developPolicy = tempEntity.newPolicy(developApp);
+    PolicyEvaluation buildEvaluation =
+        tempEntity.newPolicyEvaluation(buildApp.getId(), Stage.ID_BUILD, "build-scan-1");
+    PolicyEvaluation developEvaluation =
+        tempEntity.newPolicyEvaluation(developApp.getId(), Stage.ID_DEVELOP, "develop-scan-1");
+    InsightWork insightWork = lookup(InsightWork.class);
+    ReportTestUtils.createReportFile(buildEvaluation.getApplicationId(), buildEvaluation.getScanId(),
+        ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), insightWork);
+    ReportTestUtils.createReportFile(developEvaluation.getApplicationId(), developEvaluation.getScanId(),
+        ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), insightWork);
+    tempEntity.newPolicyViolation(buildEvaluation, buildPolicy);
+    tempEntity.newPolicyViolation(developEvaluation, developPolicy);
+    ApplicationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.organizationIds = Set.of(org.getId());
     request.stageIds = Set.of(Stage.ID_BUILD);
 
     HttpResponse response = restRequest()
@@ -365,7 +385,10 @@ public class ApplicationsListResourceTest
         .body(request)
         .post();
 
-    assertResponseStatus(400, response);
+    assertResponseStatus(200, response);
+    ApplicationsListResponseDTO body = response.getBody(ApplicationsListResponseDTO.class);
+    assertThat(body.applications).extracting(item -> item.applicationId).containsExactly("build-app");
+    assertThat(body.total).isEqualTo(1);
   }
 
   @Test

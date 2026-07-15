@@ -9,6 +9,8 @@ import java.util.function.Predicate;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 
 public class PolicyThreatLevelFilter
@@ -47,7 +49,11 @@ public class PolicyThreatLevelFilter
     }
   }
 
-  public PolicyThreatLevelFilter(Integer min, Integer max) {
+  @JsonCreator
+  public PolicyThreatLevelFilter(
+      @JsonProperty("minPolicyThreatLevel") final Integer min,
+      @JsonProperty("maxPolicyThreatLevel") final Integer max)
+  {
     initialize(min, max);
   }
 

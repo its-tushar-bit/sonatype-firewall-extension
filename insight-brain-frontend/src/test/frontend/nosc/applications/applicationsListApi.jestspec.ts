@@ -87,7 +87,12 @@ describe('applicationsListApi', () => {
     expect(mapped.total).toBe(42);
     expect(mapped.facets.totalApplications).toBe(42);
     expect(mapped.applications).toHaveLength(1);
-    expect(mapped.facets.threatLevels).toHaveLength(0);
+    expect(mapped.facets.threatLevels).toEqual([
+      { id: 'Critical', label: '8-10 Critical', count: 0 },
+      { id: 'Severe', label: '4-7 Severe', count: 0 },
+      { id: 'Moderate', label: '2-3 Moderate', count: 0 },
+      { id: 'Low', label: '1 Low', count: 0 },
+    ]);
   });
 
   it('falls back to raw API application count when total is omitted', () => {

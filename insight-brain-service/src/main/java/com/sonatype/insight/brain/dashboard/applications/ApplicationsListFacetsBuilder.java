@@ -17,7 +17,6 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
-import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -35,10 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 final class ApplicationsListFacetsBuilder
 {
-  private static final String APPLICATION_ITEM_TYPE_CLAUSE = "itemType:" + ItemType.APPLICATION.name();
-
-  private static final String VIOLATION_ITEM_TYPE_CLAUSE = "itemType:" + ItemType.POLICY_VIOLATION.name();
-
   static final int MAX_FACET_DISCOVERY_HITS = 100;
 
   static final int MAX_ORGANIZATION_FACET_COUNT_QUERIES = 25;
@@ -133,7 +128,7 @@ final class ApplicationsListFacetsBuilder
     Map<String, Long> counts = new LinkedHashMap<>();
     for (StageType stageType : stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)) {
       String stageId = stageType.getId();
-      String stageClause = "policyEvaluationStage:" + DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(stageId);
+      String stageClause = ApplicationsListViolationQuerySupport.buildStageFilterClause(Set.of(stageId));
       long count = searchIndexClient.countDistinct(
           violationQuery + " AND " + stageClause,
           List.of("applicationId"));
@@ -144,19 +139,8 @@ final class ApplicationsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
-  /**
-   * Swaps the APPLICATION item-type prefix for POLICY_VIOLATION so stage counts query violation docs.
-   * <p>
-   * Free-text search clauses from the application query are carried over verbatim. Those clauses
-   * only affect stage counts when violation documents carry the same denormalized application and
-   * organization name fields as APPLICATION hits (Martha V1 assumption; see CLM-42230).
-   */
   private static String toViolationFacetQuery(final String applicationQuery) {
-    if (!applicationQuery.startsWith(APPLICATION_ITEM_TYPE_CLAUSE)) {
-      throw new IllegalStateException(
-          "Application facet query must start with " + APPLICATION_ITEM_TYPE_CLAUSE + " but was: " + applicationQuery);
-    }
-    return VIOLATION_ITEM_TYPE_CLAUSE + applicationQuery.substring(APPLICATION_ITEM_TYPE_CLAUSE.length());
+    return ApplicationsListViolationQuerySupport.toViolationQuery(applicationQuery);
   }
 
   private static String buildExactOrganizationFilterClause(final String organizationId) {

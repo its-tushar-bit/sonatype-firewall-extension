@@ -8,6 +8,7 @@ import { screen, act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import ApplicationsPage from 'MainRoot/nosc/applications/ApplicationsPage';
+import { EMPTY_APPLICATIONS_LIST_FILTERS } from 'MainRoot/nosc/applications/applicationsListFilters';
 import {
   MOCK_APPLICATION_RISK_SCORES,
   MOCK_APPLICATIONS_FILTER_FACETS,
@@ -146,6 +147,59 @@ describe('ApplicationsList (CLM-42224)', () => {
     expect(filterRail).toHaveTextContent('Develop');
     expect(filterRail).toHaveTextContent('Java-team');
     expect(filterRail).toHaveTextContent('Apple - Java');
+    expect(screen.getByTestId('applications-filter-threat-level')).toBeInTheDocument();
+  });
+
+  it('posts stage filter ids when a stage checkbox is toggled', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+    renderList();
+    const stagesGroup = await screen.findByTestId('applications-filter-stages');
+    await waitFor(() => {
+      expect(within(stagesGroup).getByText('Build')).toBeInTheDocument();
+    });
+
+    const buildCheckbox = within(stagesGroup).getByRole('checkbox', { name: /build/i });
+    await userEvent.click(buildCheckbox);
+
+    await waitFor(() => {
+      const lastRequest = axiosMock.history.post.at(-1);
+      const body = JSON.parse(String(lastRequest?.data));
+      expect(body).toEqual(
+        expect.objectContaining({
+          stageIds: ['build'],
+          page: 0,
+        }),
+      );
+    });
+  });
+
+  it('reset filters clears selection and posts an unfiltered request', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+    renderList();
+    const stagesGroup = await screen.findByTestId('applications-filter-stages');
+    await waitFor(() => {
+      expect(within(stagesGroup).getByText('Build')).toBeInTheDocument();
+    });
+
+    await userEvent.click(within(stagesGroup).getByRole('checkbox', { name: /build/i }));
+    await waitFor(() => {
+      expect(screen.getByTestId('applications-filter-reset')).not.toBeDisabled();
+    });
+
+    await userEvent.click(screen.getByTestId('applications-filter-reset'));
+
+    await waitFor(() => {
+      const lastRequest = axiosMock.history.post.at(-1);
+      const body = JSON.parse(String(lastRequest?.data));
+      expect(body).toEqual(
+        expect.objectContaining({
+          page: 0,
+          pageSize: 50,
+          includeFacets: true,
+        }),
+      );
+      expect(body.stageIds).toBeUndefined();
+    });
   });
 
   it('renders toolbar placeholders and total count from the list API', async () => {
@@ -221,11 +275,18 @@ describe('ApplicationsList (CLM-42224)', () => {
 });
 
 describe('ApplicationsPage async states', () => {
+  const filterProps = {
+    filters: EMPTY_APPLICATIONS_LIST_FILTERS,
+    hasActiveFilters: false,
+    onToggleFilter: jest.fn(),
+    onResetFilters: jest.fn(),
+  };
   const pageProps = {
     totalCount: 0,
     page: 1,
     pageSize: 50,
     onPageChange: jest.fn(),
+    ...filterProps,
   };
 
   it('renders loading skeleton when loading', () => {
@@ -281,6 +342,7 @@ describe('ApplicationsPage async states', () => {
         page={1}
         pageSize={50}
         onPageChange={jest.fn()}
+        {...filterProps}
       />,
       'nexusOneApplications',
     );
@@ -297,6 +359,7 @@ describe('ApplicationsPage async states', () => {
         page={2}
         pageSize={50}
         onPageChange={jest.fn()}
+        {...filterProps}
       />,
       'nexusOneApplications',
     );
@@ -313,6 +376,7 @@ describe('ApplicationsPage async states', () => {
         pageSize={50}
         hasNextPage
         onPageChange={jest.fn()}
+        {...filterProps}
       />,
       'nexusOneApplications',
     );

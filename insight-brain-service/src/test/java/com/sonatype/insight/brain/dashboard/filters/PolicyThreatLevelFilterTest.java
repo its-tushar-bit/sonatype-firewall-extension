@@ -7,8 +7,11 @@ package com.sonatype.insight.brain.dashboard.filters;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyThreatLevelFilterTest
@@ -64,5 +67,23 @@ public class PolicyThreatLevelFilterTest
     new PolicyThreatLevelFilter(minAndMax);
     new PolicyThreatLevelFilter(noMinAndNoMax);
     new PolicyThreatLevelFilter(spacesInMinAndMax);
+  }
+
+  @Test
+  public void jsonValue_deserializesLegacyStringRangeFormat() throws Exception {
+    PolicyThreatLevelFilter filter = new ObjectMapper().readValue("\"1,8\"", PolicyThreatLevelFilter.class);
+
+    assertThat(filter.getMinPolicyThreatLevel()).isEqualTo(1);
+    assertThat(filter.getMaxPolicyThreatLevel()).isEqualTo(8);
+  }
+
+  @Test
+  public void jsonCreator_deserializesMinMaxObject() throws Exception {
+    PolicyThreatLevelFilter filter = new ObjectMapper().readValue(
+        "{\"minPolicyThreatLevel\":1,\"maxPolicyThreatLevel\":8}",
+        PolicyThreatLevelFilter.class);
+
+    assertThat(filter.getMinPolicyThreatLevel()).isEqualTo(1);
+    assertThat(filter.getMaxPolicyThreatLevel()).isEqualTo(8);
   }
 }

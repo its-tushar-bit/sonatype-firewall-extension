@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard.applications;
 
+import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
@@ -42,6 +43,9 @@ public class ApplicationsListRequestDTO
   public PolicyThreatCategoryFilter policyThreatCategories;
 
   public PolicyThreatLevelFilter policyThreatLevelRange;
+
+  /** One min/max pair per selected threat bucket; combined with OR in violation-scoped queries. */
+  public List<PolicyThreatLevelFilter> policyThreatLevelRanges;
 
   public PolicyViolationStateFilter policyViolationStates;
 

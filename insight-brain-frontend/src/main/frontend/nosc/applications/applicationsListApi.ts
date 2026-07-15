@@ -10,6 +10,7 @@ import {
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { deriveFacetsFromPageRows } from 'MainRoot/nosc/applications/deriveFacetsFromPageRows';
+import { staticThreatLevelFacets } from 'MainRoot/nosc/applications/applicationsListFilters';
 
 /** Mirrors backend {@code RiskDTO}. */
 export type ApiRiskCounts = {
@@ -65,6 +66,13 @@ export type ApplicationsListRequest = {
   readonly page?: number;
   readonly pageSize?: number;
   readonly includeFacets?: boolean;
+  readonly organizationIds?: ReadonlyArray<string>;
+  readonly applicationIds?: ReadonlyArray<string>;
+  readonly stageIds?: ReadonlyArray<string>;
+  readonly policyThreatLevelRanges?: ReadonlyArray<{
+    readonly minPolicyThreatLevel: number;
+    readonly maxPolicyThreatLevel: number;
+  }>;
 };
 
 function toRiskCounts(risk?: ApiRiskCounts): ApplicationRiskCounts {
@@ -172,8 +180,8 @@ export function mapApiFacets(
 
   return {
     totalApplications,
-    // Threat buckets are not returned by the list API yet; omit the rail section until they are.
-    threatLevels: [],
+    // Threat bucket rows are static until the list API returns server-side facet counts.
+    threatLevels: staticThreatLevelFacets(),
     stages: stageFacets.length > 0 ? stageFacets : derived.stages,
     organizations: organizations.length > 0 ? organizations : derived.organizations,
     applications: appFacets.length > 0 ? appFacets : derived.applications,

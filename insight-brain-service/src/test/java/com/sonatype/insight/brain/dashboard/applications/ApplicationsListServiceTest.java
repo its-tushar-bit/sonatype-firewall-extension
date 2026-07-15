@@ -24,14 +24,19 @@ public class ApplicationsListServiceTest
   @Mock
   private Configuration configuration;
 
+  @Mock
+  private ApplicationsListViolationScopeResolver violationScopeResolver;
+
   @Test
   public void buildApplicationQuery_escapesApplicationIdSpecialCharacters() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
 
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.applicationIds = Set.of("app+id");
-    String query = new ApplicationsListIndexQueryBuilder(new DashboardIndexDimensionQueryBuilder(null, configuration))
-        .buildApplicationQuery(request);
+    String query = new ApplicationsListIndexQueryBuilder(
+        new DashboardIndexDimensionQueryBuilder(null, configuration),
+        violationScopeResolver)
+            .buildApplicationQuery(request);
     assertThat(query).isEqualTo("itemType:APPLICATION AND (applicationId:(app\\+id))");
   }
 

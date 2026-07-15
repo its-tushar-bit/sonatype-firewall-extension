@@ -16,11 +16,20 @@ import {
   ApplicationRiskScore,
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
+import {
+  ApplicationsListFilterState,
+  EMPTY_APPLICATIONS_LIST_FILTERS,
+  applicationsListFiltersToRequest,
+  hasActiveApplicationsListFilters,
+  toggleApplicationsListFilterId,
+} from 'MainRoot/nosc/applications/applicationsListFilters';
 import { getApplicationsListUrl } from 'MainRoot/util/CLMLocation';
 
 export interface UseApplicationsListResult {
   readonly applications: ReadonlyArray<ApplicationRiskScore>;
   readonly facets: ApplicationsFilterFacetCounts;
+  readonly filters: ApplicationsListFilterState;
+  readonly hasActiveFilters: boolean;
   readonly loading: boolean;
   readonly error: string | null;
   readonly info: AsyncPageStateInfoProps | null;
@@ -31,6 +40,11 @@ export interface UseApplicationsListResult {
   readonly pageSize: number;
   readonly hasNextPage: boolean;
   readonly setPage: (page: number) => void;
+  readonly toggleFilter: (
+    field: keyof ApplicationsListFilterState,
+    id: string,
+  ) => void;
+  readonly resetFilters: () => void;
 }
 
 const EMPTY_FACETS: ApplicationsFilterFacetCounts = {
@@ -46,7 +60,7 @@ export const APPLICATIONS_INDEX_NOT_READY_MESSAGE =
 
 /**
  * Martha V1 Applications list data hook.
- * Fetches POST /rest/dashboard/applications/list with server pagination.
+ * Fetches POST /rest/dashboard/applications/list with server pagination and sidebar filters.
  */
 export function useApplicationsList(
   options: ApplicationsListRequest = {},
@@ -57,14 +71,16 @@ export function useApplicationsList(
     includeFacets = true,
   } = options;
   const [page, setPage] = useState(initialPage);
+  const [filters, setFilters] = useState<ApplicationsListFilterState>(EMPTY_APPLICATIONS_LIST_FILTERS);
 
   const requestBody = useMemo(
     () => ({
       page,
       pageSize,
       includeFacets,
+      ...applicationsListFiltersToRequest(filters),
     }),
-    [page, pageSize, includeFacets],
+    [page, pageSize, includeFacets, filters],
   );
 
   const { status, data, error, retry } = useTile<ApplicationsListApiResponse>(
@@ -100,6 +116,26 @@ export function useApplicationsList(
     setPage(Math.max(0, nextPage));
   }, []);
 
+  const toggleFilter = useCallback((
+    field: keyof ApplicationsListFilterState,
+    id: string,
+  ) => {
+    setFilters((current) => {
+      const next = toggleApplicationsListFilterId(current, field, id);
+      // No-op toggles (unknown/None threat ids) return the same object — skip page reset/refetch.
+      if (next === current) {
+        return current;
+      }
+      setPage(0);
+      return next;
+    });
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setFilters(EMPTY_APPLICATIONS_LIST_FILTERS);
+    setPage(0);
+  }, []);
+
   const info: AsyncPageStateInfoProps | null =
     status === 'not-ready'
       ? {
@@ -112,6 +148,8 @@ export function useApplicationsList(
   return {
     applications: mapped?.applications ?? [],
     facets: mapped?.facets ?? EMPTY_FACETS,
+    filters,
+    hasActiveFilters: hasActiveApplicationsListFilters(filters),
     loading: status === 'loading',
     error: status === 'error' ? (error?.message ?? null) : null,
     info,
@@ -121,5 +159,7 @@ export function useApplicationsList(
     pageSize: mapped?.pageSize ?? pageSize,
     hasNextPage: mapped?.hasNextPage ?? false,
     setPage: goToPage,
+    toggleFilter,
+    resetFilters,
   };
 }

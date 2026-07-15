@@ -101,7 +101,7 @@
       pins httpcore5 >= 5.4.3.
     -->
     <apache.httpcore5.version>5.4.3</apache.httpcore5.version>
-    <netty-version>4.2.15.Final</netty-version>
+    <netty-version>4.2.16.Final</netty-version>
 
     <!--
       Properties for functional test docker container used by insight-brain-java-functional-test

@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.CopyrightOverrideFormPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPage;
@@ -66,6 +67,11 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   private static final String SUCCESS_METRICS_DESCRIPTION_SUBSTRING =
       "Success Metrics is an experimental feature providing high-level statistics on the past performance of Sonatype Lifecycle.";
+
+  // Uses a reserved .invalid TLD so it cannot collide with any real base URL a
+  // shared fixture might have left configured — dirtiness compares this
+  // literal against baseUrlConfiguration.serverData.baseUrl.
+  private static final String DIRTY_GUARD_TEST_BASE_URL = "http://dirty-guard-test.invalid";
 
   private static final EnterpriseReportingHdsStubs ENTERPRISE_REPORTING_HDS =
       TestDataManager.load("enterprise-reporting-hds-stubs", EnterpriseReportingHdsStubs.class);
@@ -391,6 +397,85 @@ public class NexusOneClassicEmbedPlaywrightTest
     modal.continueButton().click();
     assertThat(modal.container()).isHidden();
     assertThat(configPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * Base URL admin configuration mounts natively at {@code /baseUrl} on the
+   * Nexus One bundle, rendering the Classic form as-is inside the Nexus One
+   * shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedBaseUrlConfiguration_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/baseUrl"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    BaseUrlConfigurationPage configPage = new BaseUrlConfigurationPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(configPage.saveButton()).isVisible();
+    assertThat(configPage.cancelButton()).isVisible();
+    assertThat(configPage.deleteButton()).isVisible();
+    assertThat(configPage.baseUrlAttribute()).isVisible();
+  }
+
+  /**
+   * Base URL dirty-guard cancel path: editing the URL field dirties the form;
+   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user on
+   * the config page with the dirty state intact.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedBaseUrlConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/baseUrl"));
+
+    BaseUrlConfigurationPage configPage = new BaseUrlConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    configPage.saveButton().waitFor();
+    assertThat(configPage.baseUrlAttribute()).hasValue("");
+    configPage.baseUrlAttribute().fill(DIRTY_GUARD_TEST_BASE_URL);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/dashboard"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(configPage.saveButton()).isVisible();
+  }
+
+  /**
+   * Base URL dirty-guard continue path: Continue closes the modal and lets the
+   * transition proceed; the config page unmounts and the user lands on
+   * another Classic-embedded page ({@code /successMetricsConfiguration})
+   * whose classic-component mount asserts the transition actually completed.
+   * Not {@code /dashboard} — that's a native NOUX route with no
+   * {@link NexusOneClassicEmbedPage#classicComponentMount()}, so the sibling
+   * mount assertion never fires there.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedBaseUrlConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/baseUrl"));
+
+    BaseUrlConfigurationPage configPage = new BaseUrlConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    configPage.saveButton().waitFor();
+    assertThat(configPage.baseUrlAttribute()).hasValue("");
+    configPage.baseUrlAttribute().fill(DIRTY_GUARD_TEST_BASE_URL);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(configPage.saveButton()).isHidden();
     assertThat(embedPage.classicComponentMount()).isVisible();
   }
 }

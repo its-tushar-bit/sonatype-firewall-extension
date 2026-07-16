@@ -41,12 +41,12 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/applications', '/dashboard/applications'],
   ['/ui-settings', '/previewUiSettings'],
   ['/search', '/dashboard/violations'],
-  // Identity entry: the admin config page uses the same hash path on both
-  // bundles (CLM-42186). SHARED_PATHS isn't the right home for this — its
-  // `toNexusOneEquivalent` branch (line ~125) currently maps shared paths to
-  // '/ui-settings', not the caller-supplied path. See PR #16523 review thread
-  // on this line for the full analysis.
+  // Identity entries: admin config pages share the same hash path on both
+  // bundles. SHARED_PATHS isn't the right home for these — its
+  // isSharedPath branch in toNexusOneEquivalent maps shared paths to
+  // '/ui-settings', not the caller-supplied path.
   ['/successMetricsConfiguration', '/successMetricsConfiguration'],
+  ['/baseUrl', '/baseUrl'],
   ...COMING_SOON_ENTRIES,
 ];
 

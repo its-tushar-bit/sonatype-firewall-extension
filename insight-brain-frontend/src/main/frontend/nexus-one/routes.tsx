@@ -38,6 +38,7 @@ import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardSta
 import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
 import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { nexusOneViolationDetailStates } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
+import BaseUrlConfiguration from 'MainRoot/configuration/baseUrl/BaseUrlConfiguration';
 // NOTE: the three side-import route modules below call router.stateRegistry.register(...) at import
 // time with no stateRegistry.get() idempotency guard, so this module (and any test) must import each
 // exactly once. That holds today because they are only pulled into the single nexus-one bundle entry;
@@ -382,6 +383,21 @@ router.stateRegistry.register({
   data: {
     title: 'Success Metrics Configuration',
     isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'baseUrlConfiguration',
+  url: '/baseUrl',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(BaseUrlConfiguration),
+  redirectTo: async () => {
+    const authorized = await isAuthorized(['CONFIGURE_SYSTEM']);
+    return authorized ? undefined : 'nexusOneDashboard.violations';
+  },
+  data: {
+    title: 'Base URL Configuration',
+    isDirty: ['baseUrlConfiguration', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

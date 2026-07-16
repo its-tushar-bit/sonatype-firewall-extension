@@ -297,7 +297,6 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     {
       label: 'Base URL',
       stateName: 'baseUrlConfiguration',
-      prefix: firewallPrefix || sbomManagerPrefix,
       showIf: CONFIGURE_SYSTEM && isBaseUrlConfigurationEnabled,
       testId: 'nexus-one-top-nav-settings-item-base-url',
     },

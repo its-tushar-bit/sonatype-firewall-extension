@@ -204,14 +204,21 @@ describe('nexusOneClassicEmbedRoutes', () => {
   // Guards the Classic-embed admin route's dirty-guard wiring: a typo in the
   // `data.isDirty` path array would silently disable the unsaved-changes
   // prompt, and the only other coverage is heavyweight Playwright suites.
-  describe('successMetricsConfiguration Classic-embed admin route', () => {
-    const state = () => router.stateRegistry.get('successMetricsConfiguration');
+  describe.each([
+    [
+      'successMetricsConfiguration',
+      '/successMetricsConfiguration',
+      ['successMetricsConfiguration', 'viewState', 'isDirty'],
+    ],
+    ['baseUrlConfiguration', '/baseUrl', ['baseUrlConfiguration', 'isDirty']],
+  ])('%s Classic-embed admin route', (stateName, url, isDirtyPath) => {
+    const state = () => router.stateRegistry.get(stateName);
     const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
 
     beforeEach(() => (isAuthorized as jest.Mock).mockReset());
 
-    it('is registered at /successMetricsConfiguration', () => {
-      expect(state()?.url).toBe('/successMetricsConfiguration');
+    it(`is registered at ${url}`, () => {
+      expect(state()?.url).toBe(url);
     });
 
     it('gates access via an async redirectTo function (not a static state string)', () => {
@@ -219,7 +226,7 @@ describe('nexusOneClassicEmbedRoutes', () => {
     });
 
     it('wires the dirty guard through the exact state-path array the router selector reads', () => {
-      expect(state()?.data?.isDirty).toEqual(['successMetricsConfiguration', 'viewState', 'isDirty']);
+      expect(state()?.data?.isDirty).toEqual(isDirtyPath);
     });
 
     it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {

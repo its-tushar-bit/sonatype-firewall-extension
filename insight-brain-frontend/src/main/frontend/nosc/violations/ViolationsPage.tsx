@@ -15,6 +15,7 @@ import {
   ViolationsFilterState,
   ViolationsListFacets,
   ViolationThreatRange,
+  ViolationWaiverType,
 } from 'MainRoot/nosc/violations/violationListTypes';
 import { hasActiveViolationFilters } from 'MainRoot/nosc/violations/violationsListApi';
 import ViolationsFilterRail from 'MainRoot/nosc/violations/ViolationsFilterRail';
@@ -32,6 +33,7 @@ export interface ViolationsPageProps {
   };
   readonly filters: ViolationsFilterState;
   readonly onFilterToggle: (group: ViolationFilterSetGroup, id: string) => void;
+  readonly onWaiverTypeChange: (waiverType: ViolationWaiverType) => void;
   readonly onThreatRangeChange: (range: ViolationThreatRange) => void;
   readonly onResetFilters: () => void;
   readonly loading?: boolean;
@@ -59,6 +61,7 @@ export default function ViolationsPage({
   labels,
   filters,
   onFilterToggle,
+  onWaiverTypeChange,
   onThreatRangeChange,
   onResetFilters,
   loading = false,
@@ -82,6 +85,7 @@ export default function ViolationsPage({
     labels,
     selected: filters,
     onToggle: onFilterToggle,
+    onWaiverTypeChange,
     onThreatRangeChange,
     onReset: onResetFilters,
   };

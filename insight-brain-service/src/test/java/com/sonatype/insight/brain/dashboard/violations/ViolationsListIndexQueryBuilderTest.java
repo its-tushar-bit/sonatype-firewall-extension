@@ -158,6 +158,69 @@ public class ViolationsListIndexQueryBuilderTest
   }
 
   @Test
+  public void buildViolationQuery_autoWaiverFilter_matchesAutoWaivedOnly() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.waivedWithAutoWaiver = Boolean.TRUE;
+
+    assertThat(newBuilder().buildViolationQuery(request))
+        .isEqualTo(BASE + " AND policyViolationWaiverStatus:(AutoWaived)");
+  }
+
+  @Test
+  public void buildViolationQuery_manualWaiverFilter_matchesWaivedOnly() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.waivedWithAutoWaiver = Boolean.FALSE;
+
+    assertThat(newBuilder().buildViolationQuery(request))
+        .isEqualTo(BASE + " AND policyViolationWaiverStatus:(Waived)");
+  }
+
+  @Test
+  public void buildViolationQuery_nullWaiverFilter_omitsClause() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.waivedWithAutoWaiver = null;
+
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(BASE);
+  }
+
+  @Test
+  public void buildViolationQueryExcludingWaiverType_dropsWaiverClauseButKeepsOtherFilters() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.waivedWithAutoWaiver = Boolean.TRUE;
+    request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.WAIVED);
+
+    // The waiver-excluded query (used to count the single-select waiver-type facet) drops only the
+    // waiver-type clause; every other active filter — here the WAIVED state clause — is retained.
+    assertThat(newBuilder().buildViolationQueryExcludingWaiverType(request))
+        .isEqualTo(BASE + " AND policyViolationWaiverStatus:(Waived AutoWaived)")
+        .doesNotContain(":(AutoWaived)");
+  }
+
+  @Test
+  public void buildViolationQueryExcludingWaiverType_matchesFullQueryWhenNoWaiverFilter() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.stageIds = Set.of("build");
+
+    // With no waiver-type filter active the two queries are identical, so the facet counts land against
+    // the same query as the list rows.
+    assertThat(newBuilder().buildViolationQueryExcludingWaiverType(request))
+        .isEqualTo(newBuilder().buildViolationQuery(request));
+  }
+
+  @Test
+  public void buildViolationQuery_openStateWithAutoWaiver_andsToContradictoryClauses() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.OPEN);
+    request.waivedWithAutoWaiver = Boolean.TRUE;
+
+    // OPEN ("not waived") AND auto-waived is intentionally contradictory — the index returns no rows,
+    // which is the correct result for that filter combination.
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(
+        BASE + " AND NOT (policyViolationWaiverStatus:(Waived AutoWaived))"
+            + " AND policyViolationWaiverStatus:(AutoWaived)");
+  }
+
+  @Test
   public void buildViolationQuery_stageFilter_matchesStageIds() {
     ViolationsListRequestDTO request = new ViolationsListRequestDTO();
     request.stageIds = Set.of("build");

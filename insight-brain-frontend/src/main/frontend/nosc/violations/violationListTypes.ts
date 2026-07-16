@@ -61,11 +61,19 @@ export type ViolationRow = {
 export type ViolationsListFacets = {
   readonly totalViolations: number;
   readonly states?: Readonly<Record<string, number>>;
+  /** Auto- vs manually-waived counts, keyed AUTO / MANUAL (backend ViolationsListFacetsBuilder). */
+  readonly waiverTypes?: Readonly<Record<string, number>>;
   readonly threatCategories?: Readonly<Record<string, number>>;
   readonly stages?: Readonly<Record<string, number>>;
   readonly organizations?: Readonly<Record<string, number>>;
   readonly applications?: Readonly<Record<string, number>>;
 };
+
+/**
+ * Waiver-type selection for the sidebar radio. {@code ANY} applies no waiver-type narrowing;
+ * {@code AUTO} / {@code MANUAL} map to the backend {@code waivedWithAutoWaiver} boolean (true / false).
+ */
+export type ViolationWaiverType = 'ANY' | 'AUTO' | 'MANUAL';
 
 /** Paginated response — mirrors backend {@code ViolationsListResponseDTO}. */
 export type ViolationsListResponse = {
@@ -86,9 +94,10 @@ export type ViolationsListResponse = {
  * {@code policyThreatCategories} and {@code policyThreatLevelRange} are comma-delimited strings
  * (their {@code String} constructors — {@code "security,license"}, {@code "0,10"}).
  *
- * Filters the backend validator still rejects (ageInDays, applicationCategoryIds,
- * waivedWithAutoWaiver, and the LEGACY_VIOLATION state) are intentionally omitted until the API
- * supports them.
+ * The waiver-type filter maps to {@code waivedWithAutoWaiver} (true = auto-waived only, false =
+ * manually-waived only, omitted = no narrowing). Filters the backend validator still rejects
+ * (ageInDays, applicationCategoryIds, and the LEGACY_VIOLATION state) are intentionally omitted until
+ * the API supports them.
  */
 export type ViolationsListRequest = {
   readonly search?: string;
@@ -102,6 +111,7 @@ export type ViolationsListRequest = {
   readonly stageIds?: ReadonlyArray<string>;
   readonly organizationIds?: ReadonlyArray<string>;
   readonly applicationIds?: ReadonlyArray<string>;
+  readonly waivedWithAutoWaiver?: boolean;
 };
 
 /** Inclusive policy-threat-level domain for the range slider (matches the backend 0–10 clamp). */
@@ -124,6 +134,8 @@ export type ViolationsFilterState = {
   readonly organizationIds: ReadonlySet<string>;
   readonly applicationIds: ReadonlySet<string>;
   readonly threatRange: ViolationThreatRange;
+  /** Single-select waiver-type narrowing; {@code ANY} is the unfiltered default. */
+  readonly waiverType: ViolationWaiverType;
 };
 
 /** The set-valued filter groups (everything in {@link ViolationsFilterState} except {@code threatRange}). */

@@ -19,12 +19,15 @@ import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -33,6 +36,7 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.After;
 import org.junit.Test;
@@ -403,13 +407,112 @@ public class ViolationsListResourceTest
   }
 
   @Test
-  public void listViolations_unsupportedAutoWaiverFilter_returns400() throws Exception {
+  public void listViolations_autoWaiverFilter_selectsAutoWaivedOnly() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
-    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    Organization org = tempEntity.newOrganization("AutoWaiverTribe");
+    Application app = tempEntity.newApplication("Auto Waiver App", "auto-waiver-app", org.getId());
+    seedWaiverMixViolations(org, app, "autowvr");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.waivedWithAutoWaiver = true;
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    assertThat(body.violations).hasSize(1);
+    assertThat(body.violations.get(0).waivedWithAutoWaiver).isTrue();
+    assertThat(body.violations.get(0).state).isEqualTo(PolicyViolationState.WAIVED.name());
+  }
+
+  @Test
+  public void listViolations_manualWaiverFilter_selectsManuallyWaivedOnly() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("ManualWaiverTribe");
+    Application app = tempEntity.newApplication("Manual Waiver App", "manual-waiver-app", org.getId());
+    seedWaiverMixViolations(org, app, "manwvr");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.waivedWithAutoWaiver = false;
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    assertThat(body.violations).hasSize(1);
+    assertThat(body.violations.get(0).waivedWithAutoWaiver).isFalse();
+    assertThat(body.violations.get(0).state).isEqualTo(PolicyViolationState.WAIVED.name());
+  }
+
+  @Test
+  public void listViolations_autoWaiverWithWaivedState_returnsAutoWaivedRow() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("AutoWaiverStateTribe");
+    Application app = tempEntity.newApplication("Auto Waiver State App", "auto-waiver-state-app", org.getId());
+    seedWaiverMixViolations(org, app, "awstate");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.WAIVED);
     request.waivedWithAutoWaiver = true;
 
-    assertResponseStatus(400, post(request));
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+    assertThat(body.violations).hasSize(1);
+    assertThat(body.violations.get(0).waivedWithAutoWaiver).isTrue();
+  }
+
+  @Test
+  public void listViolations_autoWaiverWithOpenState_returnsEmpty() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("AutoWaiverOpenTribe");
+    Application app = tempEntity.newApplication("Auto Waiver Open App", "auto-waiver-open-app", org.getId());
+    seedWaiverMixViolations(org, app, "awopen");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.OPEN);
+    request.waivedWithAutoWaiver = true;
+
+    // OPEN and auto-waived is a contradictory combination — the index correctly returns no rows.
+    assertThat(post(request).getBody(ViolationsListResponseDTO.class).violations).isEmpty();
+  }
+
+  @Test
+  public void listViolations_facetWaiverTypeCounts_splitAutoAndManual() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("WaiverFacetTribe");
+    Application app = tempEntity.newApplication("Waiver Facet App", "waiver-facet-app", org.getId());
+    seedWaiverMixViolations(org, app, "wvrfacet");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListFacetsDTO facets = post(scopedRequest(org)).getBody(ViolationsListResponseDTO.class).facets;
+
+    assertThat(facets.waiverTypes)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_AUTO, 1L)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_MANUAL, 1L);
+  }
+
+  @Test
+  public void listViolations_facetWaiverTypeCounts_showBothOptionsWhenOneSelected() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("WaiverSwitchTribe");
+    Application app = tempEntity.newApplication("Waiver Switch App", "waiver-switch-app", org.getId());
+    seedWaiverMixViolations(org, app, "wvrswitch");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    // Select AUTO. Because the waiver-type facet is single-select, it is counted against the query minus
+    // its own clause, so MANUAL keeps its switchable count instead of collapsing to 0 under the
+    // AUTO-narrowed rows (mealingr review, CLM-42261).
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.waivedWithAutoWaiver = true;
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    assertThat(body.violations).hasSize(1); // rows are still AUTO-narrowed
+    assertThat(body.facets.waiverTypes)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_AUTO, 1L)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_MANUAL, 1L);
   }
 
   @Test
@@ -535,6 +638,48 @@ public class ViolationsListResourceTest
     tempEntity.newWaivedPolicyViolation(evaluation, quality, 3, PolicyThreatCategory.QUALITY,
         ComponentIdentifier.createMavenCoordinates("net.busybox", "busybox", "1.33"),
         hash(hashPrefix, "busybox"), waiver);
+  }
+
+  /**
+   * Seeds a build-stage report with one open, one manually-waived, and one auto-waived violation for
+   * {@code app}. The auto-waived row carries {@code autoPolicyWaiverId}, which
+   * {@code DocumentBuilderHelper.deriveWaiverStatus} indexes as {@code AutoWaived} (vs {@code Waived}
+   * for the manual waiver), so waiver-type filtering and facets have a distinct row of each kind.
+   */
+  private void seedWaiverMixViolations(
+      final Organization org,
+      final Application app,
+      final String hashPrefix) throws Exception
+  {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD,
+        "violations-waiver-" + hashPrefix);
+    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+        ReportTestUtils.zipReportDir(VIOLATION_REPORT_RESOURCE, tempDir), lookup(InsightWork.class));
+
+    Policy security = tempEntity.newPolicy(org.getId(), "Security - Critical " + hashPrefix);
+    Policy manualPolicy = tempEntity.newPolicy(org.getId(), "Quality - Standards " + hashPrefix);
+    Policy autoPolicy = tempEntity.newPolicy(org.getId(), "Legal - Non-Standard " + hashPrefix);
+
+    tempEntity.newPolicyViolation(evaluation, security, 10, PolicyThreatCategory.SECURITY,
+        "org.apache.logging", "log4j-core", "2.14.0", hash(hashPrefix, "log4j"));
+
+    PolicyWaiver manualWaiver = tempEntity.newWaiver(manualPolicy.getId(), org.getId());
+    tempEntity.newWaivedPolicyViolation(evaluation, manualPolicy, 3, PolicyThreatCategory.QUALITY,
+        ComponentIdentifier.createMavenCoordinates("net.busybox", "busybox", "1.33"),
+        hash(hashPrefix, "busybox"), manualWaiver);
+
+    AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(org.getId());
+    PolicyWaiver waiverForAuto = tempEntity.newWaiver(autoPolicy.getId(), org.getId());
+    PolicyViolation autoWaived = tempEntity.newWaivedPolicyViolation(evaluation, autoPolicy, 6,
+        PolicyThreatCategory.LICENSE, ComponentIdentifier.createMavenCoordinates("org.openssl", "openssl", "3.0"),
+        hash(hashPrefix, "openssl"), waiverForAuto);
+    autoWaived.setAutoPolicyWaiverId(autoWaiver.getId());
+    PolicyViolationDAO policyViolationDAO = lookup(PolicyViolationDAO.class);
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      policyViolationDAO.update(tx, autoWaived);
+      tx.commit();
+    }
   }
 
   /** Builds a deterministic component hash that fits the {@code policy_violation.hash} VARCHAR(20). */

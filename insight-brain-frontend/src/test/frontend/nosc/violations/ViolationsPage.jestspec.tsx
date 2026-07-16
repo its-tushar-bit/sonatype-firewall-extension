@@ -27,6 +27,7 @@ function renderPage(overrides: Partial<React.ComponentProps<typeof ViolationsPag
       facets={MOCK_VIOLATIONS_LIST_RESPONSE.facets}
       filters={createDefaultViolationsFilterState()}
       onFilterToggle={noop}
+      onWaiverTypeChange={noop}
       onThreatRangeChange={noop}
       onResetFilters={noop}
       totalCount={MOCK_VIOLATIONS_LIST_RESPONSE.total}

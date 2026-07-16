@@ -4,13 +4,25 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useState } from 'react';
-import { Badge, Box, Button, Checkbox, Flex, ScrollArea, Slider, Text, TextField } from '@radix-ui/themes';
+import {
+  Badge,
+  Box,
+  Button,
+  Checkbox,
+  Flex,
+  RadioGroup,
+  ScrollArea,
+  Slider,
+  Text,
+  TextField,
+} from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import {
   ViolationFilterSetGroup,
   ViolationsFilterState,
   ViolationsListFacets,
   ViolationThreatRange,
+  ViolationWaiverType,
   VIOLATION_THREAT_MAX,
   VIOLATION_THREAT_MIN,
 } from 'MainRoot/nosc/violations/violationListTypes';
@@ -19,6 +31,9 @@ import {
   stageLabel,
   threatCategoryLabel,
   violationStateLabel,
+  waiverTypeLabel,
+  WAIVER_TYPE_AUTO,
+  WAIVER_TYPE_MANUAL,
 } from 'MainRoot/nosc/violations/violationsListApi';
 import './ViolationsFilterRail.scss';
 
@@ -37,6 +52,8 @@ export interface ViolationsFilterRailProps {
   readonly selected: ViolationsFilterState;
   /** Toggle one option in a set-valued group. */
   readonly onToggle: (group: ViolationFilterSetGroup, id: string) => void;
+  /** Select a waiver-type narrowing (Any / Auto-waived / Manually waived). */
+  readonly onWaiverTypeChange: (waiverType: ViolationWaiverType) => void;
   /** Commit a new [min, max] policy-threat-level range. */
   readonly onThreatRangeChange: (range: ViolationThreatRange) => void;
   /** Reset every group to its default (all cleared, threat range [0, 10]). */
@@ -193,6 +210,75 @@ function SearchableFilterSection({
 }
 
 /**
+ * Waiver-type single-select (CLM-42261). A radio (not checkboxes) because the three options are
+ * mutually exclusive: Any (no narrowing), Auto-waived only, or Manually waived only. The Auto/Manual
+ * options carry facet counts; counts narrow with the rest of the query (V1 narrowing), so a selected
+ * option's sibling count can drop to zero — the option stays selectable so the user can switch back.
+ * Hidden entirely when there are no waived violations in scope and nothing is selected.
+ */
+/** One waiver-type radio row. Hoisted (not defined inside WaiverTypeSection) so it isn't re-allocated
+ * per render and can be unit-tested/reasoned about in isolation. */
+function waiverTypeOptionRow(
+  testId: string,
+  optionValue: ViolationWaiverType,
+  label: string,
+  count: number | undefined,
+  idSuffix: string,
+): JSX.Element {
+  return (
+    <Text as="label" size="2" color="gray" className="nosc-violations-filter-option">
+      <Flex align="center" gap="2" className="nosc-violations-filter-option-row">
+        <RadioGroup.Item value={optionValue} data-testid={`${testId}-option-${idSuffix}`} />
+        <span className="nosc-violations-filter-option-label">{label}</span>
+        {count !== undefined && (
+          <Badge size="1" color="gray" variant="soft" radius="full">
+            {count}
+          </Badge>
+        )}
+      </Flex>
+    </Text>
+  );
+}
+
+function WaiverTypeSection({
+  facets,
+  value,
+  onWaiverTypeChange,
+  testId,
+}: {
+  readonly facets?: ViolationsListFacets;
+  readonly value: ViolationWaiverType;
+  readonly onWaiverTypeChange: (waiverType: ViolationWaiverType) => void;
+  readonly testId: string;
+}): JSX.Element | null {
+  const autoCount = facets?.waiverTypes?.[WAIVER_TYPE_AUTO];
+  const manualCount = facets?.waiverTypes?.[WAIVER_TYPE_MANUAL];
+  const hasWaiverData = autoCount !== undefined || manualCount !== undefined;
+  if (!hasWaiverData && value === 'ANY') return null;
+
+  const legendId = `${testId}-legend`;
+  return (
+    <fieldset className="nosc-violations-filter-group" data-testid={testId}>
+      <legend id={legendId} className="nosc-violations-filter-legend">
+        Waiver Type
+      </legend>
+      <RadioGroup.Root
+        value={value}
+        onValueChange={(next) => onWaiverTypeChange(next as ViolationWaiverType)}
+        aria-labelledby={legendId}
+        data-testid={`${testId}-radio`}
+      >
+        <Flex direction="column" gap="1">
+          {waiverTypeOptionRow(testId, 'ANY', 'Any', undefined, 'any')}
+          {waiverTypeOptionRow(testId, 'AUTO', waiverTypeLabel(WAIVER_TYPE_AUTO), autoCount, 'auto')}
+          {waiverTypeOptionRow(testId, 'MANUAL', waiverTypeLabel(WAIVER_TYPE_MANUAL), manualCount, 'manual')}
+        </Flex>
+      </RadioGroup.Root>
+    </fieldset>
+  );
+}
+
+/**
  * Coerce a raw Radix slider payload into an in-bounds, ascending [min, max] pair. Radix's two-thumb
  * Slider already emits a sorted pair for the current config, but normalizing here hardens the handlers
  * against a future config change (e.g. a single thumb, where next[1] would be undefined).
@@ -267,6 +353,7 @@ export default function ViolationsFilterRail({
   labels,
   selected,
   onToggle,
+  onWaiverTypeChange,
   onThreatRangeChange,
   onReset,
   idPrefix = 'violations-filter',
@@ -301,6 +388,12 @@ export default function ViolationsFilterRail({
             )}
             selected={selected.states}
             onToggle={onToggle}
+          />
+          <WaiverTypeSection
+            facets={facets}
+            value={selected.waiverType}
+            onWaiverTypeChange={onWaiverTypeChange}
+            testId={`${idPrefix}-waiver-type`}
           />
           <CheckboxFilterSection
             title="Policy Type"

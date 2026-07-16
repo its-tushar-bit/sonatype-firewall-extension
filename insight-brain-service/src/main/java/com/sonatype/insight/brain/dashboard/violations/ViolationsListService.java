@@ -112,7 +112,11 @@ public class ViolationsListService
     response.hasNextPage = consumed < searchResult.totalNumberOfHits;
     response.source = ViolationsListResponseDTO.SOURCE_INDEX;
     if (includeFacets) {
-      response.facets = facetsBuilder.buildFacets(query, searchResult.totalNumberOfHits);
+      // The waiver-type facet is single-select, so it is counted against the query minus its own clause
+      // (identical to `query` when no waiver-type filter is active) — see ViolationsListFacetsBuilder.
+      String waiverFacetQuery = indexQueryBuilder.buildViolationQueryExcludingWaiverType(request);
+      response.facets =
+          facetsBuilder.buildFacets(query, waiverFacetQuery, searchResult.totalNumberOfHits);
     }
     return response;
   }

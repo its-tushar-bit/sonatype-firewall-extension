@@ -13,6 +13,7 @@ import {
   ViolationsFilterState,
   ViolationsListFacets,
   ViolationThreatRange,
+  ViolationWaiverType,
 } from 'MainRoot/nosc/violations/violationListTypes';
 import {
   createDefaultViolationsFilterState,
@@ -167,6 +168,12 @@ export default function ViolationsList(): JSX.Element {
     pendingUrlWrite.current = true;
   }, []);
 
+  const changeWaiverType = useCallback((waiverType: ViolationWaiverType) => {
+    setFilters((prev) => ({ ...prev, waiverType }));
+    setPage(1);
+    pendingUrlWrite.current = true;
+  }, []);
+
   const resetFilters = useCallback(() => {
     setFilters(createDefaultViolationsFilterState());
     setPage(1);
@@ -202,6 +209,7 @@ export default function ViolationsList(): JSX.Element {
       labels={labels}
       filters={filters}
       onFilterToggle={toggleFilter}
+      onWaiverTypeChange={changeWaiverType}
       onThreatRangeChange={changeThreatRange}
       onResetFilters={resetFilters}
       loading={loading}

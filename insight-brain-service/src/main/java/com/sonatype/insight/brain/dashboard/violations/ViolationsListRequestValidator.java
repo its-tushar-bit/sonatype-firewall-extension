@@ -44,9 +44,8 @@ final class ViolationsListRequestValidator
     if (request.ageInDays != null) {
       throw new BadRequestException("ageInDays filter is not yet supported on the violations list.");
     }
-    if (request.waivedWithAutoWaiver != null) {
-      throw new BadRequestException("waivedWithAutoWaiver filter is not yet supported on the violations list.");
-    }
+    // waivedWithAutoWaiver is supported (CLM-42261): true = auto-waived only, false = manually waived
+    // only, null = no waiver-type narrowing. Wired through ViolationsListIndexQueryBuilder.
     if (hasLegacyState(request.policyViolationStates)) {
       throw new BadRequestException(
           "Legacy violation state is not yet supported on the violations list.");

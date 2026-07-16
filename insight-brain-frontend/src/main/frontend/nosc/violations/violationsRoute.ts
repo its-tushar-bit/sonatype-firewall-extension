@@ -11,7 +11,9 @@
  *
  * The optional query params persist search + sidebar filters + page in the hash (CLM-42260); there is
  * no {@code sort} param because the list supports only the single {@code -policyThreatLevel} order.
+ * {@code waiver} carries the auto/manual waiver-type radio (CLM-42261).
  */
 export const NEXUS_ONE_VIOLATIONS_STATE_NAME = 'nexusOneViolations';
 
-export const NEXUS_ONE_VIOLATIONS_URL = '/violations?q&page&state&category&stage&org&app&threat';
+export const NEXUS_ONE_VIOLATIONS_URL =
+  '/violations?q&page&state&category&stage&org&app&threat&waiver';

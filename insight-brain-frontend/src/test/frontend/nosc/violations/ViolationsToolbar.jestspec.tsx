@@ -93,10 +93,10 @@ describe('ViolationsToolbar (CLM-42260)', () => {
     // No filters are active, so the export includes everything — the caveat must say so.
     expect(csv).toHaveAttribute(
       'title',
-      'Search is not included in the CSV and no sidebar filters are active, so all violations are exported',
+      "The search term won't be applied to the CSV and no other sidebar filters are active, so all violations are exported",
     );
     const hintId = csv.getAttribute('aria-describedby');
-    expect(hintId).toBe('violations-toolbar-csv-search-hint');
+    expect(hintId).toBe('violations-toolbar-csv-caveat-hint');
     expect(document.getElementById(hintId as string)).toHaveTextContent('all violations are exported');
   });
 
@@ -108,10 +108,10 @@ describe('ViolationsToolbar (CLM-42260)', () => {
     expect(csv).toBeEnabled();
     expect(csv).toHaveAttribute(
       'title',
-      'Exports sidebar filters only — search term is not included in the CSV',
+      "Exports sidebar filters only — the search term won't be applied to the CSV",
     );
-    expect(document.getElementById('violations-toolbar-csv-search-hint')).toHaveTextContent(
-      'search term is not included in the CSV',
+    expect(document.getElementById('violations-toolbar-csv-caveat-hint')).toHaveTextContent(
+      "search term won't be applied to the CSV",
     );
   });
 
@@ -122,6 +122,67 @@ describe('ViolationsToolbar (CLM-42260)', () => {
     const csv = screen.getByTestId('violations-toolbar-csv');
     expect(csv).toBeDisabled();
     expect(csv).toHaveAttribute('title', 'No violations to export');
+  });
+
+  it('warns that all violations export when only the waiver-type filter is active (CLM-42261)', () => {
+    // The waiver-type filter is index-only (RisksFilterDTO has no field for it), so an auto-waived
+    // selection alone can't narrow the CSV — the caveat must flag the export-everything case.
+    renderToolbar({ totalCount: 3, filters: filterState({ waiverType: 'AUTO' }) });
+    const csv = screen.getByTestId('violations-toolbar-csv');
+    expect(csv).toBeEnabled();
+    expect(csv).toHaveAttribute(
+      'title',
+      "The waiver-type filter won't be applied to the CSV and no other sidebar filters are active, so all violations are exported",
+    );
+    expect(document.getElementById('violations-toolbar-csv-caveat-hint')).toHaveTextContent(
+      'all violations are exported',
+    );
+  });
+
+  it('gives a filter-only caveat when the waiver-type filter rides alongside an exportable filter (CLM-42261)', () => {
+    renderToolbar({
+      totalCount: 3,
+      filters: filterState({ waiverType: 'MANUAL', states: new Set(['WAIVED']) }),
+    });
+    const csv = screen.getByTestId('violations-toolbar-csv');
+    expect(csv).toBeEnabled();
+    expect(csv).toHaveAttribute(
+      'title',
+      "Exports sidebar filters only — the waiver-type filter won't be applied to the CSV",
+    );
+  });
+
+  it('names both search and waiver-type in the caveat when both are active (CLM-42261)', () => {
+    renderToolbar({
+      totalCount: 3,
+      searchValue: 'log4j',
+      filters: filterState({ waiverType: 'AUTO' }),
+    });
+    const csv = screen.getByTestId('violations-toolbar-csv');
+    expect(csv).toHaveAttribute(
+      'title',
+      "The search term and waiver-type filter won't be applied to the CSV and no other sidebar filters are active, so all violations are exported",
+    );
+  });
+
+  it('disables CSV when only the waiver-type filter is active and it narrows to zero (CLM-42261)', () => {
+    // Waiver-type-only + zero results + no exportable filters must not enable an export-everything action.
+    renderToolbar({ totalCount: 0, filters: filterState({ waiverType: 'AUTO' }) });
+    const csv = screen.getByTestId('violations-toolbar-csv');
+    expect(csv).toBeDisabled();
+    expect(csv).toHaveAttribute('title', 'No violations to export');
+  });
+
+  it('never leaks the waiver-type filter into the export payload (CLM-42261)', () => {
+    renderToolbar({ totalCount: 3, filters: filterState({ waiverType: 'AUTO', states: new Set(['WAIVED']) }) });
+    const filterInput = screen
+      .getByTestId('violations-toolbar-export-form')
+      .querySelector('input[name="filter"]') as HTMLInputElement;
+    const payload = JSON.parse(filterInput.value);
+    expect(payload).not.toHaveProperty('waivedWithAutoWaiver');
+    expect(filterInput.value).not.toContain('waivedWithAutoWaiver');
+    // The exportable filter still serializes normally.
+    expect(payload.policyViolationStates).toEqual(['WAIVED']);
   });
 
   it('wires the empty-state CSV hint to the disabled button for screen readers', () => {

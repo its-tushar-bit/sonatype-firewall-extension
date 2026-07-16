@@ -420,4 +420,36 @@ describe('ViolationsList', () => {
       await waitFor(() => expect(router.urlService.url()).not.toContain('state=OPEN'));
     });
   });
+
+  describe('waiver-type filter (CLM-42261)', () => {
+    it('selecting the Auto-waived radio refetches with waivedWithAutoWaiver:true and writes waiver=auto', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      const { router } = renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations');
+
+      await screen.findByTestId('violation-card-grid');
+      await user.click(screen.getByTestId('violations-filter-waiver-type-option-auto'));
+
+      await waitFor(() => {
+        const last = JSON.parse(axiosMock.history.post[axiosMock.history.post.length - 1].data);
+        expect(last.waivedWithAutoWaiver).toBe(true);
+        expect(last.page).toBe(0);
+      });
+      await waitFor(() => expect(router.urlService.url()).toContain('waiver=auto'));
+    });
+
+    it('hydrates the waiver-type radio and request from a bookmarked waiver=manual URL', async () => {
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations', { waiver: 'manual' });
+
+      await screen.findByTestId('violation-card-grid');
+      expect(screen.getByTestId('violations-filter-waiver-type-option-manual')).toBeChecked();
+      await waitFor(() => {
+        const hydrated = axiosMock.history.post.find((request) => {
+          const body = JSON.parse(String(request.data));
+          return body.waivedWithAutoWaiver === false;
+        });
+        expect(hydrated).toBeDefined();
+      });
+    });
+  });
 });

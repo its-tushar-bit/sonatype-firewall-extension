@@ -117,15 +117,24 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     expect(screen.getByText('Waived')).toBeInTheDocument();
   });
 
-  it('shows a generic "Waiver Applied" indicator on every waived card', () => {
+  it('shows the manual "Waiver Applied" indicator only on manually-waived cards (CLM-42261)', () => {
     renderGrid([OPEN_CRITICAL, WAIVED_AUTO, WAIVED_MANUAL]);
-    // Both waived rows (auto + manual) carry the generic indicator; the open row does not.
-    expect(screen.getAllByTestId('violation-card-waiver')).toHaveLength(2);
+    // The manual and auto pills are mutually exclusive: only the manually-waived row carries the
+    // standard "Waiver Applied" pill; the auto-waived row gets the distinct auto pill, the open none.
+    const waiverBadges = screen.getAllByTestId('violation-card-waiver');
+    expect(waiverBadges).toHaveLength(1);
+    expect(waiverBadges[0]).toHaveTextContent('Waiver Applied');
   });
 
-  it('additionally tags auto-waived rows (auto-vs-manual refinement lands in CLM-42261)', () => {
+  it('shows a distinct "Auto-waived" tag on auto-waived cards instead of "Waiver Applied" (CLM-42261)', () => {
     renderGrid([WAIVED_AUTO, WAIVED_MANUAL]);
-    expect(screen.getAllByTestId('violation-card-auto-waiver')).toHaveLength(1);
+    const [autoCard, manualCard] = screen.getAllByTestId('violation-card');
+    // Auto-waived card: the distinct solid auto pill, and NOT the manual "Waiver Applied" indicator.
+    expect(within(autoCard).getByTestId('violation-card-auto-waiver')).toHaveTextContent('Auto-waived');
+    expect(within(autoCard).queryByTestId('violation-card-waiver')).not.toBeInTheDocument();
+    // Manually-waived card: the standard "Waiver Applied" pill, and NOT the auto pill.
+    expect(within(manualCard).getByTestId('violation-card-waiver')).toHaveTextContent('Waiver Applied');
+    expect(within(manualCard).queryByTestId('violation-card-auto-waiver')).not.toBeInTheDocument();
   });
 
   it('does not show the auto-waiver badge on an OPEN row with a stale waivedWithAutoWaiver flag', () => {

@@ -37,6 +37,7 @@ import {
   TrendingUp,
   User,
   Users,
+  Zap,
 } from 'lucide-react';
 
 /**
@@ -74,6 +75,8 @@ export const DomainIcons = {
   Roles: Key,
   /** Waiver Requests (developer-submitted policy exception requests). */
   Waivers: MessageSquareWarning,
+  /** Auto-waiver marker (waiver applied automatically by a rule, not a person). */
+  AutoWaiver: Zap,
   /** Audit Log (immutable history of policy/config changes). */
   AuditLog: History,
   /** System Configuration (server-wide admin: proxy, base URL, auth, mail). */

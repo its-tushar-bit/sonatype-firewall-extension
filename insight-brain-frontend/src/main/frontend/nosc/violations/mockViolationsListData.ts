@@ -78,6 +78,8 @@ export const MOCK_VIOLATIONS_LIST_RESPONSE: ViolationsListResponse = {
   facets: {
     totalViolations: 3,
     states: { OPEN: 2, WAIVED: 1 },
+    // The single waived row (busybox) is auto-waived, so only the AUTO bucket has a count.
+    waiverTypes: { AUTO: 1 },
     threatCategories: { security: 1, license: 1, quality: 1 },
     stages: { build: 2, release: 1 },
     organizations: { 'org-java': 2, 'org-platform': 1 },

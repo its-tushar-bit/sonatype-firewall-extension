@@ -8,6 +8,7 @@ import {
   ViolationsFilterState,
   ViolationsListRequest,
   ViolationThreatRange,
+  ViolationWaiverType,
   VIOLATION_THREAT_MAX,
   VIOLATION_THREAT_MIN,
 } from 'MainRoot/nosc/violations/violationListTypes';
@@ -33,6 +34,7 @@ export function createDefaultViolationsFilterState(): ViolationsFilterState {
     organizationIds: new Set<string>(),
     applicationIds: new Set<string>(),
     threatRange: DEFAULT_VIOLATION_THREAT_RANGE,
+    waiverType: 'ANY',
   };
 }
 
@@ -41,8 +43,12 @@ export function isDefaultThreatRange(range: ViolationThreatRange): boolean {
   return range[0] <= VIOLATION_THREAT_MIN && range[1] >= VIOLATION_THREAT_MAX;
 }
 
-/** True when any filter group is narrowing the result set (drives the Reset control's enabled state). */
-export function hasActiveViolationFilters(filters: ViolationsFilterState): boolean {
+/**
+ * True when a filter the Classic CSV export can honor is active. Excludes {@code waiverType}, which is
+ * index-only ({@code RisksFilterDTO} has no auto-waiver field) — the toolbar treats it like free-text
+ * search and warns that it is not applied to the export.
+ */
+export function hasExportableViolationFilters(filters: ViolationsFilterState): boolean {
   return (
     filters.states.size > 0 ||
     filters.threatCategories.size > 0 ||
@@ -51,6 +57,18 @@ export function hasActiveViolationFilters(filters: ViolationsFilterState): boole
     filters.applicationIds.size > 0 ||
     !isDefaultThreatRange(filters.threatRange)
   );
+}
+
+/** True when any filter group is narrowing the result set (drives the Reset control's enabled state). */
+export function hasActiveViolationFilters(filters: ViolationsFilterState): boolean {
+  return hasExportableViolationFilters(filters) || filters.waiverType !== 'ANY';
+}
+
+/** Map the sidebar waiver-type selection to the backend {@code waivedWithAutoWaiver} boolean. */
+export function waiverTypeToRequestFlag(waiverType: ViolationWaiverType): boolean | undefined {
+  if (waiverType === 'AUTO') return true;
+  if (waiverType === 'MANUAL') return false;
+  return undefined;
 }
 
 /**
@@ -86,6 +104,7 @@ export function buildViolationsListRequest(params: {
     filters && !isDefaultThreatRange(filters.threatRange)
       ? `${filters.threatRange[0]},${filters.threatRange[1]}`
       : undefined;
+  const waivedWithAutoWaiver = filters ? waiverTypeToRequestFlag(filters.waiverType) : undefined;
 
   return {
     page: params.page,
@@ -99,6 +118,7 @@ export function buildViolationsListRequest(params: {
     ...(stageIds ? { stageIds } : {}),
     ...(organizationIds ? { organizationIds } : {}),
     ...(applicationIds ? { applicationIds } : {}),
+    ...(waivedWithAutoWaiver !== undefined ? { waivedWithAutoWaiver } : {}),
   };
 }
 
@@ -110,6 +130,23 @@ export const STATE_LABELS: Readonly<Record<string, string>> = {
   OPEN: 'Open',
   WAIVED: 'Waived',
 };
+
+/**
+ * Facet keys and friendly labels for the waiver-type radio (CLM-42261). Keys mirror the backend
+ * {@code ViolationsListFacetsBuilder} facet map ({@code AUTO} / {@code MANUAL}); {@code ANY} is the
+ * radio's unfiltered option and carries no facet count.
+ */
+export const WAIVER_TYPE_AUTO = 'AUTO';
+export const WAIVER_TYPE_MANUAL = 'MANUAL';
+
+export const WAIVER_TYPE_LABELS: Readonly<Record<string, string>> = {
+  [WAIVER_TYPE_AUTO]: 'Auto-waived',
+  [WAIVER_TYPE_MANUAL]: 'Manually waived',
+};
+
+export function waiverTypeLabel(id: string): string {
+  return WAIVER_TYPE_LABELS[id] ?? id;
+}
 
 /**
  * Friendly labels for the policy threat-category facet. Exported so the URL codec can derive its

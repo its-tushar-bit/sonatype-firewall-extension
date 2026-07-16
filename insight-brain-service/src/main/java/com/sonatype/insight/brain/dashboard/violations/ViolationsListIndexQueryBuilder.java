@@ -41,6 +41,23 @@ final class ViolationsListIndexQueryBuilder
   }
 
   String buildViolationQuery(final ViolationsListRequestDTO request) {
+    List<String> clauses = baseClauses(request);
+    addIfPresent(clauses, buildWaiverTypeClause(request == null ? null : request.waivedWithAutoWaiver));
+    return String.join(" AND ", clauses);
+  }
+
+  /**
+   * Same as {@link #buildViolationQuery} but with the waiver-type clause omitted. The waiver-type facet
+   * is a single-select radio, so counting it against the fully-narrowed query would zero out (and hide)
+   * the unselected option once the user picks one. Counting against this waiver-excluded query instead
+   * keeps both AUTO and MANUAL showing the count the user would get if they switched (still narrowed by
+   * every other active filter). See {@link ViolationsListFacetsBuilder#buildFacets}.
+   */
+  String buildViolationQueryExcludingWaiverType(final ViolationsListRequestDTO request) {
+    return String.join(" AND ", baseClauses(request));
+  }
+
+  private List<String> baseClauses(final ViolationsListRequestDTO request) {
     List<String> clauses = new ArrayList<>();
     clauses.add(FieldIdentifier.ITEM_TYPE.label + ":" + ItemType.POLICY_VIOLATION.name());
 
@@ -51,7 +68,7 @@ final class ViolationsListIndexQueryBuilder
     addIfPresent(clauses, buildThreatCategoryClause(request == null ? null : request.policyThreatCategories));
     addIfPresent(clauses, buildStateClause(request == null ? null : request.policyViolationStates));
 
-    return String.join(" AND ", clauses);
+    return clauses;
   }
 
   private String buildDimensionClause(final ViolationsListRequestDTO request) {
@@ -174,6 +191,33 @@ final class ViolationsListIndexQueryBuilder
     // three paths. Using ":(Active)" here would exclude such rows from the filter while the facet
     // still counted them, which is the asymmetry flagged in review.
     return wantsWaived ? waivedClause : "NOT (" + waivedClause + ")";
+  }
+
+  /**
+   * Waiver-type filter (CLM-42261). {@code true} narrows to auto-waived violations
+   * ({@code policyViolationWaiverStatus:(AutoWaived)}); {@code false} narrows to manually-waived only
+   * ({@code :(Waived)}); {@code null} adds no clause. Both non-null values imply the WAIVED state, so an
+   * AND with {@code policyViolationStates:[OPEN]} correctly yields an empty result.
+   */
+  private static String buildWaiverTypeClause(final Boolean waivedWithAutoWaiver) {
+    if (waivedWithAutoWaiver == null) {
+      return null;
+    }
+    String status = waivedWithAutoWaiver ? ViolationWaiverStatus.AUTO_WAIVED : ViolationWaiverStatus.WAIVED;
+    return waiverStatusClause(status);
+  }
+
+  /**
+   * Single-status waiver clause ({@code policyViolationWaiverStatus:(<status>)}). Shared with
+   * {@link ViolationsListFacetsBuilder} so the waiver-type filter query and the waiver-type facet-count
+   * queries cannot drift apart.
+   * <p>
+   * The status is a compile-time constant ("Waived"/"AutoWaived") with no Lucene-special characters, so
+   * it is intentionally inlined without escapeLuceneTerm — matching {@link #buildStateClause} (only the
+   * user-supplied threat-category terms in {@link #buildThreatCategoryClause} need escaping).
+   */
+  static String waiverStatusClause(final String waiverStatus) {
+    return FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":(" + waiverStatus + ")";
   }
 
   private static void addIfPresent(final List<String> clauses, final String clause) {

@@ -30,9 +30,11 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Builds Martha sidebar facet counts for the Violations list from RBAC-scoped index count queries.
  * <p>
- * All facet counts are computed against the same {@code violationQuery} as the list rows, so active
- * sidebar filters narrow both the result set and the facet counts (Martha V1 narrowing semantics;
- * filter interactions land in CLM-42258). Dimensions with a zero count are omitted from the response.
+ * Facet counts are computed against the same {@code violationQuery} as the list rows, so active sidebar
+ * filters narrow both the result set and the facet counts (Martha V1 narrowing semantics; filter
+ * interactions land in CLM-42258). The one exception is the single-select waiver-type facet, which is
+ * counted against the query minus its own clause so the unselected option still shows a switchable count
+ * (see {@link #buildFacets(String, String, long)}). Dimensions with a zero count are omitted.
  * <p>
  * Violation volume is far higher than application volume, so discovery of organization/application
  * dimensions is capped hard: {@link #MAX_FACET_DISCOVERY_HITS} hits are inspected and per-dimension
@@ -64,6 +66,11 @@ final class ViolationsListFacetsBuilder
   static final int MAX_APPLICATION_FACET_COUNT_QUERIES =
       Integer.getInteger("nexusOne.violations.facets.maxApplicationCountQueries", 15);
 
+  /** Waiver-type facet keys (CLM-42261); mirrored by the frontend radio labels. */
+  static final String WAIVER_TYPE_AUTO = "AUTO";
+
+  static final String WAIVER_TYPE_MANUAL = "MANUAL";
+
   private final SearchIndexClient searchIndexClient;
 
   private final StageTypeService stageTypeService;
@@ -81,7 +88,30 @@ final class ViolationsListFacetsBuilder
     this.dimensionQueryBuilder = dimensionQueryBuilder;
   }
 
+  /**
+   * Convenience overload for callers with no active waiver-type filter, where the waiver-type facet is
+   * counted against the same query as every other facet.
+   */
   ViolationsListFacetsDTO buildFacets(final String violationQuery, final long totalViolations) {
+    return buildFacets(violationQuery, violationQuery, totalViolations);
+  }
+
+  /**
+   * @param violationQuery the fully-narrowed list query (all active filters) — used for every facet
+   *          except waiver-type, matching the V1 narrowing semantics above.
+   * @param waiverFacetQuery the same query with the waiver-type clause removed
+   *          ({@link ViolationsListIndexQueryBuilder#buildViolationQueryExcludingWaiverType}).
+   *          The waiver-type facet is a single-select radio, so counting it against the
+   *          fully-narrowed query would zero out and hide the unselected option once one
+   *          is picked; counting against this query instead keeps both AUTO and MANUAL
+   *          showing the switchable count (still narrowed by every other active filter).
+   *          When no waiver-type filter is active the two queries are identical.
+   */
+  ViolationsListFacetsDTO buildFacets(
+      final String violationQuery,
+      final String waiverFacetQuery,
+      final long totalViolations)
+  {
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = totalViolations;
     if (totalViolations == 0) {
@@ -89,6 +119,7 @@ final class ViolationsListFacetsBuilder
     }
 
     facets.states = countStates(violationQuery);
+    facets.waiverTypes = countWaiverTypes(waiverFacetQuery);
     facets.threatCategories = countThreatCategories(violationQuery);
     facets.stages = countLicensedStages(violationQuery);
 
@@ -115,6 +146,28 @@ final class ViolationsListFacetsBuilder
     long waived = searchIndexClient.count(violationQuery + " AND " + waivedClause);
     if (waived > 0) {
       counts.put(PolicyViolationState.WAIVED.name(), waived);
+    }
+    return counts.isEmpty() ? null : counts;
+  }
+
+  /**
+   * Auto- vs manually-waived facet map (CLM-42261), counted against {@code waiverFacetQuery} (the list
+   * query minus the waiver-type clause) so this single-select facet always shows both options' switchable
+   * counts. Zero buckets are omitted; an all-zero result returns {@code null}. The single-status clause
+   * is shared with the filter query via {@link ViolationsListIndexQueryBuilder#waiverStatusClause} so the
+   * facet counts and the filter cannot drift apart.
+   */
+  private Map<String, Long> countWaiverTypes(final String waiverFacetQuery) {
+    Map<String, Long> counts = new LinkedHashMap<>();
+    long autoWaived = searchIndexClient.count(waiverFacetQuery + " AND "
+        + ViolationsListIndexQueryBuilder.waiverStatusClause(ViolationWaiverStatus.AUTO_WAIVED));
+    if (autoWaived > 0) {
+      counts.put(WAIVER_TYPE_AUTO, autoWaived);
+    }
+    long manualWaived = searchIndexClient.count(waiverFacetQuery + " AND "
+        + ViolationsListIndexQueryBuilder.waiverStatusClause(ViolationWaiverStatus.WAIVED));
+    if (manualWaived > 0) {
+      counts.put(WAIVER_TYPE_MANUAL, manualWaived);
     }
     return counts.isEmpty() ? null : counts;
   }

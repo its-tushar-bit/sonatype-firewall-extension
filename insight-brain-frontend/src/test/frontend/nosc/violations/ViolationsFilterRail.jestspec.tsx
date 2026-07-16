@@ -30,6 +30,7 @@ function renderRail(overrides: Partial<React.ComponentProps<typeof ViolationsFil
     labels: LABELS,
     selected: createDefaultViolationsFilterState(),
     onToggle: jest.fn(),
+    onWaiverTypeChange: jest.fn(),
     onThreatRangeChange: jest.fn(),
     onReset: jest.fn(),
     ...overrides,
@@ -135,6 +136,7 @@ describe('ViolationsFilterRail', () => {
       facets: FACETS,
       labels: LABELS,
       onToggle: jest.fn(),
+      onWaiverTypeChange: jest.fn(),
       onThreatRangeChange: jest.fn(),
       onReset: jest.fn(),
     };
@@ -178,5 +180,56 @@ describe('ViolationsFilterRail', () => {
       selected: withStates('WAIVED'),
     });
     expect(screen.getByTestId('violations-filter-state-option-WAIVED')).toBeChecked();
+  });
+
+  describe('waiver-type radio (CLM-42261)', () => {
+    it('renders the Any/Auto/Manual options with facet counts on the waiver buckets', () => {
+      // Mock facets carry waiverTypes { AUTO: 1 }, so the Auto option shows a "1" badge.
+      renderRail();
+      const section = screen.getByTestId('violations-filter-waiver-type');
+      expect(within(section).getByTestId('violations-filter-waiver-type-option-any')).toBeInTheDocument();
+      const autoOption = within(section).getByTestId('violations-filter-waiver-type-option-auto');
+      const manualOption = within(section).getByTestId('violations-filter-waiver-type-option-manual');
+      expect(within(autoOption.closest('label') as HTMLElement).getByText('1')).toBeInTheDocument();
+      // Manual has no count in the mock, so it renders no badge.
+      expect(within(manualOption.closest('label') as HTMLElement).queryByText('0')).not.toBeInTheDocument();
+    });
+
+    it('reads facet counts keyed by the literal AUTO / MANUAL wire strings', () => {
+      // Feed a facets map keyed by the raw backend wire strings (not the imported constants) so this
+      // independently pins the frontend to the AUTO/MANUAL contract — a backend rename would blank these.
+      renderRail({ facets: { totalViolations: 9, waiverTypes: { AUTO: 3, MANUAL: 5 } } });
+      const section = screen.getByTestId('violations-filter-waiver-type');
+      const auto = within(section).getByTestId('violations-filter-waiver-type-option-auto');
+      const manual = within(section).getByTestId('violations-filter-waiver-type-option-manual');
+      expect(within(auto.closest('label') as HTMLElement).getByText('3')).toBeInTheDocument();
+      expect(within(manual.closest('label') as HTMLElement).getByText('5')).toBeInTheDocument();
+    });
+
+    it('lifts a radio selection to onWaiverTypeChange', async () => {
+      const { onWaiverTypeChange } = renderRail();
+      await user.click(screen.getByTestId('violations-filter-waiver-type-option-auto'));
+      expect(onWaiverTypeChange).toHaveBeenCalledWith('AUTO');
+    });
+
+    it('reflects the selected waiver type as checked', () => {
+      renderRail({ selected: { ...createDefaultViolationsFilterState(), waiverType: 'MANUAL' } });
+      expect(screen.getByTestId('violations-filter-waiver-type-option-manual')).toBeChecked();
+      expect(screen.getByTestId('violations-filter-waiver-type-option-any')).not.toBeChecked();
+    });
+
+    it('hides the section when there are no waiver counts and nothing is selected', () => {
+      renderRail({ facets: { totalViolations: 2, states: { OPEN: 2 } } });
+      expect(screen.queryByTestId('violations-filter-waiver-type')).not.toBeInTheDocument();
+    });
+
+    it('keeps the section visible (to switch back) when a waiver type is selected without facet data', () => {
+      renderRail({
+        facets: { totalViolations: 2, states: { OPEN: 2 } },
+        selected: { ...createDefaultViolationsFilterState(), waiverType: 'AUTO' },
+      });
+      expect(screen.getByTestId('violations-filter-waiver-type')).toBeInTheDocument();
+      expect(screen.getByTestId('violations-filter-waiver-type-option-auto')).toBeChecked();
+    });
   });
 });

@@ -6,6 +6,7 @@
 import {
   ViolationsFilterState,
   ViolationThreatRange,
+  ViolationWaiverType,
   VIOLATION_THREAT_MAX,
   VIOLATION_THREAT_MIN,
 } from 'MainRoot/nosc/violations/violationListTypes';
@@ -83,6 +84,26 @@ function serializeThreatRange(range: ViolationThreatRange): string | undefined {
   return isDefaultThreatRange(range) ? undefined : `${range[0]}-${range[1]}`;
 }
 
+// URL tokens for the waiver-type radio. Lowercase in the hash for readability; ANY is the default and
+// is omitted from the URL entirely. TYPE_TO_URL is derived from URL_TO_TYPE (single source of truth) so
+// the two directions cannot drift apart.
+const WAIVER_URL_TO_TYPE: Readonly<Record<string, ViolationWaiverType>> = {
+  auto: 'AUTO',
+  manual: 'MANUAL',
+};
+const WAIVER_TYPE_TO_URL: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(WAIVER_URL_TO_TYPE).map(([url, type]) => [type, url]),
+);
+
+function parseWaiverType(value: unknown): ViolationWaiverType {
+  const raw = asString(value)?.toLowerCase();
+  return (raw && WAIVER_URL_TO_TYPE[raw]) || 'ANY';
+}
+
+function serializeWaiverType(waiverType: ViolationWaiverType): string | undefined {
+  return WAIVER_TYPE_TO_URL[waiverType];
+}
+
 /**
  * Soft ceiling for deep-linked 1-based {@code page} values. Prevents a stale bookmark like
  * {@code ?page=999999} from posting an absurd 0-based index on the first request; the container still
@@ -114,6 +135,7 @@ export function parseViolationsListParams(params: Record<string, unknown>): Viol
       organizationIds: new Set(parseCsvParam(params.org)),
       applicationIds: new Set(parseCsvParam(params.app)),
       threatRange: parseThreatRange(params.threat),
+      waiverType: parseWaiverType(params.waiver),
     },
   };
 }
@@ -134,6 +156,7 @@ export function buildViolationsListRouteParams(
     org: serializeCsvParam(state.filters.organizationIds),
     app: serializeCsvParam(state.filters.applicationIds),
     threat: serializeThreatRange(state.filters.threatRange),
+    waiver: serializeWaiverType(state.filters.waiverType),
   };
 }
 
@@ -152,6 +175,7 @@ export function rawViolationsListParamsSnapshot(params: Record<string, unknown>)
     org: asString(params.org),
     app: asString(params.app),
     threat: asString(params.threat),
+    waiver: asString(params.waiver),
   });
 }
 
@@ -176,6 +200,7 @@ export function violationsFiltersEqual(
   return (
     setsEqual &&
     left.threatRange[0] === right.threatRange[0] &&
-    left.threatRange[1] === right.threatRange[1]
+    left.threatRange[1] === right.threatRange[1] &&
+    left.waiverType === right.waiverType
   );
 }

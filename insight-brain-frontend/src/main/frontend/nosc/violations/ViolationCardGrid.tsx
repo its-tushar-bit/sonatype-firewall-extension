@@ -90,21 +90,28 @@ function ViolationCard({ violation: v }: { readonly violation: ViolationRow }): 
               <Badge color={STATE_BADGE_COLOR[state] ?? 'gray'} variant="soft" size="1">
                 {violationStateLabel(state)}
               </Badge>
-              {/* Distinct from the gray "Waived" state badge (blue outline vs gray soft) so the two
-                  don't read as a duplicate pair. */}
-              {isWaived && (
-                <Badge color="blue" variant="outline" size="1" data-testid="violation-card-waiver">
-                  Waiver Applied
-                </Badge>
-              )}
-              {/* A generic "Waiver Applied" badge marks every waived row; this extra badge additionally
-                  flags an auto-waiver vs a manual one. Gate on isWaived too so a stale
-                  waivedWithAutoWaiver flag can't tag an OPEN row. */}
-              {isWaived && v.waivedWithAutoWaiver && (
-                <Badge color="green" variant="solid" size="1" data-testid="violation-card-auto-waiver">
-                  Auto-waiver
-                </Badge>
-              )}
+              {/* One waiver pill per waived row, and the two kinds are mutually exclusive so the auto
+                  tag reads as distinct rather than layered on top of the manual indicator (CLM-42261):
+                  a manual waiver keeps the standard "Waiver Applied" (blue outline); an auto-waiver
+                  shows a distinct "Auto-waived" pill (orange soft + bolt glyph). Soft, not solid, so it
+                  reads as informational alongside the soft state badge rather than as a warning. Both
+                  gate on isWaived so a stale waivedWithAutoWaiver flag can't tag an OPEN row. */}
+              {isWaived &&
+                (v.waivedWithAutoWaiver ? (
+                  <Badge
+                    color="orange"
+                    variant="soft"
+                    size="1"
+                    data-testid="violation-card-auto-waiver"
+                  >
+                    <DomainIcons.AutoWaiver size={11} aria-hidden />
+                    Auto-waived
+                  </Badge>
+                ) : (
+                  <Badge color="blue" variant="outline" size="1" data-testid="violation-card-waiver">
+                    Waiver Applied
+                  </Badge>
+                ))}
             </Flex>
           </Flex>
 

@@ -52,6 +52,14 @@ describe('violationsListQuery (CLM-42260)', () => {
       expect([...parsed.filters.threatCategories]).toEqual(['security']);
     });
 
+    it('parses the waiver-type token (case-insensitive) and defaults unknown tokens to ANY (CLM-42261)', () => {
+      expect(parseViolationsListParams({ waiver: 'auto' }).filters.waiverType).toBe('AUTO');
+      expect(parseViolationsListParams({ waiver: 'manual' }).filters.waiverType).toBe('MANUAL');
+      expect(parseViolationsListParams({ waiver: 'AUTO' }).filters.waiverType).toBe('AUTO');
+      expect(parseViolationsListParams({ waiver: 'bogus' }).filters.waiverType).toBe('ANY');
+      expect(parseViolationsListParams({}).filters.waiverType).toBe('ANY');
+    });
+
     it('clamps the threat range to [0, 10] and forces ascending order', () => {
       // '12-3' → clamp(12)=10, clamp(3)=3, then sort ascending → [3, 10].
       expect(parseViolationsListParams({ threat: '12-3' }).filters.threatRange).toEqual([3, 10]);
@@ -96,6 +104,7 @@ describe('violationsListQuery (CLM-42260)', () => {
         org: undefined,
         app: undefined,
         threat: undefined,
+        waiver: undefined,
       });
     });
 
@@ -124,6 +133,19 @@ describe('violationsListQuery (CLM-42260)', () => {
       });
     });
 
+    it('serializes the waiver-type radio to a lowercase token, omitting ANY (CLM-42261)', () => {
+      const base = { search: '', page: 0 };
+      expect(
+        buildViolationsListRouteParams({ ...base, filters: filterState({ waiverType: 'ANY' }) }).waiver,
+      ).toBeUndefined();
+      expect(
+        buildViolationsListRouteParams({ ...base, filters: filterState({ waiverType: 'AUTO' }) }).waiver,
+      ).toBe('auto');
+      expect(
+        buildViolationsListRouteParams({ ...base, filters: filterState({ waiverType: 'MANUAL' }) }).waiver,
+      ).toBe('manual');
+    });
+
     it('omits the threat param when the range is the full [0, 10] default', () => {
       const params = buildViolationsListRouteParams({
         search: '',
@@ -144,6 +166,7 @@ describe('violationsListQuery (CLM-42260)', () => {
           organizationIds: new Set(['org-java']),
           applicationIds: new Set(['app-apple']),
           threatRange: [2, 8] as const,
+          waiverType: 'AUTO' as const,
         }),
       };
       const reparsed = parseViolationsListParams(buildViolationsListRouteParams(state));
@@ -170,6 +193,15 @@ describe('violationsListQuery (CLM-42260)', () => {
       expect(
         violationsFiltersEqual(filterState({ threatRange: [1, 10] }), filterState({ threatRange: [0, 10] })),
       ).toBe(false);
+    });
+
+    it('detects a differing waiver type (CLM-42261)', () => {
+      expect(
+        violationsFiltersEqual(filterState({ waiverType: 'AUTO' }), filterState({ waiverType: 'MANUAL' })),
+      ).toBe(false);
+      expect(
+        violationsFiltersEqual(filterState({ waiverType: 'AUTO' }), filterState({ waiverType: 'AUTO' })),
+      ).toBe(true);
     });
   });
 });

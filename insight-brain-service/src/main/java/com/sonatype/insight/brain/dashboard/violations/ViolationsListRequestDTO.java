@@ -63,8 +63,10 @@ public class ViolationsListRequestDTO
   public Integer ageInDays;
 
   /**
-   * Auto-waiver filter. Handled by the dedicated auto-waiver story (CLM-42261) — rejected here so
-   * clients get a clear 400 rather than a silently ignored filter.
+   * Waiver-type filter (CLM-42261): {@code true} narrows to auto-waived violations, {@code false} to
+   * manually-waived only, {@code null} applies no waiver-type narrowing. Both non-null values imply the
+   * WAIVED state, so combining a non-null value with an OPEN {@code policyViolationStates} filter yields
+   * an intentionally empty result set.
    */
   public Boolean waivedWithAutoWaiver;
 

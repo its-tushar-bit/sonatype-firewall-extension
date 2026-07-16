@@ -8,10 +8,15 @@ import {
   createDefaultViolationsFilterState,
   deriveViolationFacetLabels,
   hasActiveViolationFilters,
+  hasExportableViolationFilters,
   isDefaultThreatRange,
   stageLabel,
   threatCategoryLabel,
   violationStateLabel,
+  waiverTypeLabel,
+  waiverTypeToRequestFlag,
+  WAIVER_TYPE_AUTO,
+  WAIVER_TYPE_MANUAL,
   VIOLATIONS_DEFAULT_ORDER_BY,
   VIOLATIONS_PAGE_SIZE,
 } from 'MainRoot/nosc/violations/violationsListApi';
@@ -82,10 +87,33 @@ describe('violationsListApi', () => {
           .policyThreatLevelRange,
       ).toBe('7,10');
     });
+
+    it('maps the waiver-type radio to the backend waivedWithAutoWaiver boolean (CLM-42261)', () => {
+      // ANY: omitted; AUTO: true (auto-waived only); MANUAL: false (manually-waived only).
+      expect(
+        buildViolationsListRequest({ page: 0, filters: filterState({ waiverType: 'ANY' }) }),
+      ).not.toHaveProperty('waivedWithAutoWaiver');
+      expect(
+        buildViolationsListRequest({ page: 0, filters: filterState({ waiverType: 'AUTO' }) })
+          .waivedWithAutoWaiver,
+      ).toBe(true);
+      expect(
+        buildViolationsListRequest({ page: 0, filters: filterState({ waiverType: 'MANUAL' }) })
+          .waivedWithAutoWaiver,
+      ).toBe(false);
+    });
+  });
+
+  describe('waiverTypeToRequestFlag', () => {
+    it('maps ANY→undefined, AUTO→true, MANUAL→false', () => {
+      expect(waiverTypeToRequestFlag('ANY')).toBeUndefined();
+      expect(waiverTypeToRequestFlag('AUTO')).toBe(true);
+      expect(waiverTypeToRequestFlag('MANUAL')).toBe(false);
+    });
   });
 
   describe('filter-state helpers', () => {
-    it('createDefaultViolationsFilterState is empty with a full [0,10] range', () => {
+    it('createDefaultViolationsFilterState is empty with a full [0,10] range and ANY waiver type', () => {
       const state = createDefaultViolationsFilterState();
       expect(state.states.size).toBe(0);
       expect(state.threatCategories.size).toBe(0);
@@ -93,6 +121,7 @@ describe('violationsListApi', () => {
       expect(state.organizationIds.size).toBe(0);
       expect(state.applicationIds.size).toBe(0);
       expect(state.threatRange).toEqual([0, 10]);
+      expect(state.waiverType).toBe('ANY');
     });
 
     it('isDefaultThreatRange is true only for the full domain', () => {
@@ -101,10 +130,19 @@ describe('violationsListApi', () => {
       expect(isDefaultThreatRange([0, 9])).toBe(false);
     });
 
-    it('hasActiveViolationFilters detects any narrowing group or a narrowed range', () => {
+    it('hasActiveViolationFilters detects any narrowing group, a narrowed range, or a waiver type', () => {
       expect(hasActiveViolationFilters(filterState())).toBe(false);
       expect(hasActiveViolationFilters(filterState({ states: new Set(['OPEN']) }))).toBe(true);
       expect(hasActiveViolationFilters(filterState({ threatRange: [2, 10] }))).toBe(true);
+      expect(hasActiveViolationFilters(filterState({ waiverType: 'AUTO' }))).toBe(true);
+    });
+
+    it('hasExportableViolationFilters ignores the index-only waiver-type filter (CLM-42261)', () => {
+      // waiverType has no RisksFilterDTO equivalent, so a waiver-only selection is not "exportable".
+      expect(hasExportableViolationFilters(filterState({ waiverType: 'AUTO' }))).toBe(false);
+      // Any export-honored group still counts.
+      expect(hasExportableViolationFilters(filterState({ states: new Set(['WAIVED']) }))).toBe(true);
+      expect(hasExportableViolationFilters(filterState({ threatRange: [2, 10] }))).toBe(true);
     });
   });
 
@@ -125,6 +163,20 @@ describe('violationsListApi', () => {
       expect(stageLabel('operate')).toBe('Operate');
       // Unknown id falls back to a Title-Cased id, never the raw slug.
       expect(stageLabel('some-new-stage')).toBe('Some New Stage');
+    });
+
+    it('maps the AUTO / MANUAL waiver-type facet keys to friendly labels (CLM-42261)', () => {
+      expect(waiverTypeLabel('AUTO')).toBe('Auto-waived');
+      expect(waiverTypeLabel('MANUAL')).toBe('Manually waived');
+      expect(waiverTypeLabel('OTHER')).toBe('OTHER');
+    });
+
+    it('pins the waiver-type facet wire keys to the literal AUTO / MANUAL strings (CLM-42261)', () => {
+      // The backend (ViolationsListFacetsBuilder.WAIVER_TYPE_AUTO/MANUAL) keys facets.waiverTypes by
+      // these exact strings. Assert the literals (not the imported constant against itself) so a rename
+      // on either side fails loudly instead of silently blanking the sidebar counts.
+      expect(WAIVER_TYPE_AUTO).toBe('AUTO');
+      expect(WAIVER_TYPE_MANUAL).toBe('MANUAL');
     });
   });
 

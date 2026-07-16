@@ -85,6 +85,7 @@ public class ViolationsListFacetsBuilderTest
 
     assertThat(facets.totalViolations).isZero();
     assertThat(facets.states).isNull();
+    assertThat(facets.waiverTypes).isNull();
     assertThat(facets.threatCategories).isNull();
     assertThat(facets.stages).isNull();
     assertThat(facets.organizations).isNull();
@@ -94,15 +95,61 @@ public class ViolationsListFacetsBuilderTest
   @Test
   public void buildFacets_openStateCountedAsNotWaived() {
     stubEmptyDiscovery();
+    // OPEN is counted as "NOT waived"; WAIVED via its own combined ":(Waived AutoWaived)" count. The
+    // "!NOT" guard keeps the WAIVED matcher from also matching the OPEN "AND NOT (...)" query.
     when(searchIndexClient.count(argThat(q -> q != null && q.contains("AND NOT ")))).thenReturn(7L);
-    when(searchIndexClient.count(argThat(q -> q != null && q.contains("Waived AutoWaived") && !q.contains("NOT"))))
-        .thenReturn(3L);
+    when(searchIndexClient.count(argThat(q -> q != null
+        && q.contains("policyViolationWaiverStatus:(Waived AutoWaived)") && !q.contains("NOT"))))
+            .thenReturn(3L);
 
     ViolationsListFacetsDTO facets = builder().buildFacets(QUERY, 10);
 
     assertThat(facets.states)
         .containsEntry("OPEN", 7L)
         .containsEntry("WAIVED", 3L);
+  }
+
+  @Test
+  public void buildFacets_waiverTypeCounts_autoAndManual() {
+    stubEmptyDiscovery();
+    when(searchIndexClient.count(argThat(q -> q != null && q.contains("policyViolationWaiverStatus:(AutoWaived)"))))
+        .thenReturn(4L);
+    when(searchIndexClient.count(argThat(q -> q != null && q.contains("policyViolationWaiverStatus:(Waived)"))))
+        .thenReturn(2L);
+
+    ViolationsListFacetsDTO facets = builder().buildFacets(QUERY, 10);
+
+    assertThat(facets.waiverTypes)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_AUTO, 4L)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_MANUAL, 2L);
+    // Only the waiver-type count() calls are stubbed; the state queries (OPEN "NOT waived" and the
+    // combined ":(Waived AutoWaived)" WAIVED count) fall through to Mockito's 0L default, so states is
+    // omitted. Matchers stay unambiguous: ":(AutoWaived)"/":(Waived)" do not appear in the combined
+    // ":(Waived AutoWaived)" state clause, so the waiver facet is counted independently of the states.
+    assertThat(facets.states).isNull();
+  }
+
+  @Test
+  public void buildFacets_waiverTypeFacet_countedAgainstWaiverExcludedQuery() {
+    stubEmptyDiscovery();
+    // Simulate an active AUTO waiver-type filter: the list query carries the waiver clause; the
+    // waiver-facet query does not. The single-select waiver-type facet must count against the
+    // waiver-excluded query so MANUAL still shows its switchable count instead of collapsing to 0
+    // under the AUTO-narrowed list query (mealingr review, CLM-42261).
+    String listQuery = "LIST_QUERY AND policyViolationWaiverStatus:(AutoWaived)";
+    String waiverFacetQuery = "WAIVER_FACET_QUERY";
+    when(searchIndexClient.count(argThat(q -> q != null && q.startsWith(waiverFacetQuery)
+        && q.contains("policyViolationWaiverStatus:(AutoWaived)")))).thenReturn(4L);
+    when(searchIndexClient.count(argThat(q -> q != null && q.startsWith(waiverFacetQuery)
+        && q.contains("policyViolationWaiverStatus:(Waived)")))).thenReturn(2L);
+
+    ViolationsListFacetsDTO facets = builder().buildFacets(listQuery, waiverFacetQuery, 10);
+
+    // Both options are present even though the list query is AUTO-narrowed, proving the facet used the
+    // waiver-excluded query (counts keyed off the "WAIVER_FACET_QUERY" prefix, not "LIST_QUERY").
+    assertThat(facets.waiverTypes)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_AUTO, 4L)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_MANUAL, 2L);
   }
 
   @Test

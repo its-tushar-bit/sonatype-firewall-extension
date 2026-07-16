@@ -54,4 +54,13 @@ describe('buildViolationsListExportPayload (CLM-42260)', () => {
     expect(payload).not.toHaveProperty('policyThreatCategories');
     expect(payload).not.toHaveProperty('stageIds');
   });
+
+  it('never includes the index-only waiver-type filter (RisksFilterDTO has no field for it) (CLM-42261)', () => {
+    const payload = buildViolationsListExportPayload(
+      filterState({ waiverType: 'AUTO', states: new Set(['WAIVED']) }),
+    );
+    // Only the exportable state filter is present; the auto/manual waiver selection is dropped.
+    expect(payload).toEqual({ orderBy: '-policyThreatLevel', policyViolationStates: ['WAIVED'] });
+    expect(payload).not.toHaveProperty('waivedWithAutoWaiver');
+  });
 });

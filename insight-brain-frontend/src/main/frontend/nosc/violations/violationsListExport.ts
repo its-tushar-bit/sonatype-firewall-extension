@@ -19,9 +19,10 @@ import {
  * and Reference (CVE) that the Martha index list API does not carry. The payload deserializes into the
  * Classic {@code RisksFilterDTO}: sidebar filter selections map directly (states as an array of enum
  * names, categories as a comma-delimited string, threat range as a {@code minPolicyThreatLevel /
- * maxPolicyThreatLevel} object, id sets as arrays). Free-text {@code search} is index-only and is not
- * supported on the Classic export path, so it is intentionally omitted. Pagination is omitted — the
- * export resource fetches every matching row.
+ * maxPolicyThreatLevel} object, id sets as arrays). Free-text {@code search} and the auto/manual
+ * {@code waiverType} are index-only ({@code RisksFilterDTO} has no equivalent field), so both are
+ * intentionally omitted — the toolbar warns when either is active. Pagination is omitted — the export
+ * resource fetches every matching row.
  */
 export function buildViolationsListExportPayload(
   filters: ViolationsFilterState,

@@ -261,10 +261,11 @@ PRs that add new database columns, change data formats, or modify API contracts 
 - Javadoc that contradicts actual behavior
 
 ### 14. Process compliance
-- PR description must include a Jira ticket link (`Jira: https://sonatype.atlassian.net/browse/CLM-####`)
+- PR description must include a Jira ticket link (`Jira: https://sonatype.atlassian.net/browse/CLM-####`) and a Jenkins build link (`Jenkins: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/job/<branch>/`)
 - Branch name must be prefixed with Jira ticket ID (e.g., `CLM-12345-description`)
 - Spotless formatting must be applied (`mvn spotless:apply`)
 - PRs should contain only changes related to the stated Jira ticket(s) — unrelated changes should be in separate PRs (PR #15156 revert: unrelated backend changes accidentally merged)
+- Add a comment to the Jira ticket with a link to the PR as a proper markdown link (`PR: [#123](https://github.com/sonatype/insight-brain/pull/123)`) — no Jenkins URL in the Jira comment
 
 ### 15. Code reuse and query patterns
 - **IN-clause queries**: Use `AbstractSqlDAO.getListWithSqlInClause()` or `getStreamWithSqlInClause()` (`insight-brain-data/.../dataaccess/AbstractSqlDAO.java:287,326`) instead of writing manual batch-splitting logic. These handle chunking large collections automatically.
@@ -287,6 +288,9 @@ PRs that add new database columns, change data formats, or modify API contracts 
 *(Applies to the legacy IQ UI in `insight-brain-frontend/`. Guide SPA uses `@guide/ui-core` instead — see `insight-brain-frontend/CLAUDE.md`.)*
 - **Use React Shared Components (RSC)**: Use `NxTile`, `NxP`, `NxCode`, `NxH1`-`NxH3` instead of bare HTML elements. See usage examples in `insight-brain-frontend/src/main/frontend/violation/ViolationDetailsTile.jsx`.
 - **No CSS anti-patterns**: No `!important` (escape hatch, not a tool), no `vh` units (assumes page layout), no hardcoded colors (use CSS variables like `var(--nx-border-default)`), use `overflow: auto` not `overflow: scroll`.
+
+### 19. Code Commenting
+- **Comments must describe current behavior:** Code comments and Javadoc describe *current* behavior only. Do NOT narrate what changed, what it used to do, or why it's different from before. Avoid phrases like "previously…", "used to…", "this PR adds…", or "no longer…".
 
 ### What NOT to flag in reviews
 - Code formatting or style (Spotless handles this)

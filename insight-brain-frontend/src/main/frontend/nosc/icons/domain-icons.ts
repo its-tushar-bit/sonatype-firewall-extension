@@ -31,7 +31,9 @@ import {
   Scale,
   Search,
   Server,
+  Settings as SettingsIcon,
   Shield,
+  ShieldAlert,
   Sparkles,
   TrendingDown,
   TrendingUp,
@@ -137,6 +139,10 @@ export const DomainIcons = {
   OperationalReporting: AreaChart,
   /** API page (faStars). */
   Api: Sparkles,
+  /** Violations (LeftNav rail entry; policy violation list). */
+  Violations: ShieldAlert,
+  /** Settings (LeftNav rail entry; Nexus One settings surface). */
+  Settings: SettingsIcon,
   /** Generic Dashboard (matches Lucide's grid-style dashboard glyph
    *  used by the Nexus One Preview Dashboard tile shell). Distinct
    *  from Home: Classic uses the same "House" glyph for the

@@ -24,7 +24,7 @@ import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardSta
  * declarations, starts it at the requested tab, and renders the `<UIView>` tree inside SpecUtil's
  * Redux provider. Returns the router so tests can assert/drive navigation.
  */
-export type DashboardTab = 'overview' | 'violations' | 'components' | 'applications' | 'waivers';
+export type DashboardTab = 'overview' | 'violations' | 'applications' | 'waivers';
 
 export function createNexusOneDashboardRouter(initialTab: DashboardTab = 'overview'): UIRouterReact {
   const router = new UIRouterReact();

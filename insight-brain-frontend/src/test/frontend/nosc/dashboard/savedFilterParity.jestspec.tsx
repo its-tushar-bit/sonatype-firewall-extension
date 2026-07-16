@@ -11,10 +11,8 @@ import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 
 import DashboardViolationsContainer from 'MainRoot/dashboard/results/violations/DashboardViolationsContainer';
 import DashboardWaiversTable from 'MainRoot/dashboard/results/waivers/DashboardWaiversTable';
-import DashboardComponentsContainer from 'MainRoot/dashboard/results/components/DashboardComponentsContainer';
 import PreviewViolationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewViolationsTab';
 import PreviewWaiversTab from 'MainRoot/nosc/dashboard/tabs/PreviewWaiversTab';
-import PreviewComponentsTab from 'MainRoot/nosc/dashboard/tabs/PreviewComponentsTab';
 import { NexusOneRouterProvider } from 'TestRoot/nosc/renderNexusOneRoute';
 import PreviewApplicationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewApplicationsTab';
 import { PREVIEW_APPLICATIONS_COLUMNS } from 'MainRoot/nosc/dashboard/tabs/previewDashboardApplicationsColumns';
@@ -31,10 +29,10 @@ import { configureStore } from 'TestRoot/SpecUtil';
  * loudly.
  *
  * Contract per tab:
- *   - Violations / Waivers / Components: the Preview tabs wrap the
- *     same Classic components and read from the same slice. The
- *     parity is byte-for-byte at the DOM level — column headers,
- *     first N row text, and sort indicator must be identical.
+ *   - Violations / Waivers: the Preview tabs wrap the same Classic
+ *     components and read from the same slice. The parity is
+ *     byte-for-byte at the DOM level — column headers, first N row
+ *     text, and sort indicator must be identical.
  *   - Applications (post-Stage-3A, CLM-3A-2): the Preview tab no
  *     longer wraps the Classic `DashboardApplicationsContainer` —
  *     it renders the new Radix `PreviewDashboardApplicationsTable`.
@@ -79,17 +77,6 @@ interface WaiverFixture {
   createTime: string;
   expiryTime: string | null;
   isAutoWaiver?: boolean;
-}
-
-interface ComponentFixture {
-  hash: string;
-  derivedComponentName: string;
-  affectedApplications: number;
-  score: number;
-  scoreCritical: number;
-  scoreSevere: number;
-  scoreModerate: number;
-  scoreLow: number;
 }
 
 interface ApplicationFixture {
@@ -158,39 +145,6 @@ const violationFixtures: ViolationFixture[] = [
   },
 ];
 
-const componentFixtures: ComponentFixture[] = [
-  {
-    hash: 'h1',
-    derivedComponentName: 'log4j-core 2.14',
-    affectedApplications: 5,
-    score: 920,
-    scoreCritical: 800,
-    scoreSevere: 80,
-    scoreModerate: 30,
-    scoreLow: 10,
-  },
-  {
-    hash: 'h2',
-    derivedComponentName: 'commons-text 1.9',
-    affectedApplications: 3,
-    score: 410,
-    scoreCritical: 0,
-    scoreSevere: 350,
-    scoreModerate: 50,
-    scoreLow: 10,
-  },
-  {
-    hash: 'h3',
-    derivedComponentName: 'spring-core 5.3',
-    affectedApplications: 2,
-    score: 60,
-    scoreCritical: 0,
-    scoreSevere: 0,
-    scoreModerate: 50,
-    scoreLow: 10,
-  },
-];
-
 const applicationFixtures: ApplicationFixture[] = [
   {
     applicationId: 'a1',
@@ -242,17 +196,16 @@ const waiverFixtures: WaiverFixture[] = [
 /** A "saved filter" is just a reducer-shape: the slice your saved filter
  *  would have hydrated to. We construct one inline so the test doesn't
  *  depend on the network or on real saved-filter persistence. */
-type SavedFilterResultsKey = 'violations' | 'waivers' | 'components' | 'applications';
+type SavedFilterResultsKey = 'violations' | 'waivers' | 'applications';
 
 const SORT_FIELDS_BY_KEY: Record<SavedFilterResultsKey, string[]> = {
   violations: ['-threatLevel', '-firstOccurrenceTime'],
   waivers: ['-threatLevel'],
-  components: ['-score'],
   applications: ['-totalApplicationRisk.totalRisk'],
 };
 
-/** Stub `classyBrew` (the heat-map color styler the Components and
- *  Applications tables consume). The Classic tables pass `classyBrew`
+/** Stub `classyBrew` (the heat-map color styler the Applications
+ *  table consumes). The Classic tables pass `classyBrew`
  *  to `DashboardHeatMapCell`, which calls `isWhiteText(score)` and
  *  `getColor(score)`. Without this stub, the parity tests crash with
  *  "Cannot read properties of null (reading 'isWhiteText')". The
@@ -265,21 +218,17 @@ const STUB_CLASSY_BREW = {
 };
 
 function makeStoreWithSavedFilter(
-  results:
-    | ViolationFixture[]
-    | WaiverFixture[]
-    | ComponentFixture[]
-    | ApplicationFixture[],
+  results: ViolationFixture[] | WaiverFixture[] | ApplicationFixture[],
   resultsKey: SavedFilterResultsKey,
 ) {
   // Start with the real reducers' default state and override the two
   // slices we care about. Other reducers stay at their defaults.
   const baseStore = configureStore({ reducer: reducers });
   const baseState = baseStore.getState();
-  // Only the Components + Applications slices use `classyBrew`. The
-  // Violations + Waivers slices ignore it. Set unconditionally —
-  // a no-op styler on slices that don't read it is harmless.
-  const needsClassyBrew = resultsKey === 'components' || resultsKey === 'applications';
+  // Only the Applications slice uses `classyBrew`. The Violations +
+  // Waivers slices ignore it. Set unconditionally — a no-op styler
+  // on slices that don't read it is harmless.
+  const needsClassyBrew = resultsKey === 'applications';
   return configureStore({
     reducer: reducers,
     preloadedState: {
@@ -403,20 +352,6 @@ describe('Saved-filter parity (CLM-39992 / S2-PR-D-3 / AT-D3-003)', () => {
     });
   });
 
-  describe('Components', () => {
-    it('mounts under a saved components filter without throwing', () => {
-      const previewStore = makeStoreWithSavedFilter(componentFixtures, 'components');
-      expect(() =>
-        render(
-          <Theme>
-            <PreviewComponentsTab />
-          </Theme>,
-          { store: previewStore },
-        ),
-      ).not.toThrow();
-    });
-  });
-
   describe('Applications', () => {
     // Stage 3-A (CLM-3A-2): the Preview Applications tab no longer
     // wraps the Classic grid — it renders the new Radix
@@ -467,7 +402,7 @@ describe('Saved-filter parity (CLM-39992 / S2-PR-D-3 / AT-D3-003)', () => {
   });
 
   describe('Slot mount', () => {
-    it('Violations / Components / Applications tabs each mount the shared filter rail slot (Waivers omitted intentionally)', () => {
+    it('Violations / Applications tabs each mount the shared filter rail slot (Waivers omitted intentionally)', () => {
       const store = makeStoreWithSavedFilter(violationFixtures, 'violations');
       const v = render(
         <Theme>
@@ -476,15 +411,6 @@ describe('Saved-filter parity (CLM-39992 / S2-PR-D-3 / AT-D3-003)', () => {
         { store },
       );
       expect(within(v.container).getByTestId('nosc-dashboard-violations-filter-slot'))
-        .toBeInTheDocument();
-
-      const c = render(
-        <Theme>
-          <PreviewComponentsTab />
-        </Theme>,
-        { store },
-      );
-      expect(within(c.container).getByTestId('nosc-dashboard-components-filter-slot'))
         .toBeInTheDocument();
 
       const a = render(

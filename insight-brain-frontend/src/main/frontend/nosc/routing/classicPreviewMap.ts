@@ -157,6 +157,7 @@ export function toNexusOneEquivalent(classicPath: string): string {
   if (path === '' || path === '/') return NEXUS_ONE_DEFAULT_PATH;
   if (path === '/previewUiSettings') return '/ui-settings';
   if (isSharedPath(path)) return '/ui-settings';
+  if (path === '/dashboard') return NEXUS_ONE_DEFAULT_PATH;
 
   const detail = findDetailPageClassicToNexusOne(path);
   if (detail) return detail;

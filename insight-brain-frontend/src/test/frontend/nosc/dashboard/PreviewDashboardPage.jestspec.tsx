@@ -61,7 +61,6 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
     // renders the tab body into the shell's <UIView>.
     it.each([
       ['violations', 'nosc-dashboard-violations-tab'],
-      ['components', 'nosc-dashboard-components-tab'],
       ['applications', 'nosc-dashboard-applications-tab'],
       ['waivers', 'nosc-dashboard-waivers-tab'],
     ] as const)(
@@ -81,12 +80,12 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       const { router } = renderNexusOneDashboard('violations');
       await screen.findByTestId('nosc-dashboard-page');
 
-      await userEvent.click(screen.getByTestId('nosc-dashboard-tab-components'));
+      await userEvent.click(screen.getByTestId('nosc-dashboard-tab-applications'));
 
-      await waitFor(() => expect(router.stateService.current.name).toBe('nexusOneDashboard.components'));
-      const componentsTab = screen.getByTestId('nosc-dashboard-tab-components');
-      await waitFor(() => expect(componentsTab.getAttribute('aria-selected')).toBe('true'));
-      expect(await screen.findByTestId('nosc-dashboard-components-tab')).toBeInTheDocument();
+      await waitFor(() => expect(router.stateService.current.name).toBe('nexusOneDashboard.applications'));
+      const applicationsTab = screen.getByTestId('nosc-dashboard-tab-applications');
+      await waitFor(() => expect(applicationsTab.getAttribute('aria-selected')).toBe('true'));
+      expect(await screen.findByTestId('nosc-dashboard-applications-tab')).toBeInTheDocument();
     });
 
     it('returns to the overview state when the user clicks the Overview tab', async () => {
@@ -120,7 +119,7 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
   });
 
   describe('Tab strip rendering', () => {
-    it('renders all 5 tab triggers in the canonical order on a classic tab', async () => {
+    it('renders all 4 tab triggers in the canonical order on a classic tab', async () => {
       stubDashboardAxios(axiosMock);
       renderNexusOneDashboard('violations');
       await screen.findByTestId('nosc-dashboard-page');
@@ -128,7 +127,6 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       const expectedTestIds = [
         'nosc-dashboard-tab-overview',
         'nosc-dashboard-tab-violations',
-        'nosc-dashboard-tab-components',
         'nosc-dashboard-tab-applications',
         'nosc-dashboard-tab-waivers',
       ];
@@ -243,7 +241,6 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
         ).length;
         // Switching tabs only swaps the child <UIView> — the parent shell stays mounted, so the
         // page-level loadFilter dispatch must NOT fire again.
-        await userEvent.click(screen.getByTestId('nosc-dashboard-tab-components'));
         await userEvent.click(screen.getByTestId('nosc-dashboard-tab-applications'));
         await userEvent.click(screen.getByTestId('nosc-dashboard-tab-waivers'));
         const callsAfterSwitching = axiosGetSpy.mock.calls.filter(
@@ -257,7 +254,7 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
   });
 
   describe('Tab badges (live counts from the Redux slice)', () => {
-    it('renders Components + Applications badges when their slices have results, hides when null', async () => {
+    it('renders the Applications badge when its slice has results, hides when null', async () => {
       stubDashboardAxios(axiosMock);
       // Badges live in the tab strip, which renders on the classic tabs (not the grid landing).
       const { store } = renderNexusOneDashboard('violations');
@@ -269,17 +266,8 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       await screen.findByTestId('nosc-dashboard-violations-tab');
 
       // Initial state: results === null → no badge.
-      expect(screen.queryByTestId('nosc-dashboard-tab-badge-components')).not.toBeInTheDocument();
       expect(screen.queryByTestId('nosc-dashboard-tab-badge-applications')).not.toBeInTheDocument();
 
-      store.dispatch({
-        type: LOAD_RESULTS_FULFILLED,
-        payload: {
-          resultsType: 'components',
-          results: [{ hash: 'h1' }, { hash: 'h2' }, { hash: 'h3' }],
-          hasNextPage: false,
-        },
-      });
       store.dispatch({
         type: LOAD_RESULTS_FULFILLED,
         payload: {
@@ -292,9 +280,6 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       // Radix Tabs.Trigger renders the children twice (visible + layout-only ghost); both share the
       // same data-testid, so we assert every match shares the expected content.
       await waitFor(() => {
-        const componentBadges = screen.getAllByTestId('nosc-dashboard-tab-badge-components');
-        expect(componentBadges.length).toBeGreaterThanOrEqual(1);
-        componentBadges.forEach((el) => expect(el).toHaveTextContent('3'));
         const appBadges = screen.getAllByTestId('nosc-dashboard-tab-badge-applications');
         expect(appBadges.length).toBeGreaterThanOrEqual(1);
         appBadges.forEach((el) => expect(el).toHaveTextContent('1'));
@@ -316,11 +301,10 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       stubDashboardAxios(axiosMock);
       const expectedBodyByTab: Record<string, string> = {
         violations: 'nosc-dashboard-violations-tab',
-        components: 'nosc-dashboard-components-tab',
         applications: 'nosc-dashboard-applications-tab',
         waivers: 'nosc-dashboard-waivers-tab',
       };
-      for (const tab of ['violations', 'components', 'applications', 'waivers'] as const) {
+      for (const tab of ['violations', 'applications', 'waivers'] as const) {
         const { unmount } = renderNexusOneDashboard(tab);
         expect(await screen.findByTestId(expectedBodyByTab[tab])).toBeInTheDocument();
         unmount();

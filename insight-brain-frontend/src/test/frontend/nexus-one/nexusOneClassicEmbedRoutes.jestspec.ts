@@ -198,7 +198,7 @@ describe('nexusOneClassicEmbedRoutes', () => {
     expect(violations?.url).toBe(NEXUS_ONE_VIOLATIONS_URL);
     expect(violations?.redirectTo).toBeUndefined();
     expect(violations?.component).toBeDefined();
-    expect(router.stateRegistry.get('nexusOneComponents')?.redirectTo).toBe('nexusOneDashboard.components');
+    expect(router.stateRegistry.get('nexusOneComponents')?.redirectTo).toBe(comingSoonStateName('components'));
   });
 
   // Guards the Classic-embed admin route's dirty-guard wiring: a typo in the

@@ -6,7 +6,7 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Box, Flex, IconButton, ScrollArea, Tooltip } from '@radix-ui/themes';
+import { Box, Flex, IconButton, ScrollArea, Separator, Tooltip } from '@radix-ui/themes';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { DomainIcons } from 'MainRoot/nosc/icons';
 import { comingSoonHref } from 'MainRoot/nosc/comingSoon';
@@ -46,57 +46,45 @@ import {
 
 const COLLAPSED_WIDTH = LEFT_NAV_COLLAPSED_WIDTH_PX + 'px';
 const EXPANDED_WIDTH = LEFT_NAV_EXPANDED_WIDTH_PX + 'px';
-// '/legal' is a prefix match (see hrefMatches) covering every deep-link page mounted in-shell —
-// application details, component overview, attribution reports, and the copyright/notice/
-// license-file/license-details families (legalDeepLinkStates.ts) — not just the two dashboard
-// tabs. Without it, the rail entry would de-highlight the moment a user drills into any of those
-// pages from the dashboard, even though they're still within the embedded Legal experience.
-const LEGAL_ACTIVE_HREFS = Object.freeze([LEGAL_APPLICATIONS_DASHBOARD_URL, LEGAL_COMPONENTS_DASHBOARD_URL, '/legal']);
 const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
+
+// Active hrefs are extra paths (beyond an entry's own href) that keep it highlighted in the rail when in-page navigation or a
+// redirect lands the user somewhere other than that href but still inside the entry's experience.
+const LEGAL_ACTIVE_HREFS = Object.freeze([LEGAL_APPLICATIONS_DASHBOARD_URL, LEGAL_COMPONENTS_DASHBOARD_URL, '/legal']);
 const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '/reports/react2shell']);
+const COMPONENTS_ACTIVE_HREFS = Object.freeze([comingSoonHref('components')]);
 
 /**
  * Nexus One Preview LeftNav.
  *
- * Mirrors Classic's `react/iqSidebarNav/IqSidebarNav.jsx`: same
- * module list, display order, and Redux-driven permissioning. The
- * Nexus-One-only entry is **Applications** (the Preview entity browser
- * introduced in P1-F7). The standalone Reports list is folded into it,
- * so the rail carries no separate Reports entry.
- *
- * Per CLM-39640 user review: drop the Coming Soon stub registry and
- * the Home/Search/Settings/Waivers Nexus-One-only entries that were
- * present in the prior shape. The intent is module parity — a user
- * switching between Classic and Nexus One should see the same
- * navigable modules in the same order, plus the one new Applications
- * entry.
+ * Item set and order match the Phase-1 final IA agreed with UX (ground
+ * truth: `nexusone-ux-prototype`'s `getLifecycleV1NavItems()`), not
+ * Classic's IqSidebarNav order.
  *
  * Permissioning hooks the same Redux selectors `NavigationContainer.jsx`
  * uses for IqSidebarNav, so an unlicensed / SBOM-only / Firewall-only
- * tenant gets the same module visibility as in Classic. Applications
- * gates on `isLicensed && isOrgsAndAppsEnabled`, which is the right
- * read for the Phase-1 surface: it's an entity browser of the apps
- * the user already has access to.
+ * tenant gets the same module visibility as in Classic.
  *
  * Hrefs all land inside the Nexus One Preview surface (`/preview/*`).
  * Per CLM-39640 review: clicking a Nexus One nav entry should keep
- * the user inside Nexus One: either landing on a native Preview page
- * (Dashboard, Applications), a Classic page mounted in-shell (embedded
- * Classic mount), or a Coming Soon stub that has a "Continue in
- * Classic" escape hatch on the page itself. The escape hatch belongs
- * to the page, not the nav click.
+ * the user inside Nexus One: either landing on a native Preview page,
+ * a Classic page mounted in-shell (embedded Classic mount), or a
+ * Coming Soon stub that has a "Continue in Classic" escape hatch on
+ * the page itself. The escape hatch belongs to the page, not the nav
+ * click.
  *
  * Per CLM-42168: Advanced Search and Vulnerability Lookup are no
  * longer separate LeftNav entries — Global Search (the top-nav
  * omnibar) and the unified search results surface at `/preview/search`
  * replace both as the single entry point.
  *
- * Stub-target mapping (Classic LeftNav module → /preview/* target):
+ * Stub-target mapping (LeftNav item → target), in display order:
  *   Dashboard            → /preview/dashboard            (native)
- *   Orgs and Policies    → /preview/organizations        (Coming Soon)
- *   Applications         → /preview/applications         (native; the standalone
- *                          Reports list folds in here, so no separate Reports entry)
- *   Success Metrics      → /preview/success-metrics      (Coming Soon)
+ *   Applications         → /preview/applications         (native)
+ *   Components           → /coming-soon/components        (Coming Soon;
+ *                          the former native Dashboard Components tab
+ *                          was removed)
+ *   Hosted Repos         → /coming-soon/repositories      (Coming Soon)
  *   Legal                → embedded Classic mount        (native
  *                          LegalDashboardContainer; the /coming-soon/legal
  *                          route mounts the Classic Legal Dashboard in-shell.
@@ -104,14 +92,20 @@ const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '
  *                          application details, component overview, attribution
  *                          reports, and the copyright/notice/license-file/
  *                          license-details families — none of it exits to Classic)
- *   Hosted Repos         → /preview/repositories         (Coming Soon)
- *   Enterprise/Operational Reporting → embedded Classic mount (native;
- *                          the /coming-soon/reports route gate-switches between
- *                          the Classic Enterprise and Operational Reporting pages
- *                          on integrated-enterprise-reporting support)
- *   API                  → embedded Classic mount        (native ApiPage;
- *                          the /coming-soon/api route mounts the Classic API
- *                          page in-shell; no Coming Soon stub)
+ *   Orgs & Policies      → /coming-soon/orgs-and-policies (Coming Soon)
+ *   Violations           → /preview/violations            (native; PreviewViolationsList)
+ *   Vulnerabilities      → /coming-soon/vulnerabilities   (Coming Soon)
+ *   Waivers              → /preview/waivers               (native)
+ *   --- divider ---
+ *   Success Metrics      → /coming-soon/success-metrics   (Coming Soon)
+ *   Enterprise/Operational Reporting → /coming-soon/reports (embedded
+ *                          Classic mount; gate-switches between the
+ *                          Classic Enterprise and Operational Reporting
+ *                          pages on integrated-enterprise-reporting support)
+ *   --- divider ---
+ *   API                  → /coming-soon/api               (embedded Classic
+ *                          mount; native ApiPage, no Coming Soon stub)
+ *   Settings             → /coming-soon/settings          (Coming Soon)
  */
 
 function readHashPath() {
@@ -156,19 +150,9 @@ function isPathActive(currentPath, item) {
  * (works with IQ's existing ui-router setup without needing useSref).
  * When collapsed, wraps in a Radix Tooltip so the label remains
  * discoverable.
- *
- * `isSubEntry` is set on the four Dashboard-tab sub-entries added in
- * CLM-39992 / S2-PR-D-1. When expanded, sub-entries get a small left
- * indent and a smaller icon so the parent/child hierarchy is visible
- * at a glance. When the rail is collapsed they render exactly like
- * top-level entries (icon-only with tooltip) — there's no room for
- * indentation in the 64px collapsed width and the tooltip already
- * disambiguates "Violations" vs the parent "Dashboard".
  */
-function NavItem({ id, label, Icon, href, isActive, isCollapsed, isSubEntry = false }) {
+function NavItem({ id, label, Icon, href, isActive, isCollapsed }) {
   const fullHref = bundleIndexUrl('nexus-one', href);
-  const indentLeft = !isCollapsed && isSubEntry ? '20px' : '0px';
-  const iconSize = isSubEntry ? 14 : 18;
 
   const content = (
     <a
@@ -196,13 +180,13 @@ function NavItem({ id, label, Icon, href, isActive, isCollapsed, isSubEntry = fa
         gap="3"
         px="3"
         py="2"
-        style={{ minHeight: isSubEntry ? '32px' : '40px', paddingLeft: `calc(var(--space-3) + ${indentLeft})` }}
+        style={{ minHeight: '40px' }}
       >
-        <Icon size={iconSize} color={isActive ? 'var(--accent-11)' : 'var(--gray-11)'} />
+        <Icon size={18} color={isActive ? 'var(--accent-11)' : 'var(--gray-11)'} />
         {!isCollapsed && (
           <span
             style={{
-              fontSize: isSubEntry ? '13px' : '14px',
+              fontSize: '14px',
               fontWeight: isActive ? 600 : 400,
               color: isActive ? 'var(--accent-12)' : 'var(--gray-12)',
             }}
@@ -225,12 +209,30 @@ function NavItem({ id, label, Icon, href, isActive, isCollapsed, isSubEntry = fa
 }
 
 /**
+ * Appends a divider-delimited group to the rail. The group's first item gets a
+ * separator only when the group is non-empty AND something already precedes it.
+ * This avoids two orphaned-divider cases: a divider inside an otherwise-empty
+ * group, and a divider stranded at the top of the rail when every item above the
+ * group is gated off (e.g. unlicensed + dashboard disabled, with Success Metrics
+ * or API still enabled).
+ */
+function pushGroup(items, groupItems) {
+  if (groupItems.length === 0) {
+    return;
+  }
+  groupItems[0].separator = items.length > 0;
+  items.push(...groupItems);
+}
+
+/**
  * Build the visible nav-item list given the current Redux feature/license
- * flags. Mirrors the conditional rendering in Classic's IqSidebarNav so
- * an unlicensed/SBOM-only/Firewall-only tenant sees the same modules in
- * Nexus One as they do in Classic.
+ * flags, matching the Phase-1 final IA order.
  *
- * Returns an array of `{ id, label, Icon, href, activeHrefs? }` rows in display order.
+ * Returns an array of `{ id, label, Icon, href, activeHrefs?, separator? }`
+ * rows in display order. `separator: true` renders a divider immediately
+ * above that item — placed on the item *after* a divider (rather than
+ * tracked on the item before) so a feature-gated-off item above never
+ * leaves an orphaned divider.
  */
 function buildNavItems(flags) {
   const {
@@ -247,11 +249,6 @@ function buildNavItems(flags) {
   const items = [];
 
   if (isDashboardAvailable) {
-    // Single Dashboard entry. The 4 tabs (Overview / Violations /
-    // Components / Applications / Waivers) are reached via the
-    // in-page tab strip on /preview/dashboard. LeftNav sub-entries
-    // were removed per design feedback — they were redundant with the
-    // tab strip and added vertical noise to the rail.
     items.push({
       id: 'dashboard',
       label: 'Dashboard',
@@ -259,16 +256,6 @@ function buildNavItems(flags) {
       href: '/dashboard',
     });
   }
-  if (isLicensed) {
-    items.push({
-      id: 'orgs-policies',
-      label: 'Orgs and Policies',
-      Icon: DomainIcons.Organizations,
-      href: comingSoonHref('organizations'),
-    });
-  }
-  // Applications: Nexus-One-only entity browser, inserted next to other
-  // entity browsers. Gated on `isLicensed && isOrgsAndAppsEnabled`.
   if (isLicensed && isOrgsAndAppsEnabled) {
     items.push({
       id: 'applications',
@@ -277,12 +264,24 @@ function buildNavItems(flags) {
       href: '/applications',
     });
   }
-  if (isSuccessMetricsEnabled && isOrgsAndAppsEnabled) {
+  // Components redirects to a Coming Soon stub; Violations and Waivers
+  // reuse existing native routes (the native PreviewViolationsList page and
+  // the existing native PreviewWaiversList page).
+  if (isLicensed && isOrgsAndAppsEnabled) {
     items.push({
-      id: 'success-metrics',
-      label: 'Success Metrics',
-      Icon: DomainIcons.SuccessMetrics,
-      href: comingSoonHref('success-metrics'),
+      id: 'components',
+      label: 'Components',
+      Icon: DomainIcons.Component,
+      href: '/components',
+      activeHrefs: COMPONENTS_ACTIVE_HREFS,
+    });
+  }
+  if (isLicensed && isHostedRepositoryEvaluationEnabled) {
+    items.push({
+      id: 'hosted-repos',
+      label: 'Hosted Repos',
+      Icon: DomainIcons.HostedRepos,
+      href: comingSoonHref('repositories'),
     });
   }
   if (isLicensed && isLegalEnabled) {
@@ -294,16 +293,51 @@ function buildNavItems(flags) {
       activeHrefs: LEGAL_ACTIVE_HREFS,
     });
   }
-  if (isLicensed && isHostedRepositoryEvaluationEnabled) {
+  if (isLicensed) {
     items.push({
-      id: 'hosted-repos',
-      label: 'Hosted Repos',
-      Icon: DomainIcons.HostedRepos,
-      href: comingSoonHref('repositories'),
+      id: 'orgs-policies',
+      label: 'Orgs & Policies',
+      Icon: DomainIcons.Organizations,
+      href: comingSoonHref('orgs-and-policies'),
+    });
+  }
+  if (isLicensed && isOrgsAndAppsEnabled) {
+    items.push({
+      id: 'violations',
+      label: 'Violations',
+      Icon: DomainIcons.Violations,
+      href: '/violations',
+    });
+  }
+  if (isLicensed && isOrgsAndAppsEnabled) {
+    items.push({
+      id: 'vulnerabilities',
+      label: 'Vulnerabilities',
+      Icon: DomainIcons.Vulnerability,
+      href: comingSoonHref('vulnerabilities'),
+    });
+  }
+  if (isLicensed && isOrgsAndAppsEnabled) {
+    items.push({
+      id: 'waivers',
+      label: 'Waivers',
+      Icon: DomainIcons.Waivers,
+      href: '/waivers',
+    });
+  }
+
+  // Buffer the reporting group so pushGroup can place its leading divider correctly.
+  const reportingGroupItems = [];
+  if (isSuccessMetricsEnabled && isOrgsAndAppsEnabled) {
+    reportingGroupItems.push({
+      id: 'success-metrics',
+      label: 'Success Metrics',
+      Icon: DomainIcons.SuccessMetrics,
+      href: comingSoonHref('success-metrics'),
     });
   }
   if (isLicensed && isIntegratedEnterpriseReportingSupported) {
-    items.push({
+    reportingGroupItems.push({
       id: 'enterprise-reporting',
       label: 'Enterprise Reporting',
       Icon: DomainIcons.EnterpriseReporting,
@@ -312,7 +346,7 @@ function buildNavItems(flags) {
     });
   }
   if (isLicensed && !isIntegratedEnterpriseReportingSupported) {
-    items.push({
+    reportingGroupItems.push({
       id: 'operational-reporting',
       label: 'Operational Reporting',
       Icon: DomainIcons.OperationalReporting,
@@ -320,14 +354,27 @@ function buildNavItems(flags) {
       activeHrefs: REPORTING_ACTIVE_HREFS,
     });
   }
+  pushGroup(items, reportingGroupItems);
+
+  // Buffer the settings group so pushGroup can place its leading divider correctly.
+  const settingsGroupItems = [];
   if (isApiPageEnabled) {
-    items.push({
+    settingsGroupItems.push({
       id: 'api',
       label: 'API',
       Icon: DomainIcons.Api,
       href: comingSoonHref('api'),
     });
   }
+  if (isLicensed && isOrgsAndAppsEnabled) {
+    settingsGroupItems.push({
+      id: 'settings',
+      label: 'Settings',
+      Icon: DomainIcons.Settings,
+      href: comingSoonHref('settings'),
+    });
+  }
+  pushGroup(items, settingsGroupItems);
   return items;
 }
 
@@ -419,16 +466,17 @@ export default function LeftNav() {
         <Box p={isCollapsed ? '2' : '3'}>
           <Flex direction="column" gap="1">
             {items.map((item) => (
-              <NavItem
-                key={item.id}
-                id={item.id}
-                label={item.label}
-                Icon={item.Icon}
-                href={item.href}
-                isActive={isPathActive(currentPath, item)}
-                isCollapsed={isCollapsed}
-                isSubEntry={item.isSubEntry}
-              />
+              <Box key={item.id}>
+                {item.separator && <Separator my="2" data-testid="nosc-leftnav-separator" style={{ width: '100%' }} />}
+                <NavItem
+                  id={item.id}
+                  label={item.label}
+                  Icon={item.Icon}
+                  href={item.href}
+                  isActive={isPathActive(currentPath, item)}
+                  isCollapsed={isCollapsed}
+                />
+              </Box>
             ))}
           </Flex>
         </Box>

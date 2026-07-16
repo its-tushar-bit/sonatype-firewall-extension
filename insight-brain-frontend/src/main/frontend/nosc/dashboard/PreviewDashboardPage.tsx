@@ -15,13 +15,11 @@ import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
 import { loadFilter } from 'MainRoot/dashboard/filter/dashboardFilterActions';
 import {
   selectApplicationResults,
-  selectComponentResults,
   selectViolationResults,
   selectWaiversResults,
 } from 'MainRoot/dashboard/dashboardSelectors';
 import {
   loadApplicationResults,
-  loadComponentResults,
   loadViolationResults,
   loadWaiverResults,
 } from 'MainRoot/dashboard/results/dashboardResultsActions';
@@ -33,7 +31,7 @@ import '@radix-ui/themes/styles.css';
  * Nexus One Dashboard shell (CLM-39992 + CLM-39641 review follow-up).
  *
  * This is the parent route component for the abstract `nexusOneDashboard` state. UI-Router owns tab
- * navigation: each tab is a child state (`nexusOneDashboard.{overview,violations,components,
+ * navigation: each tab is a child state (`nexusOneDashboard.{overview,violations,
  * applications,waivers}`) and the active tab's content renders into the nested `<UIView />`. The page
  * no longer hand-rolls hash parsing / `history.pushState` / `hashchange` listeners — the previous
  * approach re-invented what UI-Router already provides (per Ross's review on this PR).
@@ -49,7 +47,7 @@ import '@radix-ui/themes/styles.css';
  *     inline fallback while the tab strip stays navigable (AT-D1-002). It resets on tab change.
  */
 
-const TAB_IDS = ['overview', 'violations', 'components', 'applications', 'waivers'] as const;
+const TAB_IDS = ['overview', 'violations', 'applications', 'waivers'] as const;
 type TabId = (typeof TAB_IDS)[number];
 
 const DEFAULT_TAB: TabId = 'overview';
@@ -116,11 +114,9 @@ export default function PreviewDashboardPage(): JSX.Element {
   const activeTab = tabFromStateName(state?.name);
 
   const violationsResults = useSelector(selectViolationResults);
-  const componentsResults = useSelector(selectComponentResults);
   const applicationsResults = useSelector(selectApplicationResults);
   const waiversResults = useSelector(selectWaiversResults);
   const violationsBadge = formatDashboardTabBadge(violationsResults);
-  const componentsBadge = formatDashboardTabBadge(componentsResults);
   const applicationsBadge = formatDashboardTabBadge(applicationsResults);
   const waiversBadge = formatDashboardTabBadge(waiversResults);
 
@@ -159,7 +155,6 @@ export default function PreviewDashboardPage(): JSX.Element {
         if (active === DEFAULT_TAB) {
           return;
         }
-        if (active !== 'components') dispatch(loadComponentResults());
         if (active !== 'applications') dispatch(loadApplicationResults());
         if (active !== 'violations') dispatch(loadViolationResults());
         if (active !== 'waivers') dispatch(loadWaiverResults());
@@ -173,7 +168,7 @@ export default function PreviewDashboardPage(): JSX.Element {
   };
 
   // The landing (overview) is the metric-card grid (CLM-40905) — a clean, tab-free view. The tab
-  // strip only renders for the classic tabbed tables (violations/components/applications/waivers),
+  // strip only renders for the classic tabbed tables (violations/applications/waivers),
   // which stay reachable as a fallback. The child <UIView> still renders the active state's
   // component either way; on the landing it's wrapped without the tab chrome.
   const isLandingGrid = activeTab === DEFAULT_TAB;
@@ -231,10 +226,6 @@ export default function PreviewDashboardPage(): JSX.Element {
                 <Tabs.Trigger value="violations" data-testid="nosc-dashboard-tab-violations">
                   Violations
                   <TabBadge label={violationsBadge} testId="nosc-dashboard-tab-badge-violations" />
-                </Tabs.Trigger>
-                <Tabs.Trigger value="components" data-testid="nosc-dashboard-tab-components">
-                  Components
-                  <TabBadge label={componentsBadge} testId="nosc-dashboard-tab-badge-components" />
                 </Tabs.Trigger>
                 <Tabs.Trigger value="applications" data-testid="nosc-dashboard-tab-applications">
                   Applications

@@ -151,11 +151,10 @@ router.stateRegistry.register({
   data: { title: 'Nexus One — Violations' },
 } as ReactStateDeclaration);
 
-// Interim top-level aliases until native entity-list pages own these paths (CLM-40905).
 router.stateRegistry.register({
   name: 'nexusOneComponents',
   url: '/components',
-  redirectTo: 'nexusOneDashboard.components',
+  redirectTo: comingSoonStateName('components'),
   data: { title: 'Nexus One — Components' },
 } as ReactStateDeclaration);
 

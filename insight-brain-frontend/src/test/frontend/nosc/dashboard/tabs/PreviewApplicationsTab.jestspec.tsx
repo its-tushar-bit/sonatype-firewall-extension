@@ -10,7 +10,7 @@ import { axiosMockAdapter, render, setupPortalContainer } from 'TestRoot/SpecUti
 import PreviewApplicationsTab, {
   parseApplicationsTabQuery,
 } from 'MainRoot/nosc/dashboard/tabs/PreviewApplicationsTab';
-import PreviewComponentsTab from 'MainRoot/nosc/dashboard/tabs/PreviewComponentsTab';
+import PreviewViolationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewViolationsTab';
 import { toggleFilter } from 'MainRoot/dashboard/filter/dashboardFilterActions';
 
 /**
@@ -208,18 +208,18 @@ describe('PreviewApplicationsTab (CLM-39992 / S2-PR-D-4)', () => {
       console.error = originalConsoleError;
     });
 
-    it('a render-throw inside the applications slot is caught by its boundary and the components tab DOM is unaffected', () => {
+    it('a render-throw inside the applications slot is caught by its boundary and the violations tab DOM is unaffected', () => {
       renderWithTheme(
         <>
           <IsolationBoundary>
             <ThrowingTab />
           </IsolationBoundary>
-          <PreviewComponentsTab />
+          <PreviewViolationsTab />
         </>,
       );
       expect(screen.getByTestId('applications-isolation-fallback')).toBeInTheDocument();
-      expect(screen.getByTestId('nosc-dashboard-components-tab')).toBeInTheDocument();
-      expect(screen.getByTestId('nosc-dashboard-components-table-slot')).toBeInTheDocument();
+      expect(screen.getByTestId('nosc-dashboard-violations-tab')).toBeInTheDocument();
+      expect(screen.getByTestId('nosc-dashboard-violations-table-slot')).toBeInTheDocument();
     });
   });
 });

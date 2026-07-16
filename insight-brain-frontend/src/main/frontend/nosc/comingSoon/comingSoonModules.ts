@@ -40,17 +40,20 @@ export interface ComingSoonModule {
 /**
  * Slug → module metadata. Slug becomes the URL segment under `/coming-soon/`.
  *
- * Ordering matches the desired LeftNav render order (after the native
- * modules — Home, Dashboard, Applications, Search, Settings).
+ * The LeftNav render order is built explicitly in `buildNavItems`; it does not
+ * derive from this map's key order or from `COMING_SOON_MODULE_ORDER`.
  */
-// All `classicHref` values verified live against the dev IQ on
+// Most `classicHref` values were verified live against the dev IQ on
 // 2026-05-14: each lands on a real UI-Router state (no "Unknown Address"
-// unrecoverable errors). Mapping notes:
+// unrecoverable errors). The `components`, `vulnerabilities`, and `settings`
+// stubs added later are placeholders pointing at the generic Classic dashboard
+// (see the TODO markers at their entries below), not per-domain analogs.
+// Mapping notes:
 //
 //   reports               → /operationalReporting (Operational Reporting page)
 //   policies              → /management/view/organization/ROOT_ORGANIZATION_ID
 //                           (Classic policies live under their owning org/app)
-//   organizations         → /management/view/organization/ROOT_ORGANIZATION_ID
+//   orgs-and-policies     → /management/view/organization/ROOT_ORGANIZATION_ID
 //                           (root Orgs & Policies tree)
 //   repositories          → /hostedRepos (Repository Managers — closest analog)
 //   users-groups          → /users
@@ -64,9 +67,11 @@ export interface ComingSoonModule {
 // a Preview-side target so clicking a nav entry stays in Nexus One.
 //
 //   success-metrics       → /labs/successMetrics
-//   vulnerability-lookup  → /vulnerabilities (follow-on PR replaces this
-//                           stub with the real native CVE detail page;
-//                           see docs/local/CLM-39545/follow-on/)
+//   vulnerability-lookup  → /vulnerabilities (legacy CVE-search stub; distinct
+//                           from the newer `vulnerabilities` list stub below.
+//                           No LeftNav consumer today; retained for the
+//                           follow-on native CVE detail page — see
+//                           docs/local/CLM-39545/follow-on/)
 //   legal                 → /legal/dashboard
 //   api                   → /api
 export const COMING_SOON_MODULES = {
@@ -95,13 +100,18 @@ export const COMING_SOON_MODULES = {
     description: 'Browse the REST API reference and copy ready-to-run examples for the IQ Server endpoints.',
     classicHref: '/assets/#/api',
   },
+  // `policies` and `orgs-and-policies` intentionally share the Classic org
+  // management page (Classic policies live under their owning org/app). They
+  // are distinct entry points: `policies` backs the per-application "Configure
+  // Policies" quick action (OverviewTab), while `orgs-and-policies` is the
+  // top-level LeftNav entry.
   policies: {
     label: 'Policies',
     description: 'Define and manage the security, license, and quality policies that govern your applications.',
     classicHref: '/assets/#/management/view/organization/ROOT_ORGANIZATION_ID',
   },
-  organizations: {
-    label: 'Organizations',
+  'orgs-and-policies': {
+    label: 'Orgs & Policies',
     description: 'Manage organizations, applications, and hierarchical policy inheritance.',
     classicHref: '/assets/#/management/view/organization/ROOT_ORGANIZATION_ID',
   },
@@ -155,6 +165,24 @@ export const COMING_SOON_MODULES = {
     description: 'Automate software compliance and reporting.',
     classicHref: '/assets/#/dashboard/violations',
   },
+  // TODO(CLM-42160): `components`, `vulnerabilities`, and `settings` use the
+  // generic Classic dashboard as a placeholder classicHref until each native
+  // module is built. Update each classicHref to its real Classic analog then.
+  components: {
+    label: 'Components',
+    description: 'Browse the open-source components used across your application portfolio.',
+    classicHref: '/assets/#/dashboard',
+  },
+  vulnerabilities: {
+    label: 'Vulnerabilities',
+    description: 'Browse the vulnerabilities affecting components across your application portfolio.',
+    classicHref: '/assets/#/dashboard',
+  },
+  settings: {
+    label: 'Settings',
+    description: 'Manage Nexus One preferences and configuration.',
+    classicHref: '/assets/#/dashboard',
+  },
 } as const;
 
 export type ComingSoonModuleSlug = keyof typeof COMING_SOON_MODULES;
@@ -167,7 +195,7 @@ export const COMING_SOON_MODULE_ORDER: readonly ComingSoonModuleSlug[] = [
   'legal',
   'api',
   'policies',
-  'organizations',
+  'orgs-and-policies',
   'repositories',
   'users-groups',
   'source-control',
@@ -178,6 +206,9 @@ export const COMING_SOON_MODULE_ORDER: readonly ComingSoonModuleSlug[] = [
   'guide',
   'firewall',
   'sbom-manager',
+  'components',
+  'vulnerabilities',
+  'settings',
 ];
 
 /** In-hash path for a Coming Soon stub in the nexus-one bundle. */

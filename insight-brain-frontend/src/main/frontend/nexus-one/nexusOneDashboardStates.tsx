@@ -7,7 +7,6 @@ import { ReactStateDeclaration } from '@uirouter/react';
 import PreviewDashboardPage from 'MainRoot/nosc/dashboard/PreviewDashboardPage';
 import MetricCardGrid from 'MainRoot/nosc/dashboard/metrics/MetricCardGrid';
 import PreviewViolationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewViolationsTab';
-import PreviewComponentsTab from 'MainRoot/nosc/dashboard/tabs/PreviewComponentsTab';
 import PreviewApplicationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewApplicationsTab';
 import PreviewWaiversTab from 'MainRoot/nosc/dashboard/tabs/PreviewWaiversTab';
 
@@ -49,12 +48,6 @@ export function nexusOneDashboardStates(): ReactStateDeclaration[] {
       name: 'nexusOneDashboard.violations',
       url: '/violations',
       component: PreviewViolationsTab,
-      data: { title: DASHBOARD_TITLE },
-    },
-    {
-      name: 'nexusOneDashboard.components',
-      url: '/components',
-      component: PreviewComponentsTab,
       data: { title: DASHBOARD_TITLE },
     },
     {

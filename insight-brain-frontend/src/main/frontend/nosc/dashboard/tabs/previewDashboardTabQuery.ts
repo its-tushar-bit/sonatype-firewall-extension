@@ -47,10 +47,6 @@ export function parseViolationsTabQuery(hash: string) {
   return parseHashQueryParams(hash, ['severity', 'ltg', 'policy'] as const);
 }
 
-export function parseComponentsTabQuery(hash: string) {
-  return parseHashQueryParams(hash, ['severity', 'policy'] as const);
-}
-
 export function parseApplicationsTabQuery(hash: string) {
   return parseHashQueryParams(hash, ['org', 'stage', 'policy'] as const);
 }

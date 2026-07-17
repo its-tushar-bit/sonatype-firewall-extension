@@ -281,6 +281,26 @@ public class ApplicationDAO
     }
   }
 
+  /**
+   * Returns applications whose normalized name (lowercase, whitespace-stripped) contains the
+   * given substring. Case- and whitespace-insensitive to match the storage convention used by
+   * {@link NameHelper#normalize(String)}. Sorted alphabetically by normalized name.
+   */
+  public List<Application> searchByNameSubstring(String query, int limit) {
+    String normalized = NameHelper.normalize(query);
+    if (normalized == null || normalized.isEmpty()) {
+      return Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(APPLICATION)
+          .where(APPLICATION.NAME_LOWERCASE_NO_WHITESPACE.contains(normalized))
+          .orderBy(APPLICATION.NAME_LOWERCASE_NO_WHITESPACE)
+          .limit(limit)
+          .fetch(this::toEntity);
+    }
+  }
+
   public List<Application> getAll(
       final int page,
       final int pageSize)

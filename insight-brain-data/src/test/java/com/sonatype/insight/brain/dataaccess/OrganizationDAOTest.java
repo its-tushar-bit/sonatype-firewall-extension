@@ -1437,4 +1437,55 @@ public class OrganizationDAOTest
     assertThat(childOrgIds.subList(1, 4)).containsExactlyInAnyOrder(organization.getId(), org1.getId(), org2.getId());
     assertThat(childOrgIds).endsWith(org11.getId());
   }
+
+  @Test
+  public void searchByNameSubstring_returnsMatchingOrgs() {
+    tempEntity.newOrganization("Zeta-acme-Corp");
+    tempEntity.newOrganization("Zeta-beta-Systems");
+    tempEntity.newOrganization("Zeta-acme-Partners");
+
+    List<Organization> results = dao.searchByNameSubstring("zeta-acme", 10);
+
+    assertThat(results).extracting(Organization::getName)
+        .containsExactly("Zeta-acme-Corp", "Zeta-acme-Partners"); // alphabetical
+  }
+
+  @Test
+  public void searchByNameSubstring_caseInsensitive() {
+    tempEntity.newOrganization("Zeta-AcMe-CoRp");
+
+    List<Organization> results = dao.searchByNameSubstring("ZETA-ACME", 10);
+
+    assertThat(results).extracting(Organization::getName).containsExactly("Zeta-AcMe-CoRp");
+  }
+
+  @Test
+  public void searchByNameSubstring_stripsWhitespaceInQueryAndMatch() {
+    // Names are stored with whitespace stripped, so a query with spaces must also normalize.
+    tempEntity.newOrganization("Zeta acme Enterprise");
+
+    List<Organization> results = dao.searchByNameSubstring("zeta acme", 10);
+
+    assertThat(results).extracting(Organization::getName).containsExactly("Zeta acme Enterprise");
+  }
+
+  @Test
+  public void searchByNameSubstring_respectsLimit() {
+    tempEntity.newOrganization("Zeta-acme-1");
+    tempEntity.newOrganization("Zeta-acme-2");
+    tempEntity.newOrganization("Zeta-acme-3");
+
+    List<Organization> results = dao.searchByNameSubstring("zeta-acme", 2);
+
+    assertThat(results).hasSize(2);
+  }
+
+  @Test
+  public void searchByNameSubstring_noMatch_returnsEmptyList() {
+    tempEntity.newOrganization("Zeta-beta-Systems");
+
+    List<Organization> results = dao.searchByNameSubstring("zeta-gamma", 10);
+
+    assertThat(results).isEmpty();
+  }
 }

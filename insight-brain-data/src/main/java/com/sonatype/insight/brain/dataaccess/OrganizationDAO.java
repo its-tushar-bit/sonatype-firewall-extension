@@ -225,6 +225,26 @@ public class OrganizationDAO
     }
   }
 
+  /**
+   * Returns organizations whose normalized name (lowercase, whitespace-stripped) contains the
+   * given substring. Case- and whitespace-insensitive to match the storage convention used by
+   * {@link NameHelper#normalize(String)}. Sorted alphabetically by normalized name.
+   */
+  public List<Organization> searchByNameSubstring(String query, int limit) {
+    String normalized = NameHelper.normalize(query);
+    if (normalized == null || normalized.isEmpty()) {
+      return Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ORGANIZATION)
+          .where(ORGANIZATION.NAME_LOWERCASE_NO_WHITESPACE.contains(normalized))
+          .orderBy(ORGANIZATION.NAME_LOWERCASE_NO_WHITESPACE)
+          .limit(limit)
+          .fetch(this::toEntity);
+    }
+  }
+
   public List<Organization> getAllWithoutRelatedRepositories() {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()

@@ -2268,4 +2268,60 @@ public class ApplicationDAOTest
       return o1.getId().compareTo(o2.getId());
     }
   }
+
+  @Test
+  public void searchByNameSubstring_returnsMatchingApps() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication("Zeta-log4j-Core", "zeta-log4j-core", org.getId());
+    tempEntity.newApplication("Zeta-Spring-Framework", "zeta-spring", org.getId());
+    tempEntity.newApplication("Zeta-log4j-API", "zeta-log4j-api", org.getId());
+
+    List<Application> results = applicationDAO.searchByNameSubstring("zeta-log4j", 10);
+
+    assertThat(results).extracting(Application::getName)
+        .containsExactly("Zeta-log4j-API", "Zeta-log4j-Core");
+  }
+
+  @Test
+  public void searchByNameSubstring_caseInsensitive() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication("Zeta-LoG4j-CoRe", "zeta-log4j-caseinsensitive", org.getId());
+
+    List<Application> results = applicationDAO.searchByNameSubstring("ZETA-LOG4J", 10);
+
+    assertThat(results).extracting(Application::getName).containsExactly("Zeta-LoG4j-CoRe");
+  }
+
+  @Test
+  public void searchByNameSubstring_stripsWhitespaceInQueryAndMatch() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication("Zeta log4j Enterprise", "zeta-log4j-enterprise", org.getId());
+
+    List<Application> results = applicationDAO.searchByNameSubstring("zeta log4j", 10);
+
+    assertThat(results).extracting(Application::getName).containsExactly("Zeta log4j Enterprise");
+  }
+
+  @Test
+  public void searchByNameSubstring_respectsLimit() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication("Zeta-log4j-One", "zeta-log4j-1", org.getId());
+    tempEntity.newApplication("Zeta-log4j-Two", "zeta-log4j-2", org.getId());
+    tempEntity.newApplication("Zeta-log4j-Three", "zeta-log4j-3", org.getId());
+
+    List<Application> results = applicationDAO.searchByNameSubstring("zeta-log4j", 2);
+
+    assertThat(results).hasSize(2);
+  }
+
+  @Test
+  public void searchByNameSubstring_noMatch_returnsEmptyList() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication("Zeta-Spring-Framework", "zeta-spring-nomatch", org.getId());
+
+    List<Application> results = applicationDAO.searchByNameSubstring("zeta-hibernate", 10);
+
+    assertThat(results).isEmpty();
+  }
+
 }

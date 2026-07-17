@@ -136,10 +136,19 @@ public class ApplicationSummaryService
   }
 
   /**
+   * Returns applications the caller has EVALUATE_COMPONENT permission on.
+   * <p>
+   * <strong>License bypass warning:</strong> This method does NOT check the ENFORCEMENT license
+   * feature that {@link #getApplications(Goal, String, Set)} enforces for EVALUATE_COMPONENT.
+   * Callers MUST gate this method with their own license check (e.g.,
+   * {@code @ProductLicenseEnforcementPoint}) or restrict usage to license-independent contexts.
+   * <p>
+   * <strong>Approved callers:</strong> ApiPolicyContextOwnersResource (gated via GUIDE_SEARCH license).
+   *
    * @since 1.14.0
    */
   @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsForEvaluateComponent(
+  public List<Application> getApplicationsForEvaluateComponent(
       String organizationId,
       Set<String> applicationPublicIds)
   {

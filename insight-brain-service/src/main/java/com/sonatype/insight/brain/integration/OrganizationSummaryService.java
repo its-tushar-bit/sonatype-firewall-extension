@@ -52,8 +52,20 @@ public class OrganizationSummaryService
     return getOrganizations();
   }
 
+  /**
+   * Returns organizations the caller has EVALUATE_APPLICATION permission on.
+   * <p>
+   * <strong>License bypass warning:</strong> This method does NOT check the ENFORCEMENT license
+   * feature that {@link #getOrganizations(Goal)} enforces. Callers MUST gate this method with
+   * their own license check (e.g., {@code @ProductLicenseEnforcementPoint}) or restrict usage to
+   * license-independent contexts.
+   * <p>
+   * <strong>Approved callers:</strong> ApiPolicyContextOwnersResource (gated via GUIDE_SEARCH license).
+   *
+   * @since 1.14.0
+   */
   @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.ORGANIZATION)
-  protected List<Organization> getOrganizationsForEvaluateApplication() {
+  public List<Organization> getOrganizationsForEvaluateApplication() {
     return getOrganizations();
   }
 

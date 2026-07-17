@@ -37,3 +37,13 @@ logging:
 mtiq-health:
   type: mtiq-health
   enabled: false
+
+# Mirrors the deployed config template, which still renders this block. Remove once it is gone
+# from config.yaml.tftpl in terraform-sca-cloud.
+statsdMetricsConfig:
+  enabled: false
+  buffered: true
+  metricsPrefix: "mtiq"
+  metricsTeam: "mtiq"
+  host: localhost
+  port: 8125

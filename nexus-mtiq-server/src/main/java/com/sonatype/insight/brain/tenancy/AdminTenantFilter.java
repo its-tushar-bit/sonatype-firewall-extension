@@ -19,7 +19,6 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
@@ -50,8 +49,7 @@ public class AdminTenantFilter
   }
 
   @Override
-  @Trace(operationName = "admin.request")
-  @WithSpan
+  @WithSpan("admin.request")
   public void doFilter(
       ServletRequest request,
       ServletResponse response,

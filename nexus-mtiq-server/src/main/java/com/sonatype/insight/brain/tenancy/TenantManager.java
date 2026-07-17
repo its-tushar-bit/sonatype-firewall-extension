@@ -16,10 +16,8 @@ import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.service.TenantLifecycle;
-import datadog.trace.api.Trace;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -113,18 +111,16 @@ public class TenantManager
 
     TenantThreadLocal.setTenant(tenant);
 
-    final Span span = GlobalTracer.get().activeSpan();
-    if (span != null) {
-      span.setTag("tenant", tenant.tenantSlug);
-    }
-
-    // OpenTelemetry equivalent for setting tenant tag (no-op when OTel agent is inactive)
-    io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.current();
-    if (otelSpan.getSpanContext().isValid()) {
-      otelSpan.setAttribute("tenant", tenant.tenantSlug);
-    }
+    tagCurrentSpanWithTenant(tenant);
 
     validateAndRegisterTenant(tenant);
+  }
+
+  private static void tagCurrentSpanWithTenant(final Tenant tenant) {
+    Span span = Span.current();
+    if (span.getSpanContext().isValid()) {
+      span.setAttribute("tenant", tenant.tenantSlug);
+    }
   }
 
   @Override
@@ -210,7 +206,6 @@ public class TenantManager
   /**
    * Perform all registration for a tenant: database init (not migration), tenant jobs, and app lifecycle boot
    */
-  @Trace // 2025-06-24 - trace on a per-tenant level to benchmark registration cost (CLM-34837)
   @WithSpan // OTel agent instruments private methods via bytecode manipulation (verified in CLM-39873)
   private void performRegistration() {
     databaseProvisioner.initializeDatabaseWithoutMigration();
@@ -222,7 +217,6 @@ public class TenantManager
    * performDatabaseRegistrationAndRun perform only the database init (not migration) for a tenant and run method. This
    * is used for tenant deletion, where the tenant should not be registered as this causes the Quartz jobs to run.
    */
-  @Trace
   @WithSpan
   protected <T> T performDatabaseRegistrationAndRunAs(final String tenantSlug, final Supplier<T> supplier) {
     if (StringUtils.isBlank(tenantSlug)) {
@@ -236,16 +230,7 @@ public class TenantManager
     }
 
     return runAs(tenant, () -> {
-      final Span span = GlobalTracer.get().activeSpan();
-      if (span != null) {
-        span.setTag("tenant", tenant.tenantSlug);
-      }
-
-      // OpenTelemetry equivalent for setting tenant tag (no-op when OTel agent is inactive)
-      io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.current();
-      if (otelSpan.getSpanContext().isValid()) {
-        otelSpan.setAttribute("tenant", tenant.tenantSlug);
-      }
+      tagCurrentSpanWithTenant(tenant);
 
       log.info("Registering DB for tenant {}", tenant.tenantSlug);
 
@@ -308,7 +293,6 @@ public class TenantManager
     return registered != null && registered;
   }
 
-  @Trace
   @WithSpan
   public void deregisterTenant(String tenantSlug) {
     if (StringUtils.isBlank(tenantSlug)) {

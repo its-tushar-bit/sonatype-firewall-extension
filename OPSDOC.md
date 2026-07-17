@@ -14,10 +14,10 @@ _Description of the service/application._
 _A list of SLOs. Detailed information [here](https://docs.sonatype.com/display/SRE/Service+Level+Objectives)._
 
 ## Dashboards
-_Any metrics dashboards in Datadog (or anywhere else)_
+_Any metrics dashboards in Observe (or anywhere else)_
 
 ## Monitors
-_List of datadog monitors_
+_List of Observe monitors_
 
 # Build
 _Instructions on building the application/service._

@@ -50,11 +50,6 @@
       <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.datadoghq</groupId>
-      <artifactId>dd-trace-api</artifactId>
-      <version>${datadog.version}</version>
-    </dependency>
-    <dependency>
       <groupId>io.opentelemetry.instrumentation</groupId>
       <artifactId>opentelemetry-instrumentation-annotations</artifactId>
     </dependency>

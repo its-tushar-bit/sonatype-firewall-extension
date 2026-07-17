@@ -112,9 +112,6 @@
       <artifactId>quartz</artifactId>
     </dependency>
 
-    <!-- Used to collect and push custom DataDog metrics -->
-
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

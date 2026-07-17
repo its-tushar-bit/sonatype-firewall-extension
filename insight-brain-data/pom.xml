@@ -264,11 +264,6 @@
       <artifactId>insight-brain-tenancy</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.datadoghq</groupId>
-      <artifactId>dd-trace-api</artifactId>
-      <version>${datadog.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.github.stefanbirkner</groupId>
       <artifactId>system-rules</artifactId>
       <scope>test</scope>

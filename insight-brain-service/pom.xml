@@ -201,14 +201,9 @@
       <type>test-jar</type>
     </dependency>
 
-    <!-- Used to collect and push custom DataDog metrics -->
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-statsd</artifactId>
     </dependency>
 
     <dependency>
@@ -509,16 +504,6 @@
       <artifactId>quartz</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.datadoghq</groupId>
-      <artifactId>dd-trace-api</artifactId>
-      <version>${datadog.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.datadoghq</groupId>
-      <artifactId>dd-trace-ot</artifactId>
-      <version>${datadog.version}</version>
-    </dependency>
     <dependency>
       <groupId>io.opentelemetry.instrumentation</groupId>
       <artifactId>opentelemetry-instrumentation-annotations</artifactId>

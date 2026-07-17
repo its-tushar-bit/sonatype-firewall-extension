@@ -11,7 +11,6 @@ spring:
       - org.springframework.boot.jersey.autoconfigure.JerseyAutoConfiguration
       - org.springframework.boot.jersey.autoconfigure.metrics.JerseyServerMetricsAutoConfiguration
       - org.springframework.boot.jersey.autoconfigure.actuate.endpoint.web.HealthEndpointJerseyExtensionAutoConfiguration
-      - org.springframework.boot.micrometer.metrics.autoconfigure.export.statsd.StatsdMetricsExportAutoConfiguration
       - org.springframework.boot.servlet.autoconfigure.MultipartAutoConfiguration
 
 server:

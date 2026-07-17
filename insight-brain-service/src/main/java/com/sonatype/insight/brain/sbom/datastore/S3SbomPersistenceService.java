@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.report.S3ObjectKey;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -77,7 +76,6 @@ public class S3SbomPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public SbomEntity doGetSbom(final String appId, final String fileName) {
     S3ObjectKey key = getPermanentSbomKey(appId, fileName);
@@ -85,7 +83,6 @@ public class S3SbomPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public SbomEntity getTemporarySbom(final String fileName, final String prefix) {
     S3ObjectKey key = getTemporarySbomKey(fileName, prefix);
@@ -93,7 +90,6 @@ public class S3SbomPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public SbomEntity getTransientSbom(final String fileName) {
     String uniqueFileName = generateTempFileName(fileName);
@@ -104,7 +100,6 @@ public class S3SbomPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public SbomEntity saveTemporarySbom(
       final SbomEntity sbomEntity,
@@ -125,7 +120,6 @@ public class S3SbomPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteSbom(final SbomEntity sbomEntity) throws IOException {
     if (sbomEntity instanceof S3SbomEntity s3SbomEntity) {
@@ -137,7 +131,6 @@ public class S3SbomPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteSbom(final String appId, final String fileName) throws IOException {
     S3ObjectKey key = getPermanentSbomKey(appId, fileName);
@@ -145,7 +138,6 @@ public class S3SbomPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteSbomsFor(final String appId) throws IOException {
     log.debug("Deleting all SBOMs in S3 for applicationId '{}'", appId);
@@ -155,7 +147,6 @@ public class S3SbomPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteTransientSbomsOlderThan(final Instant instant) throws IOException {
     log.debug("Deleting transient SBOMs older than {}", instant);

@@ -120,7 +120,6 @@
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
     <test.group>all</test.group>
 
-    <datadog.version>1.60.3</datadog.version>
     <opentelemetry.version>2.27.0</opentelemetry.version>
     <!--
      Runtime add-opens flags live in jvm.options at the repo root (the single source of truth).
@@ -1373,15 +1372,9 @@
         <artifactId>httpcore5-reactive</artifactId>
         <version>${apache.httpcore5.version}</version>
       </dependency>
-      <!-- Used to collect and push custom DataDog metrics -->
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-core</artifactId>
-        <version>${micrometer.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.micrometer</groupId>
-        <artifactId>micrometer-registry-statsd</artifactId>
         <version>${micrometer.version}</version>
       </dependency>
       <dependency>

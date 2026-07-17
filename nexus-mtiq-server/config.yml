@@ -135,15 +135,6 @@ globalTenantEncryptionKeyName: ${GLOBAL_TENANT_ENCRYPTION_KEY_NAME:-mtiq-dev/ten
 # Use the IQ DefaultEncryptionKeyStore for local development, this returns the mtiq-dev/tenant-encryption-key-legacy key
 usingDefaultEncryptionKeyStore: ${USING_DEFAULT_ENCRYPTION_KEY_STORE:-false}
 
-# Configuration for Micrometer to send custom metrics to DataDog
-#statsdMetricsConfig:
-#  enabled: true
-#  buffered: true
-#  metricsPrefix: "mtiq"
-#  metricsTeam: "mtiq"
-#  host: "localhost"
-#  port: 8125
-
 mtiq-health:
   type: mtiq-health
   healthCheckUrlPaths:

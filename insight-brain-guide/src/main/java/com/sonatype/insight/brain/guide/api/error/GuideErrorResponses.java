@@ -54,7 +54,7 @@ import org.slf4j.Logger;
  * audit-trail gap from before this class existed where Guide client errors were never logged.
  * Both log paths route exception descriptions through {@link #describeForLog} so a null
  * {@code getMessage()} (e.g. from a no-arg {@code WebApplicationException}) doesn't render as
- * the literal string {@code "null"} in log analyzers like Splunk or Datadog.
+ * the literal string {@code "null"} in log analyzers like Splunk or Observe.
  *
  * <h2>Why a static helper</h2>
  *
@@ -121,7 +121,7 @@ final class GuideErrorResponses
    * Returns a non-null, non-blank description of an exception for log lines. Falls back to the
    * class's simple name when {@code getMessage()} returns null or blank — otherwise SLF4J would
    * emit the literal string {@code "null"} for the {@code {}} placeholder, hurting log-analysis
-   * correlation in tools like Splunk and Datadog. This is logging-only; the client-visible
+   * correlation in tools like Splunk and Observe. This is logging-only; the client-visible
    * response body intentionally preserves null messages to match Guide SaaS exactly.
    */
   private static String describeForLog(Throwable exception) {

@@ -44,7 +44,7 @@ import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -401,7 +401,7 @@ public class RelayPollingService
    * {@link #runPollCycleWithErrorBoundary()} so any uncaught throwable is logged and
    * recorded as a poll failure rather than escaping to the executor.
    */
-  @Trace
+  @WithSpan
   @VisibleForTesting
   void pollOnce() {
     if (!relayRegistrationService.isFeatureGateOpen()) {

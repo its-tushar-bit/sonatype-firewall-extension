@@ -134,7 +134,6 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -308,7 +307,6 @@ public class ReportService
     this.clusterLockManager = clusterLockManager;
   }
 
-  @Trace
   @WithSpan
   public ApplicationReport fetchReport(
       final Application app,
@@ -318,7 +316,6 @@ public class ReportService
     return fetchReport(app, scanId, stageTypeId, null);
   }
 
-  @Trace
   @WithSpan
   public ApplicationReport fetchReport(
       final Application app,
@@ -672,7 +669,6 @@ public class ReportService
     return securityReportEntry;
   }
 
-  @Trace
   @WithSpan
   public ApplicationReport getReport(final String appId, final String scanId) {
     return getReport(applicationDAO.getByIdNotNull(appId), scanId);
@@ -695,7 +691,6 @@ public class ReportService
    *
    * @return the existing report, or {@code null} if no report is stored for the given application and scan.
    */
-  @Trace
   @WithSpan
   public ApplicationReport getReportIfPresent(final Application app, final String scanId) {
     Objects.requireNonNull(app, "app must not be null");
@@ -1924,7 +1919,6 @@ public class ReportService
    * {@code fetchReport(scanId)}) before the report is consumed. Skipping that follow-up step silently yields a
    * report missing enrichment data such as reachability markers (cf. CLM-38947).
    */
-  @Trace
   @WithSpan
   public PolicyEvaluation reUploadScanToHds(String appId, String scanId, String clientUserAgent) throws IOException {
     // First call to ensure the scanId is audited even on failure.

@@ -53,8 +53,10 @@ RUN apt-get update && apt-get install -y \
 # Copy assembly from builder
 COPY --from=builder /opt/sonatype/nexus-iq-server /opt/sonatype/nexus-iq-server
 
-# Copy telemetry jars (Datadog and OpenTelemetry)
-COPY target/dd-java-agent.jar /opt/datadog/dd-java-agent.jar
+# Copy OpenTelemetry agent. It is baked into the JAVA_OPTS default below, so it survives entry point
+# and command overrides. A container-level JAVA_OPTS override replaces that default and must
+# re-include the -javaagent flag. OTEL_JAVAAGENT_ENABLED=false disables instrumentation but the JVM
+# still loads the jar; drop the -javaagent flag to skip loading entirely.
 COPY target/otel-java-agent.jar /opt/otel/otel-java-agent.jar
 
 # This is where we will store persistent data
@@ -66,15 +68,10 @@ EXPOSE 8071
 
 WORKDIR /opt/sonatype/nexus-iq-server
 
-ENV JAVA_OPTS="-javaagent:/opt/datadog/dd-java-agent.jar -Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
+ENV JAVA_OPTS="-javaagent:/opt/otel/otel-java-agent.jar -Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
 ENV LD_PRELOAD="libjemalloc.so.2"
 
-# Copy entrypoint script for APM agent selection
-COPY docker-entrypoint.sh /opt/sonatype/nexus-iq-server/bin/docker-entrypoint.sh
-RUN chmod +x /opt/sonatype/nexus-iq-server/bin/docker-entrypoint.sh
-
 # Use tini init in order to get proper orphaned process reaping
-# Entry point script handles APM agent selection before executing the server
-ENTRYPOINT ["tini", "--", "/opt/sonatype/nexus-iq-server/bin/docker-entrypoint.sh", "/opt/sonatype/nexus-iq-server/bin/nexus-mtiq-server"]
+ENTRYPOINT ["tini", "--", "/opt/sonatype/nexus-iq-server/bin/nexus-mtiq-server"]
 
 CMD ["server", "/etc/mtiq-server/config.yaml"]

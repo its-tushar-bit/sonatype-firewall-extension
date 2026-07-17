@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import datadog.trace.api.Trace;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -33,7 +32,6 @@ public class ShutdownContainerResponseFilter
     this.shutdownHandler = shutdownHandler;
   }
 
-  @Trace
   @WithSpan
   @Override
   public void filter(

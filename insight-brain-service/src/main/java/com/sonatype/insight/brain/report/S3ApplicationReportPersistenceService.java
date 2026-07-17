@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -122,7 +121,7 @@ public class S3ApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public boolean exists() throws IOException {
       return getS3Metadata().isPresent();
     }
@@ -198,7 +197,7 @@ public class S3ApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public OutputStream getOutputStream() {
       return new S3OutputStream(
           s3AsyncClient,
@@ -208,7 +207,7 @@ public class S3ApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public InputStream getInputStream() throws IOException {
       GetObjectRequest getObjectRequest =
           GetObjectRequest.builder().bucket(s3DataStoreConfig.getBucketName()).key(key.toString()).build();
@@ -259,7 +258,7 @@ public class S3ApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public void deleteIfExists() throws IOException {
       log.debug("Deleting PDF at S3 key '{}'", key);
       deleteByKey(key);
@@ -283,7 +282,7 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
+  @WithSpan
   protected ReportEntity doGetReportEntity(
       final String applicationId,
       final String scanId,
@@ -302,7 +301,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public Stream<ReportEntity> getAllReportEntities(
       final String applicationId,
@@ -322,7 +320,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void saveOriginalReport(
       final String applicationId,
@@ -359,7 +356,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void saveOriginalReportEntities(
       final String applicationId,
@@ -376,7 +372,7 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
+  @WithSpan
   protected void doSaveReportFile(
       final String applicationId,
       final String scanId,
@@ -387,7 +383,7 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
+  @WithSpan
   protected void doSaveAdditionalReportFile(
       final String applicationId,
       final String scanId,
@@ -421,7 +417,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public boolean reportExists(final String applicationId, final String scanId) throws IOException {
     try (var objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(),
@@ -437,7 +432,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteReport(final String applicationId, final String scanId) throws IOException {
     log.debug("Deleting report files in S3 for applicationId '{}' scanId '{}'", applicationId, scanId);
@@ -445,7 +439,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteReports(final String applicationId) throws IOException {
     log.debug("Deleting ALL report files in S3 for applicationId '{}'", applicationId);
@@ -458,7 +451,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteReportEntity(final ReportEntity reportEntity) throws IOException {
     S3ReportEntity s3ReportEntity = (S3ReportEntity) reportEntity;
@@ -502,7 +494,7 @@ public class S3ApplicationReportPersistenceService
    * Creates a cache copy of the original file. If an original file by this name does not exist, does nothing.
    * If a report.zip file exists, it will be extracted first.
    */
-  @Trace
+  @WithSpan
   private boolean createLocalCopyFromOriginal(
       final String applicationId,
       final String scanId,
@@ -555,7 +547,7 @@ public class S3ApplicationReportPersistenceService
    * Extracts a report.zip file from S3 to the report.files/ folder in S3.
    * The zip file is preserved for transactional safety - caller is responsible for deletion after success.
    */
-  @Trace
+  @WithSpan
   private void extractZipFileToS3(final String applicationId, final String scanId) throws IOException {
     S3ObjectKey zipKey = getZipKey(applicationId, scanId);
     log.info("Starting extraction of report.zip for applicationId '{}' scanId '{}'", applicationId, scanId);
@@ -610,7 +602,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void moveReport(
       final String appId,
@@ -677,7 +668,6 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public Stream<ReportEntity> getOriginalReportEntities(
       final String applicationId,

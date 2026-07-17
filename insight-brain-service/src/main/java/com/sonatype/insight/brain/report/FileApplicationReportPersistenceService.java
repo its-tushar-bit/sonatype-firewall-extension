@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,13 +86,13 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public boolean exists() {
       return Files.exists(entityPath);
     }
 
     @Override
-    @Trace
+    @WithSpan
     public long getTime() throws IOException {
       return Files.getLastModifiedTime(entityPath).toMillis();
     }
@@ -104,7 +103,7 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public long length() throws IOException {
       return Files.size(entityPath);
     }
@@ -128,13 +127,13 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public OutputStream getOutputStream() throws IOException {
       return Files.newOutputStream(entityPath);
     }
 
     @Override
-    @Trace
+    @WithSpan
     public InputStream getInputStream() throws IOException {
       return Files.newInputStream(entityPath);
     }
@@ -177,7 +176,7 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public long getTime() throws IOException {
       long zipModifiedTime = Files.getLastModifiedTime(pathToZip).toMillis();
       long fileModifiedTime = entry.getLastModifiedTime().toMillis();
@@ -206,13 +205,13 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public OutputStream getOutputStream() {
       throw new UnsupportedOperationException("Overwriting original report files is not supported");
     }
 
     @Override
-    @Trace
+    @WithSpan
     public InputStream getInputStream() throws IOException {
       return zipFile.getInputStream(entry);
     }
@@ -232,7 +231,7 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    @Trace
+    @WithSpan
     public void deleteIfExists() throws IOException {
       Files.deleteIfExists(entityPath);
     }
@@ -249,7 +248,7 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
+  @WithSpan
   protected ReportEntity doGetReportEntity(
       final String applicationId,
       final String scanId,
@@ -268,7 +267,6 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public Stream<ReportEntity> getAllReportEntities(
       final String applicationId,
@@ -288,7 +286,6 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public Stream<ReportEntity> getOriginalReportEntities(
       final String applicationId,
@@ -298,7 +295,6 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void saveOriginalReport(
       final String applicationId,
@@ -336,7 +332,6 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void saveOriginalReportEntities(
       final String applicationId,
@@ -371,7 +366,6 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void moveReport(
       final String appId,
@@ -385,7 +379,7 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
+  @WithSpan
   protected void doSaveReportFile(
       final String applicationId,
       final String scanId,
@@ -399,7 +393,7 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
+  @WithSpan
   protected void doSaveAdditionalReportFile(
       final String applicationId,
       final String scanId,
@@ -413,14 +407,12 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public ReportPdfEntity getPdfEntity(final String applicationId, final String scanId) {
     return new FileReportPdfEntity(getReportDirPath(applicationId, scanId));
   }
 
   @Override
-  @Trace
   @WithSpan
   public BaseReportEntity getVulnerabilitySignaturesEntity(final String applicationId, final String scanId) {
     Path reportDirPath = getReportDirPath(applicationId, scanId);
@@ -433,7 +425,6 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public boolean reportExists(final String applicationId, final String scanId) {
     if (Files.exists(getAdditionalFilesPath(applicationId, scanId).resolve(CopyStorageService.COPY_MARKER))) {
@@ -443,21 +434,18 @@ public class FileApplicationReportPersistenceService
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteReport(final String applicationId, final String scanId) throws IOException {
     fileCleaner.delete(getReportDirPath(applicationId, scanId).toFile());
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteReports(final String applicationId) throws IOException {
     fileCleaner.delete(getReportsForApplicationPath(applicationId).toFile());
   }
 
   @Override
-  @Trace
   @WithSpan
   public void deleteReportEntity(final ReportEntity reportEntity) throws IOException {
     FileReportEntity fileReportEntity = (FileReportEntity) reportEntity;
@@ -504,7 +492,7 @@ public class FileApplicationReportPersistenceService
   /**
    * Creates a local copy of the original file. If an original file by this name does not exist, does nothing.
    */
-  @Trace
+  @WithSpan
   private void createLocalCopyFromOriginal(
       final String applicationId,
       final String scanId,
@@ -561,7 +549,7 @@ public class FileApplicationReportPersistenceService
     return new ZipFile(pathToZip.toFile());
   }
 
-  @Trace
+  @WithSpan
   private Set<ReportEntity> getAdditionalEntities(
       final String applicationId,
       final String scanId) throws IOException
@@ -584,7 +572,7 @@ public class FileApplicationReportPersistenceService
     }
   }
 
-  @Trace
+  @WithSpan
   private Set<ReportEntity> getLocalCopyEntities(
       final String applicationId,
       final String scanId,
@@ -609,7 +597,7 @@ public class FileApplicationReportPersistenceService
     }
   }
 
-  @Trace
+  @WithSpan
   private Stream<ReportEntity> getOriginalEntities(
       final String applicationId,
       final String scanId,

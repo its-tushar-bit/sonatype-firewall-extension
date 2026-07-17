@@ -10,7 +10,6 @@ import java.sql.SQLException;
 
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 
 public class PostgresClusterLock
@@ -34,7 +33,6 @@ public class PostgresClusterLock
   }
 
   @Override
-  @Trace
   @WithSpan
   public void lock(final LockType lockType, final boolean waitForLock) {
     this.lockType = lockType;
@@ -43,7 +41,6 @@ public class PostgresClusterLock
   }
 
   @Override
-  @Trace
   @WithSpan
   public void unlock() {
     acquired = false;

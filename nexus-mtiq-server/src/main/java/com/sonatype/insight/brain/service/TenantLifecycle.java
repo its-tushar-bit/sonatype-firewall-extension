@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import datadog.trace.api.Trace;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -46,7 +45,6 @@ public class TenantLifecycle
     this.config = config;
   }
 
-  @Trace
   @WithSpan
   public void bootTenant() {
     try {

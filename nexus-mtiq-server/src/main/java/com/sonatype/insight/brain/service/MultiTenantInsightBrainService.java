@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.brain.datadog.DatadogInterceptor;
 import com.sonatype.insight.brain.health.ServerBootHealthCheck;
 import com.sonatype.insight.brain.spring.DropwizardConfigBootstrap;
 import com.sonatype.insight.brain.spring.LaunchConfigurationResolver;
@@ -15,7 +14,6 @@ import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.version.MultiTenantVersionService;
 import com.sonatype.insight.brain.version.VersionService;
-import datadog.trace.api.GlobalTracer;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import java.io.File;
@@ -85,9 +83,6 @@ public class MultiTenantInsightBrainService
     assertRunningAsGlobalTenant();
 
     SecurityProviderBootstrap.ensureBouncyCastleProviderIsLowestPreference();
-
-    // Initialize Datadog tracing
-    GlobalTracer.get().addTraceInterceptor(new DatadogInterceptor());
 
     new TenantUtil().setGlobalTenant();
 

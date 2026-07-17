@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 
 import com.google.common.annotations.VisibleForTesting;
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 
 /**
@@ -54,7 +53,6 @@ public class DatabaseProvisioner
   /**
    * Init (connect to) the database, but do not perform migration
    */
-  @Trace
   @WithSpan
   public void initializeDatabaseWithoutMigration() {
     operationalDataStore.initialize();

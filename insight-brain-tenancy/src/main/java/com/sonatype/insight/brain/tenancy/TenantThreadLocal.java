@@ -353,8 +353,8 @@ public class TenantThreadLocal
     private static final String ERROR_PREFIX = "Tenancy error detected";
 
     public InvalidTenantOperationException(String message) {
-      // This prefix MUST be added to all tenancy error messages as it is this text that appears in the Datadog logs and
-      // of which the "Tenancy Errors" Datadog monitor is based off of.
+      // This prefix MUST be added to all tenancy error messages as it is this text that appears in the Observe logs and
+      // of which the "Tenancy Errors" monitor is based off of.
       super(ERROR_PREFIX + ": " + message);
     }
   }

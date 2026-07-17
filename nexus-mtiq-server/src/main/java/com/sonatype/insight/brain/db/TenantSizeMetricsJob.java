@@ -28,9 +28,9 @@ import org.slf4j.LoggerFactory;
  * Update the tenant schema size MATERIALIZED VIEW once per day.
  * <br>
  * It is useful to see tenant schema sizes over time. However, the queries to retrieve tenant schemas are expensive,
- * especially as the number of tenants grow. This compounded with the fact that the custom database metrics on the
- * Datadog side run often (multiple times per minute) make it too expensive to run this way. To solve this we use a
- * MATERIALIZED VIEW in the database which the Datadog DB APM queries often but is only updated by this class daily.
+ * especially as the number of tenants grow. Because the observability layer scrapes these custom database metrics
+ * often (multiple times per minute), computing them live is too expensive. Instead we use a MATERIALIZED VIEW in the
+ * database which the DB APM queries often but which this class refreshes only once per day.
  * <br>
  * This view is created in the `public` schema as we don't want to create a diff in a tenant schema (and at the schema
  * level `global` is still a tenant).

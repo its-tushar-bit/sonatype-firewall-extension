@@ -104,11 +104,6 @@
       <artifactId>jersey-media-multipart</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.datadoghq</groupId>
-      <artifactId>dd-java-agent</artifactId>
-      <version>${datadog.version}</version>
-    </dependency>
-    <dependency>
       <groupId>io.opentelemetry.instrumentation</groupId>
       <artifactId>opentelemetry-instrumentation-annotations</artifactId>
     </dependency>
@@ -300,8 +295,6 @@
                 <includes>
                   <include>com.sonatype.insight.brain:insight-brain-service</include>
                   <include>io.dropwizard:dropwizard-json-logging</include>
-                  <include>io.opentracing:*</include>
-                  <include>com.datadoghq:dd-trace-api</include>
                   <include>io.opentelemetry:*</include>
                   <include>io.opentelemetry.instrumentation:*</include>
                   <include>io.opentelemetry.proto:*</include>
@@ -489,14 +482,6 @@
             </goals>
             <configuration>
               <artifactItems>
-                <artifactItem>
-                  <groupId>com.datadoghq</groupId>
-                  <artifactId>dd-java-agent</artifactId>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}</outputDirectory>
-                  <destFileName>dd-java-agent.jar</destFileName>
-                </artifactItem>
                 <artifactItem>
                   <groupId>io.opentelemetry.javaagent</groupId>
                   <artifactId>opentelemetry-javaagent</artifactId>

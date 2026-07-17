@@ -124,7 +124,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -372,7 +371,6 @@ public class ScanPolicyEvaluator
    * please note: this method was renamed from 'evaluate' so as to facilitate instrumentation by a java agent
    * that captures metrics during a load test; the agent cannot instrument overloaded methods
    */
-  @Trace
   @WithSpan // OTel agent instruments private methods via bytecode manipulation (verified in CLM-39873)
   private ScanPolicyEvaluatorResults doEvaluate(
       final Application application,

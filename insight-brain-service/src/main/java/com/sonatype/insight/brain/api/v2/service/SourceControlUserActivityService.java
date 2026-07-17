@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.annotations.VisibleForTesting;
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -62,7 +61,6 @@ public class SourceControlUserActivityService
     this.sourceControlUserActivityDAO = sourceControlUserActivityDAO;
   }
 
-  @Trace
   @WithSpan
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   void saveRepoUserList(

@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import com.google.common.annotations.VisibleForTesting;
-import datadog.trace.api.Trace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
@@ -187,7 +186,6 @@ public class QuartzJobSchedulingService
   class TenantRunnable
       implements Runnable
   {
-    @Trace
     @WithSpan
     @Override
     public void run() {

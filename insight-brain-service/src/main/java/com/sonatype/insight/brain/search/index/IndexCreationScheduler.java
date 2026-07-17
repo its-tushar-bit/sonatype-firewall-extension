@@ -12,9 +12,7 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import datadog.trace.api.DDTags;
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
+import io.opentelemetry.api.trace.Span;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -47,7 +45,7 @@ public class IndexCreationScheduler
   public void execute(final JobExecutionContext context) throws JobExecutionException {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       indexService.createSearchIndex();
-      updateDatadogResourceName();
+      updateSpanName();
     }
     catch (Exception e) {
       log.error("Failed to update search index: {}", e.getMessage(), e);
@@ -61,16 +59,10 @@ public class IndexCreationScheduler
     }
   }
 
-  private void updateDatadogResourceName() {
-    final Span span = GlobalTracer.get().activeSpan();
-    if (span != null) {
-      span.setTag(DDTags.RESOURCE_NAME, "class com.sonatype.insight.brain.search.index.IndexCreationScheduler");
-    }
-
-    // OpenTelemetry equivalent for setting resource name (no-op when OTel agent is inactive)
-    io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.current();
-    if (otelSpan.getSpanContext().isValid()) {
-      otelSpan.updateName("class com.sonatype.insight.brain.search.index.IndexCreationScheduler");
+  private void updateSpanName() {
+    Span span = Span.current();
+    if (span.getSpanContext().isValid()) {
+      span.updateName("class " + IndexCreationScheduler.class.getName());
     }
   }
 }

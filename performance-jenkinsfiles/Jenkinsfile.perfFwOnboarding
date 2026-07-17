@@ -14,7 +14,6 @@ mavenConfig = mavenCommon([javaVersion : JDK_VERSION, mavenVersion: NxrmConstant
 properties(
   [
     [$class: 'JiraProjectProperty'],
-    [$class: 'DatadogJobProperty'],
     [$class: 'RebuildSettings',
     autoRebuild: false,
     rebuildDisabled: false],

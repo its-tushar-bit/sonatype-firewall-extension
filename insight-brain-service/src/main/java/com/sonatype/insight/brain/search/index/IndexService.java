@@ -21,9 +21,7 @@ import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.AllTenantsJob;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
-import datadog.trace.api.DDTags;
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
+import io.opentelemetry.api.trace.Span;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 
@@ -90,7 +88,7 @@ public class IndexService
   public void executeForTenant(JobExecutionContext context, Tenant tenant) {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       searchIndexClient.updateIndex();
-      updateDatadogResourceName();
+      updateSpanName();
     }
     catch (Exception e) {
       log.error("Failed to update search index: {}", e.getMessage(), e);
@@ -105,19 +103,13 @@ public class IndexService
   }
 
   /**
-   * This class ends up being proxied by Guice and has hash appended to its name which ruins Datadog traces. This code
-   * will alter the name to match the expected pattern. See CLM-25207.
+   * This class ends up being proxied by Guice and has a hash appended to its name which ruins trace span names. This
+   * code alters the name to match the expected pattern. See CLM-25207.
    */
-  private void updateDatadogResourceName() {
-    final Span span = GlobalTracer.get().activeSpan();
-    if (span != null) {
-      span.setTag(DDTags.RESOURCE_NAME, "class com.sonatype.insight.brain.search.index.IndexService");
-    }
-
-    // OpenTelemetry equivalent for setting resource name (no-op when OTel agent is inactive)
-    io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.current();
-    if (otelSpan.getSpanContext().isValid()) {
-      otelSpan.updateName("class com.sonatype.insight.brain.search.index.IndexService");
+  private void updateSpanName() {
+    Span span = Span.current();
+    if (span.getSpanContext().isValid()) {
+      span.updateName("class " + IndexService.class.getName());
     }
   }
 

@@ -58,7 +58,7 @@ public class DeletedTenantDAO
       throw new IllegalArgumentException("Scheduling the global tenant for deletion is not allowed");
     }
 
-    // Note this log message is captured by a DataDog Monitor so should be edited with care
+    // Note this log message is captured by an Observe monitor so should be edited with care
     log.warn("Tenant scheduled for deletion, {}", entity);
 
     return super.insert(tx, entity);

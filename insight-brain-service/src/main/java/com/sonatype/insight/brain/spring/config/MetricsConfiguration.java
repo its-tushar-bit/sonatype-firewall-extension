@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration;
  * required.
  * <p>
  * This configuration is guarded by the MTIQ marker property so it never activates in the
- * multi-tenant context, where {@code MultiTenantMeterRegistryProvider} supplies the StatsD-backed
+ * multi-tenant context, where {@code MultiTenantMeterRegistryProvider} supplies the OTLP-backed
  * registry instead.
  * <p>
  * Unlike {@code MultiTenantMetricsConfiguration}, this configuration intentionally does <em>not</em>

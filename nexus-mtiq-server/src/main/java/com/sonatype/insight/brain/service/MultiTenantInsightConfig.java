@@ -6,11 +6,9 @@
 package com.sonatype.insight.brain.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sonatype.insight.brain.metrics.datadog.StatsdMetricsConfig;
 import com.sonatype.insight.brain.service.config.MultiTenantStorageConfig;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.db.DatabaseConfig;
-import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import java.io.File;
 import java.nio.file.Path;
@@ -39,9 +37,9 @@ public class MultiTenantInsightConfig
   @JsonProperty
   private String globalTenantEncryptionKeyName;
 
-  @Nullable
+  @Deprecated
   @JsonProperty
-  private StatsdMetricsConfig statsdMetricsConfig;
+  private Object statsdMetricsConfig;
 
   @JsonProperty("mtiq-health")
   private Object mtiqHealth;
@@ -56,7 +54,6 @@ public class MultiTenantInsightConfig
 
   /**
    * Whether to submit metrics to an OpenTelemetry protocol endpoint.
-   * Both StatsD and OTLP can be active simultaneously (dual-shipping).
    */
   @JsonProperty
   private boolean otlpMetricsEnabled = false;
@@ -151,14 +148,6 @@ public class MultiTenantInsightConfig
 
   public void setGlobalTenantEncryptionKeyName(String globalTenantEncryptionKeyName) {
     this.globalTenantEncryptionKeyName = globalTenantEncryptionKeyName;
-  }
-
-  public StatsdMetricsConfig getStatsdMetricsConfig() {
-    return statsdMetricsConfig;
-  }
-
-  public void setStatsdMetricsConfig(final StatsdMetricsConfig metricsConfig) {
-    this.statsdMetricsConfig = metricsConfig;
   }
 
   public boolean isOtlpMetricsEnabled() {

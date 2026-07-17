@@ -19,23 +19,23 @@ import org.springframework.context.annotation.Configuration;
  * <p>
  * Adapts the {@link MultiTenantMeterRegistryProvider} into a {@link MeterRegistry} bean. Without
  * this adapter the provider is registered only as its own type, so metric emitters injecting a
- * {@link MeterRegistry} receive {@code null} and stop reporting {@code mtiq.*} metrics.
+ * {@link MeterRegistry} receive {@code null} and stop reporting metrics.
  * <p>
  * This configuration is guarded by the MTIQ marker property so it only activates in the
  * multi-tenant context; the single-tenant IQ Server uses {@code MetricsConfiguration} instead.
  * <p>
- * {@link MultiTenantMeterRegistryProvider#get()} returns {@code null} when neither StatsD nor OTLP
- * metrics are configured. In that case this configuration still supplies an in-memory
+ * {@link MultiTenantMeterRegistryProvider#get()} returns {@code null} when OTLP metrics are not
+ * configured. In that case this configuration still supplies an in-memory
  * {@link SimpleMeterRegistry} that exports nowhere, so a {@link MeterRegistry} bean is always
  * present: metric emitters and the Actuator {@code metrics} endpoint (which require a
  * {@link MeterRegistry}) resolve, and the server starts whether or not an exporter is configured.
  * <p>
  * The registry is also pushed into {@link MeteredThreadPoolExecutor}'s static field; Spring does
  * not inject static members, so without this call executors created without an explicit registry
- * would never report {@code mtiq.executor.*} metrics.
+ * would never report {@code executor.*} metrics.
  * <p>
  * That static registry is JVM-wide and shared across all tenants. This is deliberate and not
- * cross-tenant leakage: MTIQ uses a single global {@code CompositeMeterRegistry} and carries tenant
+ * cross-tenant leakage: MTIQ uses a single global {@link MeterRegistry} and carries tenant
  * identity through meter tags, not through separate per-tenant registries.
  */
 @Configuration(proxyBeanMethods = false)
@@ -46,9 +46,6 @@ public class MultiTenantMetricsConfiguration
   public MeterRegistry meterRegistry(final MultiTenantMeterRegistryProvider multiTenantMeterRegistryProvider) {
     MeterRegistry meterRegistry = multiTenantMeterRegistryProvider.get();
     if (meterRegistry == null) {
-      // No exporter configured (neither StatsD nor OTLP). Supply an in-memory registry that exports
-      // nowhere so a MeterRegistry bean is always present - consumers and the Actuator metrics
-      // endpoint require one, and the server must start regardless.
       meterRegistry = new SimpleMeterRegistry();
     }
     MeteredThreadPoolExecutor.injectMeterRegistry(meterRegistry);

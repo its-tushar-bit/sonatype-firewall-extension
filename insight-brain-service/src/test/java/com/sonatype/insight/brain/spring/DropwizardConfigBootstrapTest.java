@@ -99,15 +99,15 @@ public class DropwizardConfigBootstrapTest
   }
 
   @Test
-  public void shouldFailFastDuringBootstrapWhenMultipleApplicationConnectorsAreConfigured() throws Exception {
+  public void shouldBootstrapSuccessfullyWhenMultipleApplicationConnectorsAreConfigured() throws Exception {
     File config = tempFolder.newFile("multiple-application-connectors.yml");
     Files.writeString(config.toPath(),
         "server:\n" +
             "  applicationConnectors:\n" +
-            "    - type: http\n" +
-            "      port: 8070\n" +
             "    - type: https\n" +
-            "      port: 8443\n");
+            "      port: 8443\n" +
+            "    - type: http\n" +
+            "      port: 8070\n");
 
     SpringApplication application = new SpringApplication(TestDropwizardBootstrapApplication.class);
     application.setDefaultProperties(Map.of(
@@ -117,14 +117,16 @@ public class DropwizardConfigBootstrapTest
 
     DropwizardConfigBootstrap.configure(application, config.getAbsolutePath(), InsightConfig.class, false);
 
-    assertThatThrownBy(application::run)
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("applicationConnectors")
-        .hasMessageContaining("multiple connectors are not supported");
+    try (ConfigurableApplicationContext context = application.run()) {
+      assertThat(context.getEnvironment().getProperty("server.port")).isEqualTo("8443");
+      assertThat(context.getEnvironment()
+          .getProperty(
+              "sonatype.dropwizard.application-connector.additional[0].port")).isEqualTo("8070");
+    }
   }
 
   @Test
-  public void shouldFailFastDuringBootstrapWhenMultipleAdminConnectorsAreConfigured() throws Exception {
+  public void shouldBootstrapSuccessfullyWhenMultipleAdminConnectorsAreConfigured() throws Exception {
     File config = tempFolder.newFile("multiple-admin-connectors.yml");
     Files.writeString(config.toPath(),
         "server:\n" +
@@ -145,10 +147,12 @@ public class DropwizardConfigBootstrapTest
 
     DropwizardConfigBootstrap.configure(application, config.getAbsolutePath(), InsightConfig.class, false);
 
-    assertThatThrownBy(application::run)
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("adminConnectors")
-        .hasMessageContaining("multiple connectors are not supported");
+    try (ConfigurableApplicationContext context = application.run()) {
+      assertThat(context.getEnvironment().getProperty("management.server.port")).isEqualTo("8071");
+      assertThat(context.getEnvironment()
+          .getProperty(
+              "sonatype.dropwizard.admin-connector.additional[0].port")).isEqualTo("8444");
+    }
   }
 
   @Test

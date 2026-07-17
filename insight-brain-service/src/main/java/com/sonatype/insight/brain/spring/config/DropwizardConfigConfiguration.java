@@ -127,8 +127,6 @@ public class DropwizardConfigConfiguration
     DropwizardWebConfig webConfig = config.getWeb();
 
     if (serverConfig != null) {
-      validateConnectorCount(serverConfig.applicationConnectors, "applicationConnectors");
-      validateConnectorCount(serverConfig.adminConnectors, "adminConnectors");
       applyConnectorTypes(config, serverConfig);
       applyConnectorPorts(config, serverConfig);
     }
@@ -388,14 +386,6 @@ public class DropwizardConfigConfiguration
     }
     catch (IllegalArgumentException e) {
       throw new IllegalStateException("Invalid web.hsts.maxAge value '" + duration + "'", e);
-    }
-  }
-
-  private void validateConnectorCount(List<DropwizardConnectorConfig> connectors, String propertyName) {
-    if (connectors != null && connectors.size() > 1) {
-      throw new IllegalStateException(
-          "Dropwizard-to-Spring compatibility: multiple connectors are not supported for " + propertyName
-              + "; refusing startup instead of silently ignoring extra connectors.");
     }
   }
 

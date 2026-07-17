@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
@@ -239,8 +240,219 @@ public class DropwizardServerCompatibilityTest
   }
 
   @Test
-  public void shouldRejectMultipleApplicationConnectorsInsteadOfSilentlyUsingTheFirstOne() throws Exception {
+  public void shouldStartHttpsAdditionalApplicationConnectorBackedByKeystore() throws Exception {
+    String keyStorePath =
+        new ClassPathResource("InsightBrainServiceTest/localhost.p12").getFile().getAbsolutePath();
+    File config = tempFolder.newFile("http-plus-https-additional.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: http\n" +
+            "      port: 18070\n" +
+            "    - type: https\n" +
+            "      port: 18443\n" +
+            "      keyStorePath: " + keyStorePath + "\n" +
+            "      keyStorePassword: changeit\n" +
+            "      keyStoreType: PKCS12\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    DropwizardConnectorSettings connectorSettings = DropwizardConnectorSettings.from(environment);
+    WebServerFactoryCustomizer<JettyServletWebServerFactory> customizer =
+        new DropwizardConnectorConfiguration().dropwizardApplicationConnectorCustomizer(connectorSettings);
+
+    JettyServletWebServerFactory factory = new JettyServletWebServerFactory(18070);
+    customizer.customize(factory);
+
+    WebServer webServer = factory.getWebServer(servletContext -> {
+    });
+    try {
+      webServer.start();
+      Server server = ((JettyWebServer) webServer).getServer();
+      ServerConnector httpsConnector = Arrays.stream(server.getConnectors())
+          .filter(ServerConnector.class::isInstance)
+          .map(ServerConnector.class::cast)
+          .filter(connector -> connector.getLocalPort() == 18443)
+          .findFirst()
+          .orElseThrow();
+
+      assertThat(httpsConnector.getConnectionFactory(SslConnectionFactory.class)).isNotNull();
+    }
+    finally {
+      webServer.stop();
+    }
+  }
+
+  @Test
+  public void shouldApplyAdditionalConnectorOwnIdleTimeoutThenFallBackToDefault() {
+    Server server = new Server();
+
+    DropwizardConnectorSettings.AdditionalConnector ownTimeout =
+        new DropwizardConnectorSettings.AdditionalConnector("http", 0, null, Duration.ofMinutes(5), null);
+    DropwizardConnectorSettings.AdditionalConnector noTimeout =
+        new DropwizardConnectorSettings.AdditionalConnector("http", 0, null, null, null);
+
+    ServerConnector withOwnTimeout =
+        DropwizardConnectorConfiguration.buildAdditionalConnector(server, ownTimeout, Duration.ofMinutes(1));
+    ServerConnector inheritingDefault =
+        DropwizardConnectorConfiguration.buildAdditionalConnector(server, noTimeout, Duration.ofMinutes(3));
+
+    assertThat(withOwnTimeout.getIdleTimeout()).isEqualTo(Duration.ofMinutes(5).toMillis());
+    assertThat(inheritingDefault.getIdleTimeout()).isEqualTo(Duration.ofMinutes(3).toMillis());
+  }
+
+  @Test
+  public void shouldTranslatePrimaryConnectorCertAliasToSpringKeyAlias() throws Exception {
+    File config = tempFolder.newFile("cert-alias.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: https\n" +
+            "      port: 8443\n" +
+            "      keyStorePath: /tmp/application-keystore.jks\n" +
+            "      keyStorePassword: secret\n" +
+            "      certAlias: iq-app\n" +
+            "  adminConnectors:\n" +
+            "    - type: https\n" +
+            "      port: 8444\n" +
+            "      keyStorePath: /tmp/admin-keystore.jks\n" +
+            "      keyStorePassword: adminsecret\n" +
+            "      certAlias: iq-admin\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    assertThat(environment.getProperty("server.ssl.key-alias")).isEqualTo("iq-app");
+    assertThat(environment.getProperty("management.server.ssl.key-alias")).isEqualTo("iq-admin");
+  }
+
+  @Test
+  public void shouldDisableApplicationSslWhenApplicationConnectorIsHttp() throws Exception {
+    File config = tempFolder.newFile("http-application.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: http\n" +
+            "      port: 8070\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    assertThat(environment.getProperty("server.ssl.enabled")).isEqualTo("false");
+  }
+
+  @Test
+  public void shouldDisableManagementSslWhenAdminConnectorIsHttpAndApplicationConnectorIsHttps() throws Exception {
+    File config = tempFolder.newFile("https-app-http-admin.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: https\n" +
+            "      port: 8443\n" +
+            "      keyStorePath: /tmp/application-keystore.jks\n" +
+            "      keyStorePassword: secret\n" +
+            "  adminConnectors:\n" +
+            "    - type: http\n" +
+            "      port: 8071\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    assertThat(environment.getProperty("server.ssl.enabled")).isEqualTo("true");
+    assertThat(environment.getProperty("management.server.ssl.enabled")).isEqualTo("false");
+  }
+
+  @Test
+  public void shouldTranslateMultipleApplicationConnectorsIntoPrimaryAndAdditionalProperties() throws Exception {
     File config = tempFolder.newFile("multiple-application-connectors.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: https\n" +
+            "      port: 8443\n" +
+            "      keyStorePath: /tmp/application-keystore.jks\n" +
+            "      keyStorePassword: secret\n" +
+            "    - type: http\n" +
+            "      port: 8070\n" +
+            "      bindHost: 127.0.0.9\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    assertThat(environment.getProperty("server.port")).isEqualTo("8443");
+    assertThat(environment.getProperty("server.ssl.enabled")).isEqualTo("true");
+    assertThat(environment.getProperty("server.ssl.key-store")).isEqualTo("/tmp/application-keystore.jks");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.application-connector.additional[0].type")).isEqualTo("http");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.application-connector.additional[0].port")).isEqualTo("8070");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.application-connector.additional[0].bind-host")).isEqualTo("127.0.0.9");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.application-connector.additional[1].port")).isNull();
+  }
+
+  @Test
+  public void shouldFailFastWhenPrimaryConnectorTypeIsUnknown() throws Exception {
+    File config = tempFolder.newFile("unknown-primary-connector-type.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: htps\n" +
+            "      port: 8443\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+
+    assertThatThrownBy(() -> new DropwizardConfigLoader().loadConfig(config, environment))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("htps")
+        .hasMessageContaining("expected 'http' or 'https'");
+  }
+
+  @Test
+  public void shouldFailFastWhenAdditionalConnectorTypeIsUnknown() {
+    assertThatThrownBy(
+        () -> new DropwizardConnectorSettings.AdditionalConnector("htps", 8070, null, null, null))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("htps")
+            .hasMessageContaining("expected 'http' or 'https'");
+  }
+
+  @Test
+  public void shouldFailFastWhenAdditionalConnectorTypeIsUnknownInConfigFile() throws Exception {
+    File config = tempFolder.newFile("unknown-additional-connector-type.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: http\n" +
+            "      port: 8070\n" +
+            "    - type: htps\n" +
+            "      port: 8443\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    assertThatThrownBy(() -> DropwizardConnectorSettings.from(environment))
+        .rootCause()
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("htps")
+        .hasMessageContaining("expected 'http' or 'https'");
+  }
+
+  @Test
+  public void shouldFailFastWhenAdditionalHttpsConnectorHasNoKeyStore() {
+    assertThatThrownBy(
+        () -> new DropwizardConnectorSettings.AdditionalConnector("https", 8443, null, null, null))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("8443")
+            .hasMessageContaining("No keyStorePath configured");
+  }
+
+  @Test
+  public void shouldFailFastWhenAdditionalHttpsConnectorHasNoKeyStoreInConfigFile() throws Exception {
+    File config = tempFolder.newFile("additional-https-connector-without-keystore.yml");
     Files.writeString(config.toPath(),
         "server:\n" +
             "  applicationConnectors:\n" +
@@ -250,15 +462,54 @@ public class DropwizardServerCompatibilityTest
             "      port: 8443\n");
 
     StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(config, environment);
 
-    assertThatThrownBy(() -> new DropwizardConfigLoader().loadConfig(config, environment))
+    assertThatThrownBy(() -> DropwizardConnectorSettings.from(environment))
+        .rootCause()
         .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("applicationConnectors")
-        .hasMessageContaining("multiple connectors are not supported");
+        .hasMessageContaining("8443")
+        .hasMessageContaining("No keyStorePath configured");
   }
 
   @Test
-  public void shouldRejectMultipleAdminConnectorsInsteadOfSilentlyUsingTheFirstOne() throws Exception {
+  public void shouldBindAllApplicationConnectorPortsWhenMultipleHttpConnectorsConfigured() throws Exception {
+    File config = tempFolder.newFile("multiple-http-application-connectors.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: http\n" +
+            "      port: 18070\n" +
+            "    - type: http\n" +
+            "      port: 18071\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    DropwizardConnectorSettings connectorSettings = DropwizardConnectorSettings.from(environment);
+    WebServerFactoryCustomizer<JettyServletWebServerFactory> customizer =
+        new DropwizardConnectorConfiguration().dropwizardApplicationConnectorCustomizer(connectorSettings);
+
+    JettyServletWebServerFactory factory = new JettyServletWebServerFactory(18070);
+    customizer.customize(factory);
+
+    WebServer webServer = factory.getWebServer(servletContext -> {
+    });
+    try {
+      webServer.start();
+      Server server = ((JettyWebServer) webServer).getServer();
+      assertThat(Arrays.stream(server.getConnectors())
+          .filter(ServerConnector.class::isInstance)
+          .map(ServerConnector.class::cast)
+          .map(ServerConnector::getLocalPort))
+              .contains(18070, 18071);
+    }
+    finally {
+      webServer.stop();
+    }
+  }
+
+  @Test
+  public void shouldTranslateMultipleAdminConnectorsIntoPrimaryAndAdditionalProperties() throws Exception {
     File config = tempFolder.newFile("multiple-admin-connectors.yml");
     Files.writeString(config.toPath(),
         "server:\n" +
@@ -269,14 +520,69 @@ public class DropwizardServerCompatibilityTest
             "    - type: http\n" +
             "      port: 8071\n" +
             "    - type: https\n" +
-            "      port: 8444\n");
+            "      port: 8444\n" +
+            "      keyStorePath: /tmp/admin-keystore.jks\n" +
+            "      keyStorePassword: adminsecret\n" +
+            "      certAlias: iq-admin\n" +
+            "      needClientAuth: true\n");
 
     StandardEnvironment environment = new StandardEnvironment();
 
-    assertThatThrownBy(() -> new DropwizardConfigLoader().loadConfig(config, environment))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("adminConnectors")
-        .hasMessageContaining("multiple connectors are not supported");
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    assertThat(environment.getProperty("management.server.port")).isEqualTo("8071");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.admin-connector.additional[0].type")).isEqualTo("https");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.admin-connector.additional[0].port")).isEqualTo("8444");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.admin-connector.additional[0].ssl.key-store")).isEqualTo("/tmp/admin-keystore.jks");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.admin-connector.additional[0].ssl.key-store-password")).isEqualTo("adminsecret");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.admin-connector.additional[0].ssl.certificate-alias")).isEqualTo("iq-admin");
+    assertThat(environment.getProperty(
+        "sonatype.dropwizard.admin-connector.additional[0].ssl.client-auth")).isEqualTo("need");
+  }
+
+  @Test
+  public void shouldBindAllAdminConnectorPortsWhenMultipleHttpConnectorsConfigured() throws Exception {
+    File config = tempFolder.newFile("multiple-http-admin-connectors.yml");
+    Files.writeString(config.toPath(),
+        "server:\n" +
+            "  applicationConnectors:\n" +
+            "    - type: http\n" +
+            "      port: 8070\n" +
+            "  adminConnectors:\n" +
+            "    - type: http\n" +
+            "      port: 18071\n" +
+            "    - type: http\n" +
+            "      port: 18081\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(config, environment);
+
+    DropwizardConnectorSettings connectorSettings = DropwizardConnectorSettings.from(environment);
+    WebServerFactoryCustomizer<JettyServletWebServerFactory> customizer =
+        new DropwizardManagementConnectorConfiguration().dropwizardAdminConnectorCustomizer(connectorSettings);
+
+    JettyServletWebServerFactory factory = new JettyServletWebServerFactory(18071);
+    customizer.customize(factory);
+
+    WebServer webServer = factory.getWebServer(servletContext -> {
+    });
+    try {
+      webServer.start();
+      Server server = ((JettyWebServer) webServer).getServer();
+      assertThat(Arrays.stream(server.getConnectors())
+          .filter(ServerConnector.class::isInstance)
+          .map(ServerConnector.class::cast)
+          .map(ServerConnector::getLocalPort))
+              .contains(18071, 18081);
+    }
+    finally {
+      webServer.stop();
+    }
   }
 
   @Test
@@ -315,7 +621,7 @@ public class DropwizardServerCompatibilityTest
   }
 
   @Test
-  public void shouldRejectMultipleApplicationConnectorsWhenBindingInsightConfig() throws Exception {
+  public void shouldBindMultipleApplicationConnectorPortsAndTypesWhenBindingInsightConfig() throws Exception {
     File config = tempFolder.newFile("multi-connector-ports.yml");
     Files.writeString(config.toPath(),
         "server:\n" +
@@ -328,15 +634,15 @@ public class DropwizardServerCompatibilityTest
             "    - type: https\n" +
             "      port: 8444\n");
 
-    assertThatThrownBy(() -> new DropwizardConfigConfiguration()
-        .insightConfig(config.getAbsolutePath(), InsightConfig.class.getName()))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("applicationConnectors")
-            .hasMessageContaining("multiple connectors are not supported");
+    InsightConfig insightConfig = new DropwizardConfigConfiguration()
+        .insightConfig(config.getAbsolutePath(), InsightConfig.class.getName());
+
+    assertThat(insightConfig.getApplicationConnectorPorts()).isEqualTo("8070,8443");
+    assertThat(insightConfig.getApplicationConnectorTypes()).isEqualTo("http,https");
   }
 
   @Test
-  public void shouldRejectMultipleAdminConnectorsWhenBindingInsightConfig() throws Exception {
+  public void shouldBindMultipleAdminConnectorTypesWhenBindingInsightConfig() throws Exception {
     File config = tempFolder.newFile("multi-admin-connector-ports.yml");
     Files.writeString(config.toPath(),
         "server:\n" +
@@ -349,11 +655,10 @@ public class DropwizardServerCompatibilityTest
             "    - type: https\n" +
             "      port: 8444\n");
 
-    assertThatThrownBy(() -> new DropwizardConfigConfiguration()
-        .insightConfig(config.getAbsolutePath(), InsightConfig.class.getName()))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("adminConnectors")
-            .hasMessageContaining("multiple connectors are not supported");
+    InsightConfig insightConfig = new DropwizardConfigConfiguration()
+        .insightConfig(config.getAbsolutePath(), InsightConfig.class.getName());
+
+    assertThat(insightConfig.getAdminConnectorTypes()).isEqualTo("http,https");
   }
 
   @Test

@@ -168,9 +168,6 @@ public class DropwizardConfigLoader
     DropwizardServerConfig server = configSourceReader.convertValueStrict(serverValue, DropwizardServerConfig.class);
     DropwizardConfigCompat.warnOnDeprecatedFields(server, "server");
 
-    validateConnectorCount(server.applicationConnectors, "applicationConnectors");
-    validateConnectorCount(server.adminConnectors, "adminConnectors");
-
     putIfNotNull(server.applicationContextPath, "server.servlet.context-path", flatProperties);
     putIfNotNull(server.adminContextPath, "management.server.base-path", flatProperties);
     putIfNotNull(server.maxThreads, "server.jetty.threads.max", flatProperties);
@@ -182,9 +179,13 @@ public class DropwizardConfigLoader
 
     translateConnector(server.applicationConnectors, "applicationConnectors", "server.port", "server.address",
         "server.ssl", DropwizardConnectorSettings.APPLICATION_IDLE_TIMEOUT_PROPERTY, flatProperties);
+    translateAdditionalConnectors(server.applicationConnectors,
+        DropwizardConnectorSettings.ADDITIONAL_APPLICATION_CONNECTORS_PREFIX, "applicationConnectors", flatProperties);
     translateConnector(server.adminConnectors, "adminConnectors", "management.server.port",
         "management.server.address", "management.server.ssl", DropwizardConnectorSettings.ADMIN_IDLE_TIMEOUT_PROPERTY,
         flatProperties);
+    translateAdditionalConnectors(server.adminConnectors,
+        DropwizardConnectorSettings.ADDITIONAL_ADMIN_CONNECTORS_PREFIX, "adminConnectors", flatProperties);
     translateGzipConfig(server.gzip, flatProperties);
     translateShutdownGracePeriod(server.shutdownGracePeriod, flatProperties);
   }
@@ -235,6 +236,7 @@ public class DropwizardConfigLoader
 
     DropwizardConnectorConfig connector = connectors.get(0);
     DropwizardConfigCompat.warnOnDeprecatedFields(connector, "server." + connectorListName);
+    DropwizardConnectorSettings.requireSupportedConnectorType(connector.type, "server." + connectorListName);
 
     putIfNotNull(connector.port, portProperty, flatProperties);
     putIfNotNull(connector.bindHost, addressProperty, flatProperties);
@@ -252,7 +254,7 @@ public class DropwizardConfigLoader
       putIfNotNull(connector.trustStorePath, sslPrefix + ".trust-store", flatProperties);
       putIfNotNull(connector.trustStorePassword, sslPrefix + ".trust-store-password", flatProperties);
       putIfNotNull(connector.trustStoreType, sslPrefix + ".trust-store-type", flatProperties);
-      putIfNotNull(connector.certAlias, sslPrefix + ".certificate.alias", flatProperties);
+      putIfNotNull(connector.certAlias, sslPrefix + ".key-alias", flatProperties);
       putIfNotNull(connector.keyManagerPassword, sslPrefix + ".key-password", flatProperties);
 
       if (Boolean.TRUE.equals(connector.needClientAuth)) {
@@ -263,6 +265,55 @@ public class DropwizardConfigLoader
       }
 
       putIfNotNull(connector.protocol, sslPrefix + ".protocol", flatProperties);
+    }
+    else {
+      // Keep this: the management server inherits server.ssl when management.server.ssl is unset, so an http
+      // adminConnector would silently become https under an https applicationConnector without the explicit false.
+      flatProperties.put(sslPrefix + ".enabled", false);
+    }
+  }
+
+  private void translateAdditionalConnectors(
+      List<DropwizardConnectorConfig> connectors,
+      String additionalPrefix,
+      String connectorListName,
+      Map<String, Object> flatProperties)
+  {
+    if (connectors == null || connectors.size() <= 1) {
+      return;
+    }
+
+    for (int i = 1; i < connectors.size(); i++) {
+      DropwizardConnectorConfig connector = connectors.get(i);
+      DropwizardConfigCompat.warnOnDeprecatedFields(connector, "server." + connectorListName);
+
+      String base = additionalPrefix + "[" + (i - 1) + "]";
+      putIfNotNull(connector.type, base + ".type", flatProperties);
+      putIfNotNull(connector.port, base + ".port", flatProperties);
+      putIfNotNull(connector.bindHost, base + ".bind-host", flatProperties);
+      if (connector.idleTimeout != null) {
+        flatProperties.put(base + ".idle-timeout",
+            DropwizardConnectorSettings.parseIdleTimeout(connector.idleTimeout, connectorListName).toString());
+      }
+
+      if (connector.type != null && "https".equalsIgnoreCase(connector.type.trim())) {
+        String ssl = base + ".ssl";
+        putIfNotNull(connector.keyStorePath, ssl + ".key-store", flatProperties);
+        putIfNotNull(connector.keyStorePassword, ssl + ".key-store-password", flatProperties);
+        putIfNotNull(connector.keyStoreType, ssl + ".key-store-type", flatProperties);
+        putIfNotNull(connector.trustStorePath, ssl + ".trust-store", flatProperties);
+        putIfNotNull(connector.trustStorePassword, ssl + ".trust-store-password", flatProperties);
+        putIfNotNull(connector.trustStoreType, ssl + ".trust-store-type", flatProperties);
+        putIfNotNull(connector.certAlias, ssl + ".certificate-alias", flatProperties);
+        putIfNotNull(connector.keyManagerPassword, ssl + ".key-password", flatProperties);
+        putIfNotNull(connector.protocol, ssl + ".protocol", flatProperties);
+        if (Boolean.TRUE.equals(connector.needClientAuth)) {
+          flatProperties.put(ssl + ".client-auth", "need");
+        }
+        else if (Boolean.TRUE.equals(connector.wantClientAuth)) {
+          flatProperties.put(ssl + ".client-auth", "want");
+        }
+      }
     }
   }
 
@@ -312,14 +363,6 @@ public class DropwizardConfigLoader
         .filter(this::isScalarValue)
         .findFirst()
         .ifPresent(path -> springProps.put("auditLogBasePath", path));
-  }
-
-  private void validateConnectorCount(List<DropwizardConnectorConfig> connectors, String propertyName) {
-    if (connectors != null && connectors.size() > 1) {
-      throw new IllegalStateException(
-          "Dropwizard-to-Spring compatibility: multiple connectors are not supported for " + propertyName
-              + "; refusing startup instead of silently ignoring extra connectors.");
-    }
   }
 
   private boolean isScalarValue(Object value) {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.spring.config;
 
+import com.sonatype.insight.brain.spring.config.DropwizardConnectorSettings.AdditionalConnector;
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextType;
 import org.springframework.boot.jetty.servlet.JettyServletWebServerFactory;
@@ -21,7 +22,12 @@ public class DropwizardManagementConnectorConfiguration
   WebServerFactoryCustomizer<JettyServletWebServerFactory> dropwizardAdminConnectorCustomizer(
       DropwizardConnectorSettings connectorSettings)
   {
-    return factory -> factory.addServerCustomizers(
-        server -> DropwizardConnectorConfiguration.applyIdleTimeout(server, connectorSettings.adminIdleTimeout()));
+    return factory -> factory.addServerCustomizers(server -> {
+      DropwizardConnectorConfiguration.applyIdleTimeout(server, connectorSettings.adminIdleTimeout());
+      for (AdditionalConnector additionalConnector : connectorSettings.additionalAdminConnectors()) {
+        server.addConnector(DropwizardConnectorConfiguration.buildAdditionalConnector(
+            server, additionalConnector, connectorSettings.adminIdleTimeout()));
+      }
+    });
   }
 }

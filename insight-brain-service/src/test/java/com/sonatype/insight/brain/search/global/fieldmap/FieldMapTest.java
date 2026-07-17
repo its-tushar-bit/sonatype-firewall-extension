@@ -24,7 +24,11 @@ public class FieldMapTest
     assertThat(entry).isPresent();
     assertThat(entry.get().label()).isEqualTo(FieldIdentifier.APPLICATION_NAME.label);
     assertThat(entry.get().kind()).isEqualTo(FieldKind.KEYWORD);
-    assertThat(entry.get().allowedTypes()).containsExactly(ItemType.APPLICATION);
+    // applicationName is indexed on violation docs too (via the owning application), so violation-
+    // scoped queries must resolve it rather than compile to MatchNoDocsQuery.
+    assertThat(entry.get().allowedTypes())
+        .containsExactlyInAnyOrder(
+            ItemType.APPLICATION, ItemType.POLICY_VIOLATION, ItemType.LEGAL_VIOLATION);
   }
 
   @Test

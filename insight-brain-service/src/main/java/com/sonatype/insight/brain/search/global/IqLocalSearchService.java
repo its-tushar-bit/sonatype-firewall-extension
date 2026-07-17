@@ -149,7 +149,7 @@ public class IqLocalSearchService
       // empty response with a warning rather than throwing (matches the no-results shape below).
       String warning = "No requested item types apply in "
           + (inputs.isSbomManagerMode() ? "SBOM Manager" : "default") + " mode.";
-      return new IqLocalSearchResponse(List.of(), 0L, true, List.of(), validatedSortKey, List.of(warning));
+      return new IqLocalSearchResponse(List.of(), 0L, true, List.of(), validatedSortKey, List.of(warning), null);
     }
 
     ParsedQuery parsed = QueryParser.parse(inputs.query());
@@ -175,7 +175,7 @@ public class IqLocalSearchService
     boolean exactTotalHits = result.exactTotalHits() && cappedTotal == result.totalHits();
 
     return new IqLocalSearchResponse(tagged, cappedTotal, exactTotalHits, result.nextSearchAfter(),
-        validatedSortKey, warnings);
+        validatedSortKey, warnings, result.servingBackendId());
   }
 
   /**
@@ -431,7 +431,8 @@ public class IqLocalSearchService
       boolean exactTotalHits,
       List<String> nextSearchAfter,
       String sortKey,
-      List<String> warnings)
+      List<String> warnings,
+      String servingBackendId)
   {
     public IqLocalSearchResponse {
       rows = List.copyOf(rows);
@@ -439,7 +440,7 @@ public class IqLocalSearchService
       warnings = warnings == null ? List.of() : List.copyOf(warnings);
     }
 
-    /** Without warnings; retained for existing callers. */
+    /** Without warnings or serving-backend id; retained for existing callers. */
     public IqLocalSearchResponse(
         final List<IqLocalRow> rows,
         final long total,
@@ -447,7 +448,19 @@ public class IqLocalSearchService
         final List<String> nextSearchAfter,
         final String sortKey)
     {
-      this(rows, total, exactTotalHits, nextSearchAfter, sortKey, List.of());
+      this(rows, total, exactTotalHits, nextSearchAfter, sortKey, List.of(), null);
+    }
+
+    /** Without serving-backend id; retained for existing callers. */
+    public IqLocalSearchResponse(
+        final List<IqLocalRow> rows,
+        final long total,
+        final boolean exactTotalHits,
+        final List<String> nextSearchAfter,
+        final String sortKey,
+        final List<String> warnings)
+    {
+      this(rows, total, exactTotalHits, nextSearchAfter, sortKey, warnings, null);
     }
   }
 }

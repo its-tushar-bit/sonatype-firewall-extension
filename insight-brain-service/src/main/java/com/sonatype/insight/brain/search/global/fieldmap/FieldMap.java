@@ -80,6 +80,13 @@ public final class FieldMap
 {
   private static final Set<ItemType> APP_TYPES = EnumSet.of(APPLICATION);
 
+  // applicationName is indexed on APPLICATION docs and on violation docs (violations set their
+  // owning application via DocumentBuilder.setOwner), so the field resolves for all three types.
+  private static final Set<ItemType> APP_AND_VIOLATION_TYPES = EnumSet.of(
+      APPLICATION,
+      POLICY_VIOLATION,
+      LEGAL_VIOLATION);
+
   private static final Set<ItemType> COMPONENT_BEARING_TYPES = EnumSet.of(
       NON_VULNERABLE_COMPONENT,
       POLICY_VIOLATION,
@@ -172,7 +179,7 @@ public final class FieldMap
     m.put("itemType", FieldEntry.keyword(ITEM_TYPE.label, ALL_TYPES, ITEM_TYPE_VALUES));
 
     // Application
-    m.put("applicationName", FieldEntry.keyword(APPLICATION_NAME.label, APP_TYPES));
+    m.put("applicationName", FieldEntry.keyword(APPLICATION_NAME.label, APP_AND_VIOLATION_TYPES));
     m.put("applicationId", FieldEntry.keyword(APPLICATION_ID.label, APP_TYPES));
     m.put("applicationPublicId", FieldEntry.keyword(APPLICATION_PUBLIC_ID.label, APP_TYPES));
     m.put("applicationVersion", FieldEntry.keyword(APPLICATION_VERSION.label, APP_TYPES));

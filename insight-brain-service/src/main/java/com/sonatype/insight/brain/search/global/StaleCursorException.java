@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.search.global;
 
+import com.sonatype.insight.error.HttpStatusCode;
+
 /**
  * Thrown when a cursor encoded under an older generation token is presented after a full reindex or
  * sort-allowlist change. Mapped to HTTP 410 Gone; client should retry from page 1.
  */
+@HttpStatusCode(410)
 public class StaleCursorException
     extends RuntimeException
 {

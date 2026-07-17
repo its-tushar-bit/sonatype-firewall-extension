@@ -320,6 +320,22 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   @Test
+  public void search_propagatesServingBackendIdFromResult() {
+    SearchResultItemDTO row = new SearchResultItemDTO();
+    row.itemType = ItemType.APPLICATION.name();
+    row.applicationPublicId = "acme-prod";
+    // doReturn avoids invoking the setUp thenAnswer stub (which would run runRealSearch(null)).
+    org.mockito.Mockito.doReturn(new GlobalSearchResult(List.of(row), 1, List.of(), true, "secondary"))
+        .when(searchIndexClient)
+        .searchGlobal(any());
+
+    SearchInputs inputs = new SearchInputs("acme", Tab.APPLICATION,
+        Set.of(ItemType.APPLICATION), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.servingBackendId()).isEqualTo("secondary");
+  }
+
+  @Test
   public void search_withCursorMintedForDifferentPageSize_throwsStaleCursorException() {
     // Negative control for the round-trip: a cursor pinned to a different pageSize must NOT
     // validate, confirming the generation token actually binds pageSize (mint<->validate is

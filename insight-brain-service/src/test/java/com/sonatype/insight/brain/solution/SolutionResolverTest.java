@@ -41,7 +41,17 @@ public class SolutionResolverTest
       if (product.equals(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)) {
         when(productLicense.hasFeature(LicensedFeature.GUIDE)).thenReturn(true);
       }
-      SolutionResolver solutionResolver = new SolutionResolver(productLicense, singleTenantUtil);
+      // AI Developer requires both product AND feature, and only resolves in its SKU's tenancy:
+      // AiDeveloper is single-tenant, AiDeveloperSaas is multi-tenant.
+      TenantUtil tenantUtil = singleTenantUtil;
+      if (product.equals(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)) {
+        when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+      }
+      if (product.equals(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)) {
+        when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+        tenantUtil = multiTenantUtil;
+      }
+      SolutionResolver solutionResolver = new SolutionResolver(productLicense, tenantUtil);
 
       // when: try to resolve the associated solution
       Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
@@ -136,5 +146,71 @@ public class SolutionResolverTest
 
     Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
     assertThat(licensedSolutions).doesNotContain(Solution.GUIDE);
+  }
+
+  @Test
+  public void testAiDeveloperIncluded_WhenSelfHostedProductAndFeatureLicensed_SingleTenant() {
+    ProductLicense productLicense = Mockito.mock(ProductLicense.class);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    SolutionResolver solutionResolver = new SolutionResolver(productLicense, singleTenantUtil);
+
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    assertThat(licensedSolutions).contains(Solution.AI_DEVELOPER);
+  }
+
+  @Test
+  public void testAiDeveloperNotIncluded_WhenFeatureNotLicensed() {
+    ProductLicense productLicense = Mockito.mock(ProductLicense.class);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(false);
+    SolutionResolver solutionResolver = new SolutionResolver(productLicense, singleTenantUtil);
+
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    assertThat(licensedSolutions).doesNotContain(Solution.AI_DEVELOPER);
+  }
+
+  @Test
+  public void testAiDeveloperNotIncluded_WhenSelfHostedProductButMultiTenant() {
+    ProductLicense productLicense = Mockito.mock(ProductLicense.class);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    SolutionResolver solutionResolver = new SolutionResolver(productLicense, multiTenantUtil);
+
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    assertThat(licensedSolutions).doesNotContain(Solution.AI_DEVELOPER);
+  }
+
+  @Test
+  public void testAiDeveloperSaasIncluded_WhenProductAndFeatureLicensed_MultiTenant() {
+    ProductLicense productLicense = Mockito.mock(ProductLicense.class);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    SolutionResolver solutionResolver = new SolutionResolver(productLicense, multiTenantUtil);
+
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    assertThat(licensedSolutions).contains(Solution.AI_DEVELOPER);
+  }
+
+  @Test
+  public void testAiDeveloperSaasNotIncluded_WhenSingleTenant() {
+    ProductLicense productLicense = Mockito.mock(ProductLicense.class);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    SolutionResolver solutionResolver = new SolutionResolver(productLicense, singleTenantUtil);
+
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    assertThat(licensedSolutions).doesNotContain(Solution.AI_DEVELOPER);
+  }
+
+  @Test
+  public void testAiDeveloperSaasNotIncluded_WhenFeatureNotLicensed() {
+    ProductLicense productLicense = Mockito.mock(ProductLicense.class);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(false);
+    SolutionResolver solutionResolver = new SolutionResolver(productLicense, multiTenantUtil);
+
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    assertThat(licensedSolutions).doesNotContain(Solution.AI_DEVELOPER);
   }
 }

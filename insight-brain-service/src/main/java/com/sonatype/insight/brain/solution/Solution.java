@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.solution;
 
 public enum Solution
 {
+  AI_DEVELOPER,
   DEVELOPER,
   FIREWALL,
   GUIDE,

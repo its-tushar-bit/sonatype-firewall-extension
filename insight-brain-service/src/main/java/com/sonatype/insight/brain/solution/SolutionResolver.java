@@ -48,10 +48,7 @@ public class SolutionResolver
       ProductLicenseDetails.PRODUCT_SONATYPE_LIFT_PREMIUM,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_CLOUD,
-      ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_SAAS,
-      // The AI Developer SKUs do not surface their own Solution Switcher entry; see GUIDE-3124.
-      ProductLicenseDetails.PRODUCT_AI_DEVELOPER,
-      ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
+      ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_SAAS);
 
   private static final List<String> LIFECYCLE_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_ADVANCED_DEVELOPMENT_PACK,
@@ -72,6 +69,14 @@ public class SolutionResolver
 
   private static final List<String> GUIDE_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+
+  // AI Developer ships as two mutually-exclusive SKUs: the self-hosted AiDeveloper (single-tenant)
+  // and AiDeveloperSaas (multi-tenant). Each is only valid in its own deployment model.
+  private static final List<String> AI_DEVELOPER_SINGLE_TENANT_PRODUCTS = ImmutableList.of(
+      ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+
+  private static final List<String> AI_DEVELOPER_MULTI_TENANT_PRODUCTS = ImmutableList.of(
+      ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
 
   private static final List<String> SBOM_MANAGER_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
@@ -129,7 +134,22 @@ public class SolutionResolver
       licensedSolutions.add(Solution.GUIDE);
     }
 
+    if (productLicense.hasFeature(LicensedFeature.AI_DEVELOPER) && hasAiDeveloperProductForTenancy()) {
+      licensedSolutions.add(Solution.AI_DEVELOPER);
+    }
+
     return licensedSolutions;
+  }
+
+  /**
+   * AI Developer is single-tenant for the self-hosted AiDeveloper SKU and multi-tenant for the
+   * AiDeveloperSaas SKU. Each SKU is only honored in its matching deployment model, so a license
+   * issued for the wrong tenancy never surfaces the solution.
+   */
+  private boolean hasAiDeveloperProductForTenancy() {
+    return tenantUtil.isMultiTenant()
+        ? hasAnyProduct(AI_DEVELOPER_MULTI_TENANT_PRODUCTS)
+        : hasAnyProduct(AI_DEVELOPER_SINGLE_TENANT_PRODUCTS);
   }
 
   private boolean hasAnyProduct(List<String> products) {

@@ -165,4 +165,29 @@ public class SolutionUrlResolverTest
     assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
     assertThat(guideUrl).isEqualTo("https://locahost:8070/assets/guide/index.html#/");
   }
+
+  @Test
+  public void testAiDeveloperUrlMatchesGuideSpa() {
+    // AI Developer lives in the Guide SPA, so its tile always resolves to the same URL as Guide.
+    Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    DashboardUtils mockDashboardUtils = Mockito.mock(DashboardUtils.class);
+    when(mockDashboardUtils.isDashboardDisabled()).thenReturn(false);
+
+    // with a base url
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(new BaseUrlConfiguration(BASE_URL, false));
+    SolutionUrlResolver withBase = new SolutionUrlResolver(mockConfiguration, mockDashboardUtils);
+    assertThat(withBase.getUrlForSolution(Solution.AI_DEVELOPER, false))
+        .isEqualTo("https://locahost:8070/assets/guide/index.html#/")
+        .isEqualTo(withBase.getUrlForSolution(Solution.GUIDE, false));
+
+    // no base url, relative paths allowed
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(new BaseUrlConfiguration(null, false));
+    SolutionUrlResolver noBase = new SolutionUrlResolver(mockConfiguration, mockDashboardUtils);
+    assertThat(noBase.getUrlForSolution(Solution.AI_DEVELOPER, true))
+        .isEqualTo("/assets/guide/index.html#/")
+        .isEqualTo(noBase.getUrlForSolution(Solution.GUIDE, true));
+
+    // no base url, relative paths not allowed
+    assertThat(noBase.getUrlForSolution(Solution.AI_DEVELOPER, false)).isBlank();
+  }
 }

@@ -25,6 +25,9 @@ public class SolutionUrlResolver
 {
   @VisibleForTesting
   static final Map<Solution, String> SOLUTION_PATH_MAP = new ImmutableMap.Builder<Solution, String>()
+      // Sentinel: this value only needs to be non-blank so getUrlForSolution's blank-guard passes;
+      // the actual URL is built from getGuideSpaPath() in getUrlForSolution (same as GUIDE).
+      .put(Solution.AI_DEVELOPER, UserInterfaceLinksHelper.getGuideHomePath())
       .put(Solution.DEVELOPER, UserInterfaceLinksHelper.getDeveloperHomePath())
       .put(Solution.FIREWALL, UserInterfaceLinksHelper.getFirewallHomePath())
       .put(Solution.GUIDE, UserInterfaceLinksHelper.getGuideHomePath())
@@ -69,7 +72,8 @@ public class SolutionUrlResolver
         baseUrl = baseUrl + '/';
       }
 
-      if (solution.equals(Solution.GUIDE)) {
+      if (solution.equals(Solution.GUIDE) || solution.equals(Solution.AI_DEVELOPER)) {
+        // AI Developer lives in the Guide SPA, so its tile opens the same destination as Guide.
         result = baseUrl + UserInterfaceLinksHelper.getGuideSpaPath();
       }
       else if (solution.equals(Solution.LIFECYCLE) && dashboardUtils.isDashboardDisabled()) {

@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 public class ApiLicensedSolutionService
 {
   private static final Map<Solution, String> SOLUTION_ID_MAPPING = new ImmutableMap.Builder<Solution, String>()
+      .put(Solution.AI_DEVELOPER, "aiDeveloper")
       .put(Solution.DEVELOPER, "developer")
       .put(Solution.FIREWALL, "firewall")
       .put(Solution.GUIDE, "guide")

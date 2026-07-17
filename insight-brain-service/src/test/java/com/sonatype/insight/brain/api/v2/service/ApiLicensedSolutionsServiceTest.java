@@ -43,8 +43,9 @@ public class ApiLicensedSolutionsServiceTest
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
     // then: results have all solutions with relative URLs
-    assertThat(licensedSolutions).hasSize(5);
+    assertThat(licensedSolutions).hasSize(6);
     assertThat(toMap(licensedSolutions))
+        .containsEntry("aiDeveloper", "/assets/guide/index.html#/")
         .containsEntry("developer", "/ui/links/developer/dashboard")
         .containsEntry("firewall", "/ui/links/firewall/dashboard")
         .containsEntry("lifecycle", "/ui/links/lifecycle/dashboard")
@@ -66,8 +67,9 @@ public class ApiLicensedSolutionsServiceTest
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
     // then: results have all solutions with full URLs
-    assertThat(licensedSolutions).hasSize(5);
+    assertThat(licensedSolutions).hasSize(6);
     assertThat(toMap(licensedSolutions))
+        .containsEntry("aiDeveloper", "https://localhost:8443/assets/guide/index.html#/")
         .containsEntry("developer", "https://localhost:8443/ui/links/developer/dashboard")
         .containsEntry("firewall", "https://localhost:8443/ui/links/firewall/dashboard")
         .containsEntry("lifecycle", "https://localhost:8443/ui/links/lifecycle/dashboard")
@@ -89,8 +91,9 @@ public class ApiLicensedSolutionsServiceTest
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
     // then: results have all solutions with full URLs
-    assertThat(licensedSolutions).hasSize(5);
+    assertThat(licensedSolutions).hasSize(6);
     assertThat(toMap(licensedSolutions))
+        .containsEntry("aiDeveloper", "https://localhost:8443/assets/guide/index.html#/")
         .containsEntry("developer", "https://localhost:8443/ui/links/developer/dashboard")
         .containsEntry("firewall", "https://localhost:8443/ui/links/firewall/dashboard")
         .containsEntry("lifecycle", "https://localhost:8443/ui/links/lifecycle/dashboard")
@@ -141,6 +144,9 @@ public class ApiLicensedSolutionsServiceTest
     when(productLicense.hasProduct(any())).thenReturn(withProducts);
     // Guide requires the product AND the HDS-controlled GUIDE feature (SolutionResolver).
     when(productLicense.hasFeature(LicensedFeature.GUIDE)).thenReturn(withProducts);
+    // AI Developer requires the HDS-controlled AI_DEVELOPER feature; the single-tenant AiDeveloper
+    // SKU resolves here since this resolver is single-tenant.
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(withProducts);
     TenantUtil tenantUtil = Mockito.mock(TenantUtil.class);
     when(tenantUtil.isMultiTenant()).thenReturn(false);
     return new SolutionResolver(productLicense, tenantUtil);

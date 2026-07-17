@@ -30,6 +30,14 @@ import {
   LEGAL_COMPONENTS_DASHBOARD_URL,
 } from 'MainRoot/legal/dashboard/legalDashboardRouteData';
 import { LEGAL_DEEP_LINK_STATES } from 'MainRoot/legal/legalDeepLinkStates';
+import {
+  ORGS_AND_POLICIES_STATES,
+  ORGS_AND_POLICIES_CHROME_COMPONENTS,
+  toManagementStateRegistration,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStates';
+import { mountOrgsAndPoliciesChrome } from 'MainRoot/nexus-one/OrgsAndPoliciesEmbedMount';
+import InnerSourceRepositoryBaseConfigurations from 'MainRoot/innerSourceRepositoryConfiguration/InnerSourceRepositoryBaseConfigurations';
+import ArtifactoryRepositoryBaseConfigurations from 'MainRoot/artifactoryRepositoryConfiguration/ArtifactoryRepositoryBaseConfigurations';
 import React2ShellPage from 'MainRoot/report/react2shell/React2ShellPage';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
 import { ReportingRoute } from 'MainRoot/nexus-one/ReportingRoute';
@@ -293,12 +301,20 @@ const NATIVE_CLASSIC_COMPONENTS: Partial<Record<ComingSoonModuleSlug, React.Comp
  * despite the shared reference above. Redirecting means the entry never renders anything itself,
  * so the user always lands directly on a legal.*Dashboard child — no such transition ever happens.
  */
-const NATIVE_CLASSIC_EMBED_REDIRECTS: Partial<Record<ComingSoonModuleSlug, string>> = {
+type ClassicEmbedRedirect = string | { readonly state: string; readonly params: Record<string, string> };
+
+const NATIVE_CLASSIC_EMBED_REDIRECTS: Partial<Record<ComingSoonModuleSlug, ClassicEmbedRedirect>> = {
   legal: 'legal.applicationsDashboard',
   // LeftNav targets /repositories (nexusOneRepositories); the /coming-soon/repositories entry
   // redirects to that canonical route so stale Coming Soon bookmarks land on the highlighted,
   // feature-gated page instead of a parallel mount. CLM-42184.
   repositories: 'nexusOneRepositories',
+  // Orgs and Policies embeds the Classic `management.*` tree (see ORGS_AND_POLICIES_STATES below).
+  // Its entry redirects to the root org's summary page; organizationId is a required param, so this
+  // is an object redirect rather than a bare state name like Legal's. 'ROOT_ORGANIZATION_ID' mirrors
+  // the classicHref in comingSoonModules.ts (the legacy UI uses the literal, not the guide constant,
+  // to avoid a guide <-> IQ-UI cross-import).
+  'orgs-and-policies': { state: 'management.view.organization', params: { organizationId: 'ROOT_ORGANIZATION_ID' } },
 };
 
 NATIVE_CLASSIC_EMBED_SLUGS.forEach((slug) => {
@@ -386,6 +402,71 @@ LEGAL_DEEP_LINK_STATES.forEach((stateDef) => {
     ...(stateDef.data ? { data: stateDef.data } : {}),
     ...(stateDef.abstract ? { abstract: true } : {}),
   } as ReactStateDeclaration);
+});
+
+// Register the Classic Orgs and Policies (`management.*`) state tree in the Nexus One bundle's own
+// router instance from the shared source of truth (orgsAndPoliciesStates.ts), so the embedded org
+// pages and all their in-page navigation (org tree, policies, access, monitoring, source control,
+// ...) resolve in-shell instead of bouncing to Classic. selectRoutePrefix returns '' for these
+// canonical `management.*` names, so ownerSideNav / breadcrumb links target these registrations.
+// Chrome-carrying states (the ORGS_AND_POLICIES_CHROME_COMPONENTS set - see its JSDoc in
+// orgsAndPoliciesStates.ts) mount inside the embed chrome, memoized per component so switching owner
+// types never remounts it; every deeper state registers with its bare component.
+const mountedOrgsAndPoliciesComponents = new Map<React.ComponentType, React.ComponentType>();
+
+function mountOrgsAndPoliciesChromeOnce(Component: React.ComponentType): React.ComponentType {
+  let mounted = mountedOrgsAndPoliciesComponents.get(Component);
+  if (!mounted) {
+    mounted = mountOrgsAndPoliciesChrome(Component);
+    mountedOrgsAndPoliciesComponents.set(Component, mounted);
+  }
+  return mounted;
+}
+
+ORGS_AND_POLICIES_STATES.forEach((stateDef) => {
+  const component = ORGS_AND_POLICIES_CHROME_COMPONENTS.has(stateDef.component)
+    ? mountOrgsAndPoliciesChromeOnce(stateDef.component)
+    : stateDef.component;
+  router.stateRegistry.register(toManagementStateRegistration(stateDef, component));
+});
+
+// The owner summary's InnerSource / Artifactory tile "Edit" buttons stateGo to these sibling state
+// trees (repositoryBaseConfigurations.* / artifactoryRepositoryBaseConfigurations.*, defined in the
+// Classic <feature>/route.js files). Register them here, wrapped in the embed mount so the standalone
+// edit pages render in-shell; without them the Edit buttons stateGo to an unregistered state and do
+// nothing. The abstract parent renders the page component; its per-owner-type children only add the
+// url params, mirroring the Classic registrations - including each parent's `isDirty` metadata so
+// installDirtyGuard opens UnsavedChangesModal on leave (repositoryBaseConfigurations' dirty flag
+// lives in the innerSourceRepositoryBaseConfigurations slice, matching Classic).
+[
+  {
+    abstractName: 'repositoryBaseConfigurations',
+    component: InnerSourceRepositoryBaseConfigurations,
+    title: 'Repository Configurations',
+    childSuffix: 'repositoryBaseConfigurations',
+    isDirtyStateKey: 'innerSourceRepositoryBaseConfigurations',
+  },
+  {
+    abstractName: 'artifactoryRepositoryBaseConfigurations',
+    component: ArtifactoryRepositoryBaseConfigurations,
+    title: 'Artifactory Repository Configurations',
+    childSuffix: 'artifactoryRepositoryBaseConfigurations',
+    isDirtyStateKey: 'artifactoryRepositoryBaseConfigurations',
+  },
+].forEach(({ abstractName, component, title, childSuffix, isDirtyStateKey }) => {
+  router.stateRegistry.register({
+    name: abstractName,
+    abstract: true,
+    url: '/management/edit',
+    component: mountClassicComponent(component),
+    data: { title, isDirty: [isDirtyStateKey, 'isDirty'] },
+  } as ReactStateDeclaration);
+  ['organization', 'application'].forEach((ownerType) => {
+    router.stateRegistry.register({
+      name: `${abstractName}.${ownerType}`,
+      url: `/${ownerType}/{${ownerType}Id}/${childSuffix}`,
+    } as ReactStateDeclaration);
+  });
 });
 
 function LabsContainer(): JSX.Element {

@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.TimeoutError;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
@@ -21,6 +22,7 @@ import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.CopyrightOverrideFormPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.InnerSourceRepositoryEditorPage;
 import com.sonatype.clm.testing.playwright.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.LegalDashboardPage;
 import com.sonatype.clm.testing.playwright.pages.LegalDashboardPageAssertions;
@@ -30,6 +32,9 @@ import com.sonatype.clm.testing.playwright.pages.NexusOnePage;
 import com.sonatype.clm.testing.playwright.pages.NexusOnePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OperationalReportingPage;
 import com.sonatype.clm.testing.playwright.pages.OperationalReportingPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPageAssertions;
@@ -54,9 +59,9 @@ import static org.junit.Assert.assertFalse;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
- * AT-EMBED regression coverage for Classic Success Metrics, API, Legal Dashboard, and
- * Enterprise/Operational Reporting pages mounted natively inside the Nexus One shell without
- * duplicate Classic chrome.
+ * AT-EMBED regression coverage for Classic Success Metrics, API, Legal Dashboard, Orgs and
+ * Policies, and Enterprise/Operational Reporting pages mounted natively inside the Nexus One shell
+ * without duplicate Classic chrome.
  */
 public class NexusOneClassicEmbedPlaywrightTest
     extends AbstractIqUiTest
@@ -305,6 +310,80 @@ public class NexusOneClassicEmbedPlaywrightTest
     assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
 
     operationalAssertions.shouldBeLoaded();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedOrgsAndPolicies_rendersRootOrgSummaryInsideNexusOneShell() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/orgs-and-policies"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    OwnerSummaryPageAssertions ownerSummaryAssertions = new OwnerSummaryPageAssertions(ownerSummary);
+
+    // The Coming Soon entry redirects straight to the root org's summary rather than mounting a
+    // component of its own - see nexus-one/routes.tsx's NATIVE_CLASSIC_EMBED_REDIRECTS comment.
+    assertThat(page).hasURL(Pattern.compile(".*/management/view/organization/.*"));
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.leftNavLink("Orgs & Policies")).isVisible();
+    assertThat(embedPage.leftNavLink("Orgs & Policies")).hasAttribute("aria-current", "page");
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    ownerSummaryAssertions.shouldBeVisible();
+    ownerSummaryAssertions.shouldShowPoliciesTile();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedOrgsAndPolicies_policyEditorNavigationStaysInShell() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/orgs-and-policies"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    PolicyEditorPage policyEditor = new PolicyEditorPage();
+
+    // Drilling from the org summary (management.view.organization) into the new-policy editor
+    // (management.edit.organization.create-policy) crosses a state both bundles register: it must
+    // resolve inside the Nexus One shell, never bounce out to the Classic bundle.
+    ownerSummary.addPolicyButton().click();
+
+    assertThat(policyEditor.container()).isVisible();
+    // Still on the Nexus One bundle (/assets/nexus-one/index.html#...), on a management sub-route,
+    // not the Classic bundle (/assets/index.html#...).
+    assertThat(page).hasURL(Pattern.compile(".*/assets/nexus-one/index\\.html#/management/edit/organization/.*"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+    assertThat(embedPage.leftNavLink("Orgs & Policies")).hasAttribute("aria-current", "page");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedOrgsAndPolicies_innerSourceEditButtonNavigatesInShell() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/orgs-and-policies"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    InnerSourceRepositoryEditorPage innerSourceEditor = new InnerSourceRepositoryEditorPage();
+
+    // The InnerSource tile's Edit button stateGo's to repositoryBaseConfigurations.organization, a
+    // sibling state tree that nexus-one/routes.tsx must register; without it the click does nothing
+    // (CLM-42161).
+    ownerSummary.innerSourceRepositoryTile()
+        .getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Edit"))
+        .click();
+
+    assertThat(innerSourceEditor.container()).isVisible();
+    assertThat(page).hasURL(Pattern.compile(".*/management/edit/organization/.*/repositoryBaseConfigurations"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
   }
 
   private void stubEnterpriseReportingHds() {

@@ -16,6 +16,12 @@ import {
 } from 'MainRoot/nosc/comingSoon';
 import { isNativeClassicEmbedSlug } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import { LEGAL_DEEP_LINK_STATES } from 'MainRoot/legal/legalDeepLinkStates';
+import {
+  ORGS_AND_POLICIES_STATES,
+  ORGS_AND_POLICIES_CHROME_COMPONENTS,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStates';
+import OwnersTreePage from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnersTreePage';
+import PolicyEditor from 'MainRoot/OrgsAndPolicies/policyEditor/PolicyEditor';
 import { NEXUS_ONE_APPLICATION_REPORT_STATE } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 import { NEXUS_ONE_VIOLATION_DETAIL_STATE } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
@@ -39,6 +45,13 @@ describe('nexusOneClassicEmbedRoutes', () => {
         // dedicated tests below for why.
         expect(state?.component).toBeUndefined();
         expect(state?.redirectTo).toBe('legal.applicationsDashboard');
+      } else if (slug === 'orgs-and-policies') {
+        // Orgs and Policies' entry redirects into the embedded management tree - see below.
+        expect(state?.component).toBeUndefined();
+        expect(state?.redirectTo).toEqual({
+          state: 'management.view.organization',
+          params: { organizationId: 'ROOT_ORGANIZATION_ID' },
+        });
       } else {
         expect(state?.component).not.toBe(ComingSoonRoute);
       }
@@ -152,6 +165,82 @@ describe('nexusOneClassicEmbedRoutes', () => {
     // share the same wrapped reference too.
     const otherNoticeParent = router.stateRegistry.get('legal.noticeFilesByComponentIdentifier');
     expect(otherNoticeParent?.component).toBe(registeredParent?.component);
+  });
+
+  it('redirects the Orgs and Policies Coming Soon entry to the root org summary (CLM-42161)', () => {
+    // organizationId is a required param, so the entry redirects to an object target rather than a
+    // bare state name like Legal's. 'ROOT_ORGANIZATION_ID' mirrors the classicHref in comingSoonModules.ts.
+    const state = router.stateRegistry.get(comingSoonStateName('orgs-and-policies'));
+    expect(state?.component).toBeUndefined();
+    expect(state?.redirectTo).toEqual({
+      state: 'management.view.organization',
+      params: { organizationId: 'ROOT_ORGANIZATION_ID' },
+    });
+  });
+
+  it('registers every state in ORGS_AND_POLICIES_STATES with a matching url and a defined component', () => {
+    // Data-driven drift guard, mirroring the LEGAL_DEEP_LINK_STATES test above - adding a management
+    // state to orgsAndPoliciesStates.ts is automatically covered here.
+    ORGS_AND_POLICIES_STATES.forEach((stateDef) => {
+      const registered = router.stateRegistry.get(stateDef.name);
+      expect(registered).toBeDefined();
+      if (stateDef.url !== undefined) {
+        expect(registered?.url).toBe(stateDef.url);
+      }
+      expect(registered?.component).toBeDefined();
+      if (stateDef.abstract) {
+        expect(registered?.abstract).toBe(true);
+      }
+    });
+  });
+
+  it('wraps only the chrome-carrying management states, leaving deeper states unwrapped', () => {
+    // management.view / management.tree / management.edit.{ownerType} carry their own sidebar +
+    // breadcrumb + nested <UIView /> and get wrapped in ClassicComponentMount; the pages that render
+    // inside those UIViews (org summary, policy editor, ...) register with their bare component.
+    ORGS_AND_POLICIES_STATES.forEach((stateDef) => {
+      const registered = router.stateRegistry.get(stateDef.name);
+      if (ORGS_AND_POLICIES_CHROME_COMPONENTS.has(stateDef.component)) {
+        expect(registered?.component).not.toBe(stateDef.component); // wrapped
+      } else {
+        expect(registered?.component).toBe(stateDef.component); // bare
+      }
+    });
+
+    // Anchor against concrete components so an empty/incorrect ORGS_AND_POLICIES_CHROME_COMPONENTS
+    // set (which would make the loop above pass vacuously) still fails: management.tree must be
+    // wrapped, and a deep editor state must stay bare.
+    const treeComponent = router.stateRegistry.get('management.tree')?.component;
+    expect(treeComponent).toBeDefined();
+    expect(treeComponent).not.toBe(OwnersTreePage);
+    expect(router.stateRegistry.get('management.edit.organization.policy')?.component).toBe(PolicyEditor);
+  });
+
+  it('shares one mounted reference per chrome component across owner types', () => {
+    // Every management.edit.{ownerType} renders OwnerManagerEditWrapper; a distinct wrapper per state
+    // would remount the whole edit shell when switching owner types. They must share one reference.
+    const editWrapperComponents = ORGS_AND_POLICIES_STATES.filter((s) => /^management\.edit\.[^.]+$/.test(s.name)).map(
+      (s) => router.stateRegistry.get(s.name)?.component
+    );
+
+    expect(editWrapperComponents.length).toBeGreaterThan(1);
+    editWrapperComponents.forEach((component) => {
+      expect(component).toBeDefined();
+      expect(component).toBe(editWrapperComponents[0]);
+    });
+  });
+
+  it('registers the InnerSource / Artifactory repository config states the owner-summary Edit buttons target', () => {
+    // The tiles stateGo to these by name; without registration the Edit buttons do nothing (CLM-42161).
+    ['repositoryBaseConfigurations', 'artifactoryRepositoryBaseConfigurations'].forEach((abstractName) => {
+      expect(router.stateRegistry.get(abstractName)?.component).toBeDefined();
+
+      const orgState = router.stateRegistry.get(`${abstractName}.organization`);
+      expect(orgState?.url).toBe(`/organization/{organizationId}/${abstractName}`);
+
+      const appState = router.stateRegistry.get(`${abstractName}.application`);
+      expect(appState?.url).toBe(`/application/{applicationId}/${abstractName}`);
+    });
   });
 
   it('registers the embedded application report state (CLM-41538)', () => {

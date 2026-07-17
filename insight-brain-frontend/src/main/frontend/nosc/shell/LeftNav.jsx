@@ -53,6 +53,11 @@ const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
 const LEGAL_ACTIVE_HREFS = Object.freeze([LEGAL_APPLICATIONS_DASHBOARD_URL, LEGAL_COMPONENTS_DASHBOARD_URL, '/legal']);
 const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '/reports/react2shell']);
 const COMPONENTS_ACTIVE_HREFS = Object.freeze([comingSoonHref('components')]);
+// '/management' is a prefix match (see hrefMatches) covering the whole embedded Orgs and Policies
+// tree (orgsAndPoliciesStates.ts). The entry redirects onto
+// `/management/view/organization/ROOT_ORGANIZATION_ID`, so the rail must stay lit across all of
+// `/management/...`, not just the Coming Soon href it advertises.
+const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
 
 /**
  * Nexus One Preview LeftNav.
@@ -93,7 +98,11 @@ const COMPONENTS_ACTIVE_HREFS = Object.freeze([comingSoonHref('components')]);
  *                          application details, component overview, attribution
  *                          reports, and the copyright/notice/license-file/
  *                          license-details families — none of it exits to Classic)
- *   Orgs & Policies      → /coming-soon/orgs-and-policies (Coming Soon)
+ *   Orgs & Policies      → embedded Classic mount        (native; the
+ *                          /coming-soon/orgs-and-policies route redirects to the
+ *                          Classic root-org summary mounted in-shell. Every
+ *                          reachable /management/* sub-route also mounts
+ *                          in-shell — see MANAGEMENT_ACTIVE_HREFS)
  *   Violations           → /preview/violations            (native; PreviewViolationsList)
  *   Vulnerabilities      → /coming-soon/vulnerabilities   (Coming Soon)
  *   Waivers              → /preview/waivers               (native)
@@ -300,6 +309,7 @@ function buildNavItems(flags) {
       label: 'Orgs & Policies',
       Icon: DomainIcons.Organizations,
       href: comingSoonHref('orgs-and-policies'),
+      activeHrefs: MANAGEMENT_ACTIVE_HREFS,
     });
   }
   if (isLicensed && isOrgsAndAppsEnabled) {

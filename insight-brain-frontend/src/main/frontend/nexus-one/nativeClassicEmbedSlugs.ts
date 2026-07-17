@@ -10,6 +10,7 @@ export const NATIVE_CLASSIC_EMBED_SLUGS: readonly ComingSoonModuleSlug[] = [
   'api',
   'repositories',
   'legal',
+  'orgs-and-policies',
   'reports',
 ];
 

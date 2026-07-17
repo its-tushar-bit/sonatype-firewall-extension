@@ -328,5 +328,27 @@ describe('LeftNav', () => {
       renderLeftNav(fullyLicensedState, '#/legal/applicationsDashboard?tab=foo');
       expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
     });
+
+    it('highlights Orgs & Policies on its own Coming Soon entry route', () => {
+      renderLeftNav(fullyLicensedState, '#/coming-soon/orgs-and-policies');
+      expect(screen.getByRole('link', { name: 'Orgs & Policies' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('keeps Orgs & Policies highlighted on the embedded root org view sub-route via activeHrefs', () => {
+      // The entry redirects onto /management/view/organization/... — a user landing on the root org
+      // view must not see the rail entry de-highlight.
+      renderLeftNav(fullyLicensedState, '#/management/view/organization/ROOT_ORGANIZATION_ID');
+      expect(screen.getByRole('link', { name: 'Orgs & Policies' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('keeps Orgs & Policies highlighted on a deep management editor sub-route via activeHrefs', () => {
+      renderLeftNav(fullyLicensedState, '#/management/edit/organization/ROOT_ORGANIZATION_ID/policy/abc');
+      expect(screen.getByRole('link', { name: 'Orgs & Policies' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('does not highlight Orgs & Policies on an unrelated route', () => {
+      renderLeftNav(fullyLicensedState, '#/dashboard');
+      expect(screen.getByRole('link', { name: 'Orgs & Policies' })).not.toHaveAttribute('aria-current', 'page');
+    });
   });
 });

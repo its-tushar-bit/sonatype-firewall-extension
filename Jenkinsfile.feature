@@ -100,6 +100,10 @@
  ╚═══════════════════════════════════════════════════════════════════════════════════════════════╝
  */
 
+// moby/buildkit v0.31.2. Pinned by digest because Firewall quarantines every moby/buildkit tag; a digest
+// ref is not tag-quarantined.
+buildkitImageDigest = 'sha256:2f5adac4ecd194d9f8c10b7b5d7bceb5186853db1b26e5abd3a657af0b7e26ec'
+
 // Configure build parameters and job properties
 configureBranchJob()
 
@@ -759,7 +763,7 @@ void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
       echo "pushMtiqImage: $pushMtiqImage"
       def pushOption = pushMtiqImage ? " --push " : ""
 
-      sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit"
+      sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit@${buildkitImageDigest}"
       sh """docker buildx build --platform=linux/amd64,linux/arm64 \
             --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} \
             --build-arg IQ_SERVER_VERSION=${iqVersion} \

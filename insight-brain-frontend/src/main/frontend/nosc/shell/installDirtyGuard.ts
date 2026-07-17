@@ -28,8 +28,8 @@ const IGNORED_REJECT_TYPES: readonly RejectType[] = [RejectType.SUPERSEDED, Reje
  *    superseded and user-cancelled transitions, so a normal Cancel does not
  *    surface as an unhandled promise rejection.
  *  - `window.beforeunload` — calls `event.preventDefault()` and sets
- *    `event.returnValue = ''` (the modern spec pattern) so the browser shows
- *    its native "leave site" prompt on hard navigation (refresh, close tab,
+ *    `event.returnValue = ''` (legacy fallback for older browsers) so the browser
+ *    shows its native "leave site" prompt on hard navigation (refresh, close tab,
  *    bundle switch via `window.location.assign`). Modern browsers ignore any
  *    string content — the prompt copy is browser-controlled.
  *

@@ -18,6 +18,7 @@ import {
 import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/SuccessMetricsReportListContainer';
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
 import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
+import SystemNoticeConfigurationContainer from 'MainRoot/configuration/systemNoticeConfiguration/SystemNoticeConfigurationContainer';
 import ApiPage from 'MainRoot/api/ApiPage';
 import HostedReposPage from 'MainRoot/hostedRepos/HostedReposPage';
 import HostedReposListPage from 'MainRoot/hostedRepos/HostedReposListPage';
@@ -499,6 +500,11 @@ router.stateRegistry.register({
   data: { title: 'Success Metrics' },
 } as ReactStateDeclaration);
 
+const requireConfigureSystem = async () => {
+  const authorized = await isAuthorized(['CONFIGURE_SYSTEM']);
+  return authorized ? undefined : 'nexusOneDashboard.violations';
+};
+
 router.stateRegistry.register({
   name: 'successMetricsConfiguration',
   url: '/successMetricsConfiguration',
@@ -509,10 +515,7 @@ router.stateRegistry.register({
   // declaration falls through (NOSC shell isn't a CSS Grid ancestor) and
   // content underruns the sidebar. Sibling api and labs.successMetrics routes
   // use the same wrapper.
-  redirectTo: async () => {
-    const authorized = await isAuthorized(['CONFIGURE_SYSTEM']);
-    return authorized ? undefined : 'nexusOneDashboard.violations';
-  },
+  redirectTo: requireConfigureSystem,
   data: {
     title: 'Success Metrics Configuration',
     isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
@@ -524,13 +527,22 @@ router.stateRegistry.register({
   url: '/baseUrl',
   // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
   component: mountClassicComponent(BaseUrlConfiguration),
-  redirectTo: async () => {
-    const authorized = await isAuthorized(['CONFIGURE_SYSTEM']);
-    return authorized ? undefined : 'nexusOneDashboard.violations';
-  },
+  redirectTo: requireConfigureSystem,
   data: {
     title: 'Base URL Configuration',
     isDirty: ['baseUrlConfiguration', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'systemNoticeConfiguration',
+  url: '/systemNoticeConfiguration',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(SystemNoticeConfigurationContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'System Notice',
+    isDirty: ['systemNoticeConfiguration', 'viewState', 'isDirty'],
   },
 } as ReactStateDeclaration);
 
@@ -540,6 +552,7 @@ router.stateRegistry.register({
   redirectTo: comingSoonStateName('reports'),
   data: { title: 'Enterprise Reporting' },
 } as ReactStateDeclaration);
+
 
 router.stateRegistry.register({ name: 'dashboard', abstract: true, url: '' });
 router.stateRegistry.register({ name: 'dashboard.overview', abstract: true, url: '' });

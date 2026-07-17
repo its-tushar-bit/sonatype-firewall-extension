@@ -325,6 +325,11 @@ describe('nexusOneClassicEmbedRoutes', () => {
       ['successMetricsConfiguration', 'viewState', 'isDirty'],
     ],
     ['baseUrlConfiguration', '/baseUrl', ['baseUrlConfiguration', 'isDirty']],
+    [
+      'systemNoticeConfiguration',
+      '/systemNoticeConfiguration',
+      ['systemNoticeConfiguration', 'viewState', 'isDirty'],
+    ],
   ])('%s Classic-embed admin route', (stateName, url, isDirtyPath) => {
     const state = () => router.stateRegistry.get(stateName);
     const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;

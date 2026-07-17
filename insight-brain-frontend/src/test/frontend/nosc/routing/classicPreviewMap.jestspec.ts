@@ -83,6 +83,10 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/baseUrl')).toBe('/baseUrl');
     });
 
+    it('keeps the System Notice admin path identical on both bundles', () => {
+      expect(toNexusOneEquivalent('/systemNoticeConfiguration')).toBe('/systemNoticeConfiguration');
+    });
+
     it('falls back to NEXUS_ONE_DEFAULT_PATH for unmapped Classic URLs', () => {
       // `/orgsAndPolicies` (with the typo'd lowercase first letter)
       // and a fake nonsense path are both genuinely unmapped — they
@@ -155,6 +159,10 @@ describe('classicPreviewMap', () => {
 
     it('maps Base URL admin back to the same Classic path (CLM-42463)', () => {
       expect(toClassicEquivalent('/baseUrl')).toBe('/baseUrl');
+    });
+
+    it('maps System Notice admin back to the same Classic path', () => {
+      expect(toClassicEquivalent('/systemNoticeConfiguration')).toBe('/systemNoticeConfiguration');
     });
 
     it('falls back to CLASSIC_DEFAULT_PATH for unmapped Preview URLs', () => {
@@ -261,6 +269,7 @@ describe('classicPreviewMap', () => {
       ['/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo'],
       ['/successMetricsConfiguration'],
       ['/baseUrl'],
+      ['/systemNoticeConfiguration'],
     ])('nexus-one %s -> classic -> nexus-one returns to a path that maps back', (previewPath) => {
       const classicEquivalent = toClassicEquivalent(previewPath);
       const backToPreview = toNexusOneEquivalent(classicEquivalent);

@@ -47,6 +47,7 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   // '/ui-settings', not the caller-supplied path.
   ['/successMetricsConfiguration', '/successMetricsConfiguration'],
   ['/baseUrl', '/baseUrl'],
+  ['/systemNoticeConfiguration', '/systemNoticeConfiguration'],
   // Hosted Repos (/repositories <-> /hostedRepos) is handled by SUBTREE_MAPPINGS below
   // so deep links round-trip 1-1. It's excluded from the Coming Soon entries because
   // it's a native embed, not a stub (CLM-42184).

@@ -256,7 +256,6 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     {
       label: 'System Notice',
       stateName: 'systemNoticeConfiguration',
-      prefix: firewallPrefix,
       showIf: CONFIGURE_SYSTEM && isSystemNoticeConfigurationEnabled,
       testId: 'nexus-one-top-nav-settings-item-system-notice',
     },

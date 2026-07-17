@@ -38,6 +38,8 @@ import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.SystemNoticePage;
+import com.sonatype.clm.testing.playwright.pages.SystemNoticePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.clm.testing.playwright.utils.HdsStubs;
@@ -46,6 +48,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -425,7 +428,7 @@ public class NexusOneClassicEmbedPlaywrightTest
     assertThat(configPage.container()).isVisible();
     assertThat(configPage.pageHeading()).isVisible();
     assertThat(configPage.tileHeading()).isVisible();
-    assertThat(configPage.enabledToggle()).isVisible();
+    assertThat(configPage.enabledToggleInput()).isChecked();
     assertThat(configPage.updateButton()).isVisible();
   }
 
@@ -451,6 +454,7 @@ public class NexusOneClassicEmbedPlaywrightTest
     modal.cancelButton().click();
     assertThat(modal.container()).isHidden();
     assertThat(configPage.container()).isVisible();
+    assertThat(configPage.enabledToggleInput()).not().isChecked();
   }
 
   /**
@@ -556,5 +560,105 @@ public class NexusOneClassicEmbedPlaywrightTest
     assertThat(modal.container()).isHidden();
     assertThat(configPage.saveButton()).isHidden();
     assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42206: Classic System Notice Configuration mounts natively at
+   * {@code /systemNoticeConfiguration} on the Nexus One bundle, rendering the
+   * Classic form as-is inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedSystemNoticeConfiguration_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    SystemNoticePage noticePage = new SystemNoticePage();
+    SystemNoticePageAssertions noticeAssertions = new SystemNoticePageAssertions(noticePage);
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    noticeAssertions.shouldRenderPageLayout();
+  }
+
+  /**
+   * CLM-42206 dirty-guard cancel path: typing in the notice text field dirties
+   * the form; a hash navigation triggers the shell dirty-guard; Cancel keeps
+   * the user on the config page.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedSystemNoticeConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+
+    SystemNoticePage noticePage = new SystemNoticePage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    noticePage.container().waitFor();
+    noticePage.noticeText().fill("dirty notice text");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(noticePage.container()).isVisible();
+  }
+
+  /**
+   * CLM-42206 dirty-guard continue path: Continue closes the modal and lets
+   * the transition proceed; the config page unmounts and the user lands on
+   * the target route.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedSystemNoticeConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+
+    SystemNoticePage noticePage = new SystemNoticePage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    noticePage.container().waitFor();
+    noticePage.noticeText().fill("dirty notice text");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(noticePage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42206 auth gate: a user without CONFIGURE_SYSTEM navigating to
+   * /systemNoticeConfiguration is redirected to the Nexus One violations
+   * dashboard before the admin form ever mounts. Covers the redirectTo
+   * function on the route.
+   *
+   * <p>
+   * Log in on Classic first so the shared session cookie is present when
+   * we navigate into Nexus One. Going straight to the Nexus One URL while
+   * logged out hits {@code ensureNexusOneShellAccess}, which bounces
+   * unauthenticated requests back to Classic before the router — so the
+   * route's own {@code redirectTo} would never fire.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedSystemNoticeConfiguration_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    SystemNoticePage noticePage = new SystemNoticePage();
+    assertThat(noticePage.container()).isHidden();
   }
 }

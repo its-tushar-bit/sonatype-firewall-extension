@@ -149,7 +149,11 @@ public class ComponentInfoService
 
   private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
 
-  private final HdsClient hdsClient;
+  // Not volatile: safe only because the sole write (via setHdsClient(), see its Javadoc) happens on the
+  // constructing thread before this prototype-scoped instance is published to request threads. This relies
+  // on Spring's safe-publication guarantees (the instance is fully constructed before injection completes).
+  // If Jersey/Spring ever pooled/reused instances (not current behavior), this would need volatile.
+  private HdsClient hdsClient;
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
@@ -234,6 +238,19 @@ public class ComponentInfoService
     this.policyEvaluationDAO = policyEvaluationDAO;
     initUnspecifiedLicense();
     initOtherCategory();
+  }
+
+  /**
+   * Allows swapping the HdsClient after construction.
+   * Used exclusively by {@link com.sonatype.insight.brain.ide.IDEComponentInfoResource} to inject a
+   * dedicated client with circuit breaker protection for the IDE component-details endpoint.
+   * Safe because ComponentInfoService is prototype-scoped - each injection gets its own instance.
+   * Public only because the caller lives in a different package; do not call from any other site
+   * without Tech Lead review, since swapping the client can bypass another caller's timeout/circuit
+   * breaker isolation.
+   */
+  public void setHdsClient(HdsClient hdsClient) {
+    this.hdsClient = Objects.requireNonNull(hdsClient, "hdsClient");
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)

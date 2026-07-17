@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -45,9 +46,13 @@ public class IDEComponentInfoResource
   private final ComponentInfoService componentInfoService;
 
   @Inject
-  public IDEComponentInfoResource(ComponentInfoService componentInfoService) {
+  public IDEComponentInfoResource(
+      ComponentInfoService componentInfoService,
+      @Named("ideComponentDetails") HdsClient ideHdsClient)
+  {
     this.componentInfoService = componentInfoService;
-    componentInfoService.setToolName("ide");
+    this.componentInfoService.setHdsClient(ideHdsClient);
+    this.componentInfoService.setToolName("ide");
   }
 
   @GET

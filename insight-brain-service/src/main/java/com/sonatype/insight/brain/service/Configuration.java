@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.IdeComponentDetailsHdsClient;
 import com.sonatype.insight.brain.relay.RelayClient;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
@@ -296,6 +297,8 @@ public class Configuration
     releaseGraphCacheSizeInitializeCache(propertyNamesCopy);
     firewallQuarantineHdsPoolSizeRestartWarning(propertyNamesCopy);
     firewallQuarantineHdsTimeoutsServerConfigurationChanged(propertyNamesCopy);
+    ideComponentDetailsHdsPoolSizeRestartWarning(propertyNamesCopy);
+    ideComponentDetailsHdsTimeoutsServerConfigurationChanged(propertyNamesCopy);
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
@@ -356,6 +359,28 @@ public class Configuration
             prop.equals(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS),
         prop -> hdsClients.orderedStream()
             .filter(FirewallQuarantineHdsClient.class::isInstance)
+            .forEach(HdsClient::serverConfigurationChanged));
+  }
+
+  private void ideComponentDetailsHdsPoolSizeRestartWarning(Set<String> propertyNamesCopy) {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_POOL_SIZE),
+        prop -> log.warn(
+            "ideComponentDetailsHdsPoolSize updated to {} but will not take effect until the server is restarted.",
+            getIdeComponentDetailsHdsPoolSize()));
+  }
+
+  // A change to the global CONNECT_TIMEOUT_IN_SECONDS/SOCKET_TIMEOUT_IN_SECONDS already triggers
+  // hdsUrlAndTimeoutsServerConfigurationChanged() above, which also calls serverConfigurationChanged()
+  // on IdeComponentDetailsHdsClient - so it can run twice if an admin changes a global and an
+  // IDE-specific timeout together. Harmless: customizeConfiguration() re-reads the IDE-specific
+  // properties each time and is idempotent.
+  private void ideComponentDetailsHdsTimeoutsServerConfigurationChanged(Set<String> propertyNamesCopy) {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_CONNECT_TIMEOUT_IN_SECONDS) ||
+            prop.equals(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_SOCKET_TIMEOUT_IN_SECONDS),
+        prop -> hdsClients.orderedStream()
+            .filter(IdeComponentDetailsHdsClient.class::isInstance)
             .forEach(HdsClient::serverConfigurationChanged));
   }
 
@@ -549,6 +574,21 @@ public class Configuration
 
   public int getFirewallQuarantineHdsSocketTimeoutInSeconds() {
     return configCache.get(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS);
+  }
+
+  public int getIdeComponentDetailsHdsPoolSize() {
+    Integer value = configCache.get(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_POOL_SIZE);
+    return value != null ? value : IdeComponentDetailsHdsClient.DEFAULT_POOL_SIZE;
+  }
+
+  public int getIdeComponentDetailsHdsConnectTimeoutInSeconds() {
+    Integer value = configCache.get(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_CONNECT_TIMEOUT_IN_SECONDS);
+    return value != null ? value : IdeComponentDetailsHdsClient.DEFAULT_CONNECT_TIMEOUT_SECONDS;
+  }
+
+  public int getIdeComponentDetailsHdsSocketTimeoutInSeconds() {
+    Integer value = configCache.get(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_SOCKET_TIMEOUT_IN_SECONDS);
+    return value != null ? value : IdeComponentDetailsHdsClient.DEFAULT_SOCKET_TIMEOUT_SECONDS;
   }
 
   public boolean isAntiCsrfEnabled() {

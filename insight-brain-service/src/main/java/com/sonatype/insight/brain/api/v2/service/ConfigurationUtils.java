@@ -26,6 +26,7 @@ import jakarta.validation.constraints.NotNull;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
+import com.sonatype.insight.brain.hds.IdeComponentDetailsHdsClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -90,6 +91,8 @@ public class ConfigurationUtils
   public static final String NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE = "NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE";
 
   public static final String NXIQ_FIREWALL_QUARANTINE_HDS_POOL_SIZE = "NXIQ_FIREWALL_QUARANTINE_HDS_POOL_SIZE";
+
+  public static final String NXIQ_IDE_COMPONENT_DETAILS_HDS_POOL_SIZE = "NXIQ_IDE_COMPONENT_DETAILS_HDS_POOL_SIZE";
 
   public static final String NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE = "NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE";
 
@@ -458,6 +461,43 @@ public class ConfigurationUtils
     {
       log.warn("{}={} is out of range ({}-{}), falling back to default {}.", propertyName, parsed,
           FirewallQuarantineHdsClient.MIN_TIMEOUT_SECONDS, FirewallQuarantineHdsClient.MAX_TIMEOUT_SECONDS,
+          defaultVal);
+      return defaultVal;
+    }
+    return parsed;
+  }
+
+  public static int getIdeComponentDetailsHdsPoolSize(String value, int defaultVal) {
+    int parsed = Strings.isNullOrEmpty(value)
+        ? getIntEnvValueOrDefault(NXIQ_IDE_COMPONENT_DETAILS_HDS_POOL_SIZE, defaultVal)
+        : NumberUtils.toInt(value, defaultVal);
+    if (parsed <= 0 || parsed > IdeComponentDetailsHdsClient.MAX_POOL_SIZE) {
+      log.warn("ideComponentDetailsHdsPoolSize={} is out of range (1-{}), falling back to default {}.",
+          parsed, IdeComponentDetailsHdsClient.MAX_POOL_SIZE, defaultVal);
+      return defaultVal;
+    }
+    return parsed;
+  }
+
+  public static int getIdeComponentDetailsHdsConnectTimeoutInSeconds(String value, int defaultVal) {
+    return clampIdeComponentDetailsHdsTimeoutInSeconds(
+        "ideComponentDetailsHdsConnectTimeoutInSeconds", value, defaultVal);
+  }
+
+  public static int getIdeComponentDetailsHdsSocketTimeoutInSeconds(String value, int defaultVal) {
+    return clampIdeComponentDetailsHdsTimeoutInSeconds(
+        "ideComponentDetailsHdsSocketTimeoutInSeconds", value, defaultVal);
+  }
+
+  private static int clampIdeComponentDetailsHdsTimeoutInSeconds(String propertyName, String value, int defaultVal) {
+    // Unlike getIdeComponentDetailsHdsPoolSize, these timeout properties intentionally have no env-var
+    // override path, so a null/blank value simply falls through to NumberUtils.toInt's defaultVal.
+    int parsed = NumberUtils.toInt(value, defaultVal);
+    if (parsed < IdeComponentDetailsHdsClient.MIN_TIMEOUT_SECONDS
+        || parsed > IdeComponentDetailsHdsClient.MAX_TIMEOUT_SECONDS)
+    {
+      log.warn("{}={} is out of range ({}-{}), falling back to default {}.", propertyName, parsed,
+          IdeComponentDetailsHdsClient.MIN_TIMEOUT_SECONDS, IdeComponentDetailsHdsClient.MAX_TIMEOUT_SECONDS,
           defaultVal);
       return defaultVal;
     }

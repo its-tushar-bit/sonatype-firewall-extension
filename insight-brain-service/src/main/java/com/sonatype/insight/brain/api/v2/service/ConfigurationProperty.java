@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.SourceControlImportThreadPoolExecutor;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
+import com.sonatype.insight.brain.hds.IdeComponentDetailsHdsClient;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventProcessor;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -103,6 +104,26 @@ public class ConfigurationProperty
         (p, o) -> ConfigurationUtils.integerValueToString(o,
             SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS,
             FirewallQuarantineHdsClient.MIN_TIMEOUT_SECONDS, FirewallQuarantineHdsClient.MAX_TIMEOUT_SECONDS)),
+    new ConfigurationProperty(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_POOL_SIZE, Integer.class,
+        (p, s) -> ConfigurationUtils.getIdeComponentDetailsHdsPoolSize(s,
+            IdeComponentDetailsHdsClient.DEFAULT_POOL_SIZE),
+        (p, o) -> ConfigurationUtils.integerValueToString(o,
+            SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_POOL_SIZE,
+            1, IdeComponentDetailsHdsClient.MAX_POOL_SIZE)),
+    new ConfigurationProperty(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_CONNECT_TIMEOUT_IN_SECONDS,
+        Integer.class,
+        (p, s) -> ConfigurationUtils.getIdeComponentDetailsHdsConnectTimeoutInSeconds(s,
+            IdeComponentDetailsHdsClient.DEFAULT_CONNECT_TIMEOUT_SECONDS),
+        (p, o) -> ConfigurationUtils.integerValueToString(o,
+            SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_CONNECT_TIMEOUT_IN_SECONDS,
+            IdeComponentDetailsHdsClient.MIN_TIMEOUT_SECONDS, IdeComponentDetailsHdsClient.MAX_TIMEOUT_SECONDS)),
+    new ConfigurationProperty(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_SOCKET_TIMEOUT_IN_SECONDS,
+        Integer.class,
+        (p, s) -> ConfigurationUtils.getIdeComponentDetailsHdsSocketTimeoutInSeconds(s,
+            IdeComponentDetailsHdsClient.DEFAULT_SOCKET_TIMEOUT_SECONDS),
+        (p, o) -> ConfigurationUtils.integerValueToString(o,
+            SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_SOCKET_TIMEOUT_IN_SECONDS,
+            IdeComponentDetailsHdsClient.MIN_TIMEOUT_SECONDS, IdeComponentDetailsHdsClient.MAX_TIMEOUT_SECONDS)),
     new ConfigurationProperty(SystemConfigurationProperty.CSRF_PROTECTION, Boolean.class,
         (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
         (p, o) -> Objects.toString(o, null)),

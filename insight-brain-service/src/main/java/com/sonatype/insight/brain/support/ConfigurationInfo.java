@@ -64,6 +64,10 @@ public class ConfigurationInfo
         configuration.getFirewallQuarantineHdsConnectTimeoutInSeconds());
     entries.put(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS,
         configuration.getFirewallQuarantineHdsSocketTimeoutInSeconds());
+    entries.put(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_CONNECT_TIMEOUT_IN_SECONDS,
+        configuration.getIdeComponentDetailsHdsConnectTimeoutInSeconds());
+    entries.put(SystemConfigurationProperty.IDE_COMPONENT_DETAILS_HDS_SOCKET_TIMEOUT_IN_SECONDS,
+        configuration.getIdeComponentDetailsHdsSocketTimeoutInSeconds());
     entries.put(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, configuration.getReportTimeoutInSeconds());
     entries.put(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
         configuration.isNeedsAcknowledgementOfInitialDashboardFilter());

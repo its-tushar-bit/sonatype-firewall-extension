@@ -134,6 +134,14 @@ public class SystemConfigurationProperty
   public static final String FIREWALL_QUARANTINE_HDS_SOCKET_TIMEOUT_IN_SECONDS =
       "firewallQuarantineHdsSocketTimeoutInSeconds";
 
+  public static final String IDE_COMPONENT_DETAILS_HDS_POOL_SIZE = "ideComponentDetailsHdsPoolSize";
+
+  public static final String IDE_COMPONENT_DETAILS_HDS_CONNECT_TIMEOUT_IN_SECONDS =
+      "ideComponentDetailsHdsConnectTimeoutInSeconds";
+
+  public static final String IDE_COMPONENT_DETAILS_HDS_SOCKET_TIMEOUT_IN_SECONDS =
+      "ideComponentDetailsHdsSocketTimeoutInSeconds";
+
   public static final String ACCESS_ALLOWLIST = "accessAllowlist";
 
   public static final String BASE_URL = "baseUrl";

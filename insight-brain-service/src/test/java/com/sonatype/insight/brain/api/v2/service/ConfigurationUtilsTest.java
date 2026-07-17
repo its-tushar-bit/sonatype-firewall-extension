@@ -31,6 +31,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_FIREWALL_QUARANTINE_HDS_POOL_SIZE;
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_IDE_COMPONENT_DETAILS_HDS_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE;
@@ -606,6 +607,69 @@ public class ConfigurationUtilsTest
   @Test
   public void testGetFirewallQuarantineHdsSocketTimeoutInSeconds_aboveMaxFallsBackToDefault() {
     assertThat(ConfigurationUtils.getFirewallQuarantineHdsSocketTimeoutInSeconds("61", 20)).isEqualTo(20);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsPoolSize_withInRangeValue() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsPoolSize("30", 20)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsPoolSize_withoutValue() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsPoolSize("", 20)).isEqualTo(20);
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsPoolSize_withEnvVar() {
+    environmentVariables.set(NXIQ_IDE_COMPONENT_DETAILS_HDS_POOL_SIZE, "40");
+
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsPoolSize("", 20)).isEqualTo(40);
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsPoolSize_zeroFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsPoolSize("0", 20)).isEqualTo(20);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsPoolSize_aboveMaxFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsPoolSize("51", 20)).isEqualTo(20);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsConnectTimeoutInSeconds_withInRangeValue() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsConnectTimeoutInSeconds("30", 10)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsConnectTimeoutInSeconds_zeroFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsConnectTimeoutInSeconds("0", 10)).isEqualTo(10);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsConnectTimeoutInSeconds_aboveMaxFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsConnectTimeoutInSeconds("61", 10)).isEqualTo(10);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsSocketTimeoutInSeconds_withInRangeValue() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsSocketTimeoutInSeconds("30", 20)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsSocketTimeoutInSeconds_zeroFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsSocketTimeoutInSeconds("0", 20)).isEqualTo(20);
+    assertThat(logOutput).atWarnLevel().contains("out of range");
+  }
+
+  @Test
+  public void testGetIdeComponentDetailsHdsSocketTimeoutInSeconds_aboveMaxFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getIdeComponentDetailsHdsSocketTimeoutInSeconds("61", 20)).isEqualTo(20);
     assertThat(logOutput).atWarnLevel().contains("out of range");
   }
 }

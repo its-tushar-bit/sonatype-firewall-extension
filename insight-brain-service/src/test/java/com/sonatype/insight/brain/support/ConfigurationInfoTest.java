@@ -272,6 +272,7 @@ public class ConfigurationInfoTest
         "sourceControlEventProcessorPoolSize",
         "sourceControlImportPoolSize",
         "firewallQuarantineHdsPoolSize",
+        "ideComponentDetailsHdsPoolSize",
         "SCHEMA_MIGRATION_ENABLED",
         "sessionTimeout",
         "bfs.artifactoryExpiredTokenRegex",

@@ -45,7 +45,7 @@ import jakarta.ws.rs.core.Response;
 @Singleton
 @Path("/api/v2/guide/components")
 @Produces(MediaType.APPLICATION_JSON)
-@ProductLicenseEnforcementPoint(LicensedFeature.GUIDE_SEARCH)
+@ProductLicenseEnforcementPoint(value = LicensedFeature.GUIDE_SEARCH, anyOf = LicensedFeature.AI_DEVELOPER)
 public class GuideComponentsResource
     implements GuideComponentsApi
 {

@@ -508,14 +508,16 @@ public class ApiEndpointsService
           method.getAnnotation(ProductLicenseEnforcementPoint.class);
       // Method needs a specific product license feature
       if (methodProductLicenseEnforcementPoint != null) {
-        return () -> productLicense.hasFeature(methodProductLicenseEnforcementPoint.value());
+        return () -> Stream.concat(Stream.of(methodProductLicenseEnforcementPoint.value()),
+            Arrays.stream(methodProductLicenseEnforcementPoint.anyOf())).anyMatch(productLicense::hasFeature);
       }
 
       ProductLicenseEnforcementPoint classProductLicenseEnforcementPoint =
           clazz.getAnnotation(ProductLicenseEnforcementPoint.class);
       // Class needs a specific product license feature and method inherits
       if (classProductLicenseEnforcementPoint != null) {
-        return () -> productLicense.hasFeature(classProductLicenseEnforcementPoint.value());
+        return () -> Stream.concat(Stream.of(classProductLicenseEnforcementPoint.value()),
+            Arrays.stream(classProductLicenseEnforcementPoint.anyOf())).anyMatch(productLicense::hasFeature);
       }
 
       // Method implicitly does not need any product license feature

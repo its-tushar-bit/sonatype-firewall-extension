@@ -33,7 +33,7 @@ import jakarta.ws.rs.core.MediaType;
 @Singleton
 @Path("/api/v2/guide/global")
 @Produces(MediaType.APPLICATION_JSON)
-@ProductLicenseEnforcementPoint(LicensedFeature.GUIDE_SEARCH)
+@ProductLicenseEnforcementPoint(value = LicensedFeature.GUIDE_SEARCH, anyOf = LicensedFeature.AI_DEVELOPER)
 public class GuideGlobalSearchResource
     implements GuideGlobalSearchApi
 {

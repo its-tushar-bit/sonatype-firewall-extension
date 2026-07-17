@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableExcepti
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Test;
 
@@ -105,6 +106,94 @@ public class McpLicenseFilterTest
     when(productLicense.hasFeature(LicensedFeature.GUIDE_MCP)).thenReturn(true);
 
     McpLicenseFilter filter = new McpLicenseFilter(productLicense, multiTenantUtil);
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HttpServletResponse response = mock(HttpServletResponse.class);
+    FilterChain chain = mock(FilterChain.class);
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(printWriter);
+
+    filter.doFilter(request, response, chain);
+
+    verify(chain, never()).doFilter(request, response);
+    verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+    printWriter.flush();
+    assertThat(stringWriter.toString()).isEqualTo(McpLicenseFilter.ACCESS_DENIED_MSG);
+  }
+
+  @Test
+  public void testAccessAllowed_WhenSelfHostedAiDeveloperLicensedAndSingleTenant() throws Exception {
+    ProductLicense productLicense = mock(ProductLicense.class);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).thenReturn(true);
+
+    McpLicenseFilter filter = new McpLicenseFilter(productLicense, singleTenantUtil);
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HttpServletResponse response = mock(HttpServletResponse.class);
+    FilterChain chain = mock(FilterChain.class);
+
+    filter.doFilter(request, response, chain);
+
+    verify(chain).doFilter(request, response);
+    verify(response, never()).setStatus(HttpServletResponse.SC_FORBIDDEN);
+  }
+
+  @Test
+  public void testAccessAllowed_WhenAiDeveloperSaasLicensedAndMultiTenant() throws Exception {
+    ProductLicense productLicense = mock(ProductLicense.class);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)).thenReturn(true);
+
+    McpLicenseFilter filter = new McpLicenseFilter(productLicense, multiTenantUtil);
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HttpServletResponse response = mock(HttpServletResponse.class);
+    FilterChain chain = mock(FilterChain.class);
+
+    filter.doFilter(request, response, chain);
+
+    verify(chain).doFilter(request, response);
+    verify(response, never()).setStatus(HttpServletResponse.SC_FORBIDDEN);
+  }
+
+  @Test
+  public void testAccessDenied_WhenAiDeveloperSkuDoesNotMatchTenancy() throws Exception {
+    // Self-hosted AiDeveloper SKU on a multi-tenant deployment: the feature is present but this SKU
+    // is single-tenant only, so access is denied.
+    ProductLicense productLicense = mock(ProductLicense.class);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).thenReturn(true);
+
+    McpLicenseFilter filter = new McpLicenseFilter(productLicense, multiTenantUtil);
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HttpServletResponse response = mock(HttpServletResponse.class);
+    FilterChain chain = mock(FilterChain.class);
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(printWriter);
+
+    filter.doFilter(request, response, chain);
+
+    verify(chain, never()).doFilter(request, response);
+    verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+    printWriter.flush();
+    assertThat(stringWriter.toString()).isEqualTo(McpLicenseFilter.ACCESS_DENIED_MSG);
+  }
+
+  @Test
+  public void testAccessDenied_WhenAiDeveloperSaasSkuOnSingleTenant() throws Exception {
+    // AiDeveloperSaas SKU on a single-tenant deployment: the feature is present but this SKU is
+    // multi-tenant only, so access is denied.
+    ProductLicense productLicense = mock(ProductLicense.class);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)).thenReturn(true);
+
+    McpLicenseFilter filter = new McpLicenseFilter(productLicense, singleTenantUtil);
 
     HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);

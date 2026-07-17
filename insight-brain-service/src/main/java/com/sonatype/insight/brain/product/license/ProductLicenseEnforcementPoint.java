@@ -19,4 +19,11 @@ import com.sonatype.insight.license.model.LicensedFeature;
 public @interface ProductLicenseEnforcementPoint
 {
   LicensedFeature value();
+
+  /**
+   * Additional features that alternatively satisfy this enforcement point: it is met when the license
+   * has {@link #value()} OR any feature listed here. Defaults to none, so every existing
+   * single-feature usage is unchanged.
+   */
+  LicensedFeature[] anyOf() default {};
 }

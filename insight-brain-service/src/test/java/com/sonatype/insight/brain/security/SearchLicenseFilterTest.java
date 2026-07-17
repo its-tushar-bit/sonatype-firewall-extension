@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableExcepti
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
@@ -82,6 +83,64 @@ public class SearchLicenseFilterTest
         .isInstanceOfSatisfying(GuideLicenseUnavailableException.class, e -> {
           assertThat(e.getResponse().getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
           assertThat(e.getMessage()).isEqualTo(SearchLicenseFilter.MULTI_TENANT_DENIED_MSG);
+        });
+  }
+
+  @Test
+  public void accessAllowed_whenSelfHostedAiDeveloperLicensedAndSingleTenant() {
+    ProductLicense productLicense = mock(ProductLicense.class);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).thenReturn(true);
+
+    SearchLicenseFilter filter = new SearchLicenseFilter(productLicense, singleTenantUtil);
+
+    assertThatCode(() -> filter.filter(requestForPath("api/v2/guide/components/search")))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void accessAllowed_whenAiDeveloperSaasLicensedAndMultiTenant() {
+    ProductLicense productLicense = mock(ProductLicense.class);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)).thenReturn(true);
+
+    SearchLicenseFilter filter = new SearchLicenseFilter(productLicense, multiTenantUtil);
+
+    assertThatCode(() -> filter.filter(requestForPath("api/v2/guide/components/search")))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void accessDenied_whenAiDeveloperSkuDoesNotMatchTenancy() {
+    // Self-hosted AiDeveloper SKU on a multi-tenant deployment: the feature is present but this SKU
+    // is single-tenant only, so access is denied.
+    ProductLicense productLicense = mock(ProductLicense.class);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER)).thenReturn(true);
+
+    SearchLicenseFilter filter = new SearchLicenseFilter(productLicense, multiTenantUtil);
+
+    assertThatThrownBy(() -> filter.filter(requestForPath("api/v2/guide/components/search")))
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class, e -> {
+          assertThat(e.getResponse().getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+          assertThat(e.getMessage()).isEqualTo(SearchLicenseFilter.LICENSE_DENIED_MSG);
+        });
+  }
+
+  @Test
+  public void accessDenied_whenAiDeveloperSaasSkuOnSingleTenant() {
+    // AiDeveloperSaas SKU on a single-tenant deployment: the feature is present but this SKU is
+    // multi-tenant only, so access is denied.
+    ProductLicense productLicense = mock(ProductLicense.class);
+    when(productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)).thenReturn(true);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS)).thenReturn(true);
+
+    SearchLicenseFilter filter = new SearchLicenseFilter(productLicense, singleTenantUtil);
+
+    assertThatThrownBy(() -> filter.filter(requestForPath("api/v2/guide/components/search")))
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class, e -> {
+          assertThat(e.getResponse().getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+          assertThat(e.getMessage()).isEqualTo(SearchLicenseFilter.LICENSE_DENIED_MSG);
         });
   }
 

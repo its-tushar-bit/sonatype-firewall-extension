@@ -20,6 +20,8 @@ import jakarta.ws.rs.core.Response;
 import com.sonatype.insight.brain.product.license.entitlement.EntitlementRequiredException;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ClassUtils;
@@ -45,12 +47,12 @@ public class LicenseAwareContainerDynamicFeature
   {
     private final Logger log = LoggerFactory.getLogger(Filter.class);
 
-    private final LicensedFeature feature;
+    private final LicensedFeature[] features;
 
     private final LicensedFeature entitlement;
 
-    public Filter(LicensedFeature feature, LicensedFeature entitlement) {
-      this.feature = feature;
+    public Filter(LicensedFeature[] features, LicensedFeature entitlement) {
+      this.features = features;
       this.entitlement = entitlement;
     }
 
@@ -64,8 +66,9 @@ public class LicenseAwareContainerDynamicFeature
 
       try {
         productLicense.validate();
-        if (feature != null) {
-          productLicense.validateFeature(feature);
+        if (features != null && features.length > 0) {
+          // Enforcement point is satisfied when the license has any one of the declared features (OR).
+          productLicense.validateFeatures(features);
         }
         // Entitlement check only applies to Lifecycle products (Pro/Enterprise/Legacy).
         // Non-Lifecycle products (Firewall, SBOM Manager, etc.) skip this check entirely
@@ -127,6 +130,9 @@ public class LicenseAwareContainerDynamicFeature
     RequiresEntitlement entitlementAnnotation = userMethod.getAnnotation(RequiresEntitlement.class);
     LicensedFeature entitlement = entitlementAnnotation != null ? entitlementAnnotation.value() : null;
 
-    featureContext.register(new Filter(ep != null ? ep.value() : null, entitlement));
+    LicensedFeature[] features = ep != null
+        ? Stream.concat(Stream.of(ep.value()), Arrays.stream(ep.anyOf())).toArray(LicensedFeature[]::new)
+        : null;
+    featureContext.register(new Filter(features, entitlement));
   }
 }

@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableExcepti
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -25,8 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS request filter that gates Guide API access (paths under {@code /api/v2/guide/}) on the
- * {@link LicensedFeature#GUIDE_SEARCH} feature and forbids access on multi-tenant deployments.
+ * JAX-RS request filter that gates Guide API access (paths under {@code /api/v2/guide/}). Access is
+ * granted to a single-tenant Guide license ({@link LicensedFeature#GUIDE_SEARCH}), or to an AI
+ * Developer license ({@link LicensedFeature#AI_DEVELOPER}) whose SKU matches the deployment's tenancy
+ * — self-hosted {@code AiDeveloper} single-tenant, {@code AiDeveloperSaas} multi-tenant. Guide itself
+ * remains single-tenant only.
  *
  * <p>
  * Implemented as a {@link ContainerRequestFilter} (rather than a servlet filter) so denials
@@ -73,12 +77,29 @@ public class SearchLicenseFilter
     }
 
     boolean isMultiTenant = tenantUtil.isMultiTenant();
-    boolean hasGuideSearch = productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH);
-    if (isMultiTenant || !hasGuideSearch) {
-      String message = isMultiTenant ? MULTI_TENANT_DENIED_MSG : LICENSE_DENIED_MSG;
-      log.debug("Guide API access denied: multi-tenant={}, license includes GUIDE_SEARCH={}",
-          isMultiTenant, hasGuideSearch);
+    if (!isLicensed(isMultiTenant)) {
+      // Guide search is single-tenant only, so a multi-tenant Guide license is told exactly that;
+      // every other denial (no entitlement, or an AI Developer SKU that doesn't match the tenancy)
+      // gets the generic license message.
+      boolean multiTenantGuide = isMultiTenant && productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH);
+      String message = multiTenantGuide ? MULTI_TENANT_DENIED_MSG : LICENSE_DENIED_MSG;
+      log.debug("Guide API access denied: multi-tenant={}", isMultiTenant);
       throw new GuideLicenseUnavailableException(Response.Status.FORBIDDEN, message);
     }
+  }
+
+  /**
+   * Guide search is available to a single-tenant Guide license ({@link LicensedFeature#GUIDE_SEARCH}),
+   * or to an AI Developer license ({@link LicensedFeature#AI_DEVELOPER}) whose SKU matches the
+   * deployment's tenancy: the self-hosted {@code AiDeveloper} SKU single-tenant, {@code
+   * AiDeveloperSaas} multi-tenant.
+   */
+  private boolean isLicensed(boolean isMultiTenant) {
+    boolean hasGuideSearch = !isMultiTenant && productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH);
+    boolean hasAiDeveloper = productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)
+        && productLicense.hasProduct(isMultiTenant
+            ? ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS
+            : ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    return hasGuideSearch || hasAiDeveloper;
   }
 }

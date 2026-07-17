@@ -55,7 +55,8 @@ public class GuideVulnerabilitiesResourceTest
 
   @Test
   public void missingGuideSearchFeature_returns403() throws Exception {
-    setMissingFeature(LicensedFeature.GUIDE_SEARCH);
+    // The Guide API admits on GUIDE_SEARCH or AI_DEVELOPER, so both must be absent to get a 403.
+    setMissingFeatures(LicensedFeature.GUIDE_SEARCH, LicensedFeature.AI_DEVELOPER);
 
     HttpResponse response = restRequest()
         .path(VULNERABILITIES_PATH)

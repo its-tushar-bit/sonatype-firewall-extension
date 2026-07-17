@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableExcepti
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,9 +62,8 @@ public class McpLicenseFilter
       FilterChain chain) throws IOException, ServletException
   {
     boolean isMultiTenant = tenantUtil.isMultiTenant();
-    boolean hasGuideMcp = productLicense.hasFeature(LicensedFeature.GUIDE_MCP);
-    if (isMultiTenant || !hasGuideMcp) {
-      log.debug("MCP access denied: multi-tenant={}, license includes GUIDE_MCP={}", isMultiTenant, hasGuideMcp);
+    if (!isLicensed(isMultiTenant)) {
+      log.debug("MCP access denied: multi-tenant={}", isMultiTenant);
       HttpServletResponse httpResponse = (HttpServletResponse) response;
       httpResponse.setHeader(GuideLicenseUnavailableException.LICENSE_HEADER,
           GuideLicenseUnavailableException.LICENSE_UNAVAILABLE);
@@ -76,6 +76,20 @@ public class McpLicenseFilter
     }
 
     chain.doFilter(request, response);
+  }
+
+  /**
+   * MCP is available to a single-tenant Guide license ({@link LicensedFeature#GUIDE_MCP}), or to an
+   * AI Developer license ({@link LicensedFeature#AI_DEVELOPER}) whose SKU matches the deployment's
+   * tenancy: the self-hosted {@code AiDeveloper} SKU single-tenant, {@code AiDeveloperSaas} multi-tenant.
+   */
+  private boolean isLicensed(boolean isMultiTenant) {
+    boolean hasGuideMcp = !isMultiTenant && productLicense.hasFeature(LicensedFeature.GUIDE_MCP);
+    boolean hasAiDeveloper = productLicense.hasFeature(LicensedFeature.AI_DEVELOPER)
+        && productLicense.hasProduct(isMultiTenant
+            ? ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS
+            : ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    return hasGuideMcp || hasAiDeveloper;
   }
 
   @Override

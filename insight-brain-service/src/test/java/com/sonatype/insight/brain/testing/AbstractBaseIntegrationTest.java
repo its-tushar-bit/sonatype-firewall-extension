@@ -825,7 +825,11 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   protected void setMissingFeature(LicensedFeature feature) throws Exception {
-    licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(feature)).toArray(new LicensedFeature[0]));
+    setMissingFeatures(feature);
+  }
+
+  protected void setMissingFeatures(LicensedFeature first, LicensedFeature... rest) throws Exception {
+    licenseManager.setFeatures(EnumSet.complementOf(EnumSet.of(first, rest)).toArray(new LicensedFeature[0]));
     installLicense();
   }
 

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +54,8 @@ public class GuideGlobalSearchResourceTest
 
   @Test
   public void missingGuideSearchFeature_returns403() throws Exception {
-    setMissingFeature(LicensedFeature.GUIDE_SEARCH);
+    // The Guide API admits on GUIDE_SEARCH or AI_DEVELOPER, so both must be absent to get a 403.
+    setMissingFeatures(LicensedFeature.GUIDE_SEARCH, LicensedFeature.AI_DEVELOPER);
 
     HttpResponse response = restRequest()
         .path(SEARCH_PATH)
@@ -62,6 +64,25 @@ public class GuideGlobalSearchResourceTest
 
     assertThat(response.getStatusCode()).isEqualTo(403);
     assertThat(response.getBodyText()).contains("not available with the current license");
+  }
+
+  @Test
+  public void aiDeveloperLicense_returns200() throws Exception {
+    // A self-hosted AI Developer license (AI_DEVELOPER feature + AiDeveloper product, single-tenant)
+    // unlocks the Guide API without GUIDE_SEARCH, clearing BOTH SearchLicenseFilter and the resource's
+    // @ProductLicenseEnforcementPoint (which now accepts AI_DEVELOPER via anyOf).
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    setFeatures(LicensedFeature.AI_DEVELOPER);
+
+    GuideGlobalSearchResponse hdsResponse = new GuideGlobalSearchResponse(List.of(), 0, 0, 20, null);
+    hdsRespondWith(hdsResponse).atUri("/rest/search/global");
+
+    HttpResponse response = restRequest()
+        .path(SEARCH_PATH)
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    assertThat(response.getBodyText()).contains("\"hits\":[]");
   }
 
   @Test

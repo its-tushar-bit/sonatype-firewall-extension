@@ -34,7 +34,7 @@ import jakarta.ws.rs.core.Response;
 @Path("/api/v2/guide/recommendations")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@ProductLicenseEnforcementPoint(LicensedFeature.GUIDE_SEARCH)
+@ProductLicenseEnforcementPoint(value = LicensedFeature.GUIDE_SEARCH, anyOf = LicensedFeature.AI_DEVELOPER)
 public class GuideRecommendationsResource
     implements GuideRecommendationsApi
 {

@@ -490,12 +490,15 @@ public class ApiPolicyWaiverService
         : applicationDAO.getByIds(ownerIds)
             .stream()
             .collect(Collectors.toMap(Application::getId, app -> app));
-    List<ApiPolicyWaiverDTO> dtos = buildPolicyWaiverDTOsPerOwner(owner, ownersById, policyWaivers, expiringWithin);
+    policyWaivers = filterByExpiringWithin(policyWaivers, expiringWithin);
+    Map<String, Policy> policiesById = getPoliciesByIdForWaivers(policyWaivers);
+    logIfAnyPolicyMissing(policyWaivers, policiesById);
+    List<ApiPolicyWaiverDTO> dtos = buildPolicyWaiverDTOsPerOwner(owner, ownersById, policiesById, policyWaivers);
     // Preserve audit behavior of the legacy per-owner query path: emit a VIEW_WAIVER sub-event
     // per waiver so audit logs still carry policyId/policyWaiverId/etc. for the Firewall
     // Containers → Existing Waivers view.
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.VIEW_WAIVER, true)) {
-      policyWaivers.forEach(this::auditPolicyWaiver);
+      policyWaivers.forEach(pw -> auditPolicyWaiver(pw, policiesById.get(pw.getPolicyId())));
     }
     return dtos;
   }
@@ -503,33 +506,14 @@ public class ApiPolicyWaiverService
   private List<ApiPolicyWaiverDTO> buildPolicyWaiverDTOsPerOwner(
       Owner fallbackOwner,
       Map<String, Owner> ownersById,
-      List<PolicyWaiver> policyWaivers,
-      Integer expiringWithin)
+      Map<String, Policy> policiesById,
+      List<PolicyWaiver> policyWaivers)
   {
-    if (expiringWithin != null) {
-      if (expiringWithin <= 0) {
-        throw new BadRequestException("expiringWithin must be a positive integer");
-      }
-      final Instant cutoff = Instant.now().plus(expiringWithin, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
-      policyWaivers = policyWaivers.stream()
-          .filter(w -> w.getExpiryTime() != null
-              && !w.getExpiryTime().toInstant().truncatedTo(ChronoUnit.DAYS).isAfter(cutoff))
-          .collect(Collectors.toList());
-    }
-
     List<String> waiverReasonIds = policyWaivers.stream().map(PolicyWaiver::getWaiverReasonId).collect(toList());
     List<PolicyWaiverReason> policyWaiverReasons =
         waiverReasonIds.isEmpty() ? new ArrayList<>() : policyWaiverReasonDAO.getAllByIds(waiverReasonIds);
     Map<String, PolicyWaiverReason> reasonsById = policyWaiverReasons.stream()
         .collect(Collectors.toMap(PolicyWaiverReason::getId, r -> r));
-
-    Set<String> policyIds = policyWaivers.stream()
-        .map(PolicyWaiver::getPolicyId)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
-    Map<String, Policy> policiesById = policyDAO.getByIds(policyIds)
-        .stream()
-        .collect(Collectors.toMap(Policy::getId, p -> p));
 
     List<ApiPolicyWaiverDTO> dtos = new ArrayList<>();
     for (PolicyWaiver policyWaiver : policyWaivers) {
@@ -551,18 +535,8 @@ public class ApiPolicyWaiverService
       @AuthzContext(Key.OWNER) Owner owner,
       Integer expiringWithin)
   {
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(owner.getId());
-
-    if (expiringWithin != null) {
-      if (expiringWithin <= 0) {
-        throw new BadRequestException("expiringWithin must be a positive integer");
-      }
-      final Instant cutoff = Instant.now().plus(expiringWithin, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
-      policyWaivers = policyWaivers.stream()
-          .filter(w -> w.getExpiryTime() != null &&
-              !w.getExpiryTime().toInstant().truncatedTo(ChronoUnit.DAYS).isAfter(cutoff))
-          .collect(Collectors.toList());
-    }
+    List<PolicyWaiver> policyWaivers =
+        filterByExpiringWithin(policyWaiverDAO.getActiveByOwnerId(owner.getId()), expiringWithin);
 
     List<String> waiverReasonIds = policyWaivers.stream().map(PolicyWaiver::getWaiverReasonId).collect(toList());
     List<PolicyWaiverReason> policyWaiverReasons = new ArrayList<>();
@@ -570,13 +544,8 @@ public class ApiPolicyWaiverService
       policyWaiverReasons = policyWaiverReasonDAO.getAllByIds(waiverReasonIds);
     }
 
-    Set<String> policyIds = policyWaivers.stream()
-        .map(PolicyWaiver::getPolicyId)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
-    Map<String, Policy> policiesById = policyDAO.getByIds(policyIds)
-        .stream()
-        .collect(Collectors.toMap(Policy::getId, p -> p));
+    Map<String, Policy> policiesById = getPoliciesByIdForWaivers(policyWaivers);
+    logIfAnyPolicyMissing(policyWaivers, policiesById);
 
     List<ApiPolicyWaiverDTO> apiPolicyWaiverDTOS = new ArrayList<>();
     for (PolicyWaiver policyWaiver : policyWaivers) {
@@ -594,7 +563,7 @@ public class ApiPolicyWaiverService
     }
 
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.VIEW_WAIVER, true)) {
-      policyWaivers.forEach(this::auditPolicyWaiver);
+      policyWaivers.forEach(pw -> auditPolicyWaiver(pw, policiesById.get(pw.getPolicyId())));
     }
     return apiPolicyWaiverDTOS;
   }
@@ -739,9 +708,18 @@ public class ApiPolicyWaiverService
   }
 
   private void auditPolicyWaiver(PolicyWaiver policyWaiver, TransactionContext tx) {
+    Policy policy = policyDAO.getById(tx, policyWaiver.getPolicyId());
+    if (policy == null) {
+      log.warn("No policy found for policy waiver {} with policy ID {}", policyWaiver.getId(),
+          policyWaiver.getPolicyId());
+    }
+    auditPolicyWaiver(policyWaiver, policy);
+  }
+
+  private void auditPolicyWaiver(PolicyWaiver policyWaiver, Policy policy) {
     AuditData.get()
         .setData("policyWaiverId", policyWaiver.getId())
-        .setPolicy(policyDAO.getById(tx, policyWaiver.getPolicyId()))
+        .setPolicy(policy)
         .setComponentHash(policyWaiver.getHash())
         .setData("expiryTime", policyWaiver.getExpiryTime())
         .setComment(policyWaiver.getComment())
@@ -753,6 +731,39 @@ public class ApiPolicyWaiverService
           .setData("policyConstraints",
               policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(toList()));
     }
+  }
+
+  private Map<String, Policy> getPoliciesByIdForWaivers(List<PolicyWaiver> policyWaivers) {
+    Set<String> policyIds = policyWaivers.stream()
+        .map(PolicyWaiver::getPolicyId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    return policyDAO.getByIds(policyIds).stream().collect(Collectors.toMap(Policy::getId, p -> p));
+  }
+
+  private void logIfAnyPolicyMissing(List<PolicyWaiver> policyWaivers, Map<String, Policy> policiesById) {
+    List<String> waiverIdsWithMissingPolicy = policyWaivers.stream()
+        .filter(pw -> !policiesById.containsKey(pw.getPolicyId()))
+        .map(PolicyWaiver::getId)
+        .collect(toList());
+    if (!waiverIdsWithMissingPolicy.isEmpty()) {
+      log.warn("No policy found for {} policy waiver(s): {}", waiverIdsWithMissingPolicy.size(),
+          waiverIdsWithMissingPolicy);
+    }
+  }
+
+  private List<PolicyWaiver> filterByExpiringWithin(List<PolicyWaiver> policyWaivers, Integer expiringWithin) {
+    if (expiringWithin == null) {
+      return policyWaivers;
+    }
+    if (expiringWithin <= 0) {
+      throw new BadRequestException("expiringWithin must be a positive integer");
+    }
+    final Instant cutoff = Instant.now().plus(expiringWithin, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+    return policyWaivers.stream()
+        .filter(w -> w.getExpiryTime() != null
+            && !w.getExpiryTime().toInstant().truncatedTo(ChronoUnit.DAYS).isAfter(cutoff))
+        .collect(Collectors.toList());
   }
 
   private void sendTelemetry(OwnerType ownerType, String ownerId) {

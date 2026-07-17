@@ -16,6 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -32,15 +34,23 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolati
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.containerimagewaiver.ApiContainerImageWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
+import com.sonatype.insight.brain.api.v2.FirewallPermissionGate;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.owner.OwnerService;
+import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -68,6 +78,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -628,6 +639,70 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
+  public void testGetPolicyWaivers_Application_MultipleWaiversSharePolicyData() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver waiver1 = tempEntity.newWaiver("hash1", policy.getId(), application.getId(), "comment1");
+    PolicyWaiver waiver2 = tempEntity.newWaiver("hash2", policy.getId(), application.getId(), "comment2");
+    PolicyWaiver waiver3 = tempEntity.newWaiver("hash3", policy.getId(), application.getId(), "comment3");
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(3);
+    Map<String, ApiPolicyWaiverDTO> dtosByWaiverId = policyWaiverDtoList.stream()
+        .collect(Collectors.toMap(dto -> dto.policyWaiverId, dto -> dto));
+    for (PolicyWaiver waiver : List.of(waiver1, waiver2, waiver3)) {
+      ApiPolicyWaiverDTO actual = dtosByWaiverId.get(waiver.getId());
+      assertThat(actual).isNotNull();
+      assertThat(actual.policyName).isEqualTo(policy.getName());
+      assertThat(actual.threatLevel).isEqualTo(policy.getThreatLevel());
+    }
+  }
+
+  @Test
+  public void testGetPolicyWaivers_Application_DoesNotQueryPolicyPerWaiver() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    tempEntity.newWaiver("hash1", policy.getId(), application.getId(), "comment1");
+    tempEntity.newWaiver("hash2", policy.getId(), application.getId(), "comment2");
+    tempEntity.newWaiver("hash3", policy.getId(), application.getId(), "comment3");
+
+    PolicyDAO policyDAOSpy = spy(policyDAO);
+    ApiPolicyWaiverService serviceWithSpiedPolicyDAO = newServiceWithPolicyDAO(policyDAOSpy);
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        serviceWithSpiedPolicyDAO.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(3);
+    verify(policyDAOSpy, times(1)).getByIds(any());
+    verify(policyDAOSpy, never()).getById(any(TransactionContext.class), any());
+  }
+
+  private ApiPolicyWaiverService newServiceWithPolicyDAO(PolicyDAO policyDAOOverride) {
+    return new ApiPolicyWaiverService(
+        telemetrySenderMock,
+        policyWaiverDAO,
+        policyDAOOverride,
+        lookup(ApplicationDAO.class),
+        ownerDAO,
+        lookup(PolicyEvaluationDAO.class),
+        apiPolicyViolationServiceV2Mock,
+        policyWaiverTelemetryCreator,
+        lookup(CurrentUser.class),
+        lookup(OwnerService.class),
+        repositoryPolicyViolationDAO,
+        policyViolationDAO,
+        lookup(PolicyWaiverRequestDAO.class),
+        organizationDAO,
+        policyWaiverReasonDAO,
+        repositoryDAO,
+        lookup(IdUtils.class),
+        lookup(TelemetryUtils.class),
+        lookup(FirewallPermissionGate.class));
+  }
+
+  @Test
   public void testGetPolicyWaivers_Organization() {
     Organization organization = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(organization);
@@ -795,6 +870,56 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.scopeOwnerName).isEqualTo(containerImageApp.getName());
     assertThat(actual.scopeOwnerType).isEqualTo("application");
     assertThat(actual.expiryTime).isEqualTo(aWeekFromNow);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_RepositoryContainer_MultipleWaiversSharePolicyData() {
+    Application containerImageApp = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver waiver1 = tempEntity.newWaiver(
+        new PolicyWaiver("hash1", policy.getId(), containerImageApp.getId(), "comment1")
+            .setForContainerImage(true));
+    PolicyWaiver waiver2 = tempEntity.newWaiver(
+        new PolicyWaiver("hash2", policy.getId(), containerImageApp.getId(), "comment2")
+            .setForContainerImage(true));
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID);
+
+    assertThat(policyWaiverDtoList).hasSize(2);
+    Map<String, ApiPolicyWaiverDTO> dtosByWaiverId = policyWaiverDtoList.stream()
+        .collect(Collectors.toMap(dto -> dto.policyWaiverId, dto -> dto));
+    for (PolicyWaiver waiver : List.of(waiver1, waiver2)) {
+      ApiPolicyWaiverDTO actual = dtosByWaiverId.get(waiver.getId());
+      assertThat(actual).isNotNull();
+      assertThat(actual.policyName).isEqualTo(policy.getName());
+      assertThat(actual.threatLevel).isEqualTo(policy.getThreatLevel());
+    }
+  }
+
+  @Test
+  public void testGetPolicyWaivers_RepositoryContainer_DoesNotQueryPolicyPerWaiver() {
+    Application containerImageApp = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy();
+    tempEntity.newWaiver(
+        new PolicyWaiver("hash1", policy.getId(), containerImageApp.getId(), "comment1")
+            .setForContainerImage(true));
+    tempEntity.newWaiver(
+        new PolicyWaiver("hash2", policy.getId(), containerImageApp.getId(), "comment2")
+            .setForContainerImage(true));
+    tempEntity.newWaiver(
+        new PolicyWaiver("hash3", policy.getId(), containerImageApp.getId(), "comment3")
+            .setForContainerImage(true));
+
+    PolicyDAO policyDAOSpy = spy(policyDAO);
+    ApiPolicyWaiverService serviceWithSpiedPolicyDAO = newServiceWithPolicyDAO(policyDAOSpy);
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        serviceWithSpiedPolicyDAO.getPolicyWaivers(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID);
+
+    assertThat(policyWaiverDtoList).hasSize(3);
+    verify(policyDAOSpy, times(1)).getByIds(any());
+    verify(policyDAOSpy, never()).getById(any(TransactionContext.class), any());
   }
 
   @Test

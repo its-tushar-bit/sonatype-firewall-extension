@@ -96,6 +96,10 @@ public class MTIQFeatureServiceTest
     expectedFeatures.remove(LicensedFeature.MALWARE_DEFENSE);
     expectedFeatures.remove(LicensedFeature.MALICIOUS_URLS_PARTNER_ACCESS);
 
+    // AI Developer is HDS-controlled (not banned in MTIQ - the AiDeveloperSaas SKU is multi-tenant),
+    // so the base test license does not grant it here.
+    expectedFeatures.remove(LicensedFeature.AI_DEVELOPER);
+
     // only test if it was enabled that it's expected
     if (!SystemConfigurationPropertyFeature.SAML_ENABLED.isEnabled()) {
       expectedFeatures.remove(SystemConfigurationPropertyFeature.SAML_ENABLED);

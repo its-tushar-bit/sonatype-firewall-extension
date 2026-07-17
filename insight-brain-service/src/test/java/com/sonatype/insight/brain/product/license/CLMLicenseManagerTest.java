@@ -1347,6 +1347,16 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testLoadLicense_AiDeveloperFeature_ExternalDatabaseNotAllowed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.AI_DEVELOPER));
+
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManager.loadLicense())
+        .withMessageContaining(
+            "AI Developer feature requires use of an external database, please retry using an external database.");
+  }
+
+  @Test
   public void testLoadLicense_GuideMcpFeature_ExternalDatabaseNotAllowed() {
     // GUIDE_MCP gates McpLicenseFilter independently of the GUIDE umbrella, so HDS signing it
     // alone must still be rejected on embedded DB.
@@ -1526,6 +1536,17 @@ public class CLMLicenseManagerTest
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
         .withMessageContaining(
             "Guide feature requires use of an external database, please retry using an external database.");
+    assertThat(productLicense.isValid()).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_AiDeveloperFeature_ExternalDatabaseNotAllowed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.AI_DEVELOPER));
+    clmLicenseManager.uninstallLicense();
+
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessageContaining(
+            "AI Developer feature requires use of an external database, please retry using an external database.");
     assertThat(productLicense.isValid()).isFalse();
   }
 
@@ -2727,6 +2748,19 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testHasAiDeveloperProduct() {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    assertThat(CLMLicenseManager.hasAiDeveloperProduct(productLicense)).isTrue();
+
+    // The SaaS SKU is the same add-on; the helper covers both deployments.
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
+    assertThat(CLMLicenseManager.hasAiDeveloperProduct(productLicense)).isTrue();
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    assertThat(CLMLicenseManager.hasAiDeveloperProduct(productLicense)).isFalse();
+  }
+
+  @Test
   public void testGetFeatures_GuideSelfHosted() throws Exception {
     config.setDatabase(new DatabaseConfig());
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
@@ -2752,6 +2786,32 @@ public class CLMLicenseManagerTest
         LicensedFeature.GUIDE,
         LicensedFeature.GUIDE_MCP,
         LicensedFeature.GUIDE_SEARCH);
+  }
+
+  @Test
+  public void testGetFeatures_AiDeveloper_viaGuideProductsProperty() throws Exception {
+    // AI Developer rides in on guide.products (the merged GUIDE-3052 contract).
+    config.setDatabase(new DatabaseConfig());
+    licenseManager.setProducts("");
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE,
+        LicensedFeature.AI_DEVELOPER));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.AI_DEVELOPER);
+  }
+
+  @Test
+  public void testGetFeatures_AiDeveloperSaas_viaGuideProductsProperty() throws Exception {
+    // AiDeveloperSaas (GUIDE-3110) also rides in on guide.products and maps to the same AI_DEVELOPER feature.
+    config.setDatabase(new DatabaseConfig());
+    licenseManager.setProducts("");
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE,
+        LicensedFeature.AI_DEVELOPER));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.AI_DEVELOPER);
   }
 
   @Test
@@ -2889,6 +2949,91 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseInfo_AiDeveloper_creditBased() throws Exception {
+    // Realistic add-on payload: Lifecycle base plus the AI Developer add-on. In production the
+    // add-on arrives via the guide.products property and populateLicenseCache merges it into the
+    // product set. The ProductLicense test double sources getProducts() from the mock's product
+    // array (not the merged/stored set), so AI Developer must also be listed via setProducts here
+    // to reproduce the merged set that productLicense.getProducts() returns in production; the
+    // guide.products property is retained to mirror the real license shape.
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL,
+        ProductLicenseDetails.LICENSING_CREDIT_BASED);
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("1000")));
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    // Add-on keeps the Lifecycle edition; AI Developer appears in the products list.
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE);
+    assertThat(info.products).contains(suffix(CLMLicenseManager.PRODUCT_AI_DEVELOPER));
+    assertThat(info.creditAmountToDisplay).isEqualTo(new BigDecimal("1000"));
+  }
+
+  @Test
+  public void testGetLicenseInfo_AiDeveloper_legacyModel_surfacesCreditAmount() throws Exception {
+    // See testGetLicenseInfo_AiDeveloper_creditBased for why AI Developer is listed via setProducts.
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    // No licensing model set - defaults to LEGACY; the post-loop fallback must still surface credit.
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("750")));
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE);
+    assertThat(info.products).contains(suffix(CLMLicenseManager.PRODUCT_AI_DEVELOPER));
+    assertThat(info.creditAmountToDisplay).isEqualTo(new BigDecimal("750"));
+  }
+
+  @Test
+  public void testGetLicenseInfo_AiDeveloperSaas_creditBased() throws Exception {
+    // SaaS add-on payload (GUIDE-3110): LifecycleSaas base plus the AiDeveloperSaas add-on. As in
+    // testGetLicenseInfo_AiDeveloper_creditBased, the ProductLicense test double sources getProducts()
+    // from the mock's product array (not the merged/stored set), so AiDeveloperSaas must also be listed
+    // via setProducts to reproduce the merged set productLicense.getProducts() returns in production; the
+    // guide.products property is retained to mirror the real license shape.
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL,
+        ProductLicenseDetails.LICENSING_CREDIT_BASED);
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("1000")));
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    // Add-on keeps the Lifecycle SaaS edition; AI Developer SaaS appears in the products list.
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_SAAS);
+    assertThat(info.products).contains(suffix(CLMLicenseManager.PRODUCT_AI_DEVELOPER_SAAS));
+    assertThat(info.creditAmountToDisplay).isEqualTo(new BigDecimal("1000"));
+  }
+
+  @Test
+  public void testGetLicenseInfo_AiDeveloperSaas_legacyModel_surfacesCreditAmount() throws Exception {
+    // See testGetLicenseInfo_AiDeveloperSaas_creditBased for why AiDeveloperSaas is listed via setProducts.
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
+    // No licensing model set - defaults to LEGACY; the post-loop fallback must still surface credit.
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("750")));
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_SAAS);
+    assertThat(info.products).contains(suffix(CLMLicenseManager.PRODUCT_AI_DEVELOPER_SAAS));
+    assertThat(info.creditAmountToDisplay).isEqualTo(new BigDecimal("750"));
+  }
+
+  @Test
   public void testGetCreditAmount() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
     mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("1000")));
@@ -2902,6 +3047,30 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withStages());
     installLicense();
 
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder(
+        StageTypes.DEVELOP,
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_AiDeveloper() throws Exception {
+    licenseManager.setProducts("");
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder(
+        StageTypes.DEVELOP,
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_AiDeveloperSaas() throws Exception {
+    licenseManager.setProducts("");
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder(
         StageTypes.DEVELOP,
         StageTypes.PROXY);

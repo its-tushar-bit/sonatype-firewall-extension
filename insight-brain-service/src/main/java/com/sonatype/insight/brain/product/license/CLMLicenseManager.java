@@ -134,6 +134,10 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_GUIDE = "Guide";
 
+  public static final String PRODUCT_AI_DEVELOPER = "AI Developer";
+
+  public static final String PRODUCT_AI_DEVELOPER_SAAS = "AI Developer SaaS";
+
   private static final Set<String> LIFECYCLE_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
       ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
       ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
@@ -144,6 +148,9 @@ public class CLMLicenseManager
   private static final Set<String> LEGAL_PACK_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
 
   private static final Set<String> GUIDE_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+
+  private static final Set<String> AI_DEVELOPER_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_AI_DEVELOPER,
+      ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
 
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
@@ -290,6 +297,10 @@ public class CLMLicenseManager
         throw new ExternalDatabaseNotSupportedException(
             "Guide feature requires use of an external database, please retry using an external database.");
       }
+    }
+    if (licenseDetails.features.contains(LicensedFeature.AI_DEVELOPER.name())) {
+      throw new ExternalDatabaseNotSupportedException(
+          "AI Developer feature requires use of an external database, please retry using an external database.");
     }
   }
 
@@ -534,6 +545,12 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED:
         marketingNameSuffix = PRODUCT_GUIDE;
         break;
+      case ProductLicenseDetails.PRODUCT_AI_DEVELOPER:
+        marketingNameSuffix = PRODUCT_AI_DEVELOPER;
+        break;
+      case ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS:
+        marketingNameSuffix = PRODUCT_AI_DEVELOPER_SAAS;
+        break;
       default:
         return null;
     }
@@ -610,7 +627,9 @@ public class CLMLicenseManager
       }
     }
 
-    if (creditAmountToDisplay == null && hasGuideProduct(productLicense)) {
+    if (creditAmountToDisplay == null
+        && (hasGuideProduct(productLicense) || hasAiDeveloperProduct(productLicense)))
+    {
       creditAmountToDisplay = creditAwareProductLicense.getCreditAmount();
     }
 
@@ -645,6 +664,10 @@ public class CLMLicenseManager
 
   public static boolean hasGuideProduct(ProductLicense productLicense) {
     return GUIDE_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
+  }
+
+  public static boolean hasAiDeveloperProduct(ProductLicense productLicense) {
+    return AI_DEVELOPER_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
   }
 
   private String[] getProductLicenseProductsMarketingNames() {
@@ -1062,6 +1085,13 @@ public class CLMLicenseManager
       // features_csv column without reissuing the license file.
       stageTypes.add(StageTypes.DEVELOP);
     }
+    if (products.contains(ProductLicenseDetails.PRODUCT_AI_DEVELOPER) ||
+        products.contains(ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS))
+    {
+      // AI_DEVELOPER is HDS-controlled (added below from licenseDetails.features), mirroring Guide.
+      // Both the self-hosted (AiDeveloper) and SaaS (AiDeveloperSaas) SKUs map to the same feature/stage.
+      stageTypes.add(StageTypes.DEVELOP);
+    }
 
     stageTypes.add(StageTypes.PROXY);
 
@@ -1081,6 +1111,7 @@ public class CLMLicenseManager
         LicensedFeature.GUIDE, //
         LicensedFeature.GUIDE_MCP, //
         LicensedFeature.GUIDE_SEARCH, //
+        LicensedFeature.AI_DEVELOPER, //
         LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, //
         LicensedFeature.EXTERNAL_DATABASE, //
         LicensedFeature.HYGIENE, //

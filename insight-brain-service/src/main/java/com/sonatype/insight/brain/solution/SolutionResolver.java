@@ -48,7 +48,10 @@ public class SolutionResolver
       ProductLicenseDetails.PRODUCT_SONATYPE_LIFT_PREMIUM,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_CLOUD,
-      ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_SAAS);
+      ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_SAAS,
+      // The AI Developer SKUs do not surface their own Solution Switcher entry; see GUIDE-3124.
+      ProductLicenseDetails.PRODUCT_AI_DEVELOPER,
+      ProductLicenseDetails.PRODUCT_AI_DEVELOPER_SAAS);
 
   private static final List<String> LIFECYCLE_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_ADVANCED_DEVELOPMENT_PACK,

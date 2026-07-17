@@ -15,6 +15,8 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
@@ -34,13 +36,14 @@ import org.slf4j.LoggerFactory;
  * <p>
  * Available to subclasses:
  * <ul>
- * <li>Authenticated HTTP helpers: {@link #apiGet}, {@link #apiPostJson}, {@link #apiPutJson},
- * {@link #apiPut}, {@link #apiDelete} — each emits a per-call breadcrumb ({@code API <METHOD>
- * <path> -> <status> (<ms>)}) into the per-class Failsafe output file
- * ({@code target/failsafe-reports/<ClassName>-output.txt}). {@code apiGet} and {@code apiDelete}
- * have query-parameter overloads that URL-encode values correctly — never embed
- * {@code ?foo=bar} in the path string; {@link HttpRequest#path} encodes {@code ?} to
- * {@code %3F} and routes to 404.
+ * <li>Authenticated HTTP helpers: {@link #apiGet}, {@link #apiPostJson},
+ * {@link #apiPostJsonWithQuery}, {@link #apiPutJson}, {@link #apiPut}, {@link #apiDelete} —
+ * each emits a per-call breadcrumb ({@code API <METHOD> <path> -> <status> (<ms>)}) into
+ * the per-class Failsafe output file
+ * ({@code target/failsafe-reports/<ClassName>-output.txt}). {@code apiGet},
+ * {@code apiDelete}, and {@code apiPostJsonWithQuery} have query-parameter overloads /
+ * signatures that URL-encode values correctly — never embed {@code ?foo=bar} in the path
+ * string; {@link HttpRequest#path} encodes {@code ?} to {@code %3F} and routes to 404.
  * <li>Anonymous helpers for 401 contract tests across every verb: {@link #anonApiGet}
  * (plus a query-parameter overload), {@link #anonApiPostJson}, {@link #anonApiPutJson},
  * {@link #anonApiPut} (body-less, for endpoints like {@code /move/destination/}), and
@@ -63,6 +66,22 @@ public abstract class AbstractIqApiTest
     extends AbstractResourceTest
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractIqApiTest.class);
+
+  /**
+   * Module-owned mapper — the single source of truth for the rare cases where a test needs
+   * to serialize a DTO by hand (see {@link #toJsonQueryParam(Object)}). Kept off individual
+   * test classes so a mapper-config drift can only happen in one place. Response-side
+   * deserialization does <em>not</em> come through here: use {@code HttpResponse#getBody(Class)}
+   * (or its {@code getBodyList} / {@code getBodySet} siblings) which already delegate to the
+   * harness's own mapper.
+   *
+   * <p>
+   * Configuration deliberately mirrors the outbound request-body mapper in
+   * {@code AbstractHttpRequest} (default {@code new ObjectMapper()}) so a value serialized
+   * via {@link #toJsonQueryParam(Object)} is byte-equivalent to what the harness would send
+   * as an {@code application/json} body for the same DTO.
+   */
+  private static final ObjectMapper JSON = new ObjectMapper();
 
   @Rule
   public final TestWatcher apiTestLogger = new TestWatcher()
@@ -167,6 +186,27 @@ public abstract class AbstractIqApiTest
         () -> apiRequest().path(relativePath).body(body, MediaType.APPLICATION_JSON).post());
   }
 
+  /**
+   * POST with JSON body <em>and</em> a single named query parameter (one or more values).
+   * Use this overload for endpoints whose {@code @QueryParam}s are conveyed as the URL query
+   * string alongside a typed JSON body (e.g. {@code stageId} / {@code scanId} on
+   * {@code /api/v2/components/remediation/...}). Prefer this over building the request via
+   * the raw {@link #apiRequest()} builder so the breadcrumb ({@code API POST <path?query> -> <status>})
+   * still lands in the per-class Failsafe report.
+   */
+  protected HttpResponse apiPostJsonWithQuery(
+      final String relativePath,
+      final Object body,
+      final String queryName,
+      final Object... queryValues) throws Exception
+  {
+    return exec("POST", pathWithQuery(relativePath, queryName, queryValues),
+        () -> apiRequest().path(relativePath)
+            .query(queryName, queryValues)
+            .body(body, MediaType.APPLICATION_JSON)
+            .post());
+  }
+
   /** PUT with JSON body. */
   protected HttpResponse apiPutJson(final String relativePath, final Object body) throws Exception {
     return exec("PUT", relativePath,
@@ -250,6 +290,29 @@ public abstract class AbstractIqApiTest
       sb.append(encodedName).append('=').append(URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8));
     }
     return sb.toString();
+  }
+
+  /**
+   * Serializes {@code obj} to a JSON string suitable for use as a URL query-parameter
+   * value (paired with the {@code apiGet(path, name, jsonValue)} overload). Use this only
+   * when the target endpoint declares {@code @QueryParam} with a JSON-serialized DTO type
+   * (e.g. {@code componentIdentifier} on {@code ApiLicenseOverrideResource}) — for the
+   * common case of a JSON request body, pass the DTO to {@code apiPostJson} /
+   * {@code apiPutJson} directly and let the harness handle serialization.
+   *
+   * <p>
+   * Delegates to the module-owned {@link #JSON} mapper so no test class needs to hold its
+   * own {@code ObjectMapper}. Throws unchecked on serialization failure — a broken fixture
+   * is a test-authoring bug, not something to bubble as {@code JsonProcessingException} at
+   * every call site.
+   */
+  protected static String toJsonQueryParam(final Object obj) {
+    try {
+      return JSON.writeValueAsString(obj);
+    }
+    catch (JsonProcessingException e) {
+      throw new IllegalStateException("failed to serialize " + obj.getClass().getSimpleName() + " to JSON", e);
+    }
   }
 
   /** {@code prefix-<uuid>} for kebab-style identifiers (publicIds, slugs). */

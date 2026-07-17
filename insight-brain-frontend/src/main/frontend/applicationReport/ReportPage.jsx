@@ -49,6 +49,7 @@ import { selectSelectedReport } from './applicationReportSelectors';
 import { NxStatefulErrorAlert } from '@sonatype/react-shared-components';
 import { isNilOrEmpty } from '../util/jsUtil';
 import { useRouterState } from '../react/RouterStateContext';
+import { hostedReposState } from '../hostedRepos/hostedReposNavigation';
 import { NewerReportAvailable } from 'MainRoot/applicationReport/NewerReportAvailable';
 import ReevaluationStatusModal from 'MainRoot/applicationReport/ReevaluationStatusModal';
 import LegacyScannerBanner from 'MainRoot/applicationReport/LegacyScannerBanner';
@@ -216,7 +217,9 @@ function BackButton() {
   } = useSelector(selectRouterCurrentParams);
 
   if (origin === 'hostedRepoComponents') {
-    const backHref = uiRouterState.href('hostedRepoComponents', {
+    // Resolve to the bundle-correct state name: 'hostedRepoComponents' in Classic,
+    // 'nexusOneRepositoriesComponents' in the Nexus One embed (CLM-42184).
+    const backHref = uiRouterState.href(hostedReposState('hostedRepoComponents'), {
       repositoryManagerId,
       repositoryId: hostedRepositoryId,
       repositoryPublicId,

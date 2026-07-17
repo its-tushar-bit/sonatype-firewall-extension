@@ -201,6 +201,31 @@ describe('nexusOneClassicEmbedRoutes', () => {
     expect(router.stateRegistry.get('nexusOneComponents')?.redirectTo).toBe(comingSoonStateName('components'));
   });
 
+  it('registers the dedicated Hosted Repos native route the LeftNav links to', () => {
+    const state = router.stateRegistry.get('nexusOneRepositories');
+    expect(state).toBeDefined();
+    expect(state?.url).toBe('/repositories');
+    // Native embed, not a Coming Soon stub.
+    expect(state?.component).toBeDefined();
+    expect(state?.component).not.toBe(ComingSoonRoute);
+  });
+
+  it('registers the Hosted Repos detail (repositories-in-a-manager) native route', () => {
+    const state = router.stateRegistry.get('nexusOneRepositoriesDetail');
+    expect(state).toBeDefined();
+    expect(state?.url).toBe('/repositories/{repositoryManagerId}');
+    expect(state?.component).toBeDefined();
+    expect(state?.component).not.toBe(ComingSoonRoute);
+  });
+
+  it('registers the Hosted Repos components (components-in-a-repo) native route', () => {
+    const state = router.stateRegistry.get('nexusOneRepositoriesComponents');
+    expect(state).toBeDefined();
+    expect(state?.url).toBe('/repositories/{repositoryManagerId}/{repositoryId}/components?{repositoryPublicId}');
+    expect(state?.component).toBeDefined();
+    expect(state?.component).not.toBe(ComingSoonRoute);
+  });
+
   // Guards the Classic-embed admin route's dirty-guard wiring: a typo in the
   // `data.isDirty` path array would silently disable the unsaved-changes
   // prompt, and the only other coverage is heavyweight Playwright suites.

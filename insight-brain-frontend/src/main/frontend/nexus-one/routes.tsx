@@ -19,6 +19,9 @@ import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/Succ
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
 import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
 import ApiPage from 'MainRoot/api/ApiPage';
+import HostedReposPage from 'MainRoot/hostedRepos/HostedReposPage';
+import HostedReposListPage from 'MainRoot/hostedRepos/HostedReposListPage';
+import RepositoryComponentsList from 'MainRoot/hostedRepos/RepositoryComponentsList';
 import LegalDashboardContainer from 'MainRoot/legal/dashboard/LegalDashboardContainer';
 import {
   LEGAL_APPLICATIONS_DASHBOARD_DATA,
@@ -68,6 +71,8 @@ import {
   WaiverDetailPage as PreviewWaiverDetail,
 } from 'MainRoot/nosc/waivers';
 import { isAuthorized } from 'MainRoot/util/permissionService';
+import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsLicensed } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 router.stateRegistry.register({
   name: 'root',
@@ -113,6 +118,36 @@ router.stateRegistry.register({
   component: PreviewApplicationsList,
   data: {
     title: 'Nexus One — Applications',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneRepositories',
+  url: '/repositories',
+  component: mountClassicComponent(HostedReposRoute),
+  data: {
+    title: 'Nexus One — Repositories',
+    featureEnabled: selectIsHostedRepositoryEvaluationEnabled,
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneRepositoriesDetail',
+  url: '/repositories/{repositoryManagerId}',
+  component: mountClassicComponent(HostedReposListPage),
+  data: {
+    title: 'Nexus One — Repository',
+    featureEnabled: selectIsHostedRepositoryEvaluationEnabled,
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneRepositoriesComponents',
+  url: '/repositories/{repositoryManagerId}/{repositoryId}/components?{repositoryPublicId}',
+  component: mountClassicComponent(RepositoryComponentsList),
+  data: {
+    title: 'Nexus One — Repository Components',
+    featureEnabled: selectIsHostedRepositoryEvaluationEnabled,
   },
 } as ReactStateDeclaration);
 
@@ -220,6 +255,19 @@ function SuccessMetricsRoute(): JSX.Element {
   );
 }
 
+function HostedReposRoute(): JSX.Element {
+  return (
+    <main className="nx-page-main">
+      <HostedReposPage />
+    </main>
+  );
+}
+
+// HostedReposListPage and RepositoryComponentsList render their own `.nx-page-main`
+// (HostedReposListPage's <main>, RepositoryComponentsList's <NxPageMain>), so they mount
+// directly — wrapping them in another <main> nested two landmarks (invalid HTML + WCAG).
+// HostedReposRoute above stays wrapped because HostedReposPage renders a bare <div>. CLM-42184.
+
 // Single reference reused by both legal.*Dashboard states below. They're both children of
 // the same abstract 'legal' UIView, so sharing one reference means the inner UIView's rendered
 // element type stays identical across an Applications <-> Components tab switch and React
@@ -247,6 +295,10 @@ const NATIVE_CLASSIC_COMPONENTS: Partial<Record<ComingSoonModuleSlug, React.Comp
  */
 const NATIVE_CLASSIC_EMBED_REDIRECTS: Partial<Record<ComingSoonModuleSlug, string>> = {
   legal: 'legal.applicationsDashboard',
+  // LeftNav targets /repositories (nexusOneRepositories); the /coming-soon/repositories entry
+  // redirects to that canonical route so stale Coming Soon bookmarks land on the highlighted,
+  // feature-gated page instead of a parallel mount. CLM-42184.
+  repositories: 'nexusOneRepositories',
 };
 
 NATIVE_CLASSIC_EMBED_SLUGS.forEach((slug) => {

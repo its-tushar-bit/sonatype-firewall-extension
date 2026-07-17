@@ -57,6 +57,24 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/previewUiSettings')).toBe('/ui-settings');
     });
 
+    it('maps Classic /hostedRepos to /repositories', () => {
+      // Hosted Repos uses a native embedded mount, not a Coming Soon stub (CLM-42184).
+      expect(toNexusOneEquivalent('/hostedRepos')).toBe('/repositories');
+    });
+
+    it('maps deep Classic Hosted Repos paths to /repositories 1-1, preserving the tail', () => {
+      // The Hosted Repos drill-down hierarchy (manager -> repo -> components) shares
+      // an identical sub-path structure in both bundles, so a deep link must round-trip
+      // 1-1 rather than collapsing to the list page (CLM-42184).
+      expect(toNexusOneEquivalent('/hostedRepos/mgr-123')).toBe('/repositories/mgr-123');
+      expect(toNexusOneEquivalent('/hostedRepos/mgr-123/repo-456/components')).toBe(
+        '/repositories/mgr-123/repo-456/components',
+      );
+      expect(toNexusOneEquivalent('/hostedRepos/mgr-123/repo-456/components?repositoryPublicId=my-repo')).toBe(
+        '/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo',
+      );
+    });
+
     it('keeps the Success Metrics admin path identical on both bundles (CLM-42186)', () => {
       expect(toNexusOneEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
     });
@@ -112,6 +130,23 @@ describe('classicPreviewMap', () => {
 
     it('maps /ui-settings back to Classic admin settings', () => {
       expect(toClassicEquivalent('/ui-settings')).toBe('/previewUiSettings');
+    });
+
+    it('maps /repositories back to Classic /hostedRepos', () => {
+      // Hosted Repos uses a native embedded mount, not a Coming Soon stub (CLM-42184).
+      expect(toClassicEquivalent('/repositories')).toBe('/hostedRepos');
+    });
+
+    it('maps deep Hosted Repos paths back to Classic 1-1, preserving the tail', () => {
+      // Switching bundles from a manager/repo/components page must land on the same
+      // page in Classic, not collapse to the list page (CLM-42184).
+      expect(toClassicEquivalent('/repositories/mgr-123')).toBe('/hostedRepos/mgr-123');
+      expect(toClassicEquivalent('/repositories/mgr-123/repo-456/components')).toBe(
+        '/hostedRepos/mgr-123/repo-456/components',
+      );
+      expect(toClassicEquivalent('/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo')).toBe(
+        '/hostedRepos/mgr-123/repo-456/components?repositoryPublicId=my-repo',
+      );
     });
 
     it('maps Success Metrics admin back to the same Classic path (CLM-42186)', () => {
@@ -220,6 +255,10 @@ describe('classicPreviewMap', () => {
       ['/dashboard'],
       ['/applications'],
       ['/ui-settings'],
+      ['/repositories'],
+      ['/repositories/mgr-123'],
+      ['/repositories/mgr-123/repo-456/components'],
+      ['/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo'],
       ['/successMetricsConfiguration'],
       ['/baseUrl'],
     ])('nexus-one %s -> classic -> nexus-one returns to a path that maps back', (previewPath) => {
@@ -239,7 +278,14 @@ describe('classicPreviewMap', () => {
   // all map to /management/view; Audit Log maps to /dashboard/violations).
   // Reverse mapping picks the first match, which is fine for the toggle UX.
   describe('Coming Soon stubs (P1-F15)', () => {
-    it.each(COMING_SOON_MODULE_ORDER)(
+    // `repositories` graduated from a Coming Soon stub to a native embed (CLM-42184):
+    // /coming-soon/repositories is intentionally filtered out of the map in favour of the
+    // /repositories <-> /hostedRepos subtree mapping, so it no longer satisfies the
+    // stub -> classicHref invariant asserted below. It's fully covered by the dedicated
+    // /repositories <-> /hostedRepos tests earlier in this file.
+    const COMING_SOON_STUB_SLUGS = COMING_SOON_MODULE_ORDER.filter((slug) => slug !== 'repositories');
+
+    it.each(COMING_SOON_STUB_SLUGS)(
       'stub /coming-soon/%s maps to its registered Classic deep link',
       (slug) => {
         const previewPath = comingSoonHref(slug);
@@ -252,7 +298,7 @@ describe('classicPreviewMap', () => {
     // Reverse direction: every stub's Classic href must map BACK to a
     // Preview path (any Preview path — orgs/policies/repos all collapse
     // onto /management/view, so the reverse can land on any of them).
-    it.each(COMING_SOON_MODULE_ORDER)(
+    it.each(COMING_SOON_STUB_SLUGS)(
       'stub /coming-soon/%s -> classic -> some nexus-one path (any is acceptable when destinations collide)',
       (slug) => {
         const previewPath = comingSoonHref(slug);

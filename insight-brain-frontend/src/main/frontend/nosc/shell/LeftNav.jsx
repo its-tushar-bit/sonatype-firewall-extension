@@ -84,7 +84,8 @@ const COMPONENTS_ACTIVE_HREFS = Object.freeze([comingSoonHref('components')]);
  *   Components           → /coming-soon/components        (Coming Soon;
  *                          the former native Dashboard Components tab
  *                          was removed)
- *   Hosted Repos         → /coming-soon/repositories      (Coming Soon)
+ *   Hosted Repos         → /repositories                 (native embedded
+ *                          Classic mount; CLM-42184)
  *   Legal                → embedded Classic mount        (native
  *                          LegalDashboardContainer; the /coming-soon/legal
  *                          route mounts the Classic Legal Dashboard in-shell.
@@ -281,7 +282,7 @@ function buildNavItems(flags) {
       id: 'hosted-repos',
       label: 'Hosted Repos',
       Icon: DomainIcons.HostedRepos,
-      href: comingSoonHref('repositories'),
+      href: '/repositories',
     });
   }
   if (isLicensed && isLegalEnabled) {

@@ -23,7 +23,10 @@ import {
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { formatTimeAgo } from 'MainRoot/util/dateUtils';
+import { isNexusOneBundle } from 'MainRoot/util/urlUtil';
+import { hostedReposState } from './hostedReposNavigation';
 import { goToComponentReport, goToComponentPriorities } from './hostedReposActions';
+import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectComponents,
   selectTotalCount,
@@ -42,6 +45,7 @@ export default function RepositoryComponentsList() {
   const dispatch = useDispatch();
   const uiRouterState = useRouterState();
   const params = useSelector(selectRouterCurrentParams);
+  const isHostedRepositoryEvaluationEnabled = useSelector(selectIsHostedRepositoryEvaluationEnabled);
   const components = useSelector(selectComponents);
   const totalCount = useSelector(selectTotalCount);
   const pageSize = useSelector(selectPageSize);
@@ -57,7 +61,7 @@ export default function RepositoryComponentsList() {
   const debounceTimer = useRef(null);
 
   const doLoad = () => {
-    if (!repositoryManagerId || !repositoryId) return;
+    if (!isHostedRepositoryEvaluationEnabled || !repositoryManagerId || !repositoryId) return;
     dispatch(loadComponents({ repositoryManagerId, repositoryId, page: 1, filter }));
   };
 
@@ -77,10 +81,10 @@ export default function RepositoryComponentsList() {
   // The !repositoryManager?.name guard prevents re-fetching once the name is loaded.
   const managerName = repositoryManager?.name;
   useEffect(() => {
-    if (repositoryManagerId && !managerName) {
+    if (isHostedRepositoryEvaluationEnabled && repositoryManagerId && !managerName) {
       dispatch(hostedReposListActions.loadRepositories({ repositoryManagerId }));
     }
-  }, [repositoryManagerId, managerName]);
+  }, [isHostedRepositoryEvaluationEnabled, repositoryManagerId, managerName]);
 
   const handleFilterChange = (value) => {
     setInputValue(value);
@@ -99,11 +103,19 @@ export default function RepositoryComponentsList() {
 
   const [isBreadcrumbOpen, setIsBreadcrumbOpen] = useState(false);
 
+  // Feature flag guard — matches pattern in HostedReposPage and HostedReposListPage.
+  // Placed AFTER all hooks to comply with Rules of Hooks (no early return before hooks).
+  // Blanks the UI when the feature is disabled; the network loads are separately gated
+  // on the flag in doLoad and the manager-name effect above so they don't fire. CLM-42184.
+  if (!isHostedRepositoryEvaluationEnabled) {
+    return null;
+  }
+
   const breadcrumbs = [
-    { name: 'Repository Managers', href: uiRouterState.href('hostedRepos') },
+    { name: 'Repository Managers', href: uiRouterState.href(hostedReposState('hostedRepos')) },
     {
       name: repositoryManager?.name || repositoryManagerId,
-      href: uiRouterState.href('hostedRepositories', { repositoryManagerId }),
+      href: uiRouterState.href(hostedReposState('hostedRepositories'), { repositoryManagerId }),
     },
     { name: repositoryPublicId || repositoryId, href: '' },
   ];
@@ -218,22 +230,32 @@ export default function RepositoryComponentsList() {
                               >
                                 Report
                               </button>
-                              <span aria-hidden="true">|</span>
-                              <button
-                                className="nx-text-link iq-hosted-repos-components__report-link"
-                                disabled={!component.applicationPublicId || !component.scanId}
-                                title={
-                                  !component.applicationPublicId || !component.scanId
-                                    ? 'Evaluation pending — results not yet available'
-                                    : undefined
-                                }
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  dispatch(goToComponentPriorities(component.applicationPublicId, component.scanId));
-                                }}
-                              >
-                                Priorities
-                              </button>
+                              {/* Priorities jumps to the Standalone Developer priorities page, which
+                                  isn't embedded in the Nexus One shell — hide it there to avoid a
+                                  dead-end. Report stays: it targets applicationReport.policy, which
+                                  is embedded. CLM-42184. */}
+                              {!isNexusOneBundle() && (
+                                <>
+                                  <span aria-hidden="true">|</span>
+                                  <button
+                                    className="nx-text-link iq-hosted-repos-components__report-link"
+                                    disabled={!component.applicationPublicId || !component.scanId}
+                                    title={
+                                      !component.applicationPublicId || !component.scanId
+                                        ? 'Evaluation pending — results not yet available'
+                                        : undefined
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      dispatch(
+                                        goToComponentPriorities(component.applicationPublicId, component.scanId)
+                                      );
+                                    }}
+                                  >
+                                    Priorities
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </>
                         )}

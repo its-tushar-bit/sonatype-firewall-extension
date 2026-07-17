@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 @use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 .iq-hosted-repos-edit-modal {
@@ -11,6 +12,11 @@
 
 .iq-hosted-repos {
   padding: var(--nx-spacing-4x);
+
+  // Nexus One wraps the page in .nx-page-main which has its own padding
+  .nx-page-main & {
+    padding: 0;
+  }
 
   &__description {
     margin-bottom: var(--nx-spacing-6x);
@@ -72,8 +78,14 @@
     &:hover {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       border-color: var(--nx-color-interactive-border-hover);
+    }
 
-      @include nx-dark-mode-helpers.dark-mode {
+    // CLM-42184: Use RSC dark-mode mixin (not prefers-color-scheme media query)
+    // so the hover effect responds to the Nexus One app-level theme toggle,
+    // not just the OS-level preference. The mixin checks the nx-html--dark class
+    // set by displayThemeHandler when the user toggles the theme in the app.
+    @include nx-dark-mode-helpers.dark-mode {
+      &:hover {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       }
     }
@@ -216,6 +228,14 @@
 }
 
 #iq-hosted-repos-components-page {
+  // In the Nexus One bundle this page is embedded inside ClassicComponentMount's
+  // Radix Theme (.radix-themes); the shell already provides the content inset, so the
+  // RSC `.nx-page-main` padding on this element is unwanted. Classic has no
+  // `.radix-themes` ancestor, so this only applies in Nexus One. CLM-42184.
+  .radix-themes & {
+    padding: 0;
+  }
+
   .nx-alert {
     max-width: 100%;
   }

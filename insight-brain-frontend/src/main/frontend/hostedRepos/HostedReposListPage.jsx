@@ -6,6 +6,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+// The Classic bundle pulls this SCSS partial through `scss/scss.scss`; the Nexus One
+// bundle (which embeds this page natively) does not. Importing it here makes the page
+// self-contained for any host bundle. CLM-42184.
+import './_hostedReposListPage.scss';
 import {
   NxLoadWrapper,
   NxFilterInput,
@@ -20,6 +24,7 @@ import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 import { selectRepositoryManagerId } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { hostedReposState } from './hostedReposNavigation';
 import { actions } from './hostedReposListSlice';
 import {
   selectRepositories,
@@ -112,7 +117,11 @@ function HostedRepositoriesListPage() {
 
   const handleRepoClick = (repo) => {
     dispatch(
-      stateGo('hostedRepoComponents', { repositoryManagerId, repositoryId: repo.id, repositoryPublicId: repo.publicId })
+      stateGo(hostedReposState('hostedRepoComponents'), {
+        repositoryManagerId,
+        repositoryId: repo.id,
+        repositoryPublicId: repo.publicId,
+      })
     );
   };
 
@@ -136,7 +145,7 @@ function HostedRepositoriesListPage() {
 
   const breadcrumbs = repositoryManager?.instanceId
     ? [
-        { name: 'Repository Managers', href: uiRouterState.href('hostedRepos') },
+        { name: 'Repository Managers', href: uiRouterState.href(hostedReposState('hostedRepos')) },
         { name: repositoryManager.name || repositoryManager.instanceId },
       ]
     : [];

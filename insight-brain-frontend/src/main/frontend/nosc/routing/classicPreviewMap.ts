@@ -47,7 +47,10 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   // '/ui-settings', not the caller-supplied path.
   ['/successMetricsConfiguration', '/successMetricsConfiguration'],
   ['/baseUrl', '/baseUrl'],
-  ...COMING_SOON_ENTRIES,
+  // Hosted Repos (/repositories <-> /hostedRepos) is handled by SUBTREE_MAPPINGS below
+  // so deep links round-trip 1-1. It's excluded from the Coming Soon entries because
+  // it's a native embed, not a stub (CLM-42184).
+  ...COMING_SOON_ENTRIES.filter(([nexus]) => nexus !== '/coming-soon/repositories'),
 ];
 
 // Prefix matches use Array.find — keep more-specific paths before broader prefixes
@@ -102,6 +105,7 @@ function isNexusOnePath(path: string): boolean {
   if (path === '/search' || path.startsWith('/search/')) return true;
   if (path === '/waivers' || path.startsWith('/waivers/')) return true;
   if (path === '/ui-settings' || path.startsWith('/ui-settings/')) return true;
+  if (path === '/repositories' || path.startsWith('/repositories/')) return true;
   if (path.startsWith('/coming-soon/')) return true;
   return NEXUS_ONE_TO_CLASSIC.some(([nexus]) => path === nexus || path.startsWith(nexus + '/'));
 }
@@ -152,6 +156,38 @@ function findDetailPageClassicToNexusOne(path: string): string | null {
   return null;
 }
 
+/**
+ * Subtrees that exist in both bundles with an identical sub-path structure,
+ * differing only by their base segment. Unlike {@link NEXUS_ONE_TO_CLASSIC}
+ * (single-path -> single-path), these preserve everything after the base — path
+ * segments AND query string — so deep links round-trip 1-1. E.g. Nexus One
+ * `/repositories/{mgrId}/{repoId}/components?repositoryPublicId=x`
+ * <-> Classic `/hostedRepos/{mgrId}/{repoId}/components?repositoryPublicId=x`. CLM-42184.
+ */
+const SUBTREE_MAPPINGS: ReadonlyArray<{ readonly nexusOne: string; readonly classic: string }> = [
+  { nexusOne: '/repositories', classic: '/hostedRepos' },
+];
+
+/** Maps a Nexus One subtree path to its Classic equivalent, preserving the tail. */
+function toClassicSubtree(path: string): string | null {
+  for (const { nexusOne, classic } of SUBTREE_MAPPINGS) {
+    if (path === nexusOne || path.startsWith(nexusOne + '/')) {
+      return classic + path.slice(nexusOne.length);
+    }
+  }
+  return null;
+}
+
+/** Maps a Classic subtree path to its Nexus One equivalent, preserving the tail. */
+function toNexusOneSubtree(path: string): string | null {
+  for (const { nexusOne, classic } of SUBTREE_MAPPINGS) {
+    if (path === classic || path.startsWith(classic + '/')) {
+      return nexusOne + path.slice(classic.length);
+    }
+  }
+  return null;
+}
+
 export function toNexusOneEquivalent(classicPath: string): string {
   const path = stripHashPrefix(classicPath);
   if (path === '' || path === '/') return NEXUS_ONE_DEFAULT_PATH;
@@ -161,6 +197,9 @@ export function toNexusOneEquivalent(classicPath: string): string {
 
   const detail = findDetailPageClassicToNexusOne(path);
   if (detail) return detail;
+
+  const subtree = toNexusOneSubtree(path);
+  if (subtree) return subtree;
 
   const exact = NEXUS_ONE_TO_CLASSIC.find(([, classic]) => classic === path);
   if (exact) return exact[0];
@@ -183,6 +222,9 @@ export function toClassicEquivalent(nexusOnePath: string): string {
 
   const detail = findDetailPageNexusOneToClassic(path);
   if (detail) return detail;
+
+  const subtree = toClassicSubtree(path);
+  if (subtree) return subtree;
 
   const entry = NEXUS_ONE_TO_CLASSIC.find(([nexus]) => path === nexus || path.startsWith(nexus + '/'));
   if (entry) return entry[1];

@@ -7,16 +7,18 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
+// The Classic bundle pulls these SCSS partials through `scss/scss.scss`;
+// the Nexus One bundle (which embeds this page natively) does not.
+// Importing them here makes the page self-contained for any host bundle. CLM-42184.
+import './_hostedRepos.scss';
 import {
   NxLoadWrapper,
   NxPageTitle,
   NxH1,
-  NxH2,
   NxH4,
   NxP,
   NxTextLink,
   NxTile,
-  NxButton,
   NxFontAwesomeIcon,
   NxStatefulIconDropdown,
   NxModal,
@@ -29,6 +31,7 @@ import {
 import { faEllipsisVertical, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { faDatabase } from '@fortawesome/pro-regular-svg-icons';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { hostedReposState } from './hostedReposNavigation';
 import { actions } from './hostedReposSlice';
 import { actions as hostedReposListActions } from './hostedReposListSlice';
 import {
@@ -104,24 +107,25 @@ function EditNameModal({ rm, onClose }) {
     >
       <NxStatefulForm
         onSubmit={handleSave}
+        onCancel={onClose}
         submitBtnText="Update"
         submitMaskState={renaming ? false : null}
         validationErrors={nameState.validationErrors}
-        additionalFooterBtns={
-          <NxButton variant="tertiary" type="button" onClick={onClose}>
-            Cancel
-          </NxButton>
-        }
       >
-        <NxModal.Header id="edit-name-modal-title">
-          <NxH2>Edit Repository Manager</NxH2>
-        </NxModal.Header>
-        <NxModal.Content>
+        {/* Modal uses semantic HTML elements (<header>, <h2>) instead of NxModal.Header/Content
+            RSC components for consistency with patterns in EulaModal.jsx and LdapUserMapping.jsx.
+            The onCancel prop is preferred over manual footer buttons for simple modals. */}
+        <header className="nx-modal-header">
+          <h2 className="nx-h2" id="edit-name-modal-title">
+            Edit Repository Manager
+          </h2>
+        </header>
+        <div className="nx-modal-content">
           {renameError && <NxErrorAlert>{renameError}</NxErrorAlert>}
           <NxFormGroup label="Repository Manager Name" isRequired>
             <NxTextInput {...nameState} onChange={handleNameChange} disabled={renaming} />
           </NxFormGroup>
-        </NxModal.Content>
+        </div>
       </NxStatefulForm>
     </NxModal>
   );
@@ -148,7 +152,12 @@ function RepoManagerCardActions({ rm }) {
     e.stopPropagation();
     if (rm.baseUrl) {
       const normalizedBaseUrl = rm.baseUrl.replace(/\/+$/, '');
-      window.open(`${normalizedBaseUrl}/${NXRM_HOSTED_REPOS_EVAL_PATH}`, '_blank', 'noopener,noreferrer');
+      // Only allow http and https schemes to prevent XSS. Case-insensitive so an
+      // admin-stored uppercase scheme (HTTP://) isn't silently rejected.
+      const scheme = normalizedBaseUrl.split('://')[0].toLowerCase();
+      if (scheme === 'http' || scheme === 'https') {
+        window.open(`${normalizedBaseUrl}/${NXRM_HOSTED_REPOS_EVAL_PATH}`, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
@@ -215,7 +224,7 @@ export default function HostedReposPage() {
 
   const handleCardClick = (rm) => {
     dispatch(hostedReposListActions.setManagerInfo({ instanceId: rm.instanceId, baseUrl: rm.baseUrl, name: rm.name }));
-    dispatch(stateGo('hostedRepositories', { repositoryManagerId: rm.instanceId }));
+    dispatch(stateGo(hostedReposState('hostedRepositories'), { repositoryManagerId: rm.instanceId }));
   };
 
   const renderCards = () => {

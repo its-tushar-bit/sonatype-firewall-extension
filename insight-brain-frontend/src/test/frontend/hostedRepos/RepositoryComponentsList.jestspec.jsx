@@ -37,6 +37,9 @@ describe('RepositoryComponentsList', () => {
       currentParams: defaultParams,
       currentState: { name: 'hostedRepoComponents' },
     },
+    productFeatures: {
+      productFeatures: { 'hosted-repository-evaluation': true },
+    },
   };
 
   const componentWithViolations = {
@@ -401,7 +404,13 @@ describe('RepositoryComponentsList', () => {
 
     renderComponent(stateWithoutManagerName);
 
-    await waitFor(() => expect(axiosMock.history.get.some(r => r.url === '/rest/integration/repositories/local-nexus/ui/configuredRepositories')).toBe(true));
+    await waitFor(() =>
+      expect(
+        axiosMock.history.get.some(
+          (r) => r.url === '/rest/integration/repositories/local-nexus/ui/configuredRepositories'
+        )
+      ).toBe(true)
+    );
   });
 
   it('does not dispatch loadRepositories when managerName is already loaded', async () => {
@@ -418,6 +427,25 @@ describe('RepositoryComponentsList', () => {
 
     await waitFor(() => expect(screen.getByRole('heading', { name: 'maven-hosted' })).toBeInTheDocument());
 
-    expect(axiosMock.history.get.some(r => r.url === '/rest/integration/repositories/local-nexus/ui/configuredRepositories')).toBe(false);
+    expect(
+      axiosMock.history.get.some(
+        (r) => r.url === '/rest/integration/repositories/local-nexus/ui/configuredRepositories'
+      )
+    ).toBe(false);
+  });
+
+  // CLM-42184: Feature flag guard tests
+  it('returns null when hosted-repository-evaluation feature is disabled', () => {
+    const stateWithFeatureDisabled = {
+      ...defaultPreloadedState,
+      productFeatures: {
+        productFeatures: { 'hosted-repository-evaluation': false },
+      },
+    };
+
+    const { container } = renderComponent(stateWithFeatureDisabled);
+
+    // Component returns null when feature is disabled
+    expect(container.innerHTML).toBe('');
   });
 });

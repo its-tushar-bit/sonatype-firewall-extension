@@ -8,6 +8,7 @@ import { ComingSoonModuleSlug } from 'MainRoot/nosc/comingSoon';
 export const NATIVE_CLASSIC_EMBED_SLUGS: readonly ComingSoonModuleSlug[] = [
   'success-metrics',
   'api',
+  'repositories',
   'legal',
   'reports',
 ];

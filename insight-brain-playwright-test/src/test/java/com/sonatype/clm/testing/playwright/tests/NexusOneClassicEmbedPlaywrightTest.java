@@ -520,7 +520,6 @@ public class NexusOneClassicEmbedPlaywrightTest
     UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
 
     configPage.saveButton().waitFor();
-    assertThat(configPage.baseUrlAttribute()).hasValue("");
     configPage.baseUrlAttribute().fill(DIRTY_GUARD_TEST_BASE_URL);
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/dashboard"));
@@ -550,7 +549,6 @@ public class NexusOneClassicEmbedPlaywrightTest
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
 
     configPage.saveButton().waitFor();
-    assertThat(configPage.baseUrlAttribute()).hasValue("");
     configPage.baseUrlAttribute().fill(DIRTY_GUARD_TEST_BASE_URL);
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));

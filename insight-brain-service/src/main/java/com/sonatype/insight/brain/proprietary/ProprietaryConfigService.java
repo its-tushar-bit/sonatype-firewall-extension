@@ -72,8 +72,7 @@ public class ProprietaryConfigService
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     ProprietaryConfigHierarchy proprietaryConfigHierarchy = new ProprietaryConfigHierarchy();
 
-    List<Owner> owners = new ArrayList<>();
-    ownerDAO.walkHierarchy(internalOwnerId).forEach(owners::add);
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(internalOwnerId, ownerType);
     Map<String, ProprietaryConfig> configsByOwnerId = proprietaryConfigDAO.getByOwnerIdWithHierarchy(internalOwnerId)
         .stream()
         .collect(Collectors.toMap(ProprietaryConfig::getOwnerId, Function.identity()));

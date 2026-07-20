@@ -148,8 +148,7 @@ public class PolicyWaiverResource
         .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     AppliedWaivers result = new AppliedWaivers();
-    List<Owner> owners = new ArrayList<>();
-    ownerDAO.walkHierarchy(ownerId).forEach(owners::add);
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(ownerId, ownerType);
 
     ComponentIdentifier componentIdentifier = null;
     for (Owner owner : owners) {
@@ -194,7 +193,8 @@ public class PolicyWaiverResource
 
     ApplicableContext context = null;
     boolean foundPolicyInHierarchy = false;
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+    // walkHierarchy stays lazy so we can stop once the policy owner is found
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId, ownerType)) {
       ApplicableContext currentContext = new ApplicableContext(getRestOwnerId(owner), owner.getName(), owner.getType());
       if (context != null) {
         currentContext.setChildren(new ArrayList<>());

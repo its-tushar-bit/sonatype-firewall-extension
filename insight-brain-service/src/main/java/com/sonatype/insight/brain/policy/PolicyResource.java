@@ -41,7 +41,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -266,17 +265,16 @@ public class PolicyResource
     List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
 
     // Init the result structure
-    List<Owner> hierarchyOwners = new ArrayList<>();
-    ownerDAO.walkHierarchy(ownerId).forEach(hierarchyOwners::add);
+    List<Owner> hierarchyOwners = ownerDAO.getOwnersInHierarchy(ownerId, ownerType);
     List<String> orgOwnerIds = hierarchyOwners.stream()
-        .filter(o -> !(o instanceof Application))
+        .filter(o -> o.getType() != OwnerType.APPLICATION)
         .map(Owner::getId)
         .collect(toList());
     Map<String, List<PolicyTag>> policyTagsByOrgId = policyTagDAO.getByOrganizationIdsGrouped(orgOwnerIds);
     Map<String, PoliciesByOwner> policiesByOwnerId = new LinkedHashMap<>();
     for (Owner currentOwner : hierarchyOwners) {
       String currentOwnerId = currentOwner.getId();
-      if (currentOwner instanceof Application) {
+      if (currentOwner.getType() == OwnerType.APPLICATION) {
         policiesByOwnerId.put(currentOwnerId,
             new PoliciesByOwner(currentOwnerId, currentOwner.getName(), currentOwner.getType()));
       }
@@ -290,7 +288,14 @@ public class PolicyResource
 
     // Add the applicable policies by owner to the result structure
     for (Policy policy : policies) {
-      policiesByOwnerId.get(policy.getOwnerId()).policies.add(policy);
+      PoliciesByOwner bucket = policiesByOwnerId.get(policy.getOwnerId());
+      if (bucket != null) {
+        bucket.policies.add(policy);
+      }
+      else {
+        log.warn("Skipping applicable policy {} because owner {} is absent from hierarchy for {}",
+            policy.getId(), policy.getOwnerId(), ownerId);
+      }
     }
 
     ApplicablePolicies result = new ApplicablePolicies();

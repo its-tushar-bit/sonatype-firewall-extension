@@ -116,7 +116,7 @@ public class PolicyMonitoringResource
         .stream()
         .collect(Collectors.groupingBy(PolicyMonitoring::getOwnerId));
 
-    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
+    for (Owner owner : ownerDAO.getOwnersInHierarchy(internalOwnerId, ownerType)) {
       PolicyMonitoringByOwner policyMonitoringByOwner = new PolicyMonitoringByOwner();
       policyMonitoringByOwner.ownerName = owner.getName();
       policyMonitoringByOwner.policyMonitorings

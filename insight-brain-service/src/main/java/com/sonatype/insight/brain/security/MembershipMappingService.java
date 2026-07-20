@@ -376,8 +376,7 @@ public class MembershipMappingService
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
     }
 
-    List<Owner> owners = new ArrayList<>();
-    ownerDAO.walkHierarchy(internalOwnerId).forEach(owners::add);
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(internalOwnerId, ownerType);
     Map<String, List<MembershipMapping>> mappingsByContextId = membershipMappingDAO
         .getByContextIds(owners.stream().map(Owner::getId).collect(Collectors.toList()))
         .stream()

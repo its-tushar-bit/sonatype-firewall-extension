@@ -102,7 +102,7 @@ public class LabelService
 
   @Authorize(permission = Permission.READ)
   List<ApiLabelDTO> getLabelsWithAuthzCheck(
-      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
       boolean inherit)
   {
@@ -110,7 +110,7 @@ public class LabelService
     List<ApiLabelDTO> labelDTOs = labels.stream().map(label -> toDTO(label, ownerType)).collect(Collectors.toList());
 
     if (inherit) {
-      for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      for (Owner owner : ownerDAO.getOwnersInHierarchy(ownerId, ownerType)) {
         labelDTOs.stream()
             .filter(dto -> dto.ownerId.equals(owner.getId()))
             .forEach(apiLabelDTO -> apiLabelDTO.ownerType = owner.getType().name());
@@ -132,13 +132,10 @@ public class LabelService
 
   @Authorize(permission = Permission.READ)
   ApplicableLabels getApplicableLabelsWithAuthzCheck(
-      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId)
   {
-    List<Owner> owners = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      owners.add(owner);
-    }
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(ownerId, ownerType);
     List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
     Map<String, List<Label>> labelsByOwnerId = labelDAO.getByOwnerIds(ownerIds)
         .stream()
@@ -185,7 +182,8 @@ public class LabelService
     }
 
     ApplicableContext context = null;
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+    // walkHierarchy stays lazy so permission checks / label-owner stop can short-circuit
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId, ownerType)) {
       if (!permissionService.validatePermission(SecurityUtils.getSubject(), owner.getType(), owner.getId(),
           Collections.singleton(Permission.WRITE)).contains(Permission.WRITE))
       {

@@ -112,8 +112,7 @@ public class TagService
       @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
-    List<Owner> owners = new ArrayList<>();
-    ownerDAO.walkHierarchy(internalOwnerId).forEach(owners::add);
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(internalOwnerId, ownerType);
     List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
     Map<String, List<ApiApplicationCategoryDTO>> tagsByOrgId = tagDAO.getByOrganizationIds(ownerIds)
         .stream()
@@ -202,8 +201,7 @@ public class TagService
 
   @Authorize(permission = Permission.READ)
   public AppliedTagsDTO getAppliedTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
-    List<Owner> owners = new ArrayList<>();
-    ownerDAO.walkHierarchy(organizationId).forEach(owners::add);
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(organizationId, OwnerType.ORGANIZATION);
     List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
     Map<String, List<ApplicationTag>> appTagsByOrgId = applicationTagDAO.getByOrganizationIds(ownerIds);
     AppliedTagsDTO entities = new AppliedTagsDTO();
@@ -327,10 +325,8 @@ public class TagService
   }
 
   private void assertInHierarchy(String ownerId, Policy policy) {
-    for (Owner candidate : ownerDAO.walkHierarchy(ownerId)) {
-      if (policy.getOwnerId().equals(candidate.getId())) {
-        return;
-      }
+    if (ownerDAO.isOwnerInHierarchy(ownerId, policy.getOwnerId())) {
+      return;
     }
     throw new NotFoundException("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerId);
   }

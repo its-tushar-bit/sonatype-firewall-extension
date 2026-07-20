@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVul
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -83,6 +84,70 @@ public class OwnerDAOTest
     assertThat(ownersIds).containsExactly(app.getId(), testList.get(0).getId(), testList.get(1).getId(),
         testList.get(2).getId(),
         organization.getParentOrganizationId());
+  }
+
+  @Test
+  public void testGetOwnersInHierarchy_Application_matchesWalkHierarchy() {
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 3, 0);
+    Application app = tempEntity.newApplicationWithParent(testList.get(0));
+    assertOwnersInHierarchyMatchesWalk(app.getId(), OwnerType.APPLICATION);
+  }
+
+  @Test
+  public void testGetOwnersInHierarchy_Organization_matchesWalkHierarchy() {
+    assertOwnersInHierarchyMatchesWalk(organization.getId(), OwnerType.ORGANIZATION);
+  }
+
+  @Test
+  public void testGetOwnersInHierarchy_Repository_matchesWalkHierarchy() {
+    assertOwnersInHierarchyMatchesWalk(repository.getId(), OwnerType.REPOSITORY);
+  }
+
+  @Test
+  public void testGetOwnersInHierarchy_RepositoryManager_matchesWalkHierarchy() {
+    RepositoryManager repoManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
+    assertOwnersInHierarchyMatchesWalk(repoManager.getId(), OwnerType.REPOSITORY_MANAGER);
+  }
+
+  @Test
+  public void testGetOwnersInHierarchy_RepositoryContainer_matchesWalkHierarchy() {
+    assertOwnersInHierarchyMatchesWalk(RepositoryContainer.REPOSITORY_CONTAINER_ID, OwnerType.REPOSITORY_CONTAINER);
+  }
+
+  @Test
+  public void testGetOwnersInHierarchy_nullOwnerType_matchesWalkHierarchy() {
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+    Application app = tempEntity.newApplicationWithParent(testList.get(0));
+    assertOwnersInHierarchyMatchesWalk(app.getId(), null);
+  }
+
+  @Test
+  public void testIsOwnerInHierarchy() {
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+    Application app = tempEntity.newApplicationWithParent(testList.get(0));
+
+    assertThat(ownerDAO.isOwnerInHierarchy(app.getId(), app.getId())).isTrue();
+    assertThat(ownerDAO.isOwnerInHierarchy(app.getId(), testList.get(0).getId())).isTrue();
+    assertThat(ownerDAO.isOwnerInHierarchy(app.getId(), Organization.ROOT_ORGANIZATION_ID)).isTrue();
+    assertThat(ownerDAO.isOwnerInHierarchy(app.getId(), "nonexistent-owner-id")).isFalse();
+    assertThat(ownerDAO.isOwnerInHierarchy(testList.get(0).getId(), app.getId())).isFalse();
+  }
+
+  private void assertOwnersInHierarchyMatchesWalk(String ownerId, OwnerType ownerType) {
+    List<Owner> fromWalk = new ArrayList<>();
+    ownerDAO.walkHierarchy(ownerId, ownerType).forEach(fromWalk::add);
+    List<Owner> fromBatch = ownerDAO.getOwnersInHierarchy(ownerId, ownerType);
+
+    assertThat(fromBatch).extracting(Owner::getId)
+        .containsExactlyElementsOf(
+            fromWalk.stream().map(Owner::getId).collect(Collectors.toList()));
+    for (int i = 0; i < fromWalk.size(); i++) {
+      assertThat(fromBatch.get(i).getName()).isEqualTo(fromWalk.get(i).getName());
+      assertThat(fromBatch.get(i).getType()).isEqualTo(fromWalk.get(i).getType());
+      assertThat(fromBatch.get(i).getPublicId()).isEqualTo(fromWalk.get(i).getPublicId());
+      assertThat(fromBatch.get(i).getParentOwnerId()).isEqualTo(fromWalk.get(i).getParentOwnerId());
+      assertThat(fromBatch.get(i).canHaveChildren()).isEqualTo(fromWalk.get(i).canHaveChildren());
+    }
   }
 
   @Test

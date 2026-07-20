@@ -68,10 +68,7 @@ public class ComponentLabelService
     AuditData.get().setComponentHash(hash);
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    List<Owner> owners = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      owners.add(owner);
-    }
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(ownerId, ownerType);
     List<String> ownerIds = owners.stream().map(Owner::getId).collect(Collectors.toList());
     Map<String, List<Label>> labelsByOwnerId = labelDAO.getByOwnerIdsAndHash(ownerIds, hash);
 

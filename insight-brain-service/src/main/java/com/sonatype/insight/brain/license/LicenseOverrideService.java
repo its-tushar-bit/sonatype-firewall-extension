@@ -234,8 +234,7 @@ public class LicenseOverrideService
     AppliedLicenseOverrides result = new AppliedLicenseOverrides();
     result.licenseOverridesByOwner = new ArrayList<>();
 
-    List<Owner> owners = new ArrayList<>();
-    ownerDAO.walkHierarchy(internalOwnerId).forEach(owners::add);
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(internalOwnerId, ownerType);
     Map<String, LicenseOverride> overridesByOwnerId = licenseOverrideDAO.getByOwnerIdsAndComponentIdentifier(
         owners.stream().map(Owner::getId).collect(Collectors.toList()), componentIdentifier);
 

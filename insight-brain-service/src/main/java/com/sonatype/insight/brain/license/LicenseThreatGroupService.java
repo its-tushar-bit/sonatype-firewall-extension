@@ -194,8 +194,7 @@ public class LicenseThreatGroupService
   {
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    List<Owner> owners = new ArrayList<>();
-    ownerDAO.walkHierarchy(ownerId).forEach(owners::add);
+    List<Owner> owners = ownerDAO.getOwnersInHierarchy(ownerId, ownerType);
     Map<String, List<LicenseThreatGroupWithLicenses>> licenseThreatGroupsByOwnerId =
         loadLicenseThreatGroupsByOwnerIds(owners.stream().map(Owner::getId).collect(Collectors.toList()));
 

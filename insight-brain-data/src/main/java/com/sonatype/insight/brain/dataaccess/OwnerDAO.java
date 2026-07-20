@@ -83,6 +83,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
+import org.jooq.SelectOrderByStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
@@ -96,7 +97,9 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.OrganizationA
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryAncestor.REPOSITORY_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryContainer.REPOSITORY_CONTAINER;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryContainerAncestor.REPOSITORY_CONTAINER_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManager.REPOSITORY_MANAGER;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManagerAncestor.REPOSITORY_MANAGER_ANCESTOR;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -724,6 +727,183 @@ public class OwnerDAO
           .filter(Objects::nonNull)
           .iterator();
     };
+  }
+
+  /**
+   * Returns the owner and all of its ancestors (name, type, publicId, etc.) in a single query via
+   * {@code owner_ancestor}, ordered bottom-up by {@code ancestor_distance} — the same order as
+   * {@link #walkHierarchy(String)}. Prefer this over {@code walkHierarchy} when the caller only needs
+   * owner metadata to build a grouped response.
+   *
+   * @param ownerType if known, specify the {@link OwnerType} of {@code ownerId} so the query can filter
+   *          {@code owner_ancestor.owner_type} for improved performance
+   */
+  public List<Owner> getOwnersInHierarchy(final String ownerId, final OwnerType ownerType) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getOwnersInHierarchy(tx, ownerId, ownerType);
+    }
+  }
+
+  public List<Owner> getOwnersInHierarchy(
+      final TransactionContext tx,
+      final String ownerId,
+      final OwnerType ownerType)
+  {
+    Condition baseOwnerCondition = OWNER_ANCESTOR.OWNER_ID.eq(ownerId);
+    if (ownerType != null) {
+      baseOwnerCondition = baseOwnerCondition.and(OWNER_ANCESTOR.OWNER_TYPE.eq(ownerType.name()));
+    }
+    final Condition ownerCondition = baseOwnerCondition;
+
+    final Field<String> publicId = DSL.field(DSL.name("public_id"), String.class);
+    final Field<String> name = DSL.field(DSL.name("name"), String.class);
+    final Field<String> parentOwnerId = DSL.field(DSL.name("parent_owner_id"), String.class);
+    final Field<String> id = DSL.field(DSL.name("id"), String.class);
+    final Field<Boolean> haveChildren = DSL.field(DSL.name("have_children"), Boolean.class);
+    final Field<String> type = DSL.field(DSL.name("type"), String.class);
+    final Field<Integer> ancestorDistance = DSL.field(DSL.name("ancestor_distance"), Integer.class);
+
+    // Match walkHierarchy's type gating: only UNION ancestor kinds that can appear for this owner type.
+    var appQuery = tx.dsl()
+        .select(
+            APPLICATION.PUBLIC_ID.as(publicId),
+            APPLICATION.NAME.as(name),
+            APPLICATION.ORGANIZATION_ID.as(parentOwnerId),
+            APPLICATION.APPLICATION_ID.as(id),
+            DSL.inline(false).as(haveChildren),
+            DSL.inline(OwnerType.APPLICATION.name()).as(type),
+            OWNER_ANCESTOR.ANCESTOR_DISTANCE.as(ancestorDistance))
+        .from(OWNER_ANCESTOR)
+        .join(APPLICATION)
+        .on(APPLICATION.APPLICATION_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(ownerCondition)
+        .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.APPLICATION.name()));
+
+    var orgQuery = tx.dsl()
+        .select(
+            ORGANIZATION.ORGANIZATION_ID.as(publicId),
+            ORGANIZATION.NAME.as(name),
+            ORGANIZATION.PARENT_ORGANIZATION_ID.as(parentOwnerId),
+            ORGANIZATION.ORGANIZATION_ID.as(id),
+            DSL.inline(true).as(haveChildren),
+            DSL.inline(OwnerType.ORGANIZATION.name()).as(type),
+            OWNER_ANCESTOR.ANCESTOR_DISTANCE.as(ancestorDistance))
+        .from(OWNER_ANCESTOR)
+        .join(ORGANIZATION)
+        .on(ORGANIZATION.ORGANIZATION_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(ownerCondition)
+        .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.ORGANIZATION.name()));
+
+    var repoQuery = tx.dsl()
+        .select(
+            REPOSITORY.PUBLIC_ID.as(publicId),
+            // Repository.getName() returns publicId — not a separate display name.
+            REPOSITORY.PUBLIC_ID.as(name),
+            REPOSITORY.REPOSITORY_MANAGER_ID.as(parentOwnerId),
+            REPOSITORY.REPOSITORY_ID.as(id),
+            DSL.inline(false).as(haveChildren),
+            DSL.inline(OwnerType.REPOSITORY.name()).as(type),
+            OWNER_ANCESTOR.ANCESTOR_DISTANCE.as(ancestorDistance))
+        .from(OWNER_ANCESTOR)
+        .join(REPOSITORY)
+        .on(REPOSITORY.REPOSITORY_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(ownerCondition)
+        .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.REPOSITORY.name()));
+
+    var repoManagerQuery = tx.dsl()
+        .select(
+            REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID.as(publicId),
+            DSL.coalesce(REPOSITORY_MANAGER.NAME, REPOSITORY_MANAGER.INSTANCE_ID).as(name),
+            // All repo managers are children of the singleton repository container (same as walkHierarchy).
+            DSL.inline(RepositoryContainer.REPOSITORY_CONTAINER_ID).as(parentOwnerId),
+            REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID.as(id),
+            DSL.inline(true).as(haveChildren),
+            DSL.inline(OwnerType.REPOSITORY_MANAGER.name()).as(type),
+            OWNER_ANCESTOR.ANCESTOR_DISTANCE.as(ancestorDistance))
+        .from(OWNER_ANCESTOR)
+        .join(REPOSITORY_MANAGER)
+        .on(REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(ownerCondition)
+        .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.REPOSITORY_MANAGER.name()));
+
+    var repoContainerQuery = tx.dsl()
+        .select(
+            REPOSITORY_CONTAINER.REPOSITORY_CONTAINER_ID.as(publicId),
+            DSL.inline(RepositoryContainer.SINGLETON.getName()).as(name),
+            DSL.inline(Organization.ROOT_ORGANIZATION_ID).as(parentOwnerId),
+            REPOSITORY_CONTAINER.REPOSITORY_CONTAINER_ID.as(id),
+            DSL.inline(true).as(haveChildren),
+            DSL.inline(OwnerType.REPOSITORY_CONTAINER.name()).as(type),
+            OWNER_ANCESTOR.ANCESTOR_DISTANCE.as(ancestorDistance))
+        .from(OWNER_ANCESTOR)
+        .join(REPOSITORY_CONTAINER)
+        .on(REPOSITORY_CONTAINER.REPOSITORY_CONTAINER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(ownerCondition)
+        .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.REPOSITORY_CONTAINER.name()));
+
+    final SelectOrderByStep<?> combined;
+    if (ownerType == OwnerType.ORGANIZATION) {
+      combined = orgQuery;
+    }
+    else if (ownerType == OwnerType.APPLICATION) {
+      combined = appQuery.unionAll(orgQuery);
+    }
+    else if (ownerType == OwnerType.REPOSITORY_CONTAINER) {
+      combined = repoContainerQuery.unionAll(orgQuery);
+    }
+    else if (ownerType == OwnerType.REPOSITORY_MANAGER) {
+      combined = repoManagerQuery.unionAll(repoContainerQuery).unionAll(orgQuery);
+    }
+    else if (ownerType == OwnerType.REPOSITORY) {
+      combined = repoQuery.unionAll(repoManagerQuery).unionAll(repoContainerQuery).unionAll(orgQuery);
+    }
+    else {
+      // ownerType == null, GLOBAL, or unexpected: include all ancestor kinds.
+      // GLOBAL is a permission-system concept and is not stored in owner_ancestor, so this returns empty for GLOBAL.
+      combined = appQuery.unionAll(orgQuery)
+          .unionAll(repoQuery)
+          .unionAll(repoManagerQuery)
+          .unionAll(repoContainerQuery);
+    }
+
+    return combined.orderBy(ancestorDistance)
+        .fetchStream()
+        .map(record -> (Owner) new OwnerImpl(
+            record.get(publicId),
+            record.get(name),
+            record.get(parentOwnerId),
+            record.get(haveChildren),
+            OwnerType.fromString(record.get(type)),
+            record.get(id)))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns true if {@code ancestorId} is {@code ownerId} itself or any of its ancestors in
+   * {@code owner_ancestor} (single existence query).
+   */
+  public boolean isOwnerInHierarchy(final String ownerId, final String ancestorId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return isOwnerInHierarchy(tx, ownerId, ancestorId);
+    }
+  }
+
+  /**
+   * Transaction-aware overload of {@link #isOwnerInHierarchy(String, String)} for use inside an
+   * existing {@link TransactionContext}.
+   */
+  public boolean isOwnerInHierarchy(
+      final TransactionContext tx,
+      final String ownerId,
+      final String ancestorId)
+  {
+    return tx.dsl()
+        .fetchExists(
+            tx.dsl()
+                .selectOne()
+                .from(OWNER_ANCESTOR)
+                .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+                .and(OWNER_ANCESTOR.ANCESTOR_ID.eq(ancestorId)));
   }
 
   /**

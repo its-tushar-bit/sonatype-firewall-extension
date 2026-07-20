@@ -62,6 +62,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.security.ClearRolePermissionCache;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -139,6 +140,8 @@ public class ApplicationMoveService
 
   private final CurrentUser currentUser;
 
+  private final ClearRolePermissionCache authorizationCacheInvalidator;
+
   @Inject
   public ApplicationMoveService(
       ApplicationDAO applicationDAO,
@@ -156,7 +159,8 @@ public class ApplicationMoveService
       LicenseThreatGroupDAO ltgDAO,
       LicenseOverrideDAO licenseOverrideDAO,
       MembershipMappingDAO membershipMappingDAO,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      ClearRolePermissionCache authorizationCacheInvalidator)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -174,6 +178,7 @@ public class ApplicationMoveService
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.membershipMappingDAO = membershipMappingDAO;
     this.currentUser = currentUser;
+    this.authorizationCacheInvalidator = authorizationCacheInvalidator;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -321,6 +326,7 @@ public class ApplicationMoveService
         grantOwnerRoleIfNeeded();
 
         log.debug("Committing updated data");
+        tx.afterCommit(authorizationCacheInvalidator::invalidateAuthorizationCachesForAllNodes);
         tx.commit();
       }
 

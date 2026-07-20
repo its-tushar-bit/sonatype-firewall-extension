@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -134,13 +133,15 @@ public class OpenSearchSearchIndexClientMetricQueryTest
         mock(AdvancedSearchTelemetryMetrics.class),
         mock(Configuration.class),
         permissionService,
+        mock(com.sonatype.insight.brain.security.AuthorizationChecker.class),
         currentUser,
         conversionHelper,
         mock(org.opensearch.client.transport.OpenSearchTransport.class),
         indexConfigProvider,
         mock(ClusterLockManager.class),
         mock(SearchConfig.class),
-        mock(ShutdownHandler.class));
+        mock(ShutdownHandler.class),
+        null);
 
     // Seam: avoid real client/transport wiring by stubbing getClient() on a spy. Production behavior is unchanged.
     client = spy(realClient);
@@ -234,16 +235,10 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     when(permissionService.getContextIdsForUserWithPermission(any(), eq(Permission.READ)))
         .thenReturn(Set.of(mixedCaseAppId, mixedCaseOrgId));
 
-    Owner appOwner = mock(Owner.class);
-    when(appOwner.getId()).thenReturn(mixedCaseAppId);
-    when(appOwner.getType()).thenReturn(OwnerType.APPLICATION);
-    Owner orgOwner = mock(Owner.class);
-    when(orgOwner.getId()).thenReturn(mixedCaseOrgId);
-    when(orgOwner.getType()).thenReturn(OwnerType.ORGANIZATION);
-
-    when(ownerDAO.getById(mixedCaseAppId)).thenReturn(appOwner);
-    when(ownerDAO.getById(mixedCaseOrgId)).thenReturn(orgOwner);
-    when(ownerDAO.walkChildren(any(Owner.class))).thenReturn(List.of());
+    when(ownerDAO.expandReadableContexts(Set.of(mixedCaseAppId, mixedCaseOrgId)))
+        .thenReturn(Map.of(
+            mixedCaseAppId, OwnerType.APPLICATION,
+            mixedCaseOrgId, OwnerType.ORGANIZATION));
 
     JsonNode root = toJsonTree(captureCountRequest());
 
@@ -420,11 +415,8 @@ public class OpenSearchSearchIndexClientMetricQueryTest
     when(permissionService.getContextIdsForUserWithPermission(any(), eq(Permission.READ)))
         .thenReturn(Set.of(mixedCaseAppId));
 
-    Owner appOwner = mock(Owner.class);
-    when(appOwner.getId()).thenReturn(mixedCaseAppId);
-    when(appOwner.getType()).thenReturn(OwnerType.APPLICATION);
-    when(ownerDAO.getById(mixedCaseAppId)).thenReturn(appOwner);
-    when(ownerDAO.walkChildren(any(Owner.class))).thenReturn(List.of());
+    when(ownerDAO.expandReadableContexts(Set.of(mixedCaseAppId)))
+        .thenReturn(Map.of(mixedCaseAppId, OwnerType.APPLICATION));
 
     SearchResponse<Map> response = mock(SearchResponse.class);
     // countDistinct reads only the cardinality aggregate; an empty aggregations map => 0.

@@ -46,7 +46,6 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -64,9 +63,13 @@ import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.global.GlobalSearchSortAllowlist;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
+import com.sonatype.insight.brain.search.lucene.LuceneRbacFilterQueryBuilder;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.search.session.ReadableContextAuthzCache;
+import com.sonatype.insight.brain.security.AuthorizationChecker;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.Configuration;
@@ -191,7 +194,11 @@ public abstract class AbstractSearchIndexClient
 
   private final PermissionService permissionService;
 
+  private final AuthorizationChecker authorizationChecker;
+
   private final CurrentUser currentUser;
+
+  private final ReadableContextAuthzCache readableContextAuthzCache;
 
   protected final ConversionHelper conversionHelper;
 
@@ -215,9 +222,38 @@ public abstract class AbstractSearchIndexClient
       final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
       final Configuration configuration,
       final PermissionService permissionService,
+      final AuthorizationChecker authorizationChecker,
       final CurrentUser currentUser,
       final ConversionHelper conversionHelper,
       final ShutdownHandler shutdownHandler)
+  {
+    this(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
+        tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
+        advancedSearchTelemetryMetrics, configuration, permissionService, authorizationChecker, currentUser,
+        conversionHelper, shutdownHandler, null);
+  }
+
+  protected AbstractSearchIndexClient(
+      final ApplicationDAO applicationDAO,
+      final LabelDAO labelDAO,
+      final OrganizationDAO organizationDAO,
+      final OwnerDAO ownerDAO,
+      final PolicyDAO policyDAO,
+      final SearchIndexChangeDAO searchIndexChangeDAO,
+      final TagDAO tagDAO,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final DocumentBuilderHelper documentBuilderHelper,
+      final ProductLicense productLicense,
+      final TelemetrySender telemetrySender,
+      final LuceneComponents luceneComponents,
+      final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
+      final Configuration configuration,
+      final PermissionService permissionService,
+      final AuthorizationChecker authorizationChecker,
+      final CurrentUser currentUser,
+      final ConversionHelper conversionHelper,
+      final ShutdownHandler shutdownHandler,
+      final ReadableContextAuthzCache readableContextAuthzCache)
   {
     this.applicationDAO = applicationDAO;
     this.labelDAO = labelDAO;
@@ -234,7 +270,9 @@ public abstract class AbstractSearchIndexClient
     this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
     this.configuration = configuration;
     this.permissionService = permissionService;
+    this.authorizationChecker = authorizationChecker;
     this.currentUser = currentUser;
+    this.readableContextAuthzCache = readableContextAuthzCache;
     this.conversionHelper = conversionHelper;
     this.indexingExecutors = new TenantReference<>();
     this.shutdownHandler = shutdownHandler;
@@ -352,16 +390,7 @@ public abstract class AbstractSearchIndexClient
   }
 
   protected Map<String, OwnerType> getChildContextIds(final Set<String> contextIdsWithReadPermission) {
-    Map<String, OwnerType> childContextIds = new HashMap<>();
-    for (String contextIdWithReadPermission : contextIdsWithReadPermission) {
-      Owner owner = ownerDAO.getById(contextIdWithReadPermission);
-      if (owner != null) {
-        childContextIds.put(owner.getId(), owner.getType());
-        childContextIds
-            .putAll(ownerDAO.walkChildren(owner).stream().collect(Collectors.toMap(Owner::getId, Owner::getType)));
-      }
-    }
-    return childContextIds;
+    return ownerDAO.expandReadableContexts(contextIdsWithReadPermission);
   }
 
   @Override
@@ -729,14 +758,25 @@ public abstract class AbstractSearchIndexClient
   }
 
   protected String createFinalQuery(final String query, final boolean isSbomManagerMode) {
+    return createFinalQueryWithRbacMeta(query, isSbomManagerMode).query();
+  }
+
+  /**
+   * Same as {@link #createFinalQuery} plus RBAC context cardinality for Lucene reader timing.
+   * {@code rbacContextCount == -1} means unrestricted/global (no RBAC clause appended).
+   */
+  protected FinalQueryWithRbacMeta createFinalQueryWithRbacMeta(
+      final String query,
+      final boolean isSbomManagerMode)
+  {
     String queryWithSbomFiltering = appendSbomFilteringToQuery(query, isSbomManagerMode);
     return appendAllowedApplicationsAndOrganizationsToQuery(queryWithSbomFiltering);
   }
 
-  private String appendAllowedApplicationsAndOrganizationsToQuery(final String query) {
+  private FinalQueryWithRbacMeta appendAllowedApplicationsAndOrganizationsToQuery(final String query) {
     Optional<Map<String, OwnerType>> readableContexts = resolveReadableContextIdsForCurrentUser();
     if (readableContexts.isEmpty()) {
-      return query;
+      return new FinalQueryWithRbacMeta(query, -1);
     }
 
     Map<String, OwnerType> contextIdsWithReadPermissionMap = readableContexts.get();
@@ -753,11 +793,17 @@ public abstract class AbstractSearchIndexClient
 
     if (allowedContextConditions.isEmpty()) {
       // No allowed contexts means no results should be returned
-      return "(" + query + ") AND (NOT *:*)";
+      return new FinalQueryWithRbacMeta("(" + query + ") AND (NOT *:*)", 0);
     }
 
     String allowedContextsQuery = String.join(" OR ", allowedContextConditions);
-    return "(" + allowedContextsQuery + ") AND (" + query + ")";
+    return new FinalQueryWithRbacMeta(
+        "(" + allowedContextsQuery + ") AND (" + query + ")",
+        contextIdsWithReadPermissionMap.size());
+  }
+
+  protected record FinalQueryWithRbacMeta(String query, int rbacContextCount)
+  {
   }
 
   /**
@@ -766,8 +812,23 @@ public abstract class AbstractSearchIndexClient
    * an empty map denotes fail-closed (no readable contexts).
    */
   protected Optional<Map<String, OwnerType>> resolveReadableContextIdsForCurrentUser() {
+    if (readableContextAuthzCache != null) {
+      return readableContextAuthzCache.resolveReadableContexts(currentUser.getUserPrincipal());
+    }
+
+    if (authorizationChecker == null) {
+      // Direct-construction tests may omit both cache and checker; fail closed rather than NPE.
+      log.warn("Neither ReadableContextAuthzCache nor AuthorizationChecker is wired; failing closed for RBAC");
+      return Optional.of(Map.of());
+    }
+
+    UserPrincipal principal = currentUser.getUserPrincipal();
+    if (authorizationChecker.isPermitted(principal, Permission.READ, Collections.emptyMap())) {
+      return Optional.empty();
+    }
+
     Set<String> contextIdsWithReadPermission =
-        permissionService.getContextIdsForUserWithPermission(currentUser.getUserPrincipal(), Permission.READ);
+        permissionService.getContextIdsForUserWithPermission(principal, Permission.READ);
 
     if (contextIdsWithReadPermission.contains(MembershipMapping.GLOBAL_CONTEXT_ID) ||
         contextIdsWithReadPermission.contains(Organization.ROOT_ORGANIZATION_ID))
@@ -776,6 +837,17 @@ public abstract class AbstractSearchIndexClient
     }
 
     return Optional.of(getChildContextIds(contextIdsWithReadPermission));
+  }
+
+  /**
+   * Returns the compiled Lucene RBAC filter from the shared authorization cache. The fallback
+   * preserves direct-construction test compatibility while production wiring always supplies the cache.
+   */
+  protected Query resolveReadableContextRbacFilterForCurrentUser() {
+    if (readableContextAuthzCache != null) {
+      return readableContextAuthzCache.compiledRbacFilter(currentUser.getUserPrincipal());
+    }
+    return LuceneRbacFilterQueryBuilder.build(resolveReadableContextIdsForCurrentUser());
   }
 
   /**

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -51,6 +52,9 @@ import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.ReadableContextAuthzCache;
+import com.sonatype.insight.brain.security.AuthorizationChecker;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.Configuration;
@@ -185,18 +189,20 @@ public class OpenSearchSearchIndexClient
       final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
       final Configuration configuration,
       final PermissionService permissionService,
+      final AuthorizationChecker authorizationChecker,
       final CurrentUser currentUser,
       final ConversionHelper conversionHelper,
       final OpenSearchTransport openSearchTransport,
       final IndexConfigProvider indexConfigProvider,
       final ClusterLockManager clusterLockManager,
       final SearchConfig searchConfig,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      final ReadableContextAuthzCache readableContextAuthzCache)
   {
     super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
         tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
-        advancedSearchTelemetryMetrics, configuration, permissionService, currentUser, conversionHelper,
-        shutdownHandler);
+        advancedSearchTelemetryMetrics, configuration, permissionService, authorizationChecker, currentUser,
+        conversionHelper, shutdownHandler, readableContextAuthzCache);
     this.openSearchTransport = openSearchTransport;
     this.indexConfigProvider = indexConfigProvider;
     this.clusterLockManager = clusterLockManager;
@@ -478,6 +484,18 @@ public class OpenSearchSearchIndexClient
   @Override
   public String backendId() {
     return BACKEND_ID;
+  }
+
+  public IndexReadSession openReadSession(final org.apache.lucene.search.Query rbacFilter) {
+    Long lastIndexTime = getLastIndexTime();
+    Instant lastUpdatedAt = lastIndexTime == null ? Instant.EPOCH : Instant.ofEpochMilli(lastIndexTime);
+    return new OpenSearchIndexReadSession(
+        getClient(),
+        indexConfigProvider.getIndexConfig().getIndexName(),
+        conversionHelper,
+        rbacFilter,
+        lastUpdatedAt,
+        searchConfig.getPitKeepAlive());
   }
 
   /** {@code request.baseQuery()} MUST already be permission-wrapped; this runs it verbatim. */

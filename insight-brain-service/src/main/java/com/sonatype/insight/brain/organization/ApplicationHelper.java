@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.ClearRolePermissionCache;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
@@ -58,6 +59,8 @@ public class ApplicationHelper
 
   private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
 
+  private final ClearRolePermissionCache authorizationCacheInvalidator;
+
   @Inject
   public ApplicationHelper(
       final ApplicationDAO applicationDAO,
@@ -69,7 +72,8 @@ public class ApplicationHelper
       final CurrentUser currentUser,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
-      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
+      final ClearRolePermissionCache authorizationCacheInvalidator)
   {
     this.applicationDAO = applicationDAO;
     this.productLicense = productLicense;
@@ -81,6 +85,7 @@ public class ApplicationHelper
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
+    this.authorizationCacheInvalidator = authorizationCacheInvalidator;
   }
 
   public Application getApplicationByIdNotNull(final String applicationId) {
@@ -101,6 +106,8 @@ public class ApplicationHelper
 
     ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(application,
         OwnerMaintenanceTelemetry.TYPE_ADD);
+    // New apps under a readable org must appear in index RBAC filters after commit.
+    tx.afterCommit(authorizationCacheInvalidator::invalidateAuthorizationCachesForAllNodes);
     return application;
   }
 
@@ -126,6 +133,7 @@ public class ApplicationHelper
           .setApplicationWithDetails(app)
           .setParentOrganization(organizationDAO.getByIdNotNull(app.getParentOwnerId()));
       applicationCleaner.delete(tx, app);
+      tx.afterCommit(authorizationCacheInvalidator::invalidateAuthorizationCachesForAllNodes);
 
       tx.commit();
 

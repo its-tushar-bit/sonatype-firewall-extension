@@ -90,8 +90,7 @@ public class RolePermissionDAO
   @Override
   public int insert(TransactionContext tx, RolePermission entity) {
     int inserted = super.insert(tx, entity);
-    clearRolePermissionCache();
-    clearRolePermissionCacheForAllOtherNodes.run();
+    tx.afterCommit(RolePermissionDAO::clearRolePermissionCaches);
     return inserted;
   }
 
@@ -103,6 +102,10 @@ public class RolePermissionDAO
   @Override
   public void delete(TransactionContext tx, RolePermission entity) {
     super.delete(tx, entity);
+    tx.afterCommit(RolePermissionDAO::clearRolePermissionCaches);
+  }
+
+  private static void clearRolePermissionCaches() {
     clearRolePermissionCache();
     clearRolePermissionCacheForAllOtherNodes.run();
   }

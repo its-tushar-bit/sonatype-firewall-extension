@@ -88,6 +88,8 @@ public class MembershipMappingService
 
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
+  private final ClearRolePermissionCache authorizationCacheInvalidator;
+
   @Inject
   public MembershipMappingService(
       final ApplicationDAO appDAO,
@@ -101,7 +103,8 @@ public class MembershipMappingService
       final OwnerDAO ownerDAO,
       final UserDirectory userDirectory,
       final ManagementEventService managementEventService,
-      final ApiMemberMappingAdapter apiMemberMappingAdapter)
+      final ApiMemberMappingAdapter apiMemberMappingAdapter,
+      final ClearRolePermissionCache authorizationCacheInvalidator)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
@@ -115,6 +118,7 @@ public class MembershipMappingService
     this.userDirectory = userDirectory;
     this.managementEventService = managementEventService;
     this.apiMemberMappingAdapter = apiMemberMappingAdapter;
+    this.authorizationCacheInvalidator = authorizationCacheInvalidator;
   }
 
   // Authorization is checked in loadMembersByRoleForGlobalContext and loadMembersByRoleForNonGlobalContext
@@ -215,6 +219,7 @@ public class MembershipMappingService
 
     roleToMembers.put(roleId, members);
     managementEventService.postEvent(EventAction.CREATED, roleToMembers, internalOwnerId);
+    authorizationCacheInvalidator.invalidateAuthorizationCachesForAllNodes();
   }
 
   public void grantRoleMembership(
@@ -306,6 +311,7 @@ public class MembershipMappingService
     Map<String, List<Member>> roleToMembers = new HashMap<>();
     roleToMembers.put(membershipMapping.getRoleId(), Arrays.asList(member));
     managementEventService.postEvent(EventAction.CREATED, roleToMembers, membershipMapping.getContextId());
+    authorizationCacheInvalidator.invalidateAuthorizationCachesForAllNodes();
   }
 
   /**
@@ -363,6 +369,7 @@ public class MembershipMappingService
     Map<String, List<Member>> roleToMembers = new HashMap<>();
     roleToMembers.put(roleId, Arrays.asList(member));
     managementEventService.postEvent(EventAction.DELETED, roleToMembers, internalOwnerId);
+    authorizationCacheInvalidator.invalidateAuthorizationCachesForAllNodes();
   }
 
   @Authorize(permission = Permission.READ)
@@ -557,6 +564,7 @@ public class MembershipMappingService
     }
 
     managementEventService.postEvent(EventAction.UPDATED, roleToMembers, internalOwnerId);
+    authorizationCacheInvalidator.invalidateAuthorizationCachesForAllNodes();
   }
 
   private void setMembershipMappingsForRole(
@@ -729,6 +737,7 @@ public class MembershipMappingService
     }
 
     managementEventService.postEvent(EventAction.UPDATED, roleToMembers, internalOwnerId);
+    authorizationCacheInvalidator.invalidateAuthorizationCachesForAllNodes();
   }
 
   private void grantMembershipMappingsForRole(

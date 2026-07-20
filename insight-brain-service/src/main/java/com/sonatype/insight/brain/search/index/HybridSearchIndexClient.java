@@ -10,6 +10,8 @@ import com.sonatype.insight.brain.search.global.StaleCursorException;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.brain.search.session.HybridIndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import jakarta.inject.Inject;
@@ -481,6 +483,10 @@ public class HybridSearchIndexClient
   @Override
   public void checkGlobalSearchMode(final boolean isSbomManagerMode) {
     primaryClient.checkGlobalSearchMode(isSbomManagerMode);
+  }
+
+  public static IndexReadSession pinReadSession(final IndexReadSession session) {
+    return new HybridIndexReadSession(session);
   }
 
   /**

@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.search.session.ReadableContextAuthzCache;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -80,6 +81,9 @@ public class MembershipMappingServiceTest
 {
   @Inject
   private MembershipMappingService membershipMappingService;
+
+  @Inject
+  private ReadableContextAuthzCache readableContextAuthzCache;
 
   @Inject
   private AsyncEventBus eventBus;
@@ -173,10 +177,12 @@ public class MembershipMappingServiceTest
     Member member = new Member(MemberType.USER, "username", "username");
 
     Map<String, List<Member>> roleToMembers = Collections.singletonMap(role.getId(), Collections.singletonList(member));
+    long epochBeforeMutation = readableContextAuthzCache.currentEpoch();
     membershipMappingService.setMembershipMappings(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID, roleToMembers);
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
     assertThat(handler.getEvent().action).isEqualTo(UPDATED);
+    assertThat(readableContextAuthzCache.currentEpoch()).isGreaterThan(epochBeforeMutation);
   }
 
   @Test
@@ -904,9 +910,11 @@ public class MembershipMappingServiceTest
     MembershipMapping membershipMapping =
         tempEntity.newMembershipMapping(contextId, Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
+    long epochBeforeMutation = readableContextAuthzCache.currentEpoch();
     membershipMappingService
         .revokeRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, memberType, memberName);
     assertThat(membershipMappingDAO.getById(membershipMapping.getId())).isNull();
+    assertThat(readableContextAuthzCache.currentEpoch()).isGreaterThan(epochBeforeMutation);
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
     assertThat(handler.getEvent().action).isEqualTo(DELETED);
@@ -1187,6 +1195,7 @@ public class MembershipMappingServiceTest
     usernames.add(username3);
     String applicationId = tempEntity.newApplicationWithParent().getId();
 
+    long epochBeforeMutation = readableContextAuthzCache.currentEpoch();
     membershipMappingService.grantRoleMembershipsForNonGlobalContextNoAuthz(OwnerType.APPLICATION, applicationId,
         Role.DEVELOPER_ROLE_ID, MemberType.USER, usernames);
 
@@ -1196,6 +1205,7 @@ public class MembershipMappingServiceTest
     assertThat(membershipMappings).hasSize(3);
     assertThat(membershipMappings.stream().map(MembershipMapping::getMemberName))
         .containsExactlyInAnyOrder(username1, username2, username3);
+    assertThat(readableContextAuthzCache.currentEpoch()).isGreaterThan(epochBeforeMutation);
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
     assertThat(handler.getEvent().action).isEqualTo(CREATED);

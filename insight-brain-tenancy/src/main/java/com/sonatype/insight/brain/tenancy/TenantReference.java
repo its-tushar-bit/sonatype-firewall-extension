@@ -49,4 +49,11 @@ public class TenantReference<T>
   public T computeIfAbsent(Function<Tenant, T> computation) {
     return tenantMap.computeIfAbsent(TenantThreadLocal.getTenant(), computation);
   }
+
+  /**
+   * Returns the value for the current tenant without invoking the initializer.
+   */
+  public T getIfPresent() {
+    return tenantMap.get(TenantThreadLocal.getTenant());
+  }
 }

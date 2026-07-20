@@ -37,6 +37,13 @@ public interface SearchConfig
   SearchMode getMode();
 
   /**
+   * Point-in-time keep-alive for {@link com.sonatype.insight.brain.search.opensearch.OpenSearchIndexReadSession}.
+   */
+  default String getPitKeepAlive() {
+    return "15m";
+  }
+
+  /**
    * Abstract base class for OpenSearch configurations that provides common bulk indexing
    * configuration fields, getters/setters, and validation logic.
    */
@@ -53,6 +60,12 @@ public interface SearchConfig
     private Integer bulkMaxRetries;
 
     private Integer bulkRetryBackoffSeconds;
+
+    private String pitKeepAlive;
+
+    private static final String DEFAULT_PIT_KEEP_ALIVE = "15m";
+
+    private static final Pattern PIT_KEEP_ALIVE_PATTERN = Pattern.compile("^\\d+(ms|s|m|h|d)$");
 
     /**
      * @return the default batch size for bulk operations
@@ -120,6 +133,15 @@ public interface SearchConfig
       this.bulkRetryBackoffSeconds = bulkRetryBackoffSeconds;
     }
 
+    @Override
+    public String getPitKeepAlive() {
+      return pitKeepAlive != null ? pitKeepAlive : DEFAULT_PIT_KEEP_ALIVE;
+    }
+
+    public void setPitKeepAlive(final String pitKeepAlive) {
+      this.pitKeepAlive = pitKeepAlive;
+    }
+
     /**
      * Validates bulk indexing configuration parameters.
      * Subclasses should call this method from their validate() implementation.
@@ -145,6 +167,11 @@ public interface SearchConfig
       if (bulkRetryBackoffSeconds != null && bulkRetryBackoffSeconds < 0) {
         throw new OpenSearchConfigurationException(
             "bulkRetryBackoffSeconds must not be negative, but was: " + bulkRetryBackoffSeconds);
+      }
+
+      if (pitKeepAlive != null && !PIT_KEEP_ALIVE_PATTERN.matcher(pitKeepAlive).matches()) {
+        throw new OpenSearchConfigurationException(
+            "pitKeepAlive must match ^\\d+(ms|s|m|h|d)$, but was: " + pitKeepAlive);
       }
     }
   }

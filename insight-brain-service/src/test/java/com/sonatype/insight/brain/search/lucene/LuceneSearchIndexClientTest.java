@@ -9,6 +9,7 @@ import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMet
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -112,16 +113,13 @@ public class LuceneSearchIndexClientTest
   private TaskScheduler taskSchedulerMock;
 
   @Mock
-  private IndexWriter indexWriterMock;
-
-  @Mock
   private ConversionHelper conversionHelperMock;
 
   @Mock
   private IndexCreationScheduler mockIndexCreationScheduler;
 
   private LuceneIndexingContext newIndexingContext() {
-    return new LuceneIndexingContext(ownerDAO, indexWriterMock, conversionHelperMock);
+    return new LuceneIndexingContext(ownerDAO, mock(IndexWriter.class), conversionHelperMock);
   }
 
   private Object fieldValue(IndexableField field) {

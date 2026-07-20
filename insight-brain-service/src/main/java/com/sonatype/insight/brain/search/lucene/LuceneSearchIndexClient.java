@@ -10,17 +10,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -34,7 +35,6 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
@@ -44,6 +44,8 @@ import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.brain.search.session.ReadableContextAuthzCache;
+import com.sonatype.insight.brain.security.AuthorizationChecker;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.Configuration;
@@ -63,9 +65,6 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexFormatTooNewException;
 import org.apache.lucene.index.IndexFormatTooOldException;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.MergePolicy.MergeException;
 import org.apache.lucene.index.SegmentInfos;
@@ -77,13 +76,10 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.IndexSearcher.TooManyClauses;
 import static org.apache.lucene.search.BooleanClause.Occur.FILTER;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
-import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.SimpleCollector;
-import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
@@ -98,8 +94,6 @@ import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.LockReleaseFailedException;
 import org.apache.lucene.util.ThreadInterruptedException;
 
-import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
-import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATION_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +132,12 @@ public class LuceneSearchIndexClient
 
   private final InsightWork insightWork;
 
+  private final LuceneIndexWriterOwner indexWriterOwner;
+
+  private final AtomicLong lastSearcherManagerUnavailableWarnMillis = new AtomicLong();
+
+  private static final long SEARCHER_MANAGER_UNAVAILABLE_WARN_INTERVAL_MILLIS = 60_000L;
+
   @Inject
   public LuceneSearchIndexClient(
       final ApplicationDAO applicationDAO,
@@ -152,30 +152,32 @@ public class LuceneSearchIndexClient
       final TelemetrySender telemetrySender,
       final SearchIndexChangeDAO searchIndexChangeDAO,
       final LuceneComponents luceneComponents,
+      final LuceneIndexWriterOwner indexWriterOwner,
       final InsightWork insightWork,
       final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
       final Configuration configuration,
       final PermissionService permissionService,
+      final AuthorizationChecker authorizationChecker,
       final CurrentUser currentUser,
       final ConversionHelper conversionHelper,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      final ReadableContextAuthzCache readableContextAuthzCache)
   {
     super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
         tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
-        advancedSearchTelemetryMetrics, configuration, permissionService, currentUser, conversionHelper,
-        shutdownHandler);
+        advancedSearchTelemetryMetrics, configuration, permissionService, authorizationChecker, currentUser,
+        conversionHelper, shutdownHandler, readableContextAuthzCache);
     this.insightWork = insightWork;
+    this.indexWriterOwner = indexWriterOwner;
   }
 
   @Override
   public void populateIndex() {
     log.info("creating search index...");
     long start = System.currentTimeMillis();
-    try (Directory directory = luceneComponents.openSearchIndex(false);
-        IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE))
-    {
-      doPopulateIndex(new LuceneIndexingContext(ownerDAO, indexWriter, conversionHelper));
-      indexWriter.commit();
+    try {
+      indexWriterOwner.rebuildExclusive(
+          () -> doPopulateIndex(new LuceneIndexingContext(ownerDAO, indexWriterOwner.getWriter(), conversionHelper)));
       log.info("all indexing complete");
     }
     catch (Exception e) {
@@ -209,11 +211,12 @@ public class LuceneSearchIndexClient
     if (searchIndexChanges.isEmpty()) {
       return;
     }
-    try (Directory directory = luceneComponents.openSearchIndex(false);
-        IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE_OR_APPEND))
-    {
-      processSearchIndexChanges(searchIndexChanges, new LuceneIndexingContext(ownerDAO, indexWriter, conversionHelper),
-          deletionCallback);
+    try {
+      indexWriterOwner.runWithWriter(writer -> {
+        processSearchIndexChanges(searchIndexChanges,
+            new LuceneIndexingContext(ownerDAO, writer, conversionHelper),
+            deletionCallback);
+      });
     }
     catch (Exception e) {
       if (shouldThrow(e)) {
@@ -241,11 +244,6 @@ public class LuceneSearchIndexClient
     return null;
   }
 
-  private IndexWriter newIndexWriter(final Directory directory, final OpenMode openMode) throws IOException {
-    return new IndexWriter(directory,
-        new IndexWriterConfig(luceneComponents.newAnalyzerForSearch()).setOpenMode(openMode));
-  }
-
   @Override
   public SearchResultDTO searchIndex(
       final String searchQuery,
@@ -268,38 +266,42 @@ public class LuceneSearchIndexClient
 
     updateMaxQueryClauseCount();
 
-    try (Directory directory = openSearchIndex();
-        IndexReader indexReader = DirectoryReader.open(directory))
-    {
-      AuditData.get()
-          .setData("searchQuery", searchQuery)
-          .setData("searchPageSize", pageSize)
-          .setData("searchPageIndex", finalPage - 1);
+    try {
+      Optional<LuceneSearcherManagerHolder> searcherManagerHolder = getAvailableSearcherManagerHolder();
+      if (searcherManagerHolder.isPresent()) {
+        LuceneReaderTiming.startAcquisition();
+        try {
+          IndexSearcher indexSearcher = searcherManagerHolder.get().acquire();
+          try {
+            LuceneReaderTiming.endAcquisition();
+            return searchIndexWithSearcher(searchQuery, pageSize, allComponents, isSbomManagerMode,
+                initialSearch, finalPage, indexSearcher);
+          }
+          finally {
+            searcherManagerHolder.get().release(indexSearcher);
+          }
+        }
+        catch (IOException e) {
+          LuceneReaderTiming.abort();
+          if (!isSearcherManagerUnavailable(e)) {
+            throw e;
+          }
+          log.debug("SearcherManager unavailable during rebuild/pause; falling back to DirectoryReader", e);
+        }
+      }
 
-      String initialQuery = createInitialQuery(searchQuery, allComponents);
-      Set<String> fieldNames = getFieldNames(initialQuery);
-      populateTelemetry(initialSearch, fieldNames);
-      checkFieldNames(fieldNames);
-      String finalQuery = createFinalQuery(initialQuery, isSbomManagerMode);
-
-      // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
-      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-      Query query = conversionHelper.stringToQuery(finalQuery);
-      TopDocs topDocs = indexSearcher.search(query, Math.max(1, indexReader.maxDoc()));
-
-      SearchResultDTO searchResultDTO = new SearchResultDTO();
-      searchResultDTO.searchQuery = searchQuery;
-      searchResultDTO.page = finalPage;
-      searchResultDTO.pageSize = pageSize;
-      groupDocuments(indexSearcher, topDocs.scoreDocs, finalPage, pageSize, searchResultDTO,
-          getGroupFieldNamesByItemType(fieldNames));
-      searchResultDTO.totalNumberOfHits = (int) topDocs.totalHits.value;
-      searchResultDTO.isExactTotalNumberOfHits = topDocs.totalHits.relation == Relation.EQUAL_TO;
-
-      AuditData.get().setData("resultRecordCount", searchResultDTO.countSearchResults());
-      return searchResultDTO;
+      LuceneReaderTiming.startAcquisition();
+      try (Directory directory = openSearchIndex();
+          IndexReader indexReader = DirectoryReader.open(directory))
+      {
+        LuceneReaderTiming.endAcquisition();
+        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+        return searchIndexWithSearcher(searchQuery, pageSize, allComponents, isSbomManagerMode,
+            initialSearch, finalPage, indexSearcher);
+      }
     }
     catch (Exception e) {
+      LuceneReaderTiming.abort();
       if (e instanceof TooManyClauses) {
         throw TOO_MANY_CLAUSES_EXCEPTION;
       }
@@ -465,6 +467,7 @@ public class LuceneSearchIndexClient
       public Document get() {
         if (currentIndex < endIndex && currentIndex < scoreDocs.length) {
           try {
+            LuceneReaderTiming.recordStoredFieldDocumentLoad();
             return indexSearcher.storedFields().document(scoreDocs[currentIndex++].doc);
           }
           catch (IOException e) {
@@ -475,6 +478,55 @@ public class LuceneSearchIndexClient
       }
     };
     groupDocuments(page, pageSize, documentSupplier, searchResultDTO, groupFieldNamesByItemType);
+  }
+
+  private SearchResultDTO searchIndexWithSearcher(
+      final String searchQuery,
+      final int pageSize,
+      final boolean allComponents,
+      final boolean isSbomManagerMode,
+      final boolean initialSearch,
+      final int finalPage,
+      final IndexSearcher indexSearcher) throws Exception
+  {
+    LuceneReaderTiming.startExecution();
+    LuceneReaderTiming.startQueryBuild();
+    AuditData.get()
+        .setData("searchQuery", searchQuery)
+        .setData("searchPageSize", pageSize)
+        .setData("searchPageIndex", finalPage - 1);
+
+    String initialQuery = createInitialQuery(searchQuery, allComponents);
+    Set<String> fieldNames = getFieldNames(initialQuery);
+    populateTelemetry(initialSearch, fieldNames);
+    checkFieldNames(fieldNames);
+    FinalQueryWithRbacMeta finalQueryMeta = createFinalQueryWithRbacMeta(initialQuery, isSbomManagerMode);
+    String finalQuery = finalQueryMeta.query();
+    LuceneReaderTiming.endQueryBuild(finalQuery, finalQueryMeta.rbacContextCount());
+
+    // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
+    LuceneReaderTiming.startQueryParse();
+    Query query = conversionHelper.stringToQuery(finalQuery);
+    LuceneReaderTiming.endQueryParse();
+    int collectN = Math.max(1, indexSearcher.getIndexReader().maxDoc());
+    LuceneReaderTiming.startSearch();
+    TopDocs topDocs = indexSearcher.search(query, collectN);
+    LuceneReaderTiming.endSearch(collectN, topDocs.scoreDocs.length, topDocs.totalHits.value);
+
+    SearchResultDTO searchResultDTO = new SearchResultDTO();
+    searchResultDTO.searchQuery = searchQuery;
+    searchResultDTO.page = finalPage;
+    searchResultDTO.pageSize = pageSize;
+    LuceneReaderTiming.startGroupDocuments();
+    groupDocuments(indexSearcher, topDocs.scoreDocs, finalPage, pageSize, searchResultDTO,
+        getGroupFieldNamesByItemType(fieldNames));
+    LuceneReaderTiming.endGroupDocuments();
+    searchResultDTO.totalNumberOfHits = (int) topDocs.totalHits.value;
+    searchResultDTO.isExactTotalNumberOfHits = topDocs.totalHits.relation == Relation.EQUAL_TO;
+
+    AuditData.get().setData("resultRecordCount", searchResultDTO.countSearchResults());
+    LuceneReaderTiming.endExecution();
+    return searchResultDTO;
   }
 
   private Directory openSearchIndex() {
@@ -515,18 +567,46 @@ public class LuceneSearchIndexClient
 
   @Override
   public long count(final String metricQuery) {
-    // Opens its own Directory/IndexReader per call. Sharing a reader with
-    // aggregateCountByField is unnecessary — aggregateCountByField already reuses one reader
-    // for the total and all bucket counts in a single request.
     updateMaxQueryClauseCount();
 
+    Optional<LuceneSearcherManagerHolder> searcherManagerHolder = getAvailableSearcherManagerHolder();
+    if (searcherManagerHolder.isPresent()) {
+      LuceneReaderTiming.startAcquisition();
+      try {
+        IndexSearcher indexSearcher = searcherManagerHolder.get().acquire();
+        try {
+          LuceneReaderTiming.endAcquisition();
+          LuceneReaderTiming.startExecution();
+          long result = countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery());
+          LuceneReaderTiming.endExecution();
+          return result;
+        }
+        finally {
+          searcherManagerHolder.get().release(indexSearcher);
+        }
+      }
+      catch (Exception e) {
+        LuceneReaderTiming.abort();
+        if (!(e instanceof IOException ioException) || !isSearcherManagerUnavailable(ioException)) {
+          throw mapSearchException(e);
+        }
+        log.debug("SearcherManager unavailable during rebuild/pause; falling back to DirectoryReader", e);
+      }
+    }
+
+    LuceneReaderTiming.startAcquisition();
     try (Directory directory = openSearchIndex();
         IndexReader indexReader = DirectoryReader.open(directory))
     {
+      LuceneReaderTiming.endAcquisition();
+      LuceneReaderTiming.startExecution();
       IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-      return countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery());
+      long result = countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery());
+      LuceneReaderTiming.endExecution();
+      return result;
     }
     catch (Exception e) {
+      LuceneReaderTiming.abort();
       throw mapSearchException(e);
     }
   }
@@ -604,6 +684,40 @@ public class LuceneSearchIndexClient
     return indexSearcher.count(buildRbacFilteredMetricQuery(metricQuery, extraFilter, rbac));
   }
 
+  private Optional<LuceneSearcherManagerHolder> getAvailableSearcherManagerHolder() {
+    try {
+      // NRT SearcherManager can keep serving after the on-disk index directory is deleted
+      // (open file handles / in-memory readers). Fall through to openSearchIndex() so callers
+      // still get ConflictException/409 when the index is gone.
+      if (!Files.exists(insightWork.getSearchIndexDir().toPath())) {
+        return Optional.empty();
+      }
+      LuceneSearcherManagerHolder holder = indexWriterOwner.tryGetSearcherManagerHolder().orElse(null);
+      if (holder != null) {
+        return Optional.of(holder);
+      }
+      log.debug("Lucene SearcherManager holder is unavailable; falling back to DirectoryReader");
+      return Optional.empty();
+    }
+    catch (SearchIndexException e) {
+      long now = System.currentTimeMillis();
+      long lastWarn = lastSearcherManagerUnavailableWarnMillis.get();
+      if (now - lastWarn >= SEARCHER_MANAGER_UNAVAILABLE_WARN_INTERVAL_MILLIS &&
+          lastSearcherManagerUnavailableWarnMillis.compareAndSet(lastWarn, now))
+      {
+        log.warn("Lucene SearcherManager holder is unavailable; falling back to DirectoryReader until it reopens", e);
+      }
+      else {
+        log.debug("Lucene SearcherManager holder is unavailable; falling back to DirectoryReader", e);
+      }
+      return Optional.empty();
+    }
+  }
+
+  private static boolean isSearcherManagerUnavailable(final IOException e) {
+    return e instanceof SearcherManagerUnavailableException;
+  }
+
   /**
    * Counts distinct composite keys among the RBAC-filtered documents matching {@code metricQuery}. The matching
    * documents are visited via a {@link SimpleCollector}; for each, the stored values of {@code compositeKeyFields}
@@ -674,45 +788,6 @@ public class LuceneSearchIndexClient
   }
 
   private Query buildRbacFilterQuery() {
-    Optional<Map<String, OwnerType>> readableContexts = resolveReadableContextIdsForCurrentUser();
-    if (readableContexts.isEmpty()) {
-      return new MatchAllDocsQuery();
-    }
-
-    Map<String, OwnerType> contextIdsWithReadPermissionMap = readableContexts.get();
-    if (contextIdsWithReadPermissionMap.isEmpty()) {
-      return new MatchNoDocsQuery();
-    }
-
-    List<BytesRef> applicationTerms = new ArrayList<>();
-    List<BytesRef> organizationTerms = new ArrayList<>();
-    contextIdsWithReadPermissionMap.forEach((contextId, type) -> {
-      BytesRef term = new BytesRef(contextId.toLowerCase(Locale.ROOT));
-      if (OwnerType.APPLICATION.equals(type)) {
-        applicationTerms.add(term);
-      }
-      else if (OwnerType.ORGANIZATION.equals(type)) {
-        organizationTerms.add(term);
-      }
-    });
-
-    // Explicit fail-closed: if the user's readable contexts are all non-APPLICATION/
-    // non-ORGANIZATION types (e.g. a Firewall-only user with only REPOSITORY*), both
-    // term lists are empty. Return MatchNoDocs explicitly rather than relying on a
-    // zero-should BooleanQuery + minimumShouldMatch=1 reading as match-none (kept in
-    // lockstep with the OpenSearch sibling).
-    if (applicationTerms.isEmpty() && organizationTerms.isEmpty()) {
-      return new MatchNoDocsQuery();
-    }
-
-    BooleanQuery.Builder rbac = new BooleanQuery.Builder();
-    if (!applicationTerms.isEmpty()) {
-      rbac.add(new TermInSetQuery(APPLICATION_ID.label, applicationTerms), SHOULD);
-    }
-    if (!organizationTerms.isEmpty()) {
-      rbac.add(new TermInSetQuery(ORGANIZATION_ID.label, organizationTerms), SHOULD);
-    }
-    rbac.setMinimumNumberShouldMatch(1);
-    return rbac.build();
+    return resolveReadableContextRbacFilterForCurrentUser();
   }
 }

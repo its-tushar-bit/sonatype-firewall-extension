@@ -94,13 +94,15 @@ public class OpenSearchSearchIndexClientTest
         mock(AdvancedSearchTelemetryMetrics.class),
         mock(Configuration.class),
         mock(PermissionService.class),
+        mock(com.sonatype.insight.brain.security.AuthorizationChecker.class),
         mock(CurrentUser.class),
         conversionHelper,
         mock(org.opensearch.client.transport.OpenSearchTransport.class),
         indexConfigProvider,
         mock(ClusterLockManager.class),
         mock(SearchConfig.class),
-        mock(ShutdownHandler.class));
+        mock(ShutdownHandler.class),
+        null);
 
     client = spy(realClient);
     doReturn(openSearchClient).when(client).getClient();

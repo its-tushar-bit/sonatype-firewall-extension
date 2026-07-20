@@ -24,11 +24,15 @@ import com.sonatype.insight.brain.search.index.HybridSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.lucene.LuceneComponents;
+import com.sonatype.insight.brain.search.lucene.LuceneIndexWriterOwner;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.AwsSdkHttpClientProvider;
 import com.sonatype.insight.brain.search.opensearch.IndexConfigProvider;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchTransportProvider;
+import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
+import com.sonatype.insight.brain.search.session.ReadableContextAuthzCache;
+import com.sonatype.insight.brain.security.AuthorizationChecker;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -36,6 +40,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.inject.Provider;
 import java.util.Optional;
 import org.opensearch.client.transport.OpenSearchTransport;
@@ -93,6 +98,54 @@ public class SearchConfiguration
    * <p>
    * All constructor parameters are autowired by Spring from the application context.
    */
+  /**
+   * Implements {@link com.sonatype.insight.brain.tenancy.TenantManaged}. Spring injects every bean of
+   * that type into {@code Set<TenantManaged>} for
+   * {@link com.sonatype.insight.brain.service.DefaultTenantManagedInitializer} /
+   * {@code TenantManager}, so {@code register}/{@code deregister} run on tenant lifecycle.
+   */
+  @Bean
+  public LuceneIndexWriterOwner luceneIndexWriterOwner(
+      LuceneComponents luceneComponents,
+      ShutdownHandler shutdownHandler,
+      @Autowired(required = false) MeterRegistry meterRegistry)
+  {
+    log.debug("Creating LuceneIndexWriterOwner");
+    return new LuceneIndexWriterOwner(luceneComponents, shutdownHandler, meterRegistry);
+  }
+
+  /**
+   * Implements {@link com.sonatype.insight.brain.tenancy.TenantManaged}. Same Spring
+   * {@code Set<TenantManaged>} wiring as {@link #luceneIndexWriterOwner} so per-tenant authz cache
+   * state is cleared on deregister.
+   */
+  @Bean
+  public ReadableContextAuthzCache readableContextAuthzCache(
+      AuthorizationChecker authorizationChecker,
+      PermissionService permissionService,
+      OwnerDAO ownerDAO)
+  {
+    log.debug("Creating ReadableContextAuthzCache");
+    return new ReadableContextAuthzCache(authorizationChecker, permissionService, ownerDAO);
+  }
+
+  @Bean
+  public IndexReadSessionFactory indexReadSessionFactory(
+      LuceneIndexWriterOwner luceneIndexWriterOwner,
+      CurrentUser currentUser,
+      ReadableContextAuthzCache readableContextAuthzCache,
+      @Autowired(required = false) OpenSearchSearchIndexClient openSearchSearchIndexClient,
+      @Autowired(required = false) SearchConfig searchConfig)
+  {
+    log.debug("Creating IndexReadSessionFactory");
+    return IndexReadSessionFactory.forProduction(
+        luceneIndexWriterOwner,
+        currentUser,
+        readableContextAuthzCache,
+        openSearchSearchIndexClient,
+        searchConfig);
+  }
+
   @Bean
   public LuceneSearchIndexClient luceneSearchIndexClient(
       ApplicationDAO applicationDAO,
@@ -107,13 +160,16 @@ public class SearchConfiguration
       TelemetrySender telemetrySender,
       SearchIndexChangeDAO searchIndexChangeDAO,
       LuceneComponents luceneComponents,
+      LuceneIndexWriterOwner luceneIndexWriterOwner,
       InsightWork insightWork,
       AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
       com.sonatype.insight.brain.service.Configuration configuration,
       PermissionService permissionService,
+      AuthorizationChecker authorizationChecker,
       CurrentUser currentUser,
       ConversionHelper conversionHelper,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      ReadableContextAuthzCache readableContextAuthzCache)
   {
     log.debug("Creating LuceneSearchIndexClient");
     return new LuceneSearchIndexClient(
@@ -129,13 +185,16 @@ public class SearchConfiguration
         telemetrySender,
         searchIndexChangeDAO,
         luceneComponents,
+        luceneIndexWriterOwner,
         insightWork,
         advancedSearchTelemetryMetrics,
         configuration,
         permissionService,
+        authorizationChecker,
         currentUser,
         conversionHelper,
-        shutdownHandler);
+        shutdownHandler,
+        readableContextAuthzCache);
   }
 
   /**
@@ -213,13 +272,15 @@ public class SearchConfiguration
       AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
       com.sonatype.insight.brain.service.Configuration configuration,
       PermissionService permissionService,
+      AuthorizationChecker authorizationChecker,
       CurrentUser currentUser,
       ConversionHelper conversionHelper,
       OpenSearchTransport openSearchTransport,
       IndexConfigProvider indexConfigProvider,
       ClusterLockManager clusterLockManager,
       SearchConfig searchConfig,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      ReadableContextAuthzCache readableContextAuthzCache)
   {
     log.debug("Creating OpenSearchSearchIndexClient");
     return new OpenSearchSearchIndexClient(
@@ -238,13 +299,15 @@ public class SearchConfiguration
         advancedSearchTelemetryMetrics,
         configuration,
         permissionService,
+        authorizationChecker,
         currentUser,
         conversionHelper,
         openSearchTransport,
         indexConfigProvider,
         clusterLockManager,
         searchConfig,
-        shutdownHandler);
+        shutdownHandler,
+        readableContextAuthzCache);
   }
 
   // =========================================================================

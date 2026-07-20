@@ -6,11 +6,13 @@
 package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -114,6 +116,29 @@ public class RolePermissionDAOTest
     RolePermission rolePerm = permDAO.getByRoleId(tempEntity.newRole(false, Permission.WRITE).getId()).get(0);
     rolePerm.setPermission(Permission.READ);
     assertThatThrownBy(() -> permDAO.update(rolePerm)).isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  @Test
+  public void testPermissionCacheInvalidationRunsAfterCommit() {
+    Role role = tempEntity.newRole("post-commit-role", false);
+    RolePermission rolePermission = new RolePermission(role.getId(), Permission.READ);
+    AtomicInteger invalidations = new AtomicInteger();
+    Runnable original = RolePermissionDAO.getClearRolePermissionCacheForAllOtherNodes();
+    try {
+      RolePermissionDAO.setClearRolePermissionCacheForAllOtherNodes(invalidations::incrementAndGet);
+      try (TransactionContext tx = permDAO.createTransactionContext()) {
+        tx.begin();
+        permDAO.insert(tx, rolePermission);
+
+        assertThat(invalidations).hasValue(0);
+        tx.commit();
+      }
+
+      assertThat(invalidations).hasValue(1);
+    }
+    finally {
+      RolePermissionDAO.setClearRolePermissionCacheForAllOtherNodes(original);
+    }
   }
 
 }

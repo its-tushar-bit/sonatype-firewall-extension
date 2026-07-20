@@ -639,4 +639,28 @@ public class SearchConfigTest
         .isInstanceOf(OpenSearchConfigurationException.class)
         .hasMessageContaining("bulkRetryBackoffSeconds must not be negative");
   }
+
+  @Test
+  public void testHttpConfig_InvalidPitKeepAlive_ThrowsException() throws Exception {
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+    config.setPitKeepAlive("15 minutes");
+
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("pitKeepAlive must match");
+  }
+
+  @Test
+  public void testHttpConfig_ValidPitKeepAlive_DoesNotThrow() throws Exception {
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+    config.setPitKeepAlive("30m");
+
+    assertThatCode(config::validate).doesNotThrowAnyException();
+  }
 }

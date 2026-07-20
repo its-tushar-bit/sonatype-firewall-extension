@@ -512,7 +512,7 @@ public class AbstractSearchIndexClientTest
   {
     public TestSearchIndexClient() {
       super(null, null, null, null, null, searchIndexChangeDAO, null, null, null, null, null, null, null, null,
-          null, null, null, null);
+          null, null, null, null, null);
     }
 
     @Override

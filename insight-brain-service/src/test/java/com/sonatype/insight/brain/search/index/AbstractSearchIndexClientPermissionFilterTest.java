@@ -442,10 +442,10 @@ public class AbstractSearchIndexClientPermissionFilterTest
       // applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
       // tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense,
       // telemetrySender, luceneComponents, advancedSearchTelemetryMetrics, configuration,
-      // permissionService, currentUser, conversionHelper, shutdownHandler.
+      // permissionService, authorizationChecker, currentUser, conversionHelper, shutdownHandler.
       // None are exercised by buildAllowedContextIdsLuceneFilter / wrapWithPermissionFilter.
       super(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-          null, null, null, null);
+          null, null, null, null, null);
     }
 
     Query buildAllowedContextIdsFilterForTest(Set<String> permittedContextIds) {

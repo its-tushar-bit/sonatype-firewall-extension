@@ -8,10 +8,12 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -950,6 +952,44 @@ public class OwnerDAO
   public List<Owner> walkChildren(final Owner owner) {
     try (TransactionContext tx = appDAO.createTransactionContext()) {
       return walkChildren(tx, owner);
+    }
+  }
+
+  /**
+   * Batch-fetches seed orgs and applications for {@code contextIds}, then walks each owner's
+   * descendants via {@link #walkChildren(TransactionContext, Owner)} to build the readable context
+   * map. Intended for use behind
+   * {@link com.sonatype.insight.brain.search.session.ReadableContextAuthzCache}.
+   */
+  public Map<String, OwnerType> expandReadableContexts(final Set<String> contextIds) {
+    if (isEmpty(contextIds)) {
+      return Map.of();
+    }
+    try (TransactionContext tx = appDAO.createTransactionContext()) {
+      Map<String, OwnerType> childContextIds = new HashMap<>();
+      for (Organization organization : orgDAO.getByIds(contextIds)) {
+        addOwnerAndDescendants(tx, childContextIds, organization);
+      }
+      for (Application application : appDAO.getByIds(contextIds)) {
+        addOwnerAndDescendants(tx, childContextIds, application);
+      }
+      return childContextIds;
+    }
+  }
+
+  private void addOwnerAndDescendants(
+      final TransactionContext tx,
+      final Map<String, OwnerType> childContextIds,
+      final Owner owner)
+  {
+    if (owner == null || owner.getId() == null || owner.getType() == null) {
+      return;
+    }
+    childContextIds.put(owner.getId(), owner.getType());
+    for (Owner child : walkChildren(tx, owner)) {
+      if (child != null && child.getId() != null && child.getType() != null) {
+        childContextIds.putIfAbsent(child.getId(), child.getType());
+      }
     }
   }
 

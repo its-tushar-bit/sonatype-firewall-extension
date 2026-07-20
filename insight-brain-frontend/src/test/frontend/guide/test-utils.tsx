@@ -10,6 +10,18 @@ import { Theme } from '@radix-ui/themes';
 import { NavigationProvider } from '@guide/ui-core';
 import { useReactRouterAdapter } from 'GuideRoot/reactRouterAdapter';
 import { AuthProvider } from 'GuideRoot/auth/AuthProvider';
+import { OwnerAdapterProvider } from 'GuideRoot/components/navigation/context-picker/OwnerAdapterProvider';
+import { PolicyContextProvider } from 'GuideRoot/components/navigation/context-picker/PolicyContext';
+import { MockOwnerAdapter } from 'GuideRoot/api/context-picker/MockOwnerAdapter';
+
+// Radix Themes primitives (Tooltip / Badge sizing) call ResizeObserver, which jsdom lacks.
+if (typeof (globalThis as Record<string, unknown>).ResizeObserver === 'undefined') {
+  (globalThis as Record<string, unknown>).ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
 
 jest.mock('GuideRoot/auth/loginApi', () => ({
   fetchSession: jest.fn().mockResolvedValue({
@@ -58,7 +70,11 @@ function createWrapper(routerOptions: RouterOptions = {}) {
         <Theme appearance="dark" accentColor="indigo" panelBackground="solid">
           <AuthProvider>
             <AdapterBridge>
-              {content}
+              {/* Policy-context + owner-adapter are app-wide providers (see App.tsx), so any page
+                  rendering the PolicyContextPicker gets them here without per-test wiring. */}
+              <OwnerAdapterProvider adapter={new MockOwnerAdapter()}>
+                <PolicyContextProvider>{content}</PolicyContextProvider>
+              </OwnerAdapterProvider>
             </AdapterBridge>
           </AuthProvider>
         </Theme>

@@ -143,4 +143,13 @@ describe('ComponentDetailPage', () => {
     expect(screen.queryByRole('link', { name: /retry/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
   });
+
+  it('renders the policy-context picker above the header after load', async () => {
+    mockGetComponentDetail.mockResolvedValue(mockComponentDetail);
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Policy context — open picker/ })).toBeInTheDocument()
+    );
+  });
 });

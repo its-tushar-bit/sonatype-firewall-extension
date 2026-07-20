@@ -26,6 +26,7 @@ import {
 } from 'GuideRoot/api/componentsBackend';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
+import { PolicyContextBar } from 'GuideRoot/components/navigation/context-picker/PolicyContextBar';
 import { ComponentDetailSkeleton } from './ComponentDetailSkeleton';
 import type { ComponentDetails, RecommendationResponse } from '@guide/ui-core/types';
 
@@ -111,6 +112,7 @@ export function ComponentDetailPage() {
 
   return (
     <PageLayout>
+      <PolicyContextBar />
       <ComponentDetailsHeader
         component={component}
         ecosystem={ecosystem}

@@ -33,6 +33,7 @@ import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
 import { useFeatureFlags } from 'GuideRoot/feature-flags/FeatureFlagProvider';
 import { FEATURE_FLAGS } from 'GuideRoot/feature-flags/featureFlags';
+import { PolicyContextBar } from 'GuideRoot/components/navigation/context-picker/PolicyContextBar';
 import type { ComponentSearchResponse } from '@guide/ui-core/types';
 
 const LIMIT = 25;
@@ -102,6 +103,7 @@ export function ComponentsSearchPage() {
 
   return (
     <PageLayout>
+      <PolicyContextBar />
       <FilteredPageLayout
         aggregations={aggregations}
         formAction="/components"

@@ -4,10 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import { useMemo } from 'react';
 import { Routes, Route } from 'react-router';
 import { NavigationProvider } from '@guide/ui-core';
 import { Spinner, Flex } from '@radix-ui/themes';
 import { useReactRouterAdapter } from './reactRouterAdapter';
+import { OwnerAdapterProvider } from './components/navigation/context-picker/OwnerAdapterProvider';
+import { PolicyContextProvider } from './components/navigation/context-picker/PolicyContext';
+import { createOwnerAdapter } from './api/context-picker/createOwnerAdapter';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { AppShell } from './layout/AppShell';
 import { NotFoundPage } from './layout/NotFoundPage';
@@ -34,6 +38,9 @@ import { Home } from './home/Home';
 
 function AuthGate() {
   const { status } = useAuth();
+  // Owner adapter for the policy-context picker: real endpoints in production, mock in dev until
+  // GUIDE-3046 lands (see createOwnerAdapter). A future Guide SaaS host swaps in its own adapter.
+  const ownerAdapter = useMemo(() => createOwnerAdapter(), []);
 
   // 'unauthenticated' triggers the redirect-to-/ effect inside AuthProvider.
   // While that effect runs we keep showing the spinner so the user never
@@ -50,48 +57,40 @@ function AuthGate() {
     <LicenseProvider>
       <LicenseGate>
         <FeatureFlagProvider>
-          <AppShell>
-            <ErrorBoundary>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route
-                  path="/components"
-                  element={ <ComponentsSearchPage />}
-                />
-                <Route
-                  path="/vulnerabilities"
-                  element={ <VulnerabilitiesPage /> }
-                />
-                <Route
-                  path="/vulnerability/:vulnId"
-                  element={ <VulnerabilityDetailLayout /> }
-                >
-                  <Route index element={<SecurityDetailsTab />} />
-                  <Route path="components-impacted" element={<ComponentsImpactedTab />} />
-                  <Route path="sonatype-research" element={<SonatypeResearchTab />} />
-                </Route>
-                <Route
-                  path="/search"
-                  element={
-                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
-                      <SearchPage />
-                    </FeatureGate>
-                  }
-                />
-                <Route path="/mcp" element={<McpPage />} />
-                <Route
-                  path="/component/:ecosystem/:pkg/:version"
-                  element={ <ComponentDetailPage /> }
-                >
-                  <Route index element={<OverviewTab />} />
-                  <Route path="versions" element={<VersionsTab />} />
-                  <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
-                  <Route path="dependencies" element={<DependenciesTab />} />
-                </Route>
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </ErrorBoundary>
-          </AppShell>
+          <OwnerAdapterProvider adapter={ownerAdapter}>
+            <PolicyContextProvider>
+              <AppShell>
+                <ErrorBoundary>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/components" element={<ComponentsSearchPage />} />
+                    <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
+                    <Route path="/vulnerability/:vulnId" element={<VulnerabilityDetailLayout />}>
+                      <Route index element={<SecurityDetailsTab />} />
+                      <Route path="components-impacted" element={<ComponentsImpactedTab />} />
+                      <Route path="sonatype-research" element={<SonatypeResearchTab />} />
+                    </Route>
+                    <Route
+                      path="/search"
+                      element={
+                        <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+                          <SearchPage />
+                        </FeatureGate>
+                      }
+                    />
+                    <Route path="/mcp" element={<McpPage />} />
+                    <Route path="/component/:ecosystem/:pkg/:version" element={<ComponentDetailPage />}>
+                      <Route index element={<OverviewTab />} />
+                      <Route path="versions" element={<VersionsTab />} />
+                      <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
+                      <Route path="dependencies" element={<DependenciesTab />} />
+                    </Route>
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                </ErrorBoundary>
+              </AppShell>
+            </PolicyContextProvider>
+          </OwnerAdapterProvider>
         </FeatureFlagProvider>
       </LicenseGate>
     </LicenseProvider>

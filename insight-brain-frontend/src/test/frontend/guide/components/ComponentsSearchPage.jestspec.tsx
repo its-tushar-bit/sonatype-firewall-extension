@@ -92,6 +92,14 @@ describe('ComponentsSearchPage', () => {
     jest.clearAllMocks();
   });
 
+  it('renders the policy-context picker at the top of the page', async () => {
+    mockSearchComponents.mockResolvedValue(makeMockResponse(30));
+    render(<ComponentsSearchPage />);
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Policy context — open picker/ })).toBeInTheDocument()
+    );
+  });
+
   it('shows full-page skeleton on initial load', () => {
     mockSearchComponents.mockReturnValue(new Promise(() => {}));
 

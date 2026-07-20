@@ -11,9 +11,10 @@ import { Spinner, Flex } from '@radix-ui/themes';
 import { useReactRouterAdapter } from './reactRouterAdapter';
 import { OwnerAdapterProvider } from './components/navigation/context-picker/OwnerAdapterProvider';
 import { PolicyContextProvider } from './components/navigation/context-picker/PolicyContext';
-import { createOwnerAdapter } from './api/context-picker/createOwnerAdapter';
+import { SelfHostedOwnerAdapter } from './api/context-picker/SelfHostedOwnerAdapter';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { AppShell } from './layout/AppShell';
+import { PolicyScopeBoundary } from './layout/PolicyScopeBoundary';
 import { NotFoundPage } from './layout/NotFoundPage';
 import { ErrorBoundary } from './layout/ErrorBoundary';
 import { ComponentsSearchPage } from './components/ComponentsSearchPage';
@@ -38,9 +39,9 @@ import { Home } from './home/Home';
 
 function AuthGate() {
   const { status } = useAuth();
-  // Owner adapter for the policy-context picker: real endpoints in production, mock in dev until
-  // GUIDE-3046 lands (see createOwnerAdapter). A future Guide SaaS host swaps in its own adapter.
-  const ownerAdapter = useMemo(() => createOwnerAdapter(), []);
+  // Owner adapter for the policy-context picker, backed by the /api/v2/policy-context/owners/*
+  // endpoints. A future Guide SaaS host swaps in its own OwnerAdapter implementation.
+  const ownerAdapter = useMemo(() => new SelfHostedOwnerAdapter(), []);
 
   // 'unauthenticated' triggers the redirect-to-/ effect inside AuthProvider.
   // While that effect runs we keep showing the spinner so the user never
@@ -60,34 +61,36 @@ function AuthGate() {
           <OwnerAdapterProvider adapter={ownerAdapter}>
             <PolicyContextProvider>
               <AppShell>
-                <ErrorBoundary>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/components" element={<ComponentsSearchPage />} />
-                    <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
-                    <Route path="/vulnerability/:vulnId" element={<VulnerabilityDetailLayout />}>
-                      <Route index element={<SecurityDetailsTab />} />
-                      <Route path="components-impacted" element={<ComponentsImpactedTab />} />
-                      <Route path="sonatype-research" element={<SonatypeResearchTab />} />
-                    </Route>
-                    <Route
-                      path="/search"
-                      element={
-                        <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
-                          <SearchPage />
-                        </FeatureGate>
-                      }
-                    />
-                    <Route path="/mcp" element={<McpPage />} />
-                    <Route path="/component/:ecosystem/:pkg/:version" element={<ComponentDetailPage />}>
-                      <Route index element={<OverviewTab />} />
-                      <Route path="versions" element={<VersionsTab />} />
-                      <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
-                      <Route path="dependencies" element={<DependenciesTab />} />
-                    </Route>
-                    <Route path="*" element={<NotFoundPage />} />
-                  </Routes>
-                </ErrorBoundary>
+                <PolicyScopeBoundary>
+                  <ErrorBoundary>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/components" element={<ComponentsSearchPage />} />
+                      <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
+                      <Route path="/vulnerability/:vulnId" element={<VulnerabilityDetailLayout />}>
+                        <Route index element={<SecurityDetailsTab />} />
+                        <Route path="components-impacted" element={<ComponentsImpactedTab />} />
+                        <Route path="sonatype-research" element={<SonatypeResearchTab />} />
+                      </Route>
+                      <Route
+                        path="/search"
+                        element={
+                          <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+                            <SearchPage />
+                          </FeatureGate>
+                        }
+                      />
+                      <Route path="/mcp" element={<McpPage />} />
+                      <Route path="/component/:ecosystem/:pkg/:version" element={<ComponentDetailPage />}>
+                        <Route index element={<OverviewTab />} />
+                        <Route path="versions" element={<VersionsTab />} />
+                        <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
+                        <Route path="dependencies" element={<DependenciesTab />} />
+                      </Route>
+                      <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                  </ErrorBoundary>
+                </PolicyScopeBoundary>
               </AppShell>
             </PolicyContextProvider>
           </OwnerAdapterProvider>

@@ -7,6 +7,7 @@
 import { getCsrfToken } from '../auth/csrfToken';
 import { notifySessionResponse } from '../auth/sessionExpiration';
 import { isGuideLicenseUnavailable, notifyLicenseRevoked } from '../license/licenseRevocation';
+import { getOwnerScope } from './ownerScope';
 
 /**
  * API configuration for Guide SPA.
@@ -19,6 +20,17 @@ import { isGuideLicenseUnavailable, notifyLicenseRevoked } from '../license/lice
 export const API_PREFIX = '/api/v2/guide';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+/**
+ * Appends the active policy-context {@code ownerId} to a Guide data request URL. Uses a raw
+ * string append (not URLSearchParams) so an existing, already-encoded query string — notably the
+ * double-encoded PURL in {@code componentsBackend.buildPurl} — is preserved byte-for-byte; only
+ * the appended {@code ownerId} value is encoded.
+ */
+function appendOwnerId(path: string, ownerId: string): string {
+  const separator = path.includes('?') ? '&' : '?';
+  return `${path}${separator}ownerId=${encodeURIComponent(ownerId)}`;
+}
 
 /** Error class for API errors with status code */
 export class ApiError extends Error {
@@ -77,7 +89,17 @@ export async function apiFetch<T>(
   }
   fetchOptions = { ...fetchOptions, headers };
 
-  const response = await fetch(path, { credentials: 'same-origin', ...fetchOptions });
+  // Scope Guide data requests to the picker's selected owner. Only `/api/v2/guide/*` paths are
+  // scoped; the picker's own `/api/v2/policy-context/*` calls are a different prefix and are never
+  // touched. Non-policy endpoints (e.g. /vulnerabilities) receive the param harmlessly — the
+  // backend ignores it where policy enrichment does not apply.
+  const scopedOwnerId = getOwnerScope();
+  const requestPath =
+    scopedOwnerId !== null && path.startsWith(API_PREFIX)
+      ? appendOwnerId(path, scopedOwnerId)
+      : path;
+
+  const response = await fetch(requestPath, { credentials: 'same-origin', ...fetchOptions });
 
   notifySessionResponse(response);
 

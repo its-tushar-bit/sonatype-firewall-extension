@@ -15,29 +15,32 @@ import {
   type GuidePolicyViolation,
 } from './policyComplianceTypes';
 import { PolicyBadgeV2 } from './PolicyBadgeV2';
-
-// Stable server-side "links" indirection (UserInterfaceLinksResource @ /ui/links): a GET to
-// /ui/links/{ownerType}/{ownerId}/management 302-redirects into the Lifecycle org management view
-// (/assets/index.html#/management/view/...). Using this instead of a hard-coded hash route keeps the
-// link resilient to where the legacy UI is served.
-//
-// Hard-coded to the root organization: self-hosted Guide is single-tenant and every SPA-facing
-// evaluation runs against ROOT_ORGANIZATION_ID, so compliance.ownerId is always the root org today.
-// TODO(GUIDE-2833): drive the URL and label from compliance.ownerId once non-root scopes are evaluated.
-const LIFECYCLE_ROOT_ORG_URL = `/ui/links/organization/${ROOT_ORGANIZATION_ID}/management`;
+import { usePolicyContext } from 'GuideRoot/components/navigation/context-picker/PolicyContext';
 
 export function PolicyComplianceCardV2() {
   const component = useComponent();
   const compliance = getGuidePolicyCompliance(component);
+  const { activeOwner } = usePolicyContext();
 
   if (!compliance) {
     return null;
   }
 
+  // Stable server-side "links" indirection (UserInterfaceLinksResource @ /ui/links): a GET to
+  // /ui/links/{ownerType}/{ownerId}/management 302-redirects into the Lifecycle management view.
+  // Drive it from the picker selection — root when nothing is selected. The link uses the owner's
+  // publicId (identical to id for orgs; the human-readable id legacy management links expect for
+  // apps); the compliance payload carries no ownerType and only the internal id, so it cannot
+  // build this link itself.
+  const lifecycleOwnerType = activeOwner?.type === 'app' ? 'application' : 'organization';
+  const lifecycleOwnerId = activeOwner?.publicId ?? ROOT_ORGANIZATION_ID;
+  const lifecycleUrl = `/ui/links/${lifecycleOwnerType}/${lifecycleOwnerId}/management`;
+  const ownerLabel = activeOwner?.name ?? 'Root Organization';
+
   // e.g. "Root Organization · Release Stage · via Lifecycle"; the stage segment is dropped when the
   // payload omits it (badge-only responses carry no stage).
   const policyContextLabel = [
-    'Root Organization',
+    ownerLabel,
     compliance.stage ? stageLabel(compliance.stage) : null,
     'via Lifecycle',
   ]
@@ -54,7 +57,7 @@ export function PolicyComplianceCardV2() {
 
         <Text size={tokens.sizes.body.sm} color="gray">
           Policy context:{' '}
-          <Link color="blue" href={LIFECYCLE_ROOT_ORG_URL} target="_blank" rel="noopener noreferrer">
+          <Link color="blue" href={lifecycleUrl} target="_blank" rel="noopener noreferrer">
             {policyContextLabel}
           </Link>
         </Text>

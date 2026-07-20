@@ -7,6 +7,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useOwnerAdapter } from './OwnerAdapterProvider';
+import { setOwnerScope } from 'GuideRoot/api/ownerScope';
 import type { AncestorPathEntry, Owner } from './types';
 
 /** localStorage key holding the persisted owner id — the active policy context (org or app). */
@@ -29,6 +30,12 @@ interface PolicyContextValue {
    * root-first. Empty for the Root Organization.
    */
   activePath: PathSegment[];
+  /**
+   * `false` only while a persisted selection is being resolved on load; `true` otherwise. The
+   * scope boundary gates the first Guide data request on this so the request carries the resolved
+   * owner rather than firing at root and re-fetching.
+   */
+  hydrated: boolean;
   isPickerOpen: boolean;
   setIsPickerOpen: (open: boolean) => void;
 }
@@ -39,6 +46,15 @@ export function PolicyContextProvider({ children }: { children: ReactNode }) {
   const adapter = useOwnerAdapter();
   const [activeOwner, setActiveOwnerState] = useState<Owner | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [hydrated, setHydrated] = useState<boolean>(() => {
+    try {
+      // Hydrated up-front unless there is a stored id to resolve first.
+      return localStorage.getItem(STORAGE_KEY) == null;
+    } catch {
+      // Storage unavailable → nothing to restore → already hydrated.
+      return true;
+    }
+  });
   // Set once the user makes an explicit selection, so the in-flight mount rehydrate below never
   // clobbers a fresh choice with the previously-stored one when resolveOwner resolves late.
   const userSelectedRef = useRef(false);
@@ -48,6 +64,8 @@ export function PolicyContextProvider({ children }: { children: ReactNode }) {
   // for this — GUIDE-3046 exposes read-only picker data — so the active context lives client-side.
   const setActiveOwner = useCallback((owner: Owner | null) => {
     userSelectedRef.current = true;
+    setOwnerScope(owner?.id ?? null);
+    setHydrated(true);
     setActiveOwnerState(owner);
     try {
       if (owner) {
@@ -73,6 +91,7 @@ export function PolicyContextProvider({ children }: { children: ReactNode }) {
       storedId = null;
     }
     if (!storedId) {
+      setHydrated(true);
       return;
     }
 
@@ -87,6 +106,7 @@ export function PolicyContextProvider({ children }: { children: ReactNode }) {
         if (owner) {
           // Rehydrate only — the value is already in storage, so use the raw setter (no re-write).
           setActiveOwnerState(owner);
+          setOwnerScope(owner.id);
         } else {
           // Stale/inaccessible selection — clear it and stay on root.
           try {
@@ -98,6 +118,11 @@ export function PolicyContextProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {
         // Transient resolve failure (non-404): keep the stored value for a future attempt, stay root.
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setHydrated(true);
+        }
       });
 
     return () => {
@@ -116,8 +141,8 @@ export function PolicyContextProvider({ children }: { children: ReactNode }) {
   }, [activeOwner]);
 
   const value = useMemo<PolicyContextValue>(
-    () => ({ activeOwner, setActiveOwner, activePath, isPickerOpen, setIsPickerOpen }),
-    [activeOwner, setActiveOwner, activePath, isPickerOpen]
+    () => ({ activeOwner, setActiveOwner, activePath, isPickerOpen, setIsPickerOpen, hydrated }),
+    [activeOwner, setActiveOwner, activePath, isPickerOpen, hydrated]
   );
 
   return <PolicyContext.Provider value={value}>{children}</PolicyContext.Provider>;

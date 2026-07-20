@@ -15,6 +15,7 @@ import {
   GUIDE_LICENSE_HEADER,
   GUIDE_LICENSE_UNAVAILABLE,
 } from 'GuideRoot/license/licenseRevocation';
+import { setOwnerScope, _resetOwnerScopeForTests } from 'GuideRoot/api/ownerScope';
 
 const mockGetCsrfToken = getCsrfToken as jest.MockedFunction<typeof getCsrfToken>;
 
@@ -37,6 +38,53 @@ beforeEach(() => {
     status: 200,
     statusText: 'OK',
     json: async () => ({}),
+  });
+});
+
+afterEach(() => _resetOwnerScopeForTests());
+
+function getRequestUrl(): string {
+  return mockFetch.mock.calls[0][0] as string;
+}
+
+describe('apiFetch ownerId injection', () => {
+  it('appends ownerId to a Guide path that already has a query string', async () => {
+    setOwnerScope('payments');
+    await apiFetch('/api/v2/guide/components/search?limit=25&sortField=trending');
+    expect(getRequestUrl()).toBe(
+      '/api/v2/guide/components/search?limit=25&sortField=trending&ownerId=payments'
+    );
+  });
+
+  it('appends ownerId with a ? to a Guide path that has no query string', async () => {
+    setOwnerScope('payments');
+    await apiFetch('/api/v2/guide/recommendations', { method: 'POST' });
+    expect(getRequestUrl()).toBe('/api/v2/guide/recommendations?ownerId=payments');
+  });
+
+  it('url-encodes the ownerId', async () => {
+    setOwnerScope('org/with space');
+    await apiFetch('/api/v2/guide/components/detail');
+    expect(getRequestUrl()).toBe('/api/v2/guide/components/detail?ownerId=org%2Fwith%20space');
+  });
+
+  it('does NOT append ownerId when the scope is null (root)', async () => {
+    await apiFetch('/api/v2/guide/components/search?limit=25');
+    expect(getRequestUrl()).toBe('/api/v2/guide/components/search?limit=25');
+  });
+
+  it('does NOT append ownerId to non-Guide paths (e.g. the picker owner endpoints)', async () => {
+    setOwnerScope('payments');
+    await apiFetch('/api/v2/policy-context/owners/payments');
+    expect(getRequestUrl()).toBe('/api/v2/policy-context/owners/payments');
+  });
+
+  it('does not mangle an already-percent-encoded query string', async () => {
+    setOwnerScope('payments');
+    await apiFetch('/api/v2/guide/components/detail?purl=pkg%3Anpm%2Freact%40%40types');
+    expect(getRequestUrl()).toBe(
+      '/api/v2/guide/components/detail?purl=pkg%3Anpm%2Freact%40%40types&ownerId=payments'
+    );
   });
 });
 

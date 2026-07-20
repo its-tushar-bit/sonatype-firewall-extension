@@ -150,6 +150,16 @@ describe('SearchPage', () => {
     expect(screen.queryByRole('status', { name: /loading page content/i })).not.toBeInTheDocument();
   });
 
+  it('renders the policy-context picker at the top of the page', async () => {
+    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+
+    render(<SearchPage />, { routerOptions: { initialEntries: ['/search?query=foo'] } });
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Policy context — open picker/ })).toBeInTheDocument()
+    );
+  });
+
   it('defaults to the All tab and renders SearchResultsList with all hits', async () => {
     mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
 

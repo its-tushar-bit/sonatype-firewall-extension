@@ -51,6 +51,7 @@ import {
 } from 'GuideRoot/api/vulnerabilitiesBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
+import { PolicyContextBar } from 'GuideRoot/components/navigation/context-picker/PolicyContextBar';
 import type {
   SearchResponse,
   ComponentSearchResponse,
@@ -259,6 +260,7 @@ export function SearchPage() {
 
   return (
     <PageLayout>
+      <PolicyContextBar />
       <FilteredPageLayout
         aggregations={aggregations}
         formAction="/search"

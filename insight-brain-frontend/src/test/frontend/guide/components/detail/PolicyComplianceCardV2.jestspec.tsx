@@ -9,6 +9,37 @@ import { render, screen } from '../../test-utils';
 import { mockComponentDetail } from 'TestRoot/guide/api/fixtures/componentDetailFixtures';
 import { PolicyComplianceCardV2 } from 'GuideRoot/components/detail/PolicyComplianceCardV2';
 import type { GuidePolicyCompliance } from 'GuideRoot/components/detail/policyComplianceTypes';
+import { useEffect } from 'react';
+import { usePolicyContext } from 'GuideRoot/components/navigation/context-picker/PolicyContext';
+import type { Owner } from 'GuideRoot/components/navigation/context-picker/types';
+import { _resetOwnerScopeForTests } from 'GuideRoot/api/ownerScope';
+
+const paymentsOrg: Owner = {
+  id: 'payments', publicId: 'payments', name: 'Payments', type: 'org', ancestorPath: [],
+};
+const checkoutApp: Owner = {
+  id: 'app-checkout', publicId: 'checkout-app', name: 'checkout-app', type: 'app',
+  ancestorPath: [{ id: 'payments', name: 'Payments', type: 'org' }],
+};
+
+// Sets the picker selection once on mount, then renders the card. Relies on the PolicyContext
+// provided by the test-utils render wrapper.
+function SelectThenCard({ owner, compliance }: { owner: Owner; compliance: GuidePolicyCompliance }) {
+  const { setActiveOwner } = usePolicyContext();
+  useEffect(() => {
+    setActiveOwner(owner);
+  }, [owner, setActiveOwner]);
+  return (
+    <ComponentProvider
+      component={componentWith(compliance)}
+      vulnerabilityCount={0}
+      versionsCount={0}
+      dependencyCount={0}
+    >
+      <PolicyComplianceCardV2 />
+    </ComponentProvider>
+  );
+}
 
 const activeCompliance: GuidePolicyCompliance = {
   compliant: true,
@@ -286,5 +317,28 @@ describe('PolicyComplianceCardV2', () => {
   it('renders nothing when the component has no policy compliance data', () => {
     renderCard(undefined);
     expect(screen.queryByText('Policy Compliance')).not.toBeInTheDocument();
+  });
+});
+
+describe('PolicyComplianceCardV2 owner-scoped link', () => {
+  afterEach(() => {
+    localStorage.clear();
+    _resetOwnerScopeForTests();
+  });
+
+  it('links to the selected organization by publicId with its name in the label', async () => {
+    render(<SelectThenCard owner={paymentsOrg} compliance={activeCompliance} />);
+    const link = await screen.findByRole('link', {
+      name: 'Payments · Release Stage · via Lifecycle',
+    });
+    expect(link).toHaveAttribute('href', '/ui/links/organization/payments/management');
+  });
+
+  it('links to the selected application by publicId (not internal id)', async () => {
+    render(<SelectThenCard owner={checkoutApp} compliance={activeCompliance} />);
+    const link = await screen.findByRole('link', {
+      name: 'checkout-app · Release Stage · via Lifecycle',
+    });
+    expect(link).toHaveAttribute('href', '/ui/links/application/checkout-app/management');
   });
 });

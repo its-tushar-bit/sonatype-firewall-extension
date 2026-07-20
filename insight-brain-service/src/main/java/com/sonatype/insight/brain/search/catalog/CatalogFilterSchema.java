@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.search.catalog;
+
+import java.util.Map;
+
+public final class CatalogFilterSchema
+{
+  public enum Kind
+  {
+    TEXT,
+    TERMS,
+    RANGE,
+    SCALAR
+  }
+
+  private static final Map<CatalogEntityType, Map<String, Kind>> SCHEMA = Map.of(
+      CatalogEntityType.COMPONENT, Map.ofEntries(
+          Map.entry("query", Kind.TEXT),
+          Map.entry("ecosystems", Kind.TERMS),
+          // Local-source only (My Scan Data). The catalog source rejects it in CatalogRequestBuilder;
+          // organizationName is not part of the public Guide/HDS corpus.
+          Map.entry("organizations", Kind.TERMS),
+          Map.entry("categories", Kind.TERMS),
+          Map.entry("severities", Kind.TERMS),
+          Map.entry("licenseFamilies", Kind.TERMS),
+          Map.entry("licenses", Kind.TERMS),
+          Map.entry("cvss", Kind.RANGE),
+          Map.entry("epss", Kind.RANGE),
+          Map.entry("versionScore", Kind.RANGE),
+          Map.entry("latestStable", Kind.SCALAR),
+          Map.entry("publishedWindow", Kind.SCALAR),
+          Map.entry("malware", Kind.SCALAR)),
+      CatalogEntityType.VULNERABILITY, Map.ofEntries(
+          Map.entry("query", Kind.TEXT),
+          Map.entry("severities", Kind.TERMS),
+          Map.entry("cwes", Kind.TERMS),
+          Map.entry("affectedEcosystems", Kind.TERMS),
+          Map.entry("cvss", Kind.RANGE),
+          Map.entry("epss", Kind.RANGE),
+          Map.entry("publishedWindow", Kind.SCALAR),
+          Map.entry("malware", Kind.SCALAR),
+          Map.entry("kev", Kind.SCALAR),
+          Map.entry("patchAvailable", Kind.SCALAR)));
+
+  private CatalogFilterSchema() {
+  }
+
+  public static Map<String, Kind> forEntityType(final CatalogEntityType entityType) {
+    return SCHEMA.getOrDefault(entityType, Map.of());
+  }
+}

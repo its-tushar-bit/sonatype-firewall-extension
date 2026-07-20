@@ -88,6 +88,11 @@ public class IqLocalSearchService
    */
   static final boolean SORT_BY_FIELD_ENABLED = false;
 
+  /** Whether physical field sort is active; while {@code false}, every sort resolves to relevance. */
+  public static boolean isFieldSortEnabled() {
+    return SORT_BY_FIELD_ENABLED;
+  }
+
   private final SearchIndexClient searchIndexClient;
 
   private final FieldMap fieldMap;

@@ -159,6 +159,7 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED.getId(),
         SystemConfigurationPropertyFeature.SLO_VIOLATION_FEED.getId(),
         SystemConfigurationPropertyFeature.GLOBAL_SEARCH.getId(),
+        SystemConfigurationPropertyFeature.CATALOG_FEDERATION.getId(),
       })).toArray(String[]::new);
 
   @Before

@@ -9,6 +9,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import ch.qos.logback.access.common.spi.IAccessEvent;
 import ch.qos.logback.classic.AsyncAppender;
@@ -23,6 +25,8 @@ import ch.qos.logback.core.AsyncAppenderBase;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.rolling.RollingFileAppender;
+import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 import com.sonatype.insight.brain.testing.LogbackStateRule;
@@ -33,6 +37,7 @@ import io.dropwizard.logging.common.FileAppenderFactory;
 import io.dropwizard.logging.common.SyslogAppenderFactory;
 import io.dropwizard.logging.common.TcpSocketAppenderFactory;
 import io.dropwizard.logging.common.TlsSocketAppenderFactory;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,6 +48,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import org.junit.Rule;
@@ -675,10 +681,37 @@ public class RequestLoggingConfigurationTest
         Map.of("type", "console"),
         Map.of("type", "console", "layout", Map.of("type", "access-json"))));
 
-    // A plain appender gets the IQ default format; an access-json appender keeps its layout (no logFormat injected).
+    // A plain appender gets the IQ default format, but with the remote-user token rewritten to the request attribute
+    // the logback-access path can actually render (%user resolves to a null RemoteUser there and prints "-"); an
+    // access-json appender keeps its layout (no logFormat injected). CLM-41689.
+    String expectedDefault = RequestLoggingConfiguration.LEGACY_REQUEST_LOG_FORMAT.replace(
+        "%user", "%reqAttribute{" + AuthenticationLoggingFilter.REQUEST_LOG_REMOTE_USER_ATTRIBUTE + "}");
     assertThat(((AbstractAppenderFactory<IAccessEvent>) factories.get(0)).getLogFormat())
-        .isEqualTo(RequestLoggingConfiguration.LEGACY_REQUEST_LOG_FORMAT);
+        .isEqualTo(expectedDefault)
+        .contains("%reqAttribute{" + AuthenticationLoggingFilter.REQUEST_LOG_REMOTE_USER_ATTRIBUTE + "}")
+        .doesNotContain("%user");
     assertThat(((AbstractAppenderFactory<IAccessEvent>) factories.get(1)).getLogFormat()).isNull();
+  }
+
+  @Test
+  public void accessAppenderFactoriesRewriteRemoteUserTokenInConfiguredLogFormat() {
+    RequestLoggingConfiguration configuration = new RequestLoggingConfiguration();
+
+    // CLM-41689: a configured (custom) logFormat must also have its %user/%u remote-user token rewritten to the
+    // request attribute the logback-access path can render - not only the injected IQ default. Adjacent tokens
+    // (%requestURL, %date) must survive untouched.
+    String reqAttr = "%reqAttribute{" + AuthenticationLoggingFilter.REQUEST_LOG_REMOTE_USER_ATTRIBUTE + "}";
+    List<AppenderFactory<IAccessEvent>> factories = configuration.accessAppenderFactories(List.of(
+        Map.of("type", "console", "logFormat", "%clientHost %user \"%requestURL\""),
+        Map.of("type", "file", "currentLogFilename", "/tmp/access.log", "archive", false,
+            "logFormat", "%clientHost %u [%date]")));
+
+    assertThat(factories).hasSize(2);
+    assertThat(((AbstractAppenderFactory<IAccessEvent>) factories.get(0)).getLogFormat())
+        .isEqualTo("%clientHost " + reqAttr + " \"%requestURL\"")
+        .doesNotContain("%user");
+    assertThat(((AbstractAppenderFactory<IAccessEvent>) factories.get(1)).getLogFormat())
+        .isEqualTo("%clientHost " + reqAttr + " [%date]");
   }
 
   @Test
@@ -790,6 +823,86 @@ public class RequestLoggingConfigurationTest
     }
   }
 
+  @Test
+  public void logbackAccessPathRendersAuthenticatedUsername() throws Exception {
+    // CLM-41689: on the logback-access path %user is rewritten to %reqAttribute{...}, which reads the username
+    // AuthenticationLoggingFilter stashes on the request (the backing RequestWrapper.getRemoteUser() is stubbed to
+    // null). A real authenticated request through AuthenticationLoggingFilter must produce the username in the
+    // rendered request-log line (it rendered "-" before the fix).
+    final String username = "clmtestuser";
+    File requestLog = tempFolder.newFile("request-access-username.log");
+
+    RequestLogConfig accessRequestLog = requestLogConfig("logback-access", List.of(
+        Map.of("type", "file", "currentLogFilename", requestLog.getAbsolutePath(), "archive", false)));
+    DropwizardServerConfig server = new DropwizardServerConfig();
+    server.requestLog = accessRequestLog;
+    InsightConfig insightConfig = new InsightConfig();
+    insightConfig.setServer(server);
+
+    RequestLoggingConfiguration configuration = new RequestLoggingConfiguration();
+    JettyServletWebServerFactory factory = new JettyServletWebServerFactory(0);
+    configuration.requestLoggingCustomizer(insightConfig, new UserTelemetryRequestLoggingFilter()).customize(factory);
+
+    WebServer webServer = createWebServerWithAuthenticatedUser(factory, username);
+    try {
+      webServer.start();
+      int port = ((JettyWebServer) webServer).getPort();
+
+      assertThat(sendRequest(port, "/api/v2/applications")).isEqualTo(200);
+
+      await().atMost(5, SECONDS)
+          .untilAsserted(() -> assertThat(Files.readString(requestLog.toPath())).contains("/api/v2/applications"));
+    }
+    finally {
+      webServer.stop();
+    }
+
+    String line = Files.readString(requestLog.toPath()).strip();
+    // Legacy NCSA line: "<clientHost> - <user> [<date>] \"GET /api/v2/applications HTTP/1.1\" ...". The user field
+    // must be the username, not "-".
+    assertThat(line).contains(username);
+    assertThat(line).matches("^\\S+ - " + username + " \\[.*");
+  }
+
+  @Test
+  public void classicPathRendersAuthenticatedUsername() throws Exception {
+    // CLM-41689 guard: the classic Jetty CustomRequestLog path reads the state's getUserPrincipal directly.
+    final String username = "clmtestuser";
+    File requestLog = tempFolder.newFile("request-classic-username.log");
+
+    RequestLogConfig classicRequestLog = requestLogConfig("classic", List.of(
+        Map.of("type", "file", "threshold", "INFO", "currentLogFilename", requestLog.getAbsolutePath(),
+            "archive", false,
+            "logFormat",
+            "%clientHost %l %user [%date] \"%requestURL\" %statusCode %bytesSent %elapsedTime \"%header{User-Agent}\"")));
+    InsightConfig insightConfig = new InsightConfig();
+    DropwizardServerConfig server = new DropwizardServerConfig();
+    server.requestLog = classicRequestLog;
+    insightConfig.setServer(server);
+    insightConfig.setRequestLogFilename(requestLog.getAbsolutePath());
+
+    RequestLoggingConfiguration configuration = new RequestLoggingConfiguration();
+    JettyServletWebServerFactory factory = new JettyServletWebServerFactory(0);
+    configuration.requestLoggingCustomizer(insightConfig, new UserTelemetryRequestLoggingFilter()).customize(factory);
+
+    WebServer webServer = createWebServerWithAuthenticatedUser(factory, username);
+    try {
+      webServer.start();
+      int port = ((JettyWebServer) webServer).getPort();
+
+      assertThat(sendRequest(port, "/api/v2/applications")).isEqualTo(200);
+
+      await().atMost(5, SECONDS)
+          .untilAsserted(() -> assertThat(Files.readString(requestLog.toPath())).contains("/api/v2/applications"));
+    }
+    finally {
+      webServer.stop();
+    }
+
+    String line = Files.readString(requestLog.toPath()).strip();
+    assertThat(line).contains(username);
+  }
+
   private Logger requestLogLogger(final File requestLog) {
     LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
     return context.getLogger(RequestLoggingConfiguration.REQUEST_LOGGER_NAME_PREFIX
@@ -844,6 +957,28 @@ public class RequestLoggingConfigurationTest
     config.setServer(server);
     config.setRequestLogFilename(requestLogFilename);
     return config;
+  }
+
+  private WebServer createWebServerWithAuthenticatedUser(
+      final JettyServletWebServerFactory factory,
+      final String username)
+  {
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.isAnonymous()).thenReturn(false);
+    when(currentUser.getUsername()).thenReturn(username);
+
+    return factory.getWebServer(servletContext -> {
+      servletContext.addFilter("auth-logging-filter", new AuthenticationLoggingFilter(currentUser))
+          .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+      HttpServlet servlet = new HttpServlet()
+      {
+        @Override
+        protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
+          response.setStatus(HttpServletResponse.SC_OK);
+        }
+      };
+      servletContext.addServlet("test-servlet", servlet).addMapping("/*");
+    });
   }
 
   private WebServer createWebServer(final JettyServletWebServerFactory factory) {

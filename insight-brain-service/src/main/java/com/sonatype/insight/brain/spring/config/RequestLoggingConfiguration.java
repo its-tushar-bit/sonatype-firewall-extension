@@ -15,6 +15,7 @@ import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
@@ -207,17 +208,39 @@ public class RequestLoggingConfiguration
   }
 
   /**
-   * Gives an access appender that sets neither an {@code access-json} layout nor a {@code logFormat} the IQ default
-   * request log format, so logback-access renders it through a {@link ch.qos.logback.access.common.PatternLayout} with
-   * the same pattern pre-Spring used. Appenders that already specify a layout or logFormat are returned unchanged.
+   * Prepares an access appender's {@code logFormat} for the logback-access path. An {@code access-json} appender is
+   * left untouched (it renders through its JSON layout, not a pattern). Every other appender is given a {@link
+   * ch.qos.logback.access.common.PatternLayout} format: its own {@code logFormat} if set, otherwise the IQ default
+   * ({@link #LEGACY_REQUEST_LOG_FORMAT}, matching the pattern pre-Spring used). In both cases the remote-user token is
+   * rewritten (see {@link #rewriteRemoteUserToken}) so the authenticated username actually renders on this path.
    */
   private Map<String, Object> withDefaultAccessLogFormat(final Map<String, Object> appender) {
-    if (isAccessJsonAppender(appender) || appender.get("logFormat") != null) {
+    if (isAccessJsonAppender(appender)) {
       return appender;
     }
+    String logFormat = appender.get("logFormat") instanceof String configured && !configured.isBlank()
+        ? configured
+        : LEGACY_REQUEST_LOG_FORMAT;
     Map<String, Object> withFormat = new LinkedHashMap<>(appender);
-    withFormat.put("logFormat", LEGACY_REQUEST_LOG_FORMAT);
+    withFormat.put("logFormat", rewriteRemoteUserToken(logFormat));
     return withFormat;
+  }
+
+  /**
+   * Rewrites the logback-access remote-user token ({@code %user}, or its {@code %u} alias) in an access-path format to
+   * a request-attribute lookup ({@code %reqAttribute{...}}) that reads the username
+   * {@link AuthenticationLoggingFilter} stashes on the request. This is the access-path counterpart to the classic
+   * path's {@code %user}->{@code %u} rewrite in {@link #toJettyRequestLogFormat}: on the logback-access path
+   * {@code %user}/{@code %u} resolve to the {@code RemoteUserConverter}, whose backing
+   * {@code RequestWrapper.getRemoteUser()} is stubbed to {@code null} and renders "-". The uppercase {@code %U}
+   * (request URI) is deliberately left untouched. The negative lookahead only guards letter-continuation, so it
+   * relies on match case-sensitivity to skip {@code %U}; a brace form like {@code %u{...}} is not a valid
+   * logback-access user token and never appears in practice. Operators keep configuring {@code %user} as before -
+   * no config change is required. CLM-41689.
+   */
+  private String rewriteRemoteUserToken(final String logFormat) {
+    return logFormat.replaceAll("%u(?:ser)?(?![a-zA-Z])",
+        "%reqAttribute{" + AuthenticationLoggingFilter.REQUEST_LOG_REMOTE_USER_ATTRIBUTE + "}");
   }
 
   List<AppenderFactory<IAccessEvent>> accessAppenderFactories(final List<Map<String, Object>> appenders) {

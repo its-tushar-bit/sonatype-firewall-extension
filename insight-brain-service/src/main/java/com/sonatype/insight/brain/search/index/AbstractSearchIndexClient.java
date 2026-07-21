@@ -41,7 +41,9 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -50,7 +52,9 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -112,6 +116,7 @@ import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION_CATEG
 import static com.sonatype.insight.brain.search.index.ItemType.COMPONENT_LABEL;
 import static com.sonatype.insight.brain.search.index.ItemType.NON_VULNERABLE_COMPONENT;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY;
+import static com.sonatype.insight.brain.search.index.ItemType.POLICY_WAIVER;
 import static com.sonatype.insight.brain.search.index.ItemType.SBOM_METADATA;
 
 public abstract class AbstractSearchIndexClient
@@ -174,6 +179,10 @@ public abstract class AbstractSearchIndexClient
 
   private final PolicyDAO policyDAO;
 
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   private final SearchIndexChangeDAO searchIndexChangeDAO;
 
   private final TagDAO tagDAO;
@@ -212,6 +221,8 @@ public abstract class AbstractSearchIndexClient
       final OrganizationDAO organizationDAO,
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final SearchIndexChangeDAO searchIndexChangeDAO,
       final TagDAO tagDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -227,7 +238,8 @@ public abstract class AbstractSearchIndexClient
       final ConversionHelper conversionHelper,
       final ShutdownHandler shutdownHandler)
   {
-    this(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
+    this(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, policyWaiverDAO, autoPolicyWaiverDAO,
+        searchIndexChangeDAO,
         tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
         advancedSearchTelemetryMetrics, configuration, permissionService, authorizationChecker, currentUser,
         conversionHelper, shutdownHandler, null);
@@ -239,6 +251,8 @@ public abstract class AbstractSearchIndexClient
       final OrganizationDAO organizationDAO,
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final SearchIndexChangeDAO searchIndexChangeDAO,
       final TagDAO tagDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -260,6 +274,8 @@ public abstract class AbstractSearchIndexClient
     this.organizationDAO = organizationDAO;
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.searchIndexChangeDAO = searchIndexChangeDAO;
     this.tagDAO = tagDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
@@ -370,6 +386,8 @@ public abstract class AbstractSearchIndexClient
           return COMPONENT_NAME;
         }
         return APPLICATION_NAME;
+      case POLICY_WAIVER:
+        return POLICY_WAIVER_POLICY_NAME;
       default:
         throw new IllegalArgumentException("Unsupported item type " + itemType);
     }
@@ -471,6 +489,9 @@ public abstract class AbstractSearchIndexClient
         String[] appIdAndVersion = change.getChangeData().split(":");
         updateIndexForSbom(appIdAndVersion[0], appIdAndVersion[1], indexingContext);
         break;
+      case POLICY_WAIVER:
+        updateIndexForPolicyWaiver(change.getChangeData(), indexingContext);
+        break;
       default:
         throw new IllegalArgumentException("Unknown change type: " + change.getChangeType());
     }
@@ -566,6 +587,11 @@ public abstract class AbstractSearchIndexClient
   private void updateIndexForPolicy(final String policyId, final IndexingContext indexingContext) throws IOException {
     String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.POLICY_ID, policyId);
     indexingContext.deleteDocuments(queryForObsoleteDocs);
+
+    // Manual waiver docs denormalize policyName + threatLevel, so a rename / threat change must rebuild
+    // them; the waiver docs key on POLICY_WAIVER_POLICY_ID (not POLICY_ID), so delete + re-add here.
+    indexingContext.deleteDocuments(indexingContext.newQuery(FieldIdentifier.POLICY_WAIVER_POLICY_ID, policyId));
+
     Policy policy = policyDAO.getById(policyId);
 
     if (policy == null) {
@@ -574,6 +600,60 @@ public abstract class AbstractSearchIndexClient
 
     indexingContext.addNonNullDocuments(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, policy)));
+
+    // All waivers from getByPolicyId share this policy, so pass the already-fetched policy through
+    // and batch-load their reasons once, rather than re-resolving the policy and reason per waiver.
+    indexingContext.addNonNullDocuments(
+        documentBuilderHelper.buildPolicyWaiverDocsForPolicy(
+            indexingContext, policyWaiverDAO.getByPolicyId(policyId), policy));
+  }
+
+  private void updateIndexForPolicyWaiver(
+      final String changeData,
+      final IndexingContext indexingContext) throws IOException
+  {
+    // changeData is prefixed with the waiver kind (see SearchIndexChange.ChangeType.POLICY_WAIVER) so
+    // the correct table is queried directly. The document's POLICY_WAIVER_ID field stores the raw id,
+    // so the delete query uses the unprefixed id.
+    boolean isAuto;
+    String waiverId;
+    if (changeData.startsWith(SearchIndexChange.POLICY_WAIVER_AUTO_PREFIX)) {
+      isAuto = true;
+      waiverId = changeData.substring(SearchIndexChange.POLICY_WAIVER_AUTO_PREFIX.length());
+    }
+    else if (changeData.startsWith(SearchIndexChange.POLICY_WAIVER_MANUAL_PREFIX)) {
+      isAuto = false;
+      waiverId = changeData.substring(SearchIndexChange.POLICY_WAIVER_MANUAL_PREFIX.length());
+    }
+    else {
+      // Defensive: every waiver writer prefixes MANUAL:/AUTO: (see SearchIndexChange), so an
+      // unprefixed value signals a bug. Treat it as a manual waiver id so a best-effort reindex
+      // still runs, and log so the malformed change data is visible.
+      log.warn("Policy waiver change data \"{}\" has no kind prefix; treating as manual waiver.", changeData);
+      isAuto = false;
+      waiverId = changeData;
+    }
+
+    String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.POLICY_WAIVER_ID, waiverId);
+    indexingContext.deleteDocuments(queryForObsoleteDocs);
+
+    Document doc = null;
+    if (isAuto) {
+      AutoPolicyWaiver autoWaiver = autoPolicyWaiverDAO.getById(waiverId);
+      if (autoWaiver != null) {
+        doc = documentBuilderHelper.buildDocument(indexingContext, autoWaiver);
+      }
+    }
+    else {
+      PolicyWaiver waiver = policyWaiverDAO.getById(waiverId);
+      if (waiver != null) {
+        doc = documentBuilderHelper.buildDocument(indexingContext, waiver);
+      }
+    }
+
+    if (doc != null) {
+      indexingContext.addNonNullDocuments(Collections.singletonList(doc));
+    }
   }
 
   private void updateIndexForApplicationCategory(
@@ -633,6 +713,26 @@ public abstract class AbstractSearchIndexClient
     indexingContext.addNonNullDocuments(
         documentBuilderHelper.buildApplicationSVDocs(indexingContext, organization, application,
             ImmutableMap.of(organization, parentOrganizations)));
+    // Rebuild the app's waivers: the cascade delete above removed them (they carry applicationId), so
+    // without this re-add an app index change makes the app's waiver docs vanish until a full reindex.
+    indexingContext.addNonNullDocuments(buildWaiverDocsForOwner(indexingContext, application.getId()));
+  }
+
+  private List<Document> buildWaiverDocsForOwner(final IndexingContext indexingContext, final String ownerId) {
+    List<Document> docs = new ArrayList<>();
+    // buildDocument returns null for container-image / repository-owner / unresolvable waivers; keep
+    // this list clean (like buildApplicationSVDocs) rather than leaning on addNonNullDocuments.
+    policyWaiverDAO.getByOwnerId(ownerId)
+        .stream()
+        .map(waiver -> documentBuilderHelper.buildDocument(indexingContext, waiver))
+        .filter(Objects::nonNull)
+        .forEach(docs::add);
+    autoPolicyWaiverDAO.getByOwnerId(ownerId)
+        .stream()
+        .map(waiver -> documentBuilderHelper.buildDocument(indexingContext, waiver))
+        .filter(Objects::nonNull)
+        .forEach(docs::add);
+    return docs;
   }
 
   private void updateIndexForOrganization(
@@ -695,6 +795,22 @@ public abstract class AbstractSearchIndexClient
     for (Application application : applications) {
       indexingContext.addNonNullDocuments(
           documentBuilderHelper.buildApplicationSVDocs(indexingContext, org, application, parentOrgsMap));
+    }
+
+    // Rebuild waivers swept by the cascade delete. The org cascade delete above keys on
+    // ORGANIZATION_ID, which removes the org's own waiver docs but NOT app-scoped waiver docs (those
+    // are keyed only by APPLICATION_ID). So for each app, delete its POLICY_WAIVER docs first,
+    // otherwise re-adding them here would leave duplicates (incl. stale allowedContextIds copies,
+    // since DOCUMENT_KEY excludes allowedContextIds) on every org index change.
+    indexingContext.addNonNullDocuments(buildWaiverDocsForOwner(indexingContext, org.getId()));
+    for (Application application : applications) {
+      String appWaiverQuery = "(" +
+          indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, application.getId()) +
+          " AND " +
+          indexingContext.newQuery(FieldIdentifier.ITEM_TYPE, ItemType.POLICY_WAIVER.searchFieldName()) +
+          ")";
+      indexingContext.deleteDocuments(appWaiverQuery);
+      indexingContext.addNonNullDocuments(buildWaiverDocsForOwner(indexingContext, application.getId()));
     }
 
     List<Organization> byParentOrganizationId = organizationDAO.getByParentOrganizationId(org.getId());
@@ -952,7 +1068,8 @@ public abstract class AbstractSearchIndexClient
    * <li>SBOM metadata MUST NOT be returned</li>
    * </ul>
    */
-  private String appendSbomFilteringToQuery(final String originalQuery, final boolean isSbomManagerMode) {
+  // Visible for testing (package-private): appendSbomFilteringToQuery_excludesPolicyWaiverInBothModes.
+  String appendSbomFilteringToQuery(final String originalQuery, final boolean isSbomManagerMode) {
     StringBuilder queryBuilder = new StringBuilder();
 
     // Start with the original query wrapped in parentheses
@@ -972,6 +1089,10 @@ public abstract class AbstractSearchIndexClient
         .append(" AND ")
         .append(appVersionCondition)
         .append(")");
+
+    // Policy waivers are a Global Search item type; legacy advanced search must never surface them
+    // (AC11: legacy advanced search behavior is unchanged), so exclude them in both modes.
+    queryBuilder.append(" AND NOT itemType:").append(POLICY_WAIVER.searchFieldName());
 
     if (isSbomManagerMode) {
       // SBOM Manager mode exclusions
@@ -1115,6 +1236,12 @@ public abstract class AbstractSearchIndexClient
         () -> documentBuilderHelper.buildSbomDocs(indexingContext, parentsByOrganization), getIndexingExecutor())
         .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
+    CompletableFuture<Void> policyWaiverDocs =
+        CompletableFuture.supplyAsync(
+            () -> documentBuilderHelper.buildPolicyWaiverDocs(indexingContext),
+            getIndexingExecutor())
+            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+
     Function<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
         application -> CompletableFuture
             .supplyAsync(
@@ -1141,6 +1268,8 @@ public abstract class AbstractSearchIndexClient
     log.info("label indexing complete");
     policyDocs.join();
     log.info("policy indexing complete");
+    policyWaiverDocs.join();
+    log.info("policy waiver indexing complete");
     sbomDocs.join();
     log.info("SBOM metadata indexing complete");
     CompletableFuture.allOf(sbomSVDocs.toArray(CompletableFuture[]::new)).join();

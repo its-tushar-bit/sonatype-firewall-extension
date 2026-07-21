@@ -32,7 +32,9 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -145,6 +147,8 @@ public class LuceneSearchIndexClient
       final OrganizationDAO organizationDAO,
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final TagDAO tagDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final DocumentBuilderHelper documentBuilderHelper,
@@ -163,7 +167,8 @@ public class LuceneSearchIndexClient
       final ShutdownHandler shutdownHandler,
       final ReadableContextAuthzCache readableContextAuthzCache)
   {
-    super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
+    super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, policyWaiverDAO, autoPolicyWaiverDAO,
+        searchIndexChangeDAO,
         tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
         advancedSearchTelemetryMetrics, configuration, permissionService, authorizationChecker, currentUser,
         conversionHelper, shutdownHandler, readableContextAuthzCache);

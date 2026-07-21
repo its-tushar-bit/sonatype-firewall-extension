@@ -11,7 +11,9 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -153,6 +155,8 @@ public class SearchConfiguration
       OrganizationDAO organizationDAO,
       OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
+      PolicyWaiverDAO policyWaiverDAO,
+      AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       TagDAO tagDAO,
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       DocumentBuilderHelper documentBuilderHelper,
@@ -178,6 +182,8 @@ public class SearchConfiguration
         organizationDAO,
         ownerDAO,
         policyDAO,
+        policyWaiverDAO,
+        autoPolicyWaiverDAO,
         tagDAO,
         thirdPartySbomMetadataDAO,
         documentBuilderHelper,
@@ -262,6 +268,8 @@ public class SearchConfiguration
       OrganizationDAO organizationDAO,
       OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
+      PolicyWaiverDAO policyWaiverDAO,
+      AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       SearchIndexChangeDAO searchIndexChangeDAO,
       TagDAO tagDAO,
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -289,6 +297,8 @@ public class SearchConfiguration
         organizationDAO,
         ownerDAO,
         policyDAO,
+        policyWaiverDAO,
+        autoPolicyWaiverDAO,
         searchIndexChangeDAO,
         tagDAO,
         thirdPartySbomMetadataDAO,

@@ -106,6 +106,24 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label, createProperty("integer"));
 
+    // TODO(CLM-41642): these explicit policyWaiver* mappings only apply to a freshly created index.
+    // On upgrade, incremental waiver enqueue writes docs into the pre-existing index (which lacks
+    // these fields) before any full reindex, so OpenSearch dynamic-maps policyWaiver* fields (dates
+    // vs keyword, text vs keyword). It self-heals on the next full reindex. The read path must
+    // reindex-gate waiver queries or tolerate the dynamically mapped types on a pre-existing index.
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_REASON.label, createProperty("text"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_COMMENT.label, createProperty("text"));
+    // ISO-8601 stored as a single keyword token (DocumentBuilder intent); must not date-detect.
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, createProperty("integer"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label, createProperty("keyword"));
+
     // Denormalized permission-filter field. Case-sensitive keyword (no normalizer) so opaque
     // context IDs are matched byte-for-byte. Multi-valued (set per document by DocumentBuilder).
     propertyMappings.put(FieldIdentifier.ALLOWED_CONTEXT_IDS.label, createProperty("keyword_case_sensitive"));

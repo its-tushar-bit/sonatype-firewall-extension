@@ -27,7 +27,9 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -84,6 +86,8 @@ public class OpenSearchSearchIndexClientTest
         mock(OrganizationDAO.class),
         mock(OwnerDAO.class),
         mock(PolicyDAO.class),
+        mock(PolicyWaiverDAO.class),
+        mock(AutoPolicyWaiverDAO.class),
         mock(SearchIndexChangeDAO.class),
         mock(TagDAO.class),
         mock(ThirdPartySbomMetadataDAO.class),

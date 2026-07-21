@@ -22,8 +22,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
@@ -58,10 +61,29 @@ public class PolicyWaiverDAO
   @Inject
   public PolicyWaiverDAO(
       final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager,
       final OwnerDAO ownerDAO)
   {
-    super(operationalDataStore);
+    super(operationalDataStore, searchIndexManager);
     this.ownerDAO = ownerDAO;
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChange(PolicyWaiver entity) {
+    return new SearchIndexChange(ChangeType.POLICY_WAIVER,
+        SearchIndexChange.POLICY_WAIVER_MANUAL_PREFIX + entity.getId());
+  }
+
+  // Container-image waivers are excluded from Global Search (see DocumentBuilderHelper.buildDocument),
+  // so a fresh container-image insert produces no document; skip its index change to avoid churn.
+  // Update/delete still enqueue unconditionally so a waiver transitioning to/from container-image
+  // (which flips buildDocument between a real doc and null) never leaves a stale doc behind.
+  @Override
+  protected SearchIndexChange newSearchIndexChangeForInsert(PolicyWaiver entity) {
+    if (entity.isForContainerImage() || entity.isForContainerImageComponent()) {
+      return null;
+    }
+    return newSearchIndexChange(entity);
   }
 
   /**

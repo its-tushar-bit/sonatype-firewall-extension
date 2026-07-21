@@ -229,7 +229,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   }
 
   protected void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
-    if (searchIndexManager != null) {
+    if (searchIndexManager != null && searchIndexChange != null) {
       searchIndexManager.insert(tx, searchIndexChange);
     }
   }

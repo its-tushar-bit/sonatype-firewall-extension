@@ -61,6 +61,28 @@ public class DocumentBuilderTest
   }
 
   @Test
+  public void policyWaiverDates_surviveOpenSearchRoundTripWithoutNullInList() {
+    // Regression: a same-named doc-values twin on the date fields used to serialize them as
+    // [iso8601, null] into _source, NPEing on mapToDocument read-back.
+    ConversionHelper conversionHelper = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
+    Document built = new DocumentBuilder(ItemType.POLICY_WAIVER)
+        .setPolicyWaiverCreatedAt("2024-01-01T00:00:00.000Z")
+        .setPolicyWaiverExpiresAt("2024-06-01T00:00:00.000Z")
+        .build();
+
+    List<IndexableField> createdFields = built.getFields()
+        .stream()
+        .filter(f -> FieldIdentifier.POLICY_WAIVER_CREATED_AT.label.equals(f.name()))
+        .toList();
+    assertThat(createdFields).extracting(Object::getClass).containsExactly(StringField.class);
+
+    Map<String, Object> source = conversionHelper.documentToMap(built);
+    assertThat(source.get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label)).isEqualTo("2024-01-01T00:00:00.000Z");
+    assertThat(source.get(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label)).isEqualTo("2024-06-01T00:00:00.000Z");
+    assertThatCode(() -> conversionHelper.mapToDocument(source)).doesNotThrowAnyException();
+  }
+
+  @Test
   public void documentKey_isDeterministicForIdenticalContent() {
     String a = keyOf(new DocumentBuilder(ItemType.APPLICATION)
         .setApplicationId("app-1")

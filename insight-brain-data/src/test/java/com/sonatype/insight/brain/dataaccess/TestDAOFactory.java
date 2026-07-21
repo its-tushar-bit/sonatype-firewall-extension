@@ -722,7 +722,7 @@ public class TestDAOFactory
   @Override
   public PolicyWaiverDAO createPolicyWaiverDAO() {
     OwnerDAO ownerDAO = createOwnerDAO();
-    return new PolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), ownerDAO);
+    return new PolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, ownerDAO);
   }
 
   @Override
@@ -1275,7 +1275,8 @@ public class TestDAOFactory
   @Override
   public AutoPolicyWaiverDAO createAutoPolicyWaiverDAO() {
     AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO = createAutoPolicyWaiverExclusionDAO();
-    return new AutoPolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), autoPolicyWaiverExclusionDAO);
+    return new AutoPolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager,
+        autoPolicyWaiverExclusionDAO);
   }
 
   @Override

@@ -421,7 +421,7 @@ public class AbstractSearchIndexClientPermissionFilterTest
   /**
    * Minimal AbstractSearchIndexClient subclass that surfaces the protected new-path helpers for
    * testing. Pure pass-through: no DAOs touched, no DI configured. Extending here (rather than a
-   * stateless helper class) is what forces the 18-arg superclass ctor below.
+   * stateless helper class) is what forces the 22-arg superclass ctor below.
    */
   private static final class TestSearchIndexClient
       extends AbstractSearchIndexClient
@@ -439,13 +439,14 @@ public class AbstractSearchIndexClientPermissionFilterTest
 
     private TestSearchIndexClient() {
       // AbstractSearchIndexClient ctor params (order):
-      // applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
-      // tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense,
-      // telemetrySender, luceneComponents, advancedSearchTelemetryMetrics, configuration,
-      // permissionService, authorizationChecker, currentUser, conversionHelper, shutdownHandler.
+      // applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, policyWaiverDAO,
+      // autoPolicyWaiverDAO, searchIndexChangeDAO, tagDAO, thirdPartySbomMetadataDAO,
+      // documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
+      // advancedSearchTelemetryMetrics, configuration, permissionService, authorizationChecker,
+      // currentUser, conversionHelper, shutdownHandler, readableContextAuthzCache.
       // None are exercised by buildAllowedContextIdsLuceneFilter / wrapWithPermissionFilter.
       super(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-          null, null, null, null, null);
+          null, null, null, null, null, null, null, null);
     }
 
     Query buildAllowedContextIdsFilterForTest(Set<String> permittedContextIds) {

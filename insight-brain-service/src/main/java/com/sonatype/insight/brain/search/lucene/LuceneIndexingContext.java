@@ -37,6 +37,13 @@ public class LuceneIndexingContext
     indexWriter.deleteDocuments(getConversionHelper().stringToQuery(query));
   }
 
+  private static void addSortDocValues(final Document document, final String fieldLabel) {
+    String value = document.get(fieldLabel);
+    if (value != null) {
+      document.add(new SortedDocValuesField(fieldLabel, new BytesRef(value)));
+    }
+  }
+
   @Override
   public void addDocuments(final List<Document> documents) throws IOException {
     // Sort doc-values live only here, not in DocumentBuilder: a same-named field would serialize a
@@ -46,6 +53,8 @@ public class LuceneIndexingContext
       if (key != null) {
         document.add(new SortedDocValuesField(FieldIdentifier.DOCUMENT_KEY.label, new BytesRef(key)));
       }
+      addSortDocValues(document, FieldIdentifier.POLICY_WAIVER_CREATED_AT.label);
+      addSortDocValues(document, FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label);
     }
     indexWriter.addDocuments(documents);
   }

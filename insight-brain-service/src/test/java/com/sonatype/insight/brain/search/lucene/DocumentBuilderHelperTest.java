@@ -7,12 +7,18 @@ package com.sonatype.insight.brain.search.lucene;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -21,8 +27,10 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -61,6 +69,12 @@ public class DocumentBuilderHelperTest
 
   @Inject
   private com.sonatype.insight.brain.dataaccess.OwnerDAO ownerDAO;
+
+  @Inject
+  private com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO waiverDAO;
+
+  @Inject
+  private PolicyWaiverReasonDAO waiverReasonDAO;
 
   @Mock
   private PolicyEvaluationDAO policyEvaluationDAOMock;
@@ -570,6 +584,251 @@ public class DocumentBuilderHelperTest
         .map(IndexableField::stringValue)
         .filter(v -> v != null)
         .collect(Collectors.toSet());
+  }
+
+  @Test
+  public void testBuildDocument_PolicyWaiver_NullWhenMissingData() {
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, (PolicyWaiver) null)).isNull();
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, (AutoPolicyWaiver) null)).isNull();
+  }
+
+  @Test
+  public void testBuildDocument_PolicyWaiver_ownerNotResolvable_returnsNull() {
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization.getId());
+    PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(), "comment");
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(null);
+
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, waiver)).isNull();
+  }
+
+  @Test
+  public void testBuildDocument_ManualPolicyWaiver_populatesFullFieldSet() {
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization.getId(), "my policy", 8);
+    PolicyWaiver waiver = tempEntity.newWaiverWithReason("hash", policy.getId(), organization.getId(),
+        Collections.emptyList(), "my comment", "type", "my reason");
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, waiver);
+
+    assertThat(itemTypeOf(doc)).isEqualTo(ItemType.POLICY_WAIVER.name());
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_ID.label)).isEqualTo(waiver.getId());
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).isEqualTo("my policy");
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label)).isEqualTo(policy.getId());
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_REASON.label)).isEqualTo("my reason");
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_COMMENT.label)).isEqualTo("my comment");
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label)).isEqualTo(organization.getId());
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label)).isEqualTo("ORGANIZATION");
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label)).isEqualTo(waiver.getCreatorName());
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label)).isNotBlank();
+    assertThat(doc.getField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label).numericValue().intValue())
+        .isEqualTo(8);
+  }
+
+  @Test
+  public void testBuildDocument_ManualPolicyWaiverWithPreloadedPolicy_usesPassedPolicyNotDbLookup() {
+    Organization organization = tempEntity.newOrganization();
+    Policy dbPolicy = tempEntity.newPolicy(organization.getId(), "db name", 3);
+    PolicyWaiver waiver = tempEntity.newWaiver("hash", dbPolicy.getId(), organization.getId(), "comment");
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
+
+    // A detached Policy with the same id but a different name/threat. If the preloaded-policy overload
+    // re-fetched by id it would surface the DB values; instead the doc must reflect this passed policy,
+    // proving the redundant per-waiver policyDAO.getById lookup is gone.
+    Policy preloaded = new Policy();
+    preloaded.setId(dbPolicy.getId());
+    preloaded.setName("preloaded name");
+    preloaded.setThreatLevel(9);
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, waiver, preloaded);
+
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).isEqualTo("preloaded name");
+    assertThat(doc.getField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label).numericValue().intValue())
+        .isEqualTo(9);
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label)).isEqualTo(dbPolicy.getId());
+  }
+
+  @Test
+  public void testBuildDocument_ContainerImageWaiver_returnsNull() {
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization.getId());
+    PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(), "comment");
+    waiver.setForContainerImage(true);
+
+    // Container-image filtering runs before owner resolution, so getOwner is intentionally not stubbed.
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, waiver)).isNull();
+
+    waiver.setForContainerImage(false);
+    waiver.setForContainerImageComponent(true);
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, waiver)).isNull();
+  }
+
+  @Test
+  public void testBuildDocument_RepositoryOwnerWaiver_returnsNull() {
+    // v1 indexes only app/org-scoped waivers; a repository-owner waiver has no allowedContextIds
+    // closure, so it is excluded rather than indexed with empty (invisible) permissions.
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization.getId());
+    PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(), "comment");
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(mock(Repository.class));
+
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, waiver)).isNull();
+
+    AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(organization.getId(), 5, true, false);
+    when(indexingContextMock.getOwner(autoWaiver.getOwnerId())).thenReturn(mock(Repository.class));
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, autoWaiver)).isNull();
+  }
+
+  @Test
+  public void testBuildDocument_AutoPolicyWaiver_populatesSyntheticTitleAndSubset() {
+    Organization organization = tempEntity.newOrganization();
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(organization.getId(), 9, true, false);
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, waiver);
+
+    assertThat(itemTypeOf(doc)).isEqualTo(ItemType.POLICY_WAIVER.name());
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_ID.label)).isEqualTo(waiver.getId());
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).contains("Auto-waiver").contains("9");
+    assertThat(doc.getField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label).numericValue().intValue())
+        .isEqualTo(9);
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label)).isEqualTo(organization.getId());
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label)).isEqualTo("ORGANIZATION");
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label)).isNotBlank();
+    // Auto-waivers carry no policy id, reason, comment, or expiry.
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label)).isNull();
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_REASON.label)).isNull();
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_COMMENT.label)).isNull();
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label)).isNull();
+  }
+
+  @Test
+  public void buildPolicyWaiverDocs_indexesBothKindsAndExcludesContainerImageWaivers() {
+    Organization organization = tempEntity.newOrganization();
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
+    Policy policy = tempEntity.newPolicy(organization.getId(), "resolvable policy", 6);
+    PolicyWaiver manualWaiver =
+        tempEntity.newWaiver("h-manual", policy.getId(), organization.getId(), "manual");
+    AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(organization.getId(), 7, true, false);
+    // Container-image waiver: excluded up front, so it must not appear in the reindex docs.
+    PolicyWaiver containerWaiver =
+        tempEntity.newWaiver("h-container", policy.getId(), organization.getId(), "container");
+    containerWaiver.setForContainerImage(true);
+    try (var tx = waiverDAO.createTransactionContext()) {
+      tx.begin();
+      waiverDAO.updateForRenewal(tx, containerWaiver);
+      tx.commit();
+    }
+
+    List<Document> docs = documentBuilderHelper.buildPolicyWaiverDocs(indexingContextMock);
+
+    Document manualDoc = waiverDocById(docs, manualWaiver.getId());
+    assertThat(manualDoc).isNotNull();
+    assertThat(manualDoc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).isEqualTo("resolvable policy");
+
+    Document autoDoc = waiverDocById(docs, autoWaiver.getId());
+    assertThat(autoDoc).isNotNull();
+    assertThat(autoDoc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).contains("Auto-waiver");
+
+    assertThat(waiverDocById(docs, containerWaiver.getId())).isNull();
+  }
+
+  private static Document waiverDocById(List<Document> docs, String waiverId) {
+    return docs.stream()
+        .filter(doc -> waiverId.equals(doc.get(FieldIdentifier.POLICY_WAIVER_ID.label)))
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Test
+  public void buildPolicyWaiverDocsForPolicy_preservesReasonAndPolicyFieldsAndExcludesContainerImage() {
+    Organization organization = tempEntity.newOrganization();
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
+    Policy policy = tempEntity.newPolicy(organization.getId(), "db name", 3);
+    PolicyWaiver waiverA = tempEntity.newWaiverWithReason("h-a", policy.getId(), organization.getId(),
+        Collections.emptyList(), "comment a", "type", "reason a");
+    PolicyWaiver waiverB = tempEntity.newWaiverWithReason("h-b", policy.getId(), organization.getId(),
+        Collections.emptyList(), "comment b", "type", "reason b");
+    PolicyWaiver containerWaiver =
+        tempEntity.newWaiver("h-container", policy.getId(), organization.getId(), "container");
+    containerWaiver.setForContainerImage(true);
+
+    // A detached policy with a different name/threat: the rebuilt docs must reflect this passed
+    // policy, proving the per-waiver policyDAO.getById lookup is not re-run.
+    Policy preloaded = new Policy();
+    preloaded.setId(policy.getId());
+    preloaded.setName("preloaded name");
+    preloaded.setThreatLevel(9);
+
+    List<Document> docs = documentBuilderHelper.buildPolicyWaiverDocsForPolicy(
+        indexingContextMock, List.of(waiverA, waiverB, containerWaiver), preloaded);
+
+    Document docA = waiverDocById(docs, waiverA.getId());
+    Document docB = waiverDocById(docs, waiverB.getId());
+    assertThat(docA).isNotNull();
+    assertThat(docB).isNotNull();
+    assertThat(docA.get(FieldIdentifier.POLICY_WAIVER_REASON.label)).isEqualTo("reason a");
+    assertThat(docB.get(FieldIdentifier.POLICY_WAIVER_REASON.label)).isEqualTo("reason b");
+    assertThat(docA.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).isEqualTo("preloaded name");
+    assertThat(docA.getField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label).numericValue().intValue())
+        .isEqualTo(9);
+    // Container-image waivers are never indexed on the Global Search surface.
+    assertThat(waiverDocById(docs, containerWaiver.getId())).isNull();
+  }
+
+  @Test
+  public void buildPolicyWaiverDocsForPolicy_batchLoadsReasonsOnceInsteadOfPerWaiver() {
+    Organization organization = tempEntity.newOrganization();
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
+    Policy policy = tempEntity.newPolicy(organization.getId(), "policy", 4);
+    PolicyWaiver waiverA = tempEntity.newWaiverWithReason("h-a", policy.getId(), organization.getId(),
+        Collections.emptyList(), "comment a", "type", "reason a");
+    PolicyWaiver waiverB = tempEntity.newWaiverWithReason("h-b", policy.getId(), organization.getId(),
+        Collections.emptyList(), "comment b", "type", "reason b");
+    PolicyWaiver waiverC = tempEntity.newWaiverWithReason("h-c", policy.getId(), organization.getId(),
+        Collections.emptyList(), "comment c", "type", "reason c");
+
+    // Spy the reason DAO so the reason resolution strategy is observable: the batch path must issue
+    // one getAllByIds and never a per-waiver getById, which is the whole point of the N+1 fix.
+    PolicyWaiverReasonDAO spyReasonDAO = spy(waiverReasonDAO);
+    org.springframework.test.util.ReflectionTestUtils.setField(
+        documentBuilderHelper, "policyWaiverReasonDAO", spyReasonDAO);
+    try {
+      List<Document> docs = documentBuilderHelper.buildPolicyWaiverDocsForPolicy(
+          indexingContextMock, List.of(waiverA, waiverB, waiverC), policy);
+
+      assertThat(docs).hasSize(3);
+      verify(spyReasonDAO, times(1)).getAllByIds(anyList());
+      verify(spyReasonDAO, never()).getById(anyString());
+    }
+    finally {
+      org.springframework.test.util.ReflectionTestUtils.setField(
+          documentBuilderHelper, "policyWaiverReasonDAO", waiverReasonDAO);
+    }
+  }
+
+  @Test
+  public void testBuildDocument_PolicyWaiverCreatedAt_sortsChronologicallyAsString() {
+    // Fixed-width millis form: a whole-second time and a sub-second time must order chronologically
+    // as strings (Instant.toString() dropped the .000 on whole seconds, breaking lexicographic sort).
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization.getId());
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
+
+    PolicyWaiver wholeSecond = tempEntity.newWaiver("hash1", policy.getId(), organization.getId(), "c1");
+    wholeSecond.setCreateTime(new java.util.Date(1_000L));
+    PolicyWaiver subSecond = tempEntity.newWaiver("hash2", policy.getId(), organization.getId(), "c2");
+    subSecond.setCreateTime(new java.util.Date(1_001L));
+
+    String earlier = documentBuilderHelper.buildDocument(indexingContextMock, wholeSecond)
+        .get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label);
+    String later = documentBuilderHelper.buildDocument(indexingContextMock, subSecond)
+        .get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label);
+
+    assertThat(earlier).isEqualTo("1970-01-01T00:00:01.000Z");
+    assertThat(later).isEqualTo("1970-01-01T00:00:01.001Z");
+    assertThat(earlier.compareTo(later)).isLessThan(0);
   }
 
   @Test

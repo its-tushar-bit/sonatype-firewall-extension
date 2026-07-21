@@ -9,7 +9,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -32,10 +35,17 @@ public class AutoPolicyWaiverDAO
   @Inject
   public AutoPolicyWaiverDAO(
       final OperationalDataStore operationalDataStore,
+      final SearchIndexManager searchIndexManager,
       final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO)
   {
-    super(operationalDataStore);
+    super(operationalDataStore, searchIndexManager);
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
+  }
+
+  @Override
+  protected SearchIndexChange newSearchIndexChange(AutoPolicyWaiver entity) {
+    return new SearchIndexChange(ChangeType.POLICY_WAIVER,
+        SearchIndexChange.POLICY_WAIVER_AUTO_PREFIX + entity.getId());
   }
 
   @Override
@@ -49,6 +59,11 @@ public class AutoPolicyWaiverDAO
         .deleteFrom(AUTO_POLICY_WAIVER)
         .where(AUTO_POLICY_WAIVER.AUTO_POLICY_WAIVER_ID.eq(autoPolicyWaiver.getId()))
         .execute();
+    // This override does not call super.delete, so the base delete-index hook never fires. Enqueue
+    // the delete change here so the waiver's document is removed from the search index.
+    if (shouldAddSearchIndexChange(tx, autoPolicyWaiver)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForDelete(autoPolicyWaiver));
+    }
   }
 
   public List<AutoPolicyWaiver> getByOwnerId(String ownerId) {

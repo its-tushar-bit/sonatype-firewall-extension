@@ -9,9 +9,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,8 +40,11 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -54,10 +61,13 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -170,6 +180,12 @@ public class DocumentBuilderHelper
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
+  private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
+  private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
+
   @Inject
   public DocumentBuilderHelper(
       final LabelDAO labelDAO,
@@ -189,7 +205,10 @@ public class DocumentBuilderHelper
       final PolicyViolationDAO policyViolationDAO,
       final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO,
       final MultiLicenseDAO multiLicenseDAO,
-      final LicenseThreatGroupDAO licenseThreatGroupDAO)
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
+      final PolicyWaiverReasonDAO policyWaiverReasonDAO)
   {
     this.labelDAO = labelDAO;
     this.organizationDAO = organizationDAO;
@@ -211,6 +230,9 @@ public class DocumentBuilderHelper
     this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
     this.multiLicenseDAO = multiLicenseDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
+    this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
+    this.policyWaiverReasonDAO = policyWaiverReasonDAO;
   }
 
   // Visible for testing
@@ -558,6 +580,226 @@ public class DocumentBuilderHelper
         .setOwner(owner)
         .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
         .build();
+  }
+
+  /**
+   * Full-reindex docs for both waiver kinds: manual {@link PolicyWaiver} and auto
+   * {@link AutoPolicyWaiver}. Container-image waivers are excluded by {@code buildDocument}.
+   */
+  public List<Document> buildPolicyWaiverDocs(IndexingContext indexingContext) {
+    // getAll() loads every manual and auto waiver into memory for the full reindex.
+    // TODO(CLM-41642): verify/page this for large-tenant scale before enabling the reindex flag in prod.
+    // Container-image waivers are never indexed (buildDocument returns null), so drop them up front
+    // rather than folding their policy/reason ids into the batch lookups only to discard the docs.
+    List<PolicyWaiver> manualWaivers = policyWaiverDAO.getAll()
+        .stream()
+        .filter(waiver -> !waiver.isForContainerImage() && !waiver.isForContainerImageComponent())
+        .toList();
+
+    // Batch-load the policies and reasons referenced across all manual waivers so the full reindex
+    // issues one IN-clause query per lookup instead of a getById per waiver (avoids 2*N point queries).
+    Set<String> policyIds = manualWaivers.stream()
+        .map(PolicyWaiver::getPolicyId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Set<String> reasonIds = manualWaivers.stream()
+        .map(PolicyWaiver::getWaiverReasonId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Map<String, Policy> policiesById = policyIds.isEmpty()
+        ? Collections.emptyMap()
+        : policyDAO.getByIds(policyIds)
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(Policy::getId, p -> p, (a, b) -> a));
+    Map<String, PolicyWaiverReason> reasonsById = reasonIds.isEmpty()
+        ? Collections.emptyMap()
+        : policyWaiverReasonDAO.getAllByIds(new ArrayList<>(reasonIds))
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(PolicyWaiverReason::getId, r -> r, (a, b) -> a));
+
+    List<Document> docs = new ArrayList<>();
+    for (PolicyWaiver waiver : manualWaivers) {
+      // buildDocument still returns null for unresolvable-owner / repository-owner waivers.
+      Document doc = buildDocument(indexingContext, waiver, policiesById, reasonsById);
+      if (doc != null) {
+        docs.add(doc);
+      }
+    }
+    for (AutoPolicyWaiver autoWaiver : autoPolicyWaiverDAO.getAll()) {
+      Document doc = buildDocument(indexingContext, autoWaiver);
+      if (doc != null) {
+        docs.add(doc);
+      }
+    }
+    return docs;
+  }
+
+  /**
+   * Policy-rebuild path: rebuild docs for the manual waivers of a single policy (rename / threat
+   * change). All waivers share {@code policy}, so the reasons are batch-loaded with one
+   * {@code getAllByIds} instead of a {@code getById} per waiver. Container-image waivers are dropped
+   * up front (they are never indexed); auto-waivers are not rebuilt here since their docs key on
+   * threat level, not policy name.
+   */
+  public List<Document> buildPolicyWaiverDocsForPolicy(
+      IndexingContext indexingContext,
+      Collection<PolicyWaiver> waivers,
+      Policy policy)
+  {
+    List<PolicyWaiver> manualWaivers = waivers.stream()
+        .filter(waiver -> !waiver.isForContainerImage() && !waiver.isForContainerImageComponent())
+        .toList();
+
+    Set<String> reasonIds = manualWaivers.stream()
+        .map(PolicyWaiver::getWaiverReasonId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Map<String, PolicyWaiverReason> reasonsById = reasonIds.isEmpty()
+        ? Collections.emptyMap()
+        : policyWaiverReasonDAO.getAllByIds(new ArrayList<>(reasonIds))
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(PolicyWaiverReason::getId, r -> r, (a, b) -> a));
+    Map<String, Policy> policiesById = policy == null ? Collections.emptyMap() : Map.of(policy.getId(), policy);
+
+    List<Document> docs = new ArrayList<>();
+    for (PolicyWaiver waiver : manualWaivers) {
+      Document doc = buildDocument(indexingContext, waiver, policiesById, reasonsById);
+      if (doc != null) {
+        docs.add(doc);
+      }
+    }
+    return docs;
+  }
+
+  // Public: called cross-package by AbstractSearchIndexClient.updateIndexForPolicyWaiver.
+  public Document buildDocument(IndexingContext indexingContext, PolicyWaiver waiver) {
+    // Incremental single-doc path: resolve the policy directly, then reuse the preloaded-policy path.
+    String policyId = waiver == null ? null : waiver.getPolicyId();
+    Policy policy = policyId == null ? null : policyDAO.getById(policyId);
+    return buildDocument(indexingContext, waiver, policy);
+  }
+
+  /**
+   * Single-doc path with a pre-loaded {@link Policy}. Used by the policy-rebuild path in
+   * AbstractSearchIndexClient, where all waivers from {@code getByPolicyId} share one policy that
+   * has already been fetched, so re-resolving it per waiver would be a redundant point query.
+   */
+  public Document buildDocument(IndexingContext indexingContext, PolicyWaiver waiver, Policy policy) {
+    String reasonId = waiver == null ? null : waiver.getWaiverReasonId();
+    PolicyWaiverReason reason = reasonId == null ? null : policyWaiverReasonDAO.getById(reasonId);
+    return buildDocument(
+        indexingContext,
+        waiver,
+        policy == null ? Collections.emptyMap() : Map.of(policy.getId(), policy),
+        reason == null ? Collections.emptyMap() : Map.of(reasonId, reason));
+  }
+
+  private Document buildDocument(
+      IndexingContext indexingContext,
+      PolicyWaiver waiver,
+      Map<String, Policy> policiesById,
+      Map<String, PolicyWaiverReason> reasonsById)
+  {
+    if (waiver == null) {
+      return null;
+    }
+    // Container-image waivers are managed on the Firewall container surface, not Global Search.
+    if (waiver.isForContainerImage() || waiver.isForContainerImageComponent()) {
+      return null;
+    }
+    Owner owner = indexingContext.getOwner(waiver.getOwnerId());
+    // v1 indexes only app/org-scoped waivers; repository / repo-manager / repo-container owners have
+    // no allowedContextIds closure, so they are out of scope rather than indexed with empty perms.
+    if (!isIndexableOwner(owner)) {
+      return null;
+    }
+
+    String policyName = null;
+    Integer threatLevel = null;
+    if (waiver.getPolicyId() != null) {
+      Policy policy = policiesById.get(waiver.getPolicyId());
+      if (policy != null) {
+        policyName = policy.getName();
+        threatLevel = policy.getThreatLevel();
+      }
+    }
+    // A manual waiver whose policy cannot be resolved (orphaned policy) indexes with a null policy
+    // name, so it lands in the null bucket of the POLICY_WAIVER_POLICY_NAME group field. Accepted
+    // for v1; a synthetic fallback title would be a product decision.
+
+    String reasonText = null;
+    if (waiver.getWaiverReasonId() != null) {
+      PolicyWaiverReason reason = reasonsById.get(waiver.getWaiverReasonId());
+      if (reason != null) {
+        reasonText = reason.getReasonText();
+      }
+    }
+
+    DocumentBuilder builder = new DocumentBuilder(ItemType.POLICY_WAIVER)
+        .setPolicyWaiverId(waiver.getId())
+        .setPolicyWaiverPolicyName(policyName)
+        .setPolicyWaiverPolicyId(waiver.getPolicyId())
+        .setPolicyWaiverReason(reasonText)
+        .setPolicyWaiverComment(waiver.getComment())
+        .setPolicyWaiverCreatedAt(toIso8601(waiver.getCreateTime()))
+        .setPolicyWaiverExpiresAt(toIso8601(waiver.getExpiryTime()))
+        .setPolicyWaiverScopeOwnerId(owner.getId())
+        .setPolicyWaiverScopeOwnerType(owner.getType().name())
+        .setPolicyWaiverWaivedBy(waiver.getCreatorName())
+        .setOwner(owner)
+        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner));
+    if (threatLevel != null) {
+      builder.setPolicyWaiverThreatLevel(threatLevel);
+    }
+    return builder.build();
+  }
+
+  // Public: called cross-package by AbstractSearchIndexClient.updateIndexForPolicyWaiver.
+  public Document buildDocument(IndexingContext indexingContext, AutoPolicyWaiver waiver) {
+    if (waiver == null) {
+      return null;
+    }
+    Owner owner = indexingContext.getOwner(waiver.getOwnerId());
+    // v1 indexes only app/org-scoped waivers; repository-owner waivers are out of scope.
+    if (!isIndexableOwner(owner)) {
+      return null;
+    }
+    // Auto-waivers have no policy name; the read side needs a non-empty title to render, so it is
+    // synthesized from the threat level.
+    // TODO(CLM-41642): confirm the synthetic title wording with product.
+    return new DocumentBuilder(ItemType.POLICY_WAIVER)
+        .setPolicyWaiverId(waiver.getId())
+        .setPolicyWaiverPolicyName(syntheticAutoWaiverTitle(waiver.getThreatLevel()))
+        .setPolicyWaiverThreatLevel(waiver.getThreatLevel())
+        .setPolicyWaiverWaivedBy(waiver.getCreatorName())
+        .setPolicyWaiverCreatedAt(toIso8601(waiver.getCreateTime()))
+        .setPolicyWaiverScopeOwnerId(owner.getId())
+        .setPolicyWaiverScopeOwnerType(owner.getType().name())
+        .setOwner(owner)
+        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
+        .build();
+  }
+
+  private static String syntheticAutoWaiverTitle(final int threatLevel) {
+    return "Auto-waiver (threat >= " + threatLevel + ")";
+  }
+
+  // v1 waiver indexing rule: only app/org-scoped owners are indexed (null and repository-family
+  // owners are out of scope).
+  private static boolean isIndexableOwner(final Owner owner) {
+    return owner instanceof Application || owner instanceof Organization;
+  }
+
+  // Fixed-width UTC form (always millis) so lexicographic keyword sort is chronological;
+  // Instant.toString() drops fractional seconds on whole seconds, which breaks string ordering.
+  private static final DateTimeFormatter ISO8601_MILLIS =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
+
+  private static String toIso8601(final Date date) {
+    return date == null ? null : ISO8601_MILLIS.format(Instant.ofEpochMilli(date.getTime()));
   }
 
   public List<Document> buildSbomDocs(IndexingContext indexingContext) {

@@ -21,7 +21,12 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.PolicyContainerWaiverData;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.WaiverReasonData;
 import com.sonatype.insight.brain.model.Application;
@@ -67,12 +72,66 @@ public class PolicyWaiverDAOTest
 
   private PolicyWaiverDAO dao;
 
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     policyViolationDAO = daoFactory.createPolicyViolationDAO();
     dao = daoFactory.createPolicyWaiverDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+  }
+
+  // ADVANCED_SEARCH_ENABLED must be set: SearchIndexChangeDAO.insert gates recording on the flag,
+  // so without it no change is persisted for the assertion to observe.
+  @Test
+  public void testCRUD_RecordsSearchIndexChange() {
+    systemConfigurationPropertyDAO
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    Policy policy = tempEntity.newPolicy(organization);
+    PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(), "comment");
+
+    assertThat(waiverChanges())
+        .containsExactly(SearchIndexChange.POLICY_WAIVER_MANUAL_PREFIX + waiver.getId());
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+
+    dao.delete(waiver);
+    assertThat(waiverChanges())
+        .containsExactly(SearchIndexChange.POLICY_WAIVER_MANUAL_PREFIX + waiver.getId());
+  }
+
+  @Test
+  public void testInsert_ContainerImageWaiver_DoesNotRecordSearchIndexChange() {
+    systemConfigurationPropertyDAO
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver waiver = new PolicyWaiver("hash", policy.getId(), application.getId(), "comment");
+    waiver.setForContainerImage(true);
+    dao.insert(waiver);
+    try {
+      assertThat(waiverChanges()).isEmpty();
+
+      // A transition away from container-image on update must re-enqueue so any stale doc is fixed.
+      waiver.setForContainerImage(false);
+      dao.update(waiver);
+      assertThat(waiverChanges())
+          .containsExactly(SearchIndexChange.POLICY_WAIVER_MANUAL_PREFIX + waiver.getId());
+    }
+    finally {
+      dao.delete(waiver);
+    }
+  }
+
+  private List<String> waiverChanges() {
+    return searchIndexChangeDAO.getAll()
+        .stream()
+        .filter(c -> c.getChangeType() == ChangeType.POLICY_WAIVER)
+        .map(SearchIndexChange::getChangeData)
+        .toList();
   }
 
   @Test

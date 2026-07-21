@@ -32,7 +32,9 @@ import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -179,6 +181,8 @@ public class OpenSearchSearchIndexClient
       final OrganizationDAO organizationDAO,
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final SearchIndexChangeDAO searchIndexChangeDAO,
       final TagDAO tagDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -199,7 +203,8 @@ public class OpenSearchSearchIndexClient
       final ShutdownHandler shutdownHandler,
       final ReadableContextAuthzCache readableContextAuthzCache)
   {
-    super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
+    super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, policyWaiverDAO, autoPolicyWaiverDAO,
+        searchIndexChangeDAO,
         tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
         advancedSearchTelemetryMetrics, configuration, permissionService, authorizationChecker, currentUser,
         conversionHelper, shutdownHandler, readableContextAuthzCache);
@@ -759,6 +764,10 @@ public class OpenSearchSearchIndexClient
       log.info("Creating OpenSearch index: {}", name);
       TypeMapping typeMapping = new TypeMapping.Builder()
           .properties(indexConfigProvider.getIndexConfig().getIndexMapping().getMappings())
+          // date_detection off so any date-ish keyword field left to dynamic mapping (e.g. the
+          // ISO-8601 policyWaiver*At fields) is never auto-typed as `date`. Applies to freshly
+          // created indices only; explicit properties above already pin the known fields.
+          .dateDetection(false)
           .build();
       CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder()
           .index(name)

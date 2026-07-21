@@ -34,8 +34,19 @@ public class SearchIndexChange
 
     LABEL,
 
-    SBOM
+    SBOM,
+
+    // One change type covers both manual (policy_waiver) and auto (auto_policy_waiver) waivers.
+    // changeData encodes the waiver kind with a prefix so the updater resolves the correct table
+    // directly: "MANUAL:<id>" for policy_waiver, "AUTO:<id>" for auto_policy_waiver (mirroring the
+    // SBOM "appId:version" split). The raw id follows the prefix.
+    POLICY_WAIVER
   }
+
+  // changeData prefixes for POLICY_WAIVER changes (see ChangeType.POLICY_WAIVER).
+  public static final String POLICY_WAIVER_MANUAL_PREFIX = "MANUAL:";
+
+  public static final String POLICY_WAIVER_AUTO_PREFIX = "AUTO:";
 
   @Id
   @Column(name = "search_index_change_id")

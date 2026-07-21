@@ -9,6 +9,11 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion;
@@ -27,12 +32,45 @@ public class AutoPolicyWaiverDAOTest
 
   private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createAutoPolicyWaiverDAO();
     autoPolicyWaiverExclusionDAO = daoFactory.createAutoPolicyWaiverExclusionDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+  }
+
+  // ADVANCED_SEARCH_ENABLED must be set: SearchIndexChangeDAO.insert gates recording on the flag,
+  // so without it no change is persisted for the assertion to observe.
+  @Test
+  public void testCRUD_RecordsSearchIndexChange() {
+    systemConfigurationPropertyDAO
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
+
+    assertThat(waiverChanges())
+        .containsExactly(SearchIndexChange.POLICY_WAIVER_AUTO_PREFIX + autoPolicyWaiver.getId());
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+
+    // AutoPolicyWaiverDAO.delete overrides the base delete without calling super; verify it still
+    // enqueues a delete change so the search index is kept in sync.
+    dao.delete(autoPolicyWaiver);
+    assertThat(waiverChanges())
+        .containsExactly(SearchIndexChange.POLICY_WAIVER_AUTO_PREFIX + autoPolicyWaiver.getId());
+  }
+
+  private List<String> waiverChanges() {
+    return searchIndexChangeDAO.getAll()
+        .stream()
+        .filter(c -> c.getChangeType() == ChangeType.POLICY_WAIVER)
+        .map(SearchIndexChange::getChangeData)
+        .toList();
   }
 
   @Test

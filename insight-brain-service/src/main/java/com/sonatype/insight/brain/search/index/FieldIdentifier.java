@@ -77,7 +77,20 @@ public enum FieldIdentifier
   ALLOWED_CONTEXT_IDS("allowedContextIds"),
 
   /** Content-derived cursor tie-breaker; stable across reindex and both backends, unlike a transient docId/_id. */
-  DOCUMENT_KEY("documentKey");
+  DOCUMENT_KEY("documentKey"),
+
+  // Policy waiver fields — written when ItemType.POLICY_WAIVER documents are indexed.
+  POLICY_WAIVER_ID("policyWaiverId"),
+  POLICY_WAIVER_POLICY_NAME("policyWaiverPolicyName"),
+  POLICY_WAIVER_POLICY_ID("policyWaiverPolicyId"),
+  POLICY_WAIVER_REASON("policyWaiverReason"),
+  POLICY_WAIVER_COMMENT("policyWaiverComment"),
+  POLICY_WAIVER_CREATED_AT("policyWaiverCreatedAt"),
+  POLICY_WAIVER_EXPIRES_AT("policyWaiverExpiresAt"),
+  POLICY_WAIVER_SCOPE_OWNER_ID("policyWaiverScopeOwnerId"),
+  POLICY_WAIVER_SCOPE_OWNER_TYPE("policyWaiverScopeOwnerType"),
+  POLICY_WAIVER_THREAT_LEVEL("policyWaiverThreatLevel"),
+  POLICY_WAIVER_WAIVED_BY("policyWaiverWaivedBy");
 
   public final String label;
 

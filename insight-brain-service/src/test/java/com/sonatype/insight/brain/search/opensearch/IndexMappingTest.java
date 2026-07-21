@@ -101,6 +101,37 @@ public class IndexMappingTest
     assertThat(keyword.normalizer()).isNull();
   }
 
+  @Test
+  public void policyWaiverFields_areMappedWithExpectedTypes() {
+    Map<String, Property> mappings = new IndexMapping().getMappings();
+
+    Stream.of(
+        FieldIdentifier.POLICY_WAIVER_ID,
+        FieldIdentifier.POLICY_WAIVER_POLICY_NAME,
+        FieldIdentifier.POLICY_WAIVER_POLICY_ID,
+        FieldIdentifier.POLICY_WAIVER_CREATED_AT,
+        FieldIdentifier.POLICY_WAIVER_EXPIRES_AT,
+        FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID,
+        FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE,
+        FieldIdentifier.POLICY_WAIVER_WAIVED_BY)
+        .forEach(field -> {
+          Property property = mappings.get(field.label);
+          assertThat(property).as("mapping for %s", field.label).isNotNull();
+          assertThat(property.isKeyword()).as("%s is keyword", field.label).isTrue();
+        });
+
+    Stream.of(FieldIdentifier.POLICY_WAIVER_REASON, FieldIdentifier.POLICY_WAIVER_COMMENT)
+        .forEach(field -> {
+          Property property = mappings.get(field.label);
+          assertThat(property).as("mapping for %s", field.label).isNotNull();
+          assertThat(property.isText()).as("%s is text", field.label).isTrue();
+        });
+
+    Property threatLevel = mappings.get(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label);
+    assertThat(threatLevel).isNotNull();
+    assertThat(threatLevel.isInteger()).isTrue();
+  }
+
   private static KeywordProperty keywordPropertyFor(final String fieldName) {
     Property property = new IndexMapping().getMappings().get(fieldName);
     assertThat(property).isNotNull();

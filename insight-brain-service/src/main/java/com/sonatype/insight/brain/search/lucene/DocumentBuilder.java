@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -83,6 +84,17 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.DOCUMENT_KEY;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_COMMENT;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_CREATED_AT;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_REASON;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_WAIVED_BY;
 
 public class DocumentBuilder
 {
@@ -177,6 +189,28 @@ public class DocumentBuilder
   private Optional<Field[]> componentLicenseThreatLevel = Optional.empty();
 
   private Optional<Field[]> allowedContextIds = Optional.empty();
+
+  private Optional<Field> policyWaiverId = Optional.empty();
+
+  private Optional<Field> policyWaiverPolicyName = Optional.empty();
+
+  private Optional<Field> policyWaiverPolicyId = Optional.empty();
+
+  private Optional<Field> policyWaiverReason = Optional.empty();
+
+  private Optional<Field> policyWaiverComment = Optional.empty();
+
+  private Optional<Field[]> policyWaiverCreatedAt = Optional.empty();
+
+  private Optional<Field[]> policyWaiverExpiresAt = Optional.empty();
+
+  private Optional<Field> policyWaiverScopeOwnerId = Optional.empty();
+
+  private Optional<Field> policyWaiverScopeOwnerType = Optional.empty();
+
+  private Optional<Field[]> policyWaiverThreatLevel = Optional.empty();
+
+  private Optional<Field> policyWaiverWaivedBy = Optional.empty();
 
   public DocumentBuilder(ItemType itemType) {
     this.itemType = itemType;
@@ -505,6 +539,101 @@ public class DocumentBuilder
     return this;
   }
 
+  // ---- Policy waiver setters ---------------------------------------------------------------
+
+  public DocumentBuilder setPolicyWaiverId(final String waiverId) {
+    Objects.requireNonNull(waiverId, "waiverId");
+    this.policyWaiverId = Optional.of(new TextField(POLICY_WAIVER_ID.label, waiverId, Store.YES));
+    return this;
+  }
+
+  public DocumentBuilder setPolicyWaiverPolicyName(final String policyName) {
+    if (policyName != null) {
+      this.policyWaiverPolicyName =
+          Optional.of(new TextField(POLICY_WAIVER_POLICY_NAME.label, policyName, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setPolicyWaiverPolicyId(final String policyId) {
+    if (policyId != null) {
+      this.policyWaiverPolicyId = Optional.of(new TextField(POLICY_WAIVER_POLICY_ID.label, policyId, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setPolicyWaiverReason(final String reasonText) {
+    if (reasonText != null) {
+      this.policyWaiverReason = Optional.of(new TextField(POLICY_WAIVER_REASON.label, reasonText, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setPolicyWaiverComment(final String comment) {
+    if (comment != null) {
+      this.policyWaiverComment = Optional.of(new TextField(POLICY_WAIVER_COMMENT.label, comment, Store.YES));
+    }
+    return this;
+  }
+
+  /**
+   * Stored as an ISO-8601 string to give a stable sortable representation without committing to a
+   * backend-specific {@code date} mapping; both backends sort lexicographically on this format.
+   * {@link StringField} (not analyzed) keeps the value as a single keyword token so range queries
+   * match the lexicographic order of the ISO-8601 form. Sort doc-values are added only in
+   * {@link LuceneIndexingContext#addDocuments}, not here, so the field does not serialize a null
+   * into the OpenSearch _source.
+   */
+  public DocumentBuilder setPolicyWaiverCreatedAt(final String iso8601) {
+    if (iso8601 != null) {
+      this.policyWaiverCreatedAt = Optional.of(toIso8601DateFields(POLICY_WAIVER_CREATED_AT.label, iso8601));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setPolicyWaiverExpiresAt(final String iso8601) {
+    if (iso8601 != null) {
+      this.policyWaiverExpiresAt = Optional.of(toIso8601DateFields(POLICY_WAIVER_EXPIRES_AT.label, iso8601));
+    }
+    return this;
+  }
+
+  private static Field[] toIso8601DateFields(final String fieldLabel, final String iso8601) {
+    return new Field[]{
+      new StringField(fieldLabel, iso8601, Store.YES)
+    };
+  }
+
+  public DocumentBuilder setPolicyWaiverScopeOwnerId(final String scopeOwnerId) {
+    if (scopeOwnerId != null) {
+      this.policyWaiverScopeOwnerId =
+          Optional.of(new TextField(POLICY_WAIVER_SCOPE_OWNER_ID.label, scopeOwnerId, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setPolicyWaiverScopeOwnerType(final String scopeOwnerType) {
+    if (scopeOwnerType != null) {
+      this.policyWaiverScopeOwnerType =
+          Optional.of(new TextField(POLICY_WAIVER_SCOPE_OWNER_TYPE.label, scopeOwnerType, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setPolicyWaiverThreatLevel(final int threatLevel) {
+    this.policyWaiverThreatLevel = Optional.of(new Field[]{
+      new IntPoint(POLICY_WAIVER_THREAT_LEVEL.label, threatLevel),
+      new StoredField(POLICY_WAIVER_THREAT_LEVEL.label, threatLevel)});
+    return this;
+  }
+
+  public DocumentBuilder setPolicyWaiverWaivedBy(final String waivedBy) {
+    if (waivedBy != null) {
+      this.policyWaiverWaivedBy = Optional.of(new TextField(POLICY_WAIVER_WAIVED_BY.label, waivedBy, Store.YES));
+    }
+    return this;
+  }
+
   public Document build() {
     organizationId.ifPresent(this::setFields);
     organizationName.ifPresent(this::setFields);
@@ -549,6 +678,17 @@ public class DocumentBuilder
     componentLicenseThreatGroupName.ifPresent(this::setFields);
     componentLicenseThreatLevel.ifPresent(this::setFields);
     allowedContextIds.ifPresent(this::setFields);
+    policyWaiverId.ifPresent(this::setFields);
+    policyWaiverPolicyName.ifPresent(this::setFields);
+    policyWaiverPolicyId.ifPresent(this::setFields);
+    policyWaiverReason.ifPresent(this::setFields);
+    policyWaiverComment.ifPresent(this::setFields);
+    policyWaiverCreatedAt.ifPresent(this::setFields);
+    policyWaiverExpiresAt.ifPresent(this::setFields);
+    policyWaiverScopeOwnerId.ifPresent(this::setFields);
+    policyWaiverScopeOwnerType.ifPresent(this::setFields);
+    policyWaiverThreatLevel.ifPresent(this::setFields);
+    policyWaiverWaivedBy.ifPresent(this::setFields);
     addDocumentKey();
     return document;
   }

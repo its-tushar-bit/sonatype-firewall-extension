@@ -59,6 +59,9 @@ public class LuceneComponents
     fieldAnalyzers.put(FieldIdentifier.VULNERABILITY_DESCRIPTION.label, standardAnalyzer);
     fieldAnalyzers.put(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION.label, standardAnalyzer);
     fieldAnalyzers.put(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION.label, standardAnalyzer);
+    // Match the OpenSearch `text` mapping for waiver reason/comment so both backends tokenize alike.
+    fieldAnalyzers.put(FieldIdentifier.POLICY_WAIVER_REASON.label, standardAnalyzer);
+    fieldAnalyzers.put(FieldIdentifier.POLICY_WAIVER_COMMENT.label, standardAnalyzer);
     return new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), fieldAnalyzers);
   }
 
@@ -71,6 +74,8 @@ public class LuceneComponents
     pointsConfigsByFieldName.put(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
         new PointsConfig(numberFormat, Integer.class));
     pointsConfigsByFieldName.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label,
+        new PointsConfig(numberFormat, Integer.class));
+    pointsConfigsByFieldName.put(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label,
         new PointsConfig(numberFormat, Integer.class));
     StandardQueryParser queryParser = new StandardQueryParser(newAnalyzerForSearch());
     queryParser.setPointsConfigMap(pointsConfigsByFieldName);

@@ -207,7 +207,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     renderAppDetail();
 
     await waitFor(() => {
-      expect(screen.getByTestId('nosc-app-detail-page')).toHaveAttribute(
+      expect(screen.getByTestId('nosc-app-detail-breadcrumb')).toHaveAttribute(
         'data-public-id',
         PUBLIC_ID,
       );
@@ -340,6 +340,66 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
 
     // Highest threat sorts first.
     expect(rows[0]).toHaveTextContent('Critical CVE Policy');
+  });
+
+  it('Policy Failures policy name deep-links to native violation detail when policyViolationId is set', async () => {
+    mockHappyPath(axiosMock);
+    renderAppDetail();
+
+    await screen.findByTestId('nosc-app-detail-policy-compliance-card');
+    await userEvent.click(screen.getByTestId('nosc-app-detail-tab-policy-failures'));
+    await screen.findByTestId('nosc-app-detail-policy-failures-table');
+
+    const criticalLink = screen.getByRole('link', { name: 'Critical CVE Policy' });
+    expect(criticalLink).toHaveAttribute('href', '#/violations/pv-1');
+  });
+
+  it('Policy Failures policy name falls back to plain text when policyViolationId is absent', async () => {
+    axiosMock.onGet(getApplicationUrl(PUBLIC_ID)).reply(200, APPLICATION_FIXTURE);
+    axiosMock.onGet(getApplicationReportsUrl(INTERNAL_ID)).reply(200, REPORTS_FIXTURE);
+    axiosMock.onGet(getReportPolicyThreatsUrl(PUBLIC_ID, SCAN_ID)).reply(200, {
+      ...POLICY_THREATS_FIXTURE,
+      aaData: [
+        {
+          hash: 'abc123',
+          displayName: 'log4j-core 2.14.1',
+          allViolations: [
+            {
+              policyName: 'Unlinked Policy',
+              policyThreatLevel: 9,
+              policyThreatCategory: 'SECURITY',
+              waived: false,
+              legacyViolation: false,
+              constraints: [],
+            },
+          ],
+        },
+      ],
+    });
+    axiosMock.onGet(getApplicationReportRawUrl(PUBLIC_ID, SCAN_ID)).reply(200, RAW_REPORT_FIXTURE);
+
+    renderAppDetail();
+    await screen.findByTestId('nosc-app-detail-policy-compliance-card');
+    await userEvent.click(screen.getByTestId('nosc-app-detail-tab-policy-failures'));
+    await screen.findByTestId('nosc-app-detail-policy-failures-table');
+
+    expect(screen.getByText('Unlinked Policy')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Unlinked Policy' })).not.toBeInTheDocument();
+  });
+
+  it('related-risk context rail marks the application as current after metadata loads', async () => {
+    mockHappyPath(axiosMock);
+    renderAppDetail();
+
+    await screen.findByTestId('nosc-app-detail-header');
+    const rail = await screen.findByTestId('nosc-app-detail-context-rail');
+    expect(within(rail).getByText('Apple Java')).toHaveAttribute('aria-current', 'page');
+    expect(within(rail).queryByRole('link', { name: 'Apple Java' })).not.toBeInTheDocument();
+    // Application-only context still shows the full chain as unavailable placeholders.
+    for (const placeholder of ['Component', 'Violation', 'Vulnerability'] as const) {
+      expect(within(rail).getByText(placeholder)).toBeInTheDocument();
+      expect(within(rail).queryByRole('link', { name: placeholder })).not.toBeInTheDocument();
+    }
   });
 
   it('Policy Failures tab badge in the tab strip shows the total violation count', async () => {
@@ -743,7 +803,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     mockHappyPath(axiosMock);
     renderAppDetail();
     await waitFor(() => {
-      expect(screen.getByTestId('nosc-app-detail-page')).toHaveAttribute(
+      expect(screen.getByTestId('nosc-app-detail-breadcrumb')).toHaveAttribute(
         'data-public-id',
         PUBLIC_ID,
       );
@@ -834,16 +894,14 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       });
     });
 
-    it('row "View →" link goes to the Classic component detail page (applicationReport.componentDetails)', async () => {
+    it('row "View →" link goes to the Classic component detail page', async () => {
       mockHappyPath(axiosMock);
       renderAppDetail('components');
       const table = await screen.findByTestId('nosc-app-detail-components-table');
       const links = within(table).getAllByTestId('nosc-app-detail-components-row-link');
       // First row in the fixture is log4j-core with hash=abc123.
-      // This URL must match the canonical Classic UI-Router state
-      // `applicationReport.componentDetails.overview` (no such state
-      // exists for `applicationReport.components` -- using that gives
-      // an "Unknown Address" unrecoverable error in Classic).
+      // Native component detail is not registered yet; ComponentsTab still
+      // deep-links into Classic `applicationReport.componentDetails.overview`.
       expect(links[0]).toHaveAttribute(
         'href',
         `http://localhost/assets/index.html#/applicationReport/${PUBLIC_ID}/${SCAN_ID}/componentDetails/abc123/overview`,

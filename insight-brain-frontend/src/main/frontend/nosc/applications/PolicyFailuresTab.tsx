@@ -15,6 +15,7 @@ import {
   Heading,
   IconButton,
   Inset,
+  Link as RadixLink,
   Table,
   Text,
   TextField,
@@ -24,6 +25,7 @@ import { SectionHeading } from '@sonatype/nexus-one-components';
 import { ActionIcons, DomainIcons, StatusIcons } from 'MainRoot/nosc/icons';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
+import { violationDetailHref } from 'MainRoot/nosc/violations/violationDetailHref';
 import { FlatViolation, ThreatLabel } from './applicationDetailTypes';
 import { LargeScanBanner } from './LargeScanBanner';
 import { THREAT_GROUPS, VIOLATION_PAGE_SIZE } from './applicationDetailUtils';
@@ -320,7 +322,13 @@ export function PolicyFailuresTab({
                             </Tooltip>
                           </Table.Cell>
                           <Table.Cell style={{ whiteSpace: 'nowrap' }}>
-                            <Text size="2">{v.policyName}</Text>
+                            {v.policyViolationId ? (
+                              <RadixLink size="2" href={violationDetailHref(v.policyViolationId)}>
+                                {v.policyName}
+                              </RadixLink>
+                            ) : (
+                              <Text size="2">{v.policyName}</Text>
+                            )}
                           </Table.Cell>
                           <Table.Cell style={{ whiteSpace: 'nowrap' }}>
                             <Text size="2">{v.policyThreatCategory}</Text>

@@ -75,6 +75,7 @@ export function flattenViolations(report: PolicyThreatsResponse | null): FlatVio
         threatColor: color,
         componentDisplay: display,
         componentHash: component.hash,
+        policyViolationId: v.policyViolationId,
         waived: !!v.waived,
         legacy: v.legacyViolation ?? !!v.grandfathered,
         constraintName: v.constraints?.[0]?.constraintName ?? '',

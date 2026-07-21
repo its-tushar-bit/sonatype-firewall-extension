@@ -3,33 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { useMemo } from 'react';
+import { useMemo, type ReactElement, type ReactNode } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Badge,
-  Box,
-  Button,
-  Flex,
-  Link as RadixLink,
-  Tabs,
-  Text,
-} from '@radix-ui/themes';
+import { Badge, Button, Flex, Link as RadixLink, Text } from '@radix-ui/themes';
 import { PageHeading } from '@sonatype/nexus-one-components';
 import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
 import { useTile } from 'MainRoot/nosc/dashboard/useTile';
 import { getApplicationUrl } from 'MainRoot/util/CLMLocation';
 import { useApplicationDetailData } from './useApplicationDetailData';
-import {
-  selectApplicationPolicyThreatsState,
-} from './applicationDetailSlice';
-import {
-  selectComponentCount,
-  selectViolationSummary,
-} from './applicationDetailSelectors';
-import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
+import { selectApplicationPolicyThreatsState } from './applicationDetailSlice';
+import { selectComponentCount, selectViolationSummary } from './applicationDetailSelectors';
 import { UIView, useCurrentStateAndParams, useRouter } from '@uirouter/react';
-import { ErrorBoundary } from 'react-error-boundary';
-
+import { EntityDetailLayout } from 'MainRoot/nosc/entityDetail/EntityDetailLayout';
+import { resolveEntityDetailContext } from 'MainRoot/nosc/entityDetail/resolveEntityDetailContext';
 import { ApplicationDTO, TabId, TAB_IDS } from './applicationDetailTypes';
 import {
   applicationDetailStateNameForTab,
@@ -44,60 +30,37 @@ import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import '@radix-ui/themes/styles.css';
 
 /**
- * P1-F7c (CLM-39709): Native Nexus One Application Detail page.
+ * Native Nexus One Application Detail page.
  *
- * Mounted at /applications/{publicId}. Renders the same six-section
- * layout as the apps/nexusone-ux-prototype `GuideApplicationDetailContent`
- * but wired to real IQ Server data. Shape decisions:
- *
- *   - Header: app name, publicId, organization (read from `GET
- *     /rest/application/{publicId}` — `ApplicationDTO`).
- *   - Overview tab: Policy Compliance + Risk & Trust Metrics + Scan
- *     Information cards on the left, Application Details + Quick Actions
- *     cards on the right. Numbers come from the latest non-stage-specific
- *     report's `policythreats.json`. The DTS/dtsTrend/security-events
- *     widgets in the prototype don't have IQ equivalents yet — they are
- *     replaced with what IQ does have (counts of waived, malicious-
- *     detected, total violations) so the visual contract is preserved
- *     without inventing fake data.
- *   - Policy Failures tab: client-side filter + sort + paginate over the
- *     full violation list from policythreats.json. No backend pagination
- *     because the endpoint already returns everything.
- *   - Components tab: scanned components from the latest report raw JSON.
- *     Raw report fetch is deferred until the user opens this tab.
- *   - Waivers tab: live waiver list scoped to the application (server-paged).
- *     SBOMs + Team Members tabs: inline "Coming Soon" with Classic deep links.
- *     (No Security Events tab — IQ has no equivalent data source today.)
- *
- * Sequential data dependencies are unavoidable here: we need the
- * application's internal `id` from `/rest/application/{publicId}` before
- * we can call `/api/v2/reports/applications/{id}` for the latest scanId,
- * and before that we can't call `/rest/report/.../policythreats.json`.
- * Each step has its own loading/error state so partial failure (e.g. an
- * app that's never been scanned) still renders the header + the cards
- * that work.
- *
- * No backend Java change. Endpoints used were verified live against the
- * dev IQ on 2026-05-14.
+ * Mounted at /applications/{publicId}. Uses EntityDetailLayout for shared
+ * detail chrome while preserving the existing six-tab content and data pipeline.
  */
 
-export default function ApplicationDetail(): JSX.Element {
-  const offsets = usePreviewShellOffsets();
+function tabLabel(label: string, count: ReactNode): ReactNode {
+  if (count === null || count === undefined || count === false) {
+    return label;
+  }
+  return (
+    <Flex align="center" gap="2">
+      {label}
+      {count}
+    </Flex>
+  );
+}
+
+export default function ApplicationDetail(): ReactElement {
   const { params, state } = useCurrentStateAndParams();
   const { stateService } = useRouter();
 
   const publicId = typeof params.publicId === 'string' ? params.publicId : '';
   const activeTab: TabId = tabFromApplicationDetailStateName(state?.name);
 
-  /** Tab-click handler: navigate to the matching child state (CLM-40901). */
   const handleTabChange = (next: string): void => {
     if (!TAB_IDS.includes(next as TabId)) return;
     stateService.go(applicationDetailStateNameForTab(next as TabId), { publicId });
   };
 
-  // Stage 1: load the application metadata so we have its internal `id`.
   const appTile = useTile<ApplicationDTO>(getApplicationUrl(publicId));
-
   const applicationInternalId = appTile.data?.id;
 
   const { retryReports, retryPolicy, retryRaw } = useApplicationDetailData({
@@ -108,13 +71,8 @@ export default function ApplicationDetail(): JSX.Element {
   const policyState = useSelector(selectApplicationPolicyThreatsState);
   const { totalViolations } = useSelector(selectViolationSummary);
   const componentCount = useSelector(selectComponentCount);
-
   const overviewIsReady = appTile.status === 'ready';
 
-  // Annotated + memoized so (a) a missing/renamed field is caught here at the
-  // definition site rather than one call deep at the Provider boundary, and
-  // (b) the Provider value keeps a stable identity across renders that don't
-  // change its inputs — otherwise all tab-route consumers re-render every time.
   const shellContext = useMemo<ApplicationDetailShellContextValue>(
     () => ({
       publicId,
@@ -138,43 +96,95 @@ export default function ApplicationDetail(): JSX.Element {
     ],
   );
 
-  return (
-    // The Radix Theme is provided once by NexusOneShellLayout; this page renders
-    // its content into a fixed, scrollable <main> region below the shell chrome.
-    <Box
-      asChild
-      p="6"
-      style={{
-        position: 'fixed',
-        ...offsets,
-        right: 0,
-        bottom: 0,
-        overflowY: 'auto',
-        backgroundColor: 'var(--gray-1)',
-      }}
-    >
-      <main data-testid="nosc-app-detail-page" data-public-id={publicId}>
-        {/* Breadcrumb / back link */}
-        <Flex align="center" gap="2" mb="3" data-testid="nosc-app-detail-breadcrumb">
-          <RadixLink size="2" color="gray" href={stateService.href('nexusOneApplications')}>
-            <Flex align="center" gap="1">
-              <ActionIcons.Back size={14} />
-              Applications
-            </Flex>
-          </RadixLink>
-          <Text size="2" color="gray">
-            /
-          </Text>
-          <Text size="2" weight="medium">
-            {appTile.data?.name || publicId}
-          </Text>
-        </Flex>
+  const context = useMemo(() => {
+    if (!overviewIsReady || !appTile.data) return null;
+    return resolveEntityDetailContext({
+      current: 'application',
+      applicationPublicId: appTile.data.publicId || publicId,
+      applicationName: appTile.data.name,
+    });
+  }, [appTile.data, overviewIsReady, publicId]);
 
-        {/* Header */}
+  const tabs = useMemo(
+    () => [
+      {
+        value: 'overview',
+        label: 'Overview',
+        testId: 'nosc-app-detail-tab-overview',
+      },
+      {
+        value: 'policy-failures',
+        label: tabLabel(
+          'Violations',
+          policyState.status === 'ready' ? (
+            <Badge size="1" color="gray" variant="soft" radius="full">
+              {totalViolations}
+            </Badge>
+          ) : null,
+        ),
+        testId: 'nosc-app-detail-tab-policy-failures',
+      },
+      {
+        value: 'components',
+        label: tabLabel(
+          'Components',
+          policyState.status === 'ready' ? (
+            <Badge size="1" color="gray" variant="soft" radius="full">
+              {componentCount}
+            </Badge>
+          ) : null,
+        ),
+        testId: 'nosc-app-detail-tab-components',
+      },
+      {
+        value: 'sboms',
+        label: 'SBOMs',
+        testId: 'nosc-app-detail-tab-sboms',
+      },
+      {
+        value: 'waivers',
+        label: 'Waivers',
+        testId: 'nosc-app-detail-tab-waivers',
+      },
+      {
+        value: 'team-members',
+        label: 'Team Members',
+        testId: 'nosc-app-detail-tab-team-members',
+      },
+    ],
+    [componentCount, policyState.status, totalViolations],
+  );
+
+  const breadcrumb = useMemo(
+    () => (
+      <Flex
+        align="center"
+        gap="2"
+        data-testid="nosc-app-detail-breadcrumb"
+        data-public-id={publicId}
+      >
+        <RadixLink size="2" color="gray" href={stateService.href('nexusOneApplications')}>
+          <Flex align="center" gap="1">
+            <ActionIcons.Back size={14} />
+            Applications
+          </Flex>
+        </RadixLink>
+        <Text size="2" color="gray">
+          /
+        </Text>
+        <Text size="2" weight="medium">
+          {appTile.data?.name || publicId}
+        </Text>
+      </Flex>
+    ),
+    [appTile.data?.name, publicId, stateService],
+  );
+
+  const header = useMemo(
+    () => (
+      <>
         {appTile.status === 'loading' && (
-          <Box mb="5">
-            <LoadingSkeleton height={96} data-testid="nosc-app-detail-header-loading" />
-          </Box>
+          <LoadingSkeleton height={96} data-testid="nosc-app-detail-header-loading" />
         )}
         {appTile.status === 'error' && (
           <Flex
@@ -183,23 +193,18 @@ export default function ApplicationDetail(): JSX.Element {
             align="start"
             p="4"
             data-testid="nosc-app-detail-header-error"
-            style={{ backgroundColor: 'var(--red-3)', borderRadius: 'var(--radius-3)', marginBottom: 24 }}
+            style={{ backgroundColor: 'var(--red-3)', borderRadius: 'var(--radius-3)' }}
           >
             <Text size="2" color="red">
               Failed to load application <code>{publicId}</code>.
             </Text>
-            <Button
-              size="2"
-              variant="soft"
-              onClick={appTile.retry}
-              data-testid="nosc-app-detail-header-retry"
-            >
+            <Button size="2" variant="soft" onClick={appTile.retry} data-testid="nosc-app-detail-header-retry">
               Retry
             </Button>
           </Flex>
         )}
         {overviewIsReady && (
-          <Flex direction="column" gap="2" mb="5" data-testid="nosc-app-detail-header">
+          <Flex direction="column" gap="2" data-testid="nosc-app-detail-header">
             <Flex align="center" gap="3">
               <DomainIcons.Applications size={28} color="var(--accent-9)" />
               <PageHeading data-testid="nosc-app-detail-name">{appTile.data?.name}</PageHeading>
@@ -224,74 +229,33 @@ export default function ApplicationDetail(): JSX.Element {
             </Flex>
           </Flex>
         )}
+      </>
+    ),
+    [
+      appTile.data?.name,
+      appTile.data?.organizationName,
+      appTile.data?.publicId,
+      appTile.retry,
+      appTile.status,
+      overviewIsReady,
+      publicId,
+    ],
+  );
 
-        <Tabs.Root
-          value={activeTab}
-          onValueChange={handleTabChange}
-          data-testid="nosc-app-detail-tabs"
-        >
-          <Tabs.List size="2">
-            <Tabs.Trigger value="overview" data-testid="nosc-app-detail-tab-overview">
-              Overview
-            </Tabs.Trigger>
-            <Tabs.Trigger value="policy-failures" data-testid="nosc-app-detail-tab-policy-failures">
-              <Flex align="center" gap="2">
-                Violations
-                {policyState.status === 'ready' && (
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {totalViolations}
-                  </Badge>
-                )}
-              </Flex>
-            </Tabs.Trigger>
-            <Tabs.Trigger value="components" data-testid="nosc-app-detail-tab-components">
-              <Flex align="center" gap="2">
-                Components
-                {/* policythreats component count populates on landing without the deferred raw fetch */}
-                {policyState.status === 'ready' && (
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {componentCount}
-                  </Badge>
-                )}
-              </Flex>
-            </Tabs.Trigger>
-            <Tabs.Trigger value="sboms" data-testid="nosc-app-detail-tab-sboms">
-              SBOMs
-            </Tabs.Trigger>
-            <Tabs.Trigger value="waivers" data-testid="nosc-app-detail-tab-waivers">
-              Waivers
-            </Tabs.Trigger>
-            <Tabs.Trigger value="team-members" data-testid="nosc-app-detail-tab-team-members">
-              Team Members
-            </Tabs.Trigger>
-          </Tabs.List>
-
-          {/* Single Tabs.Content mounts only the active tab (UI-Router child inside).
-              Tab-local useState (filter/sort) resets on switch; data-layer state lives in Redux. */}
-          <Tabs.Content
-            value={activeTab}
-            data-testid={`nosc-app-detail-tab-content-${activeTab}`}
-          >
-            <ErrorBoundary
-              resetKeys={[activeTab]}
-              fallbackRender={({ error }) => (
-                <Flex direction="column" gap="2" p="4" mt="4" data-testid="nosc-app-detail-tab-error">
-                  <Text size="3" color="red" weight="medium">
-                    This tab failed to load.
-                  </Text>
-                  <Text size="2" color="gray">
-                    {error instanceof Error ? error.message : String(error)}
-                  </Text>
-                </Flex>
-              )}
-            >
-              <ApplicationDetailShellProvider value={shellContext}>
-                <UIView />
-              </ApplicationDetailShellProvider>
-            </ErrorBoundary>
-          </Tabs.Content>
-        </Tabs.Root>
-      </main>
-    </Box>
+  return (
+    <EntityDetailLayout
+      breadcrumb={breadcrumb}
+      header={header}
+      context={context}
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+      mainTestId="nosc-app-detail-page"
+      testIdPrefix="nosc-app-detail"
+    >
+      <ApplicationDetailShellProvider value={shellContext}>
+        <UIView />
+      </ApplicationDetailShellProvider>
+    </EntityDetailLayout>
   );
 }

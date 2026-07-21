@@ -120,6 +120,8 @@ export interface FlatViolation {
   threatColor: ThreatColor;
   componentDisplay: string;
   componentHash: string;
+  /** Present when policythreats.json includes policyViolationId (preferred deep-link target). */
+  policyViolationId?: string;
   waived: boolean;
   legacy: boolean;
   constraintName: string;

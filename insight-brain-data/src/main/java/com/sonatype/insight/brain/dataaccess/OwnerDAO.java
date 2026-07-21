@@ -868,7 +868,7 @@ public class OwnerDAO
           .unionAll(repoContainerQuery);
     }
 
-    return combined.orderBy(ancestorDistance)
+    try (var stream = combined.orderBy(ancestorDistance)
         .fetchStream()
         .map(record -> (Owner) new OwnerImpl(
             record.get(publicId),
@@ -876,8 +876,10 @@ public class OwnerDAO
             record.get(parentOwnerId),
             record.get(haveChildren),
             OwnerType.fromString(record.get(type)),
-            record.get(id)))
-        .collect(Collectors.toList());
+            record.get(id))))
+    {
+      return stream.collect(Collectors.toList());
+    }
   }
 
   /**

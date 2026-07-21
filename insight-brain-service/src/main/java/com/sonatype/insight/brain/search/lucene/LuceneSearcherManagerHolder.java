@@ -54,8 +54,6 @@ public class LuceneSearcherManagerHolder
 
   private volatile SearcherManager searcherManager;
 
-  private volatile long lastRefreshAttemptMillis;
-
   private final AtomicLong pendingRefreshSinceMillis = new AtomicLong(NO_PENDING_REFRESH);
 
   private volatile long lastAcquireWaitNanos;
@@ -84,8 +82,7 @@ public class LuceneSearcherManagerHolder
   {
     this.clock = clock;
     this.searcherManager = new SearcherManager(writer, null);
-    this.lastRefreshAttemptMillis = clock.millis();
-    this.lastSuccessfulRefreshMillis = lastRefreshAttemptMillis;
+    this.lastSuccessfulRefreshMillis = clock.millis();
     this.acquireWaitTimer = registerMetrics(meterRegistry);
     if (scheduleRefresh) {
       this.refreshExecutor = Executors.newSingleThreadScheduledExecutor(
@@ -145,11 +142,8 @@ public class LuceneSearcherManagerHolder
   }
 
   public void onCommitSignal() throws IOException {
-    long now = clock.millis();
-    pendingRefreshSinceMillis.compareAndSet(NO_PENDING_REFRESH, now);
-    if (now - lastRefreshAttemptMillis >= REFRESH_CADENCE_MILLIS) {
-      maybeRefresh();
-    }
+    pendingRefreshSinceMillis.compareAndSet(NO_PENDING_REFRESH, clock.millis());
+    maybeRefresh();
   }
 
   public synchronized void reopen(final IndexWriter writer) throws IOException {
@@ -219,7 +213,6 @@ public class LuceneSearcherManagerHolder
       return;
     }
     long now = clock.millis();
-    lastRefreshAttemptMillis = now;
     if (currentManager().maybeRefresh()) {
       markRefreshSuccessful(now);
     }
@@ -265,7 +258,6 @@ public class LuceneSearcherManagerHolder
 
   private void markRefreshSuccessful(final long refreshMillis) {
     pendingRefreshSinceMillis.set(NO_PENDING_REFRESH);
-    lastRefreshAttemptMillis = refreshMillis;
     lastSuccessfulRefreshMillis = refreshMillis;
   }
 

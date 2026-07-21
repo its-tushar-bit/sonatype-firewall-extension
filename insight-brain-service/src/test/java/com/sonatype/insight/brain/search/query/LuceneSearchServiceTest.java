@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.search.lucene.LuceneIndexWriterOwner;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
@@ -44,6 +45,9 @@ public class LuceneSearchServiceTest
   @Inject
   private AdvancedSearchTelemetryCollector advancedSearchTelemetryCollector;
 
+  @Inject
+  private LuceneIndexWriterOwner luceneIndexWriterOwner;
+
   @TestConfiguration
   static class LuceneSearchServiceTestConfiguration
   {
@@ -62,6 +66,8 @@ public class LuceneSearchServiceTest
   @Before
   public void resetLuceneSearchFixture() throws IOException {
     advancedSearchTelemetryCollector.collectAllData();
+    luceneIndexWriterOwner.deregister();
+    readableContextAuthzCache.bumpEpoch();
 
     if (insightWork.getSearchIndexDir().exists()) {
       deleteDirectory(insightWork.getSearchIndexDir());

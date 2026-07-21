@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.ReadableContextAuthzCache;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -92,6 +93,9 @@ public abstract class AbstractSearchServiceTest
 
   @Inject
   protected InsightWork insightWork;
+
+  @Inject
+  protected ReadableContextAuthzCache readableContextAuthzCache;
 
   @Inject
   private AdvancedSearchTelemetryCollector advancedSearchTelemetryCollector;
@@ -409,6 +413,7 @@ public abstract class AbstractSearchServiceTest
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(0); // insufficient permissions
 
     tempEntity.newMembershipMapping(org2.getId(), role.getId(), userPrincipal.getUsername());
+    readableContextAuthzCache.bumpEpoch();
     searchResultDTO = searchService.searchIndex("CVE-2022-25857 AND organizationName:org-02", 10, 0, true, null, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1); // sufficient permissions
 
@@ -471,12 +476,14 @@ public abstract class AbstractSearchServiceTest
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
 
     tempEntity.newMembershipMapping(org2.getId(), role.getId(), userPrincipal.getUsername());
+    readableContextAuthzCache.bumpEpoch();
     searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2); // insufficient permissions
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2); // org2 + org3 granted, org1 not yet
 
     tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
+    readableContextAuthzCache.bumpEpoch();
     searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(5); // sufficient permissions
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(5); // org1, org2, org3 all granted
   }
 
   @Test

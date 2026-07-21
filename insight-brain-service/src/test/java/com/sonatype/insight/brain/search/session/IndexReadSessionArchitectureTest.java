@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.session;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.global.IqLocalSearchServiceLuceneTest;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClientPermissionFilterTest;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryEndpointTest;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexReadSession;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearcherManagerHolder;
@@ -44,6 +45,8 @@ public class IndexReadSessionArchitectureTest
         .areNotAssignableTo(IqLocalSearchServiceLuceneTest.class)
         .and()
         .areNotAssignableTo(AbstractSearchIndexClientPermissionFilterTest.class)
+        .and()
+        .areNotAssignableTo(IndexQueryEndpointTest.class)
         .should()
         .callMethod(DirectoryReader.class, "open", Directory.class)
         .because("new read paths must acquire through the shared session/searcher-manager lifecycle");

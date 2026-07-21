@@ -131,8 +131,8 @@ public class LuceneIndexWriterOwner
   }
 
   public Optional<LuceneSearcherManagerHolder> tryGetSearcherManagerHolder() {
-    TenantIndex index = state();
-    if (!index.lock.tryLock()) {
+    TenantIndex index = existingState();
+    if (index == null || !index.lock.tryLock()) {
       return Optional.empty();
     }
     try {
@@ -349,6 +349,16 @@ public class LuceneIndexWriterOwner
     }
     Tenant tenant = TenantThreadLocal.getTenant();
     return tenantIndexes.computeIfAbsent(tenant, ignored -> openTenantIndex());
+  }
+
+  private TenantIndex existingState() {
+    if (testIndex != null) {
+      return testIndex;
+    }
+    if (closed.get()) {
+      return null;
+    }
+    return tenantIndexes.get(TenantThreadLocal.getTenant());
   }
 
   private TenantIndex openTenantIndex() {

@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { screen, waitFor } from '@testing-library/dom';
+import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
@@ -447,5 +448,72 @@ describe('RepositoryComponentsList', () => {
 
     // Component returns null when feature is disabled
     expect(container.innerHTML).toBe('');
+  });
+
+  // CLM-42164: Regression test for components disappearing on refresh
+  // Verifies that loadComponents fires when isHostedRepositoryEvaluationEnabled
+  // transitions from false (async loading) to true after mount.
+  it('loads components when feature flag transitions from disabled to enabled after mount', async () => {
+    const { store } = render(
+      <RepositoryComponentsList />,
+      { preloadedState: { ...defaultPreloadedState, productFeatures: { productFeatures: { 'hosted-repository-evaluation': false } } } }
+    );
+
+    // No API call yet - feature flag is false
+    expect(axiosMock.history.get.length).toBe(0);
+
+    // Simulate feature flag becoming available (async load completes)
+    // Use the fulfilled action from fetchProductFeaturesIfNeeded thunk
+    await act(async () => {
+      store.dispatch({
+        type: 'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
+        payload: { 'hosted-repository-evaluation': true },
+      });
+    });
+
+    // Now the API should be called
+    await waitFor(() => {
+      expect(axiosMock.history.get.length).toBeGreaterThan(0);
+      expect(axiosMock.history.get[0].url).toBe('/api/v2/repositories/local-nexus/repo-uuid-123/components');
+    });
+  });
+
+  // CLM-42164: Regression test for repositoryManagerId async resolution
+  it('loads components when repositoryManagerId becomes available after mount', async () => {
+    const stateWithoutManagerId = {
+      ...defaultPreloadedState,
+      router: {
+        currentParams: { repositoryManagerId: null, repositoryId: 'repo-uuid-123', repositoryPublicId: 'maven-hosted' },
+        currentState: { name: 'hostedRepoComponents' },
+      },
+    };
+
+    const { store } = render(
+      <RepositoryComponentsList />,
+      { preloadedState: stateWithoutManagerId }
+    );
+
+    // No API call yet - repositoryManagerId is null
+    expect(axiosMock.history.get.length).toBe(0);
+
+    // Simulate repositoryManagerId becoming available via router
+    // Use UI_ROUTER_ON_FINISH action type with correct payload shape
+    await act(async () => {
+      store.dispatch({
+        type: '@@reduxUiRouter/onFinish',
+        payload: {
+          fromState: {},
+          fromParams: {},
+          toState: { name: 'hostedRepoComponents' },
+          toParams: { repositoryManagerId: 'local-nexus', repositoryId: 'repo-uuid-123', repositoryPublicId: 'maven-hosted' },
+        },
+      });
+    });
+
+    // Now the API should be called
+    await waitFor(() => {
+      expect(axiosMock.history.get.length).toBeGreaterThan(0);
+      expect(axiosMock.history.get[0].url).toBe('/api/v2/repositories/local-nexus/repo-uuid-123/components');
+    });
   });
 });

@@ -228,14 +228,6 @@
 }
 
 #iq-hosted-repos-components-page {
-  // In the Nexus One bundle this page is embedded inside ClassicComponentMount's
-  // Radix Theme (.radix-themes); the shell already provides the content inset, so the
-  // RSC `.nx-page-main` padding on this element is unwanted. Classic has no
-  // `.radix-themes` ancestor, so this only applies in Nexus One. CLM-42184.
-  .radix-themes & {
-    padding: 0;
-  }
-
   .nx-alert {
     max-width: 100%;
   }

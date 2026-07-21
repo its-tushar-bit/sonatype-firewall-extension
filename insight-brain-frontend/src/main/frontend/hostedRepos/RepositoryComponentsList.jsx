@@ -65,13 +65,16 @@ export default function RepositoryComponentsList() {
     dispatch(loadComponents({ repositoryManagerId, repositoryId, page: 1, filter }));
   };
 
+  // Load components when core dependencies become available.
+  // Note: `filter` is intentionally excluded - filter changes go through the debounced
+  // handleFilterChange (L89-96) to avoid excessive API calls.
   useEffect(() => {
     doLoad();
     return () => {
       dispatch(reset());
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
-  }, [repositoryId]);
+  }, [repositoryId, repositoryManagerId, isHostedRepositoryEvaluationEnabled]);
 
   // On direct page load or refresh, repositoryManager.name is null because the Redux state
   // was not populated via navigation. Fetch repositories (which also returns manager info)

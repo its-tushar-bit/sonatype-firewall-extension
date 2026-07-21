@@ -7,6 +7,7 @@ import React, { ReactNode, useId } from 'react';
 import { Box, Flex, Grid, Heading, Text } from '@radix-ui/themes';
 import { Card, tokens } from '@sonatype/nexus-one-components';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
+import type { UnsupportedMetricDimension } from './dashboardMetricsTypes';
 import styles from './MetricCard.module.css';
 
 /**
@@ -45,6 +46,7 @@ export interface MetricCardProps {
   readonly secondaryStat?: SecondaryStat;
   readonly href?: string;
   readonly loading?: boolean;
+  readonly unavailableDimensions?: readonly UnsupportedMetricDimension[];
   readonly testId?: string;
 }
 
@@ -60,13 +62,20 @@ function slugLabel(label: string): string {
   return label.toLowerCase().replace(/\s+/g, '-');
 }
 
+function unavailableMessage(dimensions: readonly UnsupportedMetricDimension[]): string {
+  const labels = dimensions.map((dimension) => (dimension === 'stageIds' ? 'Stage' : 'Tag'));
+  return `Unavailable for ${labels.join(' and ')} ${labels.length === 1 ? 'filter' : 'filters'}`;
+}
+
 function cardLinkLabel(
   title: string,
   value: number | undefined,
-  dualHero: readonly [DualHeroStat, DualHeroStat] | undefined,
+  dualHero: readonly [DualHeroStat, DualHeroStat] | undefined
 ): string {
   if (dualHero?.length === 2) {
-    return `${title}, ${dualHero[0].value.toLocaleString()} ${dualHero[0].label}, ${dualHero[1].value.toLocaleString()} ${dualHero[1].label}, open list`;
+    return `${title}, ${dualHero[0].value.toLocaleString()} ${
+      dualHero[0].label
+    }, ${dualHero[1].value.toLocaleString()} ${dualHero[1].label}, open list`;
   }
   return `${title}, ${(value ?? 0).toLocaleString()} total, open list`;
 }
@@ -74,11 +83,7 @@ function cardLinkLabel(
 function SubMetricRow({ sub, testId }: { readonly sub: SubMetric; readonly testId: string }): JSX.Element {
   return (
     <li className={styles.subMetric} data-testid={testId}>
-      <span
-        aria-hidden
-        className={styles.dot}
-        style={{ backgroundColor: TONE_TO_COLOR[sub.tone ?? 'neutral'] }}
-      />
+      <span aria-hidden className={styles.dot} style={{ backgroundColor: TONE_TO_COLOR[sub.tone ?? 'neutral'] }} />
       <Text {...tokens.typography.label} weight="bold" data-testid={`${testId}-value`}>
         {sub.value.toLocaleString()}
       </Text>
@@ -113,12 +118,7 @@ function DualHeroBody({
     <Grid columns="2" gap="3" width="100%" data-testid={`${testId}-dual-hero`}>
       {dualHero.map((hero) => (
         <Flex direction="column" key={hero.label}>
-          <Text
-            as="div"
-            size="8"
-            weight="bold"
-            data-testid={`${testId}-dual-${slugLabel(hero.label)}-value`}
-          >
+          <Text as="div" size="8" weight="bold" data-testid={`${testId}-dual-${slugLabel(hero.label)}-value`}>
             {hero.value.toLocaleString()}
           </Text>
           <Text size="2" color="gray" mt="3">
@@ -138,6 +138,7 @@ export function MetricCard({
   secondaryStat,
   href,
   loading = false,
+  unavailableDimensions,
   testId = 'metric-card',
 }: MetricCardProps): JSX.Element {
   const headingId = useId();
@@ -146,6 +147,10 @@ export function MetricCard({
 
   const heroBody: ReactNode = loading ? (
     <LoadingSkeleton height={64} label={`Loading ${title}`} data-testid={`${testId}-skeleton`} />
+  ) : unavailableDimensions?.length ? (
+    <Text as="div" size="3" color="gray" role="status" data-testid={`${testId}-unavailable`}>
+      {unavailableMessage(unavailableDimensions)}
+    </Text>
   ) : dualHero ? (
     <DualHeroBody dualHero={dualHero} testId={testId} />
   ) : (
@@ -154,38 +159,39 @@ export function MetricCard({
     </Text>
   );
 
-  const details: ReactNode = loading ? null : (
-    <>
-      {secondaryStat && (
-        <Flex align="baseline" gap="2" className={styles.statRow} data-testid={`${testId}-secondary-stat`}>
-          <Text size="2" weight="bold" data-testid={`${testId}-secondary-value`}>
-            {secondaryStat.value.toLocaleString()}
-          </Text>
-          <Text size="2" color="gray">
-            {secondaryStat.label}
-          </Text>
-        </Flex>
-      )}
-      {statSubMetrics.length > 0 && (
-        <Flex direction="column" gap="1" className={styles.statStack} data-testid={`${testId}-stat-rows`}>
-          {statSubMetrics.map((sub) => (
-            <StatSubMetricRow key={sub.label} sub={sub} testId={`${testId}-sub-${slugLabel(sub.label)}`} />
-          ))}
-        </Flex>
-      )}
-      {severitySubMetrics.length > 0 && (
-        <ul className={styles.breakdown} data-testid={`${testId}-breakdown`}>
-          {severitySubMetrics.map((sub) => (
-            <SubMetricRow key={sub.label} sub={sub} testId={`${testId}-sub-${slugLabel(sub.label)}`} />
-          ))}
-        </ul>
-      )}
-    </>
-  );
+  const details: ReactNode =
+    loading || unavailableDimensions?.length ? null : (
+      <>
+        {secondaryStat && (
+          <Flex align="baseline" gap="2" className={styles.statRow} data-testid={`${testId}-secondary-stat`}>
+            <Text size="2" weight="bold" data-testid={`${testId}-secondary-value`}>
+              {secondaryStat.value.toLocaleString()}
+            </Text>
+            <Text size="2" color="gray">
+              {secondaryStat.label}
+            </Text>
+          </Flex>
+        )}
+        {statSubMetrics.length > 0 && (
+          <Flex direction="column" gap="1" className={styles.statStack} data-testid={`${testId}-stat-rows`}>
+            {statSubMetrics.map((sub) => (
+              <StatSubMetricRow key={sub.label} sub={sub} testId={`${testId}-sub-${slugLabel(sub.label)}`} />
+            ))}
+          </Flex>
+        )}
+        {severitySubMetrics.length > 0 && (
+          <ul className={styles.breakdown} data-testid={`${testId}-breakdown`}>
+            {severitySubMetrics.map((sub) => (
+              <SubMetricRow key={sub.label} sub={sub} testId={`${testId}-sub-${slugLabel(sub.label)}`} />
+            ))}
+          </ul>
+        )}
+      </>
+    );
 
   const interactiveBody = (
     <Flex direction="column" gap="3">
-      {href && !loading ? (
+      {href && !loading && !unavailableDimensions?.length ? (
         <a
           href={href}
           className={styles.cardLink}

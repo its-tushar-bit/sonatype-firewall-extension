@@ -4,12 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { Box, Flex, Grid, Heading, Text } from '@radix-ui/themes';
+import { Box, Button, Flex, Grid, Heading, Text } from '@radix-ui/themes';
 import { Card, tokens } from '@sonatype/nexus-one-components';
 import { DomainIcons } from 'MainRoot/nosc/icons';
 import { AsyncPageState } from 'MainRoot/nosc/components/AsyncPageState';
-import { usePreviewDashboardFilterGate } from 'MainRoot/nosc/dashboard/tabs/previewDashboardFilterGate';
 import {
   dashboardApiHref,
   dashboardEnterpriseReportingHref,
@@ -17,10 +15,14 @@ import {
 } from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
 import { MetricCard } from './MetricCard';
 import { METRIC_CARD_DEFINITIONS } from './metricCardRegistry';
-import { selectDashboardMetricsScope } from './dashboardMetricsScope';
+import { useDashboardActiveFilter } from './useDashboardActiveFilter';
 import { useDashboardMetrics } from './useDashboardMetrics';
 import { formatUpdatedAgo } from './freshness';
-import type { DashboardMetricsResponse } from './dashboardMetricsTypes';
+import type {
+  DashboardMetricsResponse,
+  MetricEntry,
+  UnsupportedMetricDimension,
+} from './dashboardMetricsTypes';
 import type { DashboardMetricsStatus } from './useDashboardMetrics';
 import styles from './MetricCard.module.css';
 
@@ -32,6 +34,40 @@ import styles from './MetricCard.module.css';
  */
 
 const GRID_COLUMNS = { initial: '1', sm: '2', lg: '3' } as const;
+
+function unsupportedDimensions(
+  ...entries: readonly (MetricEntry | undefined)[]
+): readonly UnsupportedMetricDimension[] | undefined {
+  const dimensions = entries.flatMap((entry) =>
+    entry?.errorCode === 'UNSUPPORTED_FILTER_COMBINATION' ? entry.unsupportedDimensions ?? [] : []
+  );
+  const uniqueDimensions = [...new Set(dimensions)];
+  return uniqueDimensions.length > 0 ? uniqueDimensions : undefined;
+}
+
+function unavailableDimensionsForCard(
+  cardId: string,
+  data: DashboardMetricsResponse
+): readonly UnsupportedMetricDimension[] | undefined {
+  switch (cardId) {
+    case 'applications':
+      return unsupportedDimensions(data.applications);
+    case 'legal':
+      return unsupportedDimensions(data.legal);
+    case 'orgsAndPolicies':
+      return unsupportedDimensions(data.organizations, data.policies);
+    case 'components':
+      return unsupportedDimensions(data.components);
+    case 'violations':
+      return unsupportedDimensions(data.violations);
+    case 'vulnerabilities':
+      return unsupportedDimensions(data.vulnerabilities);
+    case 'waivers':
+      return unsupportedDimensions(data.waivers);
+    default:
+      return undefined;
+  }
+}
 
 function GridShell({ children }: { readonly children: React.ReactNode }): JSX.Element {
   return (
@@ -97,24 +133,46 @@ function QuickLinkCard({ link }: { readonly link: QuickLink }): JSX.Element {
   );
 }
 
-function MetricCards({ data }: { readonly data: DashboardMetricsResponse }): JSX.Element {
-  const cards = METRIC_CARD_DEFINITIONS.filter((def) => def.isAvailable(data));
+function MetricCards({
+  data,
+  heavyLoading,
+}: {
+  readonly data: DashboardMetricsResponse;
+  readonly heavyLoading: boolean;
+}): JSX.Element {
   return (
     <GridShell>
-      {cards.map((def) => {
-        const view = def.select(data);
-        return (
-          <MetricCard
-            key={def.id}
-            title={def.title}
-            value={view.value}
-            subMetrics={view.subMetrics}
-            dualHero={view.dualHero}
-            secondaryStat={view.secondaryStat}
-            href={view.href}
-            testId={def.testId}
-          />
-        );
+      {METRIC_CARD_DEFINITIONS.map((def) => {
+        const unavailableDimensions = unavailableDimensionsForCard(def.id, data);
+        if (unavailableDimensions) {
+          return (
+            <MetricCard
+              key={def.id}
+              title={def.title}
+              unavailableDimensions={unavailableDimensions}
+              testId={def.testId}
+            />
+          );
+        }
+        if (def.isAvailable(data)) {
+          const view = def.select(data);
+          return (
+            <MetricCard
+              key={def.id}
+              title={def.title}
+              value={view.value}
+              subMetrics={view.subMetrics}
+              dualHero={view.dualHero}
+              secondaryStat={view.secondaryStat}
+              href={view.href}
+              testId={def.testId}
+            />
+          );
+        }
+        if (heavyLoading && def.showWhileHeavyLoading) {
+          return <MetricCard key={def.id} title={def.title} loading testId={def.testId} />;
+        }
+        return null;
       })}
     </GridShell>
   );
@@ -181,17 +239,39 @@ function QuickLinksRow(): JSX.Element {
 function ReadyGrid({
   data,
   status,
+  heavyLoading,
+  heavyError,
   onRetry,
+  onRetryHeavy,
 }: {
   readonly data: DashboardMetricsResponse;
   readonly status: DashboardMetricsStatus;
+  readonly heavyLoading: boolean;
+  readonly heavyError: Error | null;
   readonly onRetry: () => void;
+  readonly onRetryHeavy: () => void;
 }): JSX.Element {
   const freshness = formatUpdatedAgo(data.lastUpdatedAt);
   const refreshBanner = status !== 'ready' ? <RefreshBanner status={status} onRetry={onRetry} /> : null;
   return (
     <Flex direction="column" gap="3" data-testid="dashboard-metrics-ready">
       {refreshBanner}
+      {heavyError && (
+        <Flex
+          direction="column"
+          gap="3"
+          align="start"
+          p="4"
+          style={{ backgroundColor: 'var(--amber-3)', borderRadius: 'var(--radius-3)' }}
+        >
+          <Text role="status" data-testid="dashboard-heavy-metrics-delayed">
+            Detailed metrics are delayed.
+          </Text>
+          <Button onClick={onRetryHeavy} data-testid="dashboard-heavy-metrics-retry">
+            Retry detailed metrics
+          </Button>
+        </Flex>
+      )}
       <Flex justify="end" align="center" style={{ minHeight: 20 }}>
         {freshness && (
           <Text size="1" color="gray" data-testid="dashboard-metrics-freshness">
@@ -199,20 +279,32 @@ function ReadyGrid({
           </Text>
         )}
       </Flex>
-      <MetricCards data={data} />
+      <MetricCards data={data} heavyLoading={heavyLoading} />
     </Flex>
   );
 }
 
 export function MetricCardGrid(): JSX.Element {
-  const scope = useSelector(selectDashboardMetricsScope);
-  const { filterLoading, needsAcknowledgement } = usePreviewDashboardFilterGate();
-  const filterReady = !filterLoading && !needsAcknowledgement;
-  const { status, data, retry } = useDashboardMetrics(scope, filterReady);
+  const activeFilter = useDashboardActiveFilter();
+  const metricsEnabled = !activeFilter.loading && activeFilter.error == null && !activeFilter.needsAcknowledgement;
+  const { status, data, heavyLoading, heavyError, retry, retryHeavy } = useDashboardMetrics(
+    activeFilter.scope,
+    metricsEnabled
+  );
 
   let content: React.ReactNode;
 
-  if (!filterReady || (status === 'loading' && data == null)) {
+  if (activeFilter.error != null) {
+    content = (
+      <AsyncPageState
+        loading={false}
+        error="The active dashboard filter could not be loaded. You can retry."
+        errorTestId="dashboard-active-filter-error"
+        errorTitle="Couldn’t load dashboard filter"
+        onRetry={activeFilter.retry}
+      />
+    );
+  } else if (activeFilter.loading || activeFilter.needsAcknowledgement || (status === 'loading' && data == null)) {
     content = (
       <GridShell>
         {METRIC_CARD_DEFINITIONS.filter((def) => def.showWhileLoading).map((def) => (
@@ -245,16 +337,25 @@ export function MetricCardGrid(): JSX.Element {
       />
     );
   } else if (data != null) {
-    content = <ReadyGrid data={data} status={status} onRetry={retry} />;
+    content = (
+      <ReadyGrid
+        data={data}
+        status={status}
+        heavyLoading={heavyLoading}
+        heavyError={heavyError}
+        onRetry={retry}
+        onRetryHeavy={retryHeavy}
+      />
+    );
   } else {
     content = (
-    <AsyncPageState
-      loading={false}
-      error="Something went wrong fetching your metrics. The rest of the page is unaffected — you can retry."
-      errorTestId="dashboard-metrics-error"
-      errorTitle="Couldn’t load dashboard metrics"
-      onRetry={retry}
-    />
+      <AsyncPageState
+        loading={false}
+        error="Something went wrong fetching your metrics. The rest of the page is unaffected — you can retry."
+        errorTestId="dashboard-metrics-error"
+        errorTitle="Couldn’t load dashboard metrics"
+        onRetry={retry}
+      />
     );
   }
 

@@ -26,6 +26,21 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
     expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('0');
   });
 
+  it('renders an accessible unavailable state with filter dimensions and no metric number', () => {
+    renderCard(
+      <MetricCard
+        title="Applications"
+        unavailableDimensions={['stageIds', 'tagIds']}
+        href="#/dashboard/applications"
+        testId="metric-card-applications"
+      />
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Unavailable for Stage and Tag filters');
+    expect(screen.queryByTestId('metric-card-applications-value')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
   it('renders sub-metrics with a text label AND value (severity not by color alone)', () => {
     renderCard(
       <MetricCard
@@ -38,7 +53,7 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
           { label: 'Moderate', value: 3, tone: 'moderate' },
           { label: 'Low', value: 1, tone: 'low' },
         ]}
-      />,
+      />
     );
 
     const breakdown = screen.getByTestId('metric-card-violations-breakdown');
@@ -55,7 +70,7 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
 
   it('renders a whole-tile click-through link whose accessible name includes the title', () => {
     renderCard(
-      <MetricCard title="Applications" value={5} href="#/dashboard/applications" testId="metric-card-applications" />,
+      <MetricCard title="Applications" value={5} href="#/dashboard/applications" testId="metric-card-applications" />
     );
 
     const link = screen.getByRole('link', { name: /Applications/ });
@@ -64,9 +79,7 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
 
   it('is keyboard focusable with a visible focus target when interactive', async () => {
     const user = userEvent.setup();
-    renderCard(
-      <MetricCard title="Waivers" value={3} href="#/dashboard/waivers" testId="metric-card-waivers" />,
-    );
+    renderCard(<MetricCard title="Waivers" value={3} href="#/dashboard/waivers" testId="metric-card-waivers" />);
 
     await user.tab();
     expect(screen.getByRole('link', { name: /Waivers/ })).toHaveFocus();
@@ -90,7 +103,7 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
           { value: 5, label: 'Applications' },
           { value: 12, label: 'Components' },
         ]}
-      />,
+      />
     );
 
     expect(screen.queryByTestId('metric-card-legal-value')).not.toBeInTheDocument();
@@ -105,7 +118,7 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
         value={42}
         testId="metric-card-applications"
         secondaryStat={{ value: 5, label: 'Stages' }}
-      />,
+      />
     );
 
     expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');

@@ -50,12 +50,17 @@ export interface VulnerabilitiesBreakdown {
   readonly low: number;
 }
 
+/** Filter dimensions that may be reported as unsupported on a metric entry. */
+export type UnsupportedMetricDimension = 'stageIds' | 'tagIds';
+
 /** A single KPI entry: a headline `total` and an optional metric-specific breakdown. */
 export interface MetricEntry<TBreakdown = unknown> {
-  readonly total: number;
+  readonly total: number | null;
   readonly breakdown: TBreakdown | null;
   /** Provenance hint from the backend (e.g. 'index' | 'sql'); informational only. */
-  readonly source?: string;
+  readonly source?: string | null;
+  readonly errorCode?: 'UNSUPPORTED_FILTER_COMBINATION';
+  readonly unsupportedDimensions?: readonly UnsupportedMetricDimension[];
 }
 
 /** Full `POST /rest/dashboard/metrics` 200 response body. */
@@ -83,4 +88,17 @@ export interface DashboardMetricsScope {
   readonly applicationIds?: readonly string[];
   readonly stageIds?: readonly string[];
   readonly tagIds?: readonly string[];
+  /**
+   * When false, backend skips heavy {@code countDistinct} tiles (components / vulnerabilities /
+   * legal). The grid loads fast KPIs first, then re-requests with true to fill the rest.
+   */
+  readonly includeHeavyMetrics?: boolean;
+}
+
+export interface UseDashboardActiveFilterResult {
+  readonly loading: boolean;
+  readonly scope: DashboardMetricsScope;
+  readonly needsAcknowledgement: boolean;
+  readonly error: Error | null;
+  readonly retry: () => void;
 }

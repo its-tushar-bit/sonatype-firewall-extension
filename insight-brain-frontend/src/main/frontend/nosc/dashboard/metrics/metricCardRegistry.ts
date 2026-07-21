@@ -35,7 +35,13 @@ export interface MetricCardDefinition {
   readonly id: string;
   readonly title: string;
   readonly testId: string;
+  /** Skeleton during the initial (summary) load before any metrics data arrives. */
   readonly showWhileLoading: boolean;
+  /**
+   * Skeleton while the heavy-tier POST is in flight after summary is ready.
+   * Summary-only cards stay omitted when absent — they will not arrive on the heavy response.
+   */
+  readonly showWhileHeavyLoading: boolean;
   readonly isAvailable: (data: DashboardMetricsResponse) => boolean;
   readonly select: (data: DashboardMetricsResponse) => MetricCardSelection;
 }
@@ -46,13 +52,13 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     title: 'Applications',
     testId: 'metric-card-applications',
     showWhileLoading: true,
+    showWhileHeavyLoading: false,
     isAvailable: (data) => data.applications != null,
     select: (data) => {
       const stages = data.applications?.breakdown?.stages;
       return {
         value: data.applications?.total ?? 0,
-        secondaryStat:
-          stages != null ? { value: stages, label: 'Stages' } : undefined,
+        secondaryStat: stages != null ? { value: stages, label: 'Stages' } : undefined,
         href: dashboardApplicationsHref(),
       };
     },
@@ -62,6 +68,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     title: 'Legal Obligations',
     testId: 'metric-card-legal',
     showWhileLoading: false,
+    showWhileHeavyLoading: true,
     isAvailable: (data) => data.legal != null,
     select: (data) => {
       const b = data.legal?.breakdown;
@@ -88,6 +95,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     title: 'Orgs and Policies',
     testId: 'metric-card-orgs-and-policies',
     showWhileLoading: false,
+    showWhileHeavyLoading: false,
     isAvailable: (data) => data.organizations != null && data.policies != null,
     select: (data) => ({
       dualHero: [
@@ -102,15 +110,14 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     title: 'Scanned Components',
     testId: 'metric-card-components',
     showWhileLoading: false,
+    showWhileHeavyLoading: true,
     isAvailable: (data) => data.components != null,
     select: (data) => {
       const relatedViolations = data.violations?.total;
       return {
         value: data.components?.total ?? 0,
         secondaryStat:
-          relatedViolations != null
-            ? { value: relatedViolations, label: 'Total Policy Violations' }
-            : undefined,
+          relatedViolations != null ? { value: relatedViolations, label: 'Total Policy Violations' } : undefined,
         href: dashboardComponentsHref(),
       };
     },
@@ -119,7 +126,9 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     id: 'violations',
     title: 'Violations',
     testId: 'metric-card-violations',
-    showWhileLoading: true,
+    // Heavy-tier aggregate — skeleton until the second POST lands.
+    showWhileLoading: false,
+    showWhileHeavyLoading: true,
     isAvailable: (data) => data.violations != null,
     select: (data) => {
       const b = data.violations?.breakdown;
@@ -143,6 +152,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     title: 'Vulnerabilities',
     testId: 'metric-card-vulnerabilities',
     showWhileLoading: false,
+    showWhileHeavyLoading: true,
     isAvailable: (data) => data.vulnerabilities != null,
     select: (data) => {
       const b = data.vulnerabilities?.breakdown;
@@ -166,6 +176,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     title: 'Waivers',
     testId: 'metric-card-waivers',
     showWhileLoading: true,
+    showWhileHeavyLoading: false,
     isAvailable: (data) => data.waivers != null,
     select: (data) => {
       const b = data.waivers?.breakdown;

@@ -38,18 +38,12 @@ public class MetricFilterValidatorTest
   }
 
   @Test
-  public void testValidateRejectsUnsupportedStageAndTagFilters() {
-    DashboardMetricsRequestDTO stageRequest = new DashboardMetricsRequestDTO();
-    stageRequest.stageIds = Set.of(ID_BUILD);
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> validator.validate(stageRequest))
-        .withMessage("stageIds and tagIds filters are not yet supported.");
+  public void testValidateAcceptsSyntacticallyValidStageAndTagFilters() {
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.stageIds = Set.of(ID_BUILD);
+    request.tagIds = Set.of("a1b2c3d4e5f6789012345678901234ab");
 
-    DashboardMetricsRequestDTO tagRequest = new DashboardMetricsRequestDTO();
-    tagRequest.tagIds = Set.of("a1b2c3d4e5f6789012345678901234ab");
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> validator.validate(tagRequest))
-        .withMessage("stageIds and tagIds filters are not yet supported.");
+    assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
   }
 
   @Test

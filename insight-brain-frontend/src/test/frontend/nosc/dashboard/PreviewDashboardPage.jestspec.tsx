@@ -5,10 +5,14 @@
  */
 import React from 'react';
 import axios from 'axios';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { FETCH_CURRENT_FILTER_FULFILLED } from 'MainRoot/dashboard/filter/dashboardFilterActions';
+import * as dashboardFilterActions from 'MainRoot/dashboard/filter/dashboardFilterActions';
+import {
+  FETCH_CURRENT_FILTER_FULFILLED,
+  LOAD_FILTER_REQUESTED,
+} from 'MainRoot/dashboard/filter/dashboardFilterActions';
 import { LOAD_RESULTS_FULFILLED } from 'MainRoot/dashboard/results/dashboardResultsActions';
 import { getDashboardFilters, getDashboardMetricsUrl } from 'MainRoot/util/CLMLocation';
 import { setupNexusOneBundleLocation } from 'TestRoot/nosc/dashboard/dashboardTestHrefs';
@@ -63,16 +67,13 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       ['violations', 'nosc-dashboard-violations-tab'],
       ['applications', 'nosc-dashboard-applications-tab'],
       ['waivers', 'nosc-dashboard-waivers-tab'],
-    ] as const)(
-      'opens directly on the %s tab when routed there and renders its body',
-      async (slug, bodyTestId) => {
-        stubDashboardAxios(axiosMock);
-        renderNexusOneDashboard(slug);
-        const tab = await screen.findByTestId(`nosc-dashboard-tab-${slug}`);
-        await waitFor(() => expect(tab.getAttribute('aria-selected')).toBe('true'));
-        expect(await screen.findByTestId(bodyTestId)).toBeInTheDocument();
-      },
-    );
+    ] as const)('opens directly on the %s tab when routed there and renders its body', async (slug, bodyTestId) => {
+      stubDashboardAxios(axiosMock);
+      renderNexusOneDashboard(slug);
+      const tab = await screen.findByTestId(`nosc-dashboard-tab-${slug}`);
+      await waitFor(() => expect(tab.getAttribute('aria-selected')).toBe('true'));
+      expect(await screen.findByTestId(bodyTestId)).toBeInTheDocument();
+    });
 
     it('navigates the router (not the hash) when the user clicks a tab', async () => {
       stubDashboardAxios(axiosMock);
@@ -184,6 +185,15 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       axiosMock.onAny().reply(200, {});
     }
 
+    function classicTabResultPosts(axiosMock: any): any[] {
+      return axiosMock.history.post.filter(
+        (req: { url?: string }) =>
+          req.url != null &&
+          !req.url.includes(getDashboardMetricsUrl()) &&
+          /newestRisks|componentRisks|applicationRisks|waivers/i.test(req.url)
+      );
+    }
+
     it('dispatches loadFilter() on first mount (axios.get hits the dashboard-filters endpoint)', async () => {
       stubLoadFilterEndpoints(axiosMock);
       const axiosGetSpy = jest.spyOn(axios, 'get');
@@ -211,19 +221,96 @@ describe('PreviewDashboardPage (CLM-39992 / CLM-39641)', () => {
       expect(store.getState().dashboardFilter.loading).toBe(false);
     });
 
-    function classicTabResultPosts(axiosMock: any): any[] {
-      return axiosMock.history.post.filter(
-        (req: { url?: string }) =>
-          req.url != null &&
-          !req.url.includes(getDashboardMetricsUrl()) &&
-          /newestRisks|componentRisks|applicationRisks|waivers/i.test(req.url),
+    it('does not load option catalogs on overview navigation', async () => {
+      axiosMock.onPost(getDashboardMetricsUrl()).reply(() => new Promise(() => {}));
+
+      renderNexusOneDashboard('overview');
+
+      await screen.findByTestId('preview-dashboard-metrics-grid');
+      expect(
+        axiosMock.history.get.some(({ url }: { url?: string }) => /\/rest\/application(?:\?|$)/.test(url ?? ''))
+      ).toBe(false);
+      expect(
+        axiosMock.history.get.some(({ url }: { url?: string }) =>
+          /organizations|repositories|applicationTags/.test(url ?? '')
+        )
+      ).toBe(false);
+    });
+
+    it('loads full filter options once when navigating from overview to a Classic tab', async () => {
+      stubResolvingFilterLoad(axiosMock);
+      const { router } = renderNexusOneDashboard('overview');
+      await screen.findByTestId('nosc-dashboard-page');
+      expect(
+        axiosMock.history.get.some(({ url }: { url?: string }) => /\/rest\/application(?:\?|$)/.test(url ?? ''))
+      ).toBe(false);
+
+      await act(() => router.stateService.go('nexusOneDashboard.violations'));
+      await waitFor(() =>
+        expect(
+          axiosMock.history.get.some(({ url }: { url?: string }) => /\/rest\/application(?:\?|$)/.test(url ?? ''))
+        ).toBe(true)
       );
-    }
+      const applicationCalls = axiosMock.history.get.filter(({ url }: { url?: string }) =>
+        /\/rest\/application(?:\?|$)/.test(url ?? '')
+      );
+      expect(applicationCalls).toHaveLength(1);
+
+      await act(() => router.stateService.go('nexusOneDashboard.applications'));
+      expect(
+        axiosMock.history.get.filter(({ url }: { url?: string }) => /\/rest\/application(?:\?|$)/.test(url ?? ''))
+      ).toHaveLength(applicationCalls.length);
+    });
+
+    it('does not load Classic results when returning to overview before the filter load resolves', async () => {
+      let resolveFilter!: () => void;
+      const loadFilterSpy = jest
+        .spyOn(dashboardFilterActions, 'loadFilter')
+        .mockImplementation(() => (dispatch: (action: object) => void) => {
+          dispatch({ type: LOAD_FILTER_REQUESTED });
+          return new Promise<void>((resolve) => {
+            resolveFilter = () => {
+              dispatch({
+                type: FETCH_CURRENT_FILTER_FULFILLED,
+                payload: { filter: null, needsAcknowledgement: false },
+              });
+              resolve();
+            };
+          });
+        });
+      axiosMock.onGet(/product\/features/).reply(200, []);
+      axiosMock.onPost(/newestRisks|componentRisks|applicationRisks|waivers/).reply(200, {
+        dashboardResults: [],
+        hasNextPage: false,
+      });
+      axiosMock.onAny().reply(200, {});
+
+      try {
+        const { router, store } = renderNexusOneDashboard('violations');
+        await waitFor(() => expect(loadFilterSpy).toHaveBeenCalledTimes(1));
+
+        await act(() => router.stateService.go('nexusOneDashboard.overview'));
+        await act(async () => resolveFilter());
+        await waitFor(() => expect(store.getState().dashboardFilter.loading).toBe(false));
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(classicTabResultPosts(axiosMock)).toHaveLength(0);
+      } finally {
+        loadFilterSpy.mockRestore();
+      }
+    });
 
     it('does not eager-load classic tab result sets on the overview landing', async () => {
       stubResolvingFilterLoad(axiosMock);
-      const { store } = renderNexusOneDashboard('overview');
-      await waitFor(() => expect(store.getState().dashboardFilter.loading).toBe(false));
+      renderNexusOneDashboard('overview');
+      // Overview skips Classic loadFilter, so Redux dashboardFilter.loading stays at its initial
+      // true. Wait for the metrics grid instead, then assert no classic tab result POSTs fired.
+      await screen.findByTestId('preview-dashboard-metrics-grid');
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
       expect(classicTabResultPosts(axiosMock)).toHaveLength(0);
     });
 

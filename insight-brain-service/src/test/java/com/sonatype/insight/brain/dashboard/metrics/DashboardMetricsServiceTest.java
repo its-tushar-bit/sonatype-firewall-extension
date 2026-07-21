@@ -11,10 +11,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +64,7 @@ import org.apache.shiro.util.ThreadContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Dashboard metrics service: Lucene integration and coalescing cache (CLM-40927).
@@ -668,6 +671,304 @@ public class DashboardMetricsServiceTest
   }
 
   @Test
+  public void testCacheTtl_RetainsFiveSecondFreshnessContract() {
+    assertThat(ReflectionTestUtils.getField(DashboardMetricsService.class, "CACHE_TTL"))
+        .isEqualTo(Duration.ofSeconds(5));
+  }
+
+  @Test
+  public void testGetMetrics_NullRequestReturnsCompleteCompatibilityPayload() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.count(anyString())).thenReturn(7L);
+    stubEmptySearchIndexResults(searchIndexClient);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(99_000L);
+
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("null-request-user", "null-request-user", User.INTERNAL_REALM_ID));
+    DashboardMetricsService service =
+        newServiceWithMocks(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            mock(OrganizationDAO.class),
+            mockConfiguration(),
+            currentUser);
+
+    DashboardMetricsDTO metrics = service.getMetrics(null);
+
+    assertThat(metrics.applications).isNotNull();
+    assertThat(metrics.organizations).isNotNull();
+    assertThat(metrics.policies).isNotNull();
+    assertThat(metrics.waivers).isNotNull();
+    assertThat(metrics.lastUpdatedAt).isNotNull();
+    assertThat(metrics.violations).isNotNull();
+    assertThat(metrics.components).isNotNull();
+    assertThat(metrics.vulnerabilities).isNotNull();
+    assertThat(metrics.legal).isNotNull();
+    verify(searchIndexClient, times(3)).count(anyString());
+    verify(searchIndexClient, times(1)).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(10)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(1)).getLastIndexTime();
+  }
+
+  @Test
+  public void testGetMetrics_CacheSeparatesSummaryHeavyAndCompatibilityLoads() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.count(anyString())).thenReturn(4L);
+    stubEmptySearchIndexResults(searchIndexClient);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(88_000L);
+
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("tier-cache-user", "tier-cache-user", User.INTERNAL_REALM_ID));
+    DashboardMetricsService service =
+        newServiceWithMocks(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            mock(OrganizationDAO.class),
+            mockConfiguration(),
+            currentUser);
+
+    DashboardMetricsRequestDTO summaryRequest = new DashboardMetricsRequestDTO();
+    summaryRequest.includeHeavyMetrics = false;
+    DashboardMetricsRequestDTO heavyRequest = new DashboardMetricsRequestDTO();
+    heavyRequest.includeHeavyMetrics = true;
+
+    DashboardMetricsDTO summary = service.getMetrics(summaryRequest);
+    DashboardMetricsDTO heavy = service.getMetrics(heavyRequest);
+    DashboardMetricsDTO compatibility = service.getMetrics(null);
+
+    assertThat(summary.applications).isNotNull();
+    assertThat(summary.violations).isNull();
+    assertThat(heavy.applications).isNull();
+    assertThat(heavy.violations).isNotNull();
+    assertThat(compatibility.applications).isNotNull();
+    assertThat(compatibility.violations).isNotNull();
+
+    service.getMetrics(summaryRequest);
+    service.getMetrics(heavyRequest);
+    service.getMetrics(null);
+
+    verify(searchIndexClient, times(6)).count(anyString());
+    verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, times(20)).countDistinct(anyString(), any());
+    verify(searchIndexClient, times(2)).getLastIndexTime();
+  }
+
+  @Test
+  public void testGetMetrics_SummaryTierSkipsHeavyIndexComputations() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
+
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("summary-user", "summary-user", User.INTERNAL_REALM_ID));
+
+    DashboardMetricsService service =
+        newServiceWithMocks(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            mock(OrganizationDAO.class),
+            mockConfiguration(),
+            currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.includeHeavyMetrics = false;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertThat(metrics.applications).isNotNull();
+    assertThat(metrics.violations).isNull();
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, never()).countDistinct(anyString(), any());
+  }
+
+  @Test
+  public void testGetMetrics_HeavyTierSkipsSummaryComputations() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
+
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("heavy-user", "heavy-user", User.INTERNAL_REALM_ID));
+
+    PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
+    DashboardMetricsService service = new DashboardMetricsService(
+        searchIndexClient,
+        new MetricFilterValidator(),
+        policyWaiverDAO,
+        policyWaiverRequestDAO,
+        waiverScopeService,
+        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mockConfiguration(),
+        mock(StageTypeService.class),
+        currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.includeHeavyMetrics = true;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertThat(metrics.applications).isNull();
+    assertThat(metrics.violations).isNotNull();
+    verify(searchIndexClient, never()).count(anyString());
+    verify(searchIndexClient, never()).getLastIndexTime();
+    verify(waiverScopeService, never()).resolveAccessibleOwnerIds(any());
+    verify(policyWaiverDAO, never()).selectCount(any());
+    verify(policyWaiverRequestDAO, never()).selectCount(any());
+  }
+
+  @Test
+  public void testGetMetrics_StageFilteredSummaryReturnsUnavailableMetricsWithoutComputingBroaderScope() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("stage-filter-user", "stage-filter-user", User.INTERNAL_REALM_ID));
+
+    PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
+    DashboardMetricsService service = new DashboardMetricsService(
+        searchIndexClient,
+        new MetricFilterValidator(),
+        policyWaiverDAO,
+        policyWaiverRequestDAO,
+        waiverScopeService,
+        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mockConfiguration(),
+        mock(StageTypeService.class),
+        currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.stageIds = Set.of(Stage.ID_BUILD);
+    request.includeHeavyMetrics = false;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertUnsupported(metrics.applications, "stageIds");
+    assertUnsupported(metrics.organizations, "stageIds");
+    assertUnsupported(metrics.policies, "stageIds");
+    assertUnsupported(metrics.waivers, "stageIds");
+    assertThat(metrics.violations).isNull();
+    verify(searchIndexClient, never()).count(anyString());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, never()).countDistinct(anyString(), any());
+    verify(waiverScopeService, never()).resolveAccessibleOwnerIds(any());
+    verify(policyWaiverDAO, never()).selectCount(any());
+    verify(policyWaiverRequestDAO, never()).selectCount(any());
+  }
+
+  @Test
+  public void testGetMetrics_TagFilteredSummaryComputesWaiversButNotUnsupportedIndexMetrics() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("tag-filter-user", "tag-filter-user", User.INTERNAL_REALM_ID));
+
+    PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
+    when(waiverScopeService.resolveAccessibleOwnerIds(any())).thenReturn(Set.of("tagged-owner"));
+    when(policyWaiverDAO.selectCount(Set.of("tagged-owner"))).thenReturn(2L);
+    when(policyWaiverRequestDAO.selectCount(Set.of("tagged-owner"))).thenReturn(3L);
+    DashboardMetricsService service = new DashboardMetricsService(
+        searchIndexClient,
+        new MetricFilterValidator(),
+        policyWaiverDAO,
+        policyWaiverRequestDAO,
+        waiverScopeService,
+        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mockConfiguration(),
+        mock(StageTypeService.class),
+        currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.tagIds = Set.of("tag-1");
+    request.includeHeavyMetrics = false;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertUnsupported(metrics.applications, "tagIds");
+    assertUnsupported(metrics.organizations, "tagIds");
+    assertUnsupported(metrics.policies, "tagIds");
+    assertThat(metrics.waivers.total).isEqualTo(5);
+    assertThat(metrics.waivers.breakdown).containsEntry("existing", 2L).containsEntry("requested", 3L);
+    verify(searchIndexClient, never()).count(anyString());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, never()).countDistinct(anyString(), any());
+    verify(waiverScopeService, times(1)).resolveAccessibleOwnerIds(request);
+  }
+
+  @Test
+  public void testGetMetrics_StageAndTagFilteredHeavyTierReturnsUnavailableWithoutIndexComputations() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("heavy-filter-user", "heavy-filter-user", User.INTERNAL_REALM_ID));
+    DashboardMetricsService service =
+        newServiceWithMocks(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            mock(OrganizationDAO.class),
+            mockConfiguration(),
+            currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.stageIds = Set.of(Stage.ID_BUILD);
+    request.tagIds = Set.of("tag-1");
+    request.includeHeavyMetrics = true;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertThat(metrics.applications).isNull();
+    assertUnsupported(metrics.violations, "stageIds", "tagIds");
+    assertUnsupported(metrics.components, "stageIds", "tagIds");
+    assertUnsupported(metrics.vulnerabilities, "stageIds", "tagIds");
+    assertUnsupported(metrics.legal, "stageIds", "tagIds");
+    verify(searchIndexClient, never()).count(anyString());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+    verify(searchIndexClient, never()).countDistinct(anyString(), any());
+  }
+
+  @Test
+  public void testCacheKey_DifferentiatesAllMetricTiers() {
+    UserPrincipal principal =
+        new UserPrincipal("cache-tier-user", "cache-tier-user", User.INTERNAL_REALM_ID);
+    DashboardMetricsRequestDTO compatibilityRequest = new DashboardMetricsRequestDTO();
+    DashboardMetricsRequestDTO summaryRequest = new DashboardMetricsRequestDTO();
+    summaryRequest.includeHeavyMetrics = false;
+    DashboardMetricsRequestDTO heavyRequest = new DashboardMetricsRequestDTO();
+    heavyRequest.includeHeavyMetrics = true;
+
+    DashboardMetricsCacheKey compatibilityKey =
+        DashboardMetricsCacheKey.forRequest(principal, compatibilityRequest);
+    DashboardMetricsCacheKey summaryKey = DashboardMetricsCacheKey.forRequest(principal, summaryRequest);
+    DashboardMetricsCacheKey heavyKey = DashboardMetricsCacheKey.forRequest(principal, heavyRequest);
+
+    assertThat(List.of(compatibilityKey, summaryKey, heavyKey)).doesNotHaveDuplicates();
+  }
+
+  @Test
+  public void testCacheKey_DifferentiatesStageAndTagFiltersFromUnfilteredRequests() {
+    UserPrincipal principal =
+        new UserPrincipal("cache-filter-user", "cache-filter-user", User.INTERNAL_REALM_ID);
+    DashboardMetricsRequestDTO unfilteredRequest = new DashboardMetricsRequestDTO();
+    DashboardMetricsRequestDTO stageRequest = new DashboardMetricsRequestDTO();
+    stageRequest.stageIds = Set.of(Stage.ID_BUILD);
+    DashboardMetricsRequestDTO tagRequest = new DashboardMetricsRequestDTO();
+    tagRequest.tagIds = Set.of("tag-1");
+
+    assertThat(List.of(
+        DashboardMetricsCacheKey.forRequest(principal, unfilteredRequest),
+        DashboardMetricsCacheKey.forRequest(principal, stageRequest),
+        DashboardMetricsCacheKey.forRequest(principal, tagRequest)))
+            .doesNotHaveDuplicates();
+  }
+
+  @Test
   public void testGetMetrics_CacheKeyDifferentiatesNullRealmFromExplicitRealm() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.count(anyString())).thenReturn(3L, 11L);
@@ -779,6 +1080,12 @@ public class DashboardMetricsServiceTest
     when(searchIndexClient.aggregateCountByField(anyString(), anyString(), any())).thenReturn(
         new MetricAggregationResult(0L, Map.of("critical", 0L, "severe", 0L, "moderate", 0L, "low", 0L)));
     when(searchIndexClient.countDistinct(anyString(), any())).thenReturn(0L);
+  }
+
+  private static void assertUnsupported(Object metric, String... unsupportedDimensions) {
+    assertThat(metric).extracting("total").isNull();
+    assertThat(metric).extracting("errorCode").isEqualTo("UNSUPPORTED_FILTER_COMBINATION");
+    assertThat(metric).extracting("unsupportedDimensions").isEqualTo(List.of(unsupportedDimensions));
   }
 
   private void seedComponentsReport(Application app, String scanId) throws Exception {

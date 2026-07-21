@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dashboard.metrics;
 
+import java.util.List;
+import java.util.Set;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Organization;
@@ -69,6 +72,58 @@ public class DashboardMetricsResourceTest
   }
 
   @Test
+  public void testGetMetrics_summaryTier_returnsOnlySummaryFields() throws Exception {
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.includeHeavyMetrics = false;
+
+    DashboardMetricsDTO metrics = postMetrics(request);
+
+    assertThat(metrics.applications).isNotNull();
+    assertThat(metrics.organizations).isNotNull();
+    assertThat(metrics.policies).isNotNull();
+    assertThat(metrics.waivers).isNotNull();
+    assertThat(metrics.lastUpdatedAt).isNotNull();
+    assertThat(metrics.violations).isNull();
+    assertThat(metrics.components).isNull();
+    assertThat(metrics.vulnerabilities).isNull();
+    assertThat(metrics.legal).isNull();
+  }
+
+  @Test
+  public void testGetMetrics_heavyTier_returnsOnlyHeavyFields() throws Exception {
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.includeHeavyMetrics = true;
+
+    DashboardMetricsDTO metrics = postMetrics(request);
+
+    assertThat(metrics.applications).isNull();
+    assertThat(metrics.organizations).isNull();
+    assertThat(metrics.policies).isNull();
+    assertThat(metrics.waivers).isNull();
+    assertThat(metrics.lastUpdatedAt).isNull();
+    assertThat(metrics.violations).isNotNull();
+    assertThat(metrics.components).isNotNull();
+    assertThat(metrics.vulnerabilities).isNotNull();
+    assertThat(metrics.legal).isNotNull();
+  }
+
+  @Test
+  public void testGetMetrics_tagFilteredSummary_returns200WithMixedMetricValues() throws Exception {
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.tagIds = Set.of("tag-1");
+    request.includeHeavyMetrics = false;
+
+    DashboardMetricsDTO metrics = postMetrics(request);
+
+    assertThat(metrics.applications).extracting("total").isNull();
+    assertThat(metrics.applications).extracting("errorCode").isEqualTo("UNSUPPORTED_FILTER_COMBINATION");
+    assertThat(metrics.applications).extracting("unsupportedDimensions").isEqualTo(List.of("tagIds"));
+    assertThat(metrics.waivers).isNotNull();
+    assertThat(metrics.waivers.total).isNotNegative();
+    assertThat(metrics.violations).isNull();
+  }
+
+  @Test
   public void testGetMetrics_noIndex_returns409() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     User user = createUserWithPermissions(Permission.READ);
@@ -100,5 +155,18 @@ public class DashboardMetricsResourceTest
         .post();
 
     assertResponseStatus(403, response);
+  }
+
+  private DashboardMetricsDTO postMetrics(DashboardMetricsRequestDTO request) throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+    DashboardMetricsTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    HttpResponse response = restRequest()
+        .path(DashboardMetricsResource.METRICS_PATH)
+        .body(request)
+        .post();
+
+    assertResponseStatus(200, response);
+    return response.getBody(DashboardMetricsDTO.class);
   }
 }

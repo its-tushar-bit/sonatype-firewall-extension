@@ -8,6 +8,7 @@ import { Theme } from '@radix-ui/themes';
 import { screen, waitFor } from '@testing-library/react';
 import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
 import { MetricCardGrid } from 'MainRoot/nosc/dashboard/metrics/MetricCardGrid';
+import * as activeFilterHook from 'MainRoot/nosc/dashboard/metrics/useDashboardActiveFilter';
 import { setupNexusOneBundleLocation } from 'TestRoot/nosc/dashboard/dashboardTestHrefs';
 import { getDashboardMetricsUrl } from 'MainRoot/util/CLMLocation';
 
@@ -36,11 +37,19 @@ describe('Metric card → tab IA wire-up (CLM-40905)', () => {
 
   beforeEach(() => {
     setupNexusOneBundleLocation();
+    jest.spyOn(activeFilterHook, 'useDashboardActiveFilter').mockReturnValue({
+      loading: false,
+      scope: {},
+      needsAcknowledgement: false,
+      error: null,
+      retry: jest.fn(),
+    });
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, METRICS_BODY);
   });
 
   afterEach(() => {
     axiosMock.reset();
+    jest.restoreAllMocks();
   });
 
   function renderGrid() {

@@ -39,10 +39,10 @@ import '@radix-ui/themes/styles.css';
  * Owns (shell-level, shared across all tabs):
  *   - The visible tab strip (with live badge counts read from the same Redux selectors the Classic
  *     tables read), driving navigation via `router.stateService.go(...)`.
- *   - A single `loadFilter()` dispatch on first mount so the shared `dashboardFilter` slice is loaded
- *     for every tab (runs once per shell mount, NOT per tab). We intentionally do NOT call
- *     `applyDefaultFilter()` — that action persists via PUT and would overwrite the user's active
- *     Classic dashboard filter on every Preview visit.
+ *   - A single `loadFilter()` dispatch when the first Classic tab becomes active so the shared
+ *     `dashboardFilter` slice is available to Classic tabs without loading their option catalogs on
+ *     Overview. We intentionally do NOT call `applyDefaultFilter()` — that action persists via PUT
+ *     and would overwrite the user's active Classic dashboard filter on every Preview visit.
  *   - A `react-error-boundary` around the `<UIView />` so a thrown render error in one tab shows an
  *     inline fallback while the tab strip stays navigable (AT-D1-002). It resets on tab change.
  */
@@ -90,13 +90,7 @@ function TabErrorFallback({ tabId, message }: TabErrorFallbackProps): JSX.Elemen
 }
 
 /** Live badge count for a tab strip trigger. Renders nothing while the slice is still unloaded. */
-function TabBadge({
-  label,
-  testId,
-}: {
-  readonly label: string | null;
-  readonly testId: string;
-}): JSX.Element | null {
+function TabBadge({ label, testId }: { readonly label: string | null; readonly testId: string }): JSX.Element | null {
   if (label === null) return null;
   return (
     <Badge variant="soft" color="gray" ml="2" data-testid={testId}>
@@ -128,25 +122,27 @@ export default function PreviewDashboardPage(): JSX.Element {
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
 
-  // One-shot `loadFilter()` dispatch on first shell mount so the shared `dashboardFilter` slice is
-  // populated for ALL tabs (the filter drawer each tab mounts shows options instead of a spinner).
-  // After a successful load, eagerly fetch the INACTIVE tab slices so strip badges reflect the
-  // hydrated filter; the active tab is owned by its mounted table (see above). The ref guards
-  // against React StrictMode's double-invoke.
-  const filterLoadDispatchedRef = useRef(false);
+  // Start the full Classic filter load only when the first Classic route becomes active. Overview
+  // owns its smaller request boundary and must not fetch Classic option catalogs. After a successful
+  // load, eagerly fetch the INACTIVE tab slices so strip badges reflect the hydrated filter; the
+  // active tab is owned by its mounted table (see above). The ref also guards against StrictMode's
+  // double-invoke and later Classic route changes.
+  const classicFilterLoadStartedRef = useRef(false);
   useEffect(() => {
-    if (filterLoadDispatchedRef.current) return;
-    filterLoadDispatchedRef.current = true;
+    if (activeTab === DEFAULT_TAB || classicFilterLoadStartedRef.current) return;
+    classicFilterLoadStartedRef.current = true;
     // `loadFilter()` handles its own failures (it dispatches `loadFilterFailed`
     // and resolves), so the returned promise never rejects — we branch on the
     // resulting `dashboardFilter.loadError` state instead of a `.catch()`.
     void dispatch(loadFilter()).then(() => {
       dispatch((_, getState) => {
         const filterState = getState().dashboardFilter;
-        if (filterState?.loadError || filterState?.loadErrorFilterName) {
-          return;
-        }
-        if (filterState?.loading || filterState?.needsAcknowledgement) {
+        if (
+          filterState?.loadError ||
+          filterState?.loadErrorFilterName ||
+          filterState?.loading ||
+          filterState?.needsAcknowledgement
+        ) {
           return;
         }
         const active = activeTabRef.current;
@@ -160,7 +156,7 @@ export default function PreviewDashboardPage(): JSX.Element {
         if (active !== 'waivers') dispatch(loadWaiverResults());
       });
     });
-  }, [dispatch]);
+  }, [activeTab, dispatch]);
 
   const handleTabChange = (next: string): void => {
     if (!(TAB_IDS as readonly string[]).includes(next)) return;
@@ -177,10 +173,7 @@ export default function PreviewDashboardPage(): JSX.Element {
     <ErrorBoundary
       resetKeys={[activeTab]}
       fallbackRender={({ error }) => (
-        <TabErrorFallback
-          tabId={activeTab}
-          message={error instanceof Error ? error.message : String(error)}
-        />
+        <TabErrorFallback tabId={activeTab} message={error instanceof Error ? error.message : String(error)} />
       )}
     >
       <UIView />
@@ -188,13 +181,7 @@ export default function PreviewDashboardPage(): JSX.Element {
   );
 
   return (
-    <Theme
-      appearance={effectiveTheme}
-      accentColor={BRAND_ACCENT}
-      grayColor="slate"
-      radius="medium"
-      scaling="100%"
-    >
+    <Theme appearance={effectiveTheme} accentColor={BRAND_ACCENT} grayColor="slate" radius="medium" scaling="100%">
       <div
         style={{
           position: 'fixed',

@@ -11,6 +11,10 @@ import java.util.Set;
  * Request body for dashboard metrics aggregation (CLM-40927).
  * <p>
  * Null or empty id sets mean no additional filter beyond RBAC.
+ * <p>
+ * {@code includeHeavyMetrics} selects one of three response modes: {@code null} returns the
+ * complete payload for backward compatibility, {@code false} returns only summary metrics,
+ * and {@code true} returns only heavy metrics.
  */
 public class DashboardMetricsRequestDTO
 {
@@ -21,4 +25,6 @@ public class DashboardMetricsRequestDTO
   public Set<String> stageIds;
 
   public Set<String> tagIds;
+
+  public Boolean includeHeavyMetrics;
 }

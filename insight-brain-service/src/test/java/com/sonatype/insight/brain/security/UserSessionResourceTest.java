@@ -15,6 +15,7 @@ import jakarta.ws.rs.core.Response.Status;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
+import com.sonatype.insight.brain.dashboard.metrics.DashboardMetricsService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Group;
@@ -63,6 +64,13 @@ public class UserSessionResourceTest
   @Before
   public void before() {
     samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
+  }
+
+  @Test
+  public void testLoginResourceHasNoDashboardMetricsDependency() {
+    assertThat(UserSessionResource.class.getDeclaredConstructors())
+        .allSatisfy(constructor -> assertThat(constructor.getParameterTypes())
+            .doesNotContain(DashboardMetricsService.class));
   }
 
   @Test

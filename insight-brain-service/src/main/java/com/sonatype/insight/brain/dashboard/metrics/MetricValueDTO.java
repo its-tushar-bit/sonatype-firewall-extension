@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.dashboard.metrics;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -18,20 +20,51 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class MetricValueDTO
 {
-  public final long total;
+  public static final String UNSUPPORTED_FILTER_COMBINATION = "UNSUPPORTED_FILTER_COMBINATION";
+
+  /**
+   * Aggregate count for the metric. Null only when {@link #errorCode} is set (e.g.
+   * {@link #UNSUPPORTED_FILTER_COMBINATION}); callers must not auto-unbox as a primitive
+   * {@code long} without checking {@link #errorCode} first.
+   */
+  public final Long total;
 
   public final Map<String, Long> breakdown;
 
   public final String source;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public final String errorCode;
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public final List<String> unsupportedDimensions;
+
+  public MetricValueDTO(long total, Map<String, Long> breakdown, String source) {
+    this(total, breakdown, source, null, null);
+  }
+
   @JsonCreator
   public MetricValueDTO(
-      @JsonProperty("total") long total,
+      @JsonProperty("total") Long total,
       @JsonProperty("breakdown") Map<String, Long> breakdown,
-      @JsonProperty("source") String source)
+      @JsonProperty("source") String source,
+      @JsonProperty("errorCode") String errorCode,
+      @JsonProperty("unsupportedDimensions") List<String> unsupportedDimensions)
   {
     this.total = total;
     this.breakdown = breakdown == null ? null : Collections.unmodifiableMap(new LinkedHashMap<>(breakdown));
     this.source = source;
+    this.errorCode = errorCode;
+    this.unsupportedDimensions =
+        unsupportedDimensions == null ? null : List.copyOf(unsupportedDimensions);
+  }
+
+  public static MetricValueDTO unsupported(List<String> unsupportedDimensions) {
+    return new MetricValueDTO(
+        null,
+        null,
+        null,
+        UNSUPPORTED_FILTER_COMBINATION,
+        unsupportedDimensions);
   }
 }

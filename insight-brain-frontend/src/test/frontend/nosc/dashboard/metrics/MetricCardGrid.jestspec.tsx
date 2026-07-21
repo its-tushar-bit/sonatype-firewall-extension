@@ -8,9 +8,12 @@ import { Theme } from '@radix-ui/themes';
 import { axiosMockAdapter, render, screen, waitFor, within } from 'TestRoot/SpecUtil';
 import userEvent from '@testing-library/user-event';
 import { MetricCardGrid } from 'MainRoot/nosc/dashboard/metrics/MetricCardGrid';
+import * as activeFilterHook from 'MainRoot/nosc/dashboard/metrics/useDashboardActiveFilter';
 import * as metricsHook from 'MainRoot/nosc/dashboard/metrics/useDashboardMetrics';
 import { getDashboardMetricsUrl } from 'MainRoot/util/CLMLocation';
 import { setupNexusOneBundleLocation } from 'TestRoot/nosc/dashboard/dashboardTestHrefs';
+import type { DashboardMetricsResponse } from 'MainRoot/nosc/dashboard/metrics/dashboardMetricsTypes';
+import type { UseDashboardMetricsResult } from 'MainRoot/nosc/dashboard/metrics/useDashboardMetrics';
 
 const LAST_UPDATED = 1_700_000_000_000;
 
@@ -57,8 +60,21 @@ function renderGrid(preloadedState = preloadedStateWithFilter()) {
     <Theme>
       <MetricCardGrid />
     </Theme>,
-    { preloadedState },
+    { preloadedState }
   );
+}
+
+function metricsResult(overrides: Partial<UseDashboardMetricsResult> = {}): UseDashboardMetricsResult {
+  return {
+    status: 'ready',
+    data: FULL_BODY,
+    error: null,
+    heavyLoading: false,
+    heavyError: null,
+    retry: jest.fn(),
+    retryHeavy: jest.fn(),
+    ...overrides,
+  };
 }
 
 describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
@@ -70,6 +86,13 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
 
   beforeEach(() => {
     setupNexusOneBundleLocation();
+    jest.spyOn(activeFilterHook, 'useDashboardActiveFilter').mockReturnValue({
+      loading: false,
+      scope: {},
+      needsAcknowledgement: false,
+      error: null,
+      retry: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -83,29 +106,38 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
 
     expect(screen.getByTestId('preview-dashboard-metrics-grid')).toBeInTheDocument();
     expect(screen.getByTestId('metric-card-applications-skeleton')).toBeInTheDocument();
-    expect(screen.getByTestId('metric-card-violations-skeleton')).toBeInTheDocument();
+    expect(screen.queryByTestId('metric-card-violations-skeleton')).not.toBeInTheDocument();
     expect(screen.getByTestId('metric-card-waivers-skeleton')).toBeInTheDocument();
   });
 
-  it('issues exactly one POST on mount carrying the active filter ids (AT-F16: filter scope → request)', async () => {
+  it('issues two-phase metric POSTs carrying the active filter ids (AT-F16: filter scope → request)', async () => {
+    const scope = {
+      organizationIds: ['org-1'],
+      applicationIds: ['app-2', 'app-3'],
+      stageIds: ['build'],
+      tagIds: ['tag-1'],
+    };
+    jest.spyOn(activeFilterHook, 'useDashboardActiveFilter').mockReturnValue({
+      loading: false,
+      scope,
+      needsAcknowledgement: false,
+      error: null,
+      retry: jest.fn(),
+    });
+    const useDashboardMetrics = jest.spyOn(metricsHook, 'useDashboardMetrics');
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
-    renderGrid(
-      preloadedStateWithFilter({
-        organizations: new Set(['org-1']),
-        applications: new Set(['app-2', 'app-3']),
-        stages: new Set(['build']),
-        categories: new Set(['tag-1']),
-      }),
-    );
+    renderGrid();
 
     await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
 
-    expect(axiosMock.history.post).toHaveLength(1);
+    expect(useDashboardMetrics).toHaveBeenCalledWith(scope, true);
+    await waitFor(() => expect(axiosMock.history.post.length).toBeGreaterThanOrEqual(2));
     expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
       organizationIds: ['org-1'],
       applicationIds: ['app-2', 'app-3'],
       stageIds: ['build'],
       tagIds: ['tag-1'],
+      includeHeavyMetrics: false,
     });
   });
 
@@ -114,7 +146,7 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     renderGrid();
 
     await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
-    expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({});
+    expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ includeHeavyMetrics: false });
   });
 
   it('renders the Applications, Violations (+breakdown) and Waivers cards from the response', async () => {
@@ -138,6 +170,30 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     expect(screen.getByTestId('metric-card-waivers-sub-requested-waivers-value')).toHaveTextContent('1');
   });
 
+  it('keeps mixed successful and unavailable cards visible without displaying a broader-scope number', () => {
+    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue(
+      metricsResult({
+        data: {
+          ...FULL_BODY,
+          applications: {
+            total: null,
+            breakdown: null,
+            source: null,
+            errorCode: 'UNSUPPORTED_FILTER_COMBINATION',
+            unsupportedDimensions: ['stageIds', 'tagIds'],
+          },
+        } as DashboardMetricsResponse,
+      })
+    );
+
+    renderGrid();
+
+    const applicationsCard = screen.getByTestId('metric-card-applications');
+    expect(within(applicationsCard).getByRole('status')).toHaveTextContent('Unavailable for Stage and Tag filters');
+    expect(within(applicationsCard).queryByTestId('metric-card-applications-value')).not.toBeInTheDocument();
+    expect(screen.getByTestId('metric-card-violations-value')).toHaveTextContent('9');
+  });
+
   it('renders a zero total honestly (AT-F16: empty/zero state)', async () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
       applications: { total: 0, breakdown: { stages: 5 }, source: 'index' },
@@ -155,7 +211,8 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
     const { unmount } = renderGrid();
     await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
-    expect(screen.queryByTestId('metric-card-components')).not.toBeInTheDocument();
+    // Heavy-tier skeleton may flash while the second POST is in flight; wait until it settles.
+    await waitFor(() => expect(screen.queryByTestId('metric-card-components')).not.toBeInTheDocument());
     unmount();
 
     axiosMock.reset();
@@ -192,28 +249,72 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
   // #16359 regression guards: the filter gate and the stale-data refresh banners
   // must survive the CLM-40927 card additions.
   it('does not POST metrics while the dashboard filter rail is still loading', () => {
-    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
-    render(
-      <Theme>
-        <MetricCardGrid />
-      </Theme>,
-      {
-        preloadedState: {
-          dashboardFilter: {
-            loading: true,
-            appliedFilter: {
-              organizations: new Set(['org-1']),
-              applications: new Set<string>(),
-              stages: new Set<string>(),
-              categories: new Set<string>(),
-            },
-          },
-        } as any,
-      },
-    );
+    jest.spyOn(activeFilterHook, 'useDashboardActiveFilter').mockReturnValue({
+      loading: true,
+      scope: { organizationIds: ['org-1'] },
+      needsAcknowledgement: false,
+      error: null,
+      retry: jest.fn(),
+    });
+    const useDashboardMetrics = jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue(metricsResult());
+    renderGrid();
 
-    expect(axiosMock.history.post).toHaveLength(0);
+    expect(useDashboardMetrics).toHaveBeenCalledWith({ organizationIds: ['org-1'] }, false);
     expect(screen.getByTestId('metric-card-applications-skeleton')).toBeInTheDocument();
+  });
+
+  it('disables metrics while the active filter needs acknowledgement', () => {
+    jest.spyOn(activeFilterHook, 'useDashboardActiveFilter').mockReturnValue({
+      loading: false,
+      scope: { organizationIds: ['org-1'] },
+      needsAcknowledgement: true,
+      error: null,
+      retry: jest.fn(),
+    });
+    const useDashboardMetrics = jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue(metricsResult());
+
+    renderGrid();
+
+    expect(useDashboardMetrics).toHaveBeenCalledWith({ organizationIds: ['org-1'] }, false);
+    expect(screen.getByTestId('metric-card-applications-skeleton')).toBeInTheDocument();
+  });
+
+  it('shows a retryable active-filter error before metric states', async () => {
+    const retry = jest.fn();
+    jest.spyOn(activeFilterHook, 'useDashboardActiveFilter').mockReturnValue({
+      loading: false,
+      scope: {},
+      needsAcknowledgement: false,
+      error: new Error('filter failed'),
+      retry,
+    });
+    const useDashboardMetrics = jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue(metricsResult());
+    const user = userEvent.setup();
+
+    renderGrid();
+
+    expect(useDashboardMetrics).toHaveBeenCalledWith({}, false);
+    const error = screen.getByTestId('dashboard-active-filter-error');
+    await user.click(within(error).getByRole('button', { name: /retry/i }));
+    expect(retry).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps summary cards visible and retries only delayed detailed metrics', async () => {
+    const retryHeavy = jest.fn();
+    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue(
+      metricsResult({
+        heavyError: new Error('heavy failed'),
+        retryHeavy,
+      })
+    );
+    const user = userEvent.setup();
+
+    renderGrid();
+
+    expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42');
+    expect(screen.getByTestId('dashboard-heavy-metrics-delayed')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /retry detailed metrics/i }));
+    expect(retryHeavy).toHaveBeenCalledTimes(1);
   });
 
   it('keeps last-known-good cards visible when a refresh fails after a successful load', () => {
@@ -221,7 +322,10 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
       status: 'error',
       data: FULL_BODY,
       error: new Error('refresh failed'),
+      heavyLoading: false,
+      heavyError: null,
       retry: jest.fn(),
+      retryHeavy: jest.fn(),
     });
     renderGrid();
 
@@ -234,7 +338,10 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
       status: 'loading',
       data: FULL_BODY,
       error: null,
+      heavyLoading: false,
+      heavyError: null,
       retry: jest.fn(),
+      retryHeavy: jest.fn(),
     });
     renderGrid();
 
@@ -247,7 +354,10 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
       status: 'not-ready',
       data: FULL_BODY,
       error: null,
+      heavyLoading: false,
+      heavyError: null,
       retry: jest.fn(),
+      retryHeavy: jest.fn(),
     });
     renderGrid();
 
@@ -260,9 +370,7 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
     renderGrid();
 
-    await waitFor(() =>
-      expect(screen.getByTestId('dashboard-metrics-freshness')).toHaveTextContent('Updated 15s ago'),
-    );
+    await waitFor(() => expect(screen.getByTestId('dashboard-metrics-freshness')).toHaveTextContent('Updated 15s ago'));
   });
 
   it('degrades gracefully when lastUpdatedAt is null (no freshness line, no crash)', async () => {
@@ -323,9 +431,10 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     renderGrid();
 
     await waitFor(() => expect(screen.getByTestId('dashboard-metrics-ready')).toBeInTheDocument());
-    expect(screen.queryByTestId('metric-card-vulnerabilities')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('metric-card-legal')).not.toBeInTheDocument();
+    // Summary-tier absence is immediate; heavy-tier cards omit after the heavy POST settles.
     expect(screen.queryByTestId('metric-card-orgs-and-policies')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByTestId('metric-card-vulnerabilities')).not.toBeInTheDocument());
+    expect(screen.queryByTestId('metric-card-legal')).not.toBeInTheDocument();
   });
 
   it('always renders the bottom quick-link row deep-linking to Classic (CLM-40927)', async () => {
@@ -344,7 +453,10 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
       status: 'error',
       data: null,
       error: new Error('network'),
+      heavyLoading: false,
+      heavyError: null,
       retry: jest.fn(),
+      retryHeavy: jest.fn(),
     });
     renderGrid();
 

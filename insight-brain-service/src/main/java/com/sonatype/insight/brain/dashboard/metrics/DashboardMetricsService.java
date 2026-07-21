@@ -35,11 +35,15 @@ import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class DashboardMetricsService
 {
+  private static final Logger log = LoggerFactory.getLogger(DashboardMetricsService.class);
+
   static final String METRIC_SOURCE_INDEX = "index";
 
   static final String METRIC_SOURCE_SQL = "sql";
@@ -165,59 +169,103 @@ public class DashboardMetricsService
   }
 
   /**
-   * Loads each metric independently against the search index. {@code count}, {@code countDistinct}, and
-   * {@code aggregateCountByField} each open their own reader/snapshot today, so applications, components, and
-   * violations are not guaranteed to come from the same point-in-time view (acceptable behind the 5s coalescing
-   * cache). Cheap-tier metrics (organizations, policies, vulnerabilities with CVSS-band breakdown, legal) add
-   * further independent round-trips. Waivers use two SQL {@code selectCount} queries scoped via
-   * {@link DashboardMetricsWaiverScopeService}. A batched {@link SearchIndexClient} entry point (e.g. OpenSearch
-   * multi-search) may consolidate index round-trips later.
+   * Loads each selected metric tier on the request thread. A null tier flag retains the
+   * complete backward-compatible payload; explicit false/true values select non-overlapping
+   * summary/heavy tiers.
    */
   private DashboardMetricsDTO loadMetrics(DashboardMetricsRequestDTO request) {
-    MetricFilterContext filterContext = buildMetricFilterContext(request);
+    boolean compatibilityMode = request == null || request.includeHeavyMetrics == null;
+    boolean includeSummary = compatibilityMode || Boolean.FALSE.equals(request.includeHeavyMetrics);
+    boolean includeHeavy = compatibilityMode || Boolean.TRUE.equals(request.includeHeavyMetrics);
+    List<String> unsupportedIndexDimensions = unsupportedIndexDimensions(request);
+    MetricFilterContext filterContext =
+        unsupportedIndexDimensions.isEmpty() ? buildMetricFilterContext(request) : null;
 
-    long applications = searchIndexClient.count(
-        buildFilteredMetricQuery(ItemType.APPLICATION, filterContext));
+    MetricValueDTO applicationsMetric = null;
+    MetricValueDTO organizationsMetric = null;
+    MetricValueDTO policiesMetric = null;
+    MetricValueDTO waiversMetric = null;
+    Long lastUpdatedAt = null;
+    if (includeSummary) {
+      if (unsupportedIndexDimensions.isEmpty()) {
+        long applicationsStartedAt = System.nanoTime();
+        long applications = searchIndexClient.count(
+            buildFilteredMetricQuery(ItemType.APPLICATION, filterContext));
+        logBenchmarkDuration("applications", applicationsStartedAt);
+        applicationsMetric = new MetricValueDTO(
+            applications,
+            Map.of("stages", licensedDashboardStageCount()),
+            METRIC_SOURCE_INDEX);
+        long organizationsStartedAt = System.nanoTime();
+        organizationsMetric = new MetricValueDTO(
+            searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
+            null,
+            METRIC_SOURCE_INDEX);
+        logBenchmarkDuration("organizations", organizationsStartedAt);
+        long policiesStartedAt = System.nanoTime();
+        policiesMetric = new MetricValueDTO(
+            searchIndexClient.count(buildFilteredMetricQuery(ItemType.POLICY, filterContext)),
+            null,
+            METRIC_SOURCE_INDEX);
+        logBenchmarkDuration("policies", policiesStartedAt);
+        lastUpdatedAt = searchIndexClient.getLastIndexTime();
+      }
+      else {
+        applicationsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
+        organizationsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
+        policiesMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
+      }
 
-    MetricAggregationResult violationsAggregation = searchIndexClient.aggregateCountByField(
-        buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
-        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
-        VIOLATIONS_THREAT_LEVEL_BANDS);
+      // Waivers are SQL-backed: stageIds are not applicable (unsupported), but tagIds are applied by
+      // the waivers scope query. Tag-only filters therefore return a real waiver count while
+      // index-backed cards report UNSUPPORTED_FILTER_COMBINATION for tagIds.
+      if (hasFilter(request == null ? null : request.stageIds)) {
+        waiversMetric = MetricValueDTO.unsupported(List.of("stageIds"));
+      }
+      else {
+        long waiversStartedAt = System.nanoTime();
+        Set<String> accessibleOwnerIds = waiverScopeService.resolveAccessibleOwnerIds(request);
+        long existingWaivers = policyWaiverDAO.selectCount(accessibleOwnerIds);
+        long requestedWaivers = policyWaiverRequestDAO.selectCount(accessibleOwnerIds);
+        waiversMetric = new MetricValueDTO(
+            existingWaivers + requestedWaivers,
+            Map.of("existing", existingWaivers, "requested", requestedWaivers),
+            METRIC_SOURCE_SQL);
+        logBenchmarkDuration("waivers", waiversStartedAt);
+      }
+    }
 
-    long components = countScannedComponents(filterContext);
-    Long lastUpdatedAt = searchIndexClient.getLastIndexTime();
-
-    MetricValueDTO applicationsMetric = new MetricValueDTO(
-        applications,
-        Map.of("stages", licensedDashboardStageCount()),
-        METRIC_SOURCE_INDEX);
-    MetricValueDTO violationsMetric = new MetricValueDTO(
-        violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
-    MetricValueDTO componentsMetric = new MetricValueDTO(components, null, METRIC_SOURCE_INDEX);
-
-    // Organizations / Policies / Vulnerabilities: index-native totals (CLM-40927 cheap-tier).
-    MetricValueDTO organizationsMetric = new MetricValueDTO(
-        searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
-        null,
-        METRIC_SOURCE_INDEX);
-    MetricValueDTO policiesMetric = new MetricValueDTO(
-        searchIndexClient.count(buildFilteredMetricQuery(ItemType.POLICY, filterContext)),
-        null,
-        METRIC_SOURCE_INDEX);
-    MetricValueDTO vulnerabilitiesMetric = countVulnerabilities(filterContext);
-
-    // Legal Obligations: stage-independent distinct keys align with the Scanned Components tile
-    // ([applicationId, componentHash]) and de-dupe multi-stage re-indexes. Documents without a componentHash
-    // field collapse to a single distinct bucket in countDistinct; real scan data always indexes a hash.
-    MetricValueDTO legalMetric = countLegalObligations(filterContext);
-
-    Set<String> accessibleOwnerIds = waiverScopeService.resolveAccessibleOwnerIds(request);
-    long existingWaivers = policyWaiverDAO.selectCount(accessibleOwnerIds);
-    long requestedWaivers = policyWaiverRequestDAO.selectCount(accessibleOwnerIds);
-    MetricValueDTO waiversMetric = new MetricValueDTO(
-        existingWaivers + requestedWaivers,
-        Map.of("existing", existingWaivers, "requested", requestedWaivers),
-        METRIC_SOURCE_SQL);
+    MetricValueDTO violationsMetric = null;
+    MetricValueDTO componentsMetric = null;
+    MetricValueDTO vulnerabilitiesMetric = null;
+    MetricValueDTO legalMetric = null;
+    if (includeHeavy) {
+      if (unsupportedIndexDimensions.isEmpty()) {
+        long violationsStartedAt = System.nanoTime();
+        MetricAggregationResult violationsAggregation = searchIndexClient.aggregateCountByField(
+            buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
+            FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+            VIOLATIONS_THREAT_LEVEL_BANDS);
+        logBenchmarkDuration("violations", violationsStartedAt);
+        violationsMetric = new MetricValueDTO(
+            violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
+        long componentsStartedAt = System.nanoTime();
+        componentsMetric = new MetricValueDTO(countScannedComponents(filterContext), null, METRIC_SOURCE_INDEX);
+        logBenchmarkDuration("components", componentsStartedAt);
+        long vulnerabilitiesStartedAt = System.nanoTime();
+        vulnerabilitiesMetric = countVulnerabilities(filterContext);
+        logBenchmarkDuration("vulnerabilities", vulnerabilitiesStartedAt);
+        long legalStartedAt = System.nanoTime();
+        legalMetric = countLegalObligations(filterContext);
+        logBenchmarkDuration("legal", legalStartedAt);
+      }
+      else {
+        violationsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
+        componentsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
+        vulnerabilitiesMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
+        legalMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
+      }
+    }
 
     return new DashboardMetricsDTO(
         applicationsMetric,
@@ -229,6 +277,27 @@ public class DashboardMetricsService
         legalMetric,
         waiversMetric,
         lastUpdatedAt);
+  }
+
+  private static void logBenchmarkDuration(String metric, long startedAt) {
+    // Fractional ms so sub-millisecond index counts are not collapsed to durationMs=0.
+    log.debug("DASHBOARD_BENCHMARK metric={} durationMs={}", metric,
+        (System.nanoTime() - startedAt) / 1_000_000.0);
+  }
+
+  private static List<String> unsupportedIndexDimensions(DashboardMetricsRequestDTO request) {
+    List<String> dimensions = new ArrayList<>();
+    if (hasFilter(request == null ? null : request.stageIds)) {
+      dimensions.add("stageIds");
+    }
+    if (hasFilter(request == null ? null : request.tagIds)) {
+      dimensions.add("tagIds");
+    }
+    return List.copyOf(dimensions);
+  }
+
+  private static boolean hasFilter(Set<String> ids) {
+    return ids != null && !ids.isEmpty();
   }
 
   /**
@@ -302,8 +371,8 @@ public class DashboardMetricsService
 
   private MetricFilterContext buildMetricFilterContext(DashboardMetricsRequestDTO request) {
     return new MetricFilterContext(
-        dimensionQueryBuilder.buildOrganizationFilterClause(request.organizationIds),
-        dimensionQueryBuilder.buildApplicationFilterClause(request.applicationIds));
+        dimensionQueryBuilder.buildOrganizationFilterClause(request == null ? null : request.organizationIds),
+        dimensionQueryBuilder.buildApplicationFilterClause(request == null ? null : request.applicationIds));
   }
 
   /**

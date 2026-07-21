@@ -32,7 +32,7 @@ public class MetricFilterValidator
    */
   static final Pattern ID_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
 
-  /** Cap filter id sets before PR2 enables filter application. */
+  /** Upper bound on filter id set size. */
   static final int MAX_FILTER_IDS = 1000;
 
   public void validate(DashboardMetricsRequestDTO request) {
@@ -43,17 +43,6 @@ public class MetricFilterValidator
     validateIdSet(request.applicationIds, "applicationIds");
     validateIdSet(request.stageIds, "stageIds");
     validateIdSet(request.tagIds, "tagIds");
-    rejectUnsupportedFilters(request);
-  }
-
-  private static void rejectUnsupportedFilters(DashboardMetricsRequestDTO request) {
-    if (hasNonEmptyFilterSet(request.stageIds) || hasNonEmptyFilterSet(request.tagIds)) {
-      throw new BadRequestException("stageIds and tagIds filters are not yet supported.");
-    }
-  }
-
-  private static boolean hasNonEmptyFilterSet(Set<String> ids) {
-    return ids != null && !ids.isEmpty();
   }
 
   private static void validateIdSet(Set<String> ids, String fieldName) {

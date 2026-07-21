@@ -138,7 +138,7 @@ public class ThirdPartyCoordinateSecurityDAO
 
       var createdAt = DSL.max(sm.CREATED_AT).as("created_at");
 
-      return tx.dsl()
+      try (var stream = tx.dsl()
           .selectDistinct(cs.REF_ID, cs.SEVERITY, severityStatus, createdAt)
           .from(sm)
           .join(fc)
@@ -152,8 +152,10 @@ public class ThirdPartyCoordinateSecurityDAO
           .orderBy(createdAt.desc(), cs.SEVERITY.desc(), cs.REF_ID.desc())
           .limit(10)
           .fetchStream()
-          .map(record -> new RecentVulnerabilitiesDTO(record.intoArray()))
-          .collect(Collectors.toList());
+          .map(record -> new RecentVulnerabilitiesDTO(record.intoArray())))
+      {
+        return stream.collect(Collectors.toList());
+      }
     }
   }
 
@@ -313,7 +315,7 @@ public class ThirdPartyCoordinateSecurityDAO
           cs.SEVERITY.between((double) CRITICAL.getStartScoreRange(), (double) CRITICAL.getEndScoreRange()), 1))
           .as("critical");
 
-      return tx.dsl()
+      try (var stream = tx.dsl()
           .select(sm.APPLICATION_ID, sm.SBOM_VERSION, sm.SPEC, sm.CREATED_AT,
               lowCount, mediumCount, highCount, criticalCount)
           .from(sm)
@@ -327,8 +329,10 @@ public class ThirdPartyCoordinateSecurityDAO
           .orderBy(sm.CREATED_AT.desc())
           .limit(7)
           .fetchStream()
-          .map(record -> new RecentImportedSbomsDTO(record.intoArray()))
-          .collect(Collectors.toList());
+          .map(record -> new RecentImportedSbomsDTO(record.intoArray())))
+      {
+        return stream.collect(Collectors.toList());
+      }
     }
   }
 

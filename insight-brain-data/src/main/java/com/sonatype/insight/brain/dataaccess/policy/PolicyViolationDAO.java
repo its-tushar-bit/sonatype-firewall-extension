@@ -1834,7 +1834,7 @@ public class PolicyViolationDAO
 
     int offset = (page - 1) * pageSize;
     try (TransactionContext tx = createTransactionContext()) {
-      return createNativePaginationQuery(tx, sQuery, offset, pageSize)
+      try (var stream = createNativePaginationQuery(tx, sQuery, offset, pageSize)
           .fetchStream()
           .map(record -> {
             Object[] array = record.intoArray();
@@ -1849,8 +1849,9 @@ public class PolicyViolationDAO
                 ((Number) array[7]).longValue(), // policyViolationCount
                 (String) array[8] // scanId
             );
-          })
-          .toList();
+          })) {
+        return stream.toList();
+      }
     }
   }
 
@@ -1960,7 +1961,7 @@ public class PolicyViolationDAO
         bindings[repoIdList.size() + 3] = pageSize;
       }
 
-      return tx.dsl()
+      try (var stream = tx.dsl()
           .resultQuery(convertPositionalParams(sQuery), bindings)
           .fetchStream()
           .map(record -> {
@@ -1976,8 +1977,9 @@ public class PolicyViolationDAO
                 ((Number) array[7]).longValue(), // policyViolationCount
                 (String) array[8] // scanId
             );
-          })
-          .toList();
+          })) {
+        return stream.toList();
+      }
     }
   }
 

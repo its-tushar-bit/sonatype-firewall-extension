@@ -549,7 +549,7 @@ public class RepositoryPolicyViolationDAO
       params.add(offset);
       params.add(pageSize);
 
-      return tx.dsl()
+      try (var stream = tx.dsl()
           .resultQuery(sQuery.toString(), params.toArray())
           .fetchStream()
           .map(record -> {
@@ -562,8 +562,9 @@ public class RepositoryPolicyViolationDAO
                 array[10] == null ? null : new Date(((Timestamp) array[10]).getTime()),
                 array[11] == null ? null : new Date(((Timestamp) array[11]).getTime()), (Boolean) array[12],
                 constraintFactsJson, policyViolationId);
-          })
-          .collect(Collectors.toList());
+          })) {
+        return stream.collect(Collectors.toList());
+      }
     }
   }
 
@@ -687,7 +688,7 @@ public class RepositoryPolicyViolationDAO
           " LIMIT " + pageSize +
           " OFFSET " + offset;
 
-      return tx.dsl()
+      try (var stream = tx.dsl()
           .resultQuery(select3, params.toArray())
           .fetchStream()
           .map(record -> {
@@ -708,24 +709,28 @@ public class RepositoryPolicyViolationDAO
                 null,
                 null,
                 null);
-          })
-          .collect(Collectors.toList());
+          })) {
+        return stream.collect(Collectors.toList());
+      }
     }
   }
 
   public Map<Integer, Integer> getCountsByPolicyThreatLevel(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
+      try (var stream = tx.dsl()
           .select(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL, DSL.count())
           .from(REPOSITORY_POLICY_VIOLATION)
           .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId)
               .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
               .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false)))
           .groupBy(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL)
-          .fetchStream()
-          .collect(toMap(
-              record -> record.get(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL).intValue(),
-              record -> record.get(1, Integer.class)));
+          .fetchStream())
+      {
+        return stream.collect(toMap(
+            record -> record.get(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL).intValue(),
+            record -> record.get(1, Integer.class),
+            Integer::sum));
+      }
     }
   }
 

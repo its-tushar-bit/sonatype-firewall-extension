@@ -774,16 +774,18 @@ public class PolicyWaiverDAO
       var pw = POLICY_WAIVER.as("pw");
       var createDate = DSL.cast(pw.CREATE_TIME, java.sql.Date.class);
 
+      // Long::sum merge tolerates duplicate LocalDate keys; ResultQuery.collect
+      // auto-manages the cursor (avoids the unwrapped fetchStream leak).
       return tx.dsl()
           .select(createDate, DSL.count())
           .from(pw)
           .where(pw.OWNER_ID.eq(ownerId))
           .and(pw.CREATE_TIME.ge(date))
           .groupBy(createDate)
-          .fetchStream()
           .collect(Collectors.toMap(
               r -> ((java.sql.Date) r.value1()).toLocalDate(),
-              r -> ((Number) r.value2()).longValue()));
+              r -> ((Number) r.value2()).longValue(),
+              Long::sum));
     }
   }
 

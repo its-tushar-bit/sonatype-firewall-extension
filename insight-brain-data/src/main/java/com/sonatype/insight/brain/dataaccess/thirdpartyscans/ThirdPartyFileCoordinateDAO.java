@@ -383,7 +383,7 @@ public class ThirdPartyFileCoordinateDAO
     try (TransactionContext tx = createTransactionContext()) {
       SbomComponentListDTO result = new SbomComponentListDTO();
 
-      List<SbomComponentDTO> dtos = tx.dsl()
+      try (var stream = tx.dsl()
           .resultQuery(sQuery, params.toArray())
           .fetchStream()
           .peek(record -> {
@@ -391,11 +391,12 @@ public class ThirdPartyFileCoordinateDAO
               result.setTotalResultsCount(record.get(19, Long.class).intValue());
             }
           })
-          .map(record -> new SbomComponentDTO(record.intoArray()))
-          .collect(Collectors.toList());
-
-      result.setResults(dtos);
-      return result;
+          .map(record -> new SbomComponentDTO(record.intoArray())))
+      {
+        List<SbomComponentDTO> dtos = stream.collect(Collectors.toList());
+        result.setResults(dtos);
+        return result;
+      }
     }
   }
 

@@ -446,17 +446,19 @@ public class ThirdPartySbomMetadataDAO
 
       SbomApplicationListSummaryDTO result = new SbomApplicationListSummaryDTO();
 
-      List<SbomApplicationSummaryDTO> applicationPageApplicationSummaryDTOList =
-          tx.dsl()
-              .resultQuery(sQuery, params.toArray())
-              .fetchStream()
-              .peek(record -> {
-                if (result.getTotalCount() == 0) {
-                  result.setTotalCount(record.get("full_count", Long.class).intValue());
-                }
-              })
-              .map(record -> new SbomApplicationSummaryDTO(record.intoArray()))
-              .collect(Collectors.toList());
+      List<SbomApplicationSummaryDTO> applicationPageApplicationSummaryDTOList;
+      try (var stream = tx.dsl()
+          .resultQuery(sQuery, params.toArray())
+          .fetchStream()
+          .peek(record -> {
+            if (result.getTotalCount() == 0) {
+              result.setTotalCount(record.get("full_count", Long.class).intValue());
+            }
+          })
+          .map(record -> new SbomApplicationSummaryDTO(record.intoArray())))
+      {
+        applicationPageApplicationSummaryDTOList = stream.collect(Collectors.toList());
+      }
 
       List<String> applicationIdsForPolicyViolation = applicationPageApplicationSummaryDTOList.stream()
           .map(SbomApplicationSummaryDTO::getApplicationInternalId)
@@ -612,31 +614,31 @@ public class ThirdPartySbomMetadataDAO
 
       ThirdPartySbomMetadataSummaryListDTO result = new ThirdPartySbomMetadataSummaryListDTO();
 
-      result.setResults(
-          tx.dsl()
-              .select(sm.SBOM_VERSION, sm.SPEC, sm.SPEC_VERSION, sm.CREATED_AT, sm.IS_VALID,
-                  vulnerabilityNone, vulnerabilityLow, vulnerabilityMedium,
-                  vulnerabilityHigh, vulnerabilityCritical,
-                  fullCount, releaseStatusPercentage)
-              .from(sm)
-              .leftJoin(cs)
-              .on(cs.SBOM_METADATA_ID.eq(sm.SBOM_METADATA_ID))
-              .leftJoin(vex)
-              .on(cs.COORDINATE_SECURITY_ID.eq(vex.COORDINATE_SECURITY_ID))
-              .where(sm.APPLICATION_ID.eq(applicationId)
-                  .and(sm.STATUS.eq(ACTIVE.name())))
-              .groupBy(sm.SBOM_VERSION, sm.SPEC, sm.SPEC_VERSION, sm.CREATED_AT, sm.IS_VALID)
-              .orderBy(orderFields)
-              .offset(offset)
-              .limit(pageSize)
-              .fetchStream()
-              .peek(record -> {
-                if (result.getTotalResultsCount() == 0) {
-                  result.setTotalResultsCount(record.get("full_count", Long.class).intValue());
-                }
-              })
-              .map(record -> new ThirdPartySbomMetadataSummaryDTO(record.intoArray()))
-              .collect(Collectors.toList()));
+      try (var stream = tx.dsl()
+          .select(sm.SBOM_VERSION, sm.SPEC, sm.SPEC_VERSION, sm.CREATED_AT, sm.IS_VALID,
+              vulnerabilityNone, vulnerabilityLow, vulnerabilityMedium,
+              vulnerabilityHigh, vulnerabilityCritical,
+              fullCount, releaseStatusPercentage)
+          .from(sm)
+          .leftJoin(cs)
+          .on(cs.SBOM_METADATA_ID.eq(sm.SBOM_METADATA_ID))
+          .leftJoin(vex)
+          .on(cs.COORDINATE_SECURITY_ID.eq(vex.COORDINATE_SECURITY_ID))
+          .where(sm.APPLICATION_ID.eq(applicationId).and(sm.STATUS.eq(ACTIVE.name())))
+          .groupBy(sm.SBOM_VERSION, sm.SPEC, sm.SPEC_VERSION, sm.CREATED_AT, sm.IS_VALID)
+          .orderBy(orderFields)
+          .offset(offset)
+          .limit(pageSize)
+          .fetchStream()
+          .peek(record -> {
+            if (result.getTotalResultsCount() == 0) {
+              result.setTotalResultsCount(record.get("full_count", Long.class).intValue());
+            }
+          })
+          .map(record -> new ThirdPartySbomMetadataSummaryDTO(record.intoArray())))
+      {
+        result.setResults(stream.collect(Collectors.toList()));
+      }
       return result;
     }
   }

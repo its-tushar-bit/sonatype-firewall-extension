@@ -188,6 +188,20 @@
       <artifactId>embedded-postgres</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Runs the fetchStream() PMD rule in a unit test; keep in sync with the
+         PMD version used by maven-pmd-plugin below. -->
+    <dependency>
+      <groupId>net.sourceforge.pmd</groupId>
+      <artifactId>pmd-core</artifactId>
+      <version>7.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.pmd</groupId>
+      <artifactId>pmd-java</artifactId>
+      <version>7.7.0</version>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -301,6 +315,31 @@
               <groups>PostgresTestCategory</groups>
               <excludedGroups>SlowTest</excludedGroups>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- PMD: enforce fetchStream() resource-safety -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.26.0</version>
+        <configuration>
+          <rulesets>
+            <ruleset>${project.basedir}/src/main/pmd/fetchstream-resource-ruleset.xml</ruleset>
+          </rulesets>
+          <printFailingErrors>true</printFailingErrors>
+          <failOnViolation>true</failOnViolation>
+          <includeTests>false</includeTests>
+          <targetJdk>23</targetJdk>
+          <typeResolution>false</typeResolution>
+        </configuration>
+        <executions>
+          <execution>
+            <id>pmd-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
           </execution>
         </executions>
       </plugin>

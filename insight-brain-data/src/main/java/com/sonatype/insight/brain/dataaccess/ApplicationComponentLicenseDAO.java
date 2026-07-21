@@ -149,7 +149,7 @@ public class ApplicationComponentLicenseDAO
           .where(whereCondition)
           .groupBy(ac.APPLICATION_ID, ac.HASH, ac.COMPONENT_ID_FORMAT, ac.COMPONENT_ID_COORDINATES_JSON);
 
-      return query.fetchStream()
+      try (var stream = query.fetchStream()
           .filter(r -> !requiresManualFilter || applicationIds.contains(r.get(ac.APPLICATION_ID)))
           .filter(r -> r.get(ac.HASH) != null && r.get(ac.COMPONENT_ID_FORMAT) != null)
           .map(r -> new ApplicationComponentLicensesDTO(
@@ -157,8 +157,10 @@ public class ApplicationComponentLicenseDAO
               r.get(ac.HASH),
               r.get(ac.COMPONENT_ID_FORMAT),
               r.get(ac.COMPONENT_ID_COORDINATES_JSON),
-              r.get("licenses", String.class)))
-          .collect(Collectors.toList());
+              r.get("licenses", String.class))))
+      {
+        return stream.collect(Collectors.toList());
+      }
     }
   }
 
@@ -187,7 +189,8 @@ public class ApplicationComponentLicenseDAO
       // Use CASE expression instead of filterWhere for aggregate (listAgg ignores NULLs)
       var effectiveLicenseField =
           DSL.when(acl.EFFECTIVE_LICENSE_ID.isNotNull(), acl.EFFECTIVE_LICENSE_ID).otherwise((String) null);
-      List<ApplicationComponentLicensesDTO> componentLicenses = tx.dsl()
+      List<ApplicationComponentLicensesDTO> componentLicenses;
+      try (var stream = tx.dsl()
           .select(
               ac.HASH,
               ac.COMPONENT_ID_FORMAT,
@@ -206,8 +209,10 @@ public class ApplicationComponentLicenseDAO
               r.get(ac.HASH),
               r.get(ac.COMPONENT_ID_FORMAT),
               r.get(ac.COMPONENT_ID_COORDINATES_JSON),
-              r.get("licenses", String.class)))
-          .collect(Collectors.toList());
+              r.get("licenses", String.class))))
+      {
+        componentLicenses = stream.collect(Collectors.toList());
+      }
 
       // Query and replace by license overrides, if any
 

@@ -819,7 +819,7 @@ public class RepositoryComponentDAO
 
       select2 += " LIMIT " + filter.pageSize + " OFFSET " + offset;
 
-      List<FirewallQuarantinedComponentDetails> results = tx.dsl()
+      try (var stream = tx.dsl()
           .resultQuery(select2, params.toArray())
           .fetchStream()
           .map(record -> new FirewallQuarantinedComponentDetails(
@@ -834,10 +834,10 @@ public class RepositoryComponentDAO
               record.get(8, String.class),
               record.get(9, String.class),
               record.get(10, String.class),
-              toDate(record.get(11))))
-          .collect(Collectors.toList());
-
-      return results;
+              toDate(record.get(11)))))
+      {
+        return stream.collect(Collectors.toList());
+      }
     }
   }
 

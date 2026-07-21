@@ -1209,7 +1209,7 @@ public class ApplicationDAO
       params.add(first);
       params.add(last);
 
-      List<ApplicationRiskDTO> results = tx.dsl()
+      try (var stream = tx.dsl()
           .resultQuery(sQuery, params.toArray())
           .fetchStream()
           .map(record -> new ApplicationRiskDTO(
@@ -1231,9 +1231,9 @@ public class ApplicationDAO
               record.get(15, Long.class) == null ? 0 : record.get(15, Long.class).intValue(), // severePerStage
               record.get(16, Long.class) == null ? 0 : record.get(16, Long.class).intValue(), // moderatePerStage
               record.get(17, Long.class) == null ? 0 : record.get(17, Long.class).intValue() // lowPerStage
-          ))
-          .toList();
-      return results;
+          ))) {
+        return stream.toList();
+      }
     }
   }
 

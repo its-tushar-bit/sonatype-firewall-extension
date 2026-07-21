@@ -205,7 +205,7 @@ public class SamlUserDAO
       com.sonatype.insight.brain.jooq.generated.ods.tables.SamlGroup sg = SAML_GROUP.as("saml_group");
       com.sonatype.insight.brain.jooq.generated.ods.tables.SamlUserGroup sug = SAML_USER_GROUP.as("saml_user_group");
 
-      tx.dsl()
+      try (var stream = tx.dsl()
           .select(
               SAML_USER.SAML_USER_ID,
               SAML_USER.USERNAME,
@@ -238,8 +238,9 @@ public class SamlUserDAO
             samlUser.setId(id);
 
             return samlUser;
-          })
-          .forEach(consumer);
+          })) {
+        stream.forEach(consumer);
+      }
     }
   }
 

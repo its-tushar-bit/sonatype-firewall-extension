@@ -230,7 +230,7 @@ public class OAuth2UserDAO
       com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2UserGroup oug =
           OAUTH2_USER_GROUP.as("oauth2_user_group");
 
-      tx.dsl()
+      try (var stream = tx.dsl()
           .select(
               OAUTH2_USER.OAUTH2_USER_ID,
               OAUTH2_USER.USERNAME,
@@ -263,8 +263,9 @@ public class OAuth2UserDAO
             oAuth2User.setId(id);
 
             return oAuth2User;
-          })
-          .forEach(consumer);
+          })) {
+        stream.forEach(consumer);
+      }
     }
   }
 

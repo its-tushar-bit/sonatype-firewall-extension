@@ -104,11 +104,13 @@ public class IntegrationStatusDAO
       params.add(DSL.val(ciLookbackDate, SQLDataType.TIMESTAMP));
       params.addAll(applicationIds);
 
-      return tx.dsl()
+      try (var stream = tx.dsl()
           .resultQuery(query, params.toArray())
           .fetchStream()
-          .map(record -> mapToIntegrationStatusSummary(record.intoArray()))
-          .collect(Collectors.toList());
+          .map(record -> mapToIntegrationStatusSummary(record.intoArray())))
+      {
+        return stream.collect(Collectors.toList());
+      }
     }
   }
 

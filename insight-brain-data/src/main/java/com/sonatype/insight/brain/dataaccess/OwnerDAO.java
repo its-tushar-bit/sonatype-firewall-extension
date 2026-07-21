@@ -1225,7 +1225,7 @@ public class OwnerDAO
               DSL.inline("ORGANIZATION").as("type"))
           .from(ORGANIZATION);
 
-      return appQuery.union(orgQuery)
+      try (var stream = appQuery.union(orgQuery)
           .limit(MAX_ALLOWED_DB_RESULTS)
           .fetchStream()
           .map(record -> new OwnerImpl(
@@ -1234,8 +1234,10 @@ public class OwnerDAO
               record.get("parent_owner_id", String.class),
               record.get("have_children", Boolean.class),
               OwnerType.fromString(record.get("type", String.class)),
-              record.get("id", String.class)))
-          .collect(Collectors.toList());
+              record.get("id", String.class))))
+      {
+        return stream.collect(Collectors.toList());
+      }
     }
   }
 
@@ -1298,15 +1300,17 @@ public class OwnerDAO
 
     var query = whereCondition != null ? baseQuery.where(whereCondition) : baseQuery;
 
-    return query.fetchStream()
+    try (var stream = query.fetchStream()
         .map(record -> (Owner) new OwnerImpl(
             record.get("public_id", String.class),
             record.get("name", String.class),
             record.get("parent_owner_id", String.class),
             record.get("have_children", Boolean.class),
             OwnerType.fromString(record.get("type", String.class)),
-            record.get("id", String.class)))
-        .collect(Collectors.toList());
+            record.get("id", String.class))))
+    {
+      return stream.collect(Collectors.toList());
+    }
   }
 
   private List<Owner> fetchOrganizationOwners(
@@ -1327,15 +1331,17 @@ public class OwnerDAO
         ? baseQuery.where(ORGANIZATION.ORGANIZATION_ID.in(organizationsIds))
         : baseQuery;
 
-    return query.fetchStream()
+    try (var stream = query.fetchStream()
         .map(record -> (Owner) new OwnerImpl(
             record.get("public_id", String.class),
             record.get("name", String.class),
             record.get("parent_owner_id", String.class),
             record.get("have_children", Boolean.class),
             OwnerType.fromString(record.get("type", String.class)),
-            record.get("id", String.class)))
-        .collect(Collectors.toList());
+            record.get("id", String.class))))
+    {
+      return stream.collect(Collectors.toList());
+    }
   }
 
   private Condition buildTagCondition(final Set<String> tagIds) {

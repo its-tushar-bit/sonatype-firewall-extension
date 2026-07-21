@@ -110,16 +110,16 @@ function renderAtSearch(ui: React.ReactElement) {
   );
 }
 
-describe('FeatureGate on /search route with GUIDE_SEARCH flag', () => {
+describe('FeatureGate on /search route with AI_DEVELOPER flag', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it('renders the search page when guide-search is present', async () => {
-    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-search']);
+  it('renders the search page when ai-developer is present', async () => {
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['ai-developer']);
 
     renderAtSearch(
-      <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+      <FeatureGate flag={FEATURE_FLAGS.AI_DEVELOPER}>
         <div>Search Page</div>
       </FeatureGate>
     );
@@ -129,11 +129,11 @@ describe('FeatureGate on /search route with GUIDE_SEARCH flag', () => {
     });
   });
 
-  it('redirects to / when guide-search is absent (only guide-ui present)', async () => {
+  it('redirects to / when ai-developer is absent (only guide-ui present)', async () => {
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
 
     renderAtSearch(
-      <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+      <FeatureGate flag={FEATURE_FLAGS.AI_DEVELOPER}>
         <div>Search Page</div>
       </FeatureGate>
     );
@@ -148,7 +148,7 @@ describe('FeatureGate on /search route with GUIDE_SEARCH flag', () => {
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
 
     renderAtSearch(
-      <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+      <FeatureGate flag={FEATURE_FLAGS.AI_DEVELOPER}>
         <div>Search Page</div>
       </FeatureGate>
     );

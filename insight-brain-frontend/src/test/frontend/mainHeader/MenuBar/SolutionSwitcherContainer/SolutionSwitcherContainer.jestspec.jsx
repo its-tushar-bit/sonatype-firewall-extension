@@ -97,6 +97,23 @@ describe('SolutionSwitcher', function () {
     within(exploreSection).getByRole('link', { name: 'SBOM Manager' });
   });
 
+  it('renders AI Developer once under "My Sonatype Solutions" (not duplicated in "Explore") for an AI Developer license', async () => {
+    // The backend reports the new AI Developer SKU as id 'aiDeveloper' (GUIDE-3124), but the
+    // switcher package keys AI Developer as 'guide' in its default list. The slice canonicalizes
+    // 'aiDeveloper' -> 'guide' so it is matched against the default list and not shown again in
+    // Explore.
+    axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, [{ id: 'aiDeveloper', url: 'aidevlink' }]);
+    const wrapper = renderComponent();
+    fireEvent.click(wrapper.getByRole('button', { name: 'Solution Switcher' }));
+
+    const mySonatypeSection = await screen.findByRole('region', { name: 'My Sonatype Solutions' });
+    const aiDeveloper = within(mySonatypeSection).getByRole('link', { name: 'AI Developer' });
+    expect(aiDeveloper).toHaveAttribute('href', 'aidevlink');
+
+    const exploreSection = screen.getByRole('region', { name: 'Explore' });
+    expect(within(exploreSection).queryByRole('link', { name: 'AI Developer' })).not.toBeInTheDocument();
+  });
+
   it('it should not render developer under "Explore" even if user has no licensed solutions', () => {
     axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, []);
     const wrapper = renderComponent();

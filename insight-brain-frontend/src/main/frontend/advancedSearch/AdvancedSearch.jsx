@@ -70,8 +70,10 @@ export default function AdvancedSearch(props) {
           <NxPageTitle.Description>
             Use Advanced Search to find components, applications, and vulnerabilities across your organization&apos;s
             evaluated assets. To explore the broader open source ecosystem, visit{' '}
+            {/* Docs-team-controlled dynamic redirect: the AI Developer destination is updated
+                server-side, so this sonatype-guide URL stays constant in IQ. */}
             <NxTextLink href="https://links.sonatype.com/products/sonatype-guide" external>
-              Sonatype Guide
+              Sonatype AI Developer
             </NxTextLink>
             .
           </NxPageTitle.Description>

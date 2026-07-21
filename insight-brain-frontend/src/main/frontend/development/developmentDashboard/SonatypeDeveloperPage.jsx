@@ -14,6 +14,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import LicenseLockScreen from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import TryAiDeveloperBanner from 'MainRoot/development/developmentDashboard/TryAiDeveloperBanner';
 
 export default function SonatypeDeveloperPage() {
   const dispatch = useDispatch();
@@ -27,6 +28,7 @@ export default function SonatypeDeveloperPage() {
     <NxPageMain>
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
         <NxH1>Dashboard</NxH1>
+        <TryAiDeveloperBanner />
         {isDeveloperDashboardEnabled ? <Overview /> : <LicenseLockScreen />}
       </NxLoadWrapper>
     </NxPageMain>

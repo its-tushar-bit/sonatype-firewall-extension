@@ -54,7 +54,7 @@ export function ComponentsSearchPage() {
     setError(null);
 
     const params = new URLSearchParams(searchParams.toString());
-    if (!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)) params.delete('query');
+    if (!isFeatureEnabled(FEATURE_FLAGS.AI_DEVELOPER)) params.delete('query');
     if (!params.has('limit')) params.set('limit', String(LIMIT));
 
     const query = params.get('query') ?? '';
@@ -114,7 +114,7 @@ export function ComponentsSearchPage() {
         defaultSortValue={defaultSortValue}
         clearRemovesQuery={true}
         hasQuery={hasQuery}
-        hideSearch={!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)}
+        hideSearch={!isFeatureEnabled(FEATURE_FLAGS.AI_DEVELOPER)}
         totalResults={total}
         header={<ComponentsHeader total={total} />}
         onFilterSidebarPendingChange={setFilterPending}

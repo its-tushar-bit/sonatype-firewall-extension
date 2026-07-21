@@ -18,6 +18,11 @@ describe('SonatypeDeveloperSidebar', () => {
           name: 'sbomManager.dashboard',
         },
       },
+      solutionSwitcher: {
+        licensedSolutions: [],
+        loading: false,
+        loadError: null,
+      },
     };
 
     const mockRouterState = {
@@ -127,5 +132,40 @@ describe('SonatypeDeveloperSidebar', () => {
     );
     expect(apiLink).toHaveTextContent('API');
     expect(apiLink).toHaveAttribute('href', '#/developer/api');
+  });
+
+  it('does not render the Try AI Developer link when not entitled', () => {
+    renderComponent();
+    expect(screen.queryByRole('link', { name: /Try AI Developer/ })).not.toBeInTheDocument();
+  });
+
+  it('renders the Try AI Developer link when entitled', () => {
+    renderComponent(
+      {},
+      {
+        solutionSwitcher: {
+          licensedSolutions: [{ id: 'guide', url: 'https://ai-developer.example.com' }],
+          loading: false,
+          loadError: null,
+        },
+      }
+    );
+    const aiDeveloperLink = screen.getByRole('link', { name: /Try AI Developer/ });
+    expect(aiDeveloperLink).toHaveAttribute('href', 'https://ai-developer.example.com');
+    expect(aiDeveloperLink).toHaveAttribute('target', '_blank');
+  });
+
+  it('does not render the Try AI Developer link when entitled but the url is missing', () => {
+    renderComponent(
+      {},
+      {
+        solutionSwitcher: {
+          licensedSolutions: [{ id: 'guide' }],
+          loading: false,
+          loadError: null,
+        },
+      }
+    );
+    expect(screen.queryByRole('link', { name: /Try AI Developer/ })).not.toBeInTheDocument();
   });
 });

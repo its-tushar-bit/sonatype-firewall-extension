@@ -50,11 +50,12 @@ describe('AdvancedSearch', function () {
   });
 
   describe('page title', function () {
-    it('renders a Sonatype Guide link in the page description', function () {
+    it('renders a Sonatype AI Developer link in the page description', function () {
       renderComponent();
 
-      const guideLink = screen.getByRole('link', { name: /Sonatype Guide/i });
+      const guideLink = screen.getByRole('link', { name: /Sonatype AI Developer/i });
       expect(guideLink).toBeInTheDocument();
+      // Docs-team-controlled dynamic redirect updated server-side, so this URL is constant here (see AdvancedSearch.jsx).
       expect(guideLink).toHaveAttribute('href', 'https://links.sonatype.com/products/sonatype-guide');
       expect(guideLink).toHaveAttribute('target', '_blank');
       expect(guideLink).toHaveAttribute('rel', expect.stringMatching(/noreferrer/));

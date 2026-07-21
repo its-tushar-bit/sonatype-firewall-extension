@@ -113,8 +113,8 @@ describe('VulnerabilitiesPage', () => {
     mockSearchVulnerabilities.mockResolvedValue(mockSearchResponse);
     // Default: no browse cache, so the page degrades to search-only aggregations.
     mockFetchVulnerabilityBrowseAggregations.mockResolvedValue(null);
-    // Default: guide-search flag is enabled (tests can override)
-    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-search']);
+    // Default: ai-developer flag is enabled (tests can override)
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['ai-developer']);
   });
 
   describe('loading state', () => {
@@ -371,7 +371,7 @@ describe('VulnerabilitiesPage', () => {
       expect(callArgs.get('sortOrder')).toBe('desc');
     });
 
-    it('strips query from API call when GUIDE_SEARCH is disabled', async () => {
+    it('strips query from API call when AI_DEVELOPER is disabled', async () => {
       jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
 
       render(<VulnerabilitiesPage />, {

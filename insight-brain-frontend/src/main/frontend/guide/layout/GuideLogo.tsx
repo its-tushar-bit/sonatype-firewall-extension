@@ -22,7 +22,7 @@ export function GuideLogo() {
     <a href="#/" onClick={handleClick} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
       <img
         src={resolvedTheme === 'dark' ? logoDark : logoLight}
-        alt="Sonatype Guide"
+        alt="Sonatype AI Developer"
         style={{ maxHeight: '100%', maxWidth: '250px', height: '100%', width: 'auto' }}
       />
     </a>

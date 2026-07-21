@@ -6,7 +6,7 @@
 
 export const FEATURE_FLAGS = {
   GUIDE_UI: 'guide-ui',
-  GUIDE_SEARCH: 'guide-search',
+  AI_DEVELOPER: 'ai-developer',
 } as const;
 
 export type FeatureFlag = (typeof FEATURE_FLAGS)[keyof typeof FEATURE_FLAGS];

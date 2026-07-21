@@ -37,14 +37,54 @@ public class ApiPolicyContextOwnersResourceTest
   private static final String SEARCH_PATH = "api/v2/policy-context/owners/search";
 
   /**
-   * The owner-picker resource is gated by {@link LicensedFeature#GUIDE_SEARCH}, which is
-   * HDS-controlled and not present in the integration-test license mock by default. Without
-   * this override every request would 402 before reaching the resource. Sibling Guide tests
-   * (e.g. {@code GuideComponentsResourceTest}) follow the same pattern.
+   * The owner-picker resource admits on {@link LicensedFeature#GUIDE_SEARCH} or
+   * {@link LicensedFeature#AI_DEVELOPER} (see the {@code anyOf} on the resource's
+   * {@code @ProductLicenseEnforcementPoint}). These features are HDS-controlled and not present in
+   * the integration-test license mock by default. Without this override every request would 402
+   * before reaching the resource. Sibling Guide tests (e.g. {@code GuideComponentsResourceTest})
+   * follow the same pattern.
+   *
+   * <p>
+   * Note: {@code setFeatures} replaces the entire feature set — the license-gating tests below call
+   * it again to exercise the AI-Developer-only and neither-feature cases.
    */
   @Before
   public void enableGuideFeatures() throws Exception {
     setFeatures(LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP, LicensedFeature.GUIDE_SEARCH);
+  }
+
+  // --- License gating ---
+
+  @Test
+  public void getTopOrgs_aiDeveloperLicenseWithoutGuideSearch_returns200() throws Exception {
+    // Unlike the /api/v2/guide/* resources, the owner-picker is gated solely by the resource's
+    // @ProductLicenseEnforcementPoint (no SearchLicenseFilter on /api/v2/policy-context/*). The
+    // anyOf means an AI Developer license clears the gate without GUIDE_SEARCH.
+    setFeatures(LicensedFeature.AI_DEVELOPER);
+    tempEntity.newOrganization("Zeta-aidev-org");
+    User user = createUserWithPermissions(Permission.EVALUATE_APPLICATION);
+
+    HttpResponse response = restRequest()
+        .auth(user)
+        .path(TOP_ORGS_PATH)
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    assertThat(response.getBodyText()).contains("\"name\":\"Zeta-aidev-org\"");
+  }
+
+  @Test
+  public void getTopOrgs_neitherGuideSearchNorAiDeveloper_returns402() throws Exception {
+    // Both admitted features absent: the enforcement point rejects with 402 (Payment Required).
+    setMissingFeatures(LicensedFeature.GUIDE_SEARCH, LicensedFeature.AI_DEVELOPER);
+    User user = createUserWithPermissions(Permission.EVALUATE_APPLICATION);
+
+    HttpResponse response = restRequest()
+        .auth(user)
+        .path(TOP_ORGS_PATH)
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(402);
   }
 
   // --- Authentication ---

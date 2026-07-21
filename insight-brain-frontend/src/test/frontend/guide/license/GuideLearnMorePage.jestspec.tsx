@@ -17,7 +17,7 @@ describe('GuideLearnMorePage', () => {
     );
 
     expect(
-      screen.getByText(/Sonatype Guide is not currently enabled/i)
+      screen.getByText(/Sonatype AI Developer is not currently enabled/i)
     ).toBeInTheDocument();
   });
 

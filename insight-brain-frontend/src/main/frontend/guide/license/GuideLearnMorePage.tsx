@@ -11,15 +11,11 @@ export function GuideLearnMorePage() {
       <Callout.Root size="3" color="blue">
         <Callout.Text>
           <Text>
-            Sonatype Guide is not currently enabled for your organization.
+            Sonatype AI Developer is not currently enabled for your organization.
           </Text>
           <br />
-          <Link
-            href="https://www.sonatype.com/products/sonatype-guide"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn more about Sonatype Guide.
+          <Link href="https://links.sonatype.com/products/sonatype-guide-marketing" target="_blank" rel="noopener noreferrer">
+            Learn more about Sonatype AI Developer.
           </Link>
         </Callout.Text>
       </Callout.Root>

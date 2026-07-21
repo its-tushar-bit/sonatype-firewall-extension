@@ -46,6 +46,18 @@ describe('ProductLicenseInfo', () => {
     });
   });
 
+  it('renders "Sonatype Guide" license type as "Sonatype AI Developer"', () => {
+    const licenseWithGuide = {
+      ...mockLicense,
+      products: [...mockLicense.products, 'Sonatype Guide'],
+    };
+
+    render(<ProductLicenseInfo license={licenseWithGuide} />);
+
+    expect(screen.getByText('Sonatype AI Developer')).toBeInTheDocument();
+    expect(screen.queryByText('Sonatype Guide')).not.toBeInTheDocument();
+  });
+
   it('renders user limits correctly', () => {
     render(<ProductLicenseInfo license={mockLicense} />);
 

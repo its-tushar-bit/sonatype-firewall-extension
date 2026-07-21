@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/mainHeader/MenuBar/SolutionSwitcherContainer/solutionSwitcherSlice';
+import reducer, { actions } from 'MainRoot/mainHeader/MenuBar/SolutionSwitcherContainer/solutionSwitcherSlice';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { getLicensedSolutionsUrl } from 'MainRoot/util/CLMLocation';
 
 describe('solutionSwitcher reducer', () => {
   describe('solutionSwitcher/fetchLicensedSolutions/pending', () => {
@@ -38,6 +40,26 @@ describe('solutionSwitcher reducer', () => {
 
       expect(loading).toBe(false);
       expect(licensedSolutions).toBe(mockFetchResult);
+    });
+  });
+
+  describe('solutionSwitcher/fetchLicensedSolutions thunk', () => {
+    let axiosMock;
+
+    beforeAll(() => {
+      axiosMock = axiosMockAdapter();
+    });
+
+    it('canonicalizes a non-array response to an empty array so guide-keyed selectors do not throw', async () => {
+      // A 200 response with a non-array body (e.g. null) would otherwise flow into
+      // state.licensedSolutions and make selectAiDeveloperLicensedSolution's .find() throw.
+      axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, null);
+
+      const store = SpecUtil.mockReduxStore();
+      const resultAction = await store.dispatch(actions.fetchLicensedSolutions());
+
+      expect(resultAction.type).toBe('solutionSwitcher/fetchLicensedSolutions/fulfilled');
+      expect(resultAction.payload).toEqual([]);
     });
   });
 

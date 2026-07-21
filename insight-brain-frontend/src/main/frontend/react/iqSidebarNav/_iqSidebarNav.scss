@@ -40,6 +40,12 @@
 
   .nx-global-sidebar__navigation-text {
     flex: 1;
+    // Longer labels (e.g. "Try AI Developer") plus the badge exceed the sidebar width; let the
+    // badge wrap onto its own line instead of overflowing. column-gap replaces the badge's
+    // margin-left so a wrapped badge still aligns with the label's left edge.
+    flex-wrap: wrap;
+    column-gap: var(--nx-spacing-3x);
+    row-gap: var(--nx-spacing-2x);
   }
 
   > .nx-icon {
@@ -58,7 +64,6 @@
     font-size: 14px;
     font-weight: 600;
     line-height: $height;
-    margin-left: var(--nx-spacing-3x);
     padding: 0 var(--nx-spacing-3x);
     vertical-align: bottom;
     color: white;

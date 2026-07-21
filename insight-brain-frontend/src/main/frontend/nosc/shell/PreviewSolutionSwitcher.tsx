@@ -47,8 +47,8 @@ import firewallLight from '@sonatype/solution-switcher-react-component/component
 import firewallDark from '@sonatype/solution-switcher-react-component/components/SolutionSwitcher/images/dark/firewall-color-reversed-icon.svg';
 import sbomLight from '@sonatype/solution-switcher-react-component/components/SolutionSwitcher/images/light/sbom-color-icon.svg';
 import sbomDark from '@sonatype/solution-switcher-react-component/components/SolutionSwitcher/images/dark/sbom-color-reversed-icon.svg';
-import guideLight from '@sonatype/solution-switcher-react-component/components/SolutionSwitcher/images/light/guide-color-icon.svg';
-import guideDark from '@sonatype/solution-switcher-react-component/components/SolutionSwitcher/images/dark/guide-color-reversed-icon.svg';
+import guideLight from '@sonatype/solution-switcher-react-component/components/SolutionSwitcher/images/light/ai-developer-color-icon.svg';
+import guideDark from '@sonatype/solution-switcher-react-component/components/SolutionSwitcher/images/dark/ai-developer-color-reversed-icon.svg';
 
 const ICON_MAP: Record<LicensedSolution['id'], { light: string; dark: string }> = {
   developer: { light: developerLight, dark: developerDark },

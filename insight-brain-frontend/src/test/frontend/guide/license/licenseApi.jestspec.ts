@@ -33,6 +33,38 @@ describe('fetchLicensedSolutions', () => {
     ]);
   });
 
+  // GUIDE-3124 gave the new AI Developer SKU its own solution id ('aiDeveloper'). It is the same
+  // product surface as the legacy Guide SKU, so it is canonicalized onto 'guide' at this fetch —
+  // this is what lets an AI-Developer-only license clear the license gate and render as
+  // "AI Developer" in the product switcher.
+  it("canonicalizes the 'aiDeveloper' solution id onto 'guide'", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([
+        { id: 'lifecycle', url: '/lifecycle' },
+        { id: 'aiDeveloper', url: '/guide' },
+      ]),
+    });
+
+    const result = await fetchLicensedSolutions();
+
+    expect(result).toEqual([
+      { id: 'lifecycle', url: '/lifecycle' },
+      { id: 'guide', url: '/guide' },
+    ]);
+  });
+
+  it("leaves a legacy 'guide' solution id unchanged", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([{ id: 'guide', url: '/guide' }]),
+    });
+
+    const result = await fetchLicensedSolutions();
+
+    expect(result).toEqual([{ id: 'guide', url: '/guide' }]);
+  });
+
   it('returns an empty array when the response body is not an array', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,

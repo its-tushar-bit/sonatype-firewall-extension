@@ -48,7 +48,7 @@ export function VulnerabilitiesPage() {
     let cancelled = false;
 
     const params = new URLSearchParams(searchParams.toString());
-    if (!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)) params.delete('query');
+    if (!isFeatureEnabled(FEATURE_FLAGS.AI_DEVELOPER)) params.delete('query');
     if (!params.has('limit')) params.set('limit', String(LIMIT));
 
     if (!params.has('sortField')) params.set('sortField', 'publishedDate');
@@ -102,7 +102,7 @@ export function VulnerabilitiesPage() {
         formAction="/vulnerabilities"
         searchPlaceholder="Search vulnerabilities..."
         sortOptions={vulnerabilitySortOptions}
-        hideSearch={!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)}
+        hideSearch={!isFeatureEnabled(FEATURE_FLAGS.AI_DEVELOPER)}
         totalResults={total}
         header={<VulnerabilitiesHeader total={total} />}
         clearRemovesQuery

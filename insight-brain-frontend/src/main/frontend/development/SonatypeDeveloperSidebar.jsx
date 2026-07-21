@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { NxGlobalSidebar2, useToggle, NxGlobalSidebar2NavigationLink } from '@sonatype/react-shared-components';
 import {
   faHouse,
@@ -14,13 +15,20 @@ import {
   faListOl,
   faPlug,
   faMagnifyingGlass,
+  faWandMagicSparkles,
 } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
+import {
+  selectIsAiDeveloperEntitled,
+  selectAiDeveloperUrl,
+} from 'MainRoot/mainHeader/MenuBar/SolutionSwitcherContainer/solutionSwitcherSelectors';
 
 export default function SonatypeDeveloperSidebar(props) {
   const { currentState, isLoggedIn, isAdvancedSearchEnabled, isApiPageEnabled } = props;
   const uiRouterState = useRouterState();
+  const isAiDeveloperEntitled = useSelector(selectIsAiDeveloperEntitled);
+  const aiDeveloperUrl = useSelector(selectAiDeveloperUrl);
   const dashboardState = 'developer.dashboard';
   const prioritiesState = 'developer.priorities';
   const advancedSearchState = 'developer.advancedSearch';
@@ -98,6 +106,26 @@ export default function SonatypeDeveloperSidebar(props) {
                 </>
               }
               href={apiHref}
+            />
+          )}
+          {isAiDeveloperEntitled && aiDeveloperUrl && (
+            <NxGlobalSidebar2NavigationLink
+              id="sonatype-developer-ai-developer-navigation-button"
+              className="iq-api-nav-link"
+              icon={faWandMagicSparkles}
+              text={
+                <>
+                  <span>Try AI Developer</span>
+                  <span className="iq-api-nav-link__navigation-badge">
+                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                    <span className="iq-api-nav-link__tooltip-only-text"> (</span>
+                    NEW
+                    <span className="iq-api-nav-link__tooltip-only-text">)</span>
+                  </span>
+                </>
+              }
+              href={aiDeveloperUrl}
+              target="_blank"
             />
           )}
         </>

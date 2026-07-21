@@ -86,7 +86,7 @@ export const PRODUCT_METADATA: Record<SolutionId, ProductMetadata> = {
       'https://www.sonatype.com/products/sonatype-sbom-manager?utm_campaign=Solution-Switcher&utm_source=product&utm_medium=sbom-manager',
   },
   guide: {
-    displayName: 'Guide',
+    displayName: 'AI Developer',
     iconLight: guideLight,
     iconDark: guideDark,
     marketingUrl:

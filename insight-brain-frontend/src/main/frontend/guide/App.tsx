@@ -75,7 +75,7 @@ function AuthGate() {
                       <Route
                         path="/search"
                         element={
-                          <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+                          <FeatureGate flag={FEATURE_FLAGS.AI_DEVELOPER}>
                             <SearchPage />
                           </FeatureGate>
                         }

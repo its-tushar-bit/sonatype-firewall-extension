@@ -14,6 +14,11 @@ import { TIER_LIFECYCLE_PRO, TIER_LIFECYCLE_ENTERPRISE } from 'MainRoot/productF
 export const EXPIRATION_DATE_FORMAT = 'MMMM DD, YYYY';
 const mkLimit = (name, count) => ({ name, count });
 
+const PRODUCT_DISPLAY_NAME_OVERRIDES = {
+  'Sonatype Guide': 'Sonatype AI Developer',
+};
+const displayProductName = (product) => PRODUCT_DISPLAY_NAME_OVERRIDES[product] || product;
+
 export default function ProductLicenseInfo({ license }) {
   const userLimits = [
     license.licensedUsersToDisplay && mkLimit('Lifecycle', license.licensedUsersToDisplay),
@@ -57,7 +62,7 @@ export default function ProductLicenseInfo({ license }) {
             <dt className="nx-read-only__label">License Type(s)</dt>
             {(license.products || []).map((product, index) => (
               <dd className="nx-read-only__data license-product" key={index}>
-                {product}
+                {displayProductName(product)}
               </dd>
             ))}
           </div>

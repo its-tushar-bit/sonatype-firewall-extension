@@ -84,8 +84,8 @@ const render = (ui: React.ReactElement, options?: Parameters<typeof renderBase>[
 describe('ComponentsSearchPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: guide-search flag is enabled
-    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-search']);
+    // Default: ai-developer flag is enabled
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['ai-developer']);
   });
 
   afterEach(() => {
@@ -369,7 +369,7 @@ describe('ComponentsSearchPage', () => {
     });
   });
 
-  it('strips query from API call when GUIDE_SEARCH is disabled', async () => {
+  it('strips query from API call when AI_DEVELOPER is disabled', async () => {
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
     mockSearchComponents.mockResolvedValue(makeMockResponse(0, 0));
 

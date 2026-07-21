@@ -1,0 +1,64 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.iq-try-ai-developer-banner {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--nx-spacing-4x);
+  padding: var(--nx-spacing-4x) var(--nx-spacing-6x);
+  margin-bottom: var(--nx-spacing-4x);
+  max-width: 800px;
+  width: 100%;
+  border-radius: var(--nx-border-radius);
+
+  background-color: var(--nx-swatch-blue-97);
+  border: 1px solid var(--nx-swatch-blue-40);
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-blue-10);
+    border-color: var(--nx-swatch-blue-30);
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--nx-swatch-white);
+    color: var(--nx-color-text-dark);
+    font-size: 16px;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-blue-30);
+      color: var(--nx-swatch-white);
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    color: var(--nx-color-text);
+    line-height: 1.5;
+
+    > div {
+      margin-bottom: var(--nx-spacing-2x);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    strong {
+      font-weight: 600;
+      color: var(--nx-color-text-dark);
+    }
+  }
+}

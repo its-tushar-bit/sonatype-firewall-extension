@@ -34,7 +34,7 @@ describe('TopNavigation', () => {
       headers: new Headers(),
       json: async () => ({ hits: [], total: 0, offset: 0, limit: 25, aggregations: {} }),
     });
-    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-search']);
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['ai-developer']);
   });
 
   afterEach(() => {
@@ -63,7 +63,7 @@ describe('TopNavigation', () => {
     });
   });
 
-  // guide-ui is intentionally absent — search visibility is controlled by guide-search only
+  // guide-ui is intentionally absent — search visibility is controlled by ai-developer only
   it('renders the global search input with placeholder', async () => {
     renderTopNav();
 
@@ -115,7 +115,7 @@ describe('TopNavigation', () => {
     });
   });
 
-  it('hides search when guide-search is absent even if guide-ui is present', async () => {
+  it('hides search when ai-developer is absent even if guide-ui is present', async () => {
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
 
     renderTopNav();

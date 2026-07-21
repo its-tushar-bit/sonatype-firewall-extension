@@ -43,7 +43,7 @@ import jakarta.ws.rs.core.Response;
 @Singleton
 @Path("/api/v2/policy-context/owners")
 @Produces(MediaType.APPLICATION_JSON)
-@ProductLicenseEnforcementPoint(LicensedFeature.GUIDE_SEARCH)
+@ProductLicenseEnforcementPoint(value = LicensedFeature.GUIDE_SEARCH, anyOf = LicensedFeature.AI_DEVELOPER)
 public class ApiPolicyContextOwnersResource
 {
   private static final int TOP_ORGS_DEFAULT_LIMIT = 20;

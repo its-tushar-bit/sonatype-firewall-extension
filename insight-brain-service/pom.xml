@@ -832,6 +832,11 @@
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>aws-crt-client</artifactId>
     </dependency>
+    <!-- Required for the default credentials chain to resolve EKS IRSA web-identity tokens via STS AssumeRoleWithWebIdentity -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sts</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.opensearch.client</groupId>
       <artifactId>opensearch-java</artifactId>

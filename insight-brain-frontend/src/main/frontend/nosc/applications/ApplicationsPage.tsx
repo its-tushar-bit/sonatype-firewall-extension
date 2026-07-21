@@ -15,7 +15,11 @@ import {
   ApplicationRiskScore,
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
-import { ApplicationsListFilterState } from 'MainRoot/nosc/applications/applicationsListFilters';
+import {
+  ApplicationsListFilterSetField,
+  ApplicationsListFilterState,
+  ApplicationsThreatRange,
+} from 'MainRoot/nosc/applications/applicationsListFilters';
 import { ApplicationsListOrderBy } from 'MainRoot/nosc/applications/applicationsListApi';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 
@@ -27,9 +31,10 @@ export interface ApplicationsPageProps {
   readonly filters: ApplicationsListFilterState;
   readonly hasActiveFilters: boolean;
   readonly onToggleFilter: (
-    field: keyof ApplicationsListFilterState,
+    field: ApplicationsListFilterSetField,
     id: string,
   ) => void;
+  readonly onThreatRangeChange: (range: ApplicationsThreatRange) => void;
   readonly onResetFilters: () => void;
   readonly loading?: boolean;
   readonly error?: string | null;
@@ -60,6 +65,7 @@ export default function ApplicationsPage({
   filters,
   hasActiveFilters,
   onToggleFilter,
+  onThreatRangeChange,
   onResetFilters,
   loading = false,
   error = null,
@@ -101,12 +107,13 @@ export default function ApplicationsPage({
           </Text>
         </Flex>
 
-        <Flex gap="4" align="start" wrap="wrap" data-testid="applications-page-layout">
+        <div className="applications-page__layout" data-testid="applications-page-layout">
           <ApplicationsFilterRail
             facets={facets}
             filters={filters}
             hasActiveFilters={hasActiveFilters}
             onToggleFilter={onToggleFilter}
+            onThreatRangeChange={onThreatRangeChange}
             onResetFilters={onResetFilters}
           />
           <Box className="applications-page__content" data-testid="applications-page-content">
@@ -201,7 +208,7 @@ export default function ApplicationsPage({
               </AsyncPageState>
             </Flex>
           </Box>
-        </Flex>
+        </div>
       </main>
     </Box>
   );

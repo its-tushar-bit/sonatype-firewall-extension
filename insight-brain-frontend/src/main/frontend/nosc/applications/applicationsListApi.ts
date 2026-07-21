@@ -10,7 +10,6 @@ import {
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { deriveFacetsFromPageRows } from 'MainRoot/nosc/applications/deriveFacetsFromPageRows';
-import { staticThreatLevelFacets } from 'MainRoot/nosc/applications/applicationsListFilters';
 import type { ApplicationsListOrderBy } from 'MainRoot/nosc/applications/applicationsListQuery';
 
 export type { ApplicationsListOrderBy };
@@ -49,7 +48,11 @@ export type ApiApplicationRiskScore = {
 export type ApiApplicationsListFacets = {
   readonly totalApplications?: number;
   readonly organizations?: Readonly<Record<string, number>> | null;
+  /** Display names keyed by internal organization id. */
+  readonly organizationNames?: Readonly<Record<string, string>> | null;
   readonly applications?: Readonly<Record<string, number>> | null;
+  /** Display names keyed by internal application id. */
+  readonly applicationNames?: Readonly<Record<string, string>> | null;
   readonly stages?: Readonly<Record<string, number>> | null;
 };
 
@@ -129,8 +132,6 @@ function facetEntriesFromMap(
   labelById: ReadonlyMap<string, string>,
 ): ReadonlyArray<{ readonly id: string; readonly label: string; readonly count: number }> {
   if (!counts) return [];
-  // Labels come from the current page rows only; cross-page facet IDs fall back to the raw
-  // id until server facet enrichment returns display names.
   return Object.entries(counts)
     .filter(([id]) => id.trim().length > 0)
     .map(([id, count]) => ({
@@ -139,6 +140,21 @@ function facetEntriesFromMap(
       count,
     }))
     .sort((left, right) => left.label.localeCompare(right.label));
+}
+
+function mergeLabelMap(
+  primary: Readonly<Record<string, string>> | null | undefined,
+  fallback: ReadonlyMap<string, string>,
+): Map<string, string> {
+  const merged = new Map(fallback);
+  if (primary) {
+    Object.entries(primary).forEach(([id, label]) => {
+      if (id.trim().length > 0 && label.trim().length > 0) {
+        merged.set(id, label);
+      }
+    });
+  }
+  return merged;
 }
 
 function buildLabelMaps(
@@ -155,6 +171,8 @@ function buildLabelMaps(
     if (app.organizationId) {
       organizations.set(app.organizationId, app.organizationName);
     }
+    // Page rows expose publicId as applicationId; API application facets use internal ids.
+    // Prefer server applicationNames for facet labels — page-row names are a fallback for stages/orgs.
     apps.set(app.applicationId, app.applicationName);
     app.stageRisks.forEach((stage) => {
       stages.set(stage.stageTypeId, stage.stageTypeName);
@@ -177,16 +195,16 @@ export function mapApiFacets(
 ): ApplicationsFilterFacetCounts {
   const labels = buildLabelMaps(applications);
   const apiFacets = response.facets;
+  const organizationLabels = mergeLabelMap(apiFacets?.organizationNames, labels.organizations);
+  const applicationLabels = mergeLabelMap(apiFacets?.applicationNames, labels.applications);
 
-  const organizations = facetEntriesFromMap(apiFacets?.organizations, labels.organizations);
-  const appFacets = facetEntriesFromMap(apiFacets?.applications, labels.applications);
+  const organizations = facetEntriesFromMap(apiFacets?.organizations, organizationLabels);
+  const appFacets = facetEntriesFromMap(apiFacets?.applications, applicationLabels);
   const stageFacets = facetEntriesFromMap(apiFacets?.stages, labels.stages);
   const derived = deriveFacetsFromPageRows(applications);
 
   return {
     totalApplications,
-    // Threat bucket rows are static until the list API returns server-side facet counts.
-    threatLevels: staticThreatLevelFacets(),
     stages: stageFacets.length > 0 ? stageFacets : derived.stages,
     organizations: organizations.length > 0 ? organizations : derived.organizations,
     applications: appFacets.length > 0 ? appFacets : derived.applications,

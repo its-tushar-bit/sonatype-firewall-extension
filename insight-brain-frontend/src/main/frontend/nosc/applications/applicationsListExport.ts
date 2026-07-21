@@ -7,25 +7,19 @@ import type { ApplicationsListFilterState } from 'MainRoot/nosc/applications/app
 import { applicationsListFiltersToRequest } from 'MainRoot/nosc/applications/applicationsListFilters';
 import type { ApplicationsListOrderBy } from 'MainRoot/nosc/applications/applicationsListQuery';
 
-function toClassicExportThreatRange(
-  ranges: NonNullable<
-    ReturnType<typeof applicationsListFiltersToRequest>['policyThreatLevelRanges']
-  >,
-): { minPolicyThreatLevel: number; maxPolicyThreatLevel: number } | undefined {
-  if (ranges.length === 0) {
-    return undefined;
+/**
+ * Classic PostgreSQL application-risk export rejects Martha's {@code lastEvaluationTime} tokens
+ * ({@code PostgresApplicationRiskService}). Map to Classic {@code TOTAL_RISK} while preserving
+ * direction. Callers should surface this remapping in the export UI (see ApplicationsToolbar).
+ */
+export function toClassicExportOrderBy(orderBy: ApplicationsListOrderBy): string {
+  if (orderBy === 'lastEvaluationTime') {
+    return 'TOTAL_RISK';
   }
-  if (ranges.length === 1) {
-    return ranges[0];
+  if (orderBy === '-lastEvaluationTime') {
+    return '-TOTAL_RISK';
   }
-  // Classic export accepts a single policyThreatLevelRange; collapse OR-selected buckets to an envelope.
-  let min = ranges[0].minPolicyThreatLevel;
-  let max = ranges[0].maxPolicyThreatLevel;
-  for (let i = 1; i < ranges.length; i += 1) {
-    min = Math.min(min, ranges[i].minPolicyThreatLevel);
-    max = Math.max(max, ranges[i].maxPolicyThreatLevel);
-  }
-  return { minPolicyThreatLevel: min, maxPolicyThreatLevel: max };
+  return orderBy;
 }
 
 /**
@@ -33,9 +27,9 @@ function toClassicExportThreatRange(
  *
  * Uses POST /rest/dashboard/export/applicationRisks (multipart {@code filter} JSON). Sidebar
  * filters map into Classic export fields; free-text {@code search} is index-only and is not
- * supported on the Classic export path. Sort mirrors the toolbar selection via
- * {@link ApplicationRiskScoreDTOComparator} tokens ({@code lastEvaluationTime} /
- * {@code -lastEvaluationTime}). Pagination fields are omitted — the export resource fetches all
+ * supported on the Classic export path. Martha toolbar sort ({@code lastEvaluationTime}) is
+ * mapped to Classic {@code TOTAL_RISK} because PostgreSQL-backed export does not support
+ * evaluation-time ordering. Pagination fields are omitted — the export resource fetches all
  * matching rows via {@code getApplicationRisks(..., 0, Integer.MAX_VALUE)}.
  *
  * Stage parity caveat: Martha list stage filters are violation-scoped (apps with at least one
@@ -49,7 +43,7 @@ export function buildApplicationsListExportPayload(
 ): Record<string, unknown> {
   const requestFilters = applicationsListFiltersToRequest(filters);
   const payload: Record<string, unknown> = {
-    orderBy,
+    orderBy: toClassicExportOrderBy(orderBy),
   };
 
   if (requestFilters.organizationIds?.length) {
@@ -61,11 +55,9 @@ export function buildApplicationsListExportPayload(
   if (requestFilters.stageIds?.length) {
     payload.stageIds = requestFilters.stageIds;
   }
+  // Classic export accepts a single policyThreatLevelRange; Martha list may emit one range.
   if (requestFilters.policyThreatLevelRanges?.length) {
-    const threatRange = toClassicExportThreatRange(requestFilters.policyThreatLevelRanges);
-    if (threatRange) {
-      payload.policyThreatLevelRange = threatRange;
-    }
+    payload.policyThreatLevelRange = requestFilters.policyThreatLevelRanges[0];
   }
 
   return payload;

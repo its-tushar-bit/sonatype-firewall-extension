@@ -179,6 +179,11 @@ export function classicAppDetailHref(publicId: string): string {
   return classicHref(`/management/view/application/${encodeURIComponent(publicId)}`);
 }
 
+/** Nexus One application-detail hash href (`#/applications/{publicId}`). */
+export function applicationDetailHref(publicId: string): string {
+  return `#/applications/${encodeURIComponent(publicId)}`;
+}
+
 export function classicReportHref(publicId: string, scanId: string): string {
   return classicHref(
     `/applicationReport/${encodeURIComponent(publicId)}/${encodeURIComponent(scanId)}/policy`,

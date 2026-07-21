@@ -51,15 +51,15 @@ export default function ApplicationsToolbar({
     [filters, orderBy],
   );
   const csvExportTitle = useMemo(() => {
-    const caveats: string[] = [];
+    const caveats: string[] = [
+      // Classic PostgreSQL export rejects lastEvaluationTime; payload remaps to TOTAL_RISK.
+      'sorted by total risk (not evaluation time)',
+    ];
     if (searchValue.trim().length > 0) {
       caveats.push('search term is not included');
     }
     if (filters.stageIds.size > 0) {
       caveats.push('stage filter uses Classic matching and may differ from this list');
-    }
-    if (caveats.length === 0) {
-      return undefined;
     }
     return `CSV export caveat: ${caveats.join('; ')}`;
   }, [searchValue, filters.stageIds]);

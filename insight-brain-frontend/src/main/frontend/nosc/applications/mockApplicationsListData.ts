@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { THREAT_GROUPS } from 'MainRoot/nosc/applications/applicationDetailUtils';
 import {
   ApplicationRiskScore,
   ApplicationsFilterFacetCounts,
@@ -112,11 +111,6 @@ export function deriveMockApplicationsFilterFacets(
 
   return {
     totalApplications: applications.length,
-    threatLevels: THREAT_GROUPS.map(({ group, range }) => ({
-      id: group,
-      label: `${range} ${group}`,
-      count: group === 'None' ? 1 : Math.max(0, applications.length - 1),
-    })),
     stages,
     organizations,
     applications: appFacets,

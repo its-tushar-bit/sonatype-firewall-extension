@@ -68,6 +68,7 @@ export default function ApplicationsList() {
     submitSearch,
     changeOrderBy,
     toggleFilter,
+    setThreatRange,
     resetFilters,
     syncQueryState,
   } = useApplicationsList({ initialState: parsed, enabled: fetchEnabled });
@@ -110,6 +111,7 @@ export default function ApplicationsList() {
       filters={filters}
       hasActiveFilters={hasActiveFilters}
       onToggleFilter={toggleFilter}
+      onThreatRangeChange={setThreatRange}
       onResetFilters={resetFilters}
       loading={loading}
       error={error}

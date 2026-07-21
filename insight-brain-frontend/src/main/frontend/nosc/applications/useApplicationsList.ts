@@ -17,10 +17,13 @@ import {
   ApplicationsFilterFacetCounts,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import {
+  ApplicationsListFilterSetField,
   ApplicationsListFilterState,
+  ApplicationsThreatRange,
   EMPTY_APPLICATIONS_LIST_FILTERS,
   applicationsListFiltersToRequest,
   hasActiveApplicationsListFilters,
+  normalizeApplicationsThreatRange,
   toggleApplicationsListFilterId,
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 import {
@@ -57,9 +60,10 @@ export interface UseApplicationsListResult {
   readonly submitSearch: (term: string) => void;
   readonly changeOrderBy: (orderBy: ApplicationsListOrderBy) => void;
   readonly toggleFilter: (
-    field: keyof ApplicationsListFilterState,
+    field: ApplicationsListFilterSetField,
     id: string,
   ) => void;
+  readonly setThreatRange: (range: ApplicationsThreatRange) => void;
   readonly resetFilters: () => void;
   readonly syncQueryState: (state: {
     readonly search: string;
@@ -71,7 +75,6 @@ export interface UseApplicationsListResult {
 
 const EMPTY_FACETS: ApplicationsFilterFacetCounts = {
   totalApplications: 0,
-  threatLevels: [],
   stages: [],
   organizations: [],
   applications: [],
@@ -139,12 +142,16 @@ export function useApplicationsList(
     [data],
   );
 
+  // Prefer local page while a newer request is in flight. Trusting mapped.page from a stale
+  // response (still page 0 with hasNextPage=true) was snapping pagination back to page 1.
   const resolvedPage = useMemo(() => {
     if (!mapped) return page;
-    const apiPage = mapped.page ?? page;
-    if (mapped.hasNextPage) return apiPage;
-    const maxPage = mapped.total <= 0 ? 0 : Math.max(0, Math.ceil(mapped.total / mapped.pageSize) - 1);
-    return Math.min(apiPage, maxPage);
+    const maxPage =
+      mapped.total <= 0 ? 0 : Math.max(0, Math.ceil(mapped.total / mapped.pageSize) - 1);
+    if (!mapped.hasNextPage && page > maxPage) {
+      return maxPage;
+    }
+    return page;
   }, [mapped, page]);
 
   useEffect(() => {
@@ -168,19 +175,24 @@ export function useApplicationsList(
   }, []);
 
   const toggleFilter = useCallback((
-    field: keyof ApplicationsListFilterState,
+    field: ApplicationsListFilterSetField,
     id: string,
   ) => {
-    setFilters((current) => {
-      const next = toggleApplicationsListFilterId(current, field, id);
-      // No-op toggles (unknown/None threat ids) return the same object — skip page reset/refetch.
-      if (next === current) {
-        return current;
-      }
-      setPage(0);
-      return next;
-    });
+    setPage(0);
+    setFilters((current) => toggleApplicationsListFilterId(current, field, id));
   }, []);
+
+  const setThreatRange = useCallback((range: ApplicationsThreatRange) => {
+    const normalized = normalizeApplicationsThreatRange(range);
+    if (
+      filters.threatRange[0] === normalized[0]
+      && filters.threatRange[1] === normalized[1]
+    ) {
+      return;
+    }
+    setPage(0);
+    setFilters((current) => ({ ...current, threatRange: normalized }));
+  }, [filters.threatRange]);
 
   const resetFilters = useCallback(() => {
     setFilters(EMPTY_APPLICATIONS_LIST_FILTERS);
@@ -227,6 +239,7 @@ export function useApplicationsList(
     submitSearch,
     changeOrderBy,
     toggleFilter,
+    setThreatRange,
     resetFilters,
     syncQueryState,
   };

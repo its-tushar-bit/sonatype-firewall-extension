@@ -4,7 +4,20 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-.applications-page__content {
-  flex: 1;
+.applications-page__layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
   min-width: 0;
+}
+
+.applications-page__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .applications-page__layout {
+    flex-wrap: wrap;
+  }
 }

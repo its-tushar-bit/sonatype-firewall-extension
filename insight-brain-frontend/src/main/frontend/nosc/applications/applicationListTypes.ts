@@ -45,7 +45,6 @@ export type ApplicationRiskScore = {
 /** Facet counts for the filter rail (CLM-42225 wires live facets from S6). */
 export type ApplicationsFilterFacetCounts = {
   readonly totalApplications: number;
-  readonly threatLevels: ReadonlyArray<{ readonly id: string; readonly label: string; readonly count: number }>;
   readonly stages: ReadonlyArray<{ readonly id: string; readonly label: string; readonly count: number }>;
   readonly organizations: ReadonlyArray<{ readonly id: string; readonly label: string; readonly count: number }>;
   readonly applications: ReadonlyArray<{ readonly id: string; readonly label: string; readonly count: number }>;

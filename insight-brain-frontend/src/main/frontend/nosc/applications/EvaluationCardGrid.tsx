@@ -3,27 +3,52 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { Box, Card, Flex, Grid, Text } from '@radix-ui/themes';
+import React, { useMemo } from 'react';
+import { Badge, Box, Card, Flex, Grid, Text } from '@radix-ui/themes';
 import PreviewDashboardApplicationsAppNameLink from 'MainRoot/nosc/dashboard/tabs/PreviewDashboardApplicationsAppNameLink';
+import { applicationDetailHref } from 'MainRoot/nosc/applications/applicationDetailUtils';
 import {
   ApplicationRiskScore,
   ApplicationStageRisk,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { ApplicationSeverityBadge } from 'MainRoot/nosc/dashboard/tabs/ApplicationSeverityBadge';
-import { nexusOneApplicationReportHref } from 'MainRoot/nexus-one/nexusOneApplicationReportHref';
+import './EvaluationCardGrid.scss';
 
-function formatEvaluationDate(isoDate?: string): string {
+/** Display order for known IQ stages; unknown stage ids are appended alphabetically. */
+const STAGE_COLUMN_ORDER: ReadonlyArray<{ readonly id: string; readonly label: string }> = [
+  { id: 'develop', label: 'Develop' },
+  { id: 'source', label: 'Source' },
+  { id: 'build', label: 'Build' },
+  { id: 'stage-release', label: 'Stage Release' },
+  { id: 'release', label: 'Release' },
+  { id: 'operate', label: 'Operate' },
+];
+
+/** Prototype baseline columns always rendered for layout stability. */
+const ALWAYS_VISIBLE_STAGE_IDS: ReadonlySet<string> = new Set([
+  'source',
+  'build',
+  'stage-release',
+  'release',
+]);
+
+function formatRelativeTime(isoDate?: string): string {
   if (!isoDate) return '—';
   const parsed = new Date(isoDate);
   if (Number.isNaN(parsed.getTime())) return '—';
-  return parsed.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  const deltaMs = parsed.getTime() - Date.now();
+  const absMs = Math.abs(deltaMs);
+  const minute = 60_000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const month = 30 * day;
+  const year = 365 * day;
+  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  if (absMs < hour) return rtf.format(Math.round(deltaMs / minute), 'minute');
+  if (absMs < day) return rtf.format(Math.round(deltaMs / hour), 'hour');
+  if (absMs < month) return rtf.format(Math.round(deltaMs / day), 'day');
+  if (absMs < year) return rtf.format(Math.round(deltaMs / month), 'month');
+  return rtf.format(Math.round(deltaMs / year), 'year');
 }
 
 function latestEvaluationDate(stageRisks: ReadonlyArray<ApplicationStageRisk>): string | undefined {
@@ -41,97 +66,178 @@ function latestEvaluationDate(stageRisks: ReadonlyArray<ApplicationStageRisk>): 
   return latest;
 }
 
-const STAGE_TILE_STYLE = {
-  border: '1px solid var(--gray-6)',
-  borderRadius: 'var(--radius-2)',
-  backgroundColor: 'var(--gray-2)',
-  display: 'block',
-  textDecoration: 'none',
-  color: 'inherit',
-} as const;
+function stageById(
+  stageRisks: ReadonlyArray<ApplicationStageRisk>,
+): ReadonlyMap<string, ApplicationStageRisk> {
+  const map = new Map<string, ApplicationStageRisk>();
+  stageRisks.forEach((stage) => map.set(stage.stageTypeId, stage));
+  return map;
+}
 
-function StageTile({
+/**
+ * Baseline source/build/stage-release/release columns, plus any other stages present on the
+ * page (develop, operate, custom) so rail filters never drop risk into an invisible column.
+ */
+export function resolveStageColumns(
+  applications: ReadonlyArray<ApplicationRiskScore>,
+): ReadonlyArray<{ readonly id: string; readonly label: string }> {
+  const labels = new Map<string, string>();
+  applications.forEach((application) => {
+    application.stageRisks.forEach((stage) => {
+      if (!labels.has(stage.stageTypeId)) {
+        labels.set(stage.stageTypeId, stage.stageTypeName || stage.stageTypeId);
+      }
+    });
+  });
+
+  const idsToShow = new Set<string>(ALWAYS_VISIBLE_STAGE_IDS);
+  labels.forEach((_, id) => idsToShow.add(id));
+
+  const ordered: Array<{ readonly id: string; readonly label: string }> = [];
+  const remaining = new Set(idsToShow);
+  STAGE_COLUMN_ORDER.forEach((column) => {
+    if (!remaining.has(column.id)) return;
+    ordered.push({ id: column.id, label: labels.get(column.id) ?? column.label });
+    remaining.delete(column.id);
+  });
+  Array.from(remaining)
+    .sort((left, right) => left.localeCompare(right))
+    .forEach((id) => {
+      ordered.push({ id, label: labels.get(id) ?? id });
+    });
+
+  return ordered;
+}
+
+function StageColumn({
   publicId,
+  columnId,
+  columnLabel,
   stage,
 }: {
   readonly publicId: string;
-  readonly stage: ApplicationStageRisk;
+  readonly columnId: string;
+  readonly columnLabel: string;
+  readonly stage?: ApplicationStageRisk;
 }): JSX.Element {
-  const reportHref = nexusOneApplicationReportHref({ publicId, scanId: stage.scanId });
+  const detailHref = applicationDetailHref(publicId);
+  const hasEvaluation = Boolean(stage?.scanId);
+  const risk = stage?.risk;
 
-  const tileBody = (
-    <Flex direction="column" gap="2" align="start">
-      <Text size="1" weight="medium">
-        {stage.stageTypeName}
-      </Text>
-      <Text size="1" color="gray">
-        {formatEvaluationDate(stage.evaluationDate)}
-      </Text>
-      <Flex gap="1" wrap="wrap" aria-label="Policy violations by severity">
-        <ApplicationSeverityBadge value={stage.risk.criticalRisk} severity="critical" />
-        <ApplicationSeverityBadge value={stage.risk.severeRisk} severity="severe" />
-        <ApplicationSeverityBadge value={stage.risk.moderateRisk} severity="moderate" />
-        <ApplicationSeverityBadge value={stage.risk.lowRisk} severity="low" />
+  const body = hasEvaluation && risk ? (
+    <Flex direction="column" gap="2" className="nosc-evaluation-stage-column__body">
+      <Flex align="baseline" justify="between" gap="2" wrap="wrap">
+        <Text size="2" weight="medium">
+          {stage?.stageTypeName ?? columnLabel}
+        </Text>
+        <Text size="1" color="gray">
+          {risk.totalRisk.toLocaleString()}
+        </Text>
       </Flex>
+      <Flex gap="1" wrap="wrap" aria-label={`${columnLabel} policy violations by severity`}>
+        <ApplicationSeverityBadge value={risk.criticalRisk} severity="critical" />
+        <ApplicationSeverityBadge value={risk.severeRisk} severity="severe" />
+        <ApplicationSeverityBadge value={risk.moderateRisk} severity="moderate" />
+        <ApplicationSeverityBadge value={risk.lowRisk} severity="low" />
+      </Flex>
+      <Text size="1" color="gray">
+        {formatRelativeTime(stage?.evaluationDate)}
+      </Text>
+    </Flex>
+  ) : (
+    <Flex direction="column" gap="2" className="nosc-evaluation-stage-column__body">
+      <Text size="2" weight="medium">
+        {columnLabel}
+      </Text>
+      <Text size="2" color="gray" data-testid="evaluation-card-stage-not-evaluated">
+        Not evaluated
+      </Text>
     </Flex>
   );
 
+  // Purged/missing reports on large estates make direct report deep-links fail; route to
+  // application detail (recommended safe click-through) when a stage evaluation exists.
+  if (hasEvaluation) {
+    return (
+      <Box
+        asChild
+        p="3"
+        data-testid="evaluation-card-stage-tile"
+        data-stage-id={columnId}
+        className="nosc-evaluation-stage-column nosc-evaluation-stage-column--link"
+      >
+        <a href={detailHref} aria-label={`Open ${columnLabel} for application`}>
+          {body}
+        </a>
+      </Box>
+    );
+  }
+
   return (
     <Box
-      asChild
-      p="2"
+      p="3"
       data-testid="evaluation-card-stage-tile"
-      style={STAGE_TILE_STYLE}
+      data-stage-id={columnId}
+      className="nosc-evaluation-stage-column"
+      aria-label={`${columnLabel} has no evaluation`}
     >
-      <a
-        href={reportHref}
-        aria-label={`Open ${stage.stageTypeName} evaluation report`}
-      >
-        {tileBody}
-      </a>
+      {body}
     </Box>
   );
 }
 
-function EvaluationCard({ application }: { readonly application: ApplicationRiskScore }): JSX.Element {
+function EvaluationCard({
+  application,
+  stageColumns,
+}: {
+  readonly application: ApplicationRiskScore;
+  readonly stageColumns: ReadonlyArray<{ readonly id: string; readonly label: string }>;
+}): JSX.Element {
   const lastEvaluation =
     application.lastEvaluationDate ?? latestEvaluationDate(application.stageRisks);
   const { totalApplicationRisk } = application;
+  const stages = stageById(application.stageRisks);
+  const columnCount = Math.min(Math.max(stageColumns.length, 1), 6);
 
   return (
-    <Card data-testid="evaluation-card">
-      <Flex direction="column" gap="3">
-        <Flex direction="column" gap="1">
-          <PreviewDashboardApplicationsAppNameLink
-            publicId={application.applicationId}
-            name={application.applicationName}
-          />
-          <Text size="2" color="gray">
-            {application.organizationName}
-          </Text>
-          <Text size="1" color="gray" data-testid="evaluation-card-last-evaluation">
-            Last evaluation: {formatEvaluationDate(lastEvaluation)}
-          </Text>
+    <Card data-testid="evaluation-card" className="nosc-evaluation-card">
+      <Flex direction="column" gap="4">
+        <Flex align="start" justify="between" gap="3" wrap="wrap">
+          <Flex direction="column" gap="1" className="nosc-evaluation-card__identity">
+            <PreviewDashboardApplicationsAppNameLink
+              publicId={application.applicationId}
+              name={application.applicationName}
+            />
+            <Text size="2" color="gray" className="nosc-evaluation-card__org">
+              {application.organizationName}
+            </Text>
+            <Text size="1" color="gray" data-testid="evaluation-card-last-evaluation">
+              Last evaluation: {formatRelativeTime(lastEvaluation)}
+            </Text>
+          </Flex>
+          <Badge
+            size="2"
+            color="yellow"
+            variant="outline"
+            radius="full"
+            data-testid="evaluation-card-total-risk"
+            className="nosc-evaluation-card__total-risk"
+          >
+            Total Risk {totalApplicationRisk.totalRisk.toLocaleString()}
+          </Badge>
         </Flex>
 
-        <Flex gap="2" wrap="wrap" align="center" aria-label="Total application risk by severity">
-          <Text size="1" color="gray">
-            Total risk
-          </Text>
-          <ApplicationSeverityBadge value={totalApplicationRisk.totalRisk} severity="total" />
-          <ApplicationSeverityBadge value={totalApplicationRisk.criticalRisk} severity="critical" />
-          <ApplicationSeverityBadge value={totalApplicationRisk.severeRisk} severity="severe" />
-          <ApplicationSeverityBadge value={totalApplicationRisk.moderateRisk} severity="moderate" />
-          <ApplicationSeverityBadge value={totalApplicationRisk.lowRisk} severity="low" />
-        </Flex>
-
-        {application.stageRisks.length > 0 && (
-          <Grid columns={{ initial: '1', sm: '2', md: '4' }} gap="2">
-            {application.stageRisks.map((stage) => (
-              <StageTile key={stage.scanId} publicId={application.applicationId} stage={stage} />
-            ))}
-          </Grid>
-        )}
+        <Grid columns={{ initial: '1', sm: '2', md: String(columnCount) }} gap="2">
+          {stageColumns.map((column) => (
+            <StageColumn
+              key={column.id}
+              publicId={application.applicationId}
+              columnId={column.id}
+              columnLabel={column.label}
+              stage={stages.get(column.id)}
+            />
+          ))}
+        </Grid>
       </Flex>
     </Card>
   );
@@ -143,10 +249,16 @@ export interface EvaluationCardGridProps {
 
 /** Card grid for Martha V1 Applications (CLM-42223 / CLM-42224). */
 export default function EvaluationCardGrid({ applications }: EvaluationCardGridProps): JSX.Element {
+  const stageColumns = useMemo(() => resolveStageColumns(applications), [applications]);
+
   return (
     <Flex direction="column" gap="3" data-testid="evaluation-card-grid">
       {applications.map((application) => (
-        <EvaluationCard key={application.applicationId} application={application} />
+        <EvaluationCard
+          key={application.applicationId}
+          application={application}
+          stageColumns={stageColumns}
+        />
       ))}
     </Flex>
   );

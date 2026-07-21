@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { Link } from '@radix-ui/themes';
+import { applicationDetailHref } from 'MainRoot/nosc/applications/applicationDetailUtils';
 
 /**
  * Preview-side link for an application name. Targets the Nexus One application-detail route
@@ -23,7 +24,7 @@ export default function PreviewDashboardApplicationsAppNameLink({
   publicId: string;
   name: string;
 }): JSX.Element {
-  const href = `#/applications/${encodeURIComponent(publicId)}`;
+  const href = applicationDetailHref(publicId);
   return (
     <Link
       href={href}

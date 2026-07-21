@@ -1,0 +1,56 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.nosc-evaluation-card__identity {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.nosc-evaluation-card__org {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.nosc-evaluation-card__total-risk {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.nosc-evaluation-stage-column {
+  border: 1px solid var(--gray-6);
+  border-radius: var(--radius-2);
+  background-color: var(--gray-2);
+  min-width: 0;
+  height: 100%;
+}
+
+.nosc-evaluation-stage-column--link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nosc-evaluation-stage-column--link:hover {
+  border-color: var(--gray-8);
+  background-color: var(--gray-3);
+}
+
+.nosc-evaluation-stage-column--link:focus-visible {
+  outline: 2px solid var(--accent-9);
+  outline-offset: 2px;
+}
+
+.nosc-evaluation-stage-column__body {
+  min-width: 0;
+}
+
+/* App name links should wrap, never collide with the Total Risk badge. */
+.nosc-evaluation-card [data-testid='nosc-dashboard-app-link'] {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

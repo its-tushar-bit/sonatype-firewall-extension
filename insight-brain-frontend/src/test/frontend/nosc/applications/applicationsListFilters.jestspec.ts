@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  DEFAULT_APPLICATIONS_THREAT_RANGE,
   EMPTY_APPLICATIONS_LIST_FILTERS,
   applicationsListFiltersToRequest,
   hasActiveApplicationsListFilters,
-  staticThreatLevelFacets,
+  normalizeApplicationsThreatRange,
   toggleApplicationsListFilterId,
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 
@@ -17,12 +18,11 @@ describe('applicationsListFilters', () => {
     expect(hasActiveApplicationsListFilters(EMPTY_APPLICATIONS_LIST_FILTERS)).toBe(false);
   });
 
-  it('maps stage and threat selections into API request fields', () => {
-    const filters = toggleApplicationsListFilterId(
-      toggleApplicationsListFilterId(EMPTY_APPLICATIONS_LIST_FILTERS, 'stageIds', 'build'),
-      'threatLevelIds',
-      'Critical',
-    );
+  it('maps stage and threat range into API request fields', () => {
+    const filters = {
+      ...toggleApplicationsListFilterId(EMPTY_APPLICATIONS_LIST_FILTERS, 'stageIds', 'build'),
+      threatRange: [8, 10] as const,
+    };
 
     expect(applicationsListFiltersToRequest(filters)).toEqual({
       stageIds: ['build'],
@@ -31,53 +31,45 @@ describe('applicationsListFilters', () => {
     expect(hasActiveApplicationsListFilters(filters)).toBe(true);
   });
 
-  it('omits the None threat bucket from static facet rows', () => {
-    expect(staticThreatLevelFacets().map((entry) => entry.id)).not.toContain('None');
+  it('omits policyThreatLevelRanges for the default full-domain slider', () => {
+    expect(
+      applicationsListFiltersToRequest({
+        ...EMPTY_APPLICATIONS_LIST_FILTERS,
+        threatRange: DEFAULT_APPLICATIONS_THREAT_RANGE,
+      }),
+    ).toEqual({});
   });
 
-  it('sends one range per selected threat bucket instead of a single envelope', () => {
-    let filters = EMPTY_APPLICATIONS_LIST_FILTERS;
-    filters = toggleApplicationsListFilterId(filters, 'threatLevelIds', 'Critical');
-    filters = toggleApplicationsListFilterId(filters, 'threatLevelIds', 'Severe');
+  it('normalizes inverted and out-of-bounds threat ranges', () => {
+    expect(normalizeApplicationsThreatRange([12, -3])).toEqual([0, 10]);
+    expect(normalizeApplicationsThreatRange([7, 2])).toEqual([2, 7]);
+  });
 
-    expect(applicationsListFiltersToRequest(filters)).toEqual({
-      policyThreatLevelRanges: [
-        { minPolicyThreatLevel: 8, maxPolicyThreatLevel: 10 },
-        { minPolicyThreatLevel: 4, maxPolicyThreatLevel: 7 },
-      ],
+  it('treats non-finite threat values as the domain minimum', () => {
+    expect(normalizeApplicationsThreatRange([Number.NaN, 8])).toEqual([0, 8]);
+    expect(normalizeApplicationsThreatRange([3, Number.POSITIVE_INFINITY])).toEqual([0, 3]);
+  });
+
+  it('keeps level-zero-only ranges active (full domain is the only default)', () => {
+    expect(
+      applicationsListFiltersToRequest({
+        ...EMPTY_APPLICATIONS_LIST_FILTERS,
+        threatRange: [0, 0],
+      }),
+    ).toEqual({
+      policyThreatLevelRanges: [{ minPolicyThreatLevel: 0, maxPolicyThreatLevel: 0 }],
     });
   });
 
-  it('preserves disjoint bucket ranges for Critical and Low', () => {
-    let filters = EMPTY_APPLICATIONS_LIST_FILTERS;
-    filters = toggleApplicationsListFilterId(filters, 'threatLevelIds', 'Critical');
-    filters = toggleApplicationsListFilterId(filters, 'threatLevelIds', 'Low');
-
-    expect(applicationsListFiltersToRequest(filters)).toEqual({
-      policyThreatLevelRanges: [
-        { minPolicyThreatLevel: 8, maxPolicyThreatLevel: 10 },
-        { minPolicyThreatLevel: 1, maxPolicyThreatLevel: 1 },
-      ],
-    });
-  });
-
-  it('ignores unknown threat level ids when toggling', () => {
-    const filters = toggleApplicationsListFilterId(EMPTY_APPLICATIONS_LIST_FILTERS, 'threatLevelIds', 'bogus');
-    expect(filters.threatLevelIds.size).toBe(0);
-    expect(applicationsListFiltersToRequest(filters)).toEqual({});
-  });
-
-  it('ignores None threat level id when toggling', () => {
-    const filters = toggleApplicationsListFilterId(EMPTY_APPLICATIONS_LIST_FILTERS, 'threatLevelIds', 'None');
-    expect(filters.threatLevelIds.size).toBe(0);
-    expect(applicationsListFiltersToRequest(filters)).toEqual({});
-  });
-
-  it('omits policyThreatLevelRanges when threat ids have no known range', () => {
-    const filters = {
-      ...EMPTY_APPLICATIONS_LIST_FILTERS,
-      threatLevelIds: new Set(['bogus' as 'Critical']),
-    };
-    expect(applicationsListFiltersToRequest(filters)).toEqual({});
+  it('toggles set-valued filter ids', () => {
+    const filters = toggleApplicationsListFilterId(
+      EMPTY_APPLICATIONS_LIST_FILTERS,
+      'organizationIds',
+      'org-a',
+    );
+    expect(filters.organizationIds.has('org-a')).toBe(true);
+    expect(
+      toggleApplicationsListFilterId(filters, 'organizationIds', 'org-a').organizationIds.size,
+    ).toBe(0);
   });
 });

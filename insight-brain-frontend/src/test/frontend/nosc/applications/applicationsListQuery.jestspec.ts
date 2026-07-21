@@ -4,13 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  DEFAULT_APPLICATIONS_THREAT_RANGE,
+  EMPTY_APPLICATIONS_LIST_FILTERS,
+} from 'MainRoot/nosc/applications/applicationsListFilters';
+import {
   buildApplicationsListRouteParams,
   parseApplicationsListParams,
+  parseApplicationsThreatRange,
   sortSlugToOrderBy,
 } from 'MainRoot/nosc/applications/applicationsListQuery';
 
 describe('applicationsListQuery (CLM-42226)', () => {
-  it('parseApplicationsListParams reads search, sort, page, and filter csv params', () => {
+  it('parseApplicationsListParams reads search, sort, page, and filter params', () => {
     const parsed = parseApplicationsListParams({
       q: 'apple pie',
       sort: 'oldest',
@@ -18,7 +23,7 @@ describe('applicationsListQuery (CLM-42226)', () => {
       stage: 'build,develop',
       org: 'org-java',
       app: 'apple-java',
-      threat: 'Critical,Severe',
+      threat: '2-10',
     });
 
     expect(parsed.search).toBe('apple pie');
@@ -27,32 +32,23 @@ describe('applicationsListQuery (CLM-42226)', () => {
     expect(Array.from(parsed.filters.stageIds)).toEqual(['build', 'develop']);
     expect(Array.from(parsed.filters.organizationIds)).toEqual(['org-java']);
     expect(Array.from(parsed.filters.applicationIds)).toEqual(['apple-java']);
-    expect(Array.from(parsed.filters.threatLevelIds)).toEqual(['Critical', 'Severe']);
+    expect(parsed.filters.threatRange).toEqual([2, 10]);
   });
 
-  it('ignores None in deep-linked threat params because it is not selectable in the rail', () => {
-    const parsed = parseApplicationsListParams({ threat: 'Critical,None' });
-    expect(Array.from(parsed.filters.threatLevelIds)).toEqual(['Critical']);
+  it('falls back to the default threat range for legacy bucket tokens', () => {
+    expect(parseApplicationsThreatRange('Critical,Severe')).toEqual(DEFAULT_APPLICATIONS_THREAT_RANGE);
+    expect(parseApplicationsListParams({ threat: 'Critical' }).filters.threatRange).toEqual(
+      DEFAULT_APPLICATIONS_THREAT_RANGE,
+    );
   });
 
-  it('buildApplicationsListRouteParams drops invalid threat tokens from deep links', () => {
-    const parsed = parseApplicationsListParams({ threat: 'Bogus,Critical' });
-    expect(Array.from(parsed.filters.threatLevelIds)).toEqual(['Critical']);
-    expect(buildApplicationsListRouteParams(parsed)).toEqual({ threat: 'Critical' });
-  });
-
-  it('buildApplicationsListRouteParams omits default sort and page 1', () => {
+  it('buildApplicationsListRouteParams omits default sort, page 1, and full threat range', () => {
     expect(
       buildApplicationsListRouteParams({
         search: '',
         orderBy: sortSlugToOrderBy('latest'),
         page: 0,
-        filters: {
-          stageIds: new Set(),
-          organizationIds: new Set(),
-          applicationIds: new Set(),
-          threatLevelIds: new Set(),
-        },
+        filters: EMPTY_APPLICATIONS_LIST_FILTERS,
       }),
     ).toEqual({});
   });
@@ -66,7 +62,7 @@ describe('applicationsListQuery (CLM-42226)', () => {
       stageIds: new Set(['build']),
       organizationIds: new Set(['org-a']),
       applicationIds: new Set(['app-a']),
-      threatLevelIds: new Set(['Moderate' as const]),
+      threatRange: [4, 7] as const,
     };
     const params = buildApplicationsListRouteParams({
       search: 'banana',
@@ -81,6 +77,7 @@ describe('applicationsListQuery (CLM-42226)', () => {
     expect(Array.from(parsed.filters.stageIds)).toEqual(['build']);
     expect(Array.from(parsed.filters.organizationIds)).toEqual(['org-a']);
     expect(Array.from(parsed.filters.applicationIds)).toEqual(['app-a']);
-    expect(Array.from(parsed.filters.threatLevelIds)).toEqual(['Moderate']);
+    expect(parsed.filters.threatRange).toEqual([4, 7]);
+    expect(params.threat).toBe('4-7');
   });
 });

@@ -3,41 +3,58 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { THREAT_GROUPS } from 'MainRoot/nosc/applications/applicationDetailUtils';
 import { ApplicationsListRequest } from 'MainRoot/nosc/applications/applicationsListApi';
 
-/** Policy threat level bucket ids — align with {@link THREAT_GROUPS} labels. */
-export type ApplicationsThreatLevelId = (typeof THREAT_GROUPS)[number]['group'];
+/** Integer policy threat domain for the Applications filter slider (matches Violations). */
+export const APPLICATIONS_THREAT_MIN = 0;
+export const APPLICATIONS_THREAT_MAX = 10;
 
-function parseThreatGroupRange(range: string): readonly [number, number] {
-  if (range === '0') {
-    return [0, 0];
-  }
-  if (range.includes('-')) {
-    const [min, max] = range.split('-').map((part) => Number(part));
-    return [min, max];
-  }
-  const value = Number(range);
-  return [value, value];
-}
+export type ApplicationsThreatRange = readonly [number, number];
 
-const THREAT_GROUP_RANGES = Object.fromEntries(
-  THREAT_GROUPS.map(({ group, range }) => [group, parseThreatGroupRange(range)]),
-) as Record<ApplicationsThreatLevelId, readonly [number, number]>;
+export const DEFAULT_APPLICATIONS_THREAT_RANGE: ApplicationsThreatRange = [
+  APPLICATIONS_THREAT_MIN,
+  APPLICATIONS_THREAT_MAX,
+];
+
+/** Set-valued sidebar filter groups (everything except {@link ApplicationsListFilterState.threatRange}). */
+export type ApplicationsListFilterSetField = 'stageIds' | 'organizationIds' | 'applicationIds';
 
 export type ApplicationsListFilterState = {
   readonly stageIds: ReadonlySet<string>;
   readonly organizationIds: ReadonlySet<string>;
   readonly applicationIds: ReadonlySet<string>;
-  readonly threatLevelIds: ReadonlySet<ApplicationsThreatLevelId>;
+  readonly threatRange: ApplicationsThreatRange;
 };
 
 export const EMPTY_APPLICATIONS_LIST_FILTERS: ApplicationsListFilterState = {
   stageIds: new Set(),
   organizationIds: new Set(),
   applicationIds: new Set(),
-  threatLevelIds: new Set(),
+  threatRange: DEFAULT_APPLICATIONS_THREAT_RANGE,
 };
+
+/**
+ * Full-domain span means "no threat filter" (Violations slider parity). Narrow ranges such as
+ * {@code [0, 0]} still filter level-0-only; only the complete {@code [0, 10]} span is treated as unset.
+ */
+export function isDefaultApplicationsThreatRange(range: ApplicationsThreatRange): boolean {
+  return range[0] <= APPLICATIONS_THREAT_MIN && range[1] >= APPLICATIONS_THREAT_MAX;
+}
+
+export function normalizeApplicationsThreatRange(
+  next: readonly number[],
+): ApplicationsThreatRange {
+  const clampThreat = (n: number): number => {
+    const safe = Number.isFinite(n) ? n : APPLICATIONS_THREAT_MIN;
+    return Math.min(
+      APPLICATIONS_THREAT_MAX,
+      Math.max(APPLICATIONS_THREAT_MIN, safe),
+    );
+  };
+  const low = clampThreat(next[0]);
+  const high = clampThreat(next[1] ?? next[0]);
+  return [Math.min(low, high), Math.max(low, high)];
+}
 
 export function hasActiveApplicationsListFilters(
   filters: ApplicationsListFilterState,
@@ -46,19 +63,15 @@ export function hasActiveApplicationsListFilters(
     filters.stageIds.size > 0
     || filters.organizationIds.size > 0
     || filters.applicationIds.size > 0
-    || filters.threatLevelIds.size > 0
+    || !isDefaultApplicationsThreatRange(filters.threatRange)
   );
 }
 
 export function toggleApplicationsListFilterId(
   filters: ApplicationsListFilterState,
-  field: keyof ApplicationsListFilterState,
+  field: ApplicationsListFilterSetField,
   id: string,
 ): ApplicationsListFilterState {
-  // Omit None: rail facets hide it, and level-0 ≠ clean-app semantics until that lands.
-  if (field === 'threatLevelIds' && (!(id in THREAT_GROUP_RANGES) || id === 'None')) {
-    return filters;
-  }
   const current = filters[field];
   const next = new Set(current);
   if (next.has(id)) {
@@ -67,20 +80,6 @@ export function toggleApplicationsListFilterId(
     next.add(id);
   }
   return { ...filters, [field]: next };
-}
-
-function buildThreatLevelRanges(
-  threatLevelIds: ReadonlySet<ApplicationsThreatLevelId>,
-): NonNullable<ApplicationsListRequest['policyThreatLevelRanges']> | undefined {
-  if (threatLevelIds.size === 0) return undefined;
-  const ranges: Array<{ minPolicyThreatLevel: number; maxPolicyThreatLevel: number }> = [];
-  threatLevelIds.forEach((id) => {
-    const range = THREAT_GROUP_RANGES[id];
-    if (range) {
-      ranges.push({ minPolicyThreatLevel: range[0], maxPolicyThreatLevel: range[1] });
-    }
-  });
-  return ranges.length > 0 ? ranges : undefined;
 }
 
 /** Maps Martha sidebar filter state into POST /rest/dashboard/applications/list body fields. */
@@ -95,7 +94,12 @@ export function applicationsListFiltersToRequest(
     filters.organizationIds.size > 0 ? Array.from(filters.organizationIds) : undefined;
   const applicationIds =
     filters.applicationIds.size > 0 ? Array.from(filters.applicationIds) : undefined;
-  const policyThreatLevelRanges = buildThreatLevelRanges(filters.threatLevelIds);
+  const policyThreatLevelRanges = isDefaultApplicationsThreatRange(filters.threatRange)
+    ? undefined
+    : [{
+        minPolicyThreatLevel: filters.threatRange[0],
+        maxPolicyThreatLevel: filters.threatRange[1],
+      }];
 
   return {
     ...(stageIds ? { stageIds } : {}),
@@ -103,19 +107,4 @@ export function applicationsListFiltersToRequest(
     ...(applicationIds ? { applicationIds } : {}),
     ...(policyThreatLevelRanges ? { policyThreatLevelRanges } : {}),
   };
-}
-
-/** Static threat facet rows for the filter rail until server facet counts land. */
-const STATIC_THREAT_LEVEL_FACETS = THREAT_GROUPS.filter(({ group }) => group !== 'None').map(({ group, range }) => ({
-  id: group,
-  label: `${range} ${group}`,
-  count: 0,
-}));
-
-export function staticThreatLevelFacets(): ReadonlyArray<{
-  readonly id: string;
-  readonly label: string;
-  readonly count: number;
-}> {
-  return STATIC_THREAT_LEVEL_FACETS;
 }

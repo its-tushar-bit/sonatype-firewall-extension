@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { EMPTY_APPLICATIONS_LIST_FILTERS } from 'MainRoot/nosc/applications/applicationsListFilters';
 import { buildApplicationsListExportPayload } from 'MainRoot/nosc/applications/applicationsListExport';
 
 describe('applicationsListExport (CLM-42226)', () => {
@@ -11,11 +12,11 @@ describe('applicationsListExport (CLM-42226)', () => {
       stageIds: new Set(['build']),
       organizationIds: new Set(['org-java']),
       applicationIds: new Set(['apple-java']),
-      threatLevelIds: new Set(['Critical']),
+      threatRange: [8, 10],
     }, '-lastEvaluationTime');
 
     expect(payload).toEqual({
-      orderBy: '-lastEvaluationTime',
+      orderBy: '-TOTAL_RISK',
       stageIds: ['build'],
       organizationIds: ['org-java'],
       applicationIds: ['apple-java'],
@@ -26,39 +27,21 @@ describe('applicationsListExport (CLM-42226)', () => {
     });
   });
 
-  it('collapses multiple threat buckets into a single Classic export envelope', () => {
-    const payload = buildApplicationsListExportPayload({
-      stageIds: new Set(),
-      organizationIds: new Set(),
-      applicationIds: new Set(),
-      threatLevelIds: new Set(['Critical', 'Low']),
-    }, '-lastEvaluationTime');
-
-    expect(payload.policyThreatLevelRange).toEqual({
-      minPolicyThreatLevel: 1,
-      maxPolicyThreatLevel: 10,
-    });
-  });
-
   it('omits optional keys when sidebar filters are empty', () => {
-    const payload = buildApplicationsListExportPayload({
-      stageIds: new Set(),
-      organizationIds: new Set(),
-      applicationIds: new Set(),
-      threatLevelIds: new Set(),
-    }, '-lastEvaluationTime');
+    const payload = buildApplicationsListExportPayload(
+      EMPTY_APPLICATIONS_LIST_FILTERS,
+      '-lastEvaluationTime',
+    );
 
-    expect(payload).toEqual({ orderBy: '-lastEvaluationTime' });
+    expect(payload).toEqual({ orderBy: '-TOTAL_RISK' });
   });
 
-  it('passes ascending lastEvaluationTime orderBy through to the Classic export payload', () => {
-    const payload = buildApplicationsListExportPayload({
-      stageIds: new Set(),
-      organizationIds: new Set(),
-      applicationIds: new Set(),
-      threatLevelIds: new Set(),
-    }, 'lastEvaluationTime');
+  it('maps Martha lastEvaluationTime sort to Classic TOTAL_RISK for PostgreSQL export', () => {
+    const payload = buildApplicationsListExportPayload(
+      EMPTY_APPLICATIONS_LIST_FILTERS,
+      'lastEvaluationTime',
+    );
 
-    expect(payload).toEqual({ orderBy: 'lastEvaluationTime' });
+    expect(payload).toEqual({ orderBy: 'TOTAL_RISK' });
   });
 });

@@ -87,12 +87,7 @@ describe('applicationsListApi', () => {
     expect(mapped.total).toBe(42);
     expect(mapped.facets.totalApplications).toBe(42);
     expect(mapped.applications).toHaveLength(1);
-    expect(mapped.facets.threatLevels).toEqual([
-      { id: 'Critical', label: '8-10 Critical', count: 0 },
-      { id: 'Severe', label: '4-7 Severe', count: 0 },
-      { id: 'Moderate', label: '2-3 Moderate', count: 0 },
-      { id: 'Low', label: '1 Low', count: 0 },
-    ]);
+    expect(mapped.facets).not.toHaveProperty('threatLevels');
   });
 
   it('falls back to raw API application count when total is omitted', () => {
@@ -136,5 +131,48 @@ describe('applicationsListApi', () => {
     });
 
     expect(mapped.facets.organizations.map((entry) => entry.id)).toEqual(['org-java']);
+  });
+
+  it('uses server facet display names for org/app ids not on the current page', () => {
+    const mapped = mapApplicationsListResponse({
+      applications: [
+        {
+          applicationId: 'apple-java',
+          applicationName: 'Apple - Java',
+          organizationId: 'org-java',
+          organizationName: 'Java-team',
+          totalApplicationRisk: { totalRisk: 0, criticalRisk: 0, severeRisk: 0, moderateRisk: 0, lowRisk: 0 },
+          stageRisks: [],
+        },
+      ],
+      facets: {
+        totalApplications: 2,
+        organizations: {
+          'org-java': 1,
+          '04f82a7a0df844dca7038341b8321df2': 800,
+        },
+        organizationNames: {
+          'org-java': 'Java-team',
+          '04f82a7a0df844dca7038341b8321df2': 'AI Operations',
+        },
+        applications: {
+          d1ec2c0e6c6848f98df0cdb889eeadae: 1,
+        },
+        applicationNames: {
+          d1ec2c0e6c6848f98df0cdb889eeadae: 'Banana - Java',
+        }
+      },
+      total: 2,
+    });
+
+    expect(mapped.facets.organizations).toEqual(
+      expect.arrayContaining([
+        { id: '04f82a7a0df844dca7038341b8321df2', label: 'AI Operations', count: 800 },
+        { id: 'org-java', label: 'Java-team', count: 1 },
+      ]),
+    );
+    expect(mapped.facets.applications).toEqual([
+      { id: 'd1ec2c0e6c6848f98df0cdb889eeadae', label: 'Banana - Java', count: 1 },
+    ]);
   });
 });

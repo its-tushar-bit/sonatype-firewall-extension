@@ -109,6 +109,35 @@ describe('useApplicationsList', () => {
     expect(result.current.hasNextPage).toBe(true);
   });
 
+  it('keeps the requested page while a stale hasNextPage response is still cached', async () => {
+    axiosMock.onPost(getApplicationsListUrl()).reply((config) => {
+      const body = JSON.parse(String(config.data));
+      const page = typeof body.page === 'number' ? body.page : 0;
+      return [
+        200,
+        {
+          ...OK_BODY,
+          page,
+          total: 120,
+          hasNextPage: page === 0,
+        },
+      ];
+    });
+
+    const { result } = renderHook(() => useApplicationsList());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.page).toBe(0);
+
+    act(() => result.current.setPage(1));
+
+    await waitFor(() => {
+      const lastRequest = axiosMock.history.post.at(-1);
+      const body = JSON.parse(String(lastRequest?.data));
+      expect(body.page).toBe(1);
+    });
+    expect(result.current.page).toBe(1);
+  });
+
   it('posts search and orderBy in the list request body', async () => {
     axiosMock.onPost(getApplicationsListUrl()).reply(200, OK_BODY);
 
@@ -153,7 +182,7 @@ describe('useApplicationsList', () => {
     });
   });
 
-  it('ignores no-op threat toggles without resetting page', async () => {
+  it('ignores no-op threat range commits without resetting page', async () => {
     axiosMock.onPost(getApplicationsListUrl()).reply(200, {
       ...OK_BODY,
       page: 1,
@@ -166,7 +195,7 @@ describe('useApplicationsList', () => {
     await waitFor(() => expect(result.current.page).toBe(1));
     const postsBefore = axiosMock.history.post.length;
 
-    act(() => result.current.toggleFilter('threatLevelIds', 'None'));
+    act(() => result.current.setThreatRange([0, 10]));
 
     expect(result.current.page).toBe(1);
     expect(axiosMock.history.post.length).toBe(postsBefore);
@@ -185,7 +214,7 @@ describe('useApplicationsList', () => {
             stageIds: new Set(['build']),
             organizationIds: new Set(),
             applicationIds: new Set(),
-            threatLevelIds: new Set(),
+            threatRange: [0, 10],
           },
         },
       }),
@@ -221,7 +250,7 @@ describe('useApplicationsList', () => {
           stageIds: new Set(['build']),
           organizationIds: new Set(['org-java']),
           applicationIds: new Set(),
-          threatLevelIds: new Set(),
+          threatRange: [0, 10],
         },
       }),
     );

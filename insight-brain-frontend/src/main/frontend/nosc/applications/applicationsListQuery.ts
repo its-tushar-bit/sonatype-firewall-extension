@@ -4,8 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import type {
+  ApplicationsListFilterSetField,
   ApplicationsListFilterState,
-  ApplicationsThreatLevelId,
+} from 'MainRoot/nosc/applications/applicationsListFilters';
+import {
+  DEFAULT_APPLICATIONS_THREAT_RANGE,
+  isDefaultApplicationsThreatRange,
+  normalizeApplicationsThreatRange,
+  type ApplicationsThreatRange,
 } from 'MainRoot/nosc/applications/applicationsListFilters';
 
 /** Martha list API orderBy tokens (validator-enforced). */
@@ -20,13 +26,6 @@ const ORDER_BY_TO_SORT_SLUG: Record<ApplicationsListOrderBy, ApplicationsListSor
   '-lastEvaluationTime': 'latest',
   lastEvaluationTime: 'oldest',
 };
-
-const SELECTABLE_THREAT_LEVEL_IDS = new Set<ApplicationsThreatLevelId>([
-  'Critical',
-  'Severe',
-  'Moderate',
-  'Low',
-]);
 
 export function orderByToSortSlug(orderBy: ApplicationsListOrderBy): ApplicationsListSortSlug {
   return ORDER_BY_TO_SORT_SLUG[orderBy];
@@ -46,15 +45,31 @@ function parseCsvParam(value: string | null | undefined): ReadonlyArray<string> 
   return value.split(',').map((part) => part.trim()).filter(Boolean);
 }
 
-function parseThreatLevelIds(values: ReadonlyArray<string>): ReadonlySet<ApplicationsThreatLevelId> {
-  const ids = values.filter((value): value is ApplicationsThreatLevelId =>
-    SELECTABLE_THREAT_LEVEL_IDS.has(value as ApplicationsThreatLevelId));
-  return new Set(ids);
-}
-
 function serializeCsvParam(values: ReadonlySet<string>): string | undefined {
   if (values.size === 0) return undefined;
   return Array.from(values).sort().join(',');
+}
+
+function parseIntegerToken(token: string): number | undefined {
+  return /^\d+$/.test(token) ? Number(token) : undefined;
+}
+
+/**
+ * Parse {@code threat=min-max} (Violations-compatible). Malformed or legacy bucket tokens fall
+ * back to the full-domain default.
+ */
+export function parseApplicationsThreatRange(value: string | null | undefined): ApplicationsThreatRange {
+  if (!value?.trim()) return DEFAULT_APPLICATIONS_THREAT_RANGE;
+  const parts = value.split('-');
+  if (parts.length !== 2) return DEFAULT_APPLICATIONS_THREAT_RANGE;
+  const min = parseIntegerToken(parts[0].trim());
+  const max = parseIntegerToken(parts[1].trim());
+  if (min === undefined || max === undefined) return DEFAULT_APPLICATIONS_THREAT_RANGE;
+  return normalizeApplicationsThreatRange([min, max]);
+}
+
+function serializeApplicationsThreatRange(range: ApplicationsThreatRange): string | undefined {
+  return isDefaultApplicationsThreatRange(range) ? undefined : `${range[0]}-${range[1]}`;
 }
 
 /** Parse UI-Router params for the Martha Applications list page (CLM-42226). */
@@ -80,8 +95,8 @@ export function parseApplicationsListParams(
       stageIds: new Set(parseCsvParam(typeof params.stage === 'string' ? params.stage : null)),
       organizationIds: new Set(parseCsvParam(typeof params.org === 'string' ? params.org : null)),
       applicationIds: new Set(parseCsvParam(typeof params.app === 'string' ? params.app : null)),
-      threatLevelIds: parseThreatLevelIds(
-        parseCsvParam(typeof params.threat === 'string' ? params.threat : null),
+      threatRange: parseApplicationsThreatRange(
+        typeof params.threat === 'string' ? params.threat : null,
       ),
     },
   };
@@ -99,7 +114,7 @@ export function buildApplicationsListRouteParams(state: {
   const stage = serializeCsvParam(state.filters.stageIds);
   const org = serializeCsvParam(state.filters.organizationIds);
   const app = serializeCsvParam(state.filters.applicationIds);
-  const threat = serializeCsvParam(state.filters.threatLevelIds);
+  const threat = serializeApplicationsThreatRange(state.filters.threatRange);
 
   return {
     q: state.search.trim() || undefined,
@@ -116,16 +131,20 @@ export function filtersEqual(
   left: ApplicationsListFilterState,
   right: ApplicationsListFilterState,
 ): boolean {
-  const fields: (keyof ApplicationsListFilterState)[] = [
+  const setFields: ApplicationsListFilterSetField[] = [
     'stageIds',
     'organizationIds',
     'applicationIds',
-    'threatLevelIds',
   ];
-  return fields.every((field) => {
+  const setsEqual = setFields.every((field) => {
     const leftIds = left[field];
     const rightIds = right[field];
     if (leftIds.size !== rightIds.size) return false;
     return Array.from(leftIds).every((id) => rightIds.has(id));
   });
+  return (
+    setsEqual
+    && left.threatRange[0] === right.threatRange[0]
+    && left.threatRange[1] === right.threatRange[1]
+  );
 }

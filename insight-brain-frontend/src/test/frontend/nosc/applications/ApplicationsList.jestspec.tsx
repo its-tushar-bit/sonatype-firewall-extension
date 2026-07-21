@@ -14,7 +14,6 @@ import {
   MOCK_APPLICATIONS_FILTER_FACETS,
 } from 'MainRoot/nosc/applications/mockApplicationsListData';
 import { getApplicationsListUrl } from 'MainRoot/util/CLMLocation';
-import { nexusOneApplicationReportHref } from 'MainRoot/nexus-one/nexusOneApplicationReportHref';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import router from 'MainRoot/router/routerInstance';
 import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
@@ -162,7 +161,8 @@ describe('ApplicationsList (CLM-42224)', () => {
     await waitFor(() => {
       expect(goSpy).toHaveBeenCalledWith(
         'nexusOneApplications',
-        expect.objectContaining({ threat: 'Critical' }),
+        // Legacy bucket tokens are not valid min-max ranges; hydrate drops them.
+        expect.objectContaining({ threat: undefined }),
         expect.objectContaining({ notify: false, location: 'replace' }),
       );
     });
@@ -183,10 +183,10 @@ describe('ApplicationsList (CLM-42224)', () => {
       expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByLabelText('Search applications');
+    const searchInput = screen.getByTestId('applications-toolbar-search');
+    await waitFor(() => expect(searchInput).toHaveValue('apple'));
     await userEvent.clear(searchInput);
-    await userEvent.type(searchInput, 'banana');
-    await userEvent.keyboard('{Enter}');
+    await userEvent.type(searchInput, 'banana{enter}');
 
     await waitFor(() => {
       const lastRequest = axiosMock.history.post.at(-1);
@@ -248,7 +248,7 @@ describe('ApplicationsList (CLM-42224)', () => {
 
     expect(screen.getByTestId('applications-toolbar-csv')).toHaveAttribute(
       'title',
-      'CSV export caveat: stage filter uses Classic matching and may differ from this list',
+      'CSV export caveat: sorted by total risk (not evaluation time); stage filter uses Classic matching and may differ from this list',
     );
   });
 
@@ -322,7 +322,7 @@ describe('ApplicationsList (CLM-42224)', () => {
 
     expect(screen.getByTestId('applications-toolbar-csv')).toHaveAttribute(
       'title',
-      'CSV export caveat: search term is not included',
+      'CSV export caveat: sorted by total risk (not evaluation time); search term is not included',
     );
   });
 
@@ -345,7 +345,7 @@ describe('ApplicationsList (CLM-42224)', () => {
     expect(nameLink).toHaveAttribute('href', expect.stringContaining('/applications/apple-java'));
   });
 
-  it('stage tiles link to the embedded Classic report route', async () => {
+  it('stage tiles with evaluations link to application detail (avoids purged-report 404s)', async () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
     await waitFor(() => {
@@ -353,15 +353,9 @@ describe('ApplicationsList (CLM-42224)', () => {
     });
     const appleCard = screen.getAllByTestId('evaluation-card')[0];
     const stageLink = within(appleCard).getByRole('link', {
-      name: /open build evaluation report/i,
+      name: /open build for application/i,
     });
-    expect(stageLink).toHaveAttribute(
-      'href',
-      nexusOneApplicationReportHref({
-        publicId: 'apple-java',
-        scanId: 'scan-apple-build',
-      }),
-    );
+    expect(stageLink).toHaveAttribute('href', '#/applications/apple-java');
   });
 
   it('page wrapper offsets reflow when LeftNav collapses', async () => {
@@ -392,6 +386,7 @@ describe('ApplicationsPage async states', () => {
     filters: EMPTY_APPLICATIONS_LIST_FILTERS,
     hasActiveFilters: false,
     onToggleFilter: jest.fn(),
+    onThreatRangeChange: jest.fn(),
     onResetFilters: jest.fn(),
   };
   const toolbarProps = {

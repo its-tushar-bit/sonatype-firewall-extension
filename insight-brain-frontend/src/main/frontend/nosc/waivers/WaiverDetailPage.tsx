@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, type ReactElement } from 'react';
 import {
   Badge,
   Box,
+  Button,
   Card,
   Flex,
   Heading,
@@ -15,12 +16,12 @@ import {
   Text,
 } from '@radix-ui/themes';
 import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
-import { AsyncPageState } from 'MainRoot/nosc/components/AsyncPageState';
+import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
+import { EntityDetailLayout } from 'MainRoot/nosc/entityDetail/EntityDetailLayout';
+import { resolveEntityDetailContext } from 'MainRoot/nosc/entityDetail/resolveEntityDetailContext';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
-import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
 import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
 import { useWaiverDetail } from './useWaivers';
-import type { PolicyWaiverDetailDTO } from './waiverTypes';
 import {
   formatWaiverCalendarDate,
   formatWaiverComponentLabel,
@@ -29,22 +30,10 @@ import {
 } from './waiverDisplayUtils';
 
 /**
- * Native Nexus One Waiver Detail page (CLM-39545 / CLM-39709).
+ * Native Nexus One Waiver Detail page (CLM-40007 / CLM-42773).
  *
- * Mounted at `/waivers/{ownerType}/{ownerId}/{waiverId}`. Reads live from
- * `GET /api/v2/policyWaivers/{ownerType}/{ownerId}/{waiverId}`.
- *
- * The Classic page is `WaiverDetails.jsx`; this page renders the same field set
- * in Radix idiom (header + constraint / scope / component / reason / created
- * cards + a "Continue in Classic" escape hatch).
- *
- * Route params come from UI-Router (`useCurrentStateAndParams`). ownerType is
- * normalized via the same map Classic uses internally (root_organization →
- * organization, all_repositories → repository_container) so the backend call
- * shape matches Classic's.
- *
- * TODO(CLM-39709): edit / delete / bulk waiver actions and the vulnerability
- * detail modal still live in Classic; deferred to avoid wiring half a workflow.
+ * Mounted at `/waivers/{ownerType}/{ownerId}/{waiverId}`. Uses EntityDetailLayout
+ * for shared detail chrome; content remains read-only with Classic manage escape.
  */
 
 interface ParsedRoute {
@@ -58,7 +47,6 @@ const OWNER_TYPE_MAP: Record<string, string> = {
   all_repositories: 'repository_container',
 };
 
-/** Normalize the raw ownerType segment to the value Classic's backend expects. */
 function normalizeOwnerType(rawOwnerType: string | undefined): string | null {
   if (!rawOwnerType) return null;
   return OWNER_TYPE_MAP[rawOwnerType] ?? rawOwnerType;
@@ -69,12 +57,6 @@ interface BackLinkTarget {
   label: string;
 }
 
-/**
- * `?from=<value>` is an opaque marker set by the caller (WaiversTable via its
- * `linkFrom` prop) so the back-link routes the user to wherever they came from:
- *   - 'dashboard' → Dashboard's Waivers tab
- *   - anything else / unset → standalone Waivers page
- */
 function computeBackLink(from: string | null, hrefFor: (state: string) => string): BackLinkTarget {
   if (from === 'dashboard') {
     return { href: hrefFor('nexusOneDashboard.waivers'), label: 'Back to Dashboard Waivers' };
@@ -95,8 +77,15 @@ function classicWaiverDetailHref(route: ParsedRoute): string {
   );
 }
 
-export default function WaiverDetailPage(): JSX.Element {
-  const offsets = usePreviewShellOffsets();
+const WAIVER_TABS = [
+  {
+    value: 'overview',
+    label: 'Overview',
+    testId: 'preview-waiver-detail-tab-overview',
+  },
+] as const;
+
+export default function WaiverDetailPage(): ReactElement {
   const { params } = useCurrentStateAndParams();
   const { stateService } = useRouter();
 
@@ -120,7 +109,7 @@ export default function WaiverDetailPage(): JSX.Element {
   const { loading, error, waiver, refetch } = useWaiverDetail(
     route.ownerType,
     route.ownerId,
-    route.waiverId
+    route.waiverId,
   );
 
   const constraint = waiver?.constraintFacts?.[0];
@@ -128,245 +117,273 @@ export default function WaiverDetailPage(): JSX.Element {
   const scopeOwnerName = waiver?.scopeOwnerName ?? waiver?.ownerName ?? waiver?.ownerId ?? '';
   const scopeOwnerType = waiver?.scopeOwnerType ?? waiver?.ownerType ?? '';
 
-  return (
-    // Radix Theme is provided once by NexusOneShellLayout; render content into a
-    // fixed, scrollable <main> region below the shell chrome.
-    <Box
-      asChild
-      p="6"
-      style={{
-        position: 'fixed',
-        ...offsets,
-        right: 0,
-        bottom: 0,
-        overflowY: 'auto',
-        backgroundColor: 'var(--gray-1)',
-      }}
-    >
-      <main data-testid="preview-waiver-detail-page">
-        {/* Back link */}
-        <Box mb="4">
-          <Link
-            href={backLink.href}
-            size="2"
-            color="gray"
-            data-testid="preview-waiver-detail-back-link"
-          >
-            <Flex align="center" gap="1">
-              <ActionIcons.ChevronLeft size={14} />
-              <span>{backLink.label}</span>
-            </Flex>
-          </Link>
-        </Box>
+  const context = useMemo(() => {
+    if (!waiver?.vulnerabilityId) return null;
+    return resolveEntityDetailContext({
+      current: 'vulnerability',
+      vulnId: waiver.vulnerabilityId,
+    });
+  }, [waiver?.vulnerabilityId]);
 
-        <AsyncPageState
-          loading={loading}
-          error={error}
-          onRetry={refetch}
-          loadingHeight={320}
-          loadingTestId="preview-waiver-detail-loading"
-          errorTestId="preview-waiver-detail-error"
-          errorTitle="Failed to load waiver"
+  const breadcrumb = useMemo(
+    () => (
+      <div data-testid="preview-waiver-detail-breadcrumb">
+        <Link
+          href={backLink.href}
+          size="2"
+          color="gray"
+          data-testid="preview-waiver-detail-back-link"
         >
-          {waiver && (
-            <Flex direction="column" gap="5">
-              {/* Header card */}
-              <Card data-testid="preview-waiver-detail-header">
+          <Flex align="center" gap="1">
+            <ActionIcons.ChevronLeft size={14} />
+            <span>{backLink.label}</span>
+          </Flex>
+        </Link>
+      </div>
+    ),
+    [backLink.href, backLink.label],
+  );
+
+  const header = useMemo(() => {
+    if (loading) {
+      return <LoadingSkeleton height={96} data-testid="preview-waiver-detail-header-loading" />;
+    }
+    if (error) {
+      return (
+        <Flex
+          direction="column"
+          gap="3"
+          align="start"
+          p="4"
+          data-testid="preview-waiver-detail-header-error"
+          style={{ backgroundColor: 'var(--red-3)', borderRadius: 'var(--radius-3)' }}
+        >
+          <Text size="2" color="red">
+            Failed to load waiver{route.waiverId ? <> <code>{route.waiverId}</code></> : null}.
+          </Text>
+          <Button size="2" variant="soft" onClick={refetch} data-testid="preview-waiver-detail-header-retry">
+            Retry
+          </Button>
+        </Flex>
+      );
+    }
+    // useWaiverDetail usually reports loading until the active key matches; keep a
+    // skeleton if we ever see ready/idle with no waiver so the header slot is not blank.
+    if (!waiver) {
+      return <LoadingSkeleton height={96} data-testid="preview-waiver-detail-header-loading" />;
+    }
+    return (
+      <Flex align="center" gap="3" wrap="wrap" data-testid="preview-waiver-detail-header">
+        <DomainIcons.Waivers size={28} color="var(--accent-9)" />
+        <Heading size="6">{waiver.policyName ?? 'Policy waiver'}</Heading>
+        <Badge color={waiverThreatColor(waiver.threatLevel)} variant="solid">
+          Threat {waiver.threatLevel}
+        </Badge>
+        {waiver.isAutoWaiver && (
+          <Badge color="green" variant="soft">
+            Auto-waiver
+          </Badge>
+        )}
+        {waiver.forContainerImage && (
+          <Badge color="blue" variant="soft">
+            Container image
+          </Badge>
+        )}
+      </Flex>
+    );
+  }, [error, loading, refetch, route.waiverId, waiver]);
+
+  return (
+    <EntityDetailLayout
+      breadcrumb={breadcrumb}
+      header={header}
+      context={context}
+      tabs={WAIVER_TABS}
+      activeTab="overview"
+      // Single Overview tab today; wire when a second tab is added.
+      onTabChange={() => undefined}
+      mainTestId="preview-waiver-detail-page"
+      testIdPrefix="preview-waiver-detail"
+    >
+      {/* Load/error chrome lives in the header slot (Application detail pattern). */}
+      {waiver && (
+        <Flex direction="column" gap="5" data-testid="preview-waiver-detail-body">
+          <Flex gap="4" wrap="wrap" align="center">
+            <Text size="2" color="gray">
+              Scope: <strong>{waiver.scope}</strong>
+            </Text>
+            {waiver.id && (
+              <Text size="2" color="gray" style={{ fontFamily: 'var(--code-font-family)' }}>
+                {waiver.id}
+              </Text>
+            )}
+            <Link
+              size="2"
+              href={classicHref('/dashboard/waivers')}
+              data-testid="preview-waiver-detail-create-classic"
+            >
+              View Waivers in Classic →
+            </Link>
+          </Flex>
+
+          <Flex gap="5" wrap="wrap" align="stretch">
+            <Flex direction="column" gap="5" style={{ flex: '2 1 520px', minWidth: 0 }}>
+              <Card data-testid="preview-waiver-detail-constraint">
                 <Flex direction="column" gap="3" p="4">
-                  <Flex align="center" gap="3" wrap="wrap">
-                    <DomainIcons.Waivers size={28} color="var(--accent-9)" />
-                    <Heading size="6">{waiver.policyName ?? 'Policy waiver'}</Heading>
-                    <Badge color={waiverThreatColor(waiver.threatLevel)} variant="solid">
-                      Threat {waiver.threatLevel}
-                    </Badge>
-                    {waiver.isAutoWaiver && (
-                      <Badge color="green" variant="soft">
-                        Auto-waiver
-                      </Badge>
-                    )}
-                    {waiver.forContainerImage && (
-                      <Badge color="blue" variant="soft">
-                        Container image
-                      </Badge>
-                    )}
-                  </Flex>
-                  <Flex gap="4" wrap="wrap" align="center">
-                    <Text size="2" color="gray">
-                      Scope: <strong>{waiver.scope}</strong>
-                    </Text>
-                    {waiver.id && (
-                      <Text size="2" color="gray" style={{ fontFamily: 'var(--code-font-family)' }}>
-                        {waiver.id}
-                      </Text>
-                    )}
-                  </Flex>
+                  <Heading size="4">Policy constraint</Heading>
+                  <Text size="2" color="gray">
+                    Violations matching <strong>{constraint?.constraintName ?? '—'}</strong> will not
+                    be reported.
+                  </Text>
+                  {conditions.length > 0 && (
+                    <>
+                      <Separator size="4" />
+                      <Box>
+                        <Text size="2" weight="medium">
+                          Triggered by
+                        </Text>
+                        <ul
+                          data-testid="preview-waiver-detail-conditions"
+                          style={{ margin: '8px 0 0 16px', paddingLeft: 16 }}
+                        >
+                          {conditions.map((c, i) => (
+                            <li key={i}>
+                              <Text size="2">{c.reason ?? '—'}</Text>
+                            </li>
+                          ))}
+                        </ul>
+                      </Box>
+                    </>
+                  )}
                 </Flex>
               </Card>
 
-              <Flex gap="5" wrap="wrap" align="stretch">
-                {/* LEFT column: constraint + components + reason + comments */}
-                <Flex direction="column" gap="5" style={{ flex: '2 1 520px', minWidth: 0 }}>
-                  {/* Constraint */}
-                  <Card data-testid="preview-waiver-detail-constraint">
-                    <Flex direction="column" gap="3" p="4">
-                      <Heading size="4">Policy constraint</Heading>
+              {!waiver.forContainerImage && (
+                <Card data-testid="preview-waiver-detail-component">
+                  <Flex direction="column" gap="2" p="4">
+                    <Heading size="4">Component</Heading>
+                    <Text size="2" style={{ fontFamily: 'var(--code-font-family)' }}>
+                      {formatWaiverComponentLabel(waiver)}
+                    </Text>
+                    {waiver.matcherStrategy && (
                       <Text size="2" color="gray">
-                        Violations matching <strong>{constraint?.constraintName ?? '—'}</strong>{' '}
-                        will not be reported.
+                        Matcher: {waiver.matcherStrategy}
                       </Text>
-                      {conditions.length > 0 && (
-                        <>
-                          <Separator size="4" />
-                          <Box>
-                            <Text size="2" weight="medium">
-                              Triggered by
-                            </Text>
-                            <ul
-                              data-testid="preview-waiver-detail-conditions"
-                              style={{ margin: '8px 0 0 16px', paddingLeft: 16 }}
-                            >
-                              {conditions.map((c, i) => (
-                                <li key={i}>
-                                  <Text size="2">{c.reason ?? '—'}</Text>
-                                </li>
-                              ))}
-                            </ul>
-                          </Box>
-                        </>
-                      )}
-                    </Flex>
-                  </Card>
-  
-                  {/* Component */}
-                  {!waiver.forContainerImage && (
-                    <Card data-testid="preview-waiver-detail-component">
-                      <Flex direction="column" gap="2" p="4">
-                        <Heading size="4">Component</Heading>
-                        <Text size="2" style={{ fontFamily: 'var(--code-font-family)' }}>
-                          {formatWaiverComponentLabel(waiver)}
-                        </Text>
-                        {waiver.matcherStrategy && (
-                          <Text size="2" color="gray">
-                            Matcher: {waiver.matcherStrategy}
-                          </Text>
-                        )}
-                        {waiver.componentUpgradeAvailable && (
-                          <Badge color="green" variant="soft">
-                            Upgrade available
-                          </Badge>
-                        )}
-                      </Flex>
-                    </Card>
-                  )}
-  
-                  {/* Reason + comment */}
-                  <Card data-testid="preview-waiver-detail-reason">
-                    <Flex direction="column" gap="3" p="4">
-                      <Heading size="4">Reason</Heading>
-                      <Text size="2">{waiver.reasonText ?? '—'}</Text>
-                      {waiver.comment && (
-                        <>
-                          <Separator size="4" />
-                          <Box>
-                            <Text size="2" weight="medium">
-                              Comment
-                            </Text>
-                            <Text
-                              as="p"
-                              size="2"
-                              color="gray"
-                              style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}
-                            >
-                              {waiver.comment}
-                            </Text>
-                          </Box>
-                        </>
-                      )}
-                    </Flex>
-                  </Card>
-                </Flex>
-  
-                {/* RIGHT column: scope/dates/creator/actions */}
-                <Flex direction="column" gap="5" style={{ flex: '1 1 280px', minWidth: 0 }}>
-                  <Card data-testid="preview-waiver-detail-scope">
-                    <Flex direction="column" gap="3" p="4">
-                      <Heading size="4">Scope</Heading>
+                    )}
+                    {waiver.componentUpgradeAvailable && (
+                      <Badge color="green" variant="soft">
+                        Upgrade available
+                      </Badge>
+                    )}
+                  </Flex>
+                </Card>
+              )}
+
+              <Card data-testid="preview-waiver-detail-reason">
+                <Flex direction="column" gap="3" p="4">
+                  <Heading size="4">Reason</Heading>
+                  <Text size="2">{waiver.reasonText ?? '—'}</Text>
+                  {waiver.comment && (
+                    <>
+                      <Separator size="4" />
                       <Box>
-                        <Text size="2" color="gray">
-                          {scopeOwnerType.charAt(0).toUpperCase() + scopeOwnerType.slice(1)}
+                        <Text size="2" weight="medium">
+                          Comment
                         </Text>
-                        <Text as="p" size="3">
-                          {scopeOwnerName || '—'}
-                        </Text>
-                      </Box>
-                    </Flex>
-                  </Card>
-  
-                  <Card data-testid="preview-waiver-detail-lifecycle">
-                    <Flex direction="column" gap="3" p="4">
-                      <Heading size="4">Lifecycle</Heading>
-                      <Box>
-                        <Text size="2" color="gray">
-                          Created
-                        </Text>
-                        <Text as="p" size="2">
-                          {formatWaiverCalendarDate(waiver.createTime)}
-                        </Text>
-                      </Box>
-                      <Box>
-                        <Text size="2" color="gray">
-                          Expires
-                        </Text>
-                        <Text as="p" size="2">
-                          {formatWaiverDetailExpiry(waiver)}
-                        </Text>
-                      </Box>
-                      <Box>
-                        <Text size="2" color="gray">
-                          Created by
-                        </Text>
-                        <Text as="p" size="2">
-                          {waiver.creatorName ?? '—'}
-                        </Text>
-                      </Box>
-                    </Flex>
-                  </Card>
-  
-                  {waiver.vulnerabilityId && (
-                    <Card data-testid="preview-waiver-detail-vulnerability">
-                      <Flex direction="column" gap="2" p="4">
-                        <Heading size="4">Vulnerability</Heading>
-                        <Link
+                        <Text
+                          as="p"
                           size="2"
-                          href={classicHref(`/vulnerabilities/${encodeURIComponent(waiver.vulnerabilityId)}`)}
+                          color="gray"
+                          style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}
                         >
-                          {waiver.vulnerabilityId}
-                        </Link>
-                      </Flex>
-                    </Card>
+                          {waiver.comment}
+                        </Text>
+                      </Box>
+                    </>
                   )}
-  
-                  <Card data-testid="preview-waiver-detail-actions">
-                    <Flex direction="column" gap="2" p="4">
-                      <Heading size="4">Manage</Heading>
-                      <Text size="2" color="gray">
-                        Editing, deleting, and bulk waiver actions live in Classic for Phase 1.
-                      </Text>
-                      <Link
-                        size="2"
-                        href={classicWaiverDetailHref(route)}
-                        data-testid="preview-waiver-detail-classic-link"
-                      >
-                        Continue in Classic →
-                      </Link>
-                    </Flex>
-                  </Card>
                 </Flex>
-              </Flex>
+              </Card>
             </Flex>
-          )}
-        </AsyncPageState>
-      </main>
-    </Box>
+
+            <Flex direction="column" gap="5" style={{ flex: '1 1 280px', minWidth: 0 }}>
+              <Card data-testid="preview-waiver-detail-scope">
+                <Flex direction="column" gap="3" p="4">
+                  <Heading size="4">Scope</Heading>
+                  <Box>
+                    <Text size="2" color="gray">
+                      {scopeOwnerType.charAt(0).toUpperCase() + scopeOwnerType.slice(1)}
+                    </Text>
+                    <Text as="p" size="3">
+                      {scopeOwnerName || '—'}
+                    </Text>
+                  </Box>
+                </Flex>
+              </Card>
+
+              <Card data-testid="preview-waiver-detail-lifecycle">
+                <Flex direction="column" gap="3" p="4">
+                  <Heading size="4">Lifecycle</Heading>
+                  <Box>
+                    <Text size="2" color="gray">
+                      Created
+                    </Text>
+                    <Text as="p" size="2">
+                      {formatWaiverCalendarDate(waiver.createTime)}
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text size="2" color="gray">
+                      Expires
+                    </Text>
+                    <Text as="p" size="2">
+                      {formatWaiverDetailExpiry(waiver)}
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text size="2" color="gray">
+                      Created by
+                    </Text>
+                    <Text as="p" size="2">
+                      {waiver.creatorName ?? '—'}
+                    </Text>
+                  </Box>
+                </Flex>
+              </Card>
+
+              {waiver.vulnerabilityId && (
+                <Card data-testid="preview-waiver-detail-vulnerability">
+                  <Flex direction="column" gap="2" p="4">
+                    <Heading size="4">Vulnerability</Heading>
+                    <Link
+                      size="2"
+                      href={classicHref(`/vulnerabilities/${encodeURIComponent(waiver.vulnerabilityId)}`)}
+                      data-testid="preview-waiver-detail-vuln-link"
+                    >
+                      {waiver.vulnerabilityId}
+                    </Link>
+                  </Flex>
+                </Card>
+              )}
+
+              <Card data-testid="preview-waiver-detail-actions">
+                <Flex direction="column" gap="2" p="4">
+                  <Heading size="4">Manage</Heading>
+                  <Text size="2" color="gray">
+                    Editing, deleting, and bulk waiver actions live in Classic for Phase 1.
+                  </Text>
+                  <Link
+                    size="2"
+                    href={classicWaiverDetailHref(route)}
+                    data-testid="preview-waiver-detail-classic-link"
+                  >
+                    Continue in Classic →
+                  </Link>
+                </Flex>
+              </Card>
+            </Flex>
+          </Flex>
+        </Flex>
+      )}
+    </EntityDetailLayout>
   );
 }

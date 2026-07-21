@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import WaiverDetailPage from 'MainRoot/nosc/waivers/WaiverDetailPage';
 import { getWaiverDetailsUrl } from 'MainRoot/util/CLMLocation';
@@ -134,9 +134,10 @@ describe('WaiverDetailPage', () => {
       .reply(500, 'boom');
     renderDetail();
     await waitFor(() => {
-      expect(screen.getByTestId('preview-waiver-detail-error')).toBeInTheDocument();
+      expect(screen.getByTestId('preview-waiver-detail-header-error')).toBeInTheDocument();
     });
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('preview-waiver-detail-body')).not.toBeInTheDocument();
   });
 
   it('maps root_organization in the URL to organization for the details API', async () => {
@@ -211,5 +212,72 @@ describe('WaiverDetailPage', () => {
     });
     const back = screen.getByTestId('preview-waiver-detail-back-link');
     expect(back).toHaveAttribute('href', '#/waivers');
+  });
+
+  it('renders EntityDetailLayout chrome and Classic list escape after load', async () => {
+    reply({
+      id: ROUTE.waiverId,
+      threatLevel: 1,
+      policyName: 'Layout waiver',
+      ownerId: ROUTE.ownerId,
+      ownerType: ROUTE.ownerType,
+      scope: 'Application: Apple - Java',
+    });
+    renderDetail();
+
+    expect(screen.getByTestId('preview-waiver-detail-page')).toBeInTheDocument();
+    expect(screen.getByTestId('preview-waiver-detail-tabs')).toBeInTheDocument();
+    expect(screen.getByTestId('preview-waiver-detail-tab-overview')).toBeInTheDocument();
+    expect(screen.getByTestId('preview-waiver-detail-breadcrumb')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-waiver-detail-header')).toBeInTheDocument();
+    });
+
+    const classicList = screen.getByTestId('preview-waiver-detail-create-classic');
+    expect(classicList).toHaveTextContent('View Waivers in Classic');
+    expect(classicList).toHaveAttribute('href', expect.stringContaining('/dashboard/waivers'));
+  });
+
+  it('links vulnerability to Classic until native vulnerability detail lands', async () => {
+    reply({
+      id: ROUTE.waiverId,
+      threatLevel: 9,
+      policyName: 'Vuln waiver',
+      ownerId: ROUTE.ownerId,
+      ownerType: ROUTE.ownerType,
+      scope: 'Application: Apple - Java',
+      vulnerabilityId: 'CVE-2024-1234',
+    });
+    renderDetail();
+
+    const vulnLink = await screen.findByTestId('preview-waiver-detail-vuln-link');
+    expect(vulnLink).toHaveAttribute(
+      'href',
+      expect.stringContaining('/vulnerabilities/CVE-2024-1234'),
+    );
+    expect(vulnLink.getAttribute('href')).not.toMatch(/^#\/vulnerabilities\//);
+  });
+
+  it('related-risk context rail marks the vulnerability as current after metadata loads', async () => {
+    reply({
+      id: ROUTE.waiverId,
+      threatLevel: 9,
+      policyName: 'Rail waiver',
+      ownerId: ROUTE.ownerId,
+      ownerType: ROUTE.ownerType,
+      scope: 'Application: Apple - Java',
+      vulnerabilityId: 'CVE-2024-9999',
+    });
+    renderDetail();
+
+    await screen.findByTestId('preview-waiver-detail-header');
+    const rail = await screen.findByTestId('preview-waiver-detail-context-rail');
+    expect(within(rail).getByText('CVE-2024-9999')).toHaveAttribute('aria-current', 'page');
+    expect(within(rail).queryByRole('link', { name: 'CVE-2024-9999' })).not.toBeInTheDocument();
+    for (const placeholder of ['Application', 'Component', 'Violation'] as const) {
+      expect(within(rail).getByText(placeholder)).toBeInTheDocument();
+      expect(within(rail).queryByRole('link', { name: placeholder })).not.toBeInTheDocument();
+    }
   });
 });

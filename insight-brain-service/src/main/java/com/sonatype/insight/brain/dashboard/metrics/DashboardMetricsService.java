@@ -21,6 +21,12 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsScopeResolver;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlCoordinator;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlMode;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlModeProvider;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadiness;
+import com.sonatype.insight.brain.dashboard.metrics.sql.ResolvedScope;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
@@ -46,7 +52,7 @@ public class DashboardMetricsService
 
   static final String METRIC_SOURCE_INDEX = "index";
 
-  static final String METRIC_SOURCE_SQL = "sql";
+  public static final String METRIC_SOURCE_SQL = "sql";
 
   static final Map<String, int[]> VIOLATIONS_THREAT_LEVEL_BANDS = ThreatLevel.searchAggregationBands();
 
@@ -108,7 +114,13 @@ public class DashboardMetricsService
 
   private final PolicyWaiverRequestDAO policyWaiverRequestDAO;
 
-  private final DashboardMetricsWaiverScopeService waiverScopeService;
+  private final DashboardMetricsSqlModeProvider sqlModeProvider;
+
+  private final DashboardMetricsSqlReadiness sqlReadiness;
+
+  private final DashboardMetricsScopeResolver sqlScopeResolver;
+
+  private final DashboardMetricsSqlCoordinator sqlCoordinator;
 
   private final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
 
@@ -126,7 +138,10 @@ public class DashboardMetricsService
       MetricFilterValidator metricFilterValidator,
       PolicyWaiverDAO policyWaiverDAO,
       PolicyWaiverRequestDAO policyWaiverRequestDAO,
-      DashboardMetricsWaiverScopeService waiverScopeService,
+      DashboardMetricsSqlModeProvider sqlModeProvider,
+      DashboardMetricsSqlReadiness sqlReadiness,
+      DashboardMetricsScopeResolver sqlScopeResolver,
+      DashboardMetricsSqlCoordinator sqlCoordinator,
       DashboardIndexDimensionQueryBuilder dimensionQueryBuilder,
       Configuration configuration,
       StageTypeService stageTypeService,
@@ -136,7 +151,10 @@ public class DashboardMetricsService
     this.metricFilterValidator = metricFilterValidator;
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyWaiverRequestDAO = policyWaiverRequestDAO;
-    this.waiverScopeService = waiverScopeService;
+    this.sqlModeProvider = sqlModeProvider;
+    this.sqlReadiness = sqlReadiness;
+    this.sqlScopeResolver = sqlScopeResolver;
+    this.sqlCoordinator = sqlCoordinator;
     this.dimensionQueryBuilder = dimensionQueryBuilder;
     this.configuration = configuration;
     this.stageTypeService = stageTypeService;
@@ -174,12 +192,24 @@ public class DashboardMetricsService
    * summary/heavy tiers.
    */
   private DashboardMetricsDTO loadMetrics(DashboardMetricsRequestDTO request) {
+    DashboardMetricsSqlMode effectiveMode =
+        sqlReadiness.effectiveMode(sqlModeProvider.configuredMode());
     boolean compatibilityMode = request == null || request.includeHeavyMetrics == null;
     boolean includeSummary = compatibilityMode || Boolean.FALSE.equals(request.includeHeavyMetrics);
     boolean includeHeavy = compatibilityMode || Boolean.TRUE.equals(request.includeHeavyMetrics);
     List<String> unsupportedIndexDimensions = unsupportedIndexDimensions(request);
     MetricFilterContext filterContext =
         unsupportedIndexDimensions.isEmpty() ? buildMetricFilterContext(request) : null;
+    ResolvedScope sqlScope = null;
+    boolean needsWaiverScope = includeSummary && !hasFilter(request == null ? null : request.stageIds);
+    // SHADOW is reserved for dual-run comparison (CLM-42678); serve SQL only when ON.
+    boolean useSqlServing = effectiveMode == DashboardMetricsSqlMode.ON;
+    boolean needsMigratedScope = useSqlServing
+        && unsupportedIndexDimensions.isEmpty()
+        && (includeSummary || includeHeavy);
+    if (needsWaiverScope || needsMigratedScope) {
+      sqlScope = sqlScopeResolver.resolve(request);
+    }
 
     MetricValueDTO applicationsMetric = null;
     MetricValueDTO organizationsMetric = null;
@@ -188,26 +218,33 @@ public class DashboardMetricsService
     Long lastUpdatedAt = null;
     if (includeSummary) {
       if (unsupportedIndexDimensions.isEmpty()) {
-        long applicationsStartedAt = System.nanoTime();
-        long applications = searchIndexClient.count(
-            buildFilteredMetricQuery(ItemType.APPLICATION, filterContext));
-        logBenchmarkDuration("applications", applicationsStartedAt);
-        applicationsMetric = new MetricValueDTO(
-            applications,
-            Map.of("stages", licensedDashboardStageCount()),
-            METRIC_SOURCE_INDEX);
-        long organizationsStartedAt = System.nanoTime();
-        organizationsMetric = new MetricValueDTO(
-            searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
-            null,
-            METRIC_SOURCE_INDEX);
-        logBenchmarkDuration("organizations", organizationsStartedAt);
-        long policiesStartedAt = System.nanoTime();
-        policiesMetric = new MetricValueDTO(
-            searchIndexClient.count(buildFilteredMetricQuery(ItemType.POLICY, filterContext)),
-            null,
-            METRIC_SOURCE_INDEX);
-        logBenchmarkDuration("policies", policiesStartedAt);
+        if (useSqlServing) {
+          applicationsMetric = sqlCoordinator.countApplications(sqlScope);
+          organizationsMetric = sqlCoordinator.countOrganizations(sqlScope);
+          policiesMetric = sqlCoordinator.countPolicies(sqlScope);
+        }
+        else {
+          long applicationsStartedAt = System.nanoTime();
+          long applications = searchIndexClient.count(
+              buildFilteredMetricQuery(ItemType.APPLICATION, filterContext));
+          logBenchmarkDuration("applications", applicationsStartedAt);
+          applicationsMetric = new MetricValueDTO(
+              applications,
+              Map.of("stages", licensedDashboardStageCount()),
+              METRIC_SOURCE_INDEX);
+          long organizationsStartedAt = System.nanoTime();
+          organizationsMetric = new MetricValueDTO(
+              searchIndexClient.count(buildFilteredMetricQuery(ItemType.ORGANIZATION, filterContext)),
+              null,
+              METRIC_SOURCE_INDEX);
+          logBenchmarkDuration("organizations", organizationsStartedAt);
+          long policiesStartedAt = System.nanoTime();
+          policiesMetric = new MetricValueDTO(
+              searchIndexClient.count(buildFilteredMetricQuery(ItemType.POLICY, filterContext)),
+              null,
+              METRIC_SOURCE_INDEX);
+          logBenchmarkDuration("policies", policiesStartedAt);
+        }
         lastUpdatedAt = searchIndexClient.getLastIndexTime();
       }
       else {
@@ -224,13 +261,7 @@ public class DashboardMetricsService
       }
       else {
         long waiversStartedAt = System.nanoTime();
-        Set<String> accessibleOwnerIds = waiverScopeService.resolveAccessibleOwnerIds(request);
-        long existingWaivers = policyWaiverDAO.selectCount(accessibleOwnerIds);
-        long requestedWaivers = policyWaiverRequestDAO.selectCount(accessibleOwnerIds);
-        waiversMetric = new MetricValueDTO(
-            existingWaivers + requestedWaivers,
-            Map.of("existing", existingWaivers, "requested", requestedWaivers),
-            METRIC_SOURCE_SQL);
+        waiversMetric = countWaivers(sqlScope);
         logBenchmarkDuration("waivers", waiversStartedAt);
       }
     }
@@ -241,14 +272,19 @@ public class DashboardMetricsService
     MetricValueDTO legalMetric = null;
     if (includeHeavy) {
       if (unsupportedIndexDimensions.isEmpty()) {
-        long violationsStartedAt = System.nanoTime();
-        MetricAggregationResult violationsAggregation = searchIndexClient.aggregateCountByField(
-            buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
-            FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
-            VIOLATIONS_THREAT_LEVEL_BANDS);
-        logBenchmarkDuration("violations", violationsStartedAt);
-        violationsMetric = new MetricValueDTO(
-            violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
+        if (useSqlServing) {
+          violationsMetric = sqlCoordinator.countViolations(sqlScope);
+        }
+        else {
+          long violationsStartedAt = System.nanoTime();
+          MetricAggregationResult violationsAggregation = searchIndexClient.aggregateCountByField(
+              buildFilteredMetricQuery(ItemType.POLICY_VIOLATION, filterContext),
+              FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+              VIOLATIONS_THREAT_LEVEL_BANDS);
+          logBenchmarkDuration("violations", violationsStartedAt);
+          violationsMetric = new MetricValueDTO(
+              violationsAggregation.total, violationsAggregation.buckets, METRIC_SOURCE_INDEX);
+        }
         long componentsStartedAt = System.nanoTime();
         componentsMetric = new MetricValueDTO(countScannedComponents(filterContext), null, METRIC_SOURCE_INDEX);
         logBenchmarkDuration("components", componentsStartedAt);
@@ -277,6 +313,25 @@ public class DashboardMetricsService
         legalMetric,
         waiversMetric,
         lastUpdatedAt);
+  }
+
+  private MetricValueDTO countWaivers(final ResolvedScope scope) {
+    if (scope.kind() == ResolvedScope.Kind.DENY_ALL) {
+      if (scope.denyReason() == ResolvedScope.DenyReason.RESOLUTION_FAILED) {
+        return MetricValueDTO.unavailable(METRIC_SOURCE_SQL);
+      }
+      return new MetricValueDTO(
+          0L,
+          Map.of("existing", 0L, "requested", 0L),
+          METRIC_SOURCE_SQL);
+    }
+    Set<String> accessibleOwnerIds = scope.ownerIds();
+    long existingWaivers = policyWaiverDAO.selectCount(accessibleOwnerIds);
+    long requestedWaivers = policyWaiverRequestDAO.selectCount(accessibleOwnerIds);
+    return new MetricValueDTO(
+        existingWaivers + requestedWaivers,
+        Map.of("existing", existingWaivers, "requested", requestedWaivers),
+        METRIC_SOURCE_SQL);
   }
 
   private static void logBenchmarkDuration(String metric, long startedAt) {

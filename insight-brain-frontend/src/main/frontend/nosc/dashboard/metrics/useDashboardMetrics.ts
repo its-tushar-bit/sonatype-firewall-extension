@@ -58,8 +58,25 @@ function mergeMetrics(summary: DashboardMetricsResponse, heavy: DashboardMetrics
   };
 }
 
+function canonicalScope(scope: DashboardMetricsScope): DashboardMetricsScope {
+  const normalizedIds = (ids: readonly string[] | undefined): readonly string[] | undefined => {
+    if (!ids || ids.length === 0) return undefined;
+    return [...new Set(ids)].sort();
+  };
+  const organizationIds = normalizedIds(scope.organizationIds);
+  const applicationIds = normalizedIds(scope.applicationIds);
+  const stageIds = normalizedIds(scope.stageIds);
+  const tagIds = normalizedIds(scope.tagIds);
+  return {
+    ...(organizationIds && { organizationIds }),
+    ...(applicationIds && { applicationIds }),
+    ...(stageIds && { stageIds }),
+    ...(tagIds && { tagIds }),
+  };
+}
+
 export function useDashboardMetrics(scope: DashboardMetricsScope = {}, enabled = true): UseDashboardMetricsResult {
-  const scopeKey = useMemo(() => JSON.stringify(scope ?? {}), [scope]);
+  const scopeKey = useMemo(() => JSON.stringify(canonicalScope(scope ?? {})), [scope]);
   const scopeBody = useMemo(() => JSON.parse(scopeKey) as DashboardMetricsScope, [scopeKey]);
   const [summaryAttempt, setSummaryAttempt] = useState(0);
   const [heavyAttempt, setHeavyAttempt] = useState(0);

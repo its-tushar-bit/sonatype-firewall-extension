@@ -194,6 +194,44 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     expect(screen.getByTestId('metric-card-violations-value')).toHaveTextContent('9');
   });
 
+  it('renders METRIC_UNAVAILABLE SQL tiles as temporarily unavailable instead of 0', () => {
+    jest.spyOn(metricsHook, 'useDashboardMetrics').mockReturnValue(
+      metricsResult({
+        data: {
+          ...FULL_BODY,
+          applications: {
+            total: null,
+            breakdown: null,
+            source: 'sql',
+            errorCode: 'METRIC_UNAVAILABLE',
+          },
+          organizations: {
+            total: null,
+            breakdown: null,
+            source: 'sql',
+            errorCode: 'METRIC_UNAVAILABLE',
+          },
+          policies: {
+            total: null,
+            breakdown: null,
+            source: 'sql',
+            errorCode: 'METRIC_UNAVAILABLE',
+          },
+        } as DashboardMetricsResponse,
+      })
+    );
+
+    renderGrid();
+
+    const applicationsCard = screen.getByTestId('metric-card-applications');
+    expect(within(applicationsCard).getByRole('status')).toHaveTextContent('Temporarily unavailable');
+    expect(within(applicationsCard).queryByTestId('metric-card-applications-value')).not.toBeInTheDocument();
+    expect(within(screen.getByTestId('metric-card-orgs-and-policies')).getByRole('status')).toHaveTextContent(
+      'Temporarily unavailable'
+    );
+    expect(screen.getByTestId('metric-card-violations-value')).toHaveTextContent('9');
+  });
+
   it('renders a zero total honestly (AT-F16: empty/zero state)', async () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
       applications: { total: 0, breakdown: { stages: 5 }, source: 'index' },

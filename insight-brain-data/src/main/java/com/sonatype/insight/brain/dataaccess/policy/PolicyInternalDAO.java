@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -80,6 +81,10 @@ public class PolicyInternalDAO
           .orderBy(POLICY.NAME_LOWERCASE_NO_WHITESPACE)
           .fetch(this::toEntity);
     }
+  }
+
+  long selectCountByOwnerIds(@Nullable Set<String> ownerIds) {
+    return countByField(POLICY, POLICY.OWNER_ID, ownerIds);
   }
 
   List<PolicyInternal> getApplicableByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {

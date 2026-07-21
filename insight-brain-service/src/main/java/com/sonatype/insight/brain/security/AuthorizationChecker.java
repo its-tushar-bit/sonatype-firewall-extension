@@ -133,7 +133,7 @@ public class AuthorizationChecker
    * Returns a new collection that holds only those input entities for which the given user has the specified
    * permission. Uses the owner type to select the appropriate ancestor view for performance optimization.
    */
-  <T extends Owner> Collection<T> filterByPermission(
+  public <T extends Owner> Collection<T> filterByPermission(
       final UserPrincipal user,
       final Permission permission,
       final Iterable<T> entities,

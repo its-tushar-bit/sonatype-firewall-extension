@@ -59,7 +59,7 @@ export interface MetricEntry<TBreakdown = unknown> {
   readonly breakdown: TBreakdown | null;
   /** Provenance hint from the backend (e.g. 'index' | 'sql'); informational only. */
   readonly source?: string | null;
-  readonly errorCode?: 'UNSUPPORTED_FILTER_COMBINATION';
+  readonly errorCode?: 'UNSUPPORTED_FILTER_COMBINATION' | 'METRIC_UNAVAILABLE';
   readonly unsupportedDimensions?: readonly UnsupportedMetricDimension[];
 }
 

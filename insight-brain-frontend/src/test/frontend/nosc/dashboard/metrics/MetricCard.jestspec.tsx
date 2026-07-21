@@ -41,6 +41,21 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
+  it('renders METRIC_UNAVAILABLE as temporarily unavailable without falling back to 0', () => {
+    renderCard(
+      <MetricCard
+        title="Applications"
+        metricUnavailable
+        href="#/dashboard/applications"
+        testId="metric-card-applications"
+      />
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Temporarily unavailable');
+    expect(screen.queryByTestId('metric-card-applications-value')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
   it('renders sub-metrics with a text label AND value (severity not by color alone)', () => {
     renderCard(
       <MetricCard

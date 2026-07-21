@@ -12,7 +12,7 @@ import {
   dashboardVulnerabilitiesHref,
   dashboardWaiversHref,
 } from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
-import type { DashboardMetricsResponse } from './dashboardMetricsTypes';
+import type { DashboardMetricsResponse, MetricEntry } from './dashboardMetricsTypes';
 import type { DualHeroStat, SecondaryStat, SubMetric } from './MetricCard';
 
 /**
@@ -22,6 +22,10 @@ import type { DualHeroStat, SecondaryStat, SubMetric } from './MetricCard';
  * The grid renders whatever this ordered list declares — adding a future card
  * is registration-only: append a definition here and the grid + hook need no changes.
  */
+
+function isPresentMetric(entry: MetricEntry | undefined): boolean {
+  return entry != null && entry.errorCode !== 'METRIC_UNAVAILABLE';
+}
 
 export interface MetricCardSelection {
   readonly value?: number;
@@ -53,7 +57,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-applications',
     showWhileLoading: true,
     showWhileHeavyLoading: false,
-    isAvailable: (data) => data.applications != null,
+    isAvailable: (data) => isPresentMetric(data.applications),
     select: (data) => {
       const stages = data.applications?.breakdown?.stages;
       return {
@@ -69,7 +73,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-legal',
     showWhileLoading: false,
     showWhileHeavyLoading: true,
-    isAvailable: (data) => data.legal != null,
+    isAvailable: (data) => isPresentMetric(data.legal),
     select: (data) => {
       const b = data.legal?.breakdown;
       const dualHero: readonly [DualHeroStat, DualHeroStat] | undefined = b
@@ -96,7 +100,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-orgs-and-policies',
     showWhileLoading: false,
     showWhileHeavyLoading: false,
-    isAvailable: (data) => data.organizations != null && data.policies != null,
+    isAvailable: (data) => isPresentMetric(data.organizations) && isPresentMetric(data.policies),
     select: (data) => ({
       dualHero: [
         { value: data.organizations?.total ?? 0, label: 'Organizations' },
@@ -111,7 +115,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-components',
     showWhileLoading: false,
     showWhileHeavyLoading: true,
-    isAvailable: (data) => data.components != null,
+    isAvailable: (data) => isPresentMetric(data.components),
     select: (data) => {
       const relatedViolations = data.violations?.total;
       return {
@@ -129,7 +133,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     // Heavy-tier aggregate — skeleton until the second POST lands.
     showWhileLoading: false,
     showWhileHeavyLoading: true,
-    isAvailable: (data) => data.violations != null,
+    isAvailable: (data) => isPresentMetric(data.violations),
     select: (data) => {
       const b = data.violations?.breakdown;
       const subMetrics: SubMetric[] | undefined = b
@@ -153,7 +157,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-vulnerabilities',
     showWhileLoading: false,
     showWhileHeavyLoading: true,
-    isAvailable: (data) => data.vulnerabilities != null,
+    isAvailable: (data) => isPresentMetric(data.vulnerabilities),
     select: (data) => {
       const b = data.vulnerabilities?.breakdown;
       const subMetrics: SubMetric[] | undefined = b
@@ -177,7 +181,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-waivers',
     showWhileLoading: true,
     showWhileHeavyLoading: false,
-    isAvailable: (data) => data.waivers != null,
+    isAvailable: (data) => isPresentMetric(data.waivers),
     select: (data) => {
       const b = data.waivers?.breakdown;
       const subMetrics: SubMetric[] | undefined = b

@@ -47,6 +47,8 @@ export interface MetricCardProps {
   readonly href?: string;
   readonly loading?: boolean;
   readonly unavailableDimensions?: readonly UnsupportedMetricDimension[];
+  /** True when the backend returned METRIC_UNAVAILABLE (distinct from unsupported filters). */
+  readonly metricUnavailable?: boolean;
   readonly testId?: string;
 }
 
@@ -139,14 +141,20 @@ export function MetricCard({
   href,
   loading = false,
   unavailableDimensions,
+  metricUnavailable = false,
   testId = 'metric-card',
 }: MetricCardProps): JSX.Element {
   const headingId = useId();
   const severitySubMetrics = subMetrics?.filter((sub) => (sub.variant ?? 'severity') === 'severity') ?? [];
   const statSubMetrics = subMetrics?.filter((sub) => sub.variant === 'stat') ?? [];
+  const showUnavailable = metricUnavailable || !!unavailableDimensions?.length;
 
   const heroBody: ReactNode = loading ? (
     <LoadingSkeleton height={64} label={`Loading ${title}`} data-testid={`${testId}-skeleton`} />
+  ) : metricUnavailable ? (
+    <Text as="div" size="3" color="gray" role="status" data-testid={`${testId}-unavailable`}>
+      Temporarily unavailable
+    </Text>
   ) : unavailableDimensions?.length ? (
     <Text as="div" size="3" color="gray" role="status" data-testid={`${testId}-unavailable`}>
       {unavailableMessage(unavailableDimensions)}
@@ -160,7 +168,7 @@ export function MetricCard({
   );
 
   const details: ReactNode =
-    loading || unavailableDimensions?.length ? null : (
+    loading || showUnavailable ? null : (
       <>
         {secondaryStat && (
           <Flex align="baseline" gap="2" className={styles.statRow} data-testid={`${testId}-secondary-stat`}>
@@ -191,7 +199,7 @@ export function MetricCard({
 
   const interactiveBody = (
     <Flex direction="column" gap="3">
-      {href && !loading && !unavailableDimensions?.length ? (
+      {href && !loading && !showUnavailable ? (
         <a
           href={href}
           className={styles.cardLink}

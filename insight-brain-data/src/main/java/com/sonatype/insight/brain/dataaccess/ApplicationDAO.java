@@ -21,6 +21,7 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -1252,6 +1253,10 @@ public class ApplicationDAO
                       .isNull()))
           .fetchOne(0, Long.class);
     }
+  }
+
+  public long selectCountByApplicationIds(@Nullable Set<String> applicationIds) {
+    return countByField(APPLICATION, APPLICATION.APPLICATION_ID, applicationIds);
   }
 
   public long getApplicationsCountByOrganizationId(String organizationId) {

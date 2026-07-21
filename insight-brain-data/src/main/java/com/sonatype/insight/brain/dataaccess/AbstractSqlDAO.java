@@ -8,8 +8,11 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import jakarta.annotation.Nullable;
 
 import com.sonatype.insight.brain.common.config.ConfigUtil;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -28,6 +31,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Record;
 import org.jooq.ResultQuery;
 import org.jooq.Table;
+import org.jooq.TableField;
 
 import static java.util.stream.Collectors.toList;
 
@@ -212,6 +216,45 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   public long getCount() {
     try (TransactionContext tx = createTransactionContext()) {
       return getCount(tx);
+    }
+  }
+
+  /**
+   * Counts rows for {@code null} (global), empty (zero), or an IN-clause set of ids.
+   * <p>
+   * Chunks are disjoint and COUNT is additive; do not copy this pattern for {@code COUNT(DISTINCT)}.
+   * </p>
+   */
+  protected long countByField(
+      final Table<?> table,
+      final TableField<?, String> idField,
+      @Nullable final Set<String> ids)
+  {
+    if (ids != null && ids.isEmpty()) {
+      return 0L;
+    }
+    if (ids == null) {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl().fetchCount(table);
+      }
+    }
+    return getListWithSqlInClause(ids, chunk -> selectCountByFieldChunk(table, idField, chunk), getDataStore())
+        .stream()
+        .mapToLong(Long::longValue)
+        .sum();
+  }
+
+  private List<Long> selectCountByFieldChunk(
+      final Table<?> table,
+      final TableField<?, String> idField,
+      final Collection<String> ids)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return List.of(tx.dsl()
+          .selectCount()
+          .from(table)
+          .where(idField.in(ids))
+          .fetchOne(0, long.class));
     }
   }
 

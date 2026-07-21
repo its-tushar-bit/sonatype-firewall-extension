@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_METRICS_SQL_MODE;
 
 public class DashboardMetricsResourceTest
     extends AbstractResourceTest
@@ -30,6 +31,7 @@ public class DashboardMetricsResourceTest
   public void tearDownPreviewFlag() {
     tempEntity.deleteSystemConfigurationProperty(
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.getPropertyName());
+    tempEntity.deleteSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE);
   }
 
   @Override
@@ -69,6 +71,30 @@ public class DashboardMetricsResourceTest
     assertThat(metrics.legal.breakdown).containsKeys("applications", "components");
     assertThat(metrics.waivers).isNotNull();
     assertThat(metrics.waivers.source).isEqualTo("sql");
+  }
+
+  @Test
+  public void testGetMetrics_sqlModeOn_returnsSqlSourcesForMigratedMetrics() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "ON");
+    DashboardMetricsTestSupport.clearDashboardMetricsCache(lookup(DashboardMetricsService.class));
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication(org.getId());
+    DashboardMetricsTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    HttpResponse response = restRequest()
+        .path(DashboardMetricsResource.METRICS_PATH)
+        .body(new DashboardMetricsRequestDTO())
+        .post();
+
+    assertResponseStatus(200, response);
+    DashboardMetricsDTO metrics = response.getBody(DashboardMetricsDTO.class);
+    assertThat(metrics.applications.source).isEqualTo("sql");
+    assertThat(metrics.organizations.source).isEqualTo("sql");
+    assertThat(metrics.policies.source).isEqualTo("sql");
+    assertThat(metrics.violations.source).isEqualTo("sql");
+    assertThat(metrics.components.source).isEqualTo("index");
+    assertThat(metrics.lastUpdatedAt).isNotNull();
   }
 
   @Test

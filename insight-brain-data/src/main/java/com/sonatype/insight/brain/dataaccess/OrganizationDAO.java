@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -255,6 +256,10 @@ public class OrganizationDAO
           .orderBy(ORGANIZATION.NAME)
           .fetch(this::toEntity);
     }
+  }
+
+  public long selectCountByOrganizationIds(@Nullable Set<String> organizationIds) {
+    return countByField(ORGANIZATION, ORGANIZATION.ORGANIZATION_ID, organizationIds);
   }
 
   public List<Organization> getByRelatedRepositoryManagerId(

@@ -117,6 +117,68 @@ public class PolicyViolationDAOTest
   }
 
   @Test
+  public void countUnfixedByThreatLevel_includesUnfixedWaivedAndLegacyRows() {
+    newUnfixedViolation(application, BuildStageType.ID, 1);
+    PolicyViolation waived = newUnfixedViolation(application, BuildStageType.ID, 3);
+    waived.setWaiveTime(new Date());
+    dao.update(waived);
+    PolicyViolation legacy = newUnfixedViolation(application, BuildStageType.ID, 8);
+    legacy.setLegacyViolationTime(new Date());
+    dao.update(legacy);
+
+    assertThat(dao.countUnfixedByThreatLevel(Set.of(application.getId()), null))
+        .containsExactlyInAnyOrder(
+            new PolicyViolationDAO.RawThreatLevelCount((short) 1, 1),
+            new PolicyViolationDAO.RawThreatLevelCount((short) 3, 1),
+            new PolicyViolationDAO.RawThreatLevelCount((short) 8, 1));
+  }
+
+  @Test
+  public void countUnfixedByThreatLevel_excludesFixedRows() {
+    newUnfixedViolation(application, BuildStageType.ID, 4);
+    PolicyViolation fixed = newUnfixedViolation(application, BuildStageType.ID, 8);
+    fixed.setFixTime(new Date());
+    dao.update(fixed);
+
+    assertThat(dao.countUnfixedByThreatLevel(Set.of(application.getId()), null))
+        .containsExactly(new PolicyViolationDAO.RawThreatLevelCount((short) 4, 1));
+  }
+
+  @Test
+  public void countUnfixedByThreatLevel_emptyApplicationsReturnsEmpty() {
+    assertThat(dao.countUnfixedByThreatLevel(Set.of(), null)).isEmpty();
+  }
+
+  @Test
+  public void countUnfixedByThreatLevel_nullApplicationsCountsGlobal() {
+    newUnfixedViolation(application, BuildStageType.ID, 7);
+
+    assertThat(dao.countUnfixedByThreatLevel(null, null))
+        .contains(new PolicyViolationDAO.RawThreatLevelCount((short) 7, 1));
+  }
+
+  @Test
+  public void countUnfixedByThreatLevel_optionalStagePredicateLimitsRows() {
+    newUnfixedViolation(application, BuildStageType.ID, 3);
+    newUnfixedViolation(application, ReleaseStageType.ID, 8);
+
+    assertThat(dao.countUnfixedByThreatLevel(Set.of(application.getId()), Set.of(BuildStageType.ID)))
+        .containsExactly(new PolicyViolationDAO.RawThreatLevelCount((short) 3, 1));
+  }
+
+  @Test
+  public void countUnfixedByThreatLevel_mergesDisjointChunksByThreatLevel() {
+    Application other = tempEntity.newApplication(organization.getId());
+    newUnfixedViolation(application, BuildStageType.ID, 4);
+    newUnfixedViolation(other, BuildStageType.ID, 4);
+    PolicyViolationDAO chunkedDAO = org.mockito.Mockito.spy(dao);
+    org.mockito.Mockito.when(chunkedDAO.getInOperatorThreshold()).thenReturn(2);
+
+    assertThat(chunkedDAO.countUnfixedByThreatLevel(Set.of(application.getId(), other.getId(), "missing"), null))
+        .containsExactly(new PolicyViolationDAO.RawThreatLevelCount((short) 4, 2));
+  }
+
+  @Test
   public void testCRUD() throws Exception {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID,
@@ -3337,5 +3399,15 @@ public class PolicyViolationDAOTest
         .ignoringCollectionOrder()
         .ignoringExpectedNullFields()
         .isEqualTo(expected.getConstraintFacts());
+  }
+
+  private PolicyViolation newUnfixedViolation(Application owner, String stageTypeId, int threatLevel) {
+    Policy policy = tempEntity.newPolicy(owner);
+    PolicyEvaluation evaluation =
+        tempEntity.newPolicyEvaluation(owner.getId(), stageTypeId, "metric-" + UUID.randomUUID());
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy);
+    violation.setThreatLevel(threatLevel);
+    dao.update(violation);
+    return violation;
   }
 }

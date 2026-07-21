@@ -14,6 +14,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -28,6 +29,12 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsScopeResolver;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlCoordinator;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlMode;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlModeProvider;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlReadiness;
+import com.sonatype.insight.brain.dashboard.metrics.sql.ResolvedScope;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.model.Organization;
@@ -65,6 +72,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_METRICS_SQL_MODE;
 
 /**
  * Dashboard metrics service: Lucene integration and coalescing cache (CLM-40927).
@@ -576,6 +585,311 @@ public class DashboardMetricsServiceTest
   }
 
   @Test
+  public void testGetMetrics_OffServesIndexSources() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "OFF");
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication(org.getId());
+    tempEntity.newPolicy(org.getId());
+    User reader = tempEntity.newUser("metrics-off-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertThat(metrics.applications.source).isEqualTo("index");
+    assertThat(metrics.organizations.source).isEqualTo("index");
+    assertThat(metrics.policies.source).isEqualTo("index");
+    assertThat(metrics.violations.source).isEqualTo("index");
+  }
+
+  @Test
+  public void testGetMetrics_OnServesSqlSourcesForFourMigratedMetrics() throws Exception {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "ON");
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newPolicy(org.getId(), "metrics-on-policy");
+    seedPolicyViolation(org, app, "metricsOnViolation", 10);
+    User reader = tempEntity.newUser("metrics-on-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertThat(metrics.applications.total).isEqualTo(1);
+    assertThat(metrics.policies.total).isEqualTo(2);
+    assertThat(metrics.violations.total).isEqualTo(1);
+    assertThat(metrics.applications.source).isEqualTo("sql");
+    assertThat(metrics.organizations.source).isEqualTo("sql");
+    assertThat(metrics.policies.source).isEqualTo("sql");
+    assertThat(metrics.violations.source).isEqualTo("sql");
+  }
+
+  @Test
+  public void testGetMetrics_OnResolvesScopeOncePerTier() {
+    DashboardMetricsScopeResolver scopeResolver = queryableScopeResolver();
+    DashboardMetricsSqlCoordinator coordinator = sqlCoordinatorReturning(1L);
+    DashboardMetricsService service = newSqlModeService(
+        mock(SearchIndexClient.class),
+        mock(PolicyWaiverDAO.class),
+        mock(PolicyWaiverRequestDAO.class),
+        scopeResolver,
+        coordinator);
+
+    service.getMetrics(new DashboardMetricsRequestDTO());
+
+    verify(scopeResolver, times(1)).resolve(any());
+  }
+
+  @Test
+  public void testGetMetrics_OnNoAccessReturnsZerosWithoutDaoCalls() {
+    PolicyWaiverDAO waiverDAO = mock(PolicyWaiverDAO.class);
+    PolicyWaiverRequestDAO waiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    DashboardMetricsScopeResolver scopeResolver = mock(DashboardMetricsScopeResolver.class);
+    ResolvedScope noAccess = ResolvedScope.denyAll(ResolvedScope.DenyReason.NO_ACCESS);
+    when(scopeResolver.resolve(any())).thenReturn(noAccess);
+    DashboardMetricsSqlCoordinator coordinator = mock(DashboardMetricsSqlCoordinator.class);
+    when(coordinator.countApplications(noAccess)).thenReturn(sqlMetric(0L));
+    when(coordinator.countOrganizations(noAccess)).thenReturn(sqlMetric(0L));
+    when(coordinator.countPolicies(noAccess)).thenReturn(sqlMetric(0L));
+    when(coordinator.countViolations(noAccess)).thenReturn(
+        new MetricValueDTO(0L, Map.of("low", 0L, "moderate", 0L, "severe", 0L, "critical", 0L), "sql"));
+    DashboardMetricsService service =
+        newSqlModeService(mock(SearchIndexClient.class), waiverDAO, waiverRequestDAO, scopeResolver, coordinator);
+
+    DashboardMetricsDTO metrics = service.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertThat(metrics.applications.total).isZero();
+    assertThat(metrics.organizations.total).isZero();
+    assertThat(metrics.policies.total).isZero();
+    assertThat(metrics.violations.total).isZero();
+    assertThat(metrics.waivers.total).isZero();
+    verify(waiverDAO, never()).selectCount(any());
+    verify(waiverRequestDAO, never()).selectCount(any());
+  }
+
+  @Test
+  public void testGetMetrics_OnResolutionFailedReturnsMetricUnavailableWithoutFallback() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    DashboardMetricsScopeResolver scopeResolver = mock(DashboardMetricsScopeResolver.class);
+    ResolvedScope failed = ResolvedScope.denyAll(ResolvedScope.DenyReason.RESOLUTION_FAILED);
+    when(scopeResolver.resolve(any())).thenReturn(failed);
+    DashboardMetricsSqlCoordinator coordinator = mock(DashboardMetricsSqlCoordinator.class);
+    when(coordinator.countApplications(failed)).thenReturn(MetricValueDTO.unavailable("sql"));
+    when(coordinator.countOrganizations(failed)).thenReturn(MetricValueDTO.unavailable("sql"));
+    when(coordinator.countPolicies(failed)).thenReturn(MetricValueDTO.unavailable("sql"));
+    when(coordinator.countViolations(failed)).thenReturn(MetricValueDTO.unavailable("sql"));
+    DashboardMetricsService service = newSqlModeService(
+        searchIndexClient,
+        mock(PolicyWaiverDAO.class),
+        mock(PolicyWaiverRequestDAO.class),
+        scopeResolver,
+        coordinator);
+
+    DashboardMetricsDTO metrics = service.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertUnavailable(metrics.applications);
+    assertUnavailable(metrics.organizations);
+    assertUnavailable(metrics.policies);
+    assertUnavailable(metrics.violations);
+    assertUnavailable(metrics.waivers);
+    verify(searchIndexClient, never()).count(anyString());
+    verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
+  }
+
+  @Test
+  public void testGetMetrics_OnDaoFailureIsolatedToOneMetric() {
+    ResolvedScope scope = queryableScope();
+    DashboardMetricsScopeResolver scopeResolver = mock(DashboardMetricsScopeResolver.class);
+    when(scopeResolver.resolve(any())).thenReturn(scope);
+    DashboardMetricsSqlCoordinator coordinator = mock(DashboardMetricsSqlCoordinator.class);
+    when(coordinator.countApplications(scope)).thenReturn(MetricValueDTO.unavailable("sql"));
+    when(coordinator.countOrganizations(scope)).thenReturn(sqlMetric(2L));
+    when(coordinator.countPolicies(scope)).thenReturn(sqlMetric(3L));
+    when(coordinator.countViolations(scope)).thenReturn(sqlMetric(4L));
+    DashboardMetricsService service = newSqlModeService(
+        mock(SearchIndexClient.class),
+        mock(PolicyWaiverDAO.class),
+        mock(PolicyWaiverRequestDAO.class),
+        scopeResolver,
+        coordinator);
+
+    DashboardMetricsDTO metrics = service.getMetrics(new DashboardMetricsRequestDTO());
+
+    assertUnavailable(metrics.applications);
+    assertThat(metrics.organizations.total).isEqualTo(2);
+    assertThat(metrics.policies.total).isEqualTo(3);
+    assertThat(metrics.violations.total).isEqualTo(4);
+  }
+
+  @Test
+  public void testGetMetrics_OnKeepsViolationsHeavy() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    DashboardMetricsScopeResolver scopeResolver = queryableScopeResolver();
+    DashboardMetricsSqlCoordinator coordinator = sqlCoordinatorReturning(5L);
+    DashboardMetricsService service = newSqlModeService(
+        searchIndexClient,
+        mock(PolicyWaiverDAO.class),
+        mock(PolicyWaiverRequestDAO.class),
+        scopeResolver,
+        coordinator);
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.includeHeavyMetrics = true;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertThat(metrics.applications).isNull();
+    assertThat(metrics.violations.total).isEqualTo(5);
+    assertThat(metrics.violations.source).isEqualTo("sql");
+    assertThat(metrics.components.source).isEqualTo("index");
+    verify(scopeResolver, times(1)).resolve(request);
+  }
+
+  @Test
+  public void testGetMetrics_OnKeepsLastUpdatedAtIndexBacked() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1234L);
+    DashboardMetricsService service = newSqlModeService(
+        searchIndexClient,
+        mock(PolicyWaiverDAO.class),
+        mock(PolicyWaiverRequestDAO.class),
+        queryableScopeResolver(),
+        sqlCoordinatorReturning(1L));
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.includeHeavyMetrics = false;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertThat(metrics.lastUpdatedAt).isEqualTo(1234L);
+    verify(searchIndexClient, times(1)).getLastIndexTime();
+  }
+
+  @Test
+  public void testGetMetrics_TagAndStageUnsupportedInEveryMode() {
+    for (DashboardMetricsSqlMode mode : DashboardMetricsSqlMode.values()) {
+      DashboardMetricsScopeResolver stageSummaryResolver = mock(DashboardMetricsScopeResolver.class);
+      DashboardMetricsSqlCoordinator stageSummaryCoordinator = mock(DashboardMetricsSqlCoordinator.class);
+      DashboardMetricsService stageSummaryService =
+          newModeService(mode, stageSummaryResolver, stageSummaryCoordinator);
+      DashboardMetricsRequestDTO stageSummary = new DashboardMetricsRequestDTO();
+      stageSummary.stageIds = Set.of(Stage.ID_BUILD);
+      stageSummary.includeHeavyMetrics = false;
+
+      DashboardMetricsDTO stageSummaryMetrics = stageSummaryService.getMetrics(stageSummary);
+
+      assertUnsupported(stageSummaryMetrics.applications, "stageIds");
+      assertUnsupported(stageSummaryMetrics.organizations, "stageIds");
+      assertUnsupported(stageSummaryMetrics.policies, "stageIds");
+      assertUnsupported(stageSummaryMetrics.waivers, "stageIds");
+      verify(stageSummaryResolver, never()).resolve(any());
+      verifyNoInteractions(stageSummaryCoordinator);
+
+      DashboardMetricsScopeResolver tagSummaryResolver = queryableScopeResolver();
+      DashboardMetricsSqlCoordinator tagSummaryCoordinator = mock(DashboardMetricsSqlCoordinator.class);
+      DashboardMetricsService tagSummaryService =
+          newModeService(mode, tagSummaryResolver, tagSummaryCoordinator);
+      DashboardMetricsRequestDTO tagSummary = new DashboardMetricsRequestDTO();
+      tagSummary.tagIds = Set.of("tag-1");
+      tagSummary.includeHeavyMetrics = false;
+
+      DashboardMetricsDTO tagSummaryMetrics = tagSummaryService.getMetrics(tagSummary);
+
+      assertUnsupported(tagSummaryMetrics.applications, "tagIds");
+      assertUnsupported(tagSummaryMetrics.organizations, "tagIds");
+      assertUnsupported(tagSummaryMetrics.policies, "tagIds");
+      assertThat(tagSummaryMetrics.waivers.source).isEqualTo("sql");
+      verify(tagSummaryResolver, times(1)).resolve(tagSummary);
+      verifyNoInteractions(tagSummaryCoordinator);
+
+      DashboardMetricsScopeResolver stageHeavyResolver = mock(DashboardMetricsScopeResolver.class);
+      DashboardMetricsSqlCoordinator stageHeavyCoordinator = mock(DashboardMetricsSqlCoordinator.class);
+      DashboardMetricsService stageHeavyService =
+          newModeService(mode, stageHeavyResolver, stageHeavyCoordinator);
+      DashboardMetricsRequestDTO stageHeavy = new DashboardMetricsRequestDTO();
+      stageHeavy.stageIds = Set.of(Stage.ID_BUILD);
+      stageHeavy.includeHeavyMetrics = true;
+
+      DashboardMetricsDTO stageHeavyMetrics = stageHeavyService.getMetrics(stageHeavy);
+
+      assertUnsupported(stageHeavyMetrics.violations, "stageIds");
+      assertUnsupported(stageHeavyMetrics.components, "stageIds");
+      assertUnsupported(stageHeavyMetrics.vulnerabilities, "stageIds");
+      assertUnsupported(stageHeavyMetrics.legal, "stageIds");
+      verify(stageHeavyResolver, never()).resolve(any());
+      verifyNoInteractions(stageHeavyCoordinator);
+
+      DashboardMetricsScopeResolver tagHeavyResolver = mock(DashboardMetricsScopeResolver.class);
+      DashboardMetricsSqlCoordinator tagHeavyCoordinator = mock(DashboardMetricsSqlCoordinator.class);
+      DashboardMetricsService tagHeavyService =
+          newModeService(mode, tagHeavyResolver, tagHeavyCoordinator);
+      DashboardMetricsRequestDTO tagHeavy = new DashboardMetricsRequestDTO();
+      tagHeavy.tagIds = Set.of("tag-1");
+      tagHeavy.includeHeavyMetrics = true;
+
+      DashboardMetricsDTO tagHeavyMetrics = tagHeavyService.getMetrics(tagHeavy);
+
+      assertUnsupported(tagHeavyMetrics.violations, "tagIds");
+      assertUnsupported(tagHeavyMetrics.components, "tagIds");
+      assertUnsupported(tagHeavyMetrics.vulnerabilities, "tagIds");
+      assertUnsupported(tagHeavyMetrics.legal, "tagIds");
+      verify(tagHeavyResolver, never()).resolve(any());
+      verifyNoInteractions(tagHeavyCoordinator);
+    }
+  }
+
+  @Test
+  public void testGetMetrics_ApplicationFilterDoesNotNarrowOrganizationsInOn() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "OFF");
+    Organization parent = tempEntity.newOrganization("metrics-parity-parent");
+    Organization child = tempEntity.newOrganization("metrics-parity-child", parent);
+    Application app = tempEntity.newApplication(child.getId());
+    tempEntity.newApplication(child.getId());
+    User reader = tempEntity.newUser("metrics-on-organization-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(child.getId(), readRole.getId(), reader.getUsername());
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsRequestDTO filteredRequest = new DashboardMetricsRequestDTO();
+    filteredRequest.applicationIds = Set.of(app.getId());
+    DashboardMetricsDTO off = dashboardMetricsService.getMetrics(filteredRequest);
+
+    tempEntity.deleteSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE);
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "ON");
+    DashboardMetricsTestSupport.clearDashboardMetricsCache(dashboardMetricsService);
+    DashboardMetricsDTO on = dashboardMetricsService.getMetrics(filteredRequest);
+
+    assertThat(off.organizations.total).isEqualTo(1);
+    assertThat(on.organizations.total).isEqualTo(off.organizations.total);
+    assertThat(on.organizations.source).isEqualTo("sql");
+  }
+
+  @Test
+  public void testGetMetrics_CacheKeyStillExcludesMode() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "OFF");
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newApplication(org.getId());
+    User reader = tempEntity.newUser("mode-cache-user");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+
+    DashboardMetricsDTO off = dashboardMetricsService.getMetrics(request);
+    tempEntity.deleteSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE);
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "ON");
+    DashboardMetricsDTO cachedAfterModeFlip = dashboardMetricsService.getMetrics(request);
+
+    assertThat(off.applications.source).isEqualTo("index");
+    assertThat(cachedAfterModeFlip).isSameAs(off);
+    assertThat(cachedAfterModeFlip.applications.source).isEqualTo("index");
+  }
+
+  @Test
   public void testGetMetrics_FailsClosed_UserWithNoReadContexts() {
     Organization org = tempEntity.newOrganization();
     tempEntity.newApplication(org.getId());
@@ -795,13 +1109,15 @@ public class DashboardMetricsServiceTest
 
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
-    DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
     DashboardMetricsService service = new DashboardMetricsService(
         searchIndexClient,
         new MetricFilterValidator(),
         policyWaiverDAO,
         policyWaiverRequestDAO,
-        waiverScopeService,
+        mock(DashboardMetricsSqlModeProvider.class),
+        mock(DashboardMetricsSqlReadiness.class),
+        mock(DashboardMetricsScopeResolver.class),
+        mock(DashboardMetricsSqlCoordinator.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -816,7 +1132,6 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.violations).isNotNull();
     verify(searchIndexClient, never()).count(anyString());
     verify(searchIndexClient, never()).getLastIndexTime();
-    verify(waiverScopeService, never()).resolveAccessibleOwnerIds(any());
     verify(policyWaiverDAO, never()).selectCount(any());
     verify(policyWaiverRequestDAO, never()).selectCount(any());
   }
@@ -830,13 +1145,15 @@ public class DashboardMetricsServiceTest
 
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
-    DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
     DashboardMetricsService service = new DashboardMetricsService(
         searchIndexClient,
         new MetricFilterValidator(),
         policyWaiverDAO,
         policyWaiverRequestDAO,
-        waiverScopeService,
+        mock(DashboardMetricsSqlModeProvider.class),
+        mock(DashboardMetricsSqlReadiness.class),
+        mock(DashboardMetricsScopeResolver.class),
+        mock(DashboardMetricsSqlCoordinator.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -856,7 +1173,6 @@ public class DashboardMetricsServiceTest
     verify(searchIndexClient, never()).count(anyString());
     verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, never()).countDistinct(anyString(), any());
-    verify(waiverScopeService, never()).resolveAccessibleOwnerIds(any());
     verify(policyWaiverDAO, never()).selectCount(any());
     verify(policyWaiverRequestDAO, never()).selectCount(any());
   }
@@ -870,8 +1186,16 @@ public class DashboardMetricsServiceTest
 
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
-    DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
-    when(waiverScopeService.resolveAccessibleOwnerIds(any())).thenReturn(Set.of("tagged-owner"));
+    DashboardMetricsScopeResolver scopeResolver = mock(DashboardMetricsScopeResolver.class);
+    when(scopeResolver.resolve(any())).thenReturn(
+        new ResolvedScope(
+            ResolvedScope.Kind.RESTRICTED,
+            null,
+            Set.of("tagged-owner"),
+            Set.of("tagged-owner"),
+            Set.of(),
+            Set.of(),
+            true));
     when(policyWaiverDAO.selectCount(Set.of("tagged-owner"))).thenReturn(2L);
     when(policyWaiverRequestDAO.selectCount(Set.of("tagged-owner"))).thenReturn(3L);
     DashboardMetricsService service = new DashboardMetricsService(
@@ -879,7 +1203,10 @@ public class DashboardMetricsServiceTest
         new MetricFilterValidator(),
         policyWaiverDAO,
         policyWaiverRequestDAO,
-        waiverScopeService,
+        offModeProvider(),
+        offSqlReadiness(),
+        scopeResolver,
+        mock(DashboardMetricsSqlCoordinator.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -899,7 +1226,7 @@ public class DashboardMetricsServiceTest
     verify(searchIndexClient, never()).count(anyString());
     verify(searchIndexClient, never()).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, never()).countDistinct(anyString(), any());
-    verify(waiverScopeService, times(1)).resolveAccessibleOwnerIds(request);
+    verify(scopeResolver, times(1)).resolve(request);
   }
 
   @Test
@@ -1122,6 +1449,119 @@ public class DashboardMetricsServiceTest
     return mock(Configuration.class);
   }
 
+  private static DashboardMetricsSqlModeProvider offModeProvider() {
+    DashboardMetricsSqlModeProvider modeProvider = mock(DashboardMetricsSqlModeProvider.class);
+    when(modeProvider.configuredMode()).thenReturn(DashboardMetricsSqlMode.OFF);
+    return modeProvider;
+  }
+
+  private static DashboardMetricsSqlReadiness offSqlReadiness() {
+    DashboardMetricsSqlReadiness readiness = mock(DashboardMetricsSqlReadiness.class);
+    when(readiness.effectiveMode(any())).thenReturn(DashboardMetricsSqlMode.OFF);
+    return readiness;
+  }
+
+  private static DashboardMetricsScopeResolver queryableScopeResolver() {
+    DashboardMetricsScopeResolver scopeResolver = mock(DashboardMetricsScopeResolver.class);
+    lenient().when(scopeResolver.resolve(any())).thenReturn(queryableScope());
+    return scopeResolver;
+  }
+
+  private static ResolvedScope queryableScope() {
+    return new ResolvedScope(
+        ResolvedScope.Kind.RESTRICTED,
+        null,
+        Set.of("owner-1"),
+        Set.of("owner-1"),
+        Set.of("organization-1"),
+        Set.of("application-1"),
+        false);
+  }
+
+  private static MetricValueDTO sqlMetric(final long total) {
+    return new MetricValueDTO(total, null, "sql");
+  }
+
+  private static DashboardMetricsSqlCoordinator sqlCoordinatorReturning(final long total) {
+    ResolvedScope scope = queryableScope();
+    DashboardMetricsSqlCoordinator coordinator = mock(DashboardMetricsSqlCoordinator.class);
+    lenient().when(coordinator.countApplications(scope)).thenReturn(sqlMetric(total));
+    lenient().when(coordinator.countOrganizations(scope)).thenReturn(sqlMetric(total));
+    lenient().when(coordinator.countPolicies(scope)).thenReturn(sqlMetric(total));
+    lenient().when(coordinator.countViolations(scope)).thenReturn(sqlMetric(total));
+    return coordinator;
+  }
+
+  private static DashboardMetricsService newSqlModeService(
+      final SearchIndexClient searchIndexClient,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final PolicyWaiverRequestDAO policyWaiverRequestDAO,
+      final DashboardMetricsScopeResolver scopeResolver,
+      final DashboardMetricsSqlCoordinator coordinator)
+  {
+    return newModeService(
+        DashboardMetricsSqlMode.ON,
+        searchIndexClient,
+        policyWaiverDAO,
+        policyWaiverRequestDAO,
+        scopeResolver,
+        coordinator);
+  }
+
+  private static DashboardMetricsService newModeService(
+      final DashboardMetricsSqlMode mode,
+      final DashboardMetricsScopeResolver scopeResolver,
+      final DashboardMetricsSqlCoordinator coordinator)
+  {
+    PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
+    lenient().when(policyWaiverDAO.selectCount(any())).thenReturn(0L);
+    lenient().when(policyWaiverRequestDAO.selectCount(any())).thenReturn(0L);
+    return newModeService(
+        mode,
+        mock(SearchIndexClient.class),
+        policyWaiverDAO,
+        policyWaiverRequestDAO,
+        scopeResolver,
+        coordinator);
+  }
+
+  private static DashboardMetricsService newModeService(
+      final DashboardMetricsSqlMode mode,
+      final SearchIndexClient searchIndexClient,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final PolicyWaiverRequestDAO policyWaiverRequestDAO,
+      final DashboardMetricsScopeResolver scopeResolver,
+      final DashboardMetricsSqlCoordinator coordinator)
+  {
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("sql-mode-user", "sql-mode-user", User.INTERNAL_REALM_ID));
+    DashboardMetricsSqlModeProvider modeProvider = mock(DashboardMetricsSqlModeProvider.class);
+    when(modeProvider.configuredMode()).thenReturn(mode);
+    DashboardMetricsSqlReadiness readiness = mock(DashboardMetricsSqlReadiness.class);
+    when(readiness.effectiveMode(mode)).thenReturn(mode);
+    return new DashboardMetricsService(
+        searchIndexClient,
+        new MetricFilterValidator(),
+        policyWaiverDAO,
+        policyWaiverRequestDAO,
+        modeProvider,
+        readiness,
+        scopeResolver,
+        coordinator,
+        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mockConfiguration(),
+        mock(StageTypeService.class),
+        currentUser);
+  }
+
+  private static void assertUnavailable(final MetricValueDTO metric) {
+    assertThat(metric.total).isNull();
+    assertThat(metric.source).isEqualTo("sql");
+    assertThat(metric.errorCode).isEqualTo(MetricValueDTO.METRIC_UNAVAILABLE);
+  }
+
   private static DashboardMetricsService newServiceWithMocks(
       SearchIndexClient searchIndexClient,
       MetricFilterValidator metricFilterValidator,
@@ -1148,8 +1588,6 @@ public class DashboardMetricsServiceTest
   {
     PolicyWaiverDAO policyWaiverDAO = mock(PolicyWaiverDAO.class);
     PolicyWaiverRequestDAO policyWaiverRequestDAO = mock(PolicyWaiverRequestDAO.class);
-    DashboardMetricsWaiverScopeService waiverScopeService = mock(DashboardMetricsWaiverScopeService.class);
-    lenient().when(waiverScopeService.resolveAccessibleOwnerIds(any())).thenReturn(Set.of("owner-1"));
     lenient().when(policyWaiverDAO.selectCount(any())).thenReturn(0L);
     lenient().when(policyWaiverRequestDAO.selectCount(any())).thenReturn(0L);
     lenient()
@@ -1160,7 +1598,10 @@ public class DashboardMetricsServiceTest
         metricFilterValidator,
         policyWaiverDAO,
         policyWaiverRequestDAO,
-        waiverScopeService,
+        offModeProvider(),
+        offSqlReadiness(),
+        queryableScopeResolver(),
+        mock(DashboardMetricsSqlCoordinator.class),
         new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
         configuration,
         stageTypeService,

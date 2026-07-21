@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -440,6 +441,27 @@ public class OrganizationDAOTest
 
     List<Organization> orgs = spiedDao.getByIds(Arrays.asList(org1.getId(), org2.getId(), org3.getId()));
     assertThat(orgs).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(org1, org2, org3);
+  }
+
+  @Test
+  public void selectCountByOrganizationIds_emptyReturnsZero() {
+    assertThat(dao.selectCountByOrganizationIds(Collections.emptySet())).isZero();
+  }
+
+  @Test
+  public void selectCountByOrganizationIds_nullCountsGlobal() {
+    long before = dao.selectCountByOrganizationIds(null);
+    tempEntity.newOrganization("count-global");
+
+    assertThat(dao.selectCountByOrganizationIds(null)).isEqualTo(before + 1);
+  }
+
+  @Test
+  public void selectCountByOrganizationIds_countsOnlyRequestedIds() {
+    Organization included = tempEntity.newOrganization("count-included");
+    tempEntity.newOrganization("count-excluded");
+
+    assertThat(dao.selectCountByOrganizationIds(Set.of(included.getId()))).isEqualTo(1);
   }
 
   @Test

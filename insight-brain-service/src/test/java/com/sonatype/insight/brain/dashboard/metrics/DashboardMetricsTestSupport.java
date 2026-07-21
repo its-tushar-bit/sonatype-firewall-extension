@@ -23,14 +23,14 @@ import org.springframework.test.util.ReflectionTestUtils;
  * parallel test classes race and leave partial indexes. All metrics tests must rebuild through
  * {@link #populateIndex(SearchIndexClient)}.
  */
-final class DashboardMetricsTestSupport
+public final class DashboardMetricsTestSupport
 {
   private static final Object INDEX_POPULATE_LOCK = new Object();
 
   private DashboardMetricsTestSupport() {
   }
 
-  static void populateIndex(final SearchIndexClient searchIndexClient) {
+  public static void populateIndex(final SearchIndexClient searchIndexClient) {
     synchronized (INDEX_POPULATE_LOCK) {
       searchIndexClient.populateIndex();
     }
@@ -49,7 +49,7 @@ final class DashboardMetricsTestSupport
     }
   }
 
-  static void clearDashboardMetricsCache(final DashboardMetricsService dashboardMetricsService) {
+  public static void clearDashboardMetricsCache(final DashboardMetricsService dashboardMetricsService) {
     @SuppressWarnings("unchecked")
     TenantReference<Cache<DashboardMetricsCacheKey, DashboardMetricsDTO>> caches =
         (TenantReference<Cache<DashboardMetricsCacheKey, DashboardMetricsDTO>>) ReflectionTestUtils.getField(
@@ -64,7 +64,7 @@ final class DashboardMetricsTestSupport
     caches.remove();
   }
 
-  static void resetTenantExecutor(final Object bean, final String fieldName) {
+  public static void resetTenantExecutor(final Object bean, final String fieldName) {
     @SuppressWarnings("unchecked")
     TenantReference<ExecutorService> executors =
         (TenantReference<ExecutorService>) ReflectionTestUtils.getField(bean, fieldName);

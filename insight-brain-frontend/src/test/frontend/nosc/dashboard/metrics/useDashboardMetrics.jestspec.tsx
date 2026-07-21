@@ -102,6 +102,48 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
     expect(axiosMock.history.post).toHaveLength(postsAfterMount);
   });
 
+  it('does not re-POST when equivalent scope keys and ids arrive in a different order', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply((config) => {
+      const body = JSON.parse(String(config.data));
+      return [200, body.includeHeavyMetrics === false ? FAST_BODY : HEAVY_ONLY_BODY];
+    });
+
+    const { result, rerender } = renderHook(({ s }) => useDashboardMetrics(s), {
+      initialProps: {
+        s: {
+          organizationIds: ['org-2', 'org-1'],
+          applicationIds: ['app-2', 'app-1'],
+        } as Record<string, readonly string[]>,
+      },
+    });
+    await waitFor(() => expect(result.current.data?.components?.total).toBe(100));
+
+    const postsAfterMount = axiosMock.history.post.length;
+    rerender({
+      s: {
+        applicationIds: ['app-1', 'app-2'],
+        organizationIds: ['org-1', 'org-2'],
+      },
+    });
+
+    expect(axiosMock.history.post).toHaveLength(postsAfterMount);
+  });
+
+  it('uses separate abort signals for the summary and heavy requests', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply((config) => {
+      const body = JSON.parse(String(config.data));
+      return [200, body.includeHeavyMetrics === false ? FAST_BODY : HEAVY_ONLY_BODY];
+    });
+
+    const { result } = renderHook(() => useDashboardMetrics({}));
+    await waitFor(() => expect(result.current.data?.components?.total).toBe(100));
+
+    expect(axiosMock.history.post).toHaveLength(2);
+    expect(axiosMock.history.post[0].signal).toBeDefined();
+    expect(axiosMock.history.post[1].signal).toBeDefined();
+    expect(axiosMock.history.post[0].signal === axiosMock.history.post[1].signal).toBe(false);
+  });
+
   it('maps a 409 (index not ready) to status "not-ready" rather than a generic error', async () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(409, { message: 'index building' });
 
@@ -265,6 +307,44 @@ describe('useDashboardMetrics (two-phase fast + heavy)', () => {
     expect(result.current.data?.applications?.total).toBe(24);
     expect(result.current.data?.components?.total).toBe(200);
     expect(result.current.data?.lastUpdatedAt).toBe(newFastBody.lastUpdatedAt);
+  });
+
+  it('aborts an in-flight heavy request when the scope changes', async () => {
+    const oldHeavy = deferredResponse<typeof HEAVY_ONLY_BODY>();
+    const newSummary = deferredResponse<typeof FAST_BODY>();
+
+    axiosMock.onPost(getDashboardMetricsUrl()).reply((config) => {
+      const body = JSON.parse(String(config.data));
+      if (body.organizationIds[0] === 'org-old') {
+        return body.includeHeavyMetrics === false ? [200, FAST_BODY] : oldHeavy.promise;
+      }
+      return newSummary.promise;
+    });
+
+    const { rerender } = renderHook(
+      ({ organizationId }) => useDashboardMetrics({ organizationIds: [organizationId] }),
+      {
+        initialProps: { organizationId: 'org-old' },
+      }
+    );
+
+    await waitFor(() =>
+      expect(
+        axiosMock.history.post.filter(({ data }) => {
+          const body = JSON.parse(String(data));
+          return body.organizationIds[0] === 'org-old' && body.includeHeavyMetrics === true;
+        })
+      ).toHaveLength(1)
+    );
+    const oldHeavyRequest = axiosMock.history.post.find(({ data }) => {
+      const body = JSON.parse(String(data));
+      return body.organizationIds[0] === 'org-old' && body.includeHeavyMetrics === true;
+    });
+    expect(oldHeavyRequest?.signal?.aborted).toBe(false);
+
+    rerender({ organizationId: 'org-new' });
+
+    expect(oldHeavyRequest?.signal?.aborted).toBe(true);
   });
 
   it('retry() refetches both tiers after summary and heavy data are established', async () => {

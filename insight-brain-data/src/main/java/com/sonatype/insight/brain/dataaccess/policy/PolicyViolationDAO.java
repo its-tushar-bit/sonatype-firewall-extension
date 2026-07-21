@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ import java.util.stream.Stream;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import jakarta.annotation.Nullable;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -59,6 +61,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Table;
+import org.jooq.Condition;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.slf4j.Logger;
@@ -109,6 +112,56 @@ public class PolicyViolationDAO
     super(operationalDataStore, policyViolationConstraintFactsDAO);
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.temporaryTableHelper = temporaryTableHelper;
+  }
+
+  public record RawThreatLevelCount(short threatLevel, long count)
+  {
+  }
+
+  public List<RawThreatLevelCount> countUnfixedByThreatLevel(
+      @Nullable Set<String> applicationIds,
+      @Nullable Set<String> stageTypeIds)
+  {
+    if (applicationIds != null && applicationIds.isEmpty()) {
+      return List.of();
+    }
+    if (applicationIds == null) {
+      return countUnfixedByThreatLevelChunk(null, stageTypeIds);
+    }
+    return mergeRawThreatCounts(getListWithSqlInClause(
+        applicationIds,
+        chunk -> countUnfixedByThreatLevelChunk(new HashSet<>(chunk), stageTypeIds)));
+  }
+
+  private List<RawThreatLevelCount> countUnfixedByThreatLevelChunk(
+      @Nullable Set<String> applicationIds,
+      @Nullable Set<String> stageTypeIds)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      Condition condition = POLICY_VIOLATION.FIX_TIME.isNull();
+      if (applicationIds != null) {
+        condition = condition.and(POLICY_VIOLATION.APPLICATION_ID.in(applicationIds));
+      }
+      if (stageTypeIds != null && !stageTypeIds.isEmpty()) {
+        condition = condition.and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds));
+      }
+      return tx.dsl()
+          .select(POLICY_VIOLATION.THREAT_LEVEL, DSL.count())
+          .from(POLICY_VIOLATION)
+          .where(condition)
+          .groupBy(POLICY_VIOLATION.THREAT_LEVEL)
+          .fetch(r -> new RawThreatLevelCount(r.value1(), r.value2()));
+    }
+  }
+
+  private List<RawThreatLevelCount> mergeRawThreatCounts(List<RawThreatLevelCount> rawCounts) {
+    Map<Short, Long> countsByThreatLevel = new TreeMap<>();
+    // Safe because chunks are disjoint and COUNT is additive; do not copy for COUNT(DISTINCT).
+    rawCounts.forEach(raw -> countsByThreatLevel.merge(raw.threatLevel(), raw.count(), Long::sum));
+    return countsByThreatLevel.entrySet()
+        .stream()
+        .map(entry -> new RawThreatLevelCount(entry.getKey(), entry.getValue()))
+        .toList();
   }
 
   public List<PolicyViolation> getByApplicationId(String applicationId) {

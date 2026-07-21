@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -95,6 +96,10 @@ public class PolicyDAO
    */
   public List<Policy> getByOwnerIds(Set<String> ownerIds) {
     return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerIds(ownerIds));
+  }
+
+  public long selectCountByOwnerIds(@Nullable Set<String> ownerIds) {
+    return policyInternalDAO.selectCountByOwnerIds(ownerIds);
   }
 
   public void insert(Policy policy) {

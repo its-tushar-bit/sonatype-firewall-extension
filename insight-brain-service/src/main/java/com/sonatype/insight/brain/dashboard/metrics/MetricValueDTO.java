@@ -22,6 +22,8 @@ public class MetricValueDTO
 {
   public static final String UNSUPPORTED_FILTER_COMBINATION = "UNSUPPORTED_FILTER_COMBINATION";
 
+  public static final String METRIC_UNAVAILABLE = "METRIC_UNAVAILABLE";
+
   /**
    * Aggregate count for the metric. Null only when {@link #errorCode} is set (e.g.
    * {@link #UNSUPPORTED_FILTER_COMBINATION}); callers must not auto-unbox as a primitive
@@ -66,5 +68,9 @@ public class MetricValueDTO
         null,
         UNSUPPORTED_FILTER_COMBINATION,
         unsupportedDimensions);
+  }
+
+  public static MetricValueDTO unavailable(final String source) {
+    return new MetricValueDTO(null, null, source, METRIC_UNAVAILABLE, null);
   }
 }

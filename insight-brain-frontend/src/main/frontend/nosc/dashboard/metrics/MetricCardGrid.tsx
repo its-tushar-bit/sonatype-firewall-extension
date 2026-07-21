@@ -45,6 +45,10 @@ function unsupportedDimensions(
   return uniqueDimensions.length > 0 ? uniqueDimensions : undefined;
 }
 
+function isMetricUnavailable(...entries: readonly (MetricEntry | undefined)[]): boolean {
+  return entries.some((entry) => entry?.errorCode === 'METRIC_UNAVAILABLE');
+}
+
 function unavailableDimensionsForCard(
   cardId: string,
   data: DashboardMetricsResponse
@@ -66,6 +70,27 @@ function unavailableDimensionsForCard(
       return unsupportedDimensions(data.waivers);
     default:
       return undefined;
+  }
+}
+
+function isCardMetricUnavailable(cardId: string, data: DashboardMetricsResponse): boolean {
+  switch (cardId) {
+    case 'applications':
+      return isMetricUnavailable(data.applications);
+    case 'legal':
+      return isMetricUnavailable(data.legal);
+    case 'orgsAndPolicies':
+      return isMetricUnavailable(data.organizations, data.policies);
+    case 'components':
+      return isMetricUnavailable(data.components);
+    case 'violations':
+      return isMetricUnavailable(data.violations);
+    case 'vulnerabilities':
+      return isMetricUnavailable(data.vulnerabilities);
+    case 'waivers':
+      return isMetricUnavailable(data.waivers);
+    default:
+      return false;
   }
 }
 
@@ -153,6 +178,9 @@ function MetricCards({
               testId={def.testId}
             />
           );
+        }
+        if (isCardMetricUnavailable(def.id, data)) {
+          return <MetricCard key={def.id} title={def.title} metricUnavailable testId={def.testId} />;
         }
         if (def.isAvailable(data)) {
           const view = def.select(data);

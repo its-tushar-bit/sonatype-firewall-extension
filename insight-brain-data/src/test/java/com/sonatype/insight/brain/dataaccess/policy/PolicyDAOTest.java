@@ -608,6 +608,53 @@ public class PolicyDAOTest
   }
 
   @Test
+  public void selectCountByOwnerIds_nullCountsGlobalPolicyPopulation() {
+    long before = policyDAO.selectCountByOwnerIds(null);
+    tempEntity.newPolicy(application);
+
+    assertThat(policyDAO.selectCountByOwnerIds(null)).isEqualTo(before + 1);
+  }
+
+  @Test
+  public void selectCountByOwnerIds_emptyReturnsZero() {
+    assertThat(policyDAO.selectCountByOwnerIds(Set.of())).isZero();
+  }
+
+  @Test
+  public void selectCountByOwnerIds_countsDirectOrgAndAppOwnershipOnly() {
+    Policy organizationPolicy = tempEntity.newPolicy(organization);
+    Policy applicationPolicy = tempEntity.newPolicy(application);
+
+    assertThat(policyDAO.selectCountByOwnerIds(Set.of(organization.getId(), application.getId()))).isEqualTo(2);
+    assertThat(Set.of(organizationPolicy.getId(), applicationPolicy.getId())).hasSize(2);
+  }
+
+  @Test
+  public void selectCountByOwnerIds_doesNotCountHierarchyApplicablePolicies() {
+    Policy inheritedPolicy = tempEntity.newPolicy(organization);
+
+    assertThat(policyDAO.getApplicableByOwnerIdWithHierarchy(application.getId()))
+        .extracting(Policy::getId)
+        .contains(inheritedPolicy.getId());
+    assertThat(policyDAO.selectCountByOwnerIds(Set.of(application.getId()))).isZero();
+  }
+
+  @Test
+  public void selectCountByOwnerIds_sumsDisjointChunks() {
+    Policy first = tempEntity.newPolicy(application);
+    Policy second = tempEntity.newPolicy(organization);
+    Set<String> ownerIds = new HashSet<>();
+    ownerIds.add(application.getId());
+    ownerIds.add(organization.getId());
+    for (int i = 0; i < AbstractOperationalSqlDAO.H2_IN_OPERATOR_THRESHOLD; i++) {
+      ownerIds.add("missing-owner-" + i);
+    }
+
+    assertThat(policyDAO.selectCountByOwnerIds(ownerIds)).isEqualTo(2);
+    assertThat(Set.of(first.getId(), second.getId())).hasSize(2);
+  }
+
+  @Test
   @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetByOwnerIds_PostgresLimit() {

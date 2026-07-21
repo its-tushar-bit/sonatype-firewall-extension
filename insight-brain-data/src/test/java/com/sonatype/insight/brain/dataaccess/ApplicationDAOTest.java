@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -193,6 +196,31 @@ public class ApplicationDAOTest
     applicationDAO.delete(app);
     app = applicationDAO.getById(app.getId());
     assertThat(app).isNull();
+  }
+
+  @Test
+  public void selectCountByApplicationIds_emptyReturnsZero() {
+    assertThat(applicationDAO.selectCountByApplicationIds(Collections.emptySet())).isZero();
+  }
+
+  @Test
+  public void selectCountByApplicationIds_nullCountsGlobal() {
+    long before = applicationDAO.selectCountByApplicationIds(null);
+    tempEntity.newApplication(organization.getId());
+
+    assertThat(applicationDAO.selectCountByApplicationIds(null)).isEqualTo(before + 1);
+  }
+
+  @Test
+  public void selectCountByApplicationIds_sumsDisjointChunks() {
+    Application first = tempEntity.newApplication(organization.getId());
+    Application second = tempEntity.newApplication(organization.getId());
+    Application third = tempEntity.newApplication(organization.getId());
+    ApplicationDAO chunkedDAO = spy(applicationDAO);
+    when(chunkedDAO.getInOperatorThreshold()).thenReturn(2);
+
+    assertThat(chunkedDAO.selectCountByApplicationIds(Set.of(first.getId(), second.getId(), third.getId())))
+        .isEqualTo(3);
   }
 
   @Test

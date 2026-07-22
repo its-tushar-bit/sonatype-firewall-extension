@@ -143,8 +143,8 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     },
     {
       label: 'Users',
+      // No prefix: the NOUX router registers `users` at the top level, not as `firewall.users`.
       stateName: 'users',
-      prefix: firewallPrefix,
       showIf:
         CONFIGURE_SYSTEM &&
         (isUserManagementEnabled || isSsoIdpManagedBySonatype) &&
@@ -153,8 +153,8 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     },
     {
       label: 'User Activity',
+      // No prefix: same reasoning as `users` above — top-level NOUX state, never Firewall-prefixed.
       stateName: 'userActivity',
-      prefix: firewallPrefix,
       showIf:
         CONFIGURE_SYSTEM &&
         isUserActivityTrackingEnabled &&

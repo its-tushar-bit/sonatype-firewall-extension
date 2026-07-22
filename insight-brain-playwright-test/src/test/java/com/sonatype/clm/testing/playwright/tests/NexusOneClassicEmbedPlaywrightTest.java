@@ -43,6 +43,7 @@ import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SystemNoticePage;
 import com.sonatype.clm.testing.playwright.pages.SystemNoticePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
+import com.sonatype.clm.testing.playwright.pages.UserManagementPage;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.clm.testing.playwright.utils.HdsStubs;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -485,6 +486,102 @@ public class NexusOneClassicEmbedPlaywrightTest
     modal.continueButton().click();
     assertThat(modal.container()).isHidden();
     assertThat(configPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42465: Users admin page mounts natively at {@code /users} on the
+   * Nexus One bundle, rendering the Classic user list as-is inside the
+   * Nexus One shell. This is a list page with no dirty guard.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedUsers_rendersClassicListInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    UserManagementPage usersPage = new UserManagementPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(usersPage.container()).isVisible();
+    assertThat(usersPage.configureUsersHeading()).isVisible();
+  }
+
+  /**
+   * CLM-42465: a user without CONFIGURE_SYSTEM navigating to {@code /users}
+   * is redirected to the Nexus One violations dashboard before the Users page
+   * mounts. Covers the {@code redirectTo} guard on the {@code users} route.
+   *
+   * <p>
+   * Log in on Classic first so the shared session cookie is present when
+   * we navigate into Nexus One (see the analogous SystemNotice auth test for
+   * the same pattern and rationale).
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedUsers_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    UserManagementPage usersPage = new UserManagementPage();
+    assertThat(usersPage.container()).isHidden();
+  }
+
+  /**
+   * CLM-42465: createUser form mounts at {@code /users/_new_}. Filling any
+   * field sets {@code userConfiguration.isDirty}; navigating away triggers
+   * the shell dirty-guard modal. Cancel keeps the user on the form.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedCreateUser_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users/_new_"));
+
+    UserManagementPage userPage = new UserManagementPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    userPage.userForm().waitFor();
+    userPage.firstNameInput().fill("dirty");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/dashboard"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(userPage.userForm()).isVisible();
+  }
+
+  /**
+   * CLM-42465: Continue closes the dirty-guard modal and lets the navigation
+   * proceed; the create-user form unmounts and the target page mounts.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedCreateUser_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/users/_new_"));
+
+    UserManagementPage userPage = new UserManagementPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    userPage.userForm().waitFor();
+    userPage.firstNameInput().fill("dirty");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(userPage.userForm()).isHidden();
     assertThat(embedPage.classicComponentMount()).isVisible();
   }
 

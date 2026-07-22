@@ -46,6 +46,9 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   // isSharedPath branch in toNexusOneEquivalent maps shared paths to
   // '/ui-settings', not the caller-supplied path.
   ['/successMetricsConfiguration', '/successMetricsConfiguration'],
+  // /users is handled by SUBTREE_MAPPINGS below so deep links (/users/_new_,
+  // /users/{id}, /users/activity/{user}) preserve their tail on the toggle.
+  ['/user-activity', '/user-activity'],
   ['/baseUrl', '/baseUrl'],
   ['/systemNoticeConfiguration', '/systemNoticeConfiguration'],
   ['/administrators', '/administrators'],
@@ -108,6 +111,7 @@ function isNexusOnePath(path: string): boolean {
   if (path === '/waivers' || path.startsWith('/waivers/')) return true;
   if (path === '/ui-settings' || path.startsWith('/ui-settings/')) return true;
   if (path === '/repositories' || path.startsWith('/repositories/')) return true;
+  if (path === '/users' || path.startsWith('/users/')) return true;
   if (path.startsWith('/coming-soon/')) return true;
   return NEXUS_ONE_TO_CLASSIC.some(([nexus]) => path === nexus || path.startsWith(nexus + '/'));
 }
@@ -179,6 +183,9 @@ function findDetailPageClassicToNexusOne(path: string): string | null {
  */
 const SUBTREE_MAPPINGS: ReadonlyArray<{ readonly nexusOne: string; readonly classic: string }> = [
   { nexusOne: '/repositories', classic: '/hostedRepos' },
+  // Users shares identical sub-path structure in both bundles (/users/_new_,
+  // /users/{id}, /users/activity/{user}), so sub-paths round-trip 1-1.
+  { nexusOne: '/users', classic: '/users' },
 ];
 
 /** Maps a Nexus One subtree path to its Classic equivalent, preserving the tail. */

@@ -363,6 +363,157 @@ describe('nexusOneClassicEmbedRoutes', () => {
     });
   });
 
+  describe('users Classic-embed admin route (CLM-42465)', () => {
+    const state = () => router.stateRegistry.get('users');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /users', () => {
+      expect(state()?.url).toBe('/users');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // Activity tab is a child of `users`. Classic renders the parent's
+  // UserManagementContainer; the container selects Activity by checking
+  // router.currentState.name === 'users.activity' (not data.activeTab).
+  describe('users.activity child state', () => {
+    const state = () => router.stateRegistry.get('users.activity');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered as a child of users at /activity', () => {
+      expect(state()?.url).toBe('/activity');
+    });
+
+    it('gates access via an async redirectTo function', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // Row clicks in the Activity view dispatch stateGo('userActivityDetails', {username}).
+  describe('userActivityDetails Classic-embed route', () => {
+    const state = () => router.stateRegistry.get('userActivityDetails');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /users/activity/{username}', () => {
+      expect(state()?.url).toBe('/users/activity/{username}');
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM + ACCESS_AUDIT_LOG', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM', 'ACCESS_AUDIT_LOG']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when authorization fails', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // Create / edit user pages the Users list navigates to via stateGo(...).
+  describe.each<[string, string]>([
+    ['createUser', '/users/_new_'],
+    ['editUser', '/users/{userId}'],
+  ])('%s Classic-embed sub-route', (stateName, expectedUrl) => {
+    const state = () => router.stateRegistry.get(stateName);
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it(`is registered at ${expectedUrl}`, () => {
+      expect(state()?.url).toBe(expectedUrl);
+    });
+
+    it('carries the userConfiguration dirty path so the shell dirty guard fires on nav', () => {
+      expect(state()?.data?.isDirty).toEqual(['userConfiguration', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when authorization fails', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // Standalone User Activity — shown when user-management is disabled but
+  // activity tracking is on. UserManagementContainer renders only
+  // UserActivityOverviewContainer when showActivityOnly is true.
+  describe('userActivity Classic-embed route', () => {
+    const state = () => router.stateRegistry.get('userActivity');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /user-activity', () => {
+      expect(state()?.url).toBe('/user-activity');
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  it('/users/activity/{user} resolves to userActivityDetails, not editUser (static segment wins)', () => {
+    const match = router.urlService.match({ path: '/users/activity/some-user' });
+    expect(match?.rule?.state?.name).toBe('userActivityDetails');
+  });
+
+  it('/users/_new_ resolves to createUser, not editUser (static segment wins)', () => {
+    const match = router.urlService.match({ path: '/users/_new_' });
+    expect(match?.rule?.state?.name).toBe('createUser');
+  });
+
   // CLM-42464: Administrators list page (read-only, no form, no dirty guard)
   describe('administrators Classic-embed admin route', () => {
     const state = () => router.stateRegistry.get('administrators');

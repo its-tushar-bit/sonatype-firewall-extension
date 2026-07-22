@@ -79,6 +79,20 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
     });
 
+    it('keeps the Users admin path identical on both bundles (CLM-42465)', () => {
+      expect(toNexusOneEquivalent('/users')).toBe('/users');
+    });
+
+    it('keeps /users sub-paths identical on both bundles, preserving the tail (CLM-42465)', () => {
+      expect(toNexusOneEquivalent('/users/_new_')).toBe('/users/_new_');
+      expect(toNexusOneEquivalent('/users/some-user-id')).toBe('/users/some-user-id');
+      expect(toNexusOneEquivalent('/users/activity/some-user')).toBe('/users/activity/some-user');
+    });
+
+    it('keeps the User Activity admin path identical on both bundles (CLM-42465)', () => {
+      expect(toNexusOneEquivalent('/user-activity')).toBe('/user-activity');
+    });
+
     it('keeps the Base URL admin path identical on both bundles (CLM-42463)', () => {
       expect(toNexusOneEquivalent('/baseUrl')).toBe('/baseUrl');
     });
@@ -159,6 +173,20 @@ describe('classicPreviewMap', () => {
 
     it('maps Success Metrics admin back to the same Classic path (CLM-42186)', () => {
       expect(toClassicEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
+    });
+
+    it('maps Users admin back to the same Classic path (CLM-42465)', () => {
+      expect(toClassicEquivalent('/users')).toBe('/users');
+    });
+
+    it('preserves /users sub-paths when toggling to Classic (CLM-42465)', () => {
+      expect(toClassicEquivalent('/users/_new_')).toBe('/users/_new_');
+      expect(toClassicEquivalent('/users/some-user-id')).toBe('/users/some-user-id');
+      expect(toClassicEquivalent('/users/activity/some-user')).toBe('/users/activity/some-user');
+    });
+
+    it('maps User Activity admin back to the same Classic path (CLM-42465)', () => {
+      expect(toClassicEquivalent('/user-activity')).toBe('/user-activity');
     });
 
     it('maps Base URL admin back to the same Classic path (CLM-42463)', () => {
@@ -308,6 +336,10 @@ describe('classicPreviewMap', () => {
       ['/repositories/mgr-123/repo-456/components'],
       ['/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo'],
       ['/successMetricsConfiguration'],
+      ['/users'],
+      ['/users/_new_'],
+      ['/users/some-user-id'],
+      ['/user-activity'],
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
       ['/administrators'],
@@ -358,6 +390,7 @@ describe('classicPreviewMap', () => {
         expect(
           backToPreview.startsWith('/coming-soon/') ||
             backToPreview === '/ui-settings' ||
+            backToPreview === '/user-activity' ||
             backToPreview === '/dashboard' ||
             backToPreview === '/applications',
         ).toBe(true);

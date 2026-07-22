@@ -56,7 +56,6 @@ export interface ComingSoonModule {
 //   orgs-and-policies     → /management/view/organization/ROOT_ORGANIZATION_ID
 //                           (root Orgs & Policies tree)
 //   repositories          → /hostedRepos (Repository Managers — closest analog)
-//   users-groups          → /users
 //   source-control        → /automaticSourceControlConfiguration
 //   roles-permissions     → /roles
 //   waiver-requests       → /dashboard/waiverRequests
@@ -120,11 +119,6 @@ export const COMING_SOON_MODULES = {
     description: 'View and configure the upstream repositories scanned by Firewall and Lifecycle.',
     classicHref: '/assets/#/hostedRepos',
   },
-  'users-groups': {
-    label: 'Users & Groups',
-    description: 'Manage user accounts, groups, and group memberships.',
-    classicHref: '/assets/#/users',
-  },
   'source-control': {
     label: 'Source Control',
     description: 'Configure source control integrations for automated SCM scanning and pull-request workflows.',
@@ -139,11 +133,6 @@ export const COMING_SOON_MODULES = {
     label: 'Waiver Requests',
     description: 'Review, approve, or deny waiver requests submitted by developers.',
     classicHref: '/assets/#/dashboard/waiverRequests',
-  },
-  'audit-log': {
-    label: 'Audit Log',
-    description: 'Browse the immutable audit history of policy and configuration changes.',
-    classicHref: '/assets/#/user-activity',
   },
   'system-config': {
     label: 'System Configuration',
@@ -197,11 +186,9 @@ export const COMING_SOON_MODULE_ORDER: readonly ComingSoonModuleSlug[] = [
   'policies',
   'orgs-and-policies',
   'repositories',
-  'users-groups',
   'source-control',
   'roles-permissions',
   'waiver-requests',
-  'audit-log',
   'system-config',
   'guide',
   'firewall',

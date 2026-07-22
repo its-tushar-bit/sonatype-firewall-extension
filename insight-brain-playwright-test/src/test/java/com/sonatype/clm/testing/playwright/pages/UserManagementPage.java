@@ -56,6 +56,11 @@ public class UserManagementPage
     return locator("#user-title");
   }
 
+  public Locator configureUsersHeading() {
+    return container().getByRole(AriaRole.HEADING,
+        new Locator.GetByRoleOptions().setName("Configure Users").setExact(true));
+  }
+
   public Locator usersTab() {
     return byRole(AriaRole.TAB, "Users");
   }

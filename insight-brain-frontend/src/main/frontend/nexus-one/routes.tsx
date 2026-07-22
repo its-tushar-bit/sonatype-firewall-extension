@@ -18,6 +18,10 @@ import {
 import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/SuccessMetricsReportListContainer';
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
 import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
+import UserManagementContainer from 'MainRoot/security/users/UserManagementContainer';
+import UserAddContainer from 'MainRoot/security/users/userConfiguration/UserAddContainer';
+import UserEditContainer from 'MainRoot/security/users/userConfiguration/UserEditContainer';
+import UserActivityDetailsContainer from 'MainRoot/configuration/userActivityOverview/UserActivityDetailsContainer';
 import SystemNoticeConfigurationContainer from 'MainRoot/configuration/systemNoticeConfiguration/SystemNoticeConfigurationContainer';
 import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
@@ -521,6 +525,92 @@ router.stateRegistry.register({
   data: {
     title: 'Success Metrics Configuration',
     isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'users',
+  url: '/users',
+  component: mountClassicComponent(UserManagementContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Users',
+  },
+} as ReactStateDeclaration);
+
+// Activity tab lives at /users/activity. Classic registers it as a child of `users`
+// (see security/route.js), so UI-Router keeps the parent's mounted
+// UserManagementContainer; the container selects the Activity tab by checking
+// that router.currentState.name === 'users.activity'.
+// redirectTo is required here: @uirouter/core's onStart hook reads trans.to().redirectTo
+// (the leaf state only), so the parent `users` guard does NOT fire for a direct nav to
+// this child state.
+router.stateRegistry.register({
+  name: 'users.activity',
+  url: '/activity',
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'User Activity',
+  },
+} as ReactStateDeclaration);
+
+// Clicking a row in the Activity view dispatches
+// stateGo('userActivityDetails', {username}). This state uses its own container.
+// UserActivityDetailsContainer declares isAuthorized as a required prop; users who
+// reach this state have already passed the redirectTo gate so it is always true.
+// Note: Classic resolves isAuthorized and passes it as a prop, showing an inline
+// error for users with CONFIGURE_SYSTEM but not ACCESS_AUDIT_LOG. NOUX redirects
+// those partial-permission users to nexusOneDashboard.violations instead — a
+// deliberate UX improvement over the inline error banner.
+const AuthorizedUserActivityDetails = () => <UserActivityDetailsContainer isAuthorized={true} />;
+router.stateRegistry.register({
+  name: 'userActivityDetails',
+  url: '/users/activity/{username}',
+  component: mountClassicComponent(AuthorizedUserActivityDetails),
+  redirectTo: async () => {
+    const authorized = await isAuthorized(['CONFIGURE_SYSTEM', 'ACCESS_AUDIT_LOG']);
+    return authorized ? undefined : 'nexusOneDashboard.violations';
+  },
+  data: {
+    title: 'User Activity Details',
+  },
+} as ReactStateDeclaration);
+
+// UserList's "Create User" button dispatches stateGo('createUser').
+router.stateRegistry.register({
+  name: 'createUser',
+  url: '/users/_new_',
+  component: mountClassicComponent(UserAddContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Add New User',
+    isDirty: ['userConfiguration', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+// UserListItem links to editUser via history.href(prefixRoute('editUser'), {userId}).
+router.stateRegistry.register({
+  name: 'editUser',
+  url: '/users/{userId}',
+  component: mountClassicComponent(UserEditContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Edit User',
+    isDirty: ['userConfiguration', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+// Standalone User Activity view — shown when isUserActivityTrackingEnabled but
+// !isUserManagementEnabled (see PreviewSystemPreferencesMenu.tsx gear entry).
+// UserManagement.jsx computes showActivityOnly = isUserActivityTrackingEnabled && !isUserManagementEnabled
+// from selectors and renders only UserActivityOverviewContainer when true.
+router.stateRegistry.register({
+  name: 'userActivity',
+  url: '/user-activity',
+  component: mountClassicComponent(UserManagementContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'User Activity',
   },
 } as ReactStateDeclaration);
 

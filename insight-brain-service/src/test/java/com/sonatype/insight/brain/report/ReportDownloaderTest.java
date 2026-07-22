@@ -53,7 +53,7 @@ public class ReportDownloaderTest
   private ReportDataStore reportDataStore;
 
   @Inject
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Inject
   private InsightWork insightWork;
@@ -62,7 +62,7 @@ public class ReportDownloaderTest
   public void before() {
     spyHdsClient = mockingDetails(hdsClient).isMock() ? hdsClient : spy(hdsClient);
     reset(spyHdsClient);
-    reportDownloader = new ReportDownloader(spyHdsClient, applicationReportPersistenceService);
+    reportDownloader = new ReportDownloader(spyHdsClient, lifecycleReportPersistenceService);
   }
 
   @Test
@@ -70,9 +70,9 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "NonExistentScanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
+    LifecycleReport lifecycleReport = reportDataStore.getLifecycleReport(app, scanId);
 
-    boolean rc = reportDownloader.downloadReport(appReport, 0, 0);
+    boolean rc = reportDownloader.downloadReport(lifecycleReport, 0, 0);
 
     assertThat(rc).isFalse();
     assertThat(insightWork.getReportDir(app.getId(), scanId)).doesNotExist();
@@ -84,9 +84,9 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
+    LifecycleReport lifecycleReport = reportDataStore.getLifecycleReport(app, scanId);
 
-    boolean rc = reportDownloader.downloadReport(appReport, 0, 0);
+    boolean rc = reportDownloader.downloadReport(lifecycleReport, 0, 0);
 
     assertThat(rc).isFalse();
     // only the initial download request is made
@@ -98,10 +98,10 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.NOT_FOUND)).when(spyHdsClient).getResponse(any());
-    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
+    LifecycleReport lifecycleReport = reportDataStore.getLifecycleReport(app, scanId);
     long startTime = System.currentTimeMillis();
 
-    boolean rc = reportDownloader.downloadReport(appReport, 3, 2);
+    boolean rc = reportDownloader.downloadReport(lifecycleReport, 3, 2);
 
     long totalTime = System.currentTimeMillis() - startTime;
     assertThat(rc).isFalse();
@@ -117,9 +117,9 @@ public class ReportDownloaderTest
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "scanId";
     doReturn(createMockResponse(Status.BAD_GATEWAY)).when(spyHdsClient).getResponse(any());
-    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
+    LifecycleReport lifecycleReport = reportDataStore.getLifecycleReport(app, scanId);
 
-    boolean rc = reportDownloader.downloadReport(appReport, 1, 0);
+    boolean rc = reportDownloader.downloadReport(lifecycleReport, 1, 0);
 
     assertThat(rc).isFalse();
     verify(spyHdsClient, times(5)).getResponse(any());
@@ -132,9 +132,9 @@ public class ReportDownloaderTest
     InputStream finalReport = new ByteArrayInputStream("report".getBytes());
     doReturn(createMockResponse(Status.BAD_GATEWAY), createMockResponse(Status.OK, finalReport)).when(spyHdsClient)
         .getResponse(any());
-    ApplicationReport appReport = reportDataStore.getApplicationReport(app, scanId);
+    LifecycleReport lifecycleReport = reportDataStore.getLifecycleReport(app, scanId);
 
-    boolean rc = reportDownloader.downloadReport(appReport, 1, 0);
+    boolean rc = reportDownloader.downloadReport(lifecycleReport, 1, 0);
 
     assertThat(rc).isTrue();
     verify(spyHdsClient, times(2)).getResponse(any());

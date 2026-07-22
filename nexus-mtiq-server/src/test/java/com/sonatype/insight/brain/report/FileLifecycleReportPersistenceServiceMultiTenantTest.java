@@ -17,8 +17,8 @@ import org.junit.experimental.categories.Category;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
-public class FileApplicationReportPersistenceServiceMultiTenantTest
-    extends AbstractApplicationReportPersistenceServiceMultiTenantTest
+public class FileLifecycleReportPersistenceServiceMultiTenantTest
+    extends AbstractLifecycleReportPersistenceServiceMultiTenantTest
 {
   @Before
   public void setup() throws Exception {
@@ -34,13 +34,13 @@ public class FileApplicationReportPersistenceServiceMultiTenantTest
     setup(configurator, () -> {
       var insightConfig = lookup(InsightConfig.class);
       var insightWork = lookup(InsightWork.class);
-      return new FileApplicationReportPersistenceServiceTestHelper(tempDir, insightConfig, insightWork);
+      return new FileLifecycleReportPersistenceServiceTestHelper(tempDir, insightConfig, insightWork);
     });
   }
 
   @Test
   @Override
   public void testCorrectImplClass() {
-    assertThat(service).isInstanceOf(FileApplicationReportPersistenceService.class);
+    assertThat(service).isInstanceOf(FileLifecycleReportPersistenceService.class);
   }
 }

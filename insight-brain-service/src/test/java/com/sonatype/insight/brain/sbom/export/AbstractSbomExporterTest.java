@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.FileLifecycleReportPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.FileSbomPersistenceService;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportOption;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
@@ -69,7 +69,7 @@ abstract class AbstractSbomExporterTest
   private FileCleaner fileCleaner;
 
   @Inject
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Inject
   private FileScanPersistenceService scanPersistenceService;
@@ -128,7 +128,7 @@ abstract class AbstractSbomExporterTest
         thirdPartyFileDAO,
         thirdPartyScanDAO,
         new FileSbomPersistenceService(mockSbomPersistenceInsightWork, fileCleaner),
-        applicationReportPersistenceService,
+        lifecycleReportPersistenceService,
         scanPersistenceService);
   }
 }

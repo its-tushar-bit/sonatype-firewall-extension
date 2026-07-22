@@ -58,8 +58,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
-import com.sonatype.insight.brain.report.ApplicationReport;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReport;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.sbom.export.SbomExportException;
 import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
@@ -116,10 +116,10 @@ import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.report.DependencyResolver.FIELD_ANALYZER_FEATURES;
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseForThirdpartyLicense;
@@ -193,7 +193,7 @@ public class SbomResultsMerger
 
   private CpeResultsTelemetry cpeResultsTelemetry;
 
-  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   private final List<SbomResultsMatcherTelemetry> bestMatchResultsTelemetries = new ArrayList<>();
 
@@ -218,7 +218,7 @@ public class SbomResultsMerger
       final ApplicationDAO applicationDAO,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
-      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService,
       final ScanPersistenceService scanPersistenceService)
   {
     this.thirdPartyFileCoordinatePersister = thirdPartyFileCoordinatePersister;
@@ -232,7 +232,7 @@ public class SbomResultsMerger
     this.applicationDAO = applicationDAO;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
-    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
     this.scanPersistenceService = scanPersistenceService;
   }
 
@@ -249,7 +249,7 @@ public class SbomResultsMerger
   public void mergeResults(
       final ThirdPartySbomMetadata sbomMetadata,
       final String scanId,
-      final ApplicationReport applicationReport,
+      final LifecycleReport applicationReport,
       final CpeResultsTelemetry cpeResultsTelemetry) throws IOException
   {
     initializeMergeProcessDependencies(sbomMetadata, applicationReport, cpeResultsTelemetry);
@@ -301,7 +301,7 @@ public class SbomResultsMerger
 
   private void initializeMergeProcessDependencies(
       final ThirdPartySbomMetadata sbomMetadata,
-      final ApplicationReport applicationReport,
+      final LifecycleReport applicationReport,
       final CpeResultsTelemetry cpeResultsTelemetry) throws IOException
   {
     bomJsonData = JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(BOM_JSON.getName())).buf);
@@ -365,7 +365,7 @@ public class SbomResultsMerger
     }
   }
 
-  private void updateReportJsons(final ThirdPartySbomMetadata sbomMetadata, final ApplicationReport applicationReport) {
+  private void updateReportJsons(final ThirdPartySbomMetadata sbomMetadata, final LifecycleReport applicationReport) {
     // update bom.json only in the case of binary scans
     if (originalBom != null) {
       try {
@@ -773,7 +773,7 @@ public class SbomResultsMerger
     return PackageUrlIdentifier.fromComponentIdentifier(bomComponentIdentifier).getPackageUrl();
   }
 
-  private void readSonatypeSecurityResults(final ApplicationReport applicationReport) throws IOException {
+  private void readSonatypeSecurityResults(final LifecycleReport applicationReport) throws IOException {
     ContainerNode<?> securityJsonData =
         JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(SECURITY_JSON.getName())).buf);
     ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
@@ -790,7 +790,7 @@ public class SbomResultsMerger
     }
   }
 
-  private void readSonatypeLicenseResults(final ApplicationReport applicationReport) throws IOException {
+  private void readSonatypeLicenseResults(final LifecycleReport applicationReport) throws IOException {
     ContainerNode<?> licensesJsonData =
         JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(LICENSES_JSON.getName())).buf);
     ArrayNode licenseJsonArray = (ArrayNode) licensesJsonData.get("aaData");
@@ -1138,7 +1138,7 @@ public class SbomResultsMerger
         // Delete previous scan report folder
         log.debug("Deleting previous scan report folder for applicationId {}, previousScanId {}. The new scan id is {}",
             applicationId, thirdPartyScan.getPreviousScanId(), scanId);
-        applicationReportPersistenceService.deleteReport(applicationId, thirdPartyScan.getPreviousScanId());
+        lifecycleReportPersistenceService.deleteReport(applicationId, thirdPartyScan.getPreviousScanId());
       }
       thirdPartyScan.setPreviousScanId(null);
       thirdPartyScanDAO.update(thirdPartyScan);

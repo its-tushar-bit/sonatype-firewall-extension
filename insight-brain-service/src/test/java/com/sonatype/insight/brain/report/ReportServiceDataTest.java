@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ReportServiceDataTest
     extends AbstractDataTest
 {
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -59,7 +59,7 @@ public class ReportServiceDataTest
     licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
     InsightConfig insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(tempDir.newFolder().getAbsolutePath());
-    applicationReportPersistenceService = new FileApplicationReportPersistenceService(insightConfig, new FileCleaner());
+    lifecycleReportPersistenceService = new FileLifecycleReportPersistenceService(insightConfig, new FileCleaner());
     insightWork = new InsightWork(insightConfig, null);
   }
 
@@ -72,11 +72,11 @@ public class ReportServiceDataTest
     tempEntity.newLicenseThreatGroup(org.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
     ReportHelper.saveMockReport(insightWork, app.getId(), "scanId");
 
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, "scanId");
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, app, "scanId");
 
-    createReportService().writeLicenseThreatsToReportFile(app, appReport);
+    createReportService().writeLicenseThreatsToReportFile(app, lifecycleReport);
 
-    ReportEntry licenseThreatsEntry = appReport.getEntry("licensethreats.json");
+    ReportEntry licenseThreatsEntry = lifecycleReport.getEntry("licensethreats.json");
 
     ContainerNode<?> licenseThreats = JsonUtils.parse(licenseThreatsEntry.buf);
     int countNotZero = 0;

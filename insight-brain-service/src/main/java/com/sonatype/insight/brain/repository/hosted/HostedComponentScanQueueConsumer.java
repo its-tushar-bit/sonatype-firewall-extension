@@ -55,8 +55,8 @@ import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.report.ApplicationReport;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReport;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
@@ -229,7 +229,7 @@ public class HostedComponentScanQueueConsumer
 
   private final Provider<ReportDataStore> reportDataStoreProvider;
 
-  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   // CLM-40943: dependencies for the bom-driven nested-component mirror.
   private final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider;
@@ -258,7 +258,7 @@ public class HostedComponentScanQueueConsumer
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyDAO policyDAO,
       final Provider<ReportDataStore> reportDataStoreProvider,
-      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService,
       final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider,
       final PolicyViolationDAO policyViolationDAO,
       final ApplicationComponentDAO applicationComponentDAO,
@@ -279,7 +279,7 @@ public class HostedComponentScanQueueConsumer
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyDAO = policyDAO;
     this.reportDataStoreProvider = reportDataStoreProvider;
-    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
     this.scanPolicyEvaluatorProvider = scanPolicyEvaluatorProvider;
     this.policyViolationDAO = policyViolationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -774,8 +774,8 @@ public class HostedComponentScanQueueConsumer
   private void saveReportFiles(final Application application, final String pathname, final String scanId) {
     try {
       // Download HDS report zip so the report page works immediately on first open.
-      // Reuse the returned ApplicationReport for bom.json — avoids re-opening the zip.
-      ApplicationReport downloadedReport = null;
+      // Reuse the returned LifecycleReport for bom.json — avoids re-opening the zip.
+      LifecycleReport downloadedReport = null;
       try {
         downloadedReport = reportDataStoreProvider.get().downloadReport(application, scanId, (sid, r, aid) -> {
         });
@@ -795,14 +795,14 @@ public class HostedComponentScanQueueConsumer
       // Keep patched bytes to reuse for component count — avoids a second bom.json fetch.
       byte[] patchedBom = null;
       try {
-        ApplicationReport reportToRead = downloadedReport != null
+        LifecycleReport reportToRead = downloadedReport != null
             ? downloadedReport
-            : reportDataStoreProvider.get().getApplicationReport(application, scanId);
+            : reportDataStoreProvider.get().getLifecycleReport(application, scanId);
         ReportEntry bomEntry = reportToRead != null ? reportToRead.getEntry("bom.json") : null;
         if (bomEntry != null) {
           byte[] displayNamed = HostedReportFileBuilder.patchBomDisplayName(bomEntry.buf);
           patchedBom = HostedReportFileBuilder.dedupeBomIdentifiedRows(displayNamed);
-          applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "bom.json",
+          lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "bom.json",
               new ByteArrayInputStream(patchedBom));
         }
       }
@@ -840,7 +840,7 @@ public class HostedComponentScanQueueConsumer
       String bomOuterHashOverride = extractBomOuterHash(patchedBom);
       for (String fileName : List.of("policythreats.json")) {
         byte[] content = HostedReportFileBuilder.build(fileName, comp, violations, bomOuterHashOverride);
-        applicationReportPersistenceService.saveReportFile(application.getId(), scanId, fileName,
+        lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, fileName,
             new ByteArrayInputStream(content));
       }
 
@@ -857,15 +857,15 @@ public class HostedComponentScanQueueConsumer
       // uses the same violation-dedup as policythreats.json so the two files stay consistent
       // by construction. It no-ops for formats where HDS already wrote the field.
       try {
-        ApplicationReport reportForPatch = downloadedReport != null
+        LifecycleReport reportForPatch = downloadedReport != null
             ? downloadedReport
-            : reportDataStoreProvider.get().getApplicationReport(application, scanId);
+            : reportDataStoreProvider.get().getLifecycleReport(application, scanId);
         ReportEntry dataEntryForPatch = reportForPatch != null ? reportForPatch.getEntry("data.json") : null;
         if (dataEntryForPatch != null && dataEntryForPatch.buf != null) {
           byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyComponentCountIfAbsent(
               dataEntryForPatch.buf, comp, violations, bomOuterHashOverride);
           if (patched != dataEntryForPatch.buf) {
-            applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
+            lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
                 new ByteArrayInputStream(patched));
           }
         }
@@ -888,16 +888,16 @@ public class HostedComponentScanQueueConsumer
       // trimmed aaData. No-op when knownArtifactCount already equals the deduped count.
       if (patchedBom != null) {
         try {
-          ApplicationReport reportForKnown = downloadedReport != null
+          LifecycleReport reportForKnown = downloadedReport != null
               ? downloadedReport
-              : reportDataStoreProvider.get().getApplicationReport(application, scanId);
+              : reportDataStoreProvider.get().getLifecycleReport(application, scanId);
           ReportEntry dataEntryForKnown = reportForKnown != null ? reportForKnown.getEntry("data.json") : null;
           if (dataEntryForKnown != null && dataEntryForKnown.buf != null) {
             int dedupedKnown = HostedReportFileBuilder.countKnownMatchesInBom(patchedBom);
             byte[] patched = HostedReportFileBuilder.patchDataJsonKnownArtifactCountOnly(
                 dataEntryForKnown.buf, dedupedKnown);
             if (patched != dataEntryForKnown.buf) {
-              applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
+              lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
                   new ByteArrayInputStream(patched));
             }
           }
@@ -926,9 +926,9 @@ public class HostedComponentScanQueueConsumer
       // already logged the download/read failure.
       if (comp != null) {
         try {
-          ApplicationReport reportForCount = downloadedReport != null
+          LifecycleReport reportForCount = downloadedReport != null
               ? downloadedReport
-              : reportDataStoreProvider.get().getApplicationReport(application, scanId);
+              : reportDataStoreProvider.get().getLifecycleReport(application, scanId);
           ReportEntry dataEntry = reportForCount != null ? reportForCount.getEntry("data.json") : null;
           if (dataEntry != null && dataEntry.buf != null) {
             JsonNode dataJson = MAPPER.readTree(dataEntry.buf);
@@ -1006,7 +1006,7 @@ public class HostedComponentScanQueueConsumer
         HostedReportFileBuilder.resolveComponentUnknownPolicy(policyDAO, application.getId()));
     long nonWaivedCount = outerViolations.stream().filter(v -> !v.isWaived()).count();
     String bomOuterHashOverride = null;
-    ApplicationReport report = reportDataStoreProvider.get().getApplicationReport(application, scanId);
+    LifecycleReport report = reportDataStoreProvider.get().getLifecycleReport(application, scanId);
     if (report != null) {
       ReportEntry bomEntry = report.getEntry("bom.json");
       if (bomEntry != null && bomEntry.buf != null) {
@@ -1029,7 +1029,7 @@ public class HostedComponentScanQueueConsumer
     if (existingPolicyThreats == null || existingPolicyThreats.buf == null
         || !Arrays.equals(existingPolicyThreats.buf, content))
     {
-      applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "policythreats.json",
+      lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "policythreats.json",
           new ByteArrayInputStream(content));
       log.debug("Rebuilt policythreats.json with {} non-waived outer-only violation(s) for scanId={}",
           nonWaivedCount, scanId);
@@ -1047,7 +1047,7 @@ public class HostedComponentScanQueueConsumer
             : HostedReportFileBuilder.patchDataJsonPolicyCounts(
                 withArtifactCounts, outerComp, outerViolations, bomOuterHashOverride);
         if (patchedData != dataEntry.buf) {
-          applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
+          lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
               new ByteArrayInputStream(patchedData));
           log.debug("Patched data.json (totalArtifactCount=1, knownArtifactCount={}, "
               + "policyComponentCount+policyCounts from {} non-waived outer-only violation(s)) "
@@ -1074,7 +1074,7 @@ public class HostedComponentScanQueueConsumer
       final String outerHash,
       final String outerPathname) throws Exception
   {
-    ApplicationReport report = reportDataStoreProvider.get().getApplicationReport(application, scanId);
+    LifecycleReport report = reportDataStoreProvider.get().getLifecycleReport(application, scanId);
     if (report == null) {
       return;
     }
@@ -1094,7 +1094,7 @@ public class HostedComponentScanQueueConsumer
     if (patched == bomEntry.buf) {
       return;
     }
-    applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "bom.json",
+    lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "bom.json",
         new ByteArrayInputStream(patched));
     log.debug("Trimmed bom.json to outer-only (hash={}) for scanId={}", keepHash, scanId);
   }
@@ -1151,7 +1151,7 @@ public class HostedComponentScanQueueConsumer
     if (directCount < 0) {
       return;
     }
-    ApplicationReport report = reportDataStoreProvider.get().getApplicationReport(application, scanId);
+    LifecycleReport report = reportDataStoreProvider.get().getLifecycleReport(application, scanId);
     if (report == null) {
       return;
     }
@@ -1165,7 +1165,7 @@ public class HostedComponentScanQueueConsumer
     if (patched == dataEntry.buf) {
       return;
     }
-    applicationReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
+    lifecycleReportPersistenceService.saveReportFile(application.getId(), scanId, "data.json",
         new ByteArrayInputStream(patched));
     log.debug("Patched data.json.totalArtifactCount={} knownArtifactCount={} for scanId={}",
         directCount, effectiveKnown, scanId);

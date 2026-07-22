@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.report;
 
-import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
+import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.SCAN_ID;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;

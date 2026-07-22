@@ -51,7 +51,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.sbom.SbomResultsMerger;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
@@ -372,7 +372,7 @@ public class ThirdPartyDataService
   }
 
   public ThirdPartyApplicationReportDTO loadThirdPartyInfrastructureAsCodeData(
-      final ApplicationReport applicationReport,
+      final LifecycleReport applicationReport,
       final String appId)
   {
     // Collect data for telemetry within the loop
@@ -428,7 +428,7 @@ public class ThirdPartyDataService
 
   public void mergeSonatypeDataWithSbomDataWithIndexing(
       final String scanId,
-      final ApplicationReport applicationReport,
+      final LifecycleReport applicationReport,
       final CpeResultsTelemetry cpeResultsTelemetry) throws IOException
   {
     if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {

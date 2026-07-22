@@ -66,7 +66,7 @@ public class ReportComponentServiceTest
         reportComponentService.fetchReportAndComponents(application, scanId, StageTypes.STAGE_RELEASE.getId());
 
     assertNotNull(result);
-    assertNotNull(result.applicationReport);
+    assertNotNull(result.lifecycleReport);
     assertNotNull(result.components);
     assertFalse(result.components.isEmpty());
   }

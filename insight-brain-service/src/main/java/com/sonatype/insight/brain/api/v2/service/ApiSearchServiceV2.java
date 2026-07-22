@@ -39,7 +39,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.AuthzFilter;
@@ -51,8 +51,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DEPENDENCIES_JSON;
 
 /**
  * @since 1.13.0
@@ -348,7 +348,7 @@ public class ApiSearchServiceV2
    */
   private Map<String, Component> loadComponentsByHash(final Application app, final PolicyEvaluation eval) {
     try {
-      ApplicationReport applicationReport = reportService.getReportIfPresent(app, eval.getScanId());
+      LifecycleReport applicationReport = reportService.getReportIfPresent(app, eval.getScanId());
       if (applicationReport == null) {
         return Map.of();
       }

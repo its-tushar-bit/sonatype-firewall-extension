@@ -16,7 +16,7 @@ import com.sonatype.clm.dto.model.signature.ReachabilityEvidenceDTO.EvidencePath
 import com.sonatype.clm.dto.model.signature.ReachabilityEvidenceDTO.GapSegmentDTO;
 import com.sonatype.clm.dto.model.signature.ReachabilityEvidenceDTO.MethodSegmentDTO;
 import com.sonatype.clm.dto.model.signature.ReachabilityEvidenceDTO.PathSegmentDTO;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidence.ElidedSegment;
 import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidence.GapSegment;
@@ -37,7 +37,7 @@ public class ReachabilityEvidenceEnrichmentServiceTest
   @Test
   public void testMethodSegmentGetsPurl() throws Exception {
     ReachabilityEvidenceDTO dto = createDto(methodSeg("com.example.App.main()V", "lib/jackson.jar"));
-    ApplicationReport report = mockReport(Map.of("lib/jackson.jar", "pkg:maven/com.fasterxml/jackson@2.13.0"));
+    LifecycleReport report = mockReport(Map.of("lib/jackson.jar", "pkg:maven/com.fasterxml/jackson@2.13.0"));
 
     StoredReachabilityEvidence result = service.enrich(dto, report);
 
@@ -48,7 +48,7 @@ public class ReachabilityEvidenceEnrichmentServiceTest
   @Test
   public void testUnmappablePathLeavesComponentNull() throws Exception {
     ReachabilityEvidenceDTO dto = createDto(methodSeg("com.example.App.main()V", "unknown.jar"));
-    ApplicationReport report = mockReport(Map.of("lib/jackson.jar", "pkg:maven/x/y@1.0"));
+    LifecycleReport report = mockReport(Map.of("lib/jackson.jar", "pkg:maven/x/y@1.0"));
 
     StoredReachabilityEvidence result = service.enrich(dto, report);
 
@@ -60,7 +60,7 @@ public class ReachabilityEvidenceEnrichmentServiceTest
   public void testGapSegmentPassedThrough() throws Exception {
     ReachabilityEvidenceDTO dto =
         createDto(methodSeg("a.B.c()V", "a.jar"), new GapSegmentDTO(), methodSeg("d.E.f()V", "d.jar"));
-    ApplicationReport report = mockReport(Map.of());
+    LifecycleReport report = mockReport(Map.of());
 
     StoredReachabilityEvidence result = service.enrich(dto, report);
 
@@ -73,7 +73,7 @@ public class ReachabilityEvidenceEnrichmentServiceTest
   public void testElidedSegmentPassedThrough() throws Exception {
     ReachabilityEvidenceDTO dto =
         createDto(methodSeg("a.B.c()V", "a.jar"), elidedSeg(5), methodSeg("d.E.f()V", "d.jar"));
-    ApplicationReport report = mockReport(Map.of());
+    LifecycleReport report = mockReport(Map.of());
 
     StoredReachabilityEvidence result = service.enrich(dto, report);
 
@@ -85,7 +85,7 @@ public class ReachabilityEvidenceEnrichmentServiceTest
   @Test
   public void testMissingBomJson() throws Exception {
     ReachabilityEvidenceDTO dto = createDto(methodSeg("a.B.c()V", "a.jar"));
-    ApplicationReport report = Mockito.mock(ApplicationReport.class);
+    LifecycleReport report = Mockito.mock(LifecycleReport.class);
     when(report.getEntry("bom.json")).thenReturn(null);
 
     StoredReachabilityEvidence result = service.enrich(dto, report);
@@ -120,7 +120,7 @@ public class ReachabilityEvidenceEnrichmentServiceTest
     return seg;
   }
 
-  private ApplicationReport mockReport(Map<String, String> pathToPurl) throws Exception {
+  private LifecycleReport mockReport(Map<String, String> pathToPurl) throws Exception {
     StringBuilder bomJson = new StringBuilder("{\"aaData\":[");
     boolean first = true;
     for (Map.Entry<String, String> entry : pathToPurl.entrySet()) {
@@ -135,7 +135,7 @@ public class ReachabilityEvidenceEnrichmentServiceTest
     }
     bomJson.append("]}");
 
-    ApplicationReport report = Mockito.mock(ApplicationReport.class);
+    LifecycleReport report = Mockito.mock(LifecycleReport.class);
     ReportEntry bomEntry = new ReportEntry("bom.json", System.currentTimeMillis(), bomJson.toString().getBytes());
     when(report.getEntry("bom.json")).thenReturn(bomEntry);
     return report;

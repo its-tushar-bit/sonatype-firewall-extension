@@ -159,7 +159,7 @@ public class ReportServiceHostedComponentTest
   private jakarta.inject.Provider<com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider;
 
   @Mock
-  private ApplicationReportPersistenceService applicationReportPersistenceService;
+  private LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Mock
   private HostedComponentScanQueueConsumer hostedComponentScanQueueConsumer;
@@ -331,7 +331,7 @@ public class ReportServiceHostedComponentTest
   // ---- metadata-path reshape wiring ----
 
   @Mock
-  private ApplicationReport applicationReport;
+  private LifecycleReport lifecycleReport;
 
   /**
    * Guards that the metadata path reshapes violations before computing totalRisk: an npm outer row
@@ -352,11 +352,11 @@ public class ReportServiceHostedComponentTest
     when(applicationDAO.getByPublicIdNotNull(pubId)).thenReturn(application);
     when(organizationDAO.getByIdNotNull("org-id")).thenReturn(new Organization());
 
-    when(reportDataStore.getApplicationReport(application, scanId)).thenReturn(applicationReport);
-    when(applicationReport.exists()).thenReturn(true);
+    when(reportDataStore.getLifecycleReport(application, scanId)).thenReturn(lifecycleReport);
+    when(lifecycleReport.exists()).thenReturn(true);
     ReportEntry dataEntry = new ReportEntry("data.json", 0L,
         "{\"policyComponentCount\":1,\"globals\":{}}".getBytes());
-    lenient().when(applicationReport.getEntries(List.of("data.json", "template.properties", "summary.json")))
+    lenient().when(lifecycleReport.getEntries(List.of("data.json", "template.properties", "summary.json")))
         .thenReturn(Map.of("data.json", dataEntry));
 
     PolicyEvaluation evaluation = org.mockito.Mockito.mock(PolicyEvaluation.class);
@@ -409,12 +409,12 @@ public class ReportServiceHostedComponentTest
 
     // data.json WITHOUT policyComponentCount => triggers the saveOverlayFiles recovery branch.
     ReportEntry dataEntry = new ReportEntry("data.json", 0L, "{\"globals\":{}}".getBytes());
-    when(reportDataStore.getApplicationReport(application, scanId)).thenReturn(applicationReport);
-    when(applicationReport.exists()).thenReturn(true);
-    lenient().when(applicationReport.getEntries(List.of("data.json", "template.properties", "summary.json")))
+    when(reportDataStore.getLifecycleReport(application, scanId)).thenReturn(lifecycleReport);
+    when(lifecycleReport.exists()).thenReturn(true);
+    lenient().when(lifecycleReport.getEntries(List.of("data.json", "template.properties", "summary.json")))
         .thenReturn(Map.of("data.json", dataEntry));
-    lenient().when(applicationReport.getEntry("bom.json")).thenReturn(null);
-    lenient().when(applicationReport.getEntry("data.json")).thenReturn(dataEntry);
+    lenient().when(lifecycleReport.getEntry("bom.json")).thenReturn(null);
+    lenient().when(lifecycleReport.getEntry("data.json")).thenReturn(dataEntry);
 
     PolicyEvaluation evaluation = Mockito.mock(PolicyEvaluation.class);
     lenient().when(evaluation.getStageTypeId()).thenReturn(BuildStageType.ID);
@@ -438,7 +438,7 @@ public class ReportServiceHostedComponentTest
     reportService.getReportMetadataNoAuth(pubId, scanId);
 
     ArgumentCaptor<java.io.InputStream> captor = ArgumentCaptor.forClass(java.io.InputStream.class);
-    verify(applicationReportPersistenceService)
+    verify(lifecycleReportPersistenceService)
         .saveReportFile(eq("app-id"), eq(scanId), eq("policythreats.json"), captor.capture());
     String json = new String(captor.getValue().readAllBytes());
     int aaDataEntries = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -817,7 +817,7 @@ public class ReportServiceHostedComponentTest
     when(clusterLockManager.createForPolicyEvaluation(application, scanId)).thenReturn(mock(ClusterLock.class));
     when(repositoryPolicyEvaluatorProvider.get()).thenReturn(repositoryPolicyEvaluator);
     // saveOverlayFiles reads the application report; return a null-friendly stub.
-    when(reportDataStore.getApplicationReport(any(), any())).thenReturn(null);
+    when(reportDataStore.getLifecycleReport(any(), any())).thenReturn(null);
     when(policyEvaluationDAO.createTransactionContext()).thenReturn(mock(TransactionContext.class));
     return comp;
   }
@@ -849,12 +849,12 @@ public class ReportServiceHostedComponentTest
     reportService.reevaluateHostedComponent("app-1", "scan-1");
 
     org.mockito.InOrder inOrder = org.mockito.Mockito.inOrder(
-        lock, repositoryPolicyEvaluator, applicationReportPersistenceService, policyEvaluationDAO);
+        lock, repositoryPolicyEvaluator, lifecycleReportPersistenceService, policyEvaluationDAO);
     inOrder.verify(lock).lock();
     inOrder.verify(repositoryPolicyEvaluator)
         .evaluate(any(), any(), org.mockito.ArgumentMatchers.eq(false),
             org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.anyString());
-    inOrder.verify(applicationReportPersistenceService)
+    inOrder.verify(lifecycleReportPersistenceService)
         .saveReportFile(
             org.mockito.ArgumentMatchers.eq("app-1"), org.mockito.ArgumentMatchers.eq("scan-1"),
             org.mockito.ArgumentMatchers.eq("policythreats.json"), any());
@@ -878,7 +878,7 @@ public class ReportServiceHostedComponentTest
 
     verify(repositoryPolicyEvaluator, never()).evaluate(any(), any(), org.mockito.ArgumentMatchers.anyBoolean(),
         org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString());
-    verify(applicationReportPersistenceService, never()).saveReportFile(
+    verify(lifecycleReportPersistenceService, never()).saveReportFile(
         org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
         org.mockito.ArgumentMatchers.anyString(), any());
     verify(policyEvaluationDAO, never()).insert(any(TransactionContext.class), any(PolicyEvaluation.class));
@@ -894,7 +894,7 @@ public class ReportServiceHostedComponentTest
 
     reportService.reevaluateHostedComponent("app-1", "scan-1");
 
-    verify(applicationReportPersistenceService, never()).saveReportFile(
+    verify(lifecycleReportPersistenceService, never()).saveReportFile(
         org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
         org.mockito.ArgumentMatchers.eq("summary.json"), any());
   }
@@ -1040,10 +1040,10 @@ public class ReportServiceHostedComponentTest
     application.setId("app-1");
     when(repositoryComponentDAO.getByScanId("scan-1")).thenReturn(component);
     when(applicationDAO.getByIdNotNull("app-1")).thenReturn(application);
-    // Force saveOverlayFiles to throw a checked Exception via applicationReportPersistenceService
+    // Force saveOverlayFiles to throw a checked Exception via lifecycleReportPersistenceService
     // (its saveReportFile declares throws IOException).
     doThrow(new java.io.IOException("simulated disk failure writing policythreats.json"))
-        .when(applicationReportPersistenceService)
+        .when(lifecycleReportPersistenceService)
         .saveReportFile(anyString(), anyString(), anyString(), any());
 
     assertThatThrownBy(() -> reportService.refreshHostedComponentAfterEvaluation(
@@ -1069,7 +1069,7 @@ public class ReportServiceHostedComponentTest
     when(applicationDAO.getByIdNotNull("app-1")).thenReturn(application);
     IllegalStateException runtimeBoom = new IllegalStateException("disk full");
     doThrow(runtimeBoom)
-        .when(applicationReportPersistenceService)
+        .when(lifecycleReportPersistenceService)
         .saveReportFile(anyString(), anyString(), anyString(), any());
 
     assertThatThrownBy(() -> reportService.refreshHostedComponentAfterEvaluation(

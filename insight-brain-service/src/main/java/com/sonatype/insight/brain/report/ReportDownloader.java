@@ -28,31 +28,31 @@ public class ReportDownloader
 
   private final HdsClient client;
 
-  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Inject
   public ReportDownloader(
       final HdsClient client,
-      final ApplicationReportPersistenceService applicationReportPersistenceService)
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService)
   {
     this.client = client;
-    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
   }
 
   /**
    * Downloads a report for a scan.
    *
-   * @param applicationReport to save report to
+   * @param lifecycleReport to save report to
    * @param reportTimeoutInSeconds time to wait before the report times out - 0 will not make retry attempts
    * @return true if the report was downloaded, false otherwise.
    */
   public boolean downloadReport(
-      final ApplicationReport applicationReport,
+      final LifecycleReport lifecycleReport,
       final int reportTimeoutInSeconds,
       final int retryIntervalInSeconds)
   {
-    String applicationId = applicationReport.getApplication().getId();
-    String scanId = applicationReport.getScanId();
+    String ownerId = lifecycleReport.getOwner().getId();
+    String scanId = lifecycleReport.getScanId();
 
     log.debug("Downloading report for scan {} with timeout {} s", scanId, reportTimeoutInSeconds);
     try {
@@ -64,7 +64,7 @@ public class ReportDownloader
           NotFoundException.class::isInstance,
           i -> Duration.ofSeconds(retryIntervalInSeconds));
       try (InputStream is = client.get(retryConfig, InputStream.class, HDS_PATH, null, scanId)) {
-        applicationReportPersistenceService.saveOriginalReport(applicationId, scanId, is);
+        lifecycleReportPersistenceService.saveOriginalReport(ownerId, scanId, is);
         return true;
       }
       catch (NotFoundException e) {

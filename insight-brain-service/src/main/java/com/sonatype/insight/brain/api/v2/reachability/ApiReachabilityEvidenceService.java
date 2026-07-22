@@ -10,7 +10,7 @@ import java.io.IOException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidence;
@@ -48,9 +48,9 @@ public class ApiReachabilityEvidenceService
       String scanId,
       String vulnerabilityId) throws IOException
   {
-    ApplicationReport report = reportService.getReport(applicationId, scanId);
+    LifecycleReport report = reportService.getReport(applicationId, scanId);
     ReportEntry entry = report.getEntry(
-        ApplicationReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName());
+        LifecycleReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName());
 
     if (entry == null || entry.buf == null) {
       log.debug("No reachability evidence found for app={}, scan={}", applicationId, scanId);

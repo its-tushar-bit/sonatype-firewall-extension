@@ -84,7 +84,7 @@ public class ReportBundleUpdaterTest
     }
 
     @Override
-    public Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass() {
+    public Class<? extends LifecycleReportPersistenceService> getLifecycleReportPersistenceServiceClass() {
       throw new UnsupportedOperationException();
     }
 

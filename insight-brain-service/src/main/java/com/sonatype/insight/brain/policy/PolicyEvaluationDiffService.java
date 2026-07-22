@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_ALERTS;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentIdentifierAndHashCom
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -106,8 +106,8 @@ public class PolicyEvaluationDiffService
       final int minimumThreatLevel,
       boolean byComponents)
   {
-    final ApplicationReport fromApplicationReport = getReportByPolicyEvaluation(fromEvaluation);
-    if (fromApplicationReport == null) {
+    final LifecycleReport fromLifecycleReport = getReportByPolicyEvaluation(fromEvaluation);
+    if (fromLifecycleReport == null) {
       log.debug(
           "Could not find report file for 'from' scan report with commit {}, " +
               "policy evaluation id {} and application id {}",
@@ -115,8 +115,8 @@ public class PolicyEvaluationDiffService
       return Optional.empty();
     }
 
-    final ApplicationReport toApplicationReport = getReportByPolicyEvaluation(toEvaluation);
-    if (toApplicationReport == null) {
+    final LifecycleReport toLifecycleReport = getReportByPolicyEvaluation(toEvaluation);
+    if (toLifecycleReport == null) {
       log.debug(
           "Could not find report file for 'to' scan report with commit {}, " +
               "policy evaluation id {} and application id {}",
@@ -125,22 +125,22 @@ public class PolicyEvaluationDiffService
     }
 
     try {
-      final ReportEntry fromReportEntry = fromApplicationReport.getEntry(POLICY_ALERTS.getName());
+      final ReportEntry fromReportEntry = fromLifecycleReport.getEntry(POLICY_ALERTS.getName());
       if (fromReportEntry == null) {
         log.debug(
             "Could not find policy alerts for 'from' scan report with commit {}, " +
                 "policy evaluation id {}, application id {} and scan report {}",
             fromEvaluation.getCommitHash(), fromEvaluation.getId(), fromEvaluation.getApplicationId(),
-            fromApplicationReport.getLocation());
+            fromLifecycleReport.getLocation());
         return Optional.empty();
       }
-      final ReportEntry toReportEntry = toApplicationReport.getEntry(POLICY_ALERTS.getName());
+      final ReportEntry toReportEntry = toLifecycleReport.getEntry(POLICY_ALERTS.getName());
       if (toReportEntry == null) {
         log.debug(
             "Could not find policy alerts for 'to' scan report with commit {}, " +
                 "policy evaluation id {}, application id {} and scan report {}",
             toEvaluation.getCommitHash(), toEvaluation.getId(), toEvaluation.getApplicationId(),
-            toApplicationReport.getLocation());
+            toLifecycleReport.getLocation());
         return Optional.empty();
       }
 
@@ -153,8 +153,8 @@ public class PolicyEvaluationDiffService
 
       PolicyViolationDiff<PolicyViolation> policyViolationDiff;
       if (byComponents) {
-        Set<ComponentIdentifierAndHashComparable> fromComponents = loadComponentsFromReport(fromApplicationReport);
-        Set<ComponentIdentifierAndHashComparable> toComponents = loadComponentsFromReport(toApplicationReport);
+        Set<ComponentIdentifierAndHashComparable> fromComponents = loadComponentsFromReport(fromLifecycleReport);
+        Set<ComponentIdentifierAndHashComparable> toComponents = loadComponentsFromReport(toLifecycleReport);
         Set<ComponentIdentifierAndHashComparable> addedComponents = SetUtils.difference(toComponents, fromComponents);
         Set<ComponentIdentifierAndHashComparable> removedComponents = SetUtils.difference(fromComponents, toComponents);
 
@@ -172,10 +172,10 @@ public class PolicyEvaluationDiffService
     }
   }
 
-  private ApplicationReport getReportByPolicyEvaluation(final PolicyEvaluation policyEvaluation) {
+  private LifecycleReport getReportByPolicyEvaluation(final PolicyEvaluation policyEvaluation) {
     if (policyEvaluation != null) {
       try {
-        ApplicationReport applicationReport =
+        LifecycleReport applicationReport =
             reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
         if (applicationReport.exists()) {
           return applicationReport;
@@ -193,7 +193,7 @@ public class PolicyEvaluationDiffService
   }
 
   private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(
-      ApplicationReport applicationReport) throws IOException
+      LifecycleReport applicationReport) throws IOException
   {
     ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(null);

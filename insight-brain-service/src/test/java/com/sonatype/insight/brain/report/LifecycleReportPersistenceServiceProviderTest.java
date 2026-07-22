@@ -21,11 +21,11 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApplicationReportPersistenceServiceProviderTest
+public class LifecycleReportPersistenceServiceProviderTest
     extends AbstractComponentTest
 {
   @Inject
-  private ApplicationReportPersistenceServiceProvider provider;
+  private LifecycleReportPersistenceServiceProvider provider;
 
   @Inject
   private InsightConfig insightConfig;
@@ -34,7 +34,7 @@ public class ApplicationReportPersistenceServiceProviderTest
   public void testGet_NoStorageConfig() {
     insightConfig.setStorage(null);
 
-    assertThat(provider.get()).isInstanceOf(FileApplicationReportPersistenceService.class);
+    assertThat(provider.get()).isInstanceOf(FileLifecycleReportPersistenceService.class);
   }
 
   @Test
@@ -43,7 +43,7 @@ public class ApplicationReportPersistenceServiceProviderTest
     storageConfig.setType(DataStoreType.FILE);
     insightConfig.setStorage(storageConfig);
 
-    assertThat(provider.get()).isInstanceOf(FileApplicationReportPersistenceService.class);
+    assertThat(provider.get()).isInstanceOf(FileLifecycleReportPersistenceService.class);
   }
 
   @Test
@@ -57,7 +57,7 @@ public class ApplicationReportPersistenceServiceProviderTest
     storageConfig.setS3Config(s3DataStoreConfig);
     insightConfig.setStorage(storageConfig);
 
-    assertThat(provider.get()).isInstanceOf(S3ApplicationReportPersistenceService.class);
+    assertThat(provider.get()).isInstanceOf(S3LifecycleReportPersistenceService.class);
   }
 
   @Test
@@ -74,6 +74,6 @@ public class ApplicationReportPersistenceServiceProviderTest
     storageConfig.setHybridConfig(hybridDataStoreConfig);
     insightConfig.setStorage(storageConfig);
 
-    assertThat(provider.get()).isInstanceOf(HybridApplicationReportPersistenceService.class);
+    assertThat(provider.get()).isInstanceOf(HybridLifecycleReportPersistenceService.class);
   }
 }

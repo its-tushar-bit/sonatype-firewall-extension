@@ -27,8 +27,8 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
 import com.sonatype.insight.brain.aws.s3.S3OutputStream;
 import com.sonatype.insight.brain.aws.s3.S3Utils;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFile;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFileLocationType;
 import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
@@ -52,10 +52,10 @@ import static java.util.Objects.requireNonNull;
 
 @Named
 @Singleton
-public class S3ApplicationReportPersistenceService
-    extends ApplicationReportPersistenceService
+public class S3LifecycleReportPersistenceService
+    extends LifecycleReportPersistenceService
 {
-  private static final Logger log = LoggerFactory.getLogger(S3ApplicationReportPersistenceService.class);
+  private static final Logger log = LoggerFactory.getLogger(S3LifecycleReportPersistenceService.class);
 
   private static final String APP_WIDE_BASE_FORMAT = "report/%s/";
 
@@ -215,8 +215,8 @@ public class S3ApplicationReportPersistenceService
     }
 
     @Override
-    public Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass() {
-      return S3ApplicationReportPersistenceService.class;
+    public Class<? extends LifecycleReportPersistenceService> getLifecycleReportPersistenceServiceClass() {
+      return S3LifecycleReportPersistenceService.class;
     }
 
     protected Optional<Metadata> getS3Metadata() throws IOException {
@@ -266,7 +266,7 @@ public class S3ApplicationReportPersistenceService
   }
 
   @Inject
-  public S3ApplicationReportPersistenceService(
+  public S3LifecycleReportPersistenceService(
       @Nullable final S3Client s3Client,
       @Nullable final S3AsyncClient s3AsyncClient,
       final InsightConfig insightConfig)
@@ -284,11 +284,11 @@ public class S3ApplicationReportPersistenceService
   @Override
   @WithSpan
   protected ReportEntity doGetReportEntity(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name) throws IOException
   {
-    ReportEntity entity = getAdditionalReportEntity(applicationId, scanId, name);
+    ReportEntity entity = getAdditionalReportEntity(ownerId, scanId, name);
     ReportFile reportFile = ReportFile.fromName(name);
     boolean isUnknownOrAdditional =
         reportFile == null || reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL);
@@ -296,38 +296,38 @@ public class S3ApplicationReportPersistenceService
       return entity;
     }
     else {
-      return getOrCreateCacheReportEntity(applicationId, scanId, name);
+      return getOrCreateCacheReportEntity(ownerId, scanId, name);
     }
   }
 
   @Override
   @WithSpan
   public Stream<ReportEntity> getAllReportEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId) throws IOException
   {
-    Set<S3ReportEntity> additionalEntities = getAdditionalEntities(applicationId, scanId);
+    Set<S3ReportEntity> additionalEntities = getAdditionalEntities(ownerId, scanId);
     Set<String> namesAlreadySeen = new HashSet<>();
     additionalEntities.stream().map(ReportEntity::getName).forEach(namesAlreadySeen::add);
-    Set<S3ReportEntity> localEntities = getLocalCopyEntities(applicationId, scanId, namesAlreadySeen);
+    Set<S3ReportEntity> localEntities = getLocalCopyEntities(ownerId, scanId, namesAlreadySeen);
     localEntities.stream().map(ReportEntity::getName).forEach(namesAlreadySeen::add);
 
     return Stream.concat(
         additionalEntities.stream(),
         Stream.concat(
             localEntities.stream(),
-            getOriginalEntities(applicationId, scanId, namesAlreadySeen)));
+            getOriginalEntities(ownerId, scanId, namesAlreadySeen)));
   }
 
   @Override
   @WithSpan
   public void saveOriginalReport(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final InputStream reportZipContents) throws IOException
   {
-    if (reportExists(applicationId, scanId)) {
-      throw new IOException("Report already exists for applicationId '" + applicationId + "' scanId '" + scanId + "'");
+    if (reportExists(ownerId, scanId)) {
+      throw new IOException("Report already exists for ownerId '" + ownerId + "' scanId '" + scanId + "'");
     }
 
     try (var zipInputStream = new ZipInputStream(reportZipContents)) {
@@ -338,15 +338,15 @@ public class S3ApplicationReportPersistenceService
           continue;
         }
 
-        saveOriginalReportFile(applicationId, scanId, name, zipInputStream);
+        saveOriginalReportFile(ownerId, scanId, name, zipInputStream);
       }
     }
     catch (IOException e) {
-      log.error("Error saving original report files to S3 for applicationId '{}' scanId '{}'",
-          applicationId, scanId, e);
+      log.error("Error saving original report files to S3 for ownerId '{}' scanId '{}'",
+          ownerId, scanId, e);
 
       try {
-        deleteReport(applicationId, scanId);
+        deleteReport(ownerId, scanId);
       }
       catch (IOException e2) {
         e.addSuppressed(e2);
@@ -358,7 +358,7 @@ public class S3ApplicationReportPersistenceService
   @Override
   @WithSpan
   public void saveOriginalReportEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final Stream<ReportEntity> originalReportEntities) throws IOException
   {
@@ -366,7 +366,7 @@ public class S3ApplicationReportPersistenceService
     while (iterator.hasNext()) {
       ReportEntity originalReportEntity = iterator.next();
       try (InputStream inputStream = originalReportEntity.getInputStream()) {
-        saveOriginalReportFile(applicationId, scanId, originalReportEntity.getName(), inputStream);
+        saveOriginalReportFile(ownerId, scanId, originalReportEntity.getName(), inputStream);
       }
     }
   }
@@ -374,42 +374,42 @@ public class S3ApplicationReportPersistenceService
   @Override
   @WithSpan
   protected void doSaveReportFile(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name,
       final InputStream contents) throws IOException
   {
-    saveReportFile(getCacheKey(applicationId, scanId, name), contents);
+    saveReportFile(getCacheKey(ownerId, scanId, name), contents);
   }
 
   @Override
   @WithSpan
   protected void doSaveAdditionalReportFile(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name,
       final InputStream contents) throws IOException
   {
-    saveReportFile(getAdditionalObjectKey(applicationId, scanId, name), contents);
+    saveReportFile(getAdditionalObjectKey(ownerId, scanId, name), contents);
   }
 
   @Override
-  public ReportPdfEntity getPdfEntity(final String applicationId, final String scanId) {
-    return new S3PdfEntity(new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, PDF_FILENAME,
+  public ReportPdfEntity getPdfEntity(final String ownerId, final String scanId) {
+    return new S3PdfEntity(new S3ObjectKey(SPECIAL_FILE_FORMAT, ownerId, scanId, PDF_FILENAME,
         s3DataStoreConfig.getObjectKeyPrefix()));
   }
 
   @Override
-  public ReportEntity getVulnerabilitySignaturesEntity(final String applicationId, final String scanId) {
+  public ReportEntity getVulnerabilitySignaturesEntity(final String ownerId, final String scanId) {
     var key =
-        new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, VULNERABILITY_SIGNATURE_FILENAME,
+        new S3ObjectKey(SPECIAL_FILE_FORMAT, ownerId, scanId, VULNERABILITY_SIGNATURE_FILENAME,
             s3DataStoreConfig.getObjectKeyPrefix());
     return new S3ReportEntity(key);
   }
 
   @Override
-  public String getReportLocation(final String applicationId, final String scanId) {
-    var key = new S3ObjectKey(BASE_FORMAT, applicationId, scanId, "", s3DataStoreConfig.getObjectKeyPrefix());
+  public String getReportLocation(final String ownerId, final String scanId) {
+    var key = new S3ObjectKey(BASE_FORMAT, ownerId, scanId, "", s3DataStoreConfig.getObjectKeyPrefix());
 
     // There appears to be no actual way in the S3 API to construct this string more safely, so we have to just use
     // string operations
@@ -418,9 +418,9 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @WithSpan
-  public boolean reportExists(final String applicationId, final String scanId) throws IOException {
+  public boolean reportExists(final String ownerId, final String scanId) throws IOException {
     try (var objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(),
-        s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId)))
+        s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, ownerId, scanId)))
     {
       Set<S3Object> s3Objects = objects.collect(Collectors.toSet());
       if (s3Objects.stream().anyMatch(s3Object -> s3Object.key().endsWith(CopyStorageService.COPY_MARKER))) {
@@ -433,16 +433,16 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @WithSpan
-  public void deleteReport(final String applicationId, final String scanId) throws IOException {
-    log.debug("Deleting report files in S3 for applicationId '{}' scanId '{}'", applicationId, scanId);
-    deleteAllWithPrefix(String.format(BASE_FORMAT, applicationId, scanId));
+  public void deleteReport(final String ownerId, final String scanId) throws IOException {
+    log.debug("Deleting report files in S3 for ownerId '{}' scanId '{}'", ownerId, scanId);
+    deleteAllWithPrefix(String.format(BASE_FORMAT, ownerId, scanId));
   }
 
   @Override
   @WithSpan
-  public void deleteReports(final String applicationId) throws IOException {
-    log.debug("Deleting ALL report files in S3 for applicationId '{}'", applicationId);
-    deleteAllWithPrefix(String.format(APP_WIDE_BASE_FORMAT, applicationId));
+  public void deleteReports(final String ownerId) throws IOException {
+    log.debug("Deleting ALL report files in S3 for ownerId '{}'", ownerId);
+    deleteAllWithPrefix(String.format(APP_WIDE_BASE_FORMAT, ownerId));
   }
 
   @Override
@@ -458,14 +458,14 @@ public class S3ApplicationReportPersistenceService
   }
 
   private ReportEntity getOrCreateCacheReportEntity(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name) throws IOException
   {
-    ReportEntity entity = getCacheReportEntity(applicationId, scanId, name);
+    ReportEntity entity = getCacheReportEntity(ownerId, scanId, name);
 
     if (!entity.exists()) {
-      if (createLocalCopyFromOriginal(applicationId, scanId, name)) {
+      if (createLocalCopyFromOriginal(ownerId, scanId, name)) {
         // Set the metadata to indicate the entity exists
         entity.setMetadata(Optional.of(new Metadata(null, null)));
       }
@@ -475,19 +475,19 @@ public class S3ApplicationReportPersistenceService
   }
 
   private ReportEntity getAdditionalReportEntity(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name)
   {
-    return new S3ReportEntity(getAdditionalObjectKey(applicationId, scanId, name));
+    return new S3ReportEntity(getAdditionalObjectKey(ownerId, scanId, name));
   }
 
   private ReportEntity getCacheReportEntity(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name)
   {
-    return new S3ReportEntity(getCacheKey(applicationId, scanId, name));
+    return new S3ReportEntity(getCacheKey(ownerId, scanId, name));
   }
 
   /**
@@ -496,7 +496,7 @@ public class S3ApplicationReportPersistenceService
    */
   @WithSpan
   private boolean createLocalCopyFromOriginal(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name) throws IOException
   {
@@ -504,9 +504,9 @@ public class S3ApplicationReportPersistenceService
 
     var request = CopyObjectRequest.builder()
         .sourceBucket(s3DataStoreConfig.getBucketName())
-        .sourceKey(getOriginalKey(applicationId, scanId, name).toString())
+        .sourceKey(getOriginalKey(ownerId, scanId, name).toString())
         .destinationBucket(s3DataStoreConfig.getBucketName())
-        .destinationKey(getCacheKey(applicationId, scanId, name).toString())
+        .destinationKey(getCacheKey(ownerId, scanId, name).toString())
         .serverSideEncryption(s3DataStoreConfig.getServerSideEncryption())
         .build();
 
@@ -517,22 +517,22 @@ public class S3ApplicationReportPersistenceService
       }
       catch (NoSuchKeyException e) {
         try {
-          S3ObjectKey zipKey = getZipKey(applicationId, scanId);
+          S3ObjectKey zipKey = getZipKey(ownerId, scanId);
           String zipKeyString = zipKey.toString();
           if (S3Utils.exists(s3Client, s3DataStoreConfig.getBucketName(), zipKeyString)) {
-            log.info("Original file '{}' not found for applicationId '{}' scanId '{}', but report.zip exists. " +
-                "Extracting zip file to report.files/", name, applicationId, scanId);
-            extractZipFileToS3(applicationId, scanId);
+            log.info("Original file '{}' not found for ownerId '{}' scanId '{}', but report.zip exists. " +
+                "Extracting zip file to report.files/", name, ownerId, scanId);
+            extractZipFileToS3(ownerId, scanId);
             try {
               s3Client.copyObject(request);
               copied[0] = true;
             }
             catch (NoSuchKeyException ex) {
-              log.info("File '{}' not found in extracted contents for applicationId '{}' scanId '{}'",
-                  name, applicationId, scanId);
+              log.info("File '{}' not found in extracted contents for ownerId '{}' scanId '{}'",
+                  name, ownerId, scanId);
             }
             deleteByKey(zipKey);
-            log.info("Deleted report.zip for applicationId '{}' scanId '{}'", applicationId, scanId);
+            log.info("Deleted report.zip for ownerId '{}' scanId '{}'", ownerId, scanId);
           }
         }
         catch (IOException ex) {
@@ -548,9 +548,9 @@ public class S3ApplicationReportPersistenceService
    * The zip file is preserved for transactional safety - caller is responsible for deletion after success.
    */
   @WithSpan
-  private void extractZipFileToS3(final String applicationId, final String scanId) throws IOException {
-    S3ObjectKey zipKey = getZipKey(applicationId, scanId);
-    log.info("Starting extraction of report.zip for applicationId '{}' scanId '{}'", applicationId, scanId);
+  private void extractZipFileToS3(final String ownerId, final String scanId) throws IOException {
+    S3ObjectKey zipKey = getZipKey(ownerId, scanId);
+    log.info("Starting extraction of report.zip for ownerId '{}' scanId '{}'", ownerId, scanId);
 
     GetObjectRequest getRequest = GetObjectRequest.builder()
         .bucket(s3DataStoreConfig.getBucketName())
@@ -568,16 +568,16 @@ public class S3ApplicationReportPersistenceService
           continue;
         }
 
-        log.debug("Extracting file '{}' from report.zip for applicationId '{}' scanId '{}'",
-            entryName, applicationId, scanId);
-        saveOriginalReportFile(applicationId, scanId, entryName, zis);
+        log.debug("Extracting file '{}' from report.zip for ownerId '{}' scanId '{}'",
+            entryName, ownerId, scanId);
+        saveOriginalReportFile(ownerId, scanId, entryName, zis);
       }
 
-      log.info("Successfully extracted report.zip for applicationId '{}' scanId '{}'", applicationId, scanId);
+      log.info("Successfully extracted report.zip for ownerId '{}' scanId '{}'", ownerId, scanId);
     }
     catch (IOException e) {
-      log.error("Error extracting report.zip for applicationId '{}' scanId '{}'. " +
-          "Zip file will remain in S3 for retry.", applicationId, scanId, e);
+      log.error("Error extracting report.zip for ownerId '{}' scanId '{}'. " +
+          "Zip file will remain in S3 for retry.", ownerId, scanId, e);
       throw e;
     }
   }
@@ -593,12 +593,12 @@ public class S3ApplicationReportPersistenceService
   }
 
   private void saveOriginalReportFile(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name,
       final InputStream contents) throws IOException
   {
-    saveReportFile(getOriginalKey(applicationId, scanId, name), contents);
+    saveReportFile(getOriginalKey(ownerId, scanId, name), contents);
   }
 
   @Override
@@ -639,12 +639,12 @@ public class S3ApplicationReportPersistenceService
   }
 
   private Set<S3ReportEntity> getAdditionalEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId) throws IOException
   {
-    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + ADDITIONAL_KEY_PREFIX.formatted(applicationId, scanId);
+    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + ADDITIONAL_KEY_PREFIX.formatted(ownerId, scanId);
     Function<String, S3ObjectKey> keyParser =
-        key -> getAdditionalObjectKey(applicationId, scanId, StringUtils.removeStart(key, prefix));
+        key -> getAdditionalObjectKey(ownerId, scanId, StringUtils.removeStart(key, prefix));
 
     try (Stream<S3ReportEntity> entities = getEntities(prefix, keyParser)) {
       return entities.collect(Collectors.toSet());
@@ -652,13 +652,13 @@ public class S3ApplicationReportPersistenceService
   }
 
   private Set<S3ReportEntity> getLocalCopyEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final Set<String> excludeNames) throws IOException
   {
-    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + CACHE_KEY_PREFIX.formatted(applicationId, scanId);
+    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + CACHE_KEY_PREFIX.formatted(ownerId, scanId);
     Function<String, S3ObjectKey> keyParser =
-        key -> getCacheKey(applicationId, scanId, StringUtils.removeStart(key, prefix));
+        key -> getCacheKey(ownerId, scanId, StringUtils.removeStart(key, prefix));
 
     try (Stream<S3ReportEntity> entities = getEntities(prefix, keyParser)) {
       return entities
@@ -670,22 +670,22 @@ public class S3ApplicationReportPersistenceService
   @Override
   @WithSpan
   public Stream<ReportEntity> getOriginalReportEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId) throws IOException
   {
-    Stream<S3ReportEntity> originalEntities = getOriginalEntities(applicationId, scanId, Collections.emptySet());
+    Stream<S3ReportEntity> originalEntities = getOriginalEntities(ownerId, scanId, Collections.emptySet());
     return originalEntities.map(Function.identity());
   }
 
   private Stream<S3ReportEntity> getOriginalEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final Set<String> excludeNames) throws IOException
   {
-    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + KEY_PREFIX.formatted(applicationId, scanId);
+    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + KEY_PREFIX.formatted(ownerId, scanId);
     return getEntities(
         prefix,
-        key -> getOriginalKey(applicationId, scanId, StringUtils.removeStart(key, prefix)))
+        key -> getOriginalKey(ownerId, scanId, StringUtils.removeStart(key, prefix)))
             .filter(entity -> !excludeNames.contains(entity.getName()));
   }
 
@@ -713,37 +713,37 @@ public class S3ApplicationReportPersistenceService
   /**
    * @return a key referring to the specified object within the original report files downloaded from HDS
    */
-  private S3ObjectKey getOriginalKey(final String applicationId, final String scanId, final String objectName) {
-    return new S3ObjectKey(KEY_FORMAT, applicationId, scanId, objectName, s3DataStoreConfig.getObjectKeyPrefix());
+  private S3ObjectKey getOriginalKey(final String ownerId, final String scanId, final String objectName) {
+    return new S3ObjectKey(KEY_FORMAT, ownerId, scanId, objectName, s3DataStoreConfig.getObjectKeyPrefix());
   }
 
   /**
    * @return a key referring to the report.zip file
    */
-  private S3ObjectKey getZipKey(final String applicationId, final String scanId) {
-    return new S3ObjectKey(ZIP_KEY_FORMAT, applicationId, scanId, "", s3DataStoreConfig.getObjectKeyPrefix());
+  private S3ObjectKey getZipKey(final String ownerId, final String scanId) {
+    return new S3ObjectKey(ZIP_KEY_FORMAT, ownerId, scanId, "", s3DataStoreConfig.getObjectKeyPrefix());
   }
 
   /**
    * @return a key referring to the modified/modifiable/restorable copy of the specified object
    */
   private S3ObjectKey getCacheKey(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String objectName)
   {
-    return new S3ObjectKey(CACHE_KEY_FORMAT, applicationId, scanId, objectName, s3DataStoreConfig.getObjectKeyPrefix());
+    return new S3ObjectKey(CACHE_KEY_FORMAT, ownerId, scanId, objectName, s3DataStoreConfig.getObjectKeyPrefix());
   }
 
   /**
    * @return a key referring to the specified "additional" object
    */
   private S3ObjectKey getAdditionalObjectKey(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String objectName)
   {
-    return new S3ObjectKey(ADDITIONAL_KEY_FORMAT, applicationId, scanId, objectName,
+    return new S3ObjectKey(ADDITIONAL_KEY_FORMAT, ownerId, scanId, objectName,
         s3DataStoreConfig.getObjectKeyPrefix());
   }
 }

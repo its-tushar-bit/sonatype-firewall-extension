@@ -105,10 +105,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.COMPONENTS_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.INDEX_HTML;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.COMPONENTS_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.INDEX_HTML;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_ALERTS;
 
 @Path(ReportResource.RESOURCE_PATH)
 @Named
@@ -513,7 +513,7 @@ public class ReportResource
     // TODO: Matt Johnson - this needs extracting into reportUtils
     AuditData.get().setReportId(scanId);
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    ApplicationReport applicationReport = reportService.getReport(app, scanId);
+    LifecycleReport applicationReport = reportService.getReport(app, scanId);
     String filename = "report-" + scanId + ".zip";
 
     Properties templateProps = applicationReport.getTemplateProperties();

@@ -8,16 +8,16 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 
 public class ReportComponentData
 {
-  public final ApplicationReport applicationReport;
+  public final LifecycleReport lifecycleReport;
 
   public final List<Component> components;
 
-  public ReportComponentData(final ApplicationReport applicationReport, final List<Component> components) {
-    this.applicationReport = applicationReport;
+  public ReportComponentData(final LifecycleReport lifecycleReport, final List<Component> components) {
+    this.lifecycleReport = lifecycleReport;
     this.components = components;
   }
 }

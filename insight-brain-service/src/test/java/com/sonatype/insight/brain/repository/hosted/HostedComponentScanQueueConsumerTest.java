@@ -1135,7 +1135,7 @@ public class HostedComponentScanQueueConsumerTest
     // of the default 3 attempts (~15-30s). This test doesn't care whether the job COMPLETED — it
     // asserts on the DB stamp, which happens in saveReportFiles BEFORE the mirror runs. The mirror
     // itself is expected to fail here because the minimal report bundle intentionally omits files
-    // ScanPolicyEvaluator would need (index.html for embedApplicationPublicId, etc.); that's a
+    // ScanPolicyEvaluator would need (index.html for embedOwnerPublicId, etc.); that's a
     // deliberate simplification for this test, not the fix's behavior in production.
     setQueueConfig(
         "{\"enabled\":true,\"workerThreadsPerTenant\":1,\"pollIntervalMilliseconds\":30000,"

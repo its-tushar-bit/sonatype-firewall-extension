@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.signature.ReachabilityEvidenceDTO.EvidencePath
 import com.sonatype.clm.dto.model.signature.ReachabilityEvidenceDTO.GapSegmentDTO;
 import com.sonatype.clm.dto.model.signature.ReachabilityEvidenceDTO.MethodSegmentDTO;
 import com.sonatype.clm.dto.model.signature.ReachabilityEvidenceDTO.PathSegmentDTO;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidence.ElidedSegment;
 import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidence.EvidencePath;
@@ -43,7 +43,7 @@ public class ReachabilityEvidenceEnrichmentService
 {
   private static final Logger log = LoggerFactory.getLogger(ReachabilityEvidenceEnrichmentService.class);
 
-  public StoredReachabilityEvidence enrich(ReachabilityEvidenceDTO dto, ApplicationReport report) throws IOException {
+  public StoredReachabilityEvidence enrich(ReachabilityEvidenceDTO dto, LifecycleReport report) throws IOException {
     Map<String, String> pathToPurl = buildPathToPurlMap(report);
 
     Map<String, VulnerabilityEvidence> evidence = new HashMap<>();
@@ -102,10 +102,10 @@ public class ReachabilityEvidenceEnrichmentService
     return null; // Unknown segment type from a newer scanner — skip gracefully
   }
 
-  private Map<String, String> buildPathToPurlMap(ApplicationReport report) throws IOException {
+  private Map<String, String> buildPathToPurlMap(LifecycleReport report) throws IOException {
     Map<String, String> map = new HashMap<>();
 
-    ReportEntry bomEntry = report.getEntry(ApplicationReport.ReportFile.BOM_JSON.getName());
+    ReportEntry bomEntry = report.getEntry(LifecycleReport.ReportFile.BOM_JSON.getName());
     if (bomEntry == null) {
       return map;
     }

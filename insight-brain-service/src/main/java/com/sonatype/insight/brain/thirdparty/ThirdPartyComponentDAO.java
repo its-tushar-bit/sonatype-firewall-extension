@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -76,9 +76,9 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static java.lang.System.currentTimeMillis;
 
@@ -123,7 +123,7 @@ public class ThirdPartyComponentDAO
    *
    * @return A Map of ThirdPartyReportComponentDTOs identifiable against hash.
    */
-  public Map<String, ThirdPartyReportComponentDTO> getData(final ApplicationReport applicationReport) {
+  public Map<String, ThirdPartyReportComponentDTO> getData(final LifecycleReport applicationReport) {
     if (applicationReport == null) {
       return null;
     }
@@ -315,7 +315,7 @@ public class ThirdPartyComponentDAO
       ContainerNode<?> securityJsonData,
       ContainerNode<?> dataJson,
       ContainerNode<?> summaryJsonData,
-      ApplicationReport applicationReport)
+      LifecycleReport applicationReport)
   {
     long startTimeReport = currentTimeMillis();
     log.debug("Begin updating report for third party");
@@ -438,7 +438,7 @@ public class ThirdPartyComponentDAO
   }
 
   private Map<String, ThirdPartyReportComponentDTO> getThirdPartyReportComponentDataByHash(
-      ApplicationReport applicationReport,
+      LifecycleReport applicationReport,
       Map<String, ThirdPartyReportComponentDTO> thirdPartyReportComponentDataByHash)
   {
     if (thirdPartyReportComponentDataByHash == null) {

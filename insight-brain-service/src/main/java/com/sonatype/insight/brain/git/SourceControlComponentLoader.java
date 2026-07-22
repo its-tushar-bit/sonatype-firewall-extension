@@ -22,14 +22,14 @@ import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInf
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DEPENDENCIES_JSON;
 
 /**
  * Used by the IQ for SCM feature to retrieve component details useful for the auto PRs and PR commenting flows,
@@ -73,7 +73,7 @@ public class SourceControlComponentLoader
 
     final SourceControlComponentDetails componentDetails = new SourceControlComponentDetails();
 
-    ApplicationReport applicationReport = reportService.getReport(application.getId(), scanId);
+    LifecycleReport applicationReport = reportService.getReport(application.getId(), scanId);
     ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
     ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
 

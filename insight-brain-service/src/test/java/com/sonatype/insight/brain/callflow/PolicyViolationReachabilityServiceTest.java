@@ -34,8 +34,8 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.report.ApplicationReport;
-import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReport;
+import com.sonatype.insight.brain.report.FileLifecycleReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -43,7 +43,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
@@ -60,7 +60,7 @@ public class PolicyViolationReachabilityServiceTest
   private PolicyDAO policyDAO;
 
   @Inject
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   private static final String CVE_REF_ID = "CVE-2020-13933";
 
@@ -72,7 +72,7 @@ public class PolicyViolationReachabilityServiceTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
     PolicyViolation policyViolation = createSecurityPolicyViolation(policyEvaluation, policy, CVE_REF_ID);
     assertThat(policyViolation.getReachabilityStatus()).isNull();
-    ApplicationReport reportZip = new ApplicationReport(applicationReportPersistenceService, application, scanId);
+    LifecycleReport reportZip = new LifecycleReport(lifecycleReportPersistenceService, application, scanId);
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
     map.put(
         PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
@@ -107,7 +107,7 @@ public class PolicyViolationReachabilityServiceTest
     PolicyViolation policyViolation = createSecurityPolicyViolation(policyEvaluation, policy, CVE_REF_ID);
     assertThat(policyViolation.getReachabilityStatus()).isNull();
     assertThat(waivedPolicyViolation.getReachabilityStatus()).isNull();
-    ApplicationReport reportZip = new ApplicationReport(applicationReportPersistenceService, application, scanId);
+    LifecycleReport reportZip = new LifecycleReport(lifecycleReportPersistenceService, application, scanId);
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
     map.put(
         PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
@@ -138,7 +138,7 @@ public class PolicyViolationReachabilityServiceTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
     PolicyViolation policyViolation = createSecurityPolicyViolation(policyEvaluation, policy, CVE_REF_ID);
     policyViolationDAO.update(policyViolation);
-    ApplicationReport reportFile = new ApplicationReport(applicationReportPersistenceService, application, scanId);
+    LifecycleReport reportFile = new LifecycleReport(lifecycleReportPersistenceService, application, scanId);
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
     map.put(
         PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
@@ -161,7 +161,7 @@ public class PolicyViolationReachabilityServiceTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
     PolicyViolation policyViolation = createSecurityPolicyViolation(policyEvaluation, policy, CVE_REF_ID);
     policyViolationDAO.update(policyViolation);
-    ApplicationReport reportFile = new ApplicationReport(applicationReportPersistenceService, application, scanId);
+    LifecycleReport reportFile = new LifecycleReport(lifecycleReportPersistenceService, application, scanId);
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnerabilitiesByPurlIdentifiers =
         new HashMap<>();
     reachableVulnerabilitiesByPurlIdentifiers.put(

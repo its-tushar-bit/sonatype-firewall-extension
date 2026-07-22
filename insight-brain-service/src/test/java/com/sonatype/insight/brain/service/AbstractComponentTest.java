@@ -34,9 +34,9 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFile;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFileLocationType;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
@@ -144,7 +144,7 @@ public class AbstractComponentTest
 
   private static final Class<?>[] STORAGE_SCOPED_SINGLETON_TYPES = {
     com.sonatype.insight.brain.scan.datastore.ScanPersistenceService.class,
-    ApplicationReportPersistenceService.class,
+    LifecycleReportPersistenceService.class,
     SbomPersistenceService.class
   };
 
@@ -631,7 +631,7 @@ public class AbstractComponentTest
   }
 
   public void createReport(
-      final ApplicationReportPersistenceService service,
+      final LifecycleReportPersistenceService service,
       final PolicyEvaluation eval,
       final int contentSizeInBytes) throws Exception
   {
@@ -639,7 +639,7 @@ public class AbstractComponentTest
   }
 
   public void createReport(
-      final ApplicationReportPersistenceService service,
+      final LifecycleReportPersistenceService service,
       final PolicyEvaluation eval,
       final String prefix,
       final int contentSizeInBytes,

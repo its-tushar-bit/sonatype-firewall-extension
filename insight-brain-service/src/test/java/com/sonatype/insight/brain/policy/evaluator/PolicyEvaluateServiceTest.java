@@ -14,7 +14,7 @@ import static com.sonatype.clm.dto.model.policy.Stage.ID_COMPLIANCE;
 import static com.sonatype.clm.dto.model.policy.Stage.ID_PROXY;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
 import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
 import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
@@ -92,7 +92,7 @@ import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisServ
 import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisServiceTest;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -1153,8 +1153,8 @@ public class PolicyEvaluateServiceTest
     }
 
     // check the calculated policy threat
-    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
-    ReportEntry policyThreatsReportEntry = applicationReport.getEntry(POLICY_THREATS.getName());
+    LifecycleReport lifecycleReport = reportService.getReport(app.getId(), scanId);
+    ReportEntry policyThreatsReportEntry = lifecycleReport.getEntry(POLICY_THREATS.getName());
     final JsonNode policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf).get("aaData");
     assertThat(policyThreats).isNotEmpty();
     assertThat(policyThreats.get(0).get("policyThreatLevel").asInt()).isEqualTo(8);

@@ -22,8 +22,8 @@ import com.sonatype.insight.brain.testing.FunctionUtils.PredicateWithException;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
-import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
+import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.APPLICATION_ID;
+import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.SCAN_ID;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.testing.FunctionUtils.wrapException;
@@ -31,23 +31,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Category(SlowTest.class)
-public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
+public abstract class AbstractLifecycleReportPersistenceServiceMultiTenantTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  protected ApplicationReportPersistenceService service;
+  protected LifecycleReportPersistenceService service;
 
-  protected ApplicationReportPersistenceServiceTestHelper helper;
+  protected LifecycleReportPersistenceServiceTestHelper helper;
 
   /**
    * Should be called in @Before by subclasses. The helperSupplier should return a new instance of the helper class.
    */
   protected void setup(
       Configurator configurator,
-      Supplier<ApplicationReportPersistenceServiceTestHelper> helperSupplier) throws Exception
+      Supplier<LifecycleReportPersistenceServiceTestHelper> helperSupplier) throws Exception
   {
     startIqTestServer(configurator);
 
-    this.service = lookup(ApplicationReportPersistenceService.class);
+    this.service = lookup(LifecycleReportPersistenceService.class);
     this.helper = helperSupplier.get();
   }
 
@@ -399,7 +399,7 @@ public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
   public void testSaveOriginalReport() throws Exception {
     Tenant tenant1 = testAsNewTenant("tenant1", tenant -> {
       try (var zipStream =
-          getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report1.zip"))
+          getClass().getResourceAsStream("/LifecycleReportPersistenceServiceTest/report1.zip"))
       {
         service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
       }
@@ -407,7 +407,7 @@ public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
 
     Tenant tenant2 = testAsNewTenant("tenant2", tenant -> {
       try (var zipStream =
-          getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report2.zip"))
+          getClass().getResourceAsStream("/LifecycleReportPersistenceServiceTest/report2.zip"))
       {
         service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
       }

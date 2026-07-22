@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheLoader;
@@ -40,7 +40,7 @@ public class ReportItemCacheLoader
     Application application = applicationDAO.getByPublicIdNotNull(key.getApplicationPublicId());
     String appId = application.getId();
 
-    final ApplicationReport applicationReport = reportService.getReport(appId, key.getScanId());
+    final LifecycleReport applicationReport = reportService.getReport(appId, key.getScanId());
     ReportEntry reportEntry = applicationReport.getEntry("popularity.json");
 
     if (reportEntry == null) {

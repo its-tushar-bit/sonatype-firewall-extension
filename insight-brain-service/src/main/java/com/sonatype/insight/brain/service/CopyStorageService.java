@@ -39,10 +39,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceProvider;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFile;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFileLocationType;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceProvider;
 import com.sonatype.insight.brain.report.ReportEntity;
 import com.sonatype.insight.brain.report.ReportPdfEntity;
 import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
@@ -84,7 +84,7 @@ public class CopyStorageService
 
   private final Provider<ScanPersistenceServiceProvider> scanPersistanceProvider;
 
-  private final Provider<ApplicationReportPersistenceServiceProvider> reportPersistenceProvider;
+  private final Provider<LifecycleReportPersistenceServiceProvider> reportPersistenceProvider;
 
   private final Provider<SbomPersistenceServiceProvider> sbomPersistenceProvider;
 
@@ -112,7 +112,7 @@ public class CopyStorageService
   public CopyStorageService(
       final InsightConfig insightConfig,
       final Provider<ScanPersistenceServiceProvider> scanPersistanceProvider,
-      final Provider<ApplicationReportPersistenceServiceProvider> reportPersistenceProvider,
+      final Provider<LifecycleReportPersistenceServiceProvider> reportPersistenceProvider,
       final Provider<SbomPersistenceServiceProvider> sbomPersistenceProvider,
       final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -355,12 +355,12 @@ public class CopyStorageService
 
     // From persistence services
     ScanPersistenceService fromScan = scanPersistanceProvider.get().get(from);
-    ApplicationReportPersistenceService fromReport = reportPersistenceProvider.get().get(from);
+    LifecycleReportPersistenceService fromReport = reportPersistenceProvider.get().get(from);
     SbomPersistenceService fromSbom = sbomPersistenceProvider.get().get(from);
 
     // To persistence services
     ScanPersistenceService toScan = scanPersistanceProvider.get().get(to);
-    ApplicationReportPersistenceService toReport = reportPersistenceProvider.get().get(to);
+    LifecycleReportPersistenceService toReport = reportPersistenceProvider.get().get(to);
     SbomPersistenceService toSbom = sbomPersistenceProvider.get().get(to);
 
     Iterator<Application> apps = createApplicationIterator();
@@ -557,8 +557,8 @@ public class CopyStorageService
 
   private void copyReports(
       final Application app,
-      final ApplicationReportPersistenceService from,
-      final ApplicationReportPersistenceService to,
+      final LifecycleReportPersistenceService from,
+      final LifecycleReportPersistenceService to,
       final CopyStorageResult copyStorageResult,
       final Phaser phaser)
   {
@@ -574,8 +574,8 @@ public class CopyStorageService
 
   private void copyReport(
       final Application app,
-      final ApplicationReportPersistenceService from,
-      final ApplicationReportPersistenceService to,
+      final LifecycleReportPersistenceService from,
+      final LifecycleReportPersistenceService to,
       final PolicyEvaluation eval,
       final CopyStorageResult copyStorageResult)
   {

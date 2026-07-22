@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.spring.config;
 
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceProvider;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceProvider;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceServiceProvider;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
@@ -26,8 +26,8 @@ public class PersistenceConfiguration
 
   @Bean
   @Primary
-  public ApplicationReportPersistenceService applicationReportPersistenceService(
-      final ApplicationReportPersistenceServiceProvider provider)
+  public LifecycleReportPersistenceService lifecycleReportPersistenceService(
+      final LifecycleReportPersistenceServiceProvider provider)
   {
     return provider.get();
   }

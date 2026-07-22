@@ -46,9 +46,9 @@ import com.google.common.collect.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
 
 @Singleton
 @Named
@@ -85,7 +85,7 @@ public class ReportDataReader
     return resolveComponentDetails(findComponent(appId, identifier, scanId));
   }
 
-  private Map<String, ReportComponentDTO> getData(String scanId, ApplicationReport applicationReport) {
+  private Map<String, ReportComponentDTO> getData(String scanId, LifecycleReport applicationReport) {
     if (applicationReport == null) {
       return null;
     }

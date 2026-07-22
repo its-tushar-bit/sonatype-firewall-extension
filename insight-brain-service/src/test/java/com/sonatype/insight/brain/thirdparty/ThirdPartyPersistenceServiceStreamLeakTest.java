@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
@@ -48,7 +48,7 @@ public class ThirdPartyPersistenceServiceStreamLeakTest
   private SbomPersistenceService sbomPersistenceService;
 
   @Mock
-  private ApplicationReportPersistenceService applicationReportPersistenceService;
+  private LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Mock
   private ScanPersistenceService scanPersistenceService;
@@ -59,7 +59,7 @@ public class ThirdPartyPersistenceServiceStreamLeakTest
   public void setUp() {
     service = new ThirdPartyPersistenceService(
         sbomMetadataDAO, thirdPartyFileDAO, thirdPartyScanDAO, sbomPersistenceService,
-        applicationReportPersistenceService, scanPersistenceService);
+        lifecycleReportPersistenceService, scanPersistenceService);
   }
 
   @Test

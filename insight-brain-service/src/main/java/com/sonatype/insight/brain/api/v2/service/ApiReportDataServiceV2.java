@@ -56,7 +56,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyCondition;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
@@ -76,12 +76,12 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.utils.DependencyTreeDirectFlagProcessor.populateDirectFlags;
 import static java.util.stream.Collectors.toList;
 
@@ -198,7 +198,7 @@ public class ApiReportDataServiceV2
     }
 
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
+    LifecycleReport applicationReport = reportService.getReport(app.getId(), scanId);
 
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         BOM_JSON.getName(),
@@ -269,7 +269,7 @@ public class ApiReportDataServiceV2
     Application application = appDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
-    ApplicationReport applicationReport = reportService.getReport(appId, scanId);
+    LifecycleReport applicationReport = reportService.getReport(appId, scanId);
     ReportEntry dependenciesEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
     if (dependenciesEntry != null) {
       JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
@@ -507,7 +507,7 @@ public class ApiReportDataServiceV2
       final String scanId) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
+    LifecycleReport applicationReport = reportService.getReport(app.getId(), scanId);
 
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         BOM_JSON.getName(),
@@ -565,7 +565,7 @@ public class ApiReportDataServiceV2
       final boolean includeCustomSecurityVulnerabilityData) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
+    LifecycleReport applicationReport = reportService.getReport(app.getId(), scanId);
 
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         BOM_JSON.getName(),

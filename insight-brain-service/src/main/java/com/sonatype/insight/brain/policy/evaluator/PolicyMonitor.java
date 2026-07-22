@@ -47,7 +47,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConfig;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
@@ -69,7 +69,7 @@ import jakarta.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_BOM_JSON;
 
 /**
  * @since 1.8
@@ -471,7 +471,7 @@ public class PolicyMonitor
 
   private boolean hasThirdPartyScanContent(String appId, String scanId) {
     try {
-      ApplicationReport applicationReport = reportService.getReport(appId, scanId);
+      LifecycleReport applicationReport = reportService.getReport(appId, scanId);
       return applicationReport.getEntry(THIRD_PARTY_BOM_JSON.getName()) != null;
     }
     catch (IOException e) {

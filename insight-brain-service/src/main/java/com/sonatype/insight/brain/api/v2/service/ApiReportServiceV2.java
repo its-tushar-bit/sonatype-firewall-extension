@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.security.Authorize;
@@ -56,8 +56,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SUMMARY_JSON;
 
 @Named
 @Singleton
@@ -227,8 +227,8 @@ public class ApiReportServiceV2
       Application application)
   {
     try {
-      ApplicationReport applicationReport =
-          reportDataStore.getApplicationReport(application, policyEvaluation.getScanId());
+      LifecycleReport applicationReport =
+          reportDataStore.getLifecycleReport(application, policyEvaluation.getScanId());
       PolicyThreats policyThreats = JsonUtils.parse(
           Objects.requireNonNull(applicationReport.getEntry(POLICY_THREATS.getName())).buf,
           PolicyThreats.class);

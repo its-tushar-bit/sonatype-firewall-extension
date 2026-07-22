@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
@@ -88,7 +88,7 @@ public class ThirdPartyPersistenceService
 
   private final SbomPersistenceService sbomPersistenceService;
 
-  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   private final ScanPersistenceService scanPersistenceService;
 
@@ -216,14 +216,14 @@ public class ThirdPartyPersistenceService
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final SbomPersistenceService sbomPersistenceService,
-      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService,
       final ScanPersistenceService scanPersistenceService)
   {
     this.sbomMetadataDAO = sbomMetadataDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.sbomPersistenceService = sbomPersistenceService;
-    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
     this.scanPersistenceService = scanPersistenceService;
   }
 
@@ -670,7 +670,7 @@ public class ThirdPartyPersistenceService
 
     // Policy-evaluation report files
     try {
-      applicationReportPersistenceService.deleteReport(applicationId, scanId);
+      lifecycleReportPersistenceService.deleteReport(applicationId, scanId);
     }
     catch (IOException e) {
       log.error("Failed to delete report files for applicationId {} scanId {}: {}",

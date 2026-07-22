@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.*;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.*;
 
 /**
  * Builds report overlay files (policythreats.json, data.json, summary.json) for hosted

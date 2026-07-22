@@ -32,8 +32,8 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFile;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFileLocationType;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -48,10 +48,10 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
-public class FileApplicationReportPersistenceService
-    extends ApplicationReportPersistenceService
+public class FileLifecycleReportPersistenceService
+    extends LifecycleReportPersistenceService
 {
-  private static final Logger log = LoggerFactory.getLogger(FileApplicationReportPersistenceService.class);
+  private static final Logger log = LoggerFactory.getLogger(FileLifecycleReportPersistenceService.class);
 
   private static final String PDF_FILENAME = PdfGenerator.REPORT_FILE_NAME;
 
@@ -139,8 +139,8 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    public Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass() {
-      return FileApplicationReportPersistenceService.class;
+    public Class<? extends LifecycleReportPersistenceService> getLifecycleReportPersistenceServiceClass() {
+      return FileLifecycleReportPersistenceService.class;
     }
 
     private void validate() {
@@ -217,8 +217,8 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    public Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass() {
-      return FileApplicationReportPersistenceService.class;
+    public Class<? extends LifecycleReportPersistenceService> getLifecycleReportPersistenceServiceClass() {
+      return FileLifecycleReportPersistenceService.class;
     }
   }
 
@@ -242,7 +242,7 @@ public class FileApplicationReportPersistenceService
   private final FileCleaner fileCleaner;
 
   @Inject
-  public FileApplicationReportPersistenceService(final InsightConfig insightConfig, final FileCleaner fileCleaner) {
+  public FileLifecycleReportPersistenceService(final InsightConfig insightConfig, final FileCleaner fileCleaner) {
     this.insightConfig = insightConfig;
     this.fileCleaner = fileCleaner;
   }
@@ -250,11 +250,11 @@ public class FileApplicationReportPersistenceService
   @Override
   @WithSpan
   protected ReportEntity doGetReportEntity(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name) throws IOException
   {
-    ReportEntity entity = getAdditionalReportEntity(applicationId, scanId, name);
+    ReportEntity entity = getAdditionalReportEntity(ownerId, scanId, name);
     ReportFile reportFile = ReportFile.fromName(name);
     boolean isUnknownOrAdditional =
         reportFile == null || reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL);
@@ -262,62 +262,62 @@ public class FileApplicationReportPersistenceService
       return entity;
     }
     else {
-      return getOrCreateLocalCopyReportEntity(applicationId, scanId, name);
+      return getOrCreateLocalCopyReportEntity(ownerId, scanId, name);
     }
   }
 
   @Override
   @WithSpan
   public Stream<ReportEntity> getAllReportEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId) throws IOException
   {
-    Set<ReportEntity> additionalEntities = getAdditionalEntities(applicationId, scanId);
+    Set<ReportEntity> additionalEntities = getAdditionalEntities(ownerId, scanId);
     Set<String> namesAlreadySeen = new HashSet<>();
     additionalEntities.stream().map(ReportEntity::getName).forEach(namesAlreadySeen::add);
-    Set<ReportEntity> localEntities = getLocalCopyEntities(applicationId, scanId, namesAlreadySeen);
+    Set<ReportEntity> localEntities = getLocalCopyEntities(ownerId, scanId, namesAlreadySeen);
     localEntities.stream().map(ReportEntity::getName).forEach(namesAlreadySeen::add);
 
     return Stream.concat(
         additionalEntities.stream(),
         Stream.concat(
             localEntities.stream(),
-            getOriginalEntities(applicationId, scanId, namesAlreadySeen)));
+            getOriginalEntities(ownerId, scanId, namesAlreadySeen)));
   }
 
   @Override
   @WithSpan
   public Stream<ReportEntity> getOriginalReportEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId) throws IOException
   {
-    return getOriginalEntities(applicationId, scanId, Collections.emptySet());
+    return getOriginalEntities(ownerId, scanId, Collections.emptySet());
   }
 
   @Override
   @WithSpan
   public void saveOriginalReport(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final InputStream reportZipContents) throws IOException
   {
-    Path finalPath = getZipPath(applicationId, scanId);
+    Path finalPath = getZipPath(ownerId, scanId);
     Path parent = finalPath.getParent();
 
     try {
       Files.createDirectories(parent);
       try (AutoDeletingTempFile tempFile = new AutoDeletingTempFile(parent, "temp-", "zip")) {
         Path tempPath = tempFile.getPath();
-        log.debug("Saving original report for application {} and scan {} to {}",
-            applicationId, scanId, tempPath);
+        log.debug("Saving original report for owner {} and scan {} to {}",
+            ownerId, scanId, tempPath);
 
         Files.copy(reportZipContents, tempPath, StandardCopyOption.REPLACE_EXISTING);
-        log.debug("Original report for application {} and scan {} written to temp file {} successfully",
-            applicationId, scanId, tempPath);
+        log.debug("Original report for owner {} and scan {} written to temp file {} successfully",
+            ownerId, scanId, tempPath);
 
         Files.move(tempPath, finalPath, StandardCopyOption.REPLACE_EXISTING);
-        log.debug("Original report for application {} and scan {} moved to permanent location: {}",
-            applicationId, scanId, finalPath);
+        log.debug("Original report for owner {} and scan {} moved to permanent location: {}",
+            ownerId, scanId, finalPath);
       }
     }
     catch (IOException e) {
@@ -334,11 +334,11 @@ public class FileApplicationReportPersistenceService
   @Override
   @WithSpan
   public void saveOriginalReportEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final Stream<ReportEntity> originalReportEntities) throws IOException
   {
-    Path zipPath = getZipPath(applicationId, scanId);
+    Path zipPath = getZipPath(ownerId, scanId);
     try {
       Files.createDirectories(zipPath.getParent());
       try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipPath))) {
@@ -381,12 +381,12 @@ public class FileApplicationReportPersistenceService
   @Override
   @WithSpan
   protected void doSaveReportFile(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name,
       final InputStream contents) throws IOException
   {
-    Path localCopyPath = getLocalCopyPath(applicationId, scanId, name);
+    Path localCopyPath = getLocalCopyPath(ownerId, scanId, name);
 
     Files.createDirectories(localCopyPath.getParent());
     Files.copy(contents, localCopyPath, StandardCopyOption.REPLACE_EXISTING);
@@ -395,12 +395,12 @@ public class FileApplicationReportPersistenceService
   @Override
   @WithSpan
   protected void doSaveAdditionalReportFile(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name,
       final InputStream contents) throws IOException
   {
-    Path localCopyPath = getAdditionalFilesPath(applicationId, scanId, name);
+    Path localCopyPath = getAdditionalFilesPath(ownerId, scanId, name);
 
     Files.createDirectories(localCopyPath.getParent());
     Files.copy(contents, localCopyPath, StandardCopyOption.REPLACE_EXISTING);
@@ -408,41 +408,41 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @WithSpan
-  public ReportPdfEntity getPdfEntity(final String applicationId, final String scanId) {
-    return new FileReportPdfEntity(getReportDirPath(applicationId, scanId));
+  public ReportPdfEntity getPdfEntity(final String ownerId, final String scanId) {
+    return new FileReportPdfEntity(getReportDirPath(ownerId, scanId));
   }
 
   @Override
   @WithSpan
-  public BaseReportEntity getVulnerabilitySignaturesEntity(final String applicationId, final String scanId) {
-    Path reportDirPath = getReportDirPath(applicationId, scanId);
+  public BaseReportEntity getVulnerabilitySignaturesEntity(final String ownerId, final String scanId) {
+    Path reportDirPath = getReportDirPath(ownerId, scanId);
     return new FileReportEntity(reportDirPath, reportDirPath.resolve(VULNERABILITY_SIGNATURE_FILENAME));
   }
 
   @Override
-  public String getReportLocation(final String applicationId, final String scanId) {
-    return getReportDirPath(applicationId, scanId).toString();
+  public String getReportLocation(final String ownerId, final String scanId) {
+    return getReportDirPath(ownerId, scanId).toString();
   }
 
   @Override
   @WithSpan
-  public boolean reportExists(final String applicationId, final String scanId) {
-    if (Files.exists(getAdditionalFilesPath(applicationId, scanId).resolve(CopyStorageService.COPY_MARKER))) {
+  public boolean reportExists(final String ownerId, final String scanId) {
+    if (Files.exists(getAdditionalFilesPath(ownerId, scanId).resolve(CopyStorageService.COPY_MARKER))) {
       return false;
     }
-    return Files.exists(getZipPath(applicationId, scanId));
+    return Files.exists(getZipPath(ownerId, scanId));
   }
 
   @Override
   @WithSpan
-  public void deleteReport(final String applicationId, final String scanId) throws IOException {
-    fileCleaner.delete(getReportDirPath(applicationId, scanId).toFile());
+  public void deleteReport(final String ownerId, final String scanId) throws IOException {
+    fileCleaner.delete(getReportDirPath(ownerId, scanId).toFile());
   }
 
   @Override
   @WithSpan
-  public void deleteReports(final String applicationId) throws IOException {
-    fileCleaner.delete(getReportsForApplicationPath(applicationId).toFile());
+  public void deleteReports(final String ownerId) throws IOException {
+    fileCleaner.delete(getReportsForApplicationPath(ownerId).toFile());
   }
 
   @Override
@@ -453,24 +453,24 @@ public class FileApplicationReportPersistenceService
   }
 
   private ReportEntity getAdditionalReportEntity(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name)
   {
-    Path entityPath = getAdditionalFilesPath(applicationId, scanId, name);
-    return new FileReportEntity(getAdditionalFilesPath(applicationId, scanId), entityPath);
+    Path entityPath = getAdditionalFilesPath(ownerId, scanId, name);
+    return new FileReportEntity(getAdditionalFilesPath(ownerId, scanId), entityPath);
   }
 
   private ReportEntity getOrCreateLocalCopyReportEntity(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name) throws IOException
   {
-    ReportEntity entity = getLocalCopyReportEntity(applicationId, scanId, name);
+    ReportEntity entity = getLocalCopyReportEntity(ownerId, scanId, name);
 
     if (!entity.exists()) {
       try {
-        createLocalCopyFromOriginal(applicationId, scanId, name);
+        createLocalCopyFromOriginal(ownerId, scanId, name);
       }
       catch (java.nio.file.FileAlreadyExistsException ignored) {
         // concurrent request already created the file — safe to proceed
@@ -481,12 +481,12 @@ public class FileApplicationReportPersistenceService
   }
 
   private ReportEntity getLocalCopyReportEntity(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name)
   {
-    Path entityPath = getLocalCopyPath(applicationId, scanId, name);
-    return new FileReportEntity(getLocalCopyPath(applicationId, scanId), entityPath);
+    Path entityPath = getLocalCopyPath(ownerId, scanId, name);
+    return new FileReportEntity(getLocalCopyPath(ownerId, scanId), entityPath);
   }
 
   /**
@@ -494,14 +494,14 @@ public class FileApplicationReportPersistenceService
    */
   @WithSpan
   private void createLocalCopyFromOriginal(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final String name) throws IOException
   {
-    Path localCopyPath = getLocalCopyPath(applicationId, scanId, name);
+    Path localCopyPath = getLocalCopyPath(ownerId, scanId, name);
     Files.createDirectories(localCopyPath.getParent());
 
-    try (var zipFile = openZipFile(applicationId, scanId)) {
+    try (var zipFile = openZipFile(ownerId, scanId)) {
       ZipEntry entry = zipFile.getEntry(name);
       if (entry != null) {
         Files.copy(zipFile.getInputStream(entry), localCopyPath, StandardCopyOption.REPLACE_EXISTING);
@@ -513,36 +513,36 @@ public class FileApplicationReportPersistenceService
     return insightConfig.getClusterDirectory().toPath().resolve("report");
   }
 
-  private Path getReportsForApplicationPath(final String applicationId) {
-    return getReportsRootPath().resolve(applicationId);
+  private Path getReportsForApplicationPath(final String ownerId) {
+    return getReportsRootPath().resolve(ownerId);
   }
 
-  private Path getReportDirPath(final String applicationId, final String scanId) {
-    return getReportsForApplicationPath(applicationId).resolve(scanId);
+  private Path getReportDirPath(final String ownerId, final String scanId) {
+    return getReportsForApplicationPath(ownerId).resolve(scanId);
   }
 
-  private Path getZipPath(final String applicationId, final String scanId) {
-    return getReportDirPath(applicationId, scanId).resolve(ZIP_FILENAME);
+  private Path getZipPath(final String ownerId, final String scanId) {
+    return getReportDirPath(ownerId, scanId).resolve(ZIP_FILENAME);
   }
 
-  private Path getLocalCopyPath(final String applicationId, final String scanId) {
-    return getReportDirPath(applicationId, scanId).resolve(LOCAL_COPY_DIRECTORY_NAME);
+  private Path getLocalCopyPath(final String ownerId, final String scanId) {
+    return getReportDirPath(ownerId, scanId).resolve(LOCAL_COPY_DIRECTORY_NAME);
   }
 
-  private Path getLocalCopyPath(final String applicationId, final String scanId, final String name) {
-    return getLocalCopyPath(applicationId, scanId).resolve(name);
+  private Path getLocalCopyPath(final String ownerId, final String scanId, final String name) {
+    return getLocalCopyPath(ownerId, scanId).resolve(name);
   }
 
-  private Path getAdditionalFilesPath(final String applicationId, final String scanId) {
-    return getReportDirPath(applicationId, scanId).resolve(ADDITIONAL_FILES_DIRECTORY_NAME);
+  private Path getAdditionalFilesPath(final String ownerId, final String scanId) {
+    return getReportDirPath(ownerId, scanId).resolve(ADDITIONAL_FILES_DIRECTORY_NAME);
   }
 
-  private Path getAdditionalFilesPath(final String applicationId, final String scanId, final String name) {
-    return getAdditionalFilesPath(applicationId, scanId).resolve(name);
+  private Path getAdditionalFilesPath(final String ownerId, final String scanId, final String name) {
+    return getAdditionalFilesPath(ownerId, scanId).resolve(name);
   }
 
-  private ZipFile openZipFile(final String applicationId, final String scanId) throws IOException {
-    return openZipFile(getZipPath(applicationId, scanId));
+  private ZipFile openZipFile(final String ownerId, final String scanId) throws IOException {
+    return openZipFile(getZipPath(ownerId, scanId));
   }
 
   private static ZipFile openZipFile(final Path pathToZip) throws IOException {
@@ -551,10 +551,10 @@ public class FileApplicationReportPersistenceService
 
   @WithSpan
   private Set<ReportEntity> getAdditionalEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId) throws IOException
   {
-    Path additionalFilesDir = getAdditionalFilesPath(applicationId, scanId);
+    Path additionalFilesDir = getAdditionalFilesPath(ownerId, scanId);
 
     if (Files.exists(additionalFilesDir)) {
       try (var fileStream = Files.walk(additionalFilesDir)) {
@@ -574,11 +574,11 @@ public class FileApplicationReportPersistenceService
 
   @WithSpan
   private Set<ReportEntity> getLocalCopyEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final Set<String> excludeNames) throws IOException
   {
-    Path localCopiesDir = getLocalCopyPath(applicationId, scanId);
+    Path localCopiesDir = getLocalCopyPath(ownerId, scanId);
 
     if (Files.exists(localCopiesDir)) {
       try (var fileStream = Files.walk(localCopiesDir)) {
@@ -599,11 +599,11 @@ public class FileApplicationReportPersistenceService
 
   @WithSpan
   private Stream<ReportEntity> getOriginalEntities(
-      final String applicationId,
+      final String ownerId,
       final String scanId,
       final Set<String> excludeNames) throws IOException
   {
-    Path pathToZip = getZipPath(applicationId, scanId);
+    Path pathToZip = getZipPath(ownerId, scanId);
 
     if (Files.exists(pathToZip)) {
       // doesn't close until the returned stream is closed

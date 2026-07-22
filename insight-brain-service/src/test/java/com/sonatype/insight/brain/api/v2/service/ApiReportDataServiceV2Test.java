@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSev
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
-import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.FileLifecycleReportPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
@@ -61,10 +61,10 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 
@@ -87,7 +87,7 @@ public class ApiReportDataServiceV2Test
   private LicenseOverrideDAO licenseOverrideDAO;
 
   @Inject
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Inject
   private VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO;
@@ -133,21 +133,21 @@ public class ApiReportDataServiceV2Test
   private void populatePolicyThreats(String resource, String policyThreatsFile) throws IOException {
     String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + policyThreatsFile;
     try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
-      applicationReportPersistenceService.saveReportFile(app.getId(), scanId, POLICY_THREATS.getName(), stream);
+      lifecycleReportPersistenceService.saveReportFile(app.getId(), scanId, POLICY_THREATS.getName(), stream);
     }
   }
 
   private void populateDependencies(String resource, String dependenciesFile) throws IOException {
     String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + dependenciesFile;
     try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
-      applicationReportPersistenceService.saveReportFile(app.getId(), scanId, DEPENDENCIES_JSON.getName(), stream);
+      lifecycleReportPersistenceService.saveReportFile(app.getId(), scanId, DEPENDENCIES_JSON.getName(), stream);
     }
   }
 
   private void populateBom(String resource, String bomFile) throws IOException {
     String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + bomFile;
     try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
-      applicationReportPersistenceService.saveReportFile(app.getId(), scanId, BOM_JSON.getName(), stream);
+      lifecycleReportPersistenceService.saveReportFile(app.getId(), scanId, BOM_JSON.getName(), stream);
     }
   }
 
@@ -823,7 +823,7 @@ public class ApiReportDataServiceV2Test
   @Test
   public void testGetPolicyViolationsData_PaginationEmptyBom() throws Exception {
     makeReport("report-1");
-    applicationReportPersistenceService.saveReportFile(
+    lifecycleReportPersistenceService.saveReportFile(
         app.getId(), scanId, BOM_JSON.getName(), new ByteArrayInputStream("{\"aaData\":[]}".getBytes()));
 
     ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, 1, 10);

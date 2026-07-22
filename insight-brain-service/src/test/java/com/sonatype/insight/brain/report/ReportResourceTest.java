@@ -106,9 +106,9 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 import static com.sonatype.insight.mock.hds.HdsMockServer.RestServlet.SCAN_ID;

@@ -140,8 +140,8 @@ public class ReportPurgerTest
 
     // Latest report and scan file remains
     // Previous report and scan file was deleted
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-1")).isTrue();
     assertThat(work.getScanDir(app.getId()).list()).containsExactly("scan-report-1.xml.gz");
   }
 
@@ -157,8 +157,8 @@ public class ReportPurgerTest
 
     // Latest report and scan file remains
     // Previous report and scan file was deleted
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-1")).isTrue();
     assertThat(work.getScanDir(app.getId()).list()).containsExactlyInAnyOrder("scan-report-0.xml.gz",
         "scan-report-1.xml.gz");
   }

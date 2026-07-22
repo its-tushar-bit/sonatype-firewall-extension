@@ -56,7 +56,7 @@ public class ReportDataApiRegressionTest
    * Seeding a real application here (instead of using a nonexistent {@code applicationPublicId})
    * is deliberate: it bypasses the shared {@code applicationDAO.getByPublicIdNotNull} lookup
    * and actually exercises each endpoint's own scan-lookup path
-   * ({@code reportDataStore.getApplicationReport(...)}), which is the real regression surface.
+   * ({@code reportDataStore.getLifecycleReport(...)}), which is the real regression surface.
    */
   @Test
   public void testAllReportDataEndpoints_unknownScan_returns404() throws Exception {

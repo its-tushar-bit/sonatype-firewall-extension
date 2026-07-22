@@ -32,8 +32,8 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.report.ApplicationReport;
-import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReport;
+import com.sonatype.insight.brain.report.FileLifecycleReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -55,11 +55,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SUMMARY_JSON;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,7 +87,7 @@ public class ThirdPartyComponentDAOTest
   private InsightWork insightWork;
 
   @Inject
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Mock
   protected HdsClient hdsClientMock;
@@ -117,8 +117,8 @@ public class ThirdPartyComponentDAOTest
   public void testGetData() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/report",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(appReport);
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(lifecycleReport);
 
     assertThat(data).hasSize(2);
     assertThat(data.keySet()).containsExactlyInAnyOrderElementsOf(testData.keySet());
@@ -157,12 +157,12 @@ public class ThirdPartyComponentDAOTest
   public void testGetData_InvalidContent() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/invalid",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(appReport);
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    final Map<String, ThirdPartyReportComponentDTO> data = dao.getData(lifecycleReport);
     assertThat(data).isNotNull();
     assertThat(data).hasSize(0);
     logOutput.assertThat()
-        .contains("error attempting to read third party data from report " + appReport.getLocation())
+        .contains("error attempting to read third party data from report " + lifecycleReport.getLocation())
         .atErrorLevel();
   }
 
@@ -458,18 +458,18 @@ public class ThirdPartyComponentDAOTest
   public void testUpdateReport_scenario1_havingVulnerabilityOnHDS_analysisDataIsIncluded() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/vex/scenario1/report",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON.getName());
-    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON.getName());
-    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON.getName());
-    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON.getName());
-    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON.getName());
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(lifecycleReport, BOM_JSON.getName());
+    ContainerNode<?> dataJson = getContainerNode(lifecycleReport, DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = getContainerNode(lifecycleReport, SUMMARY_JSON.getName());
+    ContainerNode<?> licensesJsonData = getContainerNode(lifecycleReport, LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = getContainerNode(lifecycleReport, SECURITY_JSON.getName());
 
     assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNull();
 
     dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
-        dataJson, summaryJsonData, appReport);
+        dataJson, summaryJsonData, lifecycleReport);
 
     assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNotNull();
@@ -487,18 +487,18 @@ public class ThirdPartyComponentDAOTest
   public void testUpdateReport_scenario2_havingVulnerabilityOnThirdParty_analysisDataIsIncluded() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/vex/scenario2/report",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON.getName());
-    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON.getName());
-    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON.getName());
-    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON.getName());
-    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON.getName());
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(lifecycleReport, BOM_JSON.getName());
+    ContainerNode<?> dataJson = getContainerNode(lifecycleReport, DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = getContainerNode(lifecycleReport, SUMMARY_JSON.getName());
+    ContainerNode<?> licensesJsonData = getContainerNode(lifecycleReport, LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = getContainerNode(lifecycleReport, SECURITY_JSON.getName());
 
     assertThat(summaryJsonData.get("knownArtifactCount").intValue()).isZero();
     assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData")).isEmpty();
 
-    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, appReport);
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, lifecycleReport);
 
     assertThat(summaryJsonData.get("knownArtifactCount").intValue()).isEqualTo(1);
     assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
@@ -516,19 +516,19 @@ public class ThirdPartyComponentDAOTest
   public void testUpdateReport_scenario3_havingNoVulnerabilityOnHDS_analysisDataIsNotIncluded() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/vex/scenario3/report",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON.getName());
-    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON.getName());
-    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON.getName());
-    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON.getName());
-    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON.getName());
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(lifecycleReport, BOM_JSON.getName());
+    ContainerNode<?> dataJson = getContainerNode(lifecycleReport, DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = getContainerNode(lifecycleReport, SUMMARY_JSON.getName());
+    ContainerNode<?> licensesJsonData = getContainerNode(lifecycleReport, LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = getContainerNode(lifecycleReport, SECURITY_JSON.getName());
 
     assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(0).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(2).get("analysis")).isNull();
 
-    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, appReport);
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, lifecycleReport);
 
     assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(0).get("analysis")).isNull();
@@ -540,14 +540,14 @@ public class ThirdPartyComponentDAOTest
   public void testUpdateReport_scenario4_multipleComponentWithSameVulnerability() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/vex/scenario4/report",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON.getName());
-    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON.getName());
-    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON.getName());
-    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON.getName());
-    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON.getName());
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(lifecycleReport, BOM_JSON.getName());
+    ContainerNode<?> dataJson = getContainerNode(lifecycleReport, DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = getContainerNode(lifecycleReport, SUMMARY_JSON.getName());
+    ContainerNode<?> licensesJsonData = getContainerNode(lifecycleReport, LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = getContainerNode(lifecycleReport, SECURITY_JSON.getName());
 
-    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, appReport);
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, lifecycleReport);
 
     JsonNode securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(6);
@@ -635,18 +635,18 @@ public class ThirdPartyComponentDAOTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/kev",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON.getName());
-    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON.getName());
-    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON.getName());
-    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON.getName());
-    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON.getName());
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(lifecycleReport, BOM_JSON.getName());
+    ContainerNode<?> dataJson = getContainerNode(lifecycleReport, DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = getContainerNode(lifecycleReport, SUMMARY_JSON.getName());
+    ContainerNode<?> licensesJsonData = getContainerNode(lifecycleReport, LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = getContainerNode(lifecycleReport, SECURITY_JSON.getName());
 
     JsonNode securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(3);
 
     dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
-        dataJson, summaryJsonData, appReport);
+        dataJson, summaryJsonData, lifecycleReport);
 
     securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(5);
@@ -662,18 +662,18 @@ public class ThirdPartyComponentDAOTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/kev",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON.getName());
-    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON.getName());
-    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON.getName());
-    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON.getName());
-    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON.getName());
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(lifecycleReport, BOM_JSON.getName());
+    ContainerNode<?> dataJson = getContainerNode(lifecycleReport, DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = getContainerNode(lifecycleReport, SUMMARY_JSON.getName());
+    ContainerNode<?> licensesJsonData = getContainerNode(lifecycleReport, LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = getContainerNode(lifecycleReport, SECURITY_JSON.getName());
 
     JsonNode securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(3);
 
     dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
-        dataJson, summaryJsonData, appReport);
+        dataJson, summaryJsonData, lifecycleReport);
 
     securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(5);
@@ -689,18 +689,18 @@ public class ThirdPartyComponentDAOTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/kev",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
-    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON.getName());
-    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON.getName());
-    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON.getName());
-    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON.getName());
-    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON.getName());
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(lifecycleReport, BOM_JSON.getName());
+    ContainerNode<?> dataJson = getContainerNode(lifecycleReport, DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = getContainerNode(lifecycleReport, SUMMARY_JSON.getName());
+    ContainerNode<?> licensesJsonData = getContainerNode(lifecycleReport, LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = getContainerNode(lifecycleReport, SECURITY_JSON.getName());
 
     JsonNode securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(3);
 
     dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
-        dataJson, summaryJsonData, appReport);
+        dataJson, summaryJsonData, lifecycleReport);
 
     securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(5);
@@ -806,7 +806,7 @@ public class ThirdPartyComponentDAOTest
     assertThat(epssData.textValue()).isNull();
   }
 
-  private ContainerNode<?> getContainerNode(final ApplicationReport reportFile, final String name) throws IOException {
+  private ContainerNode<?> getContainerNode(final LifecycleReport reportFile, final String name) throws IOException {
     return JsonUtils.parse(reportFile.getEntry(name).buf);
   }
 

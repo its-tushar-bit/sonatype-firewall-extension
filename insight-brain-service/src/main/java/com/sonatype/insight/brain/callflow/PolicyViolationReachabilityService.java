@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachabilitySupport;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
 
 @Named
 public class PolicyViolationReachabilityService
@@ -52,7 +52,7 @@ public class PolicyViolationReachabilityService
 
   public void updateReachabilityStatusForPolicyViolations(
       final PurlIdentifiersWithVulnerabilities purlIdentifiersWithVulnerabilities,
-      final ApplicationReport applicationReport) throws IOException
+      final LifecycleReport applicationReport) throws IOException
   {
     updateReachabilityStatusForPolicyViolations(
         purlIdentifiersWithVulnerabilities.getApplicationId(),
@@ -65,7 +65,7 @@ public class PolicyViolationReachabilityService
       final String applicationId,
       final String reportId,
       final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnerabilitiesByPurlIdentifiers,
-      final ApplicationReport applicationReport) throws IOException
+      final LifecycleReport applicationReport) throws IOException
   {
     logger.info("Updating policy violations with reachability data for applicationId: {}, reportId: {}", applicationId,
         reportId);

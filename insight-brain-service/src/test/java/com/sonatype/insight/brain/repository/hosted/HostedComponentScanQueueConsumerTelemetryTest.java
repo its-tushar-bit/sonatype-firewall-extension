@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -91,7 +91,7 @@ public class HostedComponentScanQueueConsumerTelemetryTest
   private jakarta.inject.Provider<ReportDataStore> reportDataStoreProvider;
 
   @Mock
-  private ApplicationReportPersistenceService applicationReportPersistenceService;
+  private LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Mock
   private jakarta.inject.Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider;
@@ -128,7 +128,7 @@ public class HostedComponentScanQueueConsumerTelemetryTest
         policyEvaluationDAO,
         policyDAO,
         reportDataStoreProvider,
-        applicationReportPersistenceService,
+        lifecycleReportPersistenceService,
         scanPolicyEvaluatorProvider,
         policyViolationDAO,
         applicationComponentDAO,

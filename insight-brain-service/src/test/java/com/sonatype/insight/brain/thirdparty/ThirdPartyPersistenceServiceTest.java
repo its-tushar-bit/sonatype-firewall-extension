@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.FileLifecycleReportPersistenceService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
@@ -63,7 +63,7 @@ public class ThirdPartyPersistenceServiceTest
   private ThirdPartyScanDAO thirdPartyScanDAO;
 
   @Inject
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Inject
   private FileScanPersistenceService scanPersistenceService;
@@ -225,14 +225,14 @@ public class ThirdPartyPersistenceServiceTest
 
     // Create report files keyed by that scanId.
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
-    createReport(applicationReportPersistenceService, eval, 128);
-    assertThat(applicationReportPersistenceService.reportExists(application.getId(), scanId)).isTrue();
+    createReport(lifecycleReportPersistenceService, eval, 128);
+    assertThat(lifecycleReportPersistenceService.reportExists(application.getId(), scanId)).isTrue();
 
     thirdPartyPersistenceService.deleteSbomMetadataAndAssociatedFiles(metadata);
 
     assertThat(mainScan.exists()).isFalse();
     assertThat(filteredScan.exists()).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(application.getId(), scanId)).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(application.getId(), scanId)).isFalse();
   }
 
   @Test
@@ -253,13 +253,13 @@ public class ThirdPartyPersistenceServiceTest
     String otherScanId = "other-" + UUID.randomUUID();
     ScanEntity otherScan = writeScanFile(application.getId(), "scan-" + otherScanId + ".xml.gz");
     PolicyEvaluation otherEval = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, otherScanId);
-    createReport(applicationReportPersistenceService, otherEval, 128);
-    assertThat(applicationReportPersistenceService.reportExists(application.getId(), otherScanId)).isTrue();
+    createReport(lifecycleReportPersistenceService, otherEval, 128);
+    assertThat(lifecycleReportPersistenceService.reportExists(application.getId(), otherScanId)).isTrue();
 
     thirdPartyPersistenceService.deleteSbomMetadataAndAssociatedFiles(metadata);
 
     // No exception, and the unrelated scan file and report are untouched.
     assertThat(otherScan.exists()).isTrue();
-    assertThat(applicationReportPersistenceService.reportExists(application.getId(), otherScanId)).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(application.getId(), otherScanId)).isTrue();
   }
 }

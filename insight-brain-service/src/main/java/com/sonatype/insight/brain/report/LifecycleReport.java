@@ -26,7 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
@@ -38,18 +38,18 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.io.input.CharSequenceInputStream;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.INDEX_HTML;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.TEMPLATE_PROPERTIES;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType.ADDITIONAL;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType.CACHE;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType.ORIGINAL;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.INDEX_HTML;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.TEMPLATE_PROPERTIES;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFileLocationType.ADDITIONAL;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFileLocationType.CACHE;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFileLocationType.ORIGINAL;
 
-public class ApplicationReport
+public class LifecycleReport
 {
   private static final int REPORT_ENTITY_LOADING_THREADS_MIN = 1;
 
@@ -75,7 +75,7 @@ public class ApplicationReport
             new ThreadFactoryBuilder().setNameFormat("ReportEntityLoading-%d").build(),
             new ThreadPoolExecutor.CallerRunsPolicy(),
             "report_entity_loading",
-            ApplicationReport.class.getSimpleName());
+            LifecycleReport.class.getSimpleName());
         tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
         return tenantThreadPoolExecutor;
       });
@@ -107,8 +107,8 @@ public class ApplicationReport
   /**
    * See also com.sonatype.insight.scan.application.ApplicationReportGenerator.
    * As-is we copy any original file requested to the cache
-   * see FileApplicationReportPersistenceService.getOrCreateLocalCopyReportEntity
-   * and S3ApplicationReportPersistenceService.getOrCreateCacheReportEntity.
+   * see FileLifecycleReportPersistenceService.getOrCreateLocalCopyReportEntity
+   * and S3LifecycleReportPersistenceService.getOrCreateCacheReportEntity.
    * This is not an exhaustive list as some files with dynamic names can be added to the report.zip e.g.
    * <a href=
    * "https://github.com/sonatype/hosted-data-services/blob/926c58ea6000cb08b7a5309cf44e7878c529ce62/insight-scan-processor/src/main/java/com/sonatype/insight/scan/application/ApplicationReportGenerator.java#L389">here</a>
@@ -167,19 +167,19 @@ public class ApplicationReport
     }
   }
 
-  private final ApplicationReportPersistenceService persistenceService;
+  private final LifecycleReportPersistenceService persistenceService;
 
-  private final Application application;
+  private final Owner owner;
 
   private final String scanId;
 
-  public ApplicationReport(
-      ApplicationReportPersistenceService persistenceService,
-      Application application,
+  public LifecycleReport(
+      LifecycleReportPersistenceService persistenceService,
+      Owner owner,
       String scanId)
   {
     this.persistenceService = persistenceService;
-    this.application = application;
+    this.owner = owner;
     this.scanId = scanId;
   }
 
@@ -196,14 +196,14 @@ public class ApplicationReport
   }
 
   public ReportEntity getEntity(final String name) throws IOException {
-    return persistenceService.getReportEntity(application.getId(), scanId, name);
+    return persistenceService.getReportEntity(owner.getId(), scanId, name);
   }
 
   /**
    * @return a stream of all entities in the report for the application and scan. This stream must be closed!
    */
   public Stream<ReportEntity> getAllEntities() throws IOException {
-    return persistenceService.getAllReportEntities(application.getId(), scanId);
+    return persistenceService.getAllReportEntities(owner.getId(), scanId);
   }
 
   public void putEntry(String name, byte[] buf) throws IOException {
@@ -321,19 +321,19 @@ public class ApplicationReport
     }
   }
 
-  public void embedApplicationPublicId() throws IOException {
+  public void embedOwnerPublicId() throws IOException {
     String filename = INDEX_HTML.getName();
     ReportEntry reportEntry = extractEntry(filename);
     String originalIndexHtmlContent = new String(reportEntry.buf, StandardCharsets.UTF_8);
     String augmentedIndexHtmlContent =
-        originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '" + application.getPublicId() + "'");
+        originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '" + owner.getPublicId() + "'");
     if (!augmentedIndexHtmlContent.equals(originalIndexHtmlContent)) {
       var streamBuilder = CharSequenceInputStream.builder()
           .setCharset(StandardCharsets.UTF_8)
           .setCharSequence(augmentedIndexHtmlContent);
 
       try (var stream = streamBuilder.get()) {
-        persistenceService.saveReportFile(application.getId(), scanId, filename, stream);
+        persistenceService.saveReportFile(owner.getId(), scanId, filename, stream);
       }
     }
   }
@@ -369,15 +369,15 @@ public class ApplicationReport
   }
 
   public String getLocation() {
-    return persistenceService.getReportLocation(application.getId(), scanId);
+    return persistenceService.getReportLocation(owner.getId(), scanId);
   }
 
   public boolean exists() throws IOException {
-    return persistenceService.reportExists(application.getId(), scanId);
+    return persistenceService.reportExists(owner.getId(), scanId);
   }
 
-  public Application getApplication() {
-    return application;
+  public Owner getOwner() {
+    return owner;
   }
 
   public String getScanId() {
@@ -390,12 +390,12 @@ public class ApplicationReport
   public void saveAdditionalReportFile(final String filename, final List<?> data) throws IOException {
     byte[] bytes = JsonUtils.generate(JsonUtils.aaData(data));
     try (var stream = new ByteArrayInputStream(bytes)) {
-      persistenceService.saveAdditionalReportFile(application.getId(), scanId, filename, stream);
+      persistenceService.saveAdditionalReportFile(owner.getId(), scanId, filename, stream);
     }
   }
 
   private void putEntry(String name, InputStream contents) throws IOException {
-    persistenceService.saveReportFile(application.getId(), scanId, name, contents);
+    persistenceService.saveReportFile(owner.getId(), scanId, name, contents);
   }
 
   /**

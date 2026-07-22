@@ -16,15 +16,15 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
 
 @Named
 public class ReportComponentService
@@ -51,13 +51,13 @@ public class ReportComponentService
       String scanId,
       String stageTypeId) throws IOException
   {
-    ApplicationReport applicationReport;
+    LifecycleReport lifecycleReport;
     List<Component> components;
 
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
       clusterLock.lock();
-      applicationReport = reportService.fetchReport(application, scanId, stageTypeId);
-      Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+      lifecycleReport = reportService.fetchReport(application, scanId, stageTypeId);
+      Map<String, ReportEntry> entries = lifecycleReport.getEntries(List.of(
           LICENSES_JSON.getName(),
           SECURITY_JSON.getName(),
           BOM_JSON.getName(),
@@ -73,18 +73,17 @@ public class ReportComponentService
         throw new BadRequestException("Unable to fetch report data, the scan " + scanId + " could not be processed.");
       }
 
-      // Load data about components
       components = componentLoaderFactory.createComponentLoader(application)
           .getAll(licenseReportEntry.buf,
               securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     }
 
-    return new ReportComponentData(applicationReport, components);
+    return new ReportComponentData(lifecycleReport, components);
   }
 
   public List<Component> getReportComponents(String scanId, Application owner) throws IOException {
-    ApplicationReport applicationReport = reportService.getReport(owner.getId(), scanId);
-    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+    LifecycleReport lifecycleReport = reportService.getReport(owner.getId(), scanId);
+    Map<String, ReportEntry> entries = lifecycleReport.getEntries(List.of(
         LICENSES_JSON.getName(),
         SECURITY_JSON.getName(),
         BOM_JSON.getName(),

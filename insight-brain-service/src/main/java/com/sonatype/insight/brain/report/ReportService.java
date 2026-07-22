@@ -97,7 +97,7 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportType;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportType;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
@@ -139,7 +139,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.*;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.*;
 
 @Named
 public class ReportService
@@ -218,7 +218,7 @@ public class ReportService
 
   private final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider;
 
-  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   private final InnerSourceCleanupPendingService innerSourceCleanupPendingService;
 
@@ -262,7 +262,7 @@ public class ReportService
       final RepositoryDAO repositoryDAO,
       final PolicyDAO policyDAO,
       final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider,
-      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService,
       final InnerSourceCleanupPendingService innerSourceCleanupPendingService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final HostedComponentScanQueueConsumer hostedComponentScanQueueConsumer,
@@ -300,7 +300,7 @@ public class ReportService
     this.repositoryDAO = repositoryDAO;
     this.policyDAO = policyDAO;
     this.repositoryPolicyEvaluatorProvider = repositoryPolicyEvaluatorProvider;
-    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
     this.innerSourceCleanupPendingService = innerSourceCleanupPendingService;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.hostedComponentScanQueueConsumer = hostedComponentScanQueueConsumer;
@@ -308,7 +308,7 @@ public class ReportService
   }
 
   @WithSpan
-  public ApplicationReport fetchReport(
+  public LifecycleReport fetchReport(
       final Application app,
       final String scanId,
       final String stageTypeId) throws IOException
@@ -317,13 +317,13 @@ public class ReportService
   }
 
   @WithSpan
-  public ApplicationReport fetchReport(
+  public LifecycleReport fetchReport(
       final Application app,
       final String scanId,
       final String stageTypeId,
       final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
   {
-    ApplicationReport applicationReport = materializeReportFromHds(app, scanId, preservedThirdPartyEntries);
+    LifecycleReport applicationReport = materializeReportFromHds(app, scanId, preservedThirdPartyEntries);
     CpeResultsTelemetry cpeResultsTelemetry = new CpeResultsTelemetry();
     applyChanges(app, scanId, applicationReport, stageTypeId, cpeResultsTelemetry, repositoryMatcher, telemetrySender,
         telemetryUtils, configuration);
@@ -332,7 +332,7 @@ public class ReportService
     return applicationReport;
   }
 
-  private ApplicationReport materializeReportFromHds(
+  private LifecycleReport materializeReportFromHds(
       final Application app,
       final String scanId,
       final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
@@ -343,7 +343,7 @@ public class ReportService
 
   // visible for testing
   void includeThirdPartyData(
-      final ApplicationReport applicationReport,
+      final LifecycleReport applicationReport,
       final ThirdPartyApplicationReportDTO dto) throws IOException
   {
     if (dto != null) {
@@ -354,18 +354,18 @@ public class ReportService
   @VisibleForTesting
   void processThirdPartyData(
       final String scanId,
-      final ApplicationReport tempApplicationReport,
+      final LifecycleReport tempLifecycleReport,
       final String appId) throws IOException
   {
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = thirdPartyDataService.getScanData(scanId);
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportForInfrastructureAsCodeDTO =
-        thirdPartyDataService.loadThirdPartyInfrastructureAsCodeData(tempApplicationReport, appId);
+        thirdPartyDataService.loadThirdPartyInfrastructureAsCodeData(tempLifecycleReport, appId);
     if (thirdPartyApplicationReportDTO != null) {
       thirdPartyApplicationReportDTO.billOfMaterials
           .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.billOfMaterials);
       thirdPartyApplicationReportDTO.securityRows
           .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.securityRows);
-      includeThirdPartyData(tempApplicationReport, thirdPartyApplicationReportDTO);
+      includeThirdPartyData(tempLifecycleReport, thirdPartyApplicationReportDTO);
       thirdPartyDataService.indexVulnerabilities(scanId);
 
       if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) ||
@@ -379,7 +379,7 @@ public class ReportService
 
   private void processThirdPartyDataWithFallback(
       final String scanId,
-      final ApplicationReport tempApplicationReport,
+      final LifecycleReport tempLifecycleReport,
       final String appId,
       final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
   {
@@ -393,12 +393,12 @@ public class ReportService
       {
         ReportEntry preserved = preservedThirdPartyEntries.get(entryName);
         if (preserved != null) {
-          tempApplicationReport.putEntry(entryName, preserved.buf);
+          tempLifecycleReport.putEntry(entryName, preserved.buf);
         }
       }
     }
     else {
-      processThirdPartyData(scanId, tempApplicationReport, appId);
+      processThirdPartyData(scanId, tempLifecycleReport, appId);
     }
   }
 
@@ -600,7 +600,7 @@ public class ReportService
   {
     final String name = toEntryName(path);
     auditBrowseReport(scanId, name);
-    ApplicationReport applicationReport = getReport(appId, scanId);
+    LifecycleReport applicationReport = getReport(appId, scanId);
     try {
       if (!applicationReport.exists() && isHostedScan(scanId, appId)) {
         applicationReport = reportDataStore.downloadReport(
@@ -651,7 +651,7 @@ public class ReportService
     return buf != null ? buf.toString() : path;
   }
 
-  private ReportEntry loadCombinedSecurityData(ApplicationReport applicationReport) throws IOException {
+  private ReportEntry loadCombinedSecurityData(LifecycleReport applicationReport) throws IOException {
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         SECURITY_JSON.getName(),
         THIRD_PARTY_SECURITY_JSON.getName()));
@@ -670,7 +670,7 @@ public class ReportService
   }
 
   @WithSpan
-  public ApplicationReport getReport(final String appId, final String scanId) {
+  public LifecycleReport getReport(final String appId, final String scanId) {
     return getReport(applicationDAO.getByIdNotNull(appId), scanId);
   }
 
@@ -692,10 +692,10 @@ public class ReportService
    * @return the existing report, or {@code null} if no report is stored for the given application and scan.
    */
   @WithSpan
-  public ApplicationReport getReportIfPresent(final Application app, final String scanId) {
+  public LifecycleReport getReportIfPresent(final Application app, final String scanId) {
     Objects.requireNonNull(app, "app must not be null");
     Objects.requireNonNull(scanId, "scanId must not be null");
-    ApplicationReport applicationReport = reportDataStore.getApplicationReport(app, scanId);
+    LifecycleReport applicationReport = reportDataStore.getLifecycleReport(app, scanId);
     try {
       return applicationReport.exists() ? applicationReport : null;
     }
@@ -704,8 +704,8 @@ public class ReportService
     }
   }
 
-  public ApplicationReport getReport(final Application app, final String scanId) {
-    ApplicationReport applicationReport = reportDataStore.getApplicationReport(app, scanId);
+  public LifecycleReport getReport(final Application app, final String scanId) {
+    LifecycleReport applicationReport = reportDataStore.getLifecycleReport(app, scanId);
 
     boolean exists;
     try {
@@ -741,7 +741,7 @@ public class ReportService
         catch (Exception e) {
           log.warn("Recovery: failed to save overlay files for scanId={}: {}", scanId, e.getMessage());
         }
-        applicationReport = reportDataStore.getApplicationReport(app, scanId);
+        applicationReport = reportDataStore.getLifecycleReport(app, scanId);
         try {
           if (applicationReport.exists()) {
             return applicationReport;
@@ -791,18 +791,18 @@ public class ReportService
     // the LC Application Report body joins violations to bom entries by hash and finds zero
     // matches, leaving the outer component with no attached violations.
     Application application = applicationDAO.getByIdNotNull(appId);
-    ApplicationReport report = reportDataStore.getApplicationReport(application, scanId);
+    LifecycleReport report = reportDataStore.getLifecycleReport(application, scanId);
     ReportEntry bomEntry = report != null ? report.getEntry("bom.json") : null;
     String bomOuterHashOverride = bomEntry != null ? extractBomOuterHash(bomEntry.buf) : null;
     // Regenerate policythreats.json only. summary.json is HDS-owned; overwriting it with the local
     // builder's placeholder previously NPE'd getTotalComponentCount and emptied Latest Evaluations.
     byte[] content = HostedReportFileBuilder.build("policythreats.json", comp, violations, bomOuterHashOverride);
-    applicationReportPersistenceService.saveReportFile(appId, scanId, "policythreats.json",
+    lifecycleReportPersistenceService.saveReportFile(appId, scanId, "policythreats.json",
         new ByteArrayInputStream(content));
     // Patch bom.json displayName — required by PDF generator (ApiReportDataServiceV2:289 NPE)
     if (bomEntry != null) {
       byte[] patched = HostedReportFileBuilder.patchBomDisplayName(bomEntry.buf, comp);
-      applicationReportPersistenceService.saveReportFile(appId, scanId, "bom.json",
+      lifecycleReportPersistenceService.saveReportFile(appId, scanId, "bom.json",
           new ByteArrayInputStream(patched));
     }
     // CLM-42117/42118/42119/42120/41737 (was CLM-40943): the full data.json.policyCounts patch
@@ -819,7 +819,7 @@ public class ReportService
       byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyComponentCountIfAbsent(
           dataEntry.buf, comp, violations, bomOuterHashOverride);
       if (patched != dataEntry.buf) {
-        applicationReportPersistenceService.saveReportFile(appId, scanId, "data.json",
+        lifecycleReportPersistenceService.saveReportFile(appId, scanId, "data.json",
             new ByteArrayInputStream(patched));
       }
     }
@@ -863,7 +863,7 @@ public class ReportService
     ReportMetadataDTO metadata = new ReportMetadataDTO();
     metadata.setApplication(application);
 
-    ApplicationReport applicationReport = getReport(application, scanId);
+    LifecycleReport applicationReport = getReport(application, scanId);
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         DATA_JSON.getName(),
         TEMPLATE_PROPERTIES.getName(),
@@ -1033,7 +1033,7 @@ public class ReportService
     if (policyEvaluation == null) {
       return null;
     }
-    ApplicationReport applicationReport = getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+    LifecycleReport applicationReport = getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
 
     return applicationReport.getEntry(BOM_JSON.getName());
   }
@@ -1043,7 +1043,7 @@ public class ReportService
       final String scanId)
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    final ApplicationReport applicationReport = getReport(application, scanId);
+    final LifecycleReport applicationReport = getReport(application, scanId);
 
     try {
       final ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS.getName());
@@ -1067,7 +1067,7 @@ public class ReportService
   private void applyChanges(
       final Application application,
       final String scanId,
-      final ApplicationReport applicationReport,
+      final LifecycleReport applicationReport,
       final String stageTypeId,
       final CpeResultsTelemetry cpeResultsTelemetry,
       final RepositoryMatcher repositoryMatcher,
@@ -1079,11 +1079,11 @@ public class ReportService
 
     final ReportType reportType = applicationReport.getType();
 
-    if (ApplicationReport.ReportType.ERROR.equals(reportType)) {
+    if (LifecycleReport.ReportType.ERROR.equals(reportType)) {
       return;
     }
 
-    applicationReport.embedApplicationPublicId();
+    applicationReport.embedOwnerPublicId();
 
     applyComponentRelatedChanges(application, scanId, applicationReport, stageTypeId, cpeResultsTelemetry,
         repositoryMatcher, telemetrySender, telemetryUtils);
@@ -1188,7 +1188,7 @@ public class ReportService
   private void applyComponentRelatedChanges(
       final Application application,
       final String scanId,
-      final ApplicationReport applicationReport,
+      final LifecycleReport applicationReport,
       final String stageTypeId,
       final CpeResultsTelemetry cpeResultsTelemetry,
       final RepositoryMatcher repositoryMatcher,
@@ -1830,7 +1830,7 @@ public class ReportService
   @VisibleForTesting
   void writeLicenseThreatsToReportFile(
       final Application application,
-      final ApplicationReport applicationReport) throws IOException
+      final LifecycleReport applicationReport) throws IOException
   {
     Map<String, Integer> threatLevelsBySimpleLicenseId =
         licenseThreatGroupDAO.getLicenseThreatLevelsByApplication(application);
@@ -1976,7 +1976,7 @@ public class ReportService
     // canonical scanId: today ReportResource.reevaluatePolicy does so via the evaluator path's
     // fetchReport(scanId) after this method returns.
     materializeReportFromHds(application, tempScanId, preservedThirdPartyEntries);
-    reportDataStore.moveApplicationReport(appId, tempScanId, scanId);
+    reportDataStore.moveLifecycleReport(appId, tempScanId, scanId);
     return policyEvaluation;
   }
 
@@ -1985,7 +1985,7 @@ public class ReportService
       final String scanId)
   {
     try {
-      ApplicationReport originalReport = reportDataStore.getApplicationReport(application, scanId);
+      LifecycleReport originalReport = reportDataStore.getLifecycleReport(application, scanId);
       if (originalReport.exists()) {
         List<String> entryNames = List.of(
             THIRD_PARTY_BOM_JSON.getName(),

@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -146,8 +146,8 @@ public class ApiReachabilityEvidenceResourceIntegrationTest
     StoredReachabilityEvidence stored = createStoredEvidence(vulnerabilityId);
     byte[] evidenceBytes = objectMapper.writeValueAsBytes(stored);
 
-    ApplicationReport report = reportService.getReport(application.getId(), REPORT_ID);
-    report.putEntry(ApplicationReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName(), evidenceBytes);
+    LifecycleReport report = reportService.getReport(application.getId(), REPORT_ID);
+    report.putEntry(LifecycleReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName(), evidenceBytes);
   }
 
   private void createReportFileWithoutEvidence(Application application) throws Exception {

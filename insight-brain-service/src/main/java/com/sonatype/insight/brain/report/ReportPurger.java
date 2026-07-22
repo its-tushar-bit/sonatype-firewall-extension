@@ -119,7 +119,7 @@ public class ReportPurger
 
   private final Configuration configuration;
 
-  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   private final ScanPersistenceService scanPersistenceService;
 
@@ -131,7 +131,7 @@ public class ReportPurger
       final PolicyEvaluationDAO policyEvaluationDAO,
       final TaskScheduler taskScheduler,
       final Configuration configuration,
-      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService,
       final ScanPersistenceService scanPersistenceService)
   {
     super(PATH);
@@ -146,7 +146,7 @@ public class ReportPurger
         .concat(StageTypes.getAll().stream().map(StageType::getId).filter(stageId -> !Stage.ID_PROXY.equals(stageId)),
             Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING))
         .collect(toList());
-    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
   }
 
   @Override
@@ -309,7 +309,7 @@ public class ReportPurger
       try {
         if (purgeReport(application, scanId)) {
           purged++;
-          if (applicationReportPersistenceService.supportsTrash()) {
+          if (lifecycleReportPersistenceService.supportsTrash()) {
             trashBucket.add();
             if (trashBucket.isFull()) {
               log.debug("Trash bucket {} is full for today", trashBucket.bucketId);
@@ -337,11 +337,11 @@ public class ReportPurger
       }
     }
 
-    if (!applicationReportPersistenceService.reportExists(application.getId(), scanId)) {
+    if (!lifecycleReportPersistenceService.reportExists(application.getId(), scanId)) {
       return false;
     }
 
-    if (applicationReportPersistenceService.supportsTrash()) {
+    if (lifecycleReportPersistenceService.supportsTrash()) {
       Path reportDir = work.getReportDir(application.getId(), scanId).toPath();
       List<Path> reportFiles;
       try (Stream<Path> pathStream = Files.walk(reportDir)) {
@@ -382,7 +382,7 @@ public class ReportPurger
       log.info("Purging report {} from application {} to {}", reportDir, application.getName(), trashFile);
     }
 
-    applicationReportPersistenceService.deleteReport(application.getId(), scanId);
+    lifecycleReportPersistenceService.deleteReport(application.getId(), scanId);
 
     log.info("Purged report {} from application {}", scanId, application.getName());
 

@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexingContext;
@@ -112,9 +112,9 @@ public class DocumentBuilderHelperTest
     eval.setApplicationId(app.getId());
     when(policyEvaluationDAOMock.getLastByApplicationIdAndStageId(app.getId(), StageTypes.BUILD.getId())).thenReturn(
         eval);
-    ApplicationReport mockApplicationReport = mock(ApplicationReport.class);
-    doThrow(new IOException("IO error")).when(mockApplicationReport).exists();
-    when(reportServiceMock.getReport(anyString(), anyString())).thenReturn(mockApplicationReport);
+    LifecycleReport mockLifecycleReport = mock(LifecycleReport.class);
+    doThrow(new IOException("IO error")).when(mockLifecycleReport).exists();
+    when(reportServiceMock.getReport(anyString(), anyString())).thenReturn(mockLifecycleReport);
 
     assertThat(documentBuilderHelper.buildApplicationStageSVDocs(
         indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList())).isEmpty();

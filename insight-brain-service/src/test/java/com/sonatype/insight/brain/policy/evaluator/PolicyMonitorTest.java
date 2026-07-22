@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_ALERTS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;

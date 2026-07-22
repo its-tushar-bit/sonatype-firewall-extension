@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -327,7 +327,7 @@ public class ApiRepositoryComponentsService
       if (app == null) {
         return null;
       }
-      ApplicationReport report = reportDataStoreProvider.get().getApplicationReport(app, scanId);
+      LifecycleReport report = reportDataStoreProvider.get().getLifecycleReport(app, scanId);
       ReportEntry entry = report != null ? report.getEntry("policythreats.json") : null;
       if (entry == null || entry.buf == null || entry.buf.length == 0) {
         return null;

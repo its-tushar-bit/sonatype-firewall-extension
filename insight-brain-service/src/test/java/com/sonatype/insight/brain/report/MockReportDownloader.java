@@ -60,20 +60,20 @@ public class MockReportDownloader
    * @param reportResourceName can be a report.zip file or a directory that will be zipped up into a report.
    */
   public void mockDownloadReport(String scanId, String reportResourceName) {
-    ArgumentMatcher<ApplicationReport> appReportMatcher = (appReport) -> {
-      return appReport != null && appReport.getScanId().equals(scanId);
+    ArgumentMatcher<LifecycleReport> appReportMatcher = (lifecycleReport) -> {
+      return lifecycleReport != null && lifecycleReport.getScanId().equals(scanId);
     };
 
     when(reportDownloader.downloadReport(argThat(appReportMatcher), anyInt(), anyInt())).then(new Answer<Boolean>()
     {
       @Override
       public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        ApplicationReport report = invocation.getArgument(0, ApplicationReport.class);
+        LifecycleReport report = invocation.getArgument(0, LifecycleReport.class);
         ReportHelper.saveMockReport(
             insightWork,
             tempDir,
             reportResourceName,
-            report.getApplication().getId(),
+            report.getOwner().getId(),
             report.getScanId());
 
         return true;

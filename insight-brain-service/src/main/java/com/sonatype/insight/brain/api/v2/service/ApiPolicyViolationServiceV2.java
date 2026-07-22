@@ -72,7 +72,7 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -90,8 +90,8 @@ import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -550,7 +550,7 @@ public class ApiPolicyViolationServiceV2
 
   private List<Component> getComponents(String applicationId, String scanId) {
     try {
-      ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
+      LifecycleReport applicationReport = reportService.getReport(applicationId, scanId);
       ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON.getName());
       if (reportEntry != null) {
         return componentLoaderFactory.createComponentLoader(
@@ -669,7 +669,7 @@ public class ApiPolicyViolationServiceV2
 
   private List<PolicyViolation> getPolicyViolations(String applicationId, String stageTypeId, String scanId) {
     try {
-      ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
+      LifecycleReport applicationReport = reportService.getReport(applicationId, scanId);
       ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS.getName());
       if (reportEntry != null) {
         return JsonUtils.parse(reportEntry.buf, PolicyThreats.class).aaData.stream()

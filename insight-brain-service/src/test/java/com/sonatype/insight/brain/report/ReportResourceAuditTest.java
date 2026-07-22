@@ -20,7 +20,7 @@ import com.sonatype.insight.mock.hds.HdsMockServer;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DATA_JSON;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.report.ReportResource.PRINT_PATH;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
+import com.sonatype.insight.brain.report.LifecycleReport.ReportFile;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -36,18 +36,18 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
-import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.APPLICATION_ID;
+import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.SCAN_ID;
 import static com.sonatype.insight.brain.testing.FunctionUtils.wrapException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-abstract class AbstractApplicationReportPersistenceServiceTest
+abstract class AbstractLifecycleReportPersistenceServiceTest
     extends AbstractComponentTest
 {
   private static final Set<String> BAD_NAMES = Set.of(
@@ -91,17 +91,17 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   @Inject
   protected InsightConfig insightConfig;
 
-  protected ApplicationReportPersistenceService service;
+  protected LifecycleReportPersistenceService service;
 
-  protected ApplicationReportPersistenceServiceTestHelper helper;
+  protected LifecycleReportPersistenceServiceTestHelper helper;
 
   /**
    * Should be called in @Before by subclasses to specify the service and helper. Prior to this call, the appropriate
-   * configs in InsightConfig should be set up to ensure that lookup(ApplicationReportPersistenceService.class) returns
+   * configs in InsightConfig should be set up to ensure that lookup(LifecycleReportPersistenceService.class) returns
    * the expected service implementation
    */
-  protected void setup(ApplicationReportPersistenceServiceTestHelper helper) {
-    this.service = lookup(ApplicationReportPersistenceService.class);
+  protected void setup(LifecycleReportPersistenceServiceTestHelper helper) {
+    this.service = lookup(LifecycleReportPersistenceService.class);
     this.helper = helper;
   }
 
@@ -312,7 +312,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
 
   @Test
   public void testSaveOriginalReport() throws Exception {
-    try (var zipStream = getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report.zip")) {
+    try (var zipStream = getClass().getResourceAsStream("/LifecycleReportPersistenceServiceTest/report.zip")) {
       service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
     }
 
@@ -324,7 +324,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   @Test
   public void testSaveOriginalReport_alreadyExists() throws Exception {
     helper.saveEmptyMockReport();
-    try (var zipStream = getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report.zip")) {
+    try (var zipStream = getClass().getResourceAsStream("/LifecycleReportPersistenceServiceTest/report.zip")) {
       service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
     }
     assertThat(helper.readFromOriginalFiles("bom.json")).isNotNull();
@@ -334,7 +334,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   public void testSaveOriginalReport_overwritesExistingZip() throws Exception {
     var service = mockForSaveOriginalReport_cleansUpOnFailure();
 
-    try (var zipStream = getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report.zip")) {
+    try (var zipStream = getClass().getResourceAsStream("/LifecycleReportPersistenceServiceTest/report.zip")) {
       service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
     }
 
@@ -367,7 +367,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
    * @return the service instance to test, which might be different from this.service in order to facilitate dependency
    *         mocking
    */
-  protected abstract ApplicationReportPersistenceService mockForSaveOriginalReport_cleansUpOnFailure() throws IOException;
+  protected abstract LifecycleReportPersistenceService mockForSaveOriginalReport_cleansUpOnFailure() throws IOException;
 
   @Test
   @Category(SlowTest.class)
@@ -958,7 +958,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
         BuildStageType.ID,
         TemporaryEntity.uuid());
     createReport(service, eval, 1);
-    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+    LifecycleReport report = new LifecycleReport(service, application, eval.getScanId());
 
     // Read multiple entries in a batch
     Map<String, ReportEntry> entries = report.getEntries(List.of(
@@ -986,7 +986,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
         BuildStageType.ID,
         TemporaryEntity.uuid());
     createReport(service, eval, 1);
-    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+    LifecycleReport report = new LifecycleReport(service, application, eval.getScanId());
 
     Map<String, ReportEntry> entries = report.getEntries(List.of());
 
@@ -1001,7 +1001,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
         BuildStageType.ID,
         TemporaryEntity.uuid());
     createReport(service, eval, 1);
-    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+    LifecycleReport report = new LifecycleReport(service, application, eval.getScanId());
 
     Map<String, ReportEntry> entries = report.getEntries(List.of(
         BOM_JSON.getName(),
@@ -1020,7 +1020,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
         BuildStageType.ID,
         TemporaryEntity.uuid());
     createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
-    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+    LifecycleReport report = new LifecycleReport(service, application, eval.getScanId());
 
     // Load and parse multiple JSON entries in a batch
     Map<String, ContainerNode<?>> entries = report.loadReportEntries(List.of(
@@ -1048,7 +1048,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
         BuildStageType.ID,
         TemporaryEntity.uuid());
     createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
-    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+    LifecycleReport report = new LifecycleReport(service, application, eval.getScanId());
 
     Map<String, ContainerNode<?>> entries = report.loadReportEntries(List.of());
 
@@ -1063,11 +1063,11 @@ abstract class AbstractApplicationReportPersistenceServiceTest
         BuildStageType.ID,
         TemporaryEntity.uuid());
     createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
-    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+    LifecycleReport report = new LifecycleReport(service, application, eval.getScanId());
 
-    // Note that ApplicationReport.loadReportEntries which calls ApplicationReport.loadReportEntry is different to
-    // ApplicationReport.getEntries which calls ApplicationReport.getEntry
-    // in that ApplicationReport.getEntry guards against missing files whilst ApplicationReport.loadReportEntry does not
+    // Note that LifecycleReport.loadReportEntries which calls LifecycleReport.loadReportEntry is different to
+    // LifecycleReport.getEntries which calls LifecycleReport.getEntry
+    // in that LifecycleReport.getEntry guards against missing files whilst LifecycleReport.loadReportEntry does not
     assertThatExceptionOfType(IOException.class).isThrownBy(() -> report.loadReportEntries(List.of(
         BOM_JSON.getName(),
         "nonexistent.json")));

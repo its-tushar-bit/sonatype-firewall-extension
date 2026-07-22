@@ -123,17 +123,17 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.INDEX_HTML;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.INDEX_HTML;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SUMMARY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -373,7 +373,7 @@ public class ReportServiceTest
   private ProprietaryConfigService proprietaryConfigService;
 
   @Inject
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Inject
   private AutomatedPullRequestCreationService automatedPullRequestCreationService;
@@ -406,7 +406,7 @@ public class ReportServiceTest
     mockReportDownloader = new MockReportDownloader(tempDir);
     mockReportDownloader.setInsightWork(insightWork);
     reportDownloader = mockReportDownloader.getMock();
-    reportDataStoreSpy = spy(new ReportDataStore(reportDownloader, configuration, applicationReportPersistenceService));
+    reportDataStoreSpy = spy(new ReportDataStore(reportDownloader, configuration, lifecycleReportPersistenceService));
   }
 
   private ThirdPartyDataService createThirdPartyDataServiceSpy() {
@@ -463,7 +463,7 @@ public class ReportServiceTest
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
 
     ReportService reportService = createReportService();
-    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    LifecycleReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
     assertThat(report).isNotNull();
     assertThat(report.exists()).isTrue();
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(eq(scanId));
@@ -478,10 +478,10 @@ public class ReportServiceTest
     when(thirdPartyDataServiceSpy.getScanData(scanId))
         .thenReturn(new ThirdPartyApplicationReportDTO());
 
-    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    LifecycleReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
     assertThat(report).isNotNull();
     assertThat(report.exists()).isTrue();
-    verify(reportDownloader).downloadReport(any(ApplicationReport.class), eq(2100), eq(5));
+    verify(reportDownloader).downloadReport(any(LifecycleReport.class), eq(2100), eq(5));
   }
 
   @Test
@@ -500,7 +500,7 @@ public class ReportServiceTest
 
     // when
     ReportService reportService = createReportService();
-    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.COMPLIANCE.getId());
+    LifecycleReport report = reportService.fetchReport(app, scanId, StageTypes.COMPLIANCE.getId());
 
     // Then
     assertThat(report).isNotNull();
@@ -531,7 +531,7 @@ public class ReportServiceTest
     mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-third-party-data");
     ReportService reportService = createReportService();
 
-    ApplicationReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    LifecycleReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
 
     // Verify bom.json
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
@@ -598,7 +598,7 @@ public class ReportServiceTest
     mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-embedded-component");
     ReportService reportService = createReportService();
 
-    ApplicationReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    LifecycleReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
 
     ReportEntry dataReportEntry = reportZip.getEntry(DATA_JSON.getName());
     JsonNode dataJsonNode = JsonUtils.parse(dataReportEntry.buf);
@@ -677,9 +677,9 @@ public class ReportServiceTest
   public void testGetReport_Exists() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
     ReportService reportService = createReportService();
-    ApplicationReport appReport = reportService.getReport(app.getId(), scanId);
-    assertThat(appReport).isNotNull();
-    assertThat(appReport.exists()).isTrue();
+    LifecycleReport lifecycleReport = reportService.getReport(app.getId(), scanId);
+    assertThat(lifecycleReport).isNotNull();
+    assertThat(lifecycleReport.exists()).isTrue();
   }
 
   @Test
@@ -905,7 +905,7 @@ public class ReportServiceTest
   @Test
   public void testIncludeThirdPartyData() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
-    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
+    final LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, app, scanId);
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
     final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
@@ -913,18 +913,18 @@ public class ReportServiceTest
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "hash1"));
     dto.licenseRows.add(new ThirdPartyLicenseRowDTO(coord, "hash1"));
 
-    createReportService().includeThirdPartyData(appReport, dto);
+    createReportService().includeThirdPartyData(lifecycleReport, dto);
 
-    assertThatReportFilesContains(appReport, "thirdparty-bom.json");
-    assertThatReportFilesContains(appReport, "thirdparty-security.json");
-    assertThatReportFilesContains(appReport, "thirdparty-license.json");
+    assertThatReportFilesContains(lifecycleReport, "thirdparty-bom.json");
+    assertThatReportFilesContains(lifecycleReport, "thirdparty-security.json");
+    assertThatReportFilesContains(lifecycleReport, "thirdparty-license.json");
   }
 
   @Test
   public void testProcessThirdPartyData_withInfrastructureAsCodeMergedWithExisting() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
         app.getId(), scanId);
-    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
+    final LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
 
@@ -936,7 +936,7 @@ public class ReportServiceTest
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "existing1"));
 
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
-    reportService.processThirdPartyData(scanId, appReport, "app-id");
+    reportService.processThirdPartyData(scanId, lifecycleReport, "app-id");
 
     assertThat(dto.billOfMaterials).hasSize(3);
     assertThat(dto.billOfMaterials.get(0).componentIdentifier.getFormat()).isEqualTo("sbom");
@@ -953,7 +953,7 @@ public class ReportServiceTest
 
     ReportService reportService = createReportService();
 
-    ApplicationReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    LifecycleReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
 
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
     ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON.getName());
@@ -982,7 +982,7 @@ public class ReportServiceTest
   public void testProcessThirdPartyData_Lifecycle_thirdPartyScanDataDeleted() throws Exception {
     productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
-    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
+    final LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -995,7 +995,7 @@ public class ReportServiceTest
     dto.licenseRows.add(new ThirdPartyLicenseRowDTO(coord, "hash1"));
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
 
-    reportService.processThirdPartyData(scanId, appReport, app.getId());
+    reportService.processThirdPartyData(scanId, lifecycleReport, app.getId());
 
     assertThat(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).isFalse();
     assertThat(sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()).isFalse();
@@ -1010,7 +1010,7 @@ public class ReportServiceTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
         app.getId(), scanId);
-    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
+    final LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
 
@@ -1023,7 +1023,7 @@ public class ReportServiceTest
 
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
     when(sbomMetadataUtils.hasSbomMetadata(scanId)).thenReturn(true);
-    reportService.processThirdPartyData(scanId, appReport, "app-id");
+    reportService.processThirdPartyData(scanId, lifecycleReport, "app-id");
 
     assertThat(dto.billOfMaterials).hasSize(3);
     assertThat(dto.billOfMaterials.get(0).componentIdentifier.getFormat()).isEqualTo("sbom");
@@ -1039,7 +1039,7 @@ public class ReportServiceTest
   @Test
   public void testProcessThirdPartyData_MaxSbomLimitNotReached_reportNotDeleted() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
-    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
+    final LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -1057,7 +1057,7 @@ public class ReportServiceTest
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
     when(sbomMetadataUtils.hasSbomMetadata(scanId)).thenReturn(true);
 
-    reportService.processThirdPartyData(scanId, appReport, app.getId());
+    reportService.processThirdPartyData(scanId, lifecycleReport, app.getId());
 
     assertThat(sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()).isFalse();
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(scanId);
@@ -1071,7 +1071,7 @@ public class ReportServiceTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
         app.getId(), scanId);
-    final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
+    final LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -1091,7 +1091,7 @@ public class ReportServiceTest
     when(sbomMetadataUtils.hasSbomMetadata(scanId)).thenReturn(true);
     when(sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()).thenReturn(true);
 
-    reportService.processThirdPartyData(scanId, appReport, app.getId());
+    reportService.processThirdPartyData(scanId, lifecycleReport, app.getId());
 
     verify(thirdPartyDataServiceSpy, times(1)).deleteByScanId(scanId);
     assertThat(sbomFile).doesNotExist();
@@ -1153,11 +1153,11 @@ public class ReportServiceTest
         "application [%s] and scan ID [%s]", app.getPublicId(), scanId);
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
-    ApplicationReport applicationReport = mock(ApplicationReport.class);
-    doReturn(true).when(applicationReport).exists();
-    doReturn(null).when(applicationReport).getEntry(any());
-    doReturn(applicationReport).when(reportDataStoreSpy)
-        .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
+    LifecycleReport lifecycleReport = mock(LifecycleReport.class);
+    doReturn(true).when(lifecycleReport).exists();
+    doReturn(null).when(lifecycleReport).getEntry(any());
+    doReturn(lifecycleReport).when(reportDataStoreSpy)
+        .getLifecycleReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
 
     assertThatThrownBy(() -> reportService.getPolicyThreats(app.getPublicId(), scanId))
         .isInstanceOf(NotFoundException.class)
@@ -1176,10 +1176,10 @@ public class ReportServiceTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
 
-    ApplicationReport applicationReport = mock(ApplicationReport.class);
-    doReturn(true).when(applicationReport).exists();
-    doReturn(givenReportEntryReturned).when(applicationReport).getEntry(any());
-    doReturn(applicationReport).when(reportDataStoreSpy).getApplicationReport(any(), any());
+    LifecycleReport lifecycleReport = mock(LifecycleReport.class);
+    doReturn(true).when(lifecycleReport).exists();
+    doReturn(givenReportEntryReturned).when(lifecycleReport).getEntry(any());
+    doReturn(lifecycleReport).when(reportDataStoreSpy).getLifecycleReport(any(), any());
 
     final PolicyThreats result = reportService
         .getPolicyThreats(app.getPublicId(), scanId);
@@ -1205,21 +1205,21 @@ public class ReportServiceTest
   @Test
   public void testGetReportIfPresent_returnsReport_whenReportExists() throws Exception {
     final ReportService reportService = createReportService();
-    ApplicationReport applicationReport = mock(ApplicationReport.class);
-    doReturn(true).when(applicationReport).exists();
-    doReturn(applicationReport).when(reportDataStoreSpy)
-        .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
+    LifecycleReport lifecycleReport = mock(LifecycleReport.class);
+    doReturn(true).when(lifecycleReport).exists();
+    doReturn(lifecycleReport).when(reportDataStoreSpy)
+        .getLifecycleReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
 
-    assertThat(reportService.getReportIfPresent(app, scanId)).isSameAs(applicationReport);
+    assertThat(reportService.getReportIfPresent(app, scanId)).isSameAs(lifecycleReport);
   }
 
   @Test
   public void testGetReportIfPresent_returnsNull_whenReportDoesNotExist() throws Exception {
     final ReportService reportService = createReportService();
-    ApplicationReport applicationReport = mock(ApplicationReport.class);
-    doReturn(false).when(applicationReport).exists();
-    doReturn(applicationReport).when(reportDataStoreSpy)
-        .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
+    LifecycleReport lifecycleReport = mock(LifecycleReport.class);
+    doReturn(false).when(lifecycleReport).exists();
+    doReturn(lifecycleReport).when(reportDataStoreSpy)
+        .getLifecycleReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
 
     assertThat(reportService.getReportIfPresent(app, scanId)).isNull();
   }
@@ -1227,11 +1227,11 @@ public class ReportServiceTest
   @Test
   public void testGetReportIfPresent_wrapsIOExceptionAsUncheckedIOException() throws Exception {
     final ReportService reportService = createReportService();
-    ApplicationReport applicationReport = mock(ApplicationReport.class);
+    LifecycleReport lifecycleReport = mock(LifecycleReport.class);
     IOException cause = new IOException("boom");
-    doThrow(cause).when(applicationReport).exists();
-    doReturn(applicationReport).when(reportDataStoreSpy)
-        .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
+    doThrow(cause).when(lifecycleReport).exists();
+    doReturn(lifecycleReport).when(reportDataStoreSpy)
+        .getLifecycleReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
 
     assertThatExceptionOfType(UncheckedIOException.class)
         .isThrownBy(() -> reportService.getReportIfPresent(app, scanId))
@@ -1239,10 +1239,10 @@ public class ReportServiceTest
   }
 
   private void assertThatReportFilesContains(
-      ApplicationReport appReport,
+      LifecycleReport lifecycleReport,
       final String thirdPartyFile) throws IOException
   {
-    ReportEntry entry = appReport.getEntry(thirdPartyFile);
+    ReportEntry entry = lifecycleReport.getEntry(thirdPartyFile);
     assertThat(entry).isNotNull();
   }
 
@@ -1504,20 +1504,20 @@ public class ReportServiceTest
             anyBoolean());
     // Mock the new report so we don't have to get it from the real HDS
     ReportHelper.saveMockReport(insightWork, tempDir,
-        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+        "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
-    var bomFileBeforeReUpload = applicationReportPersistenceService
+    var bomFileBeforeReUpload = lifecycleReportPersistenceService
         .getReportEntity(app.getId(), scanId, BOM_JSON.getName());
-    var indexFileBeforeReUpload = applicationReportPersistenceService
+    var indexFileBeforeReUpload = lifecycleReportPersistenceService
         .getReportEntity(app.getId(), scanId, INDEX_HTML.getName());
     assertThat(getEntityContents(bomFileBeforeReUpload)).isNotEqualTo("{}\n");
     assertThat(getEntityContents(indexFileBeforeReUpload)).isNotEqualTo("<html></html>");
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
-    var bomFileAfterReUpload = applicationReportPersistenceService
+    var bomFileAfterReUpload = lifecycleReportPersistenceService
         .getReportEntity(app.getId(), scanId, BOM_JSON.getName());
-    var indexFileAfterReUpload = applicationReportPersistenceService
+    var indexFileAfterReUpload = lifecycleReportPersistenceService
         .getReportEntity(app.getId(), scanId, INDEX_HTML.getName());
     assertThat(getEntityContents(bomFileAfterReUpload)).isEqualTo("{}\n");
     assertThat(getEntityContents(indexFileAfterReUpload)).isEqualTo("<html></html>");
@@ -1546,7 +1546,7 @@ public class ReportServiceTest
             any(),
             eq(true));
     ReportHelper.saveMockReport(insightWork, tempDir,
-        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+        "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
     reportService.reUploadScanToHds(app.getId(), scanId, browserUserAgent);
 
@@ -1586,7 +1586,7 @@ public class ReportServiceTest
             any(),
             eq(true));
     ReportHelper.saveMockReport(insightWork, tempDir,
-        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+        "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
@@ -1627,7 +1627,7 @@ public class ReportServiceTest
             any(),
             eq(true));
     ReportHelper.saveMockReport(insightWork, tempDir,
-        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+        "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
@@ -1708,7 +1708,7 @@ public class ReportServiceTest
             any(),
             eq(true));
     ReportHelper.saveMockReport(insightWork, tempDir,
-        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+        "/LifecycleReportPersistenceServiceTest/report", app.getId(), newScanId);
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
@@ -1740,25 +1740,25 @@ public class ReportServiceTest
         .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
             anyBoolean());
     // Use mockReportDownloader (not pre-saved) so downloadReportPostAction fires, allowing preserved entries to inject
-    mockReportDownloader.mockDownloadReport(newScanId, "/ApplicationReportPersistenceServiceTest/report");
+    mockReportDownloader.mockDownloadReport(newScanId, "/LifecycleReportPersistenceServiceTest/report");
 
     String thirdPartyBomBefore = getEntityContents(
-        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName()));
+        lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName()));
     String thirdPartyLicenseBefore = getEntityContents(
-        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName()));
+        lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName()));
     String thirdPartySecurityBefore = getEntityContents(
-        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_SECURITY_JSON.getName()));
+        lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_SECURITY_JSON.getName()));
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
     assertThat(getEntityContents(
-        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName())))
+        lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName())))
             .isEqualTo(thirdPartyBomBefore);
     assertThat(getEntityContents(
-        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName())))
+        lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName())))
             .isEqualTo(thirdPartyLicenseBefore);
     assertThat(getEntityContents(
-        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_SECURITY_JSON.getName())))
+        lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_SECURITY_JSON.getName())))
             .isEqualTo(thirdPartySecurityBefore);
   }
 
@@ -1776,7 +1776,7 @@ public class ReportServiceTest
     doReturn(scanReceipt).when(mockScanUploadService)
         .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
             anyBoolean());
-    mockReportDownloader.mockDownloadReport(newScanId, "/ApplicationReportPersistenceServiceTest/report");
+    mockReportDownloader.mockDownloadReport(newScanId, "/LifecycleReportPersistenceServiceTest/report");
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
@@ -1798,12 +1798,12 @@ public class ReportServiceTest
     doReturn(scanReceipt).when(mockScanUploadService)
         .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
             anyBoolean());
-    mockReportDownloader.mockDownloadReport(newScanId, "/ApplicationReportPersistenceServiceTest/report");
+    mockReportDownloader.mockDownloadReport(newScanId, "/LifecycleReportPersistenceServiceTest/report");
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
     String thirdPartyBomAfter = getEntityContents(
-        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName()));
+        lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName()));
     JsonNode bomData = new ObjectMapper().readTree(thirdPartyBomAfter);
     List<String> formats = new ArrayList<>();
     bomData.path("aaData").forEach(entry -> formats.add(entry.path("componentIdentifier").path("format").asText()));
@@ -1825,12 +1825,12 @@ public class ReportServiceTest
     doReturn(scanReceipt).when(mockScanUploadService)
         .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
             anyBoolean());
-    mockReportDownloader.mockDownloadReport(newScanId, "/ApplicationReportPersistenceServiceTest/report");
+    mockReportDownloader.mockDownloadReport(newScanId, "/LifecycleReportPersistenceServiceTest/report");
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
     String licenseContents = getEntityContents(
-        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName()));
+        lifecycleReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName()));
     JsonNode licenseData = new ObjectMapper().readTree(licenseContents);
     Map<String, JsonNode> byHash = new HashMap<>();
     licenseData.path("aaData").forEach(entry -> byHash.put(entry.path("hash").asText(), entry));
@@ -1862,7 +1862,7 @@ public class ReportServiceTest
         .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
             anyBoolean());
     ReportHelper.saveMockReport(insightWork, tempDir,
-        "/ApplicationReportPersistenceServiceTest/report", app.getId(), tempScanId);
+        "/LifecycleReportPersistenceServiceTest/report", app.getId(), tempScanId);
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
@@ -1900,7 +1900,7 @@ public class ReportServiceTest
     ReportService reportService = createReportService();
     RemediationVersionDTO remediationVersionDTO =
         new RemediationVersionDTO("1.0", ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
-    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    LifecycleReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
     assertThat(report).isNotNull();
     assertThat(report.exists()).isTrue();
 
@@ -1941,7 +1941,7 @@ public class ReportServiceTest
     ReportService reportService = createReportService();
     RemediationVersionDTO remediationVersionDTO =
         new RemediationVersionDTO("2.18.0", ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
-    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    LifecycleReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
     assertThat(report).isNotNull();
     assertThat(report.exists()).isTrue();
 
@@ -1962,14 +1962,14 @@ public class ReportServiceTest
   @Test
   public void testSetContainerScannerMode_FieldMissing_resultsInNull() throws Exception {
     ReportService reportService = createReportService();
-    ApplicationReport appReport =
-        new ApplicationReport(applicationReportPersistenceService, app, "scanId");
+    LifecycleReport lifecycleReport =
+        new LifecycleReport(lifecycleReportPersistenceService, app, "scanId");
 
     ObjectNode summary = new ObjectMapper().createObjectNode();
-    appReport.saveReportEntry(SUMMARY_JSON.getName(), summary);
+    lifecycleReport.saveReportEntry(SUMMARY_JSON.getName(), summary);
 
     ReportMetadataDTO metadata = new ReportMetadataDTO();
-    reportService.setContainerScannerMode(appReport.getEntry(SUMMARY_JSON.getName()), metadata);
+    reportService.setContainerScannerMode(lifecycleReport.getEntry(SUMMARY_JSON.getName()), metadata);
 
     assertThat(metadata.getContainerScanningMode()).isNull();
   }
@@ -1977,15 +1977,15 @@ public class ReportServiceTest
   @Test
   public void testSetContainerScannerMode_FieldPresent_setsSonatype() throws Exception {
     ReportService reportService = createReportService();
-    ApplicationReport appReport =
-        new ApplicationReport(applicationReportPersistenceService, app, "scanId");
+    LifecycleReport lifecycleReport =
+        new LifecycleReport(lifecycleReportPersistenceService, app, "scanId");
 
     ObjectNode summary = new ObjectMapper().createObjectNode();
     summary.put("containerScanningMode", "sonatype");
-    appReport.saveReportEntry(SUMMARY_JSON.getName(), summary);
+    lifecycleReport.saveReportEntry(SUMMARY_JSON.getName(), summary);
 
     ReportMetadataDTO metadata = new ReportMetadataDTO();
-    reportService.setContainerScannerMode(appReport.getEntry(SUMMARY_JSON.getName()), metadata);
+    reportService.setContainerScannerMode(lifecycleReport.getEntry(SUMMARY_JSON.getName()), metadata);
 
     assertThat(metadata.getContainerScanningMode()).isEqualTo("sonatype");
   }

@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public interface ApplicationReportPersistenceServiceTestHelper
+public interface LifecycleReportPersistenceServiceTestHelper
 {
   /**
    * Methods in implementations of this interface that do not take an application id and scan id use these values
@@ -21,12 +21,12 @@ public interface ApplicationReportPersistenceServiceTestHelper
 
   String SCAN_ID = "scan1";
 
-  String TEST_REPORT_CLASSPATH = "/ApplicationReportPersistenceServiceTest/";
+  String TEST_REPORT_CLASSPATH = "/LifecycleReportPersistenceServiceTest/";
 
   String DEFAULT_REPORT_NAME = "report";
 
   /**
-   * Save a mock report based on the contents of /ApplicationReportPersistenceServiceTest/report on the classpath
+   * Save a mock report based on the contents of /LifecycleReportPersistenceServiceTest/report on the classpath
    */
   default void saveMockReport() throws IOException {
     saveMockReport(DEFAULT_REPORT_NAME);

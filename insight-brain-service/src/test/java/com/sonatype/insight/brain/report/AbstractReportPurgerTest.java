@@ -63,7 +63,7 @@ public abstract class AbstractReportPurgerTest
   private TaskScheduler taskSchedulerMock;
 
   @Inject
-  ApplicationReportPersistenceService applicationReportPersistenceService;
+  LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   Organization org;
 
@@ -99,13 +99,13 @@ public abstract class AbstractReportPurgerTest
         .contains(
             "Using data retention policy for build reports for owner " + org.getId() +
                 " with maxCount 3 and maxAgeInDays null.");
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-2")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-3")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-4")).isTrue();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-5")).isTrue();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-6")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-1")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-2")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-3")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-4")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-5")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-6")).isTrue();
   }
 
   @Test
@@ -141,13 +141,13 @@ public abstract class AbstractReportPurgerTest
         .contains(
             "Purging 4 reports from report report-0 with time " + oldest.getTime() + " to report report-3 with time " +
                 toEvaluation.getTime() + ".");
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-2")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-3")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-4")).isTrue();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-5")).isTrue();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-6")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-1")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-2")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-3")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-4")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-5")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-6")).isTrue();
   }
 
   @Test
@@ -158,8 +158,8 @@ public abstract class AbstractReportPurgerTest
 
     reportPurger.purgeReports();
 
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-1")).isTrue();
   }
 
   @Test
@@ -172,10 +172,10 @@ public abstract class AbstractReportPurgerTest
 
     reportPurger.purgeReports();
 
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-2")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-3")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-1")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-2")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-3")).isTrue();
   }
 
   @Test
@@ -200,9 +200,9 @@ public abstract class AbstractReportPurgerTest
     }
 
     for (String stageId : appEvalStageIds) {
-      assertThat(applicationReportPersistenceService.reportExists(app.getId(), stageId + "-obsolete")).isFalse();
-      assertThat(applicationReportPersistenceService.reportExists(app.getId(), stageId + "-monitored")).isTrue();
-      assertThat(applicationReportPersistenceService.reportExists(app.getId(), stageId + "-latest")).isTrue();
+      assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), stageId + "-obsolete")).isFalse();
+      assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), stageId + "-monitored")).isTrue();
+      assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), stageId + "-latest")).isTrue();
     }
   }
 
@@ -224,9 +224,9 @@ public abstract class AbstractReportPurgerTest
         .contains(
             "Using data retention policy for continuous-monitoring reports for owner " + org.getId() +
                 " with maxCount 1 and maxAgeInDays null.");
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), Stage.ID_RELEASE + "-latest")).isTrue();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), Stage.ID_OPERATE + "-obsolete")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), Stage.ID_OPERATE + "-latest")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), Stage.ID_RELEASE + "-latest")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), Stage.ID_OPERATE + "-obsolete")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), Stage.ID_OPERATE + "-latest")).isTrue();
   }
 
   @Test
@@ -252,8 +252,8 @@ public abstract class AbstractReportPurgerTest
     reportPurger.purgeReports();
     long stop = System.currentTimeMillis();
 
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
-    assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isTrue();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
+    assertThat(lifecycleReportPersistenceService.reportExists(app.getId(), "report-1")).isTrue();
     verify(reportPurger).getDelayForRetry(0);
     verify(reportPurger).getDelayForRetry(1);
     verify(reportPurger, never()).getDelayForRetry(2);

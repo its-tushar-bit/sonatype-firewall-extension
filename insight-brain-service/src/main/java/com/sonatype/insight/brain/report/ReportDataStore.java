@@ -22,32 +22,32 @@ public class ReportDataStore
   @FunctionalInterface
   public interface DownloadReportPostAction
   {
-    void apply(String scanId, ApplicationReport tempApplicationReport, String appId) throws IOException;
+    void apply(String scanId, LifecycleReport tempLifecycleReport, String appId) throws IOException;
   }
 
   private final ReportDownloader reportDownloader;
 
   private final Configuration configuration;
 
-  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Inject
   public ReportDataStore(
       final ReportDownloader reportDownloader,
       final Configuration configuration,
-      final ApplicationReportPersistenceService applicationReportPersistenceService)
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService)
   {
     this.reportDownloader = reportDownloader;
     this.configuration = configuration;
-    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
   }
 
-  public ApplicationReport downloadReport(
+  public LifecycleReport downloadReport(
       final Application application,
       final String scanId,
       final DownloadReportPostAction downloadReportPostAction) throws IOException, NotFoundException
   {
-    ApplicationReport applicationReport = getApplicationReport(application, scanId);
+    LifecycleReport applicationReport = getLifecycleReport(application, scanId);
     if (!applicationReport.exists()) {
       int reportTimeoutInSeconds = configuration.getReportTimeoutInSeconds();
       if (!reportDownloader.downloadReport(applicationReport, reportTimeoutInSeconds, 5)) {
@@ -58,16 +58,16 @@ public class ReportDataStore
     return applicationReport;
   }
 
-  public ApplicationReport getApplicationReport(final Application application, final String scanId) {
-    return new ApplicationReport(applicationReportPersistenceService, application, scanId);
+  public LifecycleReport getLifecycleReport(final Application application, final String scanId) {
+    return new LifecycleReport(lifecycleReportPersistenceService, application, scanId);
   }
 
   public ReportPdfEntity getReportPdf(final String appId, final String scanId) {
-    return applicationReportPersistenceService.getPdfEntity(appId, scanId);
+    return lifecycleReportPersistenceService.getPdfEntity(appId, scanId);
   }
 
   public BaseReportEntity getVulnerabilitySignatureJson(final String applicationId, final String scanId) {
-    return applicationReportPersistenceService.getVulnerabilitySignaturesEntity(applicationId, scanId);
+    return lifecycleReportPersistenceService.getVulnerabilitySignaturesEntity(applicationId, scanId);
   }
 
   public void saveReportFile(
@@ -76,18 +76,18 @@ public class ReportDataStore
       final String name,
       final java.io.InputStream content) throws java.io.IOException
   {
-    applicationReportPersistenceService.saveReportFile(appId, scanId, name, content);
+    lifecycleReportPersistenceService.saveReportFile(appId, scanId, name, content);
   }
 
   public void deleteReportPdf(final String appId, final String scanId) throws IOException {
-    applicationReportPersistenceService.getPdfEntity(appId, scanId).deleteIfExists();
+    lifecycleReportPersistenceService.getPdfEntity(appId, scanId).deleteIfExists();
   }
 
-  public void moveApplicationReport(
+  public void moveLifecycleReport(
       final String appId,
       final String sourceScanId,
       final String destinationScanId) throws IOException
   {
-    applicationReportPersistenceService.moveReport(appId, sourceScanId, destinationScanId);
+    lifecycleReportPersistenceService.moveReport(appId, sourceScanId, destinationScanId);
   }
 }

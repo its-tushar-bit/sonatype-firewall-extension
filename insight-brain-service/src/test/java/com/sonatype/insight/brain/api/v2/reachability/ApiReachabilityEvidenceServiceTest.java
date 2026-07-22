@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.reachability.StoredReachabilityEvidence;
@@ -44,7 +44,7 @@ public class ApiReachabilityEvidenceServiceTest
   private ReportService reportService;
 
   @Mock
-  private ApplicationReport report;
+  private LifecycleReport report;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -100,8 +100,8 @@ public class ApiReachabilityEvidenceServiceTest
   private void mockStoredEvidence(StoredReachabilityEvidence stored) throws IOException {
     byte[] json = objectMapper.writeValueAsBytes(stored);
     ReportEntry entry = new ReportEntry(
-        ApplicationReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName(),
+        LifecycleReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName(),
         System.currentTimeMillis(), json);
-    when(report.getEntry(eq(ApplicationReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName()))).thenReturn(entry);
+    when(report.getEntry(eq(LifecycleReport.ReportFile.REACHABILITY_EVIDENCE_JSON.getName()))).thenReturn(entry);
   }
 }

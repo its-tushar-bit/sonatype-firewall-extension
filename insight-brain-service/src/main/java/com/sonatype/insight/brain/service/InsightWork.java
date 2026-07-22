@@ -99,7 +99,7 @@ public class InsightWork
 
   /**
    * Should no longer be used in production code see
-   * com.sonatype.insight.brain.report.ApplicationReportPersistenceService#getReportEntity(String, String, String)
+   * com.sonatype.insight.brain.report.LifecycleReportPersistenceService#getReportEntity(String, String, String)
    *
    * @param appId
    * @param scanId
@@ -114,7 +114,7 @@ public class InsightWork
 
   /**
    * Should no longer be used in production code see
-   * com.sonatype.insight.brain.report.ApplicationReportPersistenceService#getReportEntity(String, String, String)
+   * com.sonatype.insight.brain.report.LifecycleReportPersistenceService#getReportEntity(String, String, String)
    *
    * @param appId
    * @param scanId

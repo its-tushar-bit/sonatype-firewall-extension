@@ -30,8 +30,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.ApplicationReport;
-import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReport;
+import com.sonatype.insight.brain.report.FileLifecycleReportPersistenceService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
@@ -86,7 +86,7 @@ public class ThirdPartyDataServiceTest
   private InsightWork insightWork;
 
   @Inject
-  private FileApplicationReportPersistenceService applicationReportPersistenceService;
+  private FileLifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   @Inject
   private TestProductLicense productLicense;
@@ -409,9 +409,9 @@ public class ThirdPartyDataServiceTest
   public void testProcessThirdPartyData_withInfrastructureAsCodeSavesVulnerabilities() throws Exception {
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyDataServiceTest/report-with-third-party-iac",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
 
-    ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(appReport, "app-id");
+    ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(lifecycleReport, "app-id");
     assertThat(dto).isNotNull();
 
     ThirdPartyVulnerability vulnerability = thirdPartyVulnerabilityDAO.getByRefId(dto.securityRows.get(0).reference);
@@ -500,9 +500,9 @@ public class ThirdPartyDataServiceTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport, mockCpeResultsTelemetry);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, lifecycleReport, mockCpeResultsTelemetry);
 
     ThirdPartySbomMetadata updated = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updated).isNotNull();
@@ -519,9 +519,9 @@ public class ThirdPartyDataServiceTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport, mockCpeResultsTelemetry);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, lifecycleReport, mockCpeResultsTelemetry);
 
     ThirdPartySbomMetadata updated = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updated).isNotNull();
@@ -536,9 +536,9 @@ public class ThirdPartyDataServiceTest
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
         application.getId(), SCAN_ID);
-    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+    LifecycleReport lifecycleReport = new LifecycleReport(lifecycleReportPersistenceService, application, SCAN_ID);
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport, mockCpeResultsTelemetry);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, lifecycleReport, mockCpeResultsTelemetry);
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();

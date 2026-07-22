@@ -21,11 +21,11 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
-import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
+import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.APPLICATION_ID;
+import static com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceTestHelper.SCAN_ID;
 
-public class FileApplicationReportPersistenceServiceTest
-    extends AbstractApplicationReportPersistenceServiceTest
+public class FileLifecycleReportPersistenceServiceTest
+    extends AbstractLifecycleReportPersistenceServiceTest
 {
   @Inject
   private InsightWork insightWork;
@@ -39,14 +39,14 @@ public class FileApplicationReportPersistenceServiceTest
 
   @Before
   public void setup() {
-    var helper = new FileApplicationReportPersistenceServiceTestHelper(tempDir, insightConfig, insightWork);
+    var helper = new FileLifecycleReportPersistenceServiceTestHelper(tempDir, insightConfig, insightWork);
     setup(helper);
   }
 
   @Test
   @Override
   public void testCorrectImplClass() {
-    assertThat(service).isInstanceOf(FileApplicationReportPersistenceService.class);
+    assertThat(service).isInstanceOf(FileLifecycleReportPersistenceService.class);
   }
 
   @Test
@@ -62,7 +62,7 @@ public class FileApplicationReportPersistenceServiceTest
   }
 
   @Override
-  protected ApplicationReportPersistenceService mockForSaveOriginalReport_cleansUpOnFailure() throws IOException {
+  protected LifecycleReportPersistenceService mockForSaveOriginalReport_cleansUpOnFailure() throws IOException {
     Path zipPath = Path.of(insightWork.getReportDir(APPLICATION_ID, SCAN_ID) + "/report.zip");
     Files.createDirectories(zipPath.getParent());
     Files.createFile(zipPath);

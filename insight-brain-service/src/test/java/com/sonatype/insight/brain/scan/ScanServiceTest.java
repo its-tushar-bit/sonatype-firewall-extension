@@ -34,7 +34,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
@@ -119,12 +119,12 @@ public class ScanServiceTest
     receipt.setScanId("scan-id");
     lenient().when(scanUploader.upload(any(), any(Application.class), anyString(), any(), eq(null), any(), any(),
         anyBoolean())).thenReturn(receipt);
-    lenient().when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt()))
+    lenient().when(reportDownloader.downloadReport(any(LifecycleReport.class), anyInt(), anyInt()))
         .then(
             (Answer<Boolean>) invocation -> {
-              ApplicationReport reportFile = invocation.getArgument(0);
-              Application reportApp = reportFile.getApplication();
-              ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", reportApp.getId(),
+              LifecycleReport reportFile = invocation.getArgument(0);
+              ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report",
+                  reportFile.getOwner().getId(),
                   reportFile.getScanId());
               return true;
             });
@@ -223,11 +223,10 @@ public class ScanServiceTest
               return receipt;
             });
     Mockito.reset(reportDownloader);
-    when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt()))
+    when(reportDownloader.downloadReport(any(LifecycleReport.class), anyInt(), anyInt()))
         .then((Answer<Boolean>) invocation -> {
-          ApplicationReport reportFile = invocation.getArgument(0);
-          Application reportApp = reportFile.getApplication();
-          ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", reportApp.getId(),
+          LifecycleReport reportFile = invocation.getArgument(0);
+          ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", reportFile.getOwner().getId(),
               reportFile.getScanId());
           return true;
         });

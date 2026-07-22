@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.spring.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceProvider;
-import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
-import com.sonatype.insight.brain.report.HybridApplicationReportPersistenceService;
-import com.sonatype.insight.brain.report.S3ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceServiceProvider;
+import com.sonatype.insight.brain.report.FileLifecycleReportPersistenceService;
+import com.sonatype.insight.brain.report.HybridLifecycleReportPersistenceService;
+import com.sonatype.insight.brain.report.S3LifecycleReportPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.FileSbomPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.HybridSbomPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.S3SbomPersistenceService;
@@ -44,8 +44,8 @@ public class PersistenceConfigurationTest
     try (AnnotationConfigApplicationContext context = createContext(new InsightConfig())) {
       assertThat(context.getBean(ScanPersistenceService.class))
           .isSameAs(context.getBean(FileScanPersistenceService.class));
-      assertThat(context.getBean(ApplicationReportPersistenceService.class))
-          .isSameAs(context.getBean(FileApplicationReportPersistenceService.class));
+      assertThat(context.getBean(LifecycleReportPersistenceService.class))
+          .isSameAs(context.getBean(FileLifecycleReportPersistenceService.class));
       assertThat(context.getBean(SbomPersistenceService.class))
           .isSameAs(context.getBean(FileSbomPersistenceService.class));
     }
@@ -59,8 +59,8 @@ public class PersistenceConfigurationTest
     try (AnnotationConfigApplicationContext context = createContext(insightConfig)) {
       assertThat(context.getBean(ScanPersistenceService.class))
           .isSameAs(context.getBean(FileScanPersistenceService.class));
-      assertThat(context.getBean(ApplicationReportPersistenceService.class))
-          .isSameAs(context.getBean(FileApplicationReportPersistenceService.class));
+      assertThat(context.getBean(LifecycleReportPersistenceService.class))
+          .isSameAs(context.getBean(FileLifecycleReportPersistenceService.class));
       assertThat(context.getBean(SbomPersistenceService.class))
           .isSameAs(context.getBean(FileSbomPersistenceService.class));
     }
@@ -76,8 +76,8 @@ public class PersistenceConfigurationTest
     try (AnnotationConfigApplicationContext context = createContext(insightConfig)) {
       assertThat(context.getBean(ScanPersistenceService.class))
           .isSameAs(context.getBean(S3ScanPersistenceService.class));
-      assertThat(context.getBean(ApplicationReportPersistenceService.class))
-          .isSameAs(context.getBean(S3ApplicationReportPersistenceService.class));
+      assertThat(context.getBean(LifecycleReportPersistenceService.class))
+          .isSameAs(context.getBean(S3LifecycleReportPersistenceService.class));
       assertThat(context.getBean(SbomPersistenceService.class))
           .isSameAs(context.getBean(S3SbomPersistenceService.class));
     }
@@ -97,8 +97,8 @@ public class PersistenceConfigurationTest
     try (AnnotationConfigApplicationContext context = createContext(insightConfig)) {
       assertThat(context.getBean(ScanPersistenceService.class))
           .isSameAs(context.getBean(HybridScanPersistenceService.class));
-      assertThat(context.getBean(ApplicationReportPersistenceService.class))
-          .isSameAs(context.getBean(HybridApplicationReportPersistenceService.class));
+      assertThat(context.getBean(LifecycleReportPersistenceService.class))
+          .isSameAs(context.getBean(HybridLifecycleReportPersistenceService.class));
       assertThat(context.getBean(SbomPersistenceService.class))
           .isSameAs(context.getBean(HybridSbomPersistenceService.class));
     }
@@ -113,12 +113,12 @@ public class PersistenceConfigurationTest
     context.registerBean(S3ScanPersistenceService.class, () -> mock(S3ScanPersistenceService.class));
     context.registerBean(HybridScanPersistenceService.class, () -> mock(HybridScanPersistenceService.class));
 
-    context.registerBean(FileApplicationReportPersistenceService.class,
-        () -> mock(FileApplicationReportPersistenceService.class));
-    context.registerBean(S3ApplicationReportPersistenceService.class,
-        () -> mock(S3ApplicationReportPersistenceService.class));
-    context.registerBean(HybridApplicationReportPersistenceService.class,
-        () -> mock(HybridApplicationReportPersistenceService.class));
+    context.registerBean(FileLifecycleReportPersistenceService.class,
+        () -> mock(FileLifecycleReportPersistenceService.class));
+    context.registerBean(S3LifecycleReportPersistenceService.class,
+        () -> mock(S3LifecycleReportPersistenceService.class));
+    context.registerBean(HybridLifecycleReportPersistenceService.class,
+        () -> mock(HybridLifecycleReportPersistenceService.class));
 
     context.registerBean(FileSbomPersistenceService.class, () -> mock(FileSbomPersistenceService.class));
     context.registerBean(S3SbomPersistenceService.class, () -> mock(S3SbomPersistenceService.class));
@@ -154,13 +154,13 @@ public class PersistenceConfigurationTest
     }
 
     @Bean
-    ApplicationReportPersistenceServiceProvider applicationReportPersistenceServiceProvider(
+    LifecycleReportPersistenceServiceProvider applicationReportPersistenceServiceProvider(
         InsightConfig insightConfig,
-        Provider<S3ApplicationReportPersistenceService> s3Provider,
-        Provider<FileApplicationReportPersistenceService> fileProvider,
-        Provider<HybridApplicationReportPersistenceService> hybridProvider)
+        Provider<S3LifecycleReportPersistenceService> s3Provider,
+        Provider<FileLifecycleReportPersistenceService> fileProvider,
+        Provider<HybridLifecycleReportPersistenceService> hybridProvider)
     {
-      return new ApplicationReportPersistenceServiceProvider(insightConfig, s3Provider, fileProvider, hybridProvider);
+      return new LifecycleReportPersistenceServiceProvider(insightConfig, s3Provider, fileProvider, hybridProvider);
     }
 
     @Bean

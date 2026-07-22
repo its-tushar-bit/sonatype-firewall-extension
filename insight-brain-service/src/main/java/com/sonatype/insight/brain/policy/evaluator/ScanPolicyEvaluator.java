@@ -95,7 +95,7 @@ import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLog
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
@@ -129,10 +129,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_ALERTS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.SUMMARY_JSON;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -461,7 +461,7 @@ public class ScanPolicyEvaluator
   }
 
   private void updateReportFiles(
-      ApplicationReport applicationReport,
+      LifecycleReport applicationReport,
       ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
       Stage stage,
       Map<String, Owner> policyIdPolicyOwnerMap,
@@ -480,7 +480,7 @@ public class ScanPolicyEvaluator
     updateDataJson(applicationReport, policyThreats);
   }
 
-  private void updateDataJson(ApplicationReport applicationReport, PolicyThreats policyThreats) throws IOException {
+  private void updateDataJson(LifecycleReport applicationReport, PolicyThreats policyThreats) throws IOException {
     int[] policyCounts = new int[11];
     int policyComponentCount = 0;
     int legacyViolationCount = 0;
@@ -522,7 +522,7 @@ public class ScanPolicyEvaluator
       List<Component> components,
       PolicyViolationTelemetryCollector telemetryCollector,
       AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector,
-      ApplicationReport applicationReport,
+      LifecycleReport applicationReport,
       ClientScanType clientScanType,
       VulnerabilitySignatureAnalysisDTO analysisDTO,
       final boolean skipAutoWaivers) throws IOException
@@ -1495,7 +1495,7 @@ public class ScanPolicyEvaluator
     try {
       ReportEntry summaryEntry = summaryReportEntry;
       if (summaryEntry == null) {
-        ApplicationReport applicationReport =
+        LifecycleReport applicationReport =
             reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
         summaryEntry = applicationReport.getEntry(SUMMARY_JSON.getName());
       }
@@ -1759,7 +1759,7 @@ public class ScanPolicyEvaluator
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,
             reportComponentData.components, telemetryCollector, autoPolicyWaiverTelemetryCollector,
-            reportComponentData.applicationReport, clientScanType, analysisDTO, skipAutoWaivers);
+            reportComponentData.lifecycleReport, clientScanType, analysisDTO, skipAutoWaivers);
 
     sendAggregatePolicyViolationAndAutoWaiverTelemetry(telemetryCollector, autoPolicyWaiverTelemetryCollector);
 

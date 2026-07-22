@@ -13,7 +13,7 @@ import jakarta.inject.Named;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.LifecycleReportPersistenceService;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -43,7 +43,7 @@ public class ApplicationCleaner
 
   private final ApplicationDAO applicationDAO;
 
-  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+  private final LifecycleReportPersistenceService lifecycleReportPersistenceService;
 
   private final ScanPersistenceService scanPersistenceService;
 
@@ -57,7 +57,7 @@ public class ApplicationCleaner
       final FileCleaner fileCleaner,
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
       final ApplicationDAO applicationDAO,
-      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final LifecycleReportPersistenceService lifecycleReportPersistenceService,
       final ScanPersistenceService scanPersistenceService,
       final SbomPersistenceService sbomPersistenceService,
       final GitHubAppDeletionService gitHubAppDeletionService)
@@ -66,7 +66,7 @@ public class ApplicationCleaner
     this.fileCleaner = fileCleaner;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
     this.applicationDAO = applicationDAO;
-    this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.lifecycleReportPersistenceService = lifecycleReportPersistenceService;
     this.scanPersistenceService = scanPersistenceService;
     this.sbomPersistenceService = sbomPersistenceService;
     this.gitHubAppDeletionService = gitHubAppDeletionService;
@@ -78,7 +78,7 @@ public class ApplicationCleaner
 
     scanPersistenceService.deleteScansFor(application.getId());
     sbomPersistenceService.deleteSbomsFor(application.getId());
-    applicationReportPersistenceService.deleteReports(application.getId());
+    lifecycleReportPersistenceService.deleteReports(application.getId());
 
     File applicationIconDirectory = new File(work.getApplicationIconDir(), application.getId());
     try {

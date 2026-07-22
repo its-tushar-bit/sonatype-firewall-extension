@@ -121,7 +121,7 @@ public interface BaseReportEntity
   InputStream getInputStream() throws IOException;
 
   /**
-   * The primary {@link ApplicationReportPersistenceService} class that handles this.
+   * The primary {@link LifecycleReportPersistenceService} class that handles this.
    */
-  Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass();
+  Class<? extends LifecycleReportPersistenceService> getLifecycleReportPersistenceServiceClass();
 }

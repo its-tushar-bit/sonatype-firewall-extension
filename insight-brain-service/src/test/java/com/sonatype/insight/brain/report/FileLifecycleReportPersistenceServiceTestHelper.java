@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 
 import org.junit.rules.TemporaryFolder;
 
-public class FileApplicationReportPersistenceServiceTestHelper
-    implements ApplicationReportPersistenceServiceTestHelper
+public class FileLifecycleReportPersistenceServiceTestHelper
+    implements LifecycleReportPersistenceServiceTestHelper
 {
   private final TemporaryFolder tempDir;
 
@@ -29,7 +29,7 @@ public class FileApplicationReportPersistenceServiceTestHelper
 
   private final InsightWork insightWork;
 
-  public FileApplicationReportPersistenceServiceTestHelper(
+  public FileLifecycleReportPersistenceServiceTestHelper(
       final TemporaryFolder tempDir,
       final InsightConfig insightConfig,
       final InsightWork insightWork)

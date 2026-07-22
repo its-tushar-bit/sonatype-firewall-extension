@@ -6,11 +6,13 @@
 package com.sonatype.insight.brain.dashboard.applications;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 
+import org.apache.lucene.document.Document;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -36,6 +38,21 @@ final class ApplicationsListIndexItems
         }
         items.putIfAbsent(item.applicationId, item);
       }
+    }
+    return items;
+  }
+
+  static LinkedHashMap<String, SearchResultItemDTO> extractApplicationItems(final List<Document> documents) {
+    LinkedHashMap<String, SearchResultItemDTO> items = new LinkedHashMap<>();
+    if (documents == null) {
+      return items;
+    }
+    for (Document document : documents) {
+      SearchResultItemDTO item = new SearchResultItemDTO(document);
+      if (!ItemType.APPLICATION.name().equals(item.itemType) || StringUtils.isBlank(item.applicationId)) {
+        continue;
+      }
+      items.putIfAbsent(item.applicationId, item);
     }
     return items;
   }

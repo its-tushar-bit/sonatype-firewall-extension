@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -21,13 +23,26 @@ import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTOComparator;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
+import com.sonatype.insight.brain.search.ConversionHelper;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexPageRequest;
+import com.sonatype.insight.brain.search.session.IndexPageResult;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
+import com.sonatype.insight.brain.search.session.SearchReadPath;
+import com.sonatype.insight.brain.search.session.SearchReadPathFlags;
+import com.sonatype.insight.brain.search.session.SearchReadPathSurface;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +70,8 @@ public class ApplicationsListService
 
   public static final int MAX_SEARCH_LENGTH = 200;
 
+  public static final int MAX_WALKABLE_PAGE = 200;
+
   private final SearchIndexClient searchIndexClient;
 
   private final ApplicationRiskService applicationRiskService;
@@ -65,19 +82,27 @@ public class ApplicationsListService
 
   private final ApplicationsListFacetsBuilder facetsBuilder;
 
+  private final IndexReadSessionFactory sessionFactory;
+
+  private final ConversionHelper conversionHelper;
+
   @Inject
   public ApplicationsListService(
       final SearchIndexClient searchIndexClient,
       final ApplicationRiskService applicationRiskService,
       final ApplicationsListIndexQueryBuilder indexQueryBuilder,
       final ApplicationsListRequestValidator requestValidator,
-      final ApplicationsListFacetsBuilder facetsBuilder)
+      final ApplicationsListFacetsBuilder facetsBuilder,
+      final IndexReadSessionFactory sessionFactory,
+      final ConversionHelper conversionHelper)
   {
     this.searchIndexClient = searchIndexClient;
     this.applicationRiskService = applicationRiskService;
     this.indexQueryBuilder = indexQueryBuilder;
     this.requestValidator = requestValidator;
     this.facetsBuilder = facetsBuilder;
+    this.sessionFactory = sessionFactory;
+    this.conversionHelper = conversionHelper;
   }
 
   public ApplicationsListResponseDTO listApplications(final ApplicationsListRequestDTO request) {
@@ -95,6 +120,10 @@ public class ApplicationsListService
         : request.orderBy;
 
     String query = indexQueryBuilder.buildApplicationQuery(request);
+    if (SearchReadPathFlags.forSurface(SearchReadPathSurface.APPLICATIONS) == SearchReadPath.NEW) {
+      return listApplicationsWithSession(request, page, pageSize, includeFacets, orderBy, query);
+    }
+
     SearchResultDTO searchResult =
         searchIndexClient.searchIndex(query, pageSize, toSearchIndexPage(page), false, false, List.of());
     LinkedHashMap<String, SearchResultItemDTO> pageItems =
@@ -145,6 +174,104 @@ public class ApplicationsListService
     return response;
   }
 
+  private ApplicationsListResponseDTO listApplicationsWithSession(
+      final ApplicationsListRequestDTO request,
+      final int page,
+      final int pageSize,
+      final boolean includeFacets,
+      final String orderBy,
+      final String query)
+  {
+    try (IndexReadSession session = sessionFactory.open()) {
+      // Cap before range so "too deep" always returns 400, even when past total (empty).
+      if (page > MAX_WALKABLE_PAGE) {
+        throw new BadRequestException(
+            "Invalid page: " + page + ". Page must be <= " + MAX_WALKABLE_PAGE + ".");
+      }
+
+      Query sessionQuery = conversionHelper.stringToQuery(toSessionQueryString(query));
+      long total = session.count(sessionQuery);
+
+      LinkedHashMap<String, SearchResultItemDTO> pageItems = new LinkedHashMap<>();
+      if ((long) page * pageSize < total) {
+        // searchAfter walk from page 0 — known O(page) cost; gated by readPath.applications=new
+        // and MAX_WALKABLE_PAGE until Track B offset/cursor API. Acceptable for flag-gated rollout.
+        IndexPageResult result = null;
+        List<Object> searchAfter = List.of();
+        Sort sort = stableSessionSort();
+        for (int currentPage = 0; currentPage <= page; currentPage++) {
+          result = session.searchPage(new IndexPageRequest(sessionQuery, sort, pageSize, searchAfter));
+          if (result == null) {
+            break;
+          }
+          // Stop when the session reports no further pages so an empty searchAfter cannot
+          // accidentally restart the walk at page 0 on a later iteration.
+          if (currentPage < page && !result.hasNext()) {
+            break;
+          }
+          searchAfter = result.nextSearchAfter();
+        }
+        pageItems = ApplicationsListIndexItems.extractApplicationItems(result == null ? List.of() : result.docs());
+      }
+
+      ApplicationsListResponseDTO response =
+          buildResponse(request, page, pageSize, orderBy, total, pageItems);
+      if (includeFacets) {
+        try {
+          Query violationFacetQuery = conversionHelper.stringToQuery(toSessionQueryString(
+              ApplicationsListViolationQuerySupport.toViolationQuery(query)));
+          response.facets = facetsBuilder.buildFacets(session, sessionQuery, violationFacetQuery, total);
+        }
+        catch (RuntimeException e) {
+          log.warn("Applications list facet build failed; returning page without facets", e);
+        }
+      }
+      return response;
+    }
+  }
+
+  private ApplicationsListResponseDTO buildResponse(
+      final ApplicationsListRequestDTO request,
+      final int page,
+      final int pageSize,
+      final String orderBy,
+      final long total,
+      final LinkedHashMap<String, SearchResultItemDTO> pageItems)
+  {
+    Set<String> pageApplicationIds = pageItems.keySet();
+    List<ApplicationRiskScoreDTO> cards = new ArrayList<>();
+    if (!pageApplicationIds.isEmpty()) {
+      List<ApplicationRiskScoreDTO> enriched = List.of();
+      try {
+        DashboardResultsDTO<ApplicationRiskScoreDTO> risks = applicationRiskService.getApplicationRiskCards(
+            null,
+            pageApplicationIds,
+            request == null ? null : request.stageIds,
+            null,
+            request == null ? null : request.policyThreatCategories,
+            ApplicationsListViolationQuerySupport.threatLevelFilterForCardEnrichment(request),
+            request == null ? null : request.policyViolationStates);
+        enriched = risks.dashboardResults == null ? List.of() : risks.dashboardResults;
+      }
+      catch (ConflictException e) {
+        // Only Classic Dashboard licence checks throw ConflictException here; real enrichment
+        // failures (DB, policy load) propagate as 500 so operators see actionable errors.
+      }
+      cards = mergeIndexPageWithEnrichment(pageItems, enriched);
+    }
+    cards.sort(new ApplicationRiskScoreDTOComparator(orderBy));
+
+    ApplicationsListResponseDTO response = new ApplicationsListResponseDTO();
+    response.applications = new ArrayList<>(cards);
+    response.total = total;
+    response.page = page;
+    response.pageSize = pageSize;
+    long consumed = (long) page * pageSize + pageApplicationIds.size();
+    response.hasNextPage = consumed < total;
+    response.source = ApplicationsListResponseDTO.SOURCE_INDEX;
+    return response;
+  }
+
   /**
    * {@link SearchIndexClient#searchIndex} uses {@code page=0} as a first-page sentinel and
    * 1-based pages thereafter — same contract as Advanced Search ({@code ApiAdvancedSearchResourceV2}).
@@ -158,6 +285,50 @@ public class ApplicationsListService
 
   static String escapeLuceneTerm(final String input) {
     return DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(input);
+  }
+
+  static String toSessionQueryString(final String searchQuery) {
+    String query =
+        searchQuery + " -" + FieldIdentifier.ITEM_TYPE.label + ":" + ItemType.NON_VULNERABLE_COMPONENT.name();
+    // Field-qualified tokens only, and only when not already parent-prefixed (lookbehind).
+    // Bare label replace would mutate search values; unqualified replace would also rewrite
+    // inside parentOrganizationName:/parentOrganizationId: if label casing ever aligned.
+    query = rewriteUnprefixedFieldToken(
+        query,
+        FieldIdentifier.ORGANIZATION_NAME.label,
+        FieldIdentifier.PARENT_ORGANIZATION_NAME.label);
+    query = rewriteUnprefixedFieldToken(
+        query,
+        FieldIdentifier.ORGANIZATION_ID.label,
+        FieldIdentifier.PARENT_ORGANIZATION_ID.label);
+    return query;
+  }
+
+  /**
+   * Rewrites {@code fromField:} → {@code toField:} when the field token is not preceded by a letter
+   * (so {@code parentOrganizationName:} is left alone even if casing would otherwise match).
+   */
+  static String rewriteUnprefixedFieldToken(
+      final String query,
+      final String fromField,
+      final String toField)
+  {
+    return query.replaceAll(
+        "(?<![A-Za-z])" + Pattern.quote(fromField + ":"),
+        Matcher.quoteReplacement(toField + ":"));
+  }
+
+  /**
+   * Stable total order for session {@code searchAfter} walks.
+   * <p>
+   * Lucene today only indexes {@link FieldIdentifier#DOCUMENT_KEY} as
+   * {@code SortedDocValuesField} ({@code LuceneIndexingContext}). Sorting on
+   * {@code applicationName}/{@code applicationId} would throw at search time until Track B
+   * docValues land (red-gate). {@code documentKey} hashes identity fields including
+   * applicationId, so it is a unique stable order without schema change.
+   */
+  static Sort stableSessionSort() {
+    return new Sort(new SortField(FieldIdentifier.DOCUMENT_KEY.label, SortField.Type.STRING));
   }
 
   private static List<ApplicationRiskScoreDTO> mergeIndexPageWithEnrichment(

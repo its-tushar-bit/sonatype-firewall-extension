@@ -27,8 +27,22 @@ public class ApplicationsListFacetsDTO
   @JsonInclude(Include.NON_NULL)
   public Map<String, Long> organizations;
 
+  /**
+   * Display names for {@link #organizations} keys (internal organization ids).
+   * Omitted keys may fall back to the raw id on the client.
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Map<String, String> organizationNames;
+
   @JsonInclude(Include.NON_NULL)
   public Map<String, Long> applications;
+
+  /**
+   * Display names for {@link #applications} keys (internal application ids).
+   * Omitted keys may fall back to the raw id on the client.
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Map<String, String> applicationNames;
 
   @JsonInclude(Include.NON_NULL)
   public Map<String, Long> stages;

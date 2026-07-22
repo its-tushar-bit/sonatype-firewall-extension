@@ -5,11 +5,15 @@
  */
 package com.sonatype.insight.brain.dashboard.applications;
 
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.service.Configuration;
 
+import org.apache.lucene.search.SortField;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -48,6 +52,13 @@ public class ApplicationsListServiceTest
   }
 
   @Test
+  public void stableSessionSort_usesDocumentKeyDocValuesField() {
+    SortField[] sortFields = ApplicationsListService.stableSessionSort().getSort();
+    assertThat(Arrays.stream(sortFields).map(SortField::getField).collect(Collectors.toList()))
+        .containsExactly(FieldIdentifier.DOCUMENT_KEY.label);
+  }
+
+  @Test
   public void escapeLuceneTerm_neutralizesSpecialCharacters() {
     assertThat(ApplicationsListService.escapeLuceneTerm("foo+bar"))
         .isEqualTo("foo\\+bar");
@@ -55,5 +66,38 @@ public class ApplicationsListServiceTest
         .isEqualTo("a\\&\\&b");
     assertThat(ApplicationsListService.escapeLuceneTerm("foo/bar"))
         .isEqualTo("foo\\/bar");
+  }
+
+  @Test
+  public void toSessionQueryString_rewritesOrgFieldsWithoutDoublePrefixing() {
+    String rewritten = ApplicationsListService.toSessionQueryString(
+        "itemType:APPLICATION AND organizationId:abc AND organizationName:Acme");
+    assertThat(rewritten)
+        .contains(FieldIdentifier.PARENT_ORGANIZATION_ID.label + ":abc")
+        .contains(FieldIdentifier.PARENT_ORGANIZATION_NAME.label + ":Acme")
+        .doesNotContain("parentparent")
+        .doesNotContain("parentParent");
+    assertThat(rewritten).doesNotContain(" AND " + FieldIdentifier.ORGANIZATION_ID.label + ":");
+    assertThat(rewritten).doesNotContain(" AND " + FieldIdentifier.ORGANIZATION_NAME.label + ":");
+
+    String alreadyParent = ApplicationsListService.toSessionQueryString(
+        "itemType:APPLICATION AND parentOrganizationId:abc AND parentOrganizationName:Acme");
+    // Must leave already-parent tokens intact (lookbehind), not only rely on label casing.
+    assertThat(alreadyParent)
+        .isEqualTo(
+            "itemType:APPLICATION AND parentOrganizationId:abc AND parentOrganizationName:Acme"
+                + " -itemType:NON_VULNERABLE_COMPONENT");
+  }
+
+  @Test
+  public void toSessionQueryString_rewritesFieldTokensNotSearchValues() {
+    // buildSearchClause embeds the term after the colon; a bare label replace would mutate it.
+    String rewritten = ApplicationsListService.toSessionQueryString(
+        "itemType:APPLICATION AND (organizationName:*organizationName* OR organizationId:*organizationId*)");
+    assertThat(rewritten)
+        .contains(FieldIdentifier.PARENT_ORGANIZATION_NAME.label + ":*organizationName*")
+        .contains(FieldIdentifier.PARENT_ORGANIZATION_ID.label + ":*organizationId*")
+        .doesNotContain(FieldIdentifier.PARENT_ORGANIZATION_NAME.label + ":*parentOrganizationName*")
+        .doesNotContain(FieldIdentifier.PARENT_ORGANIZATION_ID.label + ":*parentOrganizationId*");
   }
 }

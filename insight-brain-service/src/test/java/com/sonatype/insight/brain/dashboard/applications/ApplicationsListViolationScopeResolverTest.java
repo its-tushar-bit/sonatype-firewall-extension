@@ -11,13 +11,19 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexPageResult;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.lucene.document.Document;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -30,6 +36,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApplicationsListViolationScopeResolverTest
@@ -39,6 +47,15 @@ public class ApplicationsListViolationScopeResolverTest
 
   @Mock
   private Configuration configuration;
+
+  @Mock
+  private IndexReadSessionFactory sessionFactory;
+
+  @Mock
+  private IndexReadSession session;
+
+  @Mock
+  private ConversionHelper conversionHelper;
 
   @Test
   public void resolveApplicationIds_returnsWhenMatchCountEqualsMaxIdsOnShortPage() {
@@ -155,6 +172,34 @@ public class ApplicationsListViolationScopeResolverTest
     assertThat(applicationIds).containsExactly("critical-app");
   }
 
+  @Test
+  public void resolveApplicationIds_newReadPathUsesSessionSearchPage() {
+    System.setProperty("nexusOne.search.readPath.applications", "new");
+    try {
+      when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+      when(conversionHelper.stringToQuery(any())).thenReturn(new MatchAllDocsQuery());
+      when(sessionFactory.open()).thenReturn(session);
+      when(session.searchPage(any()))
+          .thenReturn(new IndexPageResult(
+              List.of(violationDocument("app-1"), violationDocument("app-2")),
+              List.of(),
+              false));
+
+      ApplicationsListViolationScopeResolver resolver =
+          new ApplicationsListViolationScopeResolver(searchIndexClient, configuration, sessionFactory,
+              conversionHelper);
+
+      Set<String> applicationIds = resolver.resolveApplicationIds("itemType:APPLICATION", null, List.of());
+
+      assertThat(applicationIds).containsExactly("app-1", "app-2");
+      verify(session).searchPage(any());
+      verify(searchIndexClient, never()).searchIndex(any(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList());
+    }
+    finally {
+      System.clearProperty("nexusOne.search.readPath.applications");
+    }
+  }
+
   private static SearchResultDTO fullPageWithApplicationIds(String... applicationIds) {
     return pageWithApplicationIds(500, applicationIds);
   }
@@ -206,5 +251,12 @@ public class ApplicationsListViolationScopeResolverTest
     group.searchResultItemDTOS = items;
     searchResult.groupingByDTOS = List.of(group);
     return searchResult;
+  }
+
+  private static Document violationDocument(final String applicationId) {
+    Document document = new Document();
+    document.add(new org.apache.lucene.document.TextField(
+        "applicationId", applicationId, org.apache.lucene.document.Field.Store.YES));
+    return document;
   }
 }

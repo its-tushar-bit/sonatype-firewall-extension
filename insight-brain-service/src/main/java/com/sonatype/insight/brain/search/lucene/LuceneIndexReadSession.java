@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +50,13 @@ public class LuceneIndexReadSession
   private static final Logger log = LoggerFactory.getLogger(LuceneIndexReadSession.class);
 
   public static final String BACKEND_ID = "lucene";
+
+  /**
+   * Soft warn threshold for interim stored-field distinct-grouped scans (Track B replaces this).
+   * Compared against {@link DistinctGroupedStoredFieldCollector#matchedDocuments()}, which counts
+   * only docs with non-blank fields whose group value is in the allowed set — not every Lucene hit.
+   */
+  static final long COUNT_DISTINCT_GROUPED_WARN_MATCHED_DOCUMENTS = 50_000L;
 
   private final IndexSearcher searcher;
 
@@ -181,6 +189,39 @@ public class LuceneIndexReadSession
     catch (IOException e) {
       throw new SearchIndexException(e);
     }
+  }
+
+  @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final Query query,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues)
+  {
+    ensureOpen();
+    long startNanos = System.nanoTime();
+    DistinctGroupedStoredFieldCollector collector;
+    try {
+      collector = new DistinctGroupedStoredFieldCollector(
+          searcher.storedFields(), groupField, distinctField, groupValues);
+      searcher.search(withRbac(query), collector);
+    }
+    catch (IOException e) {
+      throw new SearchIndexException(e);
+    }
+    long durationMs = (System.nanoTime() - startNanos) / 1_000_000L;
+    long matchedDocuments = collector.matchedDocuments();
+    if (matchedDocuments > COUNT_DISTINCT_GROUPED_WARN_MATCHED_DOCUMENTS) {
+      log.warn(
+          "countDistinctGroupedBy matched {} documents (threshold {}); consider Track B docValues cardinality",
+          matchedDocuments,
+          COUNT_DISTINCT_GROUPED_WARN_MATCHED_DOCUMENTS);
+    }
+    log.debug(
+        "DASHBOARD_BENCHMARK metric=count_distinct_grouped matchedDocuments={} durationMs={}",
+        matchedDocuments,
+        durationMs);
+    return collector.groupCounts();
   }
 
   @Override

@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.search.session;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.search.Query;
 
@@ -48,6 +50,16 @@ public class HybridIndexReadSession
   @Override
   public List<IndexTermsBucket> termsAggregation(final Query query, final String field, final int maxBuckets) {
     return delegate.termsAggregation(query, field, maxBuckets);
+  }
+
+  @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final Query query,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues)
+  {
+    return delegate.countDistinctGroupedBy(query, groupField, distinctField, groupValues);
   }
 
   @Override

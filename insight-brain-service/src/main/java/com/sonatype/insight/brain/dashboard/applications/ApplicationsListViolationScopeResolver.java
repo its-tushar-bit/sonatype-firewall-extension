@@ -14,12 +14,23 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.search.ConversionHelper;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexPageRequest;
+import com.sonatype.insight.brain.search.session.IndexPageResult;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexReadSessionFactory;
+import com.sonatype.insight.brain.search.session.SearchReadPath;
+import com.sonatype.insight.brain.search.session.SearchReadPathFlags;
+import com.sonatype.insight.brain.search.session.SearchReadPathSurface;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.lucene.document.Document;
+import org.apache.lucene.search.Query;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -27,8 +38,11 @@ import org.apache.commons.lang3.StringUtils;
  * under the same RBAC-scoped base query as the Martha applications list.
  * <p>
  * Discovery is capped at {@link Configuration#getMaxAdvancedSearchClauseCount()} unique ids.
- * Pagination uses {@link ApplicationsListService#toSearchIndexPage} so index pages 0 and 1
- * (duplicate first-window sentinel) are not double-counted.
+ * On the legacy read path ({@code nexusOne.search.readPath.applications=old}), discovery pages via
+ * {@link SearchIndexClient#searchIndex} using {@link ApplicationsListService#toSearchIndexPage} so
+ * index pages 0 and 1 (duplicate first-window sentinel) are not double-counted.
+ * On the session read path ({@code =new}), discovery uses {@link IndexReadSession#searchPage} with
+ * {@link ApplicationsListService#stableSessionSort()} and page size {@value #VIOLATION_DISCOVERY_PAGE_SIZE}.
  * <p>
  * Violation index hits are one document per violation, so paging counts raw violation docs.
  * Termination is driven by distinct {@code applicationId} progress: paging stops on a short page,
@@ -55,13 +69,32 @@ final class ApplicationsListViolationScopeResolver
 
   private final Configuration configuration;
 
+  private final IndexReadSessionFactory sessionFactory;
+
+  private final ConversionHelper conversionHelper;
+
   @Inject
+  ApplicationsListViolationScopeResolver(
+      final SearchIndexClient searchIndexClient,
+      final Configuration configuration,
+      final IndexReadSessionFactory sessionFactory,
+      final ConversionHelper conversionHelper)
+  {
+    this.searchIndexClient = searchIndexClient;
+    this.configuration = configuration;
+    this.sessionFactory = sessionFactory;
+    this.conversionHelper = conversionHelper;
+  }
+
+  /**
+   * Test helper for the legacy ({@code old}) read path only — leaves session dependencies null.
+   * Callers that exercise {@code readPath.applications=new} must use the 4-arg constructor.
+   */
   ApplicationsListViolationScopeResolver(
       final SearchIndexClient searchIndexClient,
       final Configuration configuration)
   {
-    this.searchIndexClient = searchIndexClient;
-    this.configuration = configuration;
+    this(searchIndexClient, configuration, null, null);
   }
 
   Set<String> resolveApplicationIds(
@@ -75,6 +108,13 @@ final class ApplicationsListViolationScopeResolver
       // Misconfigured or zero clause cap — fall back to the product default.
       maxIds = DEFAULT_MAX_DISCOVERY_IDS;
     }
+    if (SearchReadPathFlags.forSurface(SearchReadPathSurface.APPLICATIONS) == SearchReadPath.NEW) {
+      return resolveApplicationIdsWithSession(violationQuery, maxIds);
+    }
+    return resolveApplicationIdsWithSearchIndex(violationQuery, maxIds);
+  }
+
+  private Set<String> resolveApplicationIdsWithSearchIndex(final String violationQuery, final int maxIds) {
     LinkedHashSet<String> applicationIds = new LinkedHashSet<>();
     int page = 0;
     int consecutivePagesWithoutNewIds = 0;
@@ -135,6 +175,64 @@ final class ApplicationsListViolationScopeResolver
         consecutivePagesWithoutNewIds = 0;
       }
       page++;
+    }
+    return applicationIds;
+  }
+
+  private Set<String> resolveApplicationIdsWithSession(final String violationQuery, final int maxIds) {
+    if (conversionHelper == null || sessionFactory == null) {
+      throw new IllegalStateException(
+          "ApplicationsListViolationScopeResolver session dependencies are required when "
+              + "nexusOne.search.readPath.applications=new (use the 4-arg constructor).");
+    }
+    LinkedHashSet<String> applicationIds = new LinkedHashSet<>();
+    int consecutivePagesWithoutNewIds = 0;
+    Query query = conversionHelper.stringToQuery(ApplicationsListService.toSessionQueryString(violationQuery));
+    List<Object> searchAfter = List.of();
+    try (IndexReadSession session = sessionFactory.open()) {
+      while (applicationIds.size() < maxIds) {
+        int idsBeforePage = applicationIds.size();
+        IndexPageResult result = session.searchPage(new IndexPageRequest(
+            query, ApplicationsListService.stableSessionSort(), VIOLATION_DISCOVERY_PAGE_SIZE, searchAfter));
+        List<Document> docs = result == null ? List.of() : result.docs();
+        if (docs.isEmpty()) {
+          break;
+        }
+
+        boolean discoveryCapped = false;
+        for (Document doc : docs) {
+          String applicationId = doc.get(FieldIdentifier.APPLICATION_ID.label);
+          if (StringUtils.isNotBlank(applicationId)) {
+            applicationIds.add(applicationId);
+            if (applicationIds.size() >= maxIds) {
+              discoveryCapped = true;
+              break;
+            }
+          }
+        }
+        boolean fullPage = docs.size() >= VIOLATION_DISCOVERY_PAGE_SIZE;
+        if (discoveryCapped) {
+          if (fullPage) {
+            throw new BadRequestException(
+                "Violation-scoped application discovery matched too many applications (max " + maxIds + ").");
+          }
+          break;
+        }
+        if (!fullPage || !result.hasNext()) {
+          break;
+        }
+        int idsAddedThisPage = applicationIds.size() - idsBeforePage;
+        if (idsAddedThisPage == 0) {
+          consecutivePagesWithoutNewIds++;
+          if (consecutivePagesWithoutNewIds >= MAX_CONSECUTIVE_VIOLATION_PAGES_WITHOUT_NEW_APPLICATION_IDS) {
+            break;
+          }
+        }
+        else {
+          consecutivePagesWithoutNewIds = 0;
+        }
+        searchAfter = result.nextSearchAfter();
+      }
     }
     return applicationIds;
   }

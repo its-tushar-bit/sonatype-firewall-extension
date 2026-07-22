@@ -11,6 +11,7 @@ import { tokens } from '@guide/ui-core/utils';
 import { ArrowLeft, ChevronRight, Search, X } from 'lucide-react';
 import { usePolicyContext } from './PolicyContext';
 import { useOwnerAdapter } from './OwnerAdapterProvider';
+import { useOnboarding } from 'GuideRoot/onboarding';
 import type { AncestorPathEntry, AppSummary, OrgSummary, Owner } from './types';
 
 const S = tokens.space;
@@ -37,6 +38,7 @@ function breadcrumb(path: AncestorPathEntry[]): string {
 export function PolicyContextModal({ onClose }: { onClose: () => void }) {
   const adapter = useOwnerAdapter();
   const { activeOwner, setActiveOwner, activePath } = usePolicyContext();
+  const { open: openOnboarding } = useOnboarding();
 
   const [view, setView] = useState<ModalView>('orgs');
   const [drillOrg, setDrillOrg] = useState<OrgSummary | null>(null);
@@ -314,6 +316,26 @@ export function PolicyContextModal({ onClose }: { onClose: () => void }) {
             </Text>
           </Dialog.Title>
         </Box>
+        <Text asChild size={SZ.body.xs}>
+          <button
+            type="button"
+            onClick={() => {
+              openOnboarding(); // set the tour open on the app-wide provider…
+              onClose(); // …then close the picker (the two dialogs cannot stack).
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              color: 'var(--accent-11)',
+              textDecoration: 'underline',
+              flexShrink: 0,
+            }}
+          >
+            Need help?
+          </button>
+        </Text>
       </Flex>
 
       {/* Currently-selected banner — Browse only */}

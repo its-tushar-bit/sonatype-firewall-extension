@@ -36,6 +36,7 @@ import { FeatureFlagProvider } from './feature-flags/FeatureFlagProvider';
 import { FeatureGate } from './feature-flags/FeatureGate';
 import { FEATURE_FLAGS } from './feature-flags/featureFlags';
 import { Home } from './home/Home';
+import { OnboardingProvider, OnboardingModal } from './onboarding';
 
 function AuthGate() {
   const { status } = useAuth();
@@ -60,38 +61,41 @@ function AuthGate() {
         <FeatureFlagProvider>
           <OwnerAdapterProvider adapter={ownerAdapter}>
             <PolicyContextProvider>
-              <AppShell>
-                <PolicyScopeBoundary>
-                  <ErrorBoundary>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/components" element={<ComponentsSearchPage />} />
-                      <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
-                      <Route path="/vulnerability/:vulnId" element={<VulnerabilityDetailLayout />}>
-                        <Route index element={<SecurityDetailsTab />} />
-                        <Route path="components-impacted" element={<ComponentsImpactedTab />} />
-                        <Route path="sonatype-research" element={<SonatypeResearchTab />} />
-                      </Route>
-                      <Route
-                        path="/search"
-                        element={
-                          <FeatureGate flag={FEATURE_FLAGS.AI_DEVELOPER}>
-                            <SearchPage />
-                          </FeatureGate>
-                        }
-                      />
-                      <Route path="/mcp" element={<McpPage />} />
-                      <Route path="/component/:ecosystem/:pkg/:version" element={<ComponentDetailPage />}>
-                        <Route index element={<OverviewTab />} />
-                        <Route path="versions" element={<VersionsTab />} />
-                        <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
-                        <Route path="dependencies" element={<DependenciesTab />} />
-                      </Route>
-                      <Route path="*" element={<NotFoundPage />} />
-                    </Routes>
-                  </ErrorBoundary>
-                </PolicyScopeBoundary>
-              </AppShell>
+              <OnboardingProvider>
+                <AppShell>
+                  <OnboardingModal />
+                  <PolicyScopeBoundary>
+                    <ErrorBoundary>
+                      <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/components" element={<ComponentsSearchPage />} />
+                        <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
+                        <Route path="/vulnerability/:vulnId" element={<VulnerabilityDetailLayout />}>
+                          <Route index element={<SecurityDetailsTab />} />
+                          <Route path="components-impacted" element={<ComponentsImpactedTab />} />
+                          <Route path="sonatype-research" element={<SonatypeResearchTab />} />
+                        </Route>
+                        <Route
+                          path="/search"
+                          element={
+                            <FeatureGate flag={FEATURE_FLAGS.AI_DEVELOPER}>
+                              <SearchPage />
+                            </FeatureGate>
+                          }
+                        />
+                        <Route path="/mcp" element={<McpPage />} />
+                        <Route path="/component/:ecosystem/:pkg/:version" element={<ComponentDetailPage />}>
+                          <Route index element={<OverviewTab />} />
+                          <Route path="versions" element={<VersionsTab />} />
+                          <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
+                          <Route path="dependencies" element={<DependenciesTab />} />
+                        </Route>
+                        <Route path="*" element={<NotFoundPage />} />
+                      </Routes>
+                    </ErrorBoundary>
+                  </PolicyScopeBoundary>
+                </AppShell>
+              </OnboardingProvider>
             </PolicyContextProvider>
           </OwnerAdapterProvider>
         </FeatureFlagProvider>

@@ -15,6 +15,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
+import com.sonatype.clm.testing.playwright.pages.AdministratorsEditPage;
+import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
@@ -48,6 +50,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -80,6 +83,8 @@ public class NexusOneClassicEmbedPlaywrightTest
   // shared fixture might have left configured — dirtiness compares this
   // literal against baseUrlConfiguration.serverData.baseUrl.
   private static final String DIRTY_GUARD_TEST_BASE_URL = "http://dirty-guard-test.invalid";
+
+  private static final String ADMINISTRATORS_TEST_USER_ITEM = "Jane Doe (test-b)";
 
   private static final EnterpriseReportingHdsStubs ENTERPRISE_REPORTING_HDS =
       TestDataManager.load("enterprise-reporting-hds-stubs", EnterpriseReportingHdsStubs.class);
@@ -481,6 +486,129 @@ public class NexusOneClassicEmbedPlaywrightTest
     assertThat(modal.container()).isHidden();
     assertThat(configPage.container()).isHidden();
     assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42464: Administrators list page mounts natively at
+   * {@code /administrators} on the Nexus One bundle, rendering
+   * the Classic list as-is inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedAdministrators_rendersClassicListInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    AdministratorsPage adminPage = new AdministratorsPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(adminPage.container()).isVisible();
+    assertThat(adminPage.pageTitle()).isVisible();
+    assertThat(adminPage.tileHeader()).isVisible();
+    assertThat(adminPage.table()).isVisible();
+  }
+
+  /**
+   * CLM-42464: Administrators edit page mounts natively at
+   * {@code /administrators/{roleId}} on the Nexus One bundle, rendering
+   * the Classic edit form inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedAdministratorsEdit_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    AdministratorsEditPage editPage = new AdministratorsEditPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(editPage.root()).isVisible();
+  }
+
+  /**
+   * CLM-42464 dirty-guard cancel path: selecting a user from the search dropdown
+   * adds them to addedUsers, setting isDirty=true; a hash navigation triggers
+   * the shell dirty-guard; Cancel keeps the user on the edit page with the dirty
+   * state intact.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAdministratorsEdit_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
+
+    AdministratorsEditPage editPage = new AdministratorsEditPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    editPage.root().waitFor();
+    editPage.searchAndAddByText("*", ADMINISTRATORS_TEST_USER_ITEM);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(editPage.root()).isVisible();
+  }
+
+  /**
+   * CLM-42464 dirty-guard continue path: selecting a user from the search
+   * dropdown sets isDirty=true; Continue closes the modal and lets the
+   * transition proceed; the edit page unmounts and the user lands on
+   * the target route.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAdministratorsEdit_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
+
+    AdministratorsEditPage editPage = new AdministratorsEditPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    editPage.root().waitFor();
+    editPage.searchAndAddByText("*", ADMINISTRATORS_TEST_USER_ITEM);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(editPage.root()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42464 auth gate: a user without CONFIGURE_SYSTEM navigating to
+   * /administrators is redirected to the Nexus One violations dashboard before
+   * the admin page ever mounts. Covers the redirectTo function on the route.
+   *
+   * <p>
+   * Log in on Classic first so the shared session cookie is present when
+   * we navigate into Nexus One. Going straight to the Nexus One URL while
+   * logged out hits {@code ensureNexusOneShellAccess}, which bounces
+   * unauthenticated requests back to Classic before the router — so the
+   * route's own {@code redirectTo} would never fire.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAdministrators_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    AdministratorsPage adminPage = new AdministratorsPage();
+    assertThat(adminPage.container()).isHidden();
   }
 
   /**

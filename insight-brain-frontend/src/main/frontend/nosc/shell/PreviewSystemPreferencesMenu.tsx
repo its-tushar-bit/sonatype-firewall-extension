@@ -131,6 +131,9 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
   // Same items + same showIf conditions as
   // mainHeader/MenuBar/SystemPreferencesMenu/SystemPreferencesMenu.jsx.
   // Keep these two lists in lock-step until the Classic menu is retired.
+  // Exception: pages embedded in the NOUX shell (e.g. Administrators) intentionally
+  // omit `prefix` — they target the NOUX state directly, which does not use
+  // the firewall-prefix routing that Classic requires.
   const items: ItemSpec[] = [
     {
       label: 'Nexus One UI',
@@ -169,7 +172,6 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     {
       label: 'Administrators',
       stateName: 'administrators',
-      prefix: firewallPrefix,
       showIf: CONFIGURE_SYSTEM && !!productLicense,
       testId: 'nexus-one-top-nav-settings-item-administrators',
     },

@@ -48,6 +48,7 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/successMetricsConfiguration', '/successMetricsConfiguration'],
   ['/baseUrl', '/baseUrl'],
   ['/systemNoticeConfiguration', '/systemNoticeConfiguration'],
+  ['/administrators', '/administrators'],
   // Hosted Repos (/repositories <-> /hostedRepos) is handled by SUBTREE_MAPPINGS below
   // so deep links round-trip 1-1. It's excluded from the Coming Soon entries because
   // it's a native embed, not a stub (CLM-42184).
@@ -136,6 +137,17 @@ const DETAIL_PAGE_MAPPINGS: ReadonlyArray<DetailPageMapping> = [
     classicTemplate: (id) => `/violation/${id}`,
     classicMatch: /^\/violation\/([^/]+)\/?$/,
     nexusOneTemplate: (id) => `/violations/${id}`,
+  },
+  {
+    // Administrators edit (CLM-42464): identity mapping — both bundles share the
+    // same /administrators/{roleId} path. A DETAIL_PAGE_MAPPING is needed rather
+    // than a plain NEXUS_ONE_TO_CLASSIC entry because the roleId segment is
+    // dynamic and identity-entry prefix-matching in toClassicEquivalent would
+    // lose the roleId (returning /administrators instead of /administrators/id).
+    nexusOneMatch: /^\/administrators\/([^/]+)\/?$/,
+    classicTemplate: (id) => `/administrators/${id}`,
+    classicMatch: /^\/administrators\/([^/]+)\/?$/,
+    nexusOneTemplate: (id) => `/administrators/${id}`,
   },
 ];
 

@@ -87,6 +87,10 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/systemNoticeConfiguration')).toBe('/systemNoticeConfiguration');
     });
 
+    it('keeps the Administrators admin path identical on both bundles (CLM-42464)', () => {
+      expect(toNexusOneEquivalent('/administrators')).toBe('/administrators');
+    });
+
     it('falls back to NEXUS_ONE_DEFAULT_PATH for unmapped Classic URLs', () => {
       // `/orgsAndPolicies` (with the typo'd lowercase first letter)
       // and a fake nonsense path are both genuinely unmapped — they
@@ -163,6 +167,10 @@ describe('classicPreviewMap', () => {
 
     it('maps System Notice admin back to the same Classic path', () => {
       expect(toClassicEquivalent('/systemNoticeConfiguration')).toBe('/systemNoticeConfiguration');
+    });
+
+    it('maps Administrators admin back to the same Classic path (CLM-42464)', () => {
+      expect(toClassicEquivalent('/administrators')).toBe('/administrators');
     });
 
     it('falls back to CLASSIC_DEFAULT_PATH for unmapped Preview URLs', () => {
@@ -255,6 +263,38 @@ describe('classicPreviewMap', () => {
     });
   });
 
+  describe('Administrators edit page identity mapping (CLM-42464)', () => {
+    it('maps Nexus One /administrators/{roleId} -> Classic same path (identity)', () => {
+      expect(toClassicEquivalent('/administrators/b9646757e98e486da7d730025f5245f8')).toBe(
+        '/administrators/b9646757e98e486da7d730025f5245f8',
+      );
+    });
+
+    it('maps Classic /administrators/{roleId} -> Nexus One same path (identity)', () => {
+      expect(toNexusOneEquivalent('/administrators/b9646757e98e486da7d730025f5245f8')).toBe(
+        '/administrators/b9646757e98e486da7d730025f5245f8',
+      );
+    });
+
+    it('round-trips detail-page mapping for an arbitrary roleId', () => {
+      const roleId = 'b9646757e98e486da7d730025f5245f8';
+      const classicPath = toClassicEquivalent(`/administrators/${roleId}`);
+      expect(toNexusOneEquivalent(classicPath)).toBe(`/administrators/${roleId}`);
+    });
+
+    it('still maps the bare /administrators list page back to the same Classic path', () => {
+      // Detail mapping must NOT shadow the list-page identity entry;
+      // /administrators (no roleId) still maps to /administrators on Classic.
+      expect(toClassicEquivalent('/administrators')).toBe('/administrators');
+    });
+
+    it('preserves URL-encoded roleId segments verbatim', () => {
+      expect(toClassicEquivalent('/administrators/role%2Fwith%2Fslashes')).toBe(
+        '/administrators/role%2Fwith%2Fslashes',
+      );
+    });
+  });
+
   describe('round-trip stability for known mappings', () => {
     // For pages that have Classic AND Preview equivalents, going one way and
     // back should land on a Classic URL that maps back to the same Preview URL.
@@ -270,6 +310,7 @@ describe('classicPreviewMap', () => {
       ['/successMetricsConfiguration'],
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
+      ['/administrators'],
     ])('nexus-one %s -> classic -> nexus-one returns to a path that maps back', (previewPath) => {
       const classicEquivalent = toClassicEquivalent(previewPath);
       const backToPreview = toNexusOneEquivalent(classicEquivalent);

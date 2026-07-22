@@ -29,6 +29,7 @@ import {
   NEXUS_ONE_VIOLATIONS_STATE_NAME,
   NEXUS_ONE_VIOLATIONS_URL,
 } from 'MainRoot/nosc/violations/violationsRoute';
+import rootReducer from 'MainRoot/reduxConfig/reducers';
 import 'MainRoot/nexus-one/routes';
 
 describe('nexusOneClassicEmbedRoutes', () => {
@@ -359,6 +360,78 @@ describe('nexusOneClassicEmbedRoutes', () => {
       (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
 
       await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // CLM-42464: Administrators list page (read-only, no form, no dirty guard)
+  describe('administrators Classic-embed admin route', () => {
+    const state = () => router.stateRegistry.get('administrators');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /administrators', () => {
+      expect(state()?.url).toBe('/administrators');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('omits isDirty data property (list page with no form)', () => {
+      expect(state()?.data?.isDirty).toBeUndefined();
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // CLM-42464: Administrators edit page (has isDirty dirty-guard wiring)
+  describe('administratorsEdit Classic-embed admin route', () => {
+    const state = () => router.stateRegistry.get('administratorsEdit');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /administrators/{roleId}', () => {
+      expect(state()?.url).toBe('/administrators/{roleId}');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('carries the isDirty data path so the shell dirty guard fires on nav', () => {
+      expect(state()?.data?.isDirty).toEqual(['administratorsConfig', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      const rootState = rootReducer(undefined, { type: '@@INIT' });
+      const [slice, field] = state()?.data?.isDirty ?? [];
+      expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
     });
   });
 });

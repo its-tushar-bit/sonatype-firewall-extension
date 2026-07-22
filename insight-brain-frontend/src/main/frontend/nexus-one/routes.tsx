@@ -19,6 +19,8 @@ import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/Succ
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
 import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
 import SystemNoticeConfigurationContainer from 'MainRoot/configuration/systemNoticeConfiguration/SystemNoticeConfigurationContainer';
+import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
+import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
 import ApiPage from 'MainRoot/api/ApiPage';
 import HostedReposPage from 'MainRoot/hostedRepos/HostedReposPage';
 import HostedReposListPage from 'MainRoot/hostedRepos/HostedReposListPage';
@@ -543,6 +545,29 @@ router.stateRegistry.register({
   data: {
     title: 'System Notice',
     isDirty: ['systemNoticeConfiguration', 'viewState', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'administrators',
+  url: '/administrators',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(AdministratorsConfig),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Administrator Config',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'administratorsEdit',
+  url: '/administrators/{roleId}',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(AdministratorsEdit),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Administrator Edit',
+    isDirty: ['administratorsConfig', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

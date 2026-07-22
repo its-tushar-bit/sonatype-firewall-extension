@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -119,9 +120,10 @@ public class HeaderComponent
     return byRole(AriaRole.BUTTON, "Solution Switcher");
   }
 
-  /** Link inside the open Solution Switcher dropdown. */
+  /** Exact-match — {@code "Developer"} would otherwise collide with {@code "AI Developer"}. */
   public Locator solutionSwitcherLink(String name) {
-    return byRole(AriaRole.LINK, name);
+    return page.getByRole(AriaRole.LINK,
+        new Page.GetByRoleOptions().setName(name).setExact(true));
   }
 
   public Locator systemConfigMenuButton() {

@@ -894,17 +894,15 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       });
     });
 
-    it('row "View →" link goes to the Classic component detail page', async () => {
+    it('row "View →" link goes to the native component detail page', async () => {
       mockHappyPath(axiosMock);
       renderAppDetail('components');
       const table = await screen.findByTestId('nosc-app-detail-components-table');
       const links = within(table).getAllByTestId('nosc-app-detail-components-row-link');
       // First row in the fixture is log4j-core with hash=abc123.
-      // Native component detail is not registered yet; ComponentsTab still
-      // deep-links into Classic `applicationReport.componentDetails.overview`.
       expect(links[0]).toHaveAttribute(
         'href',
-        `http://localhost/assets/index.html#/applicationReport/${PUBLIC_ID}/${SCAN_ID}/componentDetails/abc123/overview`,
+        `#/applications/${PUBLIC_ID}/components/abc123?scanId=${SCAN_ID}`,
       );
     });
 

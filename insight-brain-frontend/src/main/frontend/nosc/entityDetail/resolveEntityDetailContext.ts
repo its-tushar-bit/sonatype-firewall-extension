@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
+import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 import { violationDetailHref } from 'MainRoot/nosc/violations/violationDetailHref';
 import type {
   EntityDetailContextChain,
@@ -42,8 +44,6 @@ function labelFor(kind: EntityKind, input: EntityDetailContextInput): string {
 
 /**
  * True when enough IDs exist to identify the entity in the rail (label + future link).
- * Component and vulnerability detail routes are not registered in Nexus One yet, so
- * {@link hrefFor} returns null for those kinds even when this is true.
  */
 function isAvailableFor(kind: EntityKind, input: EntityDetailContextInput): boolean {
   switch (kind) {
@@ -86,18 +86,30 @@ function hrefFor(kind: EntityKind, input: EntityDetailContextInput): string | nu
         input,
       );
     }
-    case 'component':
-      // Component entity detail route is not registered in Nexus One yet.
-      return null;
+    case 'component': {
+      if (!input.applicationPublicId || !input.componentHash) {
+        return null;
+      }
+      return componentDetailHref(input.applicationPublicId, input.componentHash, input.scanId);
+    }
     case 'violation': {
       if (!input.policyViolationId) {
         return null;
       }
       return appendContextQuery(violationDetailHref(input.policyViolationId), input);
     }
-    case 'vulnerability':
-      // Vulnerability entity detail route is not registered in Nexus One yet.
-      return null;
+    case 'vulnerability': {
+      if (!input.vulnId) {
+        return null;
+      }
+      return vulnerabilityDetailHref({
+        vulnId: input.vulnId,
+        applicationPublicId: input.applicationPublicId,
+        componentHash: input.componentHash,
+        violationId: input.policyViolationId,
+        scanId: input.scanId,
+      });
+    }
   }
 }
 

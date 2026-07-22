@@ -75,6 +75,8 @@ export interface RawReportComponent {
   proprietary?: boolean;
   matchState?: string;
   pathnames?: ReadonlyArray<string>;
+  /** Present on raw-report components; required for third-party vulnerability lookups. */
+  identificationSource?: string;
   componentIdentifier?: {
     format?: string;
     coordinates?: Record<string, string>;

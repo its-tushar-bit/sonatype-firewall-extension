@@ -20,6 +20,7 @@ import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import { RawReportComponent } from './applicationDetailTypes';
 import { LargeScanBanner } from './LargeScanBanner';
+import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
 import {
   COMPONENTS_PAGE_SIZE,
   classicReportHrefForComponent,
@@ -266,10 +267,10 @@ export function ComponentsTab({
                       </Text>
                     </Table.Cell>
                     <Table.Cell justify="end">
-                      {scanId ? (
+                      {scanId && c.hash ? (
                         <RadixLink
                           size="2"
-                          href={classicReportHrefForComponent(publicId, scanId, c.hash)}
+                          href={componentDetailHref(publicId, c.hash, scanId)}
                           data-testid="nosc-app-detail-components-row-link"
                         >
                           View →

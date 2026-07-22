@@ -61,6 +61,8 @@ import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardSta
 import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
 import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { nexusOneViolationDetailStates } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
+import { nexusOneComponentDetailStates } from 'MainRoot/nexus-one/nexusOneComponentDetailStates';
+import { nexusOneVulnerabilityDetailStates } from 'MainRoot/nexus-one/nexusOneVulnerabilityDetailStates';
 import BaseUrlConfiguration from 'MainRoot/configuration/baseUrl/BaseUrlConfiguration';
 // NOTE: the three side-import route modules below call router.stateRegistry.register(...) at import
 // time with no stateRegistry.get() idempotency guard, so this module (and any test) must import each
@@ -176,6 +178,12 @@ router.stateRegistry.register({
   },
 } as ReactStateDeclaration);
 
+// Native Component detail (CLM-42767) — register before app-detail tab children
+// are matched for the same /applications/{id}/components prefix where possible.
+nexusOneComponentDetailStates().forEach((state) => {
+  router.stateRegistry.register(state);
+});
+
 // Application detail: abstract parent shell + one child state per tab (CLM-40901).
 nexusOneApplicationDetailStates().forEach((state) => {
   router.stateRegistry.register(state);
@@ -186,8 +194,13 @@ nexusOneApplicationReportStates().forEach((state) => {
   router.stateRegistry.register(state);
 });
 
-// Embedded Classic violation detail (CLM-42256).
+// Native Nexus One violation detail (CLM-42256 / CLM-42765).
 nexusOneViolationDetailStates().forEach((state) => {
+  router.stateRegistry.register(state);
+});
+
+// Native Vulnerability detail (CLM-42769).
+nexusOneVulnerabilityDetailStates().forEach((state) => {
   router.stateRegistry.register(state);
 });
 
@@ -201,7 +214,7 @@ router.stateRegistry.register({
 } as ReactStateDeclaration);
 
 // Martha V1 Violations card list (CLM-42257), wired to POST /rest/dashboard/violations/list
-// (CLM-42254). Sibling of the embedded violation detail state registered at /violations/{id}
+// (CLM-42254). Sibling of the native violation detail state registered at /violations/{id}
 // (nexusOneViolationDetail, CLM-42256) — the card drill-in target. The optional query params persist
 // search + sidebar filters + page in the hash for bookmarks/back-forward (CLM-42260); name + url come
 // from violationsRoute.ts so the container's round-trip go(...) calls can't drift from this state.

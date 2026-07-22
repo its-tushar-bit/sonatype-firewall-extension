@@ -133,10 +133,11 @@ describe('ViolationDetail', () => {
       'href',
       '#/applications/demo-app?stageId=build',
     );
-    // Component and Vulnerability detail routes are not registered yet — available
-    // placeholders stay non-links.
-    expect(within(rail).getByText('demo-component')).toBeInTheDocument();
-    expect(within(rail).queryByRole('link', { name: 'demo-component' })).not.toBeInTheDocument();
+    expect(within(rail).getByRole('link', { name: 'demo-component' })).toHaveAttribute(
+      'href',
+      '#/applications/demo-app/components/component-hash',
+    );
+    // Vulnerability id is absent until the summary loads — stays a non-link placeholder.
     expect(within(rail).getByText('Vulnerability')).toBeInTheDocument();
     expect(within(rail).queryByRole('link', { name: 'Vulnerability' })).not.toBeInTheDocument();
   });

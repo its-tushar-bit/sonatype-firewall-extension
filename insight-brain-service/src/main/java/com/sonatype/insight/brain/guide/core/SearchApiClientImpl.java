@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableException;
 import com.sonatype.insight.brain.guide.api.error.GuideNotFoundException;
+import com.sonatype.insight.brain.guide.api.purl.PurlArtifactQualifiers;
 import com.sonatype.insight.brain.guide.telemetry.GuideOperationType;
 import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -430,8 +431,10 @@ public class SearchApiClientImpl
       GuideComponentVersionsRequest request)
   {
     Multimap<String, String> params = ArrayListMultimap.create();
-    if (request.purl() != null) {
-      params.put("purl", purlForUpstream(request.purl()));
+    String qualifiedPurl = PurlArtifactQualifiers.withArtifactQualifiers(
+        request.purl(), request.extension(), request.classifier());
+    if (qualifiedPurl != null) {
+      params.put("purl", purlForUpstream(qualifiedPurl));
     }
     if (request.offset() != null) {
       params.put("offset", String.valueOf(request.offset()));
@@ -503,8 +506,10 @@ public class SearchApiClientImpl
       GuideComponentVulnerabilitiesRequest request)
   {
     Multimap<String, String> params = ArrayListMultimap.create();
-    if (request.purl() != null) {
-      params.put("purl", purlForUpstream(request.purl()));
+    String qualifiedPurl = PurlArtifactQualifiers.withArtifactQualifiers(
+        request.purl(), request.extension(), request.classifier());
+    if (qualifiedPurl != null) {
+      params.put("purl", purlForUpstream(qualifiedPurl));
     }
     if (request.format() != null) {
       params.put("format", request.format());
@@ -591,8 +596,10 @@ public class SearchApiClientImpl
       GuideComponentDependenciesRequest request)
   {
     Multimap<String, String> params = ArrayListMultimap.create();
-    if (request.purl() != null) {
-      params.put("purl", purlForUpstream(request.purl()));
+    String qualifiedPurl = PurlArtifactQualifiers.withArtifactQualifiers(
+        request.purl(), request.extension(), request.classifier());
+    if (qualifiedPurl != null) {
+      params.put("purl", purlForUpstream(qualifiedPurl));
     }
     if (request.format() != null) {
       params.put("format", request.format());

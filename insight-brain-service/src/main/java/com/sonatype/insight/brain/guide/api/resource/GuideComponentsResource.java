@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentVulnerabilitiesReq
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.api.error.GuidePurlValidator;
 import com.sonatype.insight.brain.guide.api.purl.GuidePurlAssembler;
+import com.sonatype.insight.brain.guide.api.purl.PurlArtifactQualifiers;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -142,15 +143,19 @@ public class GuideComponentsResource
       @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
           + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
       @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
-          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage,
+      @Parameter(
+          description = "Artifact extension (e.g. 'jar', 'whl'); omit for no filter.") @QueryParam("extension") String extension,
+      @Parameter(
+          description = "Artifact classifier (e.g. 'sources', 'javadoc'); omit for no filter.") @QueryParam("classifier") String classifier) throws IOException
   {
     String resolvedPurl = purl != null ? purl : GuidePurlAssembler.buildPurl(format, namespace, name, version);
-    return resolveAndEnrichDetail(resolvedPurl, ownerId, stage);
+    return resolveAndEnrichDetail(resolvedPurl, ownerId, stage, extension, classifier);
   }
 
   @Override
   public ComponentDetailDocument getComponentDetailByPurlQueryParam(String purl) throws IOException {
-    return resolveAndEnrichDetail(purl, null, null);
+    return resolveAndEnrichDetail(purl, null, null, null, null);
   }
 
   @Override
@@ -159,22 +164,36 @@ public class GuideComponentsResource
       String namespace,
       String name,
       String version,
-      // extension/classifier: unrelated contract addition (predates GUIDE-3059) that insight-brain
-      // hasn't wired up yet — accepted here only so this override still compiles against any
-      // api-contract version past 0.9.0-01, and ignored just like GuidePurlAssembler.buildPurl
-      // ignores them today.
       String extension,
       String classifier) throws IOException
   {
     String purl = GuidePurlAssembler.buildPurl(format, namespace, name, version);
-    return resolveAndEnrichDetail(purl, null, null);
+    return resolveAndEnrichDetail(purl, null, null, extension, classifier);
   }
 
-  /** Shared by the {@code /detail} wrapper and both interface-bound detail overrides. */
-  private ComponentDetailDocument resolveAndEnrichDetail(String purl, String ownerId, String stage) throws IOException {
+  /**
+   * Shared by the {@code /detail} wrapper and both interface-bound detail overrides.
+   *
+   * <p>
+   * Note on qualifier application pattern: This method applies artifact qualifiers (extension/classifier)
+   * to the PURL before calling {@code getComponentDetailByPurl}. In contrast, the versions/dependencies/
+   * vulnerabilities endpoints store the raw PURL in request DTOs and apply qualifiers inside
+   * {@code SearchApiClientImpl.buildComponent*Params}. The asymmetry is intentional—detail takes a pre-built
+   * qualified PURL while the others build params from the raw PURL. Future maintainers should not add
+   * qualifier application in both places to avoid double-encoding.
+   */
+  private ComponentDetailDocument resolveAndEnrichDetail(
+      String purl,
+      String ownerId,
+      String stage,
+      String extension,
+      String classifier) throws IOException
+  {
     requireValidStage(stage);
     GuidePurlValidator.validate(purl);
-    return guidePolicyService.enrichComponentDetail(searchApiClient.getComponentDetailByPurl(purl), ownerId, stage);
+    String qualifiedPurl = PurlArtifactQualifiers.withArtifactQualifiers(purl, extension, classifier);
+    return guidePolicyService.enrichComponentDetail(
+        searchApiClient.getComponentDetailByPurl(qualifiedPurl), ownerId, stage);
   }
 
   @GET
@@ -201,13 +220,15 @@ public class GuideComponentsResource
       @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
           + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
       @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
-          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage,
+      @Parameter(description = "Artifact extension.") @QueryParam("extension") String extension,
+      @Parameter(description = "Artifact classifier.") @QueryParam("classifier") String classifier) throws IOException
   {
     requireLimitWithinPolicyEnrichmentCap(limit);
     String resolvedPurl = purl != null ? purl : GuidePurlAssembler.buildPurl(format, namespace, name, version);
     return resolveAndEnrichVersions(
-        resolvedPurl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore,
-        maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable, ownerId, stage);
+        resolvedPurl, extension, classifier, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
+        minVersionScore, maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable, ownerId, stage);
   }
 
   @Override
@@ -228,7 +249,7 @@ public class GuideComponentsResource
       Boolean isStable) throws IOException
   {
     return resolveAndEnrichVersions(
-        purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore,
+        purl, null, null, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore,
         maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable, null, null);
   }
 
@@ -251,22 +272,20 @@ public class GuideComponentsResource
       String publishedWindow,
       Boolean hasMalware,
       Boolean isStable,
-      // extension/classifier: unrelated contract addition (predates GUIDE-3059) that insight-brain
-      // hasn't wired up yet — accepted here only so this override still compiles against any
-      // api-contract version past 0.9.0-01, and ignored just like GuidePurlAssembler.buildPurl
-      // ignores them today.
       String extension,
       String classifier) throws IOException
   {
     String purl = GuidePurlAssembler.buildPurl(format, namespace, name, version);
     return resolveAndEnrichVersions(
-        purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minVersionScore,
-        maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable, null, null);
+        purl, extension, classifier, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
+        minVersionScore, maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable, null, null);
   }
 
   /** Shared by the {@code /versions} wrapper and both interface-bound versions overrides. */
   private ApiSearchResponse<ComponentDetailDocument> resolveAndEnrichVersions(
       String purl,
+      String extension,
+      String classifier,
       Integer offset,
       Integer limit,
       String sortField,
@@ -286,7 +305,7 @@ public class GuideComponentsResource
     requireValidStage(stage);
     GuidePurlValidator.validate(purl);
     GuideComponentVersionsRequest request = new GuideComponentVersionsRequest(
-        purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
+        purl, extension, classifier, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
         minVersionScore, maxVersionScore, versionQuery, publishedWindow, hasMalware, isStable);
     return guidePolicyService.enrichComponentDetailSearch(
         searchApiClient.getComponentVersions(request), ownerId, stage);
@@ -314,16 +333,14 @@ public class GuideComponentsResource
       @QueryParam("policyCompliant") Boolean policyCompliant,
       @QueryParam("cwes") List<String> cwes,
       @QueryParam("exploitationKnown") Boolean exploitationKnown,
-      @QueryParam("publishedWindow") String publishedWindow) throws IOException
+      @QueryParam("publishedWindow") String publishedWindow,
+      @Parameter(description = "Artifact extension.") @QueryParam("extension") String extension,
+      @Parameter(description = "Artifact classifier.") @QueryParam("classifier") String classifier) throws IOException
   {
-    if (purl != null) {
-      return getComponentVulnerabilitiesByPurlQueryParam(
-          purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minEpss, maxEpss, hasMalware,
-          patchAvailable, policyCompliant, cwes, exploitationKnown, publishedWindow);
-    }
-    return getComponentVulnerabilitiesByQueryParams(
-        format, namespace, name, version, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minEpss,
-        maxEpss, hasMalware, patchAvailable, policyCompliant, cwes, exploitationKnown, publishedWindow, null, null);
+    String resolvedPurl = purl != null ? purl : GuidePurlAssembler.buildPurl(format, namespace, name, version);
+    return resolveVulnerabilities(
+        resolvedPurl, extension, classifier, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
+        minEpss, maxEpss, hasMalware, patchAvailable, policyCompliant, cwes, exploitationKnown, publishedWindow);
   }
 
   @Override
@@ -345,13 +362,9 @@ public class GuideComponentsResource
       Boolean exploitationKnown,
       String publishedWindow) throws IOException
   {
-    GuidePurlValidator.validate(purl);
-    // policyCompliant is not supported - policy evaluation is a Lifecycle-specific feature.
-    GuideComponentVulnerabilitiesRequest request = new GuideComponentVulnerabilitiesRequest(
-        purl, null, null, null, null, offset, limit, sortField, sortOrder,
-        severities, minCvss, maxCvss, minEpss, maxEpss, hasMalware,
-        patchAvailable, cwes, exploitationKnown, publishedWindow);
-    return searchApiClient.getComponentVulnerabilities(request);
+    return resolveVulnerabilities(
+        purl, null, null, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
+        minEpss, maxEpss, hasMalware, patchAvailable, policyCompliant, cwes, exploitationKnown, publishedWindow);
   }
 
   @Override
@@ -375,17 +388,48 @@ public class GuideComponentsResource
       List<String> cwes,
       Boolean exploitationKnown,
       String publishedWindow,
-      // extension/classifier: unrelated contract addition (predates GUIDE-3059) that insight-brain
-      // hasn't wired up yet — accepted here only so this override still compiles against any
-      // api-contract version past 0.9.0-01, and ignored just like GuidePurlAssembler.buildPurl
-      // ignores them today.
       String extension,
       String classifier) throws IOException
   {
     String purl = GuidePurlAssembler.buildPurl(format, namespace, name, version);
-    return getComponentVulnerabilitiesByPurlQueryParam(
-        purl, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss, minEpss, maxEpss,
-        hasMalware, patchAvailable, policyCompliant, cwes, exploitationKnown, publishedWindow);
+    return resolveVulnerabilities(
+        purl, extension, classifier, offset, limit, sortField, sortOrder, severities, minCvss, maxCvss,
+        minEpss, maxEpss, hasMalware, patchAvailable, policyCompliant, cwes, exploitationKnown, publishedWindow);
+  }
+
+  /**
+   * Shared helper for the three vulnerability entry points.
+   *
+   * @param policyCompliant Accepted for API compatibility but ignored. Policy evaluation is a
+   *          Lifecycle-specific feature; this parameter is silently dropped rather than rejecting with
+   *          a 400 error to maintain backward compatibility with clients that include it.
+   */
+  private ApiSearchResponse<VulnerabilityDocument> resolveVulnerabilities(
+      String purl,
+      String extension,
+      String classifier,
+      Integer offset,
+      Integer limit,
+      String sortField,
+      String sortOrder,
+      List<String> severities,
+      Double minCvss,
+      Double maxCvss,
+      Double minEpss,
+      Double maxEpss,
+      Boolean hasMalware,
+      Boolean patchAvailable,
+      Boolean policyCompliant,
+      List<String> cwes,
+      Boolean exploitationKnown,
+      String publishedWindow) throws IOException
+  {
+    GuidePurlValidator.validate(purl);
+    GuideComponentVulnerabilitiesRequest request = new GuideComponentVulnerabilitiesRequest(
+        purl, extension, classifier, null, null, null, null, offset, limit, sortField, sortOrder,
+        severities, minCvss, maxCvss, minEpss, maxEpss, hasMalware,
+        patchAvailable, cwes, exploitationKnown, publishedWindow);
+    return searchApiClient.getComponentVulnerabilities(request);
   }
 
   @GET
@@ -414,13 +458,16 @@ public class GuideComponentsResource
       @Parameter(description = "Restrict policy evaluation to this owner (application or organization "
           + "id). Omitted defaults to the root organization.") @QueryParam("ownerId") String ownerId,
       @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
-          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
+          + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage,
+      @Parameter(description = "Artifact extension.") @QueryParam("extension") String extension,
+      @Parameter(description = "Artifact classifier.") @QueryParam("classifier") String classifier) throws IOException
   {
     requireLimitWithinPolicyEnrichmentCap(limit);
     String resolvedPurl = purl != null ? purl : GuidePurlAssembler.buildPurl(format, namespace, name, version);
     return resolveAndEnrichDependencies(
-        resolvedPurl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss,
-        maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, ownerId, stage);
+        resolvedPurl, extension, classifier, query, offset, limit, sortField, sortOrder, formats, categories,
+        severities,
+        minCvss, maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, ownerId, stage);
   }
 
   @Override
@@ -443,8 +490,8 @@ public class GuideComponentsResource
       String latestStable) throws IOException
   {
     return resolveAndEnrichDependencies(
-        purl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss,
-        maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, null, null);
+        purl, null, null, query, offset, limit, sortField, sortOrder, formats, categories, severities,
+        minCvss, maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, null, null);
   }
 
   @Override
@@ -468,22 +515,20 @@ public class GuideComponentsResource
       List<String> licenseFamilies,
       List<String> licenses,
       String latestStable,
-      // extension/classifier: unrelated contract addition (predates GUIDE-3059) that insight-brain
-      // hasn't wired up yet — accepted here only so this override still compiles against any
-      // api-contract version past 0.9.0-01, and ignored just like GuidePurlAssembler.buildPurl
-      // ignores them today.
       String extension,
       String classifier) throws IOException
   {
     String purl = GuidePurlAssembler.buildPurl(format, namespace, name, version);
     return resolveAndEnrichDependencies(
-        purl, query, offset, limit, sortField, sortOrder, formats, categories, severities, minCvss,
-        maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, null, null);
+        purl, extension, classifier, query, offset, limit, sortField, sortOrder, formats, categories, severities,
+        minCvss, maxCvss, minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable, null, null);
   }
 
   /** Shared by the {@code /dependencies} wrapper and both interface-bound dependencies overrides. */
   private ApiSearchResponse<ComponentDocument> resolveAndEnrichDependencies(
       String purl,
+      String extension,
+      String classifier,
       String query,
       Integer offset,
       Integer limit,
@@ -505,7 +550,7 @@ public class GuideComponentsResource
     requireValidStage(stage);
     GuidePurlValidator.validate(purl);
     GuideComponentDependenciesRequest request = new GuideComponentDependenciesRequest(
-        purl, null, null, null, null, query, offset, limit, sortField, sortOrder,
+        purl, extension, classifier, null, null, null, null, query, offset, limit, sortField, sortOrder,
         formats, categories, severities, minCvss, maxCvss,
         minVersionScore, maxVersionScore, licenseFamilies, licenses, latestStable);
     return guidePolicyService.enrichComponentSearch(

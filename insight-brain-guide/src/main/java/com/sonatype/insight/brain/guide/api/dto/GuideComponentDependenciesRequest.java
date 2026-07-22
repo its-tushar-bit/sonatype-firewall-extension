@@ -13,6 +13,8 @@ import java.util.List;
 public record GuideComponentDependenciesRequest(
     // Component identifier
     String purl,
+    String extension,
+    String classifier,
     String format,
     String namespace,
     String name,

@@ -11,6 +11,8 @@ import java.util.List;
  * Request parameters for component versions endpoint.
  *
  * @param purl Package URL
+ * @param extension Artifact extension (e.g. "jar", "whl"); {@code null} or blank means "no filter"
+ * @param classifier Artifact classifier (e.g. "sources", "javadoc"); {@code null} or blank means "no filter"
  * @param offset Pagination offset
  * @param limit Pagination limit
  * @param sortField Field to sort by
@@ -27,6 +29,8 @@ import java.util.List;
  */
 public record GuideComponentVersionsRequest(
     String purl,
+    String extension,
+    String classifier,
     Integer offset,
     Integer limit,
     String sortField,

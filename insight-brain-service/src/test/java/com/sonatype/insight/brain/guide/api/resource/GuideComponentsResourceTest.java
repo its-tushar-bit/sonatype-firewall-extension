@@ -16,10 +16,14 @@ import com.sonatype.guide.api.dto.ComponentDocument;
 import com.sonatype.guide.api.request.LatestVersionRequest;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.guide.api.dto.GuideComponentDependenciesRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDetailDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDetailSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentSearchResponse;
+import com.sonatype.insight.brain.guide.api.dto.GuideComponentVersionsRequest;
+import com.sonatype.insight.brain.guide.api.dto.GuideComponentVulnerabilitiesRequest;
+import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyCompliance;
 import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceLevel;
 import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceSummary;
@@ -94,7 +98,7 @@ public class GuideComponentsResourceTest
   public void getComponentDetail_byCoords_missingVersion_returns400() {
     assertThatThrownBy(
         () -> underTest.getComponentDetail(
-            null, "maven", "org.apache.logging.log4j", "log4j-core", null, null, null))
+            null, "maven", "org.apache.logging.log4j", "log4j-core", null, null, null, null, null))
                 .isInstanceOf(GuideApiException.class)
                 .hasMessageContaining("'format', 'name', 'version'")
                 .extracting(e -> ((GuideApiException) e).getResponse().getStatus())
@@ -106,7 +110,7 @@ public class GuideComponentsResourceTest
   public void getComponentDetail_byCoords_blankVersion_returns400() {
     assertThatThrownBy(
         () -> underTest.getComponentDetail(
-            null, "maven", "org.apache.logging.log4j", "log4j-core", "  ", null, null))
+            null, "maven", "org.apache.logging.log4j", "log4j-core", "  ", null, null, null, null))
                 .isInstanceOf(GuideApiException.class)
                 .hasMessageContaining("'format', 'name', 'version'");
     verifyNoInteractions(searchApiClient);
@@ -114,15 +118,16 @@ public class GuideComponentsResourceTest
 
   @Test
   public void getComponentDetail_byCoords_missingFormat_returns400() {
-    assertThatThrownBy(() -> underTest.getComponentDetail(null, null, null, "log4j-core", "2.14.0", null, null))
-        .isInstanceOf(GuideApiException.class)
-        .hasMessageContaining("'format', 'name', 'version'");
+    assertThatThrownBy(
+        () -> underTest.getComponentDetail(null, null, null, "log4j-core", "2.14.0", null, null, null, null))
+            .isInstanceOf(GuideApiException.class)
+            .hasMessageContaining("'format', 'name', 'version'");
     verifyNoInteractions(searchApiClient);
   }
 
   @Test
   public void getComponentDetail_byCoords_missingName_returns400() {
-    assertThatThrownBy(() -> underTest.getComponentDetail(null, "maven", null, null, "2.14.0", null, null))
+    assertThatThrownBy(() -> underTest.getComponentDetail(null, "maven", null, null, "2.14.0", null, null, null, null))
         .isInstanceOf(GuideApiException.class)
         .hasMessageContaining("'format', 'name', 'version'");
     verifyNoInteractions(searchApiClient);
@@ -130,7 +135,7 @@ public class GuideComponentsResourceTest
 
   @Test
   public void getComponentDetail_noPurlAndNoCoords_returns400() {
-    assertThatThrownBy(() -> underTest.getComponentDetail(null, null, null, null, null, null, null))
+    assertThatThrownBy(() -> underTest.getComponentDetail(null, null, null, null, null, null, null, null, null))
         .isInstanceOf(GuideApiException.class)
         .hasMessageContaining("'format', 'name', 'version'");
     verifyNoInteractions(searchApiClient);
@@ -141,7 +146,7 @@ public class GuideComponentsResourceTest
 
   @Test
   public void getComponentDetail_byPurl_invalidPurl_returns400() {
-    assertThatThrownBy(() -> underTest.getComponentDetail("not-a-purl", null, null, null, null, null, null))
+    assertThatThrownBy(() -> underTest.getComponentDetail("not-a-purl", null, null, null, null, null, null, null, null))
         .isInstanceOf(GuideApiException.class)
         .hasMessageStartingWith("Invalid PURL format: ")
         .extracting(e -> ((GuideApiException) e).getResponse().getStatus())
@@ -178,7 +183,7 @@ public class GuideComponentsResourceTest
             null, null, null, null, null, null, null, null, null));
     when(guidePolicyEvaluator.evaluate(any(List.class))).thenReturn(Map.of());
 
-    underTest.getComponentDetail(null, "npm", null, "@types/node", "25.9.2", null, null);
+    underTest.getComponentDetail(null, "npm", null, "@types/node", "25.9.2", null, null, null, null);
 
     ArgumentCaptor<String> purl = ArgumentCaptor.forClass(String.class);
     verify(searchApiClient).getComponentDetailByPurl(purl.capture());
@@ -236,7 +241,7 @@ public class GuideComponentsResourceTest
         .thenReturn(Map.of("pkg:maven/org.example/lib@1.0?type=jar", compliance));
 
     ComponentDetailDocument result = underTest.getComponentDetail(
-        "pkg:maven/org.example/lib@1.0", null, null, null, null, null, null);
+        "pkg:maven/org.example/lib@1.0", null, null, null, null, null, null, null, null);
 
     GuideComponentDetailDocument enriched = (GuideComponentDetailDocument) result;
     assertThat(enriched.policyCompliance()).isSameAs(compliance);
@@ -256,7 +261,7 @@ public class GuideComponentsResourceTest
 
     ApiSearchResponse<ComponentDetailDocument> result = underTest.getComponentVersions(
         "pkg:maven/org.example/lib@1.0", null, null, null, null, 0, 20, null, null,
-        null, null, null, null, null, null, null, null, null, null, null);
+        null, null, null, null, null, null, null, null, null, null, null, null, null);
 
     GuideComponentDetailDocument enriched = (GuideComponentDetailDocument) result.hits().get(0);
     // /versions is a list endpoint (same DTO as /detail, but list context) → slim.
@@ -277,7 +282,7 @@ public class GuideComponentsResourceTest
 
     ApiSearchResponse<ComponentDocument> result = underTest.getComponentDependencies(
         "pkg:maven/org.example/lib@1.0", null, null, null, null,
-        null, 0, 20, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        null, 0, 20, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
     GuideComponentDocument enriched = (GuideComponentDocument) result.hits().get(0);
     // /dependencies is a list endpoint → slim.
@@ -299,6 +304,97 @@ public class GuideComponentsResourceTest
 
     GuideComponentDetailDocument enriched = (GuideComponentDetailDocument) result;
     assertThat(enriched.policyCompliance()).isSameAs(compliance);
+  }
+
+  @Test
+  public void getComponentDetail_byCoords_forwardsExtensionAndClassifierAsPurlQualifiers() throws Exception {
+    when(searchApiClient.getComponentDetailByPurl(any())).thenReturn(
+        new GuideComponentDetailDocument(
+            "maven", null, "org.apache.commons", "commons-lang3", "3.12.0", null, null, null,
+            null, null, null, null, null, null, null, null, null));
+    when(guidePolicyEvaluator.evaluate(any(List.class))).thenReturn(Map.of());
+
+    underTest.getComponentDetail(
+        null, "maven", "org.apache.commons", "commons-lang3", "3.12.0",
+        null, null, "jar", "sources");
+
+    ArgumentCaptor<String> purlCaptor = ArgumentCaptor.forClass(String.class);
+    verify(searchApiClient).getComponentDetailByPurl(purlCaptor.capture());
+    // Canonical qualifier order is alphabetical, so `classifier` precedes `type`.
+    assertThat(purlCaptor.getValue())
+        .isEqualTo("pkg:maven/org.apache.commons/commons-lang3@3.12.0?classifier=sources&type=jar");
+  }
+
+  @Test
+  public void getComponentDetail_byPurl_forwardsExtensionAndClassifierAsPurlQualifiers() throws Exception {
+    when(searchApiClient.getComponentDetailByPurl(any())).thenReturn(
+        new GuideComponentDetailDocument(
+            "maven", null, "org.apache.commons", "commons-lang3", "3.12.0", null, null, null,
+            null, null, null, null, null, null, null, null, null));
+
+    // When purl is provided directly, qualifiers are applied to that purl rather than building from coords.
+    underTest.getComponentDetail(
+        "pkg:maven/org.apache.commons/commons-lang3@3.12.0", null, null, null, null,
+        null, null, "jar", "sources");
+
+    ArgumentCaptor<String> purlCaptor = ArgumentCaptor.forClass(String.class);
+    verify(searchApiClient).getComponentDetailByPurl(purlCaptor.capture());
+    assertThat(purlCaptor.getValue())
+        .isEqualTo("pkg:maven/org.apache.commons/commons-lang3@3.12.0?classifier=sources&type=jar");
+  }
+
+  @Test
+  public void getComponentVersions_byCoords_forwardsExtensionAndClassifier() throws Exception {
+    when(searchApiClient.getComponentVersions(any()))
+        .thenReturn(new GuideComponentDetailSearchResponse(List.of(), 0L, 0, 20, Map.of()));
+
+    ArgumentCaptor<GuideComponentVersionsRequest> captor =
+        ArgumentCaptor.forClass(GuideComponentVersionsRequest.class);
+
+    underTest.getComponentVersions(
+        null, "maven", "org.apache.commons", "commons-lang3", "3.12.0",
+        null, null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, "jar", "sources");
+
+    verify(searchApiClient).getComponentVersions(captor.capture());
+    assertThat(captor.getValue().extension()).isEqualTo("jar");
+    assertThat(captor.getValue().classifier()).isEqualTo("sources");
+  }
+
+  @Test
+  public void getComponentVulnerabilities_byCoords_forwardsExtensionAndClassifier() throws Exception {
+    when(searchApiClient.getComponentVulnerabilities(any()))
+        .thenReturn(new GuideVulnerabilitySearchResponse(List.of(), 0L, 0, 20, Map.of()));
+
+    ArgumentCaptor<GuideComponentVulnerabilitiesRequest> captor =
+        ArgumentCaptor.forClass(GuideComponentVulnerabilitiesRequest.class);
+
+    underTest.getComponentVulnerabilities(
+        null, "maven", "org.apache.commons", "commons-lang3", "3.12.0",
+        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+        "jar", "sources");
+
+    verify(searchApiClient).getComponentVulnerabilities(captor.capture());
+    assertThat(captor.getValue().extension()).isEqualTo("jar");
+    assertThat(captor.getValue().classifier()).isEqualTo("sources");
+  }
+
+  @Test
+  public void getComponentDependencies_byCoords_forwardsExtensionAndClassifier() throws Exception {
+    when(searchApiClient.getComponentDependencies(any()))
+        .thenReturn(new GuideComponentSearchResponse(List.of(), 0L, 0, 20, Map.of()));
+
+    ArgumentCaptor<GuideComponentDependenciesRequest> captor =
+        ArgumentCaptor.forClass(GuideComponentDependenciesRequest.class);
+
+    underTest.getComponentDependencies(
+        null, "maven", "org.apache.commons", "commons-lang3", "3.12.0",
+        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, "jar", "sources");
+
+    verify(searchApiClient).getComponentDependencies(captor.capture());
+    assertThat(captor.getValue().extension()).isEqualTo("jar");
+    assertThat(captor.getValue().classifier()).isEqualTo("sources");
   }
 
   private static GuidePolicyCompliance compliantOf() {

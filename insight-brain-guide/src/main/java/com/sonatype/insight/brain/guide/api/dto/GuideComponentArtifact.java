@@ -17,7 +17,7 @@ import com.sonatype.guide.api.dto.Refid;
 
 /**
  * Concrete implementation of ComponentArtifact for Jackson deserialization.
- */
+ **/
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record GuideComponentArtifact(

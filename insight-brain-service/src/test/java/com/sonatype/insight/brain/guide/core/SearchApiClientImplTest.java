@@ -136,7 +136,7 @@ public class SearchApiClientImplTest
   @Test
   public void testGetComponentVersions_scopedNpm_preEncodesPercentSigns() {
     GuideComponentVersionsRequest request = new GuideComponentVersionsRequest(
-        SCOPED_NPM_PURL, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        SCOPED_NPM_PURL, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("purl", SCOPED_NPM_PURL_WIRE);
@@ -151,7 +151,7 @@ public class SearchApiClientImplTest
   public void testGetComponentVulnerabilities_scopedNpm_preEncodesPercentSigns() {
     GuideComponentVulnerabilitiesRequest request = new GuideComponentVulnerabilitiesRequest(
         SCOPED_NPM_PURL, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-        null, null, null);
+        null, null, null, null, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("purl", SCOPED_NPM_PURL_WIRE);
@@ -166,7 +166,7 @@ public class SearchApiClientImplTest
   public void testGetComponentDependencies_scopedNpm_preEncodesPercentSigns() {
     GuideComponentDependenciesRequest request = new GuideComponentDependenciesRequest(
         SCOPED_NPM_PURL, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-        null, null, null, null);
+        null, null, null, null, null, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("purl", SCOPED_NPM_PURL_WIRE);
@@ -183,6 +183,109 @@ public class SearchApiClientImplTest
 
     verify(hdsClient).post(GuideComponentDetailDocument.class, "rest/search/components/latest-version",
         Map.of("purl", SCOPED_NPM_PURL_WIRE));
+  }
+
+  // ---- Artifact selector (extension/classifier) wire-format tests ----
+  //
+  // Search-server (HDS) reads artifact selectors from the PURL's `type` and `classifier`
+  // qualifiers on the by-PURL routes, not from sibling query params. These tests lock in
+  // that SearchApiClientImpl folds request.extension() / request.classifier() into the
+  // outgoing PURL BEFORE the % → %25 pre-encoding runs.
+
+  private static final String QUALIFIED_MAVEN_PURL =
+      "pkg:maven/org.apache.commons/commons-lang3@3.12.0";
+
+  @Test
+  public void testGetComponentVersions_extensionAndClassifier_foldedIntoPurlQualifiers() {
+    GuideComponentVersionsRequest request = new GuideComponentVersionsRequest(
+        QUALIFIED_MAVEN_PURL, "jar", "sources",
+        null, null, null, null, null, null, null, null, null, null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    // Canonical qualifier order is alphabetical, so `classifier` precedes `type`.
+    expectedParams.put("purl", QUALIFIED_MAVEN_PURL + "?classifier=sources&type=jar");
+
+    underTest.getComponentVersions(request);
+
+    verify(hdsClient).getWithMultimap(GuideComponentDetailSearchResponse.class,
+        "rest/search/components/versions", expectedParams);
+  }
+
+  @Test
+  public void testGetComponentVersions_nullExtensionAndClassifier_wireFormatUnchanged() {
+    GuideComponentVersionsRequest request = new GuideComponentVersionsRequest(
+        QUALIFIED_MAVEN_PURL, null, null,
+        null, null, null, null, null, null, null, null, null, null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("purl", QUALIFIED_MAVEN_PURL);
+
+    underTest.getComponentVersions(request);
+
+    verify(hdsClient).getWithMultimap(GuideComponentDetailSearchResponse.class,
+        "rest/search/components/versions", expectedParams);
+  }
+
+  @Test
+  public void testGetComponentVersions_blankExtensionAndClassifier_wireFormatUnchanged() {
+    GuideComponentVersionsRequest request = new GuideComponentVersionsRequest(
+        QUALIFIED_MAVEN_PURL, "", "   ",
+        null, null, null, null, null, null, null, null, null, null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("purl", QUALIFIED_MAVEN_PURL);
+
+    underTest.getComponentVersions(request);
+
+    verify(hdsClient).getWithMultimap(GuideComponentDetailSearchResponse.class,
+        "rest/search/components/versions", expectedParams);
+  }
+
+  @Test
+  public void testGetComponentVulnerabilities_extensionOnly_foldedIntoPurl() {
+    GuideComponentVulnerabilitiesRequest request = new GuideComponentVulnerabilitiesRequest(
+        QUALIFIED_MAVEN_PURL, "jar", null, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("purl", QUALIFIED_MAVEN_PURL + "?type=jar");
+
+    underTest.getComponentVulnerabilities(request);
+
+    verify(hdsClient).getWithMultimap(GuideVulnerabilitySearchResponse.class,
+        "rest/search/components/vulnerabilities", expectedParams);
+  }
+
+  @Test
+  public void testGetComponentDependencies_classifierOnly_foldedIntoPurl() {
+    GuideComponentDependenciesRequest request = new GuideComponentDependenciesRequest(
+        QUALIFIED_MAVEN_PURL, null, "sources", null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("purl", QUALIFIED_MAVEN_PURL + "?classifier=sources");
+
+    underTest.getComponentDependencies(request);
+
+    verify(hdsClient).getWithMultimap(GuideComponentSearchResponse.class,
+        "rest/search/components/dependencies", expectedParams);
+  }
+
+  @Test
+  public void testGetComponentVersions_scopedNpmWithExtension_preservesPercentEncoding() {
+    // Regression guard: extension folding must happen BEFORE the % → %25 pre-encoding.
+    // Canonical scoped-npm PURL + type=tgz qualifier, then the pre-encoding runs.
+    GuideComponentVersionsRequest request = new GuideComponentVersionsRequest(
+        SCOPED_NPM_PURL, "tgz", null,
+        null, null, null, null, null, null, null, null, null, null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("purl", SCOPED_NPM_PURL_WIRE + "?type=tgz");
+
+    underTest.getComponentVersions(request);
+
+    verify(hdsClient).getWithMultimap(GuideComponentDetailSearchResponse.class,
+        "rest/search/components/versions", expectedParams);
   }
 
   @Test
@@ -547,7 +650,7 @@ public class SearchApiClientImplTest
   @Test
   public void testGetComponentVulnerabilities_delegatesToHdsGetWithMultimap() {
     GuideComponentVulnerabilitiesRequest request = new GuideComponentVulnerabilitiesRequest(
-        PURL, "maven", "org.example", "lib", "1.0.0",
+        PURL, null, null, "maven", "org.example", "lib", "1.0.0",
         0, 10, "cvssSeverity", "desc",
         List.of("critical"), 7.0, 10.0, null, null, null, null, null, null, null);
 
@@ -586,7 +689,7 @@ public class SearchApiClientImplTest
   public void testGetComponentVulnerabilities_returnsEmptyOnNotFound() {
     GuideComponentVulnerabilitiesRequest request = new GuideComponentVulnerabilitiesRequest(
         PURL, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-        null);
+        null, null, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("purl", PURL);
@@ -605,7 +708,7 @@ public class SearchApiClientImplTest
   public void testGetComponentVulnerabilities_throwsGuideApiExceptionOnBadGateway() {
     GuideComponentVulnerabilitiesRequest request = new GuideComponentVulnerabilitiesRequest(
         PURL, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-        null);
+        null, null, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("purl", PURL);
@@ -622,7 +725,7 @@ public class SearchApiClientImplTest
   @Test
   public void testGetComponentDependencies_delegatesToHdsGetWithMultimap() {
     GuideComponentDependenciesRequest request = new GuideComponentDependenciesRequest(
-        PURL, "maven", "org.example", "lib", "1.0.0",
+        PURL, null, null, "maven", "org.example", "lib", "1.0.0",
         "log4j", 0, 10, "name", "asc",
         List.of("maven"), null, null, null, null, null, null, null, null, null);
 
@@ -659,7 +762,7 @@ public class SearchApiClientImplTest
   public void testGetComponentDependencies_returnsEmptyOnNotFound() {
     GuideComponentDependenciesRequest request = new GuideComponentDependenciesRequest(
         PURL, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-        null, null);
+        null, null, null, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("purl", PURL);
@@ -678,7 +781,7 @@ public class SearchApiClientImplTest
   public void testGetComponentDependencies_throwsGuideApiExceptionOnBadGateway() {
     GuideComponentDependenciesRequest request = new GuideComponentDependenciesRequest(
         PURL, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-        null, null);
+        null, null, null, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
     expectedParams.put("purl", PURL);

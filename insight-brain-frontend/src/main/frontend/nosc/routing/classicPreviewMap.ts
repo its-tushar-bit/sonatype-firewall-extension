@@ -9,6 +9,11 @@ import {
   COMING_SOON_MODULE_ORDER,
   comingSoonHref,
 } from 'MainRoot/nosc/comingSoon';
+import {
+  CLEAN_PATH_OWNED_ELSEWHERE,
+  embeddedHref,
+  usesEmbeddedHrefPrimary,
+} from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 
 /**
  * Symmetric Classic <-> Nexus One in-hash path map.
@@ -31,10 +36,28 @@ function normalizeClassicPath(fullHref: string): string {
   return fullHref;
 }
 
-const COMING_SOON_ENTRIES: ReadonlyArray<readonly [string, string]> =
-  COMING_SOON_MODULE_ORDER.map(
-    (slug) => [comingSoonHref(slug), normalizeClassicPath(COMING_SOON_MODULES[slug].classicHref)] as const,
-  );
+// Emit clean embed primaries before stub aliases so Classic→Preview reverse
+// lookup (Array.find on classic path) prefers /${slug} over /coming-soon/${slug},
+// and prefers orgs-and-policies over the colliding policies stub on
+// /management/view/organization/ROOT_ORGANIZATION_ID.
+const COMING_SOON_ENTRIES: ReadonlyArray<readonly [string, string]> = [
+  ...COMING_SOON_MODULE_ORDER.flatMap((slug) => {
+    if (!usesEmbeddedHrefPrimary(slug)) return [];
+    const classic = normalizeClassicPath(COMING_SOON_MODULES[slug].classicHref);
+    return [
+      [embeddedHref(slug), classic] as const,
+      [comingSoonHref(slug), classic] as const,
+    ];
+  }),
+  ...COMING_SOON_MODULE_ORDER.flatMap((slug) => {
+    if (usesEmbeddedHrefPrimary(slug)) return [];
+    // Hosted Repos (/repositories <-> /hostedRepos) is handled by SUBTREE_MAPPINGS
+    // so deep links round-trip 1-1 — emit no Coming Soon map entries for those slugs.
+    if (CLEAN_PATH_OWNED_ELSEWHERE.has(slug)) return [];
+    const classic = normalizeClassicPath(COMING_SOON_MODULES[slug].classicHref);
+    return [[comingSoonHref(slug), classic] as const];
+  }),
+];
 
 const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/dashboard', '/dashboard/violations'],
@@ -52,10 +75,7 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/baseUrl', '/baseUrl'],
   ['/systemNoticeConfiguration', '/systemNoticeConfiguration'],
   ['/administrators', '/administrators'],
-  // Hosted Repos (/repositories <-> /hostedRepos) is handled by SUBTREE_MAPPINGS below
-  // so deep links round-trip 1-1. It's excluded from the Coming Soon entries because
-  // it's a native embed, not a stub (CLM-42184).
-  ...COMING_SOON_ENTRIES.filter(([nexus]) => nexus !== '/coming-soon/repositories'),
+  ...COMING_SOON_ENTRIES,
 ];
 
 // Prefix matches use Array.find — keep more-specific paths before broader prefixes

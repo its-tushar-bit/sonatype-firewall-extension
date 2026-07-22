@@ -14,6 +14,11 @@ import {
   COMING_SOON_MODULE_ORDER,
   comingSoonHref,
 } from 'MainRoot/nosc/comingSoon/comingSoonModules';
+import {
+  embeddedHref,
+  isNativeClassicEmbedSlug,
+  usesEmbeddedHrefPrimary,
+} from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 
 /**
  * Mirrors Repo's same-page-toggle pattern: the toggle takes you to the equivalent
@@ -360,12 +365,12 @@ describe('classicPreviewMap', () => {
   // all map to /management/view; Audit Log maps to /dashboard/violations).
   // Reverse mapping picks the first match, which is fine for the toggle UX.
   describe('Coming Soon stubs (P1-F15)', () => {
-    // `repositories` graduated from a Coming Soon stub to a native embed (CLM-42184):
-    // /coming-soon/repositories is intentionally filtered out of the map in favour of the
-    // /repositories <-> /hostedRepos subtree mapping, so it no longer satisfies the
-    // stub -> classicHref invariant asserted below. It's fully covered by the dedicated
-    // /repositories <-> /hostedRepos tests earlier in this file.
-    const COMING_SOON_STUB_SLUGS = COMING_SOON_MODULE_ORDER.filter((slug) => slug !== 'repositories');
+    // Native Classic embeds use clean paths (and repositories uses the
+    // /repositories <-> /hostedRepos subtree mapping). Stub-only invariants
+    // cover the remaining Coming Soon placeholders.
+    const COMING_SOON_STUB_SLUGS = COMING_SOON_MODULE_ORDER.filter(
+      (slug) => !isNativeClassicEmbedSlug(slug),
+    );
 
     it.each(COMING_SOON_STUB_SLUGS)(
       'stub /coming-soon/%s maps to its registered Classic deep link',
@@ -392,9 +397,56 @@ describe('classicPreviewMap', () => {
             backToPreview === '/ui-settings' ||
             backToPreview === '/user-activity' ||
             backToPreview === '/dashboard' ||
-            backToPreview === '/applications',
+            backToPreview === '/applications' ||
+            backToPreview === '/api' ||
+            backToPreview === '/success-metrics' ||
+            backToPreview === '/reports' ||
+            backToPreview === '/legal' ||
+            backToPreview === '/orgs-and-policies' ||
+            backToPreview === '/repositories',
         ).toBe(true);
       },
     );
+  });
+
+  describe('native Classic embeds (CLM-42184)', () => {
+    const EMBED_SLUGS = COMING_SOON_MODULE_ORDER.filter(usesEmbeddedHrefPrimary);
+
+    it.each(EMBED_SLUGS)(
+      'embed %s clean path maps to its registered Classic deep link',
+      (slug) => {
+        const previewPath = embeddedHref(slug);
+        const classicFull = COMING_SOON_MODULES[slug].classicHref;
+        const expectedClassicPath = classicFull.replace(/^\/assets\/#/, '');
+        expect(toClassicEquivalent(previewPath)).toBe(expectedClassicPath);
+      },
+    );
+
+    it.each(EMBED_SLUGS)(
+      'legacy /coming-soon/%s bookmark still maps to Classic',
+      (slug) => {
+        const previewPath = comingSoonHref(slug);
+        const classicFull = COMING_SOON_MODULES[slug].classicHref;
+        const expectedClassicPath = classicFull.replace(/^\/assets\/#/, '');
+        expect(toClassicEquivalent(previewPath)).toBe(expectedClassicPath);
+      },
+    );
+
+    // Reverse direction pins the emission-order contract: clean embeddedHref
+    // must win over the /coming-soon/ alias (and over colliding stubs).
+    it.each(EMBED_SLUGS)(
+      'classic deep link for %s reverse-maps to clean embeddedHref',
+      (slug) => {
+        const classicFull = COMING_SOON_MODULES[slug].classicHref;
+        const classicPath = classicFull.replace(/^\/assets\/#/, '');
+        expect(toNexusOneEquivalent(classicPath)).toBe(embeddedHref(slug));
+      },
+    );
+
+    it('ROOT_ORGANIZATION_ID management path reverse-maps to orgs-and-policies', () => {
+      expect(toNexusOneEquivalent('/management/view/organization/ROOT_ORGANIZATION_ID')).toBe(
+        embeddedHref('orgs-and-policies'),
+      );
+    });
   });
 });

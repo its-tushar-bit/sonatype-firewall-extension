@@ -49,7 +49,12 @@ import React2ShellPage from 'MainRoot/report/react2shell/React2ShellPage';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
 import { ReportingRoute } from 'MainRoot/nexus-one/ReportingRoute';
 import { ClassicComponentMount, mountClassicComponent } from 'MainRoot/nexus-one/ClassicComponentMount';
-import { NATIVE_CLASSIC_EMBED_SLUGS } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
+import {
+  NATIVE_CLASSIC_EMBED_SLUGS,
+  embeddedHref,
+  isNativeClassicEmbedSlug,
+  usesEmbeddedHrefPrimary,
+} from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap';
 import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
@@ -338,7 +343,7 @@ NATIVE_CLASSIC_EMBED_SLUGS.forEach((slug) => {
 // slug — it never consults NATIVE_CLASSIC_EMBED_SLUGS — so a stale entry in EITHER map (not just
 // NATIVE_CLASSIC_COMPONENTS) still mounts/redirects for a slug the embed list says isn't embedded.
 [...Object.keys(NATIVE_CLASSIC_COMPONENTS), ...Object.keys(NATIVE_CLASSIC_EMBED_REDIRECTS)].forEach((slug) => {
-  if (!NATIVE_CLASSIC_EMBED_SLUGS.includes(slug as ComingSoonModuleSlug)) {
+  if (!isNativeClassicEmbedSlug(slug as ComingSoonModuleSlug)) {
     throw new Error(
       `NATIVE_CLASSIC_COMPONENTS or NATIVE_CLASSIC_EMBED_REDIRECTS has an entry for '${slug}' but ` +
         'NATIVE_CLASSIC_EMBED_SLUGS does not list it',
@@ -495,8 +500,17 @@ router.stateRegistry.register({
 
 router.stateRegistry.register({
   name: 'labs.successMetricsReport',
-  url: '/coming-soon/success-metrics/{successMetricsReportId}',
+  url: '/success-metrics/{successMetricsReportId}',
   component: SuccessMetricsReportContainer,
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'labs.successMetricsReportLegacyPath',
+  url: '/coming-soon/success-metrics/{successMetricsReportId}',
+  redirectTo: (trans) => ({
+    state: 'labs.successMetricsReport',
+    params: { successMetricsReportId: trans.params().successMetricsReportId },
+  }),
 } as ReactStateDeclaration);
 
 router.stateRegistry.register({
@@ -680,37 +694,31 @@ router.stateRegistry.register({
 
 COMING_SOON_MODULE_ORDER.forEach((slug) => {
   const module = COMING_SOON_MODULES[slug];
+  // Legacy alias exists iff the primary URL moved off /coming-soon/.
+  const usesClean = usesEmbeddedHrefPrimary(slug);
+  const name = comingSoonStateName(slug);
+  const primaryUrl = usesClean ? embeddedHref(slug) : comingSoonHref(slug);
 
   const redirectTo = NATIVE_CLASSIC_EMBED_REDIRECTS[slug];
-  if (redirectTo) {
-    router.stateRegistry.register({
-      name: comingSoonStateName(slug),
-      url: comingSoonHref(slug),
-      redirectTo,
-      data: { title: module.label },
-    } as ReactStateDeclaration);
-    return;
-  }
-
   const ClassicComponent = NATIVE_CLASSIC_COMPONENTS[slug];
-  if (ClassicComponent) {
+  const registration = (
+    redirectTo
+      ? { name, url: primaryUrl, redirectTo, data: { title: module.label } }
+      : ClassicComponent
+        ? { name, url: primaryUrl, component: ClassicComponent, data: { title: module.label } }
+        : { name, url: primaryUrl, component: ComingSoonRoute, data: { title: 'Nexus One' } }
+  ) as ReactStateDeclaration;
+
+  router.stateRegistry.register(registration);
+
+  if (usesClean) {
     router.stateRegistry.register({
-      name: comingSoonStateName(slug),
+      name: `${name}LegacyPath`,
       url: comingSoonHref(slug),
-      component: ClassicComponent,
+      redirectTo: name,
       data: { title: module.label },
     } as ReactStateDeclaration);
-    return;
   }
-
-  router.stateRegistry.register({
-    name: comingSoonStateName(slug),
-    url: comingSoonHref(slug),
-    component: ComingSoonRoute,
-    data: {
-      title: 'Nexus One',
-    },
-  } as ReactStateDeclaration);
 });
 
 router.urlService.rules.otherwise(NEXUS_ONE_DEFAULT_PATH);

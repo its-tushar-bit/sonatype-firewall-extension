@@ -95,10 +95,17 @@ describe('LeftNav', () => {
     ['components', '#/components'],
     ['violations', '#/violations'],
     ['waivers', '#/waivers'],
-  ])('renders the native %s item pointing at %s', (id, expectedHash) => {
+    ['api', '#/api'],
+    ['success-metrics', '#/success-metrics'],
+    ['enterprise-reporting', '#/reports'],
+    ['legal', '#/legal'],
+    ['orgs-policies', '#/orgs-and-policies'],
+    ['hosted-repos', '#/repositories'],
+  ])('renders the native/embedded %s item pointing at %s', (id, expectedHash) => {
     renderLeftNav(fullyLicensedState);
     const link = screen.getByTestId(`nosc-leftnav-${id}`);
     expect(link.getAttribute('href')).toContain(expectedHash);
+    expect(link.getAttribute('href')).not.toContain('coming-soon');
   });
 
   it.each([
@@ -291,8 +298,8 @@ describe('LeftNav', () => {
       expect(screen.getByRole('link', { name: 'Components' })).toHaveAttribute('aria-current', 'page');
     });
 
-    it('highlights Legal on its own Coming Soon entry route', () => {
-      renderLeftNav(fullyLicensedState, '#/coming-soon/legal');
+    it('highlights Legal on its clean embed entry path', () => {
+      renderLeftNav(fullyLicensedState, '#/legal');
       expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
     });
 
@@ -329,8 +336,8 @@ describe('LeftNav', () => {
       expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
     });
 
-    it('highlights Orgs & Policies on its own Coming Soon entry route', () => {
-      renderLeftNav(fullyLicensedState, '#/coming-soon/orgs-and-policies');
+    it('highlights Orgs & Policies on its clean embed entry path', () => {
+      renderLeftNav(fullyLicensedState, '#/orgs-and-policies');
       expect(screen.getByRole('link', { name: 'Orgs & Policies' })).toHaveAttribute('aria-current', 'page');
     });
 
@@ -349,6 +356,21 @@ describe('LeftNav', () => {
     it('does not highlight Orgs & Policies on an unrelated route', () => {
       renderLeftNav(fullyLicensedState, '#/dashboard');
       expect(screen.getByRole('link', { name: 'Orgs & Policies' })).not.toHaveAttribute('aria-current', 'page');
+    });
+
+    it('highlights Success Metrics on the clean list path', () => {
+      renderLeftNav(fullyLicensedState, '#/success-metrics');
+      expect(screen.getByRole('link', { name: 'Success Metrics' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('highlights Success Metrics on a report sub-route', () => {
+      renderLeftNav(fullyLicensedState, '#/success-metrics/report-123');
+      expect(screen.getByRole('link', { name: 'Success Metrics' })).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('highlights API on the clean embed path', () => {
+      renderLeftNav(fullyLicensedState, '#/api');
+      expect(screen.getByRole('link', { name: 'API' })).toHaveAttribute('aria-current', 'page');
     });
   });
 });

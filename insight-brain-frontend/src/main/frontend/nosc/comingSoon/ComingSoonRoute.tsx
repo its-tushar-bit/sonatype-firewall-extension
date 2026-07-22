@@ -54,8 +54,9 @@ export function ComingSoonRoute(): JSX.Element {
 
   // Defensive: if for any reason the slug isn't in the registry (route
   // mis-registration, race during navigation), show a neutral fallback
-  // rather than crashing. Should never happen in production because every
-  // registered route's URL came from comingSoonHref(slug).
+  // rather than crashing. Should never happen in production — stub routes
+  // register under comingSoonHref(slug), and this component only mounts for
+  // those stubs (native embeds use Classic components / redirects instead).
   if (!slug || !(slug in COMING_SOON_MODULES)) {
     return (
       <Box p="6" data-testid="nosc-coming-soon-route-fallback">

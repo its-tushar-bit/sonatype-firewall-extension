@@ -10,6 +10,7 @@ import { Box, Flex, IconButton, ScrollArea, Separator, Tooltip } from '@radix-ui
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { DomainIcons } from 'MainRoot/nosc/icons';
 import { comingSoonHref } from 'MainRoot/nosc/comingSoon';
+import { embeddedHref } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import {
   LEGAL_APPLICATIONS_DASHBOARD_URL,
   LEGAL_COMPONENTS_DASHBOARD_URL,
@@ -56,7 +57,7 @@ const COMPONENTS_ACTIVE_HREFS = Object.freeze([comingSoonHref('components')]);
 // '/management' is a prefix match (see hrefMatches) covering the whole embedded Orgs and Policies
 // tree (orgsAndPoliciesStates.ts). The entry redirects onto
 // `/management/view/organization/ROOT_ORGANIZATION_ID`, so the rail must stay lit across all of
-// `/management/...`, not just the Coming Soon href it advertises.
+// `/management/...`, not just the entry href it advertises.
 const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
 
 /**
@@ -90,30 +91,28 @@ const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
  *                          the former native Dashboard Components tab
  *                          was removed)
  *   Hosted Repos         → /repositories                 (native embedded
- *                          Classic mount; CLM-42184)
- *   Legal                → embedded Classic mount        (native
- *                          LegalDashboardContainer; the /coming-soon/legal
- *                          route mounts the Classic Legal Dashboard in-shell.
- *                          Every reachable deep link also mounts in-shell —
- *                          application details, component overview, attribution
- *                          reports, and the copyright/notice/license-file/
- *                          license-details families — none of it exits to Classic)
- *   Orgs & Policies      → embedded Classic mount        (native; the
- *                          /coming-soon/orgs-and-policies route redirects to the
- *                          Classic root-org summary mounted in-shell. Every
- *                          reachable /management/* sub-route also mounts
+ *                          Classic mount)
+ *   Legal                → /legal                        (native embed; redirects
+ *                          to Legal Applications dashboard. Every reachable
+ *                          deep link also mounts in-shell — application details,
+ *                          component overview, attribution reports, and the
+ *                          copyright/notice/license-file/license-details
+ *                          families — none of it exits to Classic)
+ *   Orgs & Policies      → /orgs-and-policies            (native embed; redirects
+ *                          to the Classic root-org summary mounted in-shell.
+ *                          Every reachable /management/* sub-route also mounts
  *                          in-shell — see MANAGEMENT_ACTIVE_HREFS)
  *   Violations           → /preview/violations            (native; PreviewViolationsList)
  *   Vulnerabilities      → /coming-soon/vulnerabilities   (Coming Soon)
  *   Waivers              → /preview/waivers               (native)
  *   --- divider ---
- *   Success Metrics      → /coming-soon/success-metrics   (Coming Soon)
- *   Enterprise/Operational Reporting → /coming-soon/reports (embedded
- *                          Classic mount; gate-switches between the
- *                          Classic Enterprise and Operational Reporting
- *                          pages on integrated-enterprise-reporting support)
+ *   Success Metrics      → /success-metrics               (native Classic embed)
+ *   Enterprise/Operational Reporting → /reports          (embedded Classic mount;
+ *                          gate-switches between the Classic Enterprise and
+ *                          Operational Reporting pages on
+ *                          integrated-enterprise-reporting support)
  *   --- divider ---
- *   API                  → /coming-soon/api               (embedded Classic
+ *   API                  → /api                           (embedded Classic
  *                          mount; native ApiPage, no Coming Soon stub)
  *   Settings             → /coming-soon/settings          (Coming Soon)
  */
@@ -299,7 +298,7 @@ function buildNavItems(flags) {
       id: 'legal',
       label: 'Legal',
       Icon: DomainIcons.Legal,
-      href: comingSoonHref('legal'),
+      href: embeddedHref('legal'),
       activeHrefs: LEGAL_ACTIVE_HREFS,
     });
   }
@@ -308,7 +307,7 @@ function buildNavItems(flags) {
       id: 'orgs-policies',
       label: 'Orgs & Policies',
       Icon: DomainIcons.Organizations,
-      href: comingSoonHref('orgs-and-policies'),
+      href: embeddedHref('orgs-and-policies'),
       activeHrefs: MANAGEMENT_ACTIVE_HREFS,
     });
   }
@@ -344,7 +343,7 @@ function buildNavItems(flags) {
       id: 'success-metrics',
       label: 'Success Metrics',
       Icon: DomainIcons.SuccessMetrics,
-      href: comingSoonHref('success-metrics'),
+      href: embeddedHref('success-metrics'),
     });
   }
   if (isLicensed && isIntegratedEnterpriseReportingSupported) {
@@ -352,7 +351,7 @@ function buildNavItems(flags) {
       id: 'enterprise-reporting',
       label: 'Enterprise Reporting',
       Icon: DomainIcons.EnterpriseReporting,
-      href: comingSoonHref('reports'),
+      href: embeddedHref('reports'),
       activeHrefs: REPORTING_ACTIVE_HREFS,
     });
   }
@@ -361,7 +360,7 @@ function buildNavItems(flags) {
       id: 'operational-reporting',
       label: 'Operational Reporting',
       Icon: DomainIcons.OperationalReporting,
-      href: comingSoonHref('reports'),
+      href: embeddedHref('reports'),
       activeHrefs: REPORTING_ACTIVE_HREFS,
     });
   }
@@ -374,7 +373,7 @@ function buildNavItems(flags) {
       id: 'api',
       label: 'API',
       Icon: DomainIcons.Api,
-      href: comingSoonHref('api'),
+      href: embeddedHref('api'),
     });
   }
   if (isLicensed && isOrgsAndAppsEnabled) {

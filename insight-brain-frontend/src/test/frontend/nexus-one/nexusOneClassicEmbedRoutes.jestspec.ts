@@ -14,7 +14,12 @@ import {
   comingSoonStateName,
   ComingSoonRoute,
 } from 'MainRoot/nosc/comingSoon';
-import { isNativeClassicEmbedSlug } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
+import {
+  embeddedHref,
+  isNativeClassicEmbedSlug,
+  NATIVE_CLASSIC_EMBED_SLUGS,
+  usesEmbeddedHrefPrimary,
+} from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import { LEGAL_DEEP_LINK_STATES } from 'MainRoot/legal/legalDeepLinkStates';
 import {
   ORGS_AND_POLICIES_STATES,
@@ -37,7 +42,8 @@ describe('nexusOneClassicEmbedRoutes', () => {
     COMING_SOON_MODULE_ORDER.forEach((slug) => {
       const state = router.stateRegistry.get(comingSoonStateName(slug));
       expect(state).toBeDefined();
-      expect(state?.url).toBe(comingSoonHref(slug));
+      const expectedPrimaryUrl = usesEmbeddedHrefPrimary(slug) ? embeddedHref(slug) : comingSoonHref(slug);
+      expect(state?.url).toBe(expectedPrimaryUrl);
 
       if (!isNativeClassicEmbedSlug(slug)) {
         expect(state?.component).toBe(ComingSoonRoute);
@@ -53,10 +59,36 @@ describe('nexusOneClassicEmbedRoutes', () => {
           state: 'management.view.organization',
           params: { organizationId: 'ROOT_ORGANIZATION_ID' },
         });
+      } else if (slug === 'repositories') {
+        // Dedicated native route owns /repositories; Coming Soon entry stays the bookmark alias.
+        expect(state?.redirectTo).toBe('nexusOneRepositories');
       } else {
         expect(state?.component).not.toBe(ComingSoonRoute);
       }
     });
+  });
+
+  it('redirects legacy /coming-soon/ paths for embed slugs whose primary URL moved', () => {
+    NATIVE_CLASSIC_EMBED_SLUGS.filter(usesEmbeddedHrefPrimary).forEach((slug) => {
+      const legacy = router.stateRegistry.get(`${comingSoonStateName(slug)}LegacyPath`);
+      expect(legacy?.url).toBe(comingSoonHref(slug));
+      expect(legacy?.redirectTo).toBe(comingSoonStateName(slug));
+      expect(router.stateRegistry.get(comingSoonStateName(slug))?.url).toBe(embeddedHref(slug));
+    });
+  });
+
+  it('does not register LegacyPath aliases for stubs or repositories', () => {
+    COMING_SOON_MODULE_ORDER.filter((slug) => !usesEmbeddedHrefPrimary(slug)).forEach((slug) => {
+      expect(router.stateRegistry.get(`${comingSoonStateName(slug)}LegacyPath`)).toBeFalsy();
+    });
+  });
+
+  it('keeps repositories Coming Soon entry as alias to nexusOneRepositories (no second /repositories owner)', () => {
+    const comingSoon = router.stateRegistry.get(comingSoonStateName('repositories'));
+    expect(comingSoon?.url).toBe(comingSoonHref('repositories'));
+    expect(comingSoon?.redirectTo).toBe('nexusOneRepositories');
+    expect(router.stateRegistry.get('nexusOneRepositories')?.url).toBe('/repositories');
+    expect(router.stateRegistry.get(`${comingSoonStateName('repositories')}LegacyPath`)).toBeFalsy();
   });
 
   it('redirects the Legal Coming Soon entry straight to the Applications tab', () => {
@@ -277,8 +309,11 @@ describe('nexusOneClassicEmbedRoutes', () => {
   it('registers Success Metrics detail and Classic alias states', () => {
     expect(router.stateRegistry.get('labs')?.abstract).toBe(true);
     expect(router.stateRegistry.get('labs.successMetricsReport')?.url).toBe(
-      '/coming-soon/success-metrics/{successMetricsReportId}'
+      '/success-metrics/{successMetricsReportId}',
     );
+    const legacyReport = router.stateRegistry.get('labs.successMetricsReportLegacyPath');
+    expect(legacyReport?.url).toBe('/coming-soon/success-metrics/{successMetricsReportId}');
+    expect(typeof legacyReport?.redirectTo).toBe('function');
     expect(router.stateRegistry.get('labs.successMetrics')?.redirectTo).toBe(comingSoonStateName('success-metrics'));
     expect(router.stateRegistry.get('dashboard.overview.violations')?.redirectTo).toBe('nexusOneDashboard.violations');
     // /violations is now the Martha V1 Violations card list (CLM-42257), not a redirect to the

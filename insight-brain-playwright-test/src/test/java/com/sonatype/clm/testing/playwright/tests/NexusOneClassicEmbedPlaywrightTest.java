@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -117,11 +118,12 @@ public class NexusOneClassicEmbedPlaywrightTest
   @Test
   @Category(RegressionTest.class)
   public void testEmbeddedApiPage_rendersSwaggerInsideNexusOneShell() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/api"));
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/api"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     ApiDocumentationPageAssertions apiAssertions = new ApiDocumentationPageAssertions(new ApiDocumentationPage());
 
+    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/api(?:\\?.*)?$"));
     assertThat(embedPage.leftNav()).isVisible();
     assertThat(embedPage.classicComponentMount()).isVisible();
     assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
@@ -131,13 +133,27 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   @Test
   @Category(RegressionTest.class)
+  public void testLegacyComingSoonApiUrl_redirectsToCleanEmbedPath() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/api"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    ApiDocumentationPageAssertions apiAssertions = new ApiDocumentationPageAssertions(new ApiDocumentationPage());
+
+    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/api(?:\\?.*)?$"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    apiAssertions.shouldShowSwaggerLoaded();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
   public void testEmbeddedSuccessMetrics_rendersClassicLandingInsideNexusOneShell() {
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/success-metrics"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     SuccessMetricsPage successMetrics = new SuccessMetricsPage();
     SuccessMetricsPageAssertions successMetricsAssertions = new SuccessMetricsPageAssertions(successMetrics);
 
+    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/success-metrics(?:\\?.*)?$"));
     assertThat(embedPage.leftNav()).isVisible();
     assertThat(embedPage.leftNavLink("Success Metrics")).isVisible();
     assertThat(embedPage.classicComponentMount()).isVisible();
@@ -150,16 +166,50 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   @Test
   @Category(RegressionTest.class)
+  public void testLegacyComingSoonSuccessMetricsUrl_redirectsToCleanEmbedPath() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    SuccessMetricsPage successMetrics = new SuccessMetricsPage();
+    SuccessMetricsPageAssertions successMetricsAssertions = new SuccessMetricsPageAssertions(successMetrics);
+
+    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/success-metrics(?:\\?.*)?$"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    successMetricsAssertions.shouldBeLoaded();
+    successMetricsAssertions.shouldHaveHeading("Success Metrics");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testLegacyComingSoonSuccessMetricsReportUrl_redirectsToCleanEmbedPath() {
+    String reportName = "pw-sm-embed-report-" + TemporaryEntity.uuid();
+    SuccessMetricsReport report = tempEntity.newSuccessMetricsReport("admin", reportName, "{}");
+
+    playwrightRefreshOrOpen(
+        NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics/" + report.getId()));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    SuccessMetricsPage successMetrics = new SuccessMetricsPage();
+    SuccessMetricsPageAssertions successMetricsAssertions = new SuccessMetricsPageAssertions(successMetrics);
+
+    assertThat(page).hasURL(Pattern.compile(
+        ".*/nexus-one/index\\.html#/success-metrics/" + Pattern.quote(report.getId()) + "(?:\\?.*)?$"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    successMetricsAssertions.shouldShowIndividualReport(reportName);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
   public void testEmbeddedLegal_rendersClassicLandingInsideNexusOneShell() {
     setFeatures(LicensedFeature.values());
 
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/legal"));
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/legal"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     LegalDashboardPage legalDashboard = new LegalDashboardPage();
     LegalDashboardPageAssertions legalAssertions = new LegalDashboardPageAssertions(legalDashboard);
 
-    // The Coming Soon entry redirects straight to the Applications tab rather than mounting a
+    // The clean /legal entry redirects straight to the Applications tab rather than mounting a
     // component of its own — see nexus-one/routes.tsx's NATIVE_CLASSIC_EMBED_REDIRECTS comment.
     assertThat(page).hasURL(Pattern.compile(".*/legal/applicationsDashboard.*"));
 
@@ -185,6 +235,21 @@ public class NexusOneClassicEmbedPlaywrightTest
     // App.jsx provided, not the Nexus One shell. Without it here, the drawer silently rendered null.
     legalDashboard.openFilterDrawer();
     assertThat(legalDashboard.filterDrawer()).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testLegacyComingSoonLegalUrl_redirectsToApplicationsDashboard() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/legal"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    LegalDashboardPageAssertions legalAssertions = new LegalDashboardPageAssertions(new LegalDashboardPage());
+
+    assertThat(page).hasURL(Pattern.compile(".*/legal/applicationsDashboard.*"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    legalAssertions.shouldBeVisible();
   }
 
   @Test
@@ -288,12 +353,13 @@ public class NexusOneClassicEmbedPlaywrightTest
     setFeatures(LicensedFeature.values());
     stubEnterpriseReportingHds();
 
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/reports"));
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/reports"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     EnterpriseReportingPageAssertions enterpriseAssertions =
         new EnterpriseReportingPageAssertions(new EnterpriseReportingPage());
 
+    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/reports(?:\\?.*)?$"));
     assertThat(embedPage.leftNav()).isVisible();
     assertThat(embedPage.leftNavLink("Enterprise Reporting")).isVisible();
     assertThat(embedPage.classicComponentMount()).isVisible();
@@ -307,12 +373,13 @@ public class NexusOneClassicEmbedPlaywrightTest
   public void testEmbeddedReporting_enterpriseReportingUnlicensed_rendersOperationalInShell() {
     setMissingFeature(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
 
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/reports"));
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/reports"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     OperationalReportingPageAssertions operationalAssertions =
         new OperationalReportingPageAssertions(new OperationalReportingPage());
 
+    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/reports(?:\\?.*)?$"));
     assertThat(embedPage.leftNav()).isVisible();
     assertThat(embedPage.leftNavLink("Operational Reporting")).isVisible();
     assertThat(embedPage.classicComponentMount()).isVisible();
@@ -323,17 +390,34 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   @Test
   @Category(RegressionTest.class)
+  public void testLegacyComingSoonReportsUrl_redirectsToCleanEmbedPath() {
+    setFeatures(LicensedFeature.values());
+    stubEnterpriseReportingHds();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/reports"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    EnterpriseReportingPageAssertions enterpriseAssertions =
+        new EnterpriseReportingPageAssertions(new EnterpriseReportingPage());
+
+    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/reports(?:\\?.*)?$"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    enterpriseAssertions.shouldBeLoaded();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
   public void testEmbeddedOrgsAndPolicies_rendersRootOrgSummaryInsideNexusOneShell() {
     setFeatures(LicensedFeature.values());
 
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/orgs-and-policies"));
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/orgs-and-policies"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     OwnerSummaryPageAssertions ownerSummaryAssertions = new OwnerSummaryPageAssertions(ownerSummary);
 
-    // The Coming Soon entry redirects straight to the root org's summary rather than mounting a
-    // component of its own - see nexus-one/routes.tsx's NATIVE_CLASSIC_EMBED_REDIRECTS comment.
+    // The clean /orgs-and-policies entry redirects straight to the root org's summary rather than
+    // mounting a component of its own - see nexus-one/routes.tsx's NATIVE_CLASSIC_EMBED_REDIRECTS.
     assertThat(page).hasURL(Pattern.compile(".*/management/view/organization/.*"));
 
     assertThat(embedPage.leftNav()).isVisible();
@@ -348,10 +432,26 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   @Test
   @Category(RegressionTest.class)
-  public void testEmbeddedOrgsAndPolicies_policyEditorNavigationStaysInShell() {
+  public void testLegacyComingSoonOrgsAndPoliciesUrl_redirectsToRootOrgSummary() {
     setFeatures(LicensedFeature.values());
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/orgs-and-policies"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    OwnerSummaryPageAssertions ownerSummaryAssertions =
+        new OwnerSummaryPageAssertions(new OwnerSummaryPage());
+
+    assertThat(page).hasURL(Pattern.compile(".*/management/view/organization/.*"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    ownerSummaryAssertions.shouldBeVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedOrgsAndPolicies_policyEditorNavigationStaysInShell() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/orgs-and-policies"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
@@ -376,7 +476,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   public void testEmbeddedOrgsAndPolicies_innerSourceEditButtonNavigatesInShell() {
     setFeatures(LicensedFeature.values());
 
-    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/orgs-and-policies"));
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/orgs-and-policies"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();

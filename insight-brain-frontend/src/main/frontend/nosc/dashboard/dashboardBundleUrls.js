@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { bundleIndexUrl, isNexusOneBundle } from 'MainRoot/util/urlUtil';
-import { comingSoonHref } from 'MainRoot/nosc/comingSoon';
+import { embeddedHref } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 
 function normalizePath(path) {
   const trimmed = (path ?? '').trim();
@@ -52,9 +52,10 @@ export function dashboardOrgsAndPoliciesHref() {
   return bundleIndexUrl('classic', '/management/view/organization/ROOT_ORGANIZATION_ID');
 }
 
-// Bottom-row quick links — match the LeftNav Classic deep-link targets.
+// Bottom-row quick links: Success Metrics and API use LeftNav embed targets;
+// Enterprise Reporting still deep-links to Classic.
 export function dashboardSuccessMetricsHref() {
-  return nexusOneEntityHref(comingSoonHref('success-metrics'));
+  return nexusOneEntityHref(embeddedHref('success-metrics'));
 }
 
 export function dashboardEnterpriseReportingHref() {
@@ -62,5 +63,5 @@ export function dashboardEnterpriseReportingHref() {
 }
 
 export function dashboardApiHref() {
-  return nexusOneEntityHref(comingSoonHref('api'));
+  return nexusOneEntityHref(embeddedHref('api'));
 }

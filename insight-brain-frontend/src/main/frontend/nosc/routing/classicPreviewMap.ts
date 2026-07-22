@@ -62,6 +62,7 @@ const COMING_SOON_ENTRIES: ReadonlyArray<readonly [string, string]> = [
 const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/dashboard', '/dashboard/violations'],
   ['/applications', '/dashboard/applications'],
+  ['/components', '/dashboard/components'],
   ['/ui-settings', '/previewUiSettings'],
   ['/search', '/dashboard/violations'],
   // Identity entries: admin config pages share the same hash path on both
@@ -82,6 +83,7 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
 // (e.g. /dashboard/applications before /dashboard/).
 const CLASSIC_PREFIX_TO_NEXUS_ONE: ReadonlyArray<readonly [string, string]> = [
   ['/dashboard/applications', '/applications'],
+  ['/dashboard/components', '/components'],
   ['/dashboard/', '/dashboard'],
   ['/management/view/application', '/applications'],
 ];
@@ -126,6 +128,7 @@ function isNexusOnePath(path: string): boolean {
   if (path === '/home' || path.startsWith('/home/')) return true;
   if (path === '/dashboard' || path.startsWith('/dashboard/')) return true;
   if (path === '/applications' || path.startsWith('/applications/')) return true;
+  if (path === '/components' || path.startsWith('/components/')) return true;
   if (path === '/violations' || path.startsWith('/violations/')) return true;
   if (path === '/search' || path.startsWith('/search/')) return true;
   if (path === '/waivers' || path.startsWith('/waivers/')) return true;

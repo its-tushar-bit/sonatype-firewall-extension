@@ -53,7 +53,6 @@ const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
 // redirect lands the user somewhere other than that href but still inside the entry's experience.
 const LEGAL_ACTIVE_HREFS = Object.freeze([LEGAL_APPLICATIONS_DASHBOARD_URL, LEGAL_COMPONENTS_DASHBOARD_URL, '/legal']);
 const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '/reports/react2shell']);
-const COMPONENTS_ACTIVE_HREFS = Object.freeze([comingSoonHref('components')]);
 // '/management' is a prefix match (see hrefMatches) covering the whole embedded Orgs and Policies
 // tree (orgsAndPoliciesStates.ts). The entry redirects onto
 // `/management/view/organization/ROOT_ORGANIZATION_ID`, so the rail must stay lit across all of
@@ -87,9 +86,7 @@ const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
  * Stub-target mapping (LeftNav item → target), in display order:
  *   Dashboard            → /preview/dashboard            (native)
  *   Applications         → /preview/applications         (native)
- *   Components           → /coming-soon/components        (Coming Soon;
- *                          the former native Dashboard Components tab
- *                          was removed)
+ *   Components           → /preview/components            (native; Components list)
  *   Hosted Repos         → /repositories                 (native embedded
  *                          Classic mount)
  *   Legal                → /legal                        (native embed; redirects
@@ -273,16 +270,13 @@ function buildNavItems(flags) {
       href: '/applications',
     });
   }
-  // Components redirects to a Coming Soon stub; Violations and Waivers
-  // reuse existing native routes (the native PreviewViolationsList page and
-  // the existing native PreviewWaiversList page).
+  // Components, Violations, and Waivers use native Preview list pages.
   if (isLicensed && isOrgsAndAppsEnabled) {
     items.push({
       id: 'components',
       label: 'Components',
       Icon: DomainIcons.Component,
       href: '/components',
-      activeHrefs: COMPONENTS_ACTIVE_HREFS,
     });
   }
   if (isLicensed && isHostedRepositoryEvaluationEnabled) {

@@ -45,9 +45,9 @@ export interface ComingSoonModule {
  */
 // Most `classicHref` values were verified live against the dev IQ on
 // 2026-05-14: each lands on a real UI-Router state (no "Unknown Address"
-// unrecoverable errors). The `components`, `vulnerabilities`, and `settings`
-// stubs added later are placeholders pointing at the generic Classic dashboard
-// (see the TODO markers at their entries below), not per-domain analogs.
+// unrecoverable errors). The `vulnerabilities` and `settings` stubs added later
+// are placeholders pointing at the generic Classic dashboard (see the TODO
+// markers at their entries below), not per-domain analogs.
 // Mapping notes:
 //
 //   reports               → /operationalReporting (Operational Reporting page)
@@ -154,14 +154,10 @@ export const COMING_SOON_MODULES = {
     description: 'Automate software compliance and reporting.',
     classicHref: '/assets/#/dashboard/violations',
   },
-  // TODO(CLM-42160): `components`, `vulnerabilities`, and `settings` use the
-  // generic Classic dashboard as a placeholder classicHref until each native
-  // module is built. Update each classicHref to its real Classic analog then.
-  components: {
-    label: 'Components',
-    description: 'Browse the open-source components used across your application portfolio.',
-    classicHref: '/assets/#/dashboard',
-  },
+  // TODO(CLM-42160): `vulnerabilities` and `settings` use the generic Classic
+  // dashboard as a placeholder classicHref until each native module is built.
+  // Update each classicHref to its real Classic analog then.
+  // `components` graduated to native `#/components` (CLM-42214).
   vulnerabilities: {
     label: 'Vulnerabilities',
     description: 'Browse the vulnerabilities affecting components across your application portfolio.',
@@ -193,7 +189,6 @@ export const COMING_SOON_MODULE_ORDER: readonly ComingSoonModuleSlug[] = [
   'guide',
   'firewall',
   'sbom-manager',
-  'components',
   'vulnerabilities',
   'settings',
 ];

@@ -323,7 +323,10 @@ describe('nexusOneClassicEmbedRoutes', () => {
     expect(violations?.url).toBe(NEXUS_ONE_VIOLATIONS_URL);
     expect(violations?.redirectTo).toBeUndefined();
     expect(violations?.component).toBeDefined();
-    expect(router.stateRegistry.get('nexusOneComponents')?.redirectTo).toBe(comingSoonStateName('components'));
+    // /components is the Martha V1 Components list (CLM-42214 / CLM-42760), not a Coming Soon stub.
+    const components = router.stateRegistry.get('nexusOneComponents');
+    expect(components?.redirectTo).toBeUndefined();
+    expect(components?.component).toBeDefined();
   });
 
   it('registers the dedicated Hosted Repos native route the LeftNav links to', () => {

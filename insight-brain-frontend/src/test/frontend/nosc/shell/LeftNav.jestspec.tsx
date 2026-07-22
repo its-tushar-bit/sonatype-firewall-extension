@@ -293,8 +293,8 @@ describe('LeftNav', () => {
       expect(screen.getByRole('link', { name: 'Applications', current: 'page' })).toBeInTheDocument();
     });
 
-    it('keeps Components highlighted after its /components alias redirects to the Coming Soon stub', () => {
-      renderLeftNav(fullyLicensedState, '#/coming-soon/components');
+    it('highlights Components on its native list route', () => {
+      renderLeftNav(fullyLicensedState, '#/components');
       expect(screen.getByRole('link', { name: 'Components' })).toHaveAttribute('aria-current', 'page');
     });
 

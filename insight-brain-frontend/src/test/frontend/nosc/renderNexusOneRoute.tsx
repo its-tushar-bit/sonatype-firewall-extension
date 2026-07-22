@@ -20,6 +20,10 @@ import {
   NEXUS_ONE_VIOLATIONS_STATE_NAME,
   NEXUS_ONE_VIOLATIONS_URL,
 } from 'MainRoot/nosc/violations/violationsRoute';
+import {
+  NEXUS_ONE_COMPONENTS_STATE_NAME,
+  NEXUS_ONE_COMPONENTS_URL,
+} from 'MainRoot/nosc/componentsList/componentsRoute';
 
 /**
  * Mirrors the Radix Theme that {@code NexusOneShellLayout} provides in
@@ -54,6 +58,7 @@ const STATES: ReactStateDeclaration[] = [
   { name: 'nexusOneWaivers', url: '/waivers' },
   { name: 'nexusOneWaiverDetail', url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from' },
   { name: NEXUS_ONE_VIOLATIONS_STATE_NAME, url: NEXUS_ONE_VIOLATIONS_URL },
+  { name: NEXUS_ONE_COMPONENTS_STATE_NAME, url: NEXUS_ONE_COMPONENTS_URL },
   { name: 'platformHome', url: '/home' },
   ...nexusOneDashboardStates(),
 ];

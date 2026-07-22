@@ -157,6 +157,15 @@ export function getViolationsListUrl() {
 }
 
 /**
+ * Ana shared catalog list (CLM-41642 / CLM-42214). POST
+ * `{ entityType, source: local|catalog, filters?, page?, pageSize?, searchAfter?, includeFacets? }`.
+ * Gated by GLOBAL_SEARCH (404 when off).
+ */
+export function getSearchCatalogUrl() {
+  return uriTemplate`/rest/search/catalog`;
+}
+
+/**
  * Retrieve the list of application risk in the most recent stage.  Supports filters
  * @since 1.11
  */

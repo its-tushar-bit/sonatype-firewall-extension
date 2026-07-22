@@ -1,0 +1,64 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.nosc-components-filter-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.nosc-components-filter-legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-12);
+}
+
+.nosc-components-filter-rail {
+  width: 220px;
+  max-width: 220px;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.nosc-components-filter-option {
+  cursor: pointer;
+}
+
+.nosc-components-filter-option-row {
+  min-width: 0;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.nosc-components-filter-option-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  /* Keep long org/ecosystem names inside the rail — never overflow into the card grid. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.nosc-components-filter-scroll {
+  max-height: 200px;
+}
+
+.nosc-components-filter-see-more {
+  margin-top: var(--space-1);
+  padding: 0;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .nosc-components-filter-rail {
+    width: 100%;
+  }
+}

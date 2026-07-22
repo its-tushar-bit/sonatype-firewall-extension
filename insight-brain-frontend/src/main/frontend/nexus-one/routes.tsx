@@ -82,10 +82,15 @@ import 'MainRoot/waivers/route';
 import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage';
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import PreviewViolationsList from 'MainRoot/nosc/violations/ViolationsList';
+import PreviewComponentsList from 'MainRoot/nosc/componentsList/ComponentsList';
 import {
   NEXUS_ONE_VIOLATIONS_STATE_NAME,
   NEXUS_ONE_VIOLATIONS_URL,
 } from 'MainRoot/nosc/violations/violationsRoute';
+import {
+  NEXUS_ONE_COMPONENTS_STATE_NAME,
+  NEXUS_ONE_COMPONENTS_URL,
+} from 'MainRoot/nosc/componentsList/componentsRoute';
 import {
   WaiversListPage as PreviewWaiversList,
   WaiverDetailPage as PreviewWaiverDetail,
@@ -207,10 +212,12 @@ router.stateRegistry.register({
   data: { title: 'Nexus One — Violations' },
 } as ReactStateDeclaration);
 
+// Martha V1 Components portfolio list (CLM-42214). Query params match Applications so
+// search/sort/filters/page can persist in the hash in follow-up slices.
 router.stateRegistry.register({
-  name: 'nexusOneComponents',
-  url: '/components',
-  redirectTo: comingSoonStateName('components'),
+  name: NEXUS_ONE_COMPONENTS_STATE_NAME,
+  url: NEXUS_ONE_COMPONENTS_URL,
+  component: PreviewComponentsList,
   data: { title: 'Nexus One — Components' },
 } as ReactStateDeclaration);
 

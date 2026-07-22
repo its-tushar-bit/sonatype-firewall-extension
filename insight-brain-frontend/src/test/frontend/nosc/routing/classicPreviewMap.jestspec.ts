@@ -36,15 +36,12 @@ describe('classicPreviewMap', () => {
     });
 
     it('maps generic /dashboard/<tab> URLs to /dashboard', () => {
-      // Classic has /dashboard/violations, /dashboard/components,
-      // /dashboard/waivers, etc. All of them collapse to the single
-      // Preview Dashboard surface via the prefix-match in
-      // CLASSIC_PREFIX_TO_PREVIEW.
+      // Classic has /dashboard/violations, /dashboard/waivers, etc. They collapse
+      // to the single Preview Dashboard surface via the prefix-match in
+      // CLASSIC_PREFIX_TO_NEXUS_ONE.
       //
-      // Exception: /dashboard/applications has its own dedicated mapping
-      // (it's the canonical Classic destination for /applications)
-      // so it does NOT collapse here. That's asserted in the next test.
-      expect(toNexusOneEquivalent('/dashboard/components')).toBe('/dashboard');
+      // Exceptions with dedicated mappings: /dashboard/applications → /applications
+      // and /dashboard/components → /components (asserted in the next tests).
       expect(toNexusOneEquivalent('/dashboard/violations')).toBe('/dashboard');
       expect(toNexusOneEquivalent('/dashboard/waivers')).toBe('/dashboard');
     });
@@ -56,6 +53,11 @@ describe('classicPreviewMap', () => {
       // search-result click-through with a publicId suffix).
       expect(toNexusOneEquivalent('/dashboard/applications')).toBe('/applications');
       expect(toNexusOneEquivalent('/management/view/application')).toBe('/applications');
+    });
+
+    it('maps Classic components dashboard tab to /components', () => {
+      expect(toNexusOneEquivalent('/dashboard/components')).toBe('/components');
+      expect(toClassicEquivalent('/components')).toBe('/dashboard/components');
     });
 
     it('maps Classic Preview-UI Settings to /ui-settings in the nexus-one bundle', () => {

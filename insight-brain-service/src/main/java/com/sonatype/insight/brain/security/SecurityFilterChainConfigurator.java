@@ -230,6 +230,7 @@ public class SecurityFilterChainConfigurator
     manager.createChain("/rest/dashboard/export/applicationRisks", filters);
     manager.createChain("/rest/dashboard/export/policyWaivers", filters);
     manager.createChain("/rest/dashboard/export/policyWaiverRequests", filters);
+    manager.createChain("/rest/dashboard/vulnerabilities/export", filters);
   }
 
   private void configureFilterChainsForIntegrations(FilterChainManager manager) {

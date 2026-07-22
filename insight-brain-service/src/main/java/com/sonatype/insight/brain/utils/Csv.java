@@ -56,7 +56,22 @@ public final class Csv
       final String headerLine,
       final Collection<? extends CsvWritable> results)
   {
-    return generateInternal(response, fileNamePrefix, headerLine, results.stream(), false /* flushPerRow */);
+    return generateInternal(
+        response, fileNamePrefix, headerLine, results.stream(), false /* flushPerRow */, false /* utf8Bom */);
+  }
+
+  /**
+   * Like {@link #generate(ResponseBuilder, String, String, Collection)} but prefixes the file with a
+   * UTF-8 BOM so Excel opens Unicode CSV correctly (Martha Vulnerabilities export / CLM-42216).
+   */
+  public static ResponseBuilder generateWithUtf8Bom(
+      final ResponseBuilder response,
+      final String fileNamePrefix,
+      final String headerLine,
+      final Collection<? extends CsvWritable> results)
+  {
+    return generateInternal(
+        response, fileNamePrefix, headerLine, results.stream(), false /* flushPerRow */, true /* utf8Bom */);
   }
 
   /**
@@ -80,7 +95,7 @@ public final class Csv
       final String headerLine,
       final Stream<? extends CsvWritable> results)
   {
-    return generateInternal(response, fileNamePrefix, headerLine, results, false /* flushPerRow */);
+    return generateInternal(response, fileNamePrefix, headerLine, results, false /* flushPerRow */, false);
   }
 
   /**
@@ -107,7 +122,7 @@ public final class Csv
       final Stream<? extends CsvWritable> results,
       final boolean flushPerRow)
   {
-    return generateInternal(response, fileNamePrefix, headerLine, results, flushPerRow);
+    return generateInternal(response, fileNamePrefix, headerLine, results, flushPerRow, false);
   }
 
   private static ResponseBuilder generateInternal(
@@ -115,7 +130,8 @@ public final class Csv
       final String fileNamePrefix,
       final String headerLine,
       final Stream<? extends CsvWritable> results,
-      final boolean flushPerRow)
+      final boolean flushPerRow,
+      final boolean utf8Bom)
   {
     final Date now = new Date();
     final String filename = fileNamePrefix + "-" + UTC_FILENAME_TIMESTAMP.format(Instant.now()) + ".csv";
@@ -129,6 +145,9 @@ public final class Csv
       try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
           Stream<? extends CsvWritable> rows = results)
       {
+        if (utf8Bom) {
+          writer.write('\uFEFF');
+        }
         writer.write(headerLine);
         if (flushPerRow) {
           writer.flush();

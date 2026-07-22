@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.search.lucene.DocumentBuilder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import org.apache.lucene.document.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.88
@@ -24,6 +26,8 @@ import org.apache.lucene.document.Document;
 @JsonInclude(Include.NON_NULL)
 public class SearchResultItemDTO
 {
+  private static final Logger log = LoggerFactory.getLogger(SearchResultItemDTO.class);
+
   public String itemType;
 
   public String organizationId;
@@ -53,6 +57,9 @@ public class SearchResultItemDTO
   public String vulnerabilityId;
 
   public String vulnerabilityDescription;
+
+  /** CVSS score from {@code vulnerabilitySeverity} when present on the indexed document. */
+  public Float vulnerabilitySeverity;
 
   public String vulnerabilityStatus;
 
@@ -139,6 +146,7 @@ public class SearchResultItemDTO
     componentName = document.get(FieldIdentifier.COMPONENT_NAME.label);
     vulnerabilityId = document.get(FieldIdentifier.VULNERABILITY_ID.label);
     vulnerabilityDescription = document.get(FieldIdentifier.VULNERABILITY_DESCRIPTION.label);
+    vulnerabilitySeverity = parseFloatOrNull(document.get(FieldIdentifier.VULNERABILITY_SEVERITY.label));
     vulnerabilityStatus = document.get(FieldIdentifier.VULNERABILITY_STATUS.label);
     applicationCategoryId = document.get(FieldIdentifier.APPLICATION_CATEGORY_ID.label);
     applicationCategoryName = document.get(FieldIdentifier.APPLICATION_CATEGORY_NAME.label);
@@ -168,5 +176,21 @@ public class SearchResultItemDTO
     String componentLicenseThreatLevelString = document.get(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label);
     componentLicenseThreatLevel =
         componentLicenseThreatLevelString == null ? null : Integer.valueOf(componentLicenseThreatLevelString);
+  }
+
+  /**
+   * Parses indexed severity without failing the whole search response on malformed documents.
+   */
+  static Float parseFloatOrNull(final String value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      return Float.valueOf(value);
+    }
+    catch (NumberFormatException e) {
+      log.warn("Ignoring non-numeric vulnerabilitySeverity index value: {}", value);
+      return null;
+    }
   }
 }

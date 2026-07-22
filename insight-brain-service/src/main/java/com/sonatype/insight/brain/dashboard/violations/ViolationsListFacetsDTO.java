@@ -19,6 +19,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * {@code organizations}/{@code applications} are keyed by owner internal id.
  * Only dimensions with a positive count are included; maps are omitted when empty.
  * <p>
+ * {@code organizationNames} / {@code applicationNames} map those same internal ids to the friendly
+ * display names used in the Martha filter rail (so the UI never has to fall back to raw UUIDs for
+ * facet keys that are not on the current result page).
+ * <p>
  * Counts reflect the active list query scope (narrowing filters reduce facet counts as well as rows;
  * see CLM-42258). Organization and application counts are discovery-capped (see {@link ViolationsListFacetsBuilder})
  * because violation volume is far higher than application volume; full aggregate facets land under
@@ -46,4 +50,12 @@ public class ViolationsListFacetsDTO
 
   @JsonInclude(Include.NON_NULL)
   public Map<String, Long> applications;
+
+  /** Friendly organization display names keyed by the same internal ids as {@link #organizations}. */
+  @JsonInclude(Include.NON_NULL)
+  public Map<String, String> organizationNames;
+
+  /** Friendly application display names keyed by the same internal ids as {@link #applications}. */
+  @JsonInclude(Include.NON_NULL)
+  public Map<String, String> applicationNames;
 }

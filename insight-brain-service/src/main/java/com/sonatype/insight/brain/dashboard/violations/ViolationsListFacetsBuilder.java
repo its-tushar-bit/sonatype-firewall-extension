@@ -5,27 +5,37 @@
  */
 package com.sonatype.insight.brain.dashboard.violations;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToLongFunction;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dashboard.PolicyViolationState;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexTermsBucket;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.Query;
 
 /**
  * Builds Martha sidebar facet counts for the Violations list from RBAC-scoped index count queries.
@@ -36,22 +46,16 @@ import org.apache.commons.lang3.StringUtils;
  * counted against the query minus its own clause so the unselected option still shows a switchable count
  * (see {@link #buildFacets(String, String, long)}). Dimensions with a zero count are omitted.
  * <p>
- * Violation volume is far higher than application volume, so discovery of organization/application
- * dimensions is capped hard: {@link #MAX_FACET_DISCOVERY_HITS} hits are inspected and per-dimension
- * {@code count()} calls are capped by {@link #MAX_ORGANIZATION_FACET_COUNT_QUERIES} /
- * {@link #MAX_APPLICATION_FACET_COUNT_QUERIES}. State, threat-category, and stage facets are bounded
- * by small fixed vocabularies and are always exact. Full aggregate facets land under CLM-42262.
+ * On the PR-0 session path ({@code nexusOne.search.readPath.violations=new}), org/app facets use
+ * {@link IndexReadSession#termsAggregation} against the shared session; small-vocabulary facets use
+ * {@link IndexReadSession#count}. Legacy path keeps discovery + capped {@code SearchIndexClient.count}.
  * <p>
- * The three caps default to conservative values but can be overridden with the {@code
- * nexusOne.violations.facets.*} system properties so scale tuning needs no code change (see CLM-42262).
- * <p>
- * <b>Cap-ordering limitation (V1):</b> only non-root-org items consume the org count-query budget —
- * root-org items produce a null clause and are skipped without decrementing it. Because discovery
- * inspects the first {@link #MAX_FACET_DISCOVERY_HITS} hits in index order, an estate whose earliest
- * hits are dominated by non-root orgs can exhaust {@link #MAX_ORGANIZATION_FACET_COUNT_QUERIES} before
- * reaching orgs that appear later, so the org facet is a best-effort sample rather than an exhaustive
- * list. The bucketed aggregation in CLM-42262 removes both the discovery cap and this ordering
- * sensitivity; until then the omission is deliberate and bounded.
+ * Session org/app buckets are exact {@code organizationId}/{@code applicationId} terms on the indexed
+ * document (no parent→descendant rollup). The legacy path expands each discovered org via
+ * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClause}, so parent buckets can
+ * include child-org violations. Session path prefers exact ownership for stable, non-overlapping
+ * facet keys; list filtering still uses the dimension query builder (with descendant expansion) when
+ * the user selects an organization.
  */
 @Named
 @Singleton
@@ -60,10 +64,20 @@ final class ViolationsListFacetsBuilder
   static final int MAX_FACET_DISCOVERY_HITS =
       Integer.getInteger("nexusOne.violations.facets.maxDiscoveryHits", 200);
 
-  static final int MAX_ORGANIZATION_FACET_COUNT_QUERIES =
+  /**
+   * Cap on organization facet keys returned (legacy: max count-query fan-out; session: maxBuckets).
+   * Tunable via {@code nexusOne.violations.facets.maxOrganizationCountQueries} for continuity with
+   * existing deployments that already set that property.
+   */
+  static final int MAX_ORGANIZATION_FACETS =
       Integer.getInteger("nexusOne.violations.facets.maxOrganizationCountQueries", 15);
 
-  static final int MAX_APPLICATION_FACET_COUNT_QUERIES =
+  /**
+   * Cap on application facet keys returned (legacy: max count-query fan-out; session: maxBuckets).
+   * Tunable via {@code nexusOne.violations.facets.maxApplicationCountQueries} for continuity with
+   * existing deployments that already set that property.
+   */
+  static final int MAX_APPLICATION_FACETS =
       Integer.getInteger("nexusOne.violations.facets.maxApplicationCountQueries", 15);
 
   /** Waiver-type facet keys (CLM-42261); mirrored by the frontend radio labels. */
@@ -77,15 +91,27 @@ final class ViolationsListFacetsBuilder
 
   private final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
 
+  private final ConversionHelper conversionHelper;
+
+  private final OrganizationDAO organizationDAO;
+
+  private final ApplicationDAO applicationDAO;
+
   @Inject
   ViolationsListFacetsBuilder(
       final SearchIndexClient searchIndexClient,
       final StageTypeService stageTypeService,
-      final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder)
+      final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder,
+      final ConversionHelper conversionHelper,
+      final OrganizationDAO organizationDAO,
+      final ApplicationDAO applicationDAO)
   {
     this.searchIndexClient = searchIndexClient;
     this.stageTypeService = stageTypeService;
     this.dimensionQueryBuilder = dimensionQueryBuilder;
+    this.conversionHelper = conversionHelper;
+    this.organizationDAO = organizationDAO;
+    this.applicationDAO = applicationDAO;
   }
 
   /**
@@ -118,53 +144,143 @@ final class ViolationsListFacetsBuilder
       return facets;
     }
 
-    facets.states = countStates(violationQuery);
-    facets.waiverTypes = countWaiverTypes(waiverFacetQuery);
-    facets.threatCategories = countThreatCategories(violationQuery);
-    facets.stages = countLicensedStages(violationQuery);
+    ToLongFunction<String> counter = searchIndexClient::count;
+    facets.states = countStates(violationQuery, counter);
+    facets.waiverTypes = countWaiverTypes(waiverFacetQuery, counter);
+    facets.threatCategories = countThreatCategories(violationQuery, counter);
+    facets.stages = countLicensedStages(violationQuery, counter);
 
     LinkedHashMap<String, SearchResultItemDTO> discovered = discoverViolationItems(violationQuery);
     if (!discovered.isEmpty()) {
       facets.organizations = countOrganizations(violationQuery, discovered);
       facets.applications = countApplications(violationQuery, discovered);
     }
+    attachOwnerLabels(facets, discovered);
     return facets;
   }
 
-  private Map<String, Long> countStates(final String violationQuery) {
+  /**
+   * Session-path facets: share the caller's {@link IndexReadSession} (one RBAC compile + one snapshot).
+   * String queries are the same Martha query strings as the legacy path; conversion happens here so
+   * we never round-trip {@link Query#toString()}.
+   */
+  ViolationsListFacetsDTO buildFacets(
+      final IndexReadSession session,
+      final String violationQuery,
+      final String waiverFacetQuery,
+      final long totalViolations)
+  {
+    ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
+    facets.totalViolations = totalViolations;
+    if (totalViolations == 0) {
+      return facets;
+    }
+
+    Query sessionViolationQuery = conversionHelper.stringToQuery(violationQuery);
+    ToLongFunction<String> counter = query -> sessionCount(session, query);
+
+    facets.states = countStates(violationQuery, counter);
+    facets.waiverTypes = countWaiverTypes(waiverFacetQuery, counter);
+    facets.threatCategories = countThreatCategories(violationQuery, counter);
+    facets.stages = countLicensedStages(violationQuery, counter);
+    facets.organizations = countOrganizations(session, sessionViolationQuery);
+    facets.applications = countApplications(session, sessionViolationQuery);
+    attachOwnerLabels(facets);
+    return facets;
+  }
+
+  /** Session path: no discovery hits; resolve names via DAO for facet keys. */
+  private void attachOwnerLabels(final ViolationsListFacetsDTO facets) {
+    attachOwnerLabels(facets, null);
+  }
+
+  /**
+   * Resolve friendly org/app display names for facet keys so the Martha rail never has to show raw
+   * internal ids. Prefers names already present on discovery hits (legacy path), then fills gaps with
+   * a batched DAO lookup for the facet key set.
+   */
+  private void attachOwnerLabels(
+      final ViolationsListFacetsDTO facets,
+      final LinkedHashMap<String, SearchResultItemDTO> discovered)
+  {
+    Map<String, String> organizationNames = new LinkedHashMap<>();
+    Map<String, String> applicationNames = new LinkedHashMap<>();
+
+    if (discovered != null) {
+      for (SearchResultItemDTO item : discovered.values()) {
+        if (StringUtils.isNotBlank(item.organizationId) && StringUtils.isNotBlank(item.organizationName)) {
+          organizationNames.putIfAbsent(item.organizationId, item.organizationName);
+        }
+        if (StringUtils.isNotBlank(item.applicationId) && StringUtils.isNotBlank(item.applicationName)) {
+          applicationNames.putIfAbsent(item.applicationId, item.applicationName);
+        }
+      }
+    }
+
+    Set<String> missingOrganizationIds = missingLabelIds(facets.organizations, organizationNames);
+    if (!missingOrganizationIds.isEmpty()) {
+      for (Organization organization : organizationDAO.getByIds(missingOrganizationIds)) {
+        if (organization != null && StringUtils.isNotBlank(organization.getId())
+            && StringUtils.isNotBlank(organization.getName()))
+        {
+          organizationNames.putIfAbsent(organization.getId(), organization.getName());
+        }
+      }
+    }
+
+    Set<String> missingApplicationIds = missingLabelIds(facets.applications, applicationNames);
+    if (!missingApplicationIds.isEmpty()) {
+      for (Application application : applicationDAO.getByIds(missingApplicationIds)) {
+        if (application != null && StringUtils.isNotBlank(application.getId())
+            && StringUtils.isNotBlank(application.getName()))
+        {
+          applicationNames.putIfAbsent(application.getId(), application.getName());
+        }
+      }
+    }
+
+    facets.organizationNames = organizationNames.isEmpty() ? null : organizationNames;
+    facets.applicationNames = applicationNames.isEmpty() ? null : applicationNames;
+  }
+
+  private static Set<String> missingLabelIds(
+      final Map<String, Long> counts,
+      final Map<String, String> knownNames)
+  {
+    if (counts == null || counts.isEmpty()) {
+      return Set.of();
+    }
+    Set<String> missing = new HashSet<>();
+    for (String id : counts.keySet()) {
+      if (StringUtils.isNotBlank(id) && !knownNames.containsKey(id)) {
+        missing.add(id);
+      }
+    }
+    return missing;
+  }
+
+  private Map<String, Long> countStates(final String violationQuery, final ToLongFunction<String> counter) {
     Map<String, Long> counts = new LinkedHashMap<>();
-    String waivedClause = FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":("
-        + ViolationWaiverStatus.WAIVED + " " + ViolationWaiverStatus.AUTO_WAIVED + ")";
-    // OPEN mirrors the row-side derivation in ViolationWaiverStatus.toState: anything that is not
-    // Waived/AutoWaived — including a missing/unrecognized waiver status — is OPEN. Counting
-    // "NOT waived" (rather than ":(Active)") keeps the OPEN facet in agreement with the row states so
-    // the two paths can never disagree, even if a violation doc ever lacks an explicit waiver status.
-    long open = searchIndexClient.count(violationQuery + " AND NOT (" + waivedClause + ")");
+    String waivedClause = waivedClause();
+    long open = counter.applyAsLong(violationQuery + " AND NOT (" + waivedClause + ")");
     if (open > 0) {
       counts.put(PolicyViolationState.OPEN.name(), open);
     }
-    long waived = searchIndexClient.count(violationQuery + " AND " + waivedClause);
+    long waived = counter.applyAsLong(violationQuery + " AND " + waivedClause);
     if (waived > 0) {
       counts.put(PolicyViolationState.WAIVED.name(), waived);
     }
     return counts.isEmpty() ? null : counts;
   }
 
-  /**
-   * Auto- vs manually-waived facet map (CLM-42261), counted against {@code waiverFacetQuery} (the list
-   * query minus the waiver-type clause) so this single-select facet always shows both options' switchable
-   * counts. Zero buckets are omitted; an all-zero result returns {@code null}. The single-status clause
-   * is shared with the filter query via {@link ViolationsListIndexQueryBuilder#waiverStatusClause} so the
-   * facet counts and the filter cannot drift apart.
-   */
-  private Map<String, Long> countWaiverTypes(final String waiverFacetQuery) {
+  private Map<String, Long> countWaiverTypes(final String waiverFacetQuery, final ToLongFunction<String> counter) {
     Map<String, Long> counts = new LinkedHashMap<>();
-    long autoWaived = searchIndexClient.count(waiverFacetQuery + " AND "
+    long autoWaived = counter.applyAsLong(waiverFacetQuery + " AND "
         + ViolationsListIndexQueryBuilder.waiverStatusClause(ViolationWaiverStatus.AUTO_WAIVED));
     if (autoWaived > 0) {
       counts.put(WAIVER_TYPE_AUTO, autoWaived);
     }
-    long manualWaived = searchIndexClient.count(waiverFacetQuery + " AND "
+    long manualWaived = counter.applyAsLong(waiverFacetQuery + " AND "
         + ViolationsListIndexQueryBuilder.waiverStatusClause(ViolationWaiverStatus.WAIVED));
     if (manualWaived > 0) {
       counts.put(WAIVER_TYPE_MANUAL, manualWaived);
@@ -172,12 +288,15 @@ final class ViolationsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
-  private Map<String, Long> countThreatCategories(final String violationQuery) {
+  private Map<String, Long> countThreatCategories(
+      final String violationQuery,
+      final ToLongFunction<String> counter)
+  {
     Map<String, Long> counts = new LinkedHashMap<>();
     for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
       String clause = FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label + ":("
           + DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(category.getName()) + ")";
-      long count = searchIndexClient.count(violationQuery + " AND " + clause);
+      long count = counter.applyAsLong(violationQuery + " AND " + clause);
       if (count > 0) {
         counts.put(category.getName(), count);
       }
@@ -185,13 +304,16 @@ final class ViolationsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
-  private Map<String, Long> countLicensedStages(final String violationQuery) {
+  private Map<String, Long> countLicensedStages(
+      final String violationQuery,
+      final ToLongFunction<String> counter)
+  {
     Map<String, Long> counts = new LinkedHashMap<>();
     for (StageType stageType : stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)) {
       String stageId = stageType.getId();
       String clause = FieldIdentifier.POLICY_EVALUATION_STAGE.label + ":("
           + DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(stageId) + ")";
-      long count = searchIndexClient.count(violationQuery + " AND " + clause);
+      long count = counter.applyAsLong(violationQuery + " AND " + clause);
       if (count > 0) {
         counts.put(stageId, count);
       }
@@ -233,20 +355,13 @@ final class ViolationsListFacetsBuilder
       return null;
     }
 
-    // Each org count expands the org to itself + all descendant orgs (buildOrganizationFilterClause ->
-    // getAllChildOrganizationIds), so a parent and a child that are both present count overlapping
-    // violations and the per-org counts intentionally do NOT sum to totalViolations. This is a known
-    // N+1 (one child-id DB lookup per org) bounded by MAX_ORGANIZATION_FACET_COUNT_QUERIES; the
-    // bucketed-aggregation replacement that removes the fan-out is tracked under CLM-42262.
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
     for (String organizationId : organizationIds) {
-      if (queries >= MAX_ORGANIZATION_FACET_COUNT_QUERIES) {
+      if (queries >= MAX_ORGANIZATION_FACETS) {
         break;
       }
       String orgClause = dimensionQueryBuilder.buildOrganizationFilterClause(Set.of(organizationId));
-      // Root-organization ids bypass the org filter clause (see DashboardIndexDimensionQueryBuilder);
-      // skip them rather than counting against the full RBAC-scoped query twice.
       if (orgClause == null) {
         continue;
       }
@@ -256,6 +371,17 @@ final class ViolationsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
+  /**
+   * Exact-match org buckets from the index (see class Javadoc). Caps at {@link #MAX_ORGANIZATION_FACETS}.
+   */
+  private Map<String, Long> countOrganizations(final IndexReadSession session, final Query violationQuery) {
+    List<IndexTermsBucket> buckets = session.termsAggregation(
+        violationQuery,
+        FieldIdentifier.ORGANIZATION_ID.label,
+        MAX_ORGANIZATION_FACETS);
+    return bucketsToCounts(buckets);
+  }
+
   private Map<String, Long> countApplications(
       final String violationQuery,
       final LinkedHashMap<String, SearchResultItemDTO> discovered)
@@ -263,7 +389,7 @@ final class ViolationsListFacetsBuilder
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
     for (String applicationId : discovered.keySet()) {
-      if (queries >= MAX_APPLICATION_FACET_COUNT_QUERIES) {
+      if (queries >= MAX_APPLICATION_FACETS) {
         break;
       }
       String appClause = dimensionQueryBuilder.buildEscapedApplicationFilterClause(Set.of(applicationId));
@@ -274,5 +400,35 @@ final class ViolationsListFacetsBuilder
       queries++;
     }
     return counts.isEmpty() ? null : counts;
+  }
+
+  private Map<String, Long> countApplications(final IndexReadSession session, final Query violationQuery) {
+    List<IndexTermsBucket> buckets = session.termsAggregation(
+        violationQuery,
+        FieldIdentifier.APPLICATION_ID.label,
+        MAX_APPLICATION_FACETS);
+    return bucketsToCounts(buckets);
+  }
+
+  private static Map<String, Long> bucketsToCounts(final List<IndexTermsBucket> buckets) {
+    if (buckets == null || buckets.isEmpty()) {
+      return null;
+    }
+    Map<String, Long> counts = new LinkedHashMap<>();
+    for (IndexTermsBucket bucket : buckets) {
+      if (bucket.count() > 0 && StringUtils.isNotBlank(bucket.key())) {
+        counts.put(bucket.key(), bucket.count());
+      }
+    }
+    return counts.isEmpty() ? null : counts;
+  }
+
+  private long sessionCount(final IndexReadSession session, final String query) {
+    return session.count(conversionHelper.stringToQuery(query));
+  }
+
+  private static String waivedClause() {
+    return FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":("
+        + ViolationWaiverStatus.WAIVED + " " + ViolationWaiverStatus.AUTO_WAIVED + ")";
   }
 }

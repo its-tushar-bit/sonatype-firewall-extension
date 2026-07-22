@@ -86,6 +86,40 @@ public class ViolationsListResourceTest
   }
 
   @Test
+  public void listViolations_sessionReadPath_returnsRowsAndFacetsFromSeededIndex() throws Exception {
+    System.setProperty("nexusOne.search.readPath.violations", "new");
+    try {
+      SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+      Organization org = tempEntity.newOrganization("SessionPathTribe");
+      Application app = tempEntity.newApplication("Session Path App", "session-path-app", org.getId());
+      seedStandardViolations(org, app, "sess");
+      ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+      ViolationsListResponseDTO body = post(scopedRequest(org)).getBody(ViolationsListResponseDTO.class);
+
+      assertThat(body.source).isEqualTo(ViolationsListResponseDTO.SOURCE_INDEX);
+      assertThat(body.total).isEqualTo(3);
+      assertThat(body.violations).hasSize(3);
+      assertThat(body.violations.get(0).policyViolationId).isNotBlank();
+      assertThat(body.violations.get(0).applicationId).isEqualTo(app.getId());
+      assertThat(body.violations.get(0).severity).isNotBlank();
+      assertThat(body.facets).isNotNull();
+      assertThat(body.facets.totalViolations).isEqualTo(3);
+      assertThat(body.facets.states).isNotNull();
+      assertThat(body.facets.threatCategories).isNotNull();
+      assertThat(body.facets.stages).isNotNull();
+      assertThat(body.facets.organizations).containsKey(org.getId());
+      assertThat(body.facets.applications).containsKey(app.getId());
+      assertThat(body.facets.organizationNames).containsEntry(org.getId(), org.getName());
+      assertThat(body.facets.applicationNames).containsEntry(app.getId(), app.getName());
+    }
+    finally {
+      System.clearProperty("nexusOne.search.readPath.violations");
+    }
+  }
+
+  @Test
   public void listViolations_flagOff_returns404() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
 

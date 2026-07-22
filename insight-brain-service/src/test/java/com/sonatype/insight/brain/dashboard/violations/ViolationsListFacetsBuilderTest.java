@@ -10,29 +10,44 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.search.ConversionHelper;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.search.session.IndexReadSession;
+import com.sonatype.insight.brain.search.session.IndexTermsBucket;
 
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,8 +69,35 @@ public class ViolationsListFacetsBuilderTest
   @Mock
   private DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
 
+  @Mock
+  private ConversionHelper conversionHelper;
+
+  @Mock
+  private OrganizationDAO organizationDAO;
+
+  @Mock
+  private ApplicationDAO applicationDAO;
+
+  @Mock
+  private IndexReadSession session;
+
+  private final Query sessionQuery = new MatchAllDocsQuery();
+
   private ViolationsListFacetsBuilder builder() {
-    return new ViolationsListFacetsBuilder(searchIndexClient, stageTypeService, dimensionQueryBuilder);
+    return new ViolationsListFacetsBuilder(
+        searchIndexClient,
+        stageTypeService,
+        dimensionQueryBuilder,
+        conversionHelper,
+        organizationDAO,
+        applicationDAO);
+  }
+
+  @Before
+  public void stubSessionQueryConversion() {
+    lenient().when(conversionHelper.stringToQuery(anyString())).thenReturn(sessionQuery);
+    lenient().when(organizationDAO.getByIds(any())).thenReturn(List.of());
+    lenient().when(applicationDAO.getByIds(any())).thenReturn(List.of());
   }
 
   private void stubEmptyDiscovery() {
@@ -210,7 +252,7 @@ public class ViolationsListFacetsBuilderTest
   @Test
   public void buildFacets_applicationCount_isCapped() {
     List<SearchResultItemDTO> items = new ArrayList<>();
-    for (int i = 0; i < ViolationsListFacetsBuilder.MAX_APPLICATION_FACET_COUNT_QUERIES + 5; i++) {
+    for (int i = 0; i < ViolationsListFacetsBuilder.MAX_APPLICATION_FACETS + 5; i++) {
       items.add(item("app-" + i, "org-A"));
     }
     when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
@@ -221,6 +263,136 @@ public class ViolationsListFacetsBuilderTest
 
     ViolationsListFacetsDTO facets = builder().buildFacets(QUERY, 100);
 
-    assertThat(facets.applications).hasSize(ViolationsListFacetsBuilder.MAX_APPLICATION_FACET_COUNT_QUERIES);
+    assertThat(facets.applications).hasSize(ViolationsListFacetsBuilder.MAX_APPLICATION_FACETS);
+  }
+
+  @Test
+  public void buildFacets_session_zeroTotal_shortCircuitsWithNoSessionQueries() {
+    ViolationsListFacetsDTO facets = builder().buildFacets(session, QUERY, QUERY, 0);
+
+    assertThat(facets.totalViolations).isZero();
+    assertThat(facets.states).isNull();
+    assertThat(facets.organizations).isNull();
+    verify(session, never()).count(any(Query.class));
+    verify(session, never()).termsAggregation(any(Query.class), anyString(), anyInt());
+  }
+
+  @Test
+  public void buildFacets_session_countsStatesWaiverThreatStageAndTermsFacets() {
+    StageType buildStage = mock(StageType.class);
+    when(buildStage.getId()).thenReturn("build");
+    when(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)).thenReturn(List.of(buildStage));
+    // Same Query stub for every stringToQuery; consecutive counts share one positive value.
+    when(session.count(any(Query.class))).thenReturn(5L);
+    when(session.termsAggregation(eq(sessionQuery), eq(FieldIdentifier.ORGANIZATION_ID.label), anyInt()))
+        .thenReturn(List.of(new IndexTermsBucket("org-A", 5L), new IndexTermsBucket("org-B", 0L)));
+    when(session.termsAggregation(eq(sessionQuery), eq(FieldIdentifier.APPLICATION_ID.label), anyInt()))
+        .thenReturn(List.of(new IndexTermsBucket("app-1", 3L), new IndexTermsBucket("", 9L)));
+
+    ViolationsListFacetsDTO facets = builder().buildFacets(session, QUERY, QUERY, 10);
+
+    assertThat(facets.totalViolations).isEqualTo(10);
+    assertThat(facets.states).containsEntry("OPEN", 5L).containsEntry("WAIVED", 5L);
+    assertThat(facets.waiverTypes)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_AUTO, 5L)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_MANUAL, 5L);
+    assertThat(facets.threatCategories).containsKeys(PolicyThreatCategory.SECURITY.getName());
+    assertThat(facets.stages).containsEntry("build", 5L);
+    assertThat(facets.organizations).containsOnlyKeys("org-A").containsEntry("org-A", 5L);
+    assertThat(facets.applications).containsOnlyKeys("app-1").containsEntry("app-1", 3L);
+  }
+
+  @Test
+  public void buildFacets_session_waiverTypeFacet_countedAgainstWaiverExcludedQuery() {
+    // Session-path counterpart to buildFacets_waiverTypeFacet_countedAgainstWaiverExcludedQuery:
+    // with an AUTO-narrowed list query, waiver facet counts must still come from waiverFacetQuery.
+    String listQuery = "LIST_QUERY AND policyViolationWaiverStatus:(AutoWaived)";
+    String waiverFacetQuery = "WAIVER_FACET_QUERY";
+    Query waiverAutoQuery = mock(Query.class);
+    Query waiverManualQuery = mock(Query.class);
+
+    when(conversionHelper.stringToQuery(argThat(q -> q != null && q.startsWith(waiverFacetQuery)
+        && q.contains("policyViolationWaiverStatus:(AutoWaived)")))).thenReturn(waiverAutoQuery);
+    when(conversionHelper.stringToQuery(argThat(q -> q != null && q.startsWith(waiverFacetQuery)
+        && q.contains("policyViolationWaiverStatus:(Waived)")))).thenReturn(waiverManualQuery);
+    when(session.count(waiverAutoQuery)).thenReturn(4L);
+    when(session.count(waiverManualQuery)).thenReturn(2L);
+    when(session.termsAggregation(any(Query.class), anyString(), anyInt())).thenReturn(List.of());
+
+    ViolationsListFacetsDTO facets = builder().buildFacets(session, listQuery, waiverFacetQuery, 10);
+
+    assertThat(facets.waiverTypes)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_AUTO, 4L)
+        .containsEntry(ViolationsListFacetsBuilder.WAIVER_TYPE_MANUAL, 2L);
+    verify(session).count(waiverAutoQuery);
+    verify(session).count(waiverManualQuery);
+  }
+
+  @Test
+  public void buildFacets_session_termsAggregation_nullBucketsYieldNullMaps() {
+    when(session.count(any(Query.class))).thenReturn(0L);
+    when(session.termsAggregation(any(Query.class), anyString(), anyInt())).thenReturn(null);
+
+    ViolationsListFacetsDTO facets = builder().buildFacets(session, QUERY, QUERY, 1);
+
+    assertThat(facets.organizations).isNull();
+    assertThat(facets.applications).isNull();
+  }
+
+  @Test
+  public void buildFacets_session_attachesFriendlyOwnerNamesFromDao() {
+    when(session.count(any(Query.class))).thenReturn(1L);
+    when(session.termsAggregation(eq(sessionQuery), eq(FieldIdentifier.ORGANIZATION_ID.label), anyInt()))
+        .thenReturn(List.of(new IndexTermsBucket("org-A", 5L)));
+    when(session.termsAggregation(eq(sessionQuery), eq(FieldIdentifier.APPLICATION_ID.label), anyInt()))
+        .thenReturn(List.of(new IndexTermsBucket("app-1", 3L)));
+
+    Organization organization = mock(Organization.class);
+    when(organization.getId()).thenReturn("org-A");
+    when(organization.getName()).thenReturn("Java-team");
+    Application application = mock(Application.class);
+    when(application.getId()).thenReturn("app-1");
+    when(application.getName()).thenReturn("Apple - Java");
+    when(organizationDAO.getByIds(any())).thenReturn(List.of(organization));
+    when(applicationDAO.getByIds(any())).thenReturn(List.of(application));
+
+    ViolationsListFacetsDTO facets = builder().buildFacets(session, QUERY, QUERY, 10);
+
+    assertThat(facets.organizationNames).containsEntry("org-A", "Java-team");
+    assertThat(facets.applicationNames).containsEntry("app-1", "Apple - Java");
+  }
+
+  @Test
+  public void buildFacets_session_ownerLabelDaoFailure_propagates() {
+    when(session.count(any(Query.class))).thenReturn(1L);
+    when(session.termsAggregation(eq(sessionQuery), eq(FieldIdentifier.ORGANIZATION_ID.label), anyInt()))
+        .thenReturn(List.of(new IndexTermsBucket("org-A", 5L)));
+    when(session.termsAggregation(eq(sessionQuery), eq(FieldIdentifier.APPLICATION_ID.label), anyInt()))
+        .thenReturn(List.of());
+    when(organizationDAO.getByIds(any())).thenThrow(new RuntimeException("db unavailable"));
+
+    assertThatThrownBy(() -> builder().buildFacets(session, QUERY, QUERY, 10))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("db unavailable");
+  }
+
+  @Test
+  public void buildFacets_legacy_prefersDiscoveryNamesOverDao() {
+    SearchResultItemDTO discovered = item("app-1", "org-A");
+    discovered.organizationName = "From-Index";
+    discovered.applicationName = "From-Index-App";
+    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+        .thenReturn(resultWith(List.of(discovered)));
+    when(dimensionQueryBuilder.buildOrganizationFilterClause(Set.of("org-A"))).thenReturn("organizationId:(org-A)");
+    when(dimensionQueryBuilder.buildEscapedApplicationFilterClause(Set.of("app-1")))
+        .thenReturn("applicationId:(app-1)");
+    when(searchIndexClient.count(anyString())).thenReturn(1L);
+
+    ViolationsListFacetsDTO facets = builder().buildFacets(QUERY, 1);
+
+    assertThat(facets.organizationNames).containsEntry("org-A", "From-Index");
+    assertThat(facets.applicationNames).containsEntry("app-1", "From-Index-App");
+    verify(organizationDAO, never()).getByIds(any());
+    verify(applicationDAO, never()).getByIds(any());
   }
 }

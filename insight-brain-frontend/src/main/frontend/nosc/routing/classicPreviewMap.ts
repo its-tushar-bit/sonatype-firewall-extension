@@ -131,7 +131,7 @@ const DETAIL_PAGE_MAPPINGS: ReadonlyArray<DetailPageMapping> = [
     nexusOneTemplate: (id) => `/applications/${id}`,
   },
   {
-    // Embedded violation detail (CLM-42256): Nexus One /violations/{id} <->
+    // Native violation detail (CLM-42256): Nexus One /violations/{id} <->
     // Classic sidebarView.violation at /violation/{id} (singular).
     nexusOneMatch: /^\/violations\/([^/]+)\/?$/,
     classicTemplate: (id) => `/violation/${id}`,

@@ -88,7 +88,16 @@ export const originNamesForAddRequestPages = {
   // Integrations -> View -> Component Details -> Legal -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_INTEGRATIONS_LEGAL:
     'componentDetailsPageWithinPrioritiesPageContainerFromIntegrations.componentDetails.legal',
+  // Nexus One -> Violation Details -> Add/Request Waiver
+  NEXUS_ONE_VIOLATION_DETAIL: 'nexusOneViolationDetail',
+  NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW: 'nexusOneViolationDetail.overview',
+  NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY: 'nexusOneViolationDetail.vulnerability',
+  NEXUS_ONE_VIOLATION_DETAIL_WAIVERS: 'nexusOneViolationDetail.waivers',
 };
+
+export const isNexusOneViolationDetailOriginName = (stateName) =>
+  stateName === originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL ||
+  stateName?.startsWith(`${originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL}.`);
 
 const waiverExpirations = [
   { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead

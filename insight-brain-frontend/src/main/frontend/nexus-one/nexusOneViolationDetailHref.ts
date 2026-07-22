@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import router from 'MainRoot/router/routerInstance';
-import { NEXUS_ONE_VIOLATION_DETAIL_STATE } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
+import { NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
 
 export interface NexusOneViolationDetailHrefParams {
   readonly policyViolationId: string;
@@ -18,9 +18,8 @@ export interface NexusOneViolationDetailHrefParams {
 }
 
 /**
- * In-hash href for the embedded Classic violation detail (CLM-42256). The card
- * drill-in (CLM-42259) is the production caller; this helper is the single URL
- * builder for that hand-off.
+ * In-hash href for the native violation detail. The card drill-in (CLM-42259)
+ * is the production caller; this helper is the single URL builder for that hand-off.
  *
  * Accepts {@code policyViolationId} (the list API's row identifier) and maps it
  * to the state's {@code id} path param, which ViolationPage resolves via
@@ -28,5 +27,5 @@ export interface NexusOneViolationDetailHrefParams {
  */
 export function nexusOneViolationDetailHref(params: NexusOneViolationDetailHrefParams): string {
   const { policyViolationId, ...rest } = params;
-  return router.stateService.href(NEXUS_ONE_VIOLATION_DETAIL_STATE, { id: policyViolationId, ...rest });
+  return router.stateService.href(NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE, { id: policyViolationId, ...rest });
 }

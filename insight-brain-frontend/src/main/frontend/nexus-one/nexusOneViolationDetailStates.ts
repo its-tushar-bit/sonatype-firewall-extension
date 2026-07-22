@@ -4,15 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { ReactStateDeclaration } from '@uirouter/react';
-import { NexusOneViolationDetailRoute } from 'MainRoot/nexus-one/nexusOneViolationDetailRoute';
+import ViolationDetail from 'MainRoot/nosc/violations/detail/ViolationDetail';
+import {
+  ViolationDetailOverviewRoute,
+  ViolationDetailVulnerabilityRoute,
+  ViolationDetailWaiversRoute,
+} from 'MainRoot/nosc/violations/detail/violationDetailTabRoutes';
 
 /**
- * UI-Router state for embedding the Classic violation detail page inside Nexus
- * One chrome (CLM-42256). Exported as data so production routing and jest
- * harnesses register identical states, mirroring
- * {@link nexusOneApplicationReportStates}.
+ * UI-Router state declarations for the native Nexus One Violation Detail page.
+ * Exported as data so production routing and jest harnesses register identical
+ * states, mirroring {@link nexusOneApplicationDetailStates}.
  */
 export const NEXUS_ONE_VIOLATION_DETAIL_STATE = 'nexusOneViolationDetail';
+export const NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE = `${NEXUS_ONE_VIOLATION_DETAIL_STATE}.overview`;
+export const NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY_STATE = `${NEXUS_ONE_VIOLATION_DETAIL_STATE}.vulnerability`;
+export const NEXUS_ONE_VIOLATION_DETAIL_WAIVERS_STATE = `${NEXUS_ONE_VIOLATION_DETAIL_STATE}.waivers`;
 
 const VIOLATION_DETAIL_TITLE = 'Nexus One — Violation Detail';
 
@@ -25,7 +32,26 @@ export function nexusOneViolationDetailStates(): ReactStateDeclaration[] {
       // (violationId || id). Query params mirror the Classic sidebarView.violation
       // deep-link contract (/violation/{id}?type&sidebarReference&sidebarId&page).
       url: '/violations/{id}?type&sidebarReference&sidebarId&page',
-      component: NexusOneViolationDetailRoute,
+      abstract: true,
+      component: ViolationDetail,
+      data: { title: VIOLATION_DETAIL_TITLE },
+    },
+    {
+      name: NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE,
+      url: '',
+      component: ViolationDetailOverviewRoute,
+      data: { title: VIOLATION_DETAIL_TITLE },
+    },
+    {
+      name: NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY_STATE,
+      url: '/vulnerability',
+      component: ViolationDetailVulnerabilityRoute,
+      data: { title: VIOLATION_DETAIL_TITLE },
+    },
+    {
+      name: NEXUS_ONE_VIOLATION_DETAIL_WAIVERS_STATE,
+      url: '/waivers',
+      component: ViolationDetailWaiversRoute,
       data: { title: VIOLATION_DETAIL_TITLE },
     },
   ];

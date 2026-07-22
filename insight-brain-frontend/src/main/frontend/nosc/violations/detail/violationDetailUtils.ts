@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import { violationSidebarHref } from 'MainRoot/nosc/applications/applicationDetailUtils';
+import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
+import type {
+  ComponentDisplayNameDTO,
+  ViolationDetailTabId,
+  ViolationDetailsDTO,
+  ViolationStageDataDTO,
+} from 'MainRoot/nosc/violations/detail/violationDetailTypes';
+
+export type { ViolationDetailTabId };
+
+export const VIOLATION_DETAIL_TAB_IDS: ViolationDetailTabId[] = ['overview', 'vulnerability', 'waivers'];
+
+const NEXUS_ONE_VIOLATION_DETAIL_PARENT_STATE = 'nexusOneViolationDetail';
+const DEFAULT_TAB: ViolationDetailTabId = 'overview';
+
+function isViolationDetailTabId(value: string): value is ViolationDetailTabId {
+  return VIOLATION_DETAIL_TAB_IDS.includes(value as ViolationDetailTabId);
+}
+
+export function isSecurityPolicyCategory(category: string | undefined): boolean {
+  return category?.toLowerCase() === 'security';
+}
+
+export function tabFromViolationDetailStateName(stateName: string | undefined): ViolationDetailTabId {
+  if (!stateName?.startsWith(`${NEXUS_ONE_VIOLATION_DETAIL_PARENT_STATE}.`)) {
+    return DEFAULT_TAB;
+  }
+
+  const suffix = stateName.slice(NEXUS_ONE_VIOLATION_DETAIL_PARENT_STATE.length + 1);
+  return isViolationDetailTabId(suffix) ? suffix : DEFAULT_TAB;
+}
+
+export function violationDetailStateNameForTab(tab: ViolationDetailTabId): string {
+  return `${NEXUS_ONE_VIOLATION_DETAIL_PARENT_STATE}.${tab}`;
+}
+
+/** Classic violation-detail sidebar deep-link (context-path / MTIQ aware). */
+export function classicViolationHref(id: string): string {
+  return violationSidebarHref(id);
+}
+
+/** Classic vulnerability detail deep-link (context-path / MTIQ aware). */
+export function classicVulnerabilityHref(id: string): string {
+  return bundleIndexUrl('classic', `/vulnerabilities/${encodeURIComponent(id)}`);
+}
+
+export function getMostRecentStageEntry(
+  stageData: ViolationDetailsDTO['stageData'] | undefined,
+): {
+  readonly stageId: string;
+  readonly scanId?: string;
+  readonly evaluationTime: string;
+} | null {
+  return Object.entries(stageData ?? {}).reduce<{
+    readonly stageId: string;
+    readonly scanId?: string;
+    readonly evaluationTime: string;
+  } | null>((selected, [stageId, current]) => {
+    const currentMs = Date.parse(current.mostRecentEvaluationTime);
+    const selectedMs = selected ? Date.parse(selected.evaluationTime) : Number.NaN;
+    if (
+      !selected ||
+      (Number.isFinite(currentMs) && (!Number.isFinite(selectedMs) || currentMs > selectedMs))
+    ) {
+      return {
+        stageId,
+        scanId: current.mostRecentScanId,
+        evaluationTime: current.mostRecentEvaluationTime,
+      };
+    }
+    return selected;
+  }, null);
+}
+
+export function getMostRecentScanId(
+  stageData: Record<string, ViolationStageDataDTO> | undefined,
+): string | undefined {
+  return getMostRecentStageEntry(stageData)?.scanId;
+}
+
+export function componentDisplayNameLabel(
+  displayName: ViolationDetailsDTO['displayName'] | undefined,
+  fallback?: string,
+): string {
+  if (typeof displayName === 'string' && displayName) {
+    return displayName;
+  }
+
+  const parts = (displayName as ComponentDisplayNameDTO | null | undefined)?.parts ?? [];
+  const label = parts
+    .map((part) => part.value)
+    .filter(Boolean)
+    .join(':');
+  return label || fallback || '';
+}

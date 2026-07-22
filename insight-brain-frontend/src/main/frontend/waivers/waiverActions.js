@@ -26,7 +26,7 @@ import {
   loadApplicableWaivers,
   fetchCrossStageViolationAddWaiver,
 } from '../violation/violationActions';
-import { getExpiryTime, originNamesForAddRequestPages } from '../util/waiverUtils';
+import { getExpiryTime, isNexusOneViolationDetailOriginName, originNamesForAddRequestPages } from '../util/waiverUtils';
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { actions as waiverActions } from 'MainRoot/waivers/waiverSlice';
@@ -245,6 +245,22 @@ export function returnToAddOrRequestWaiverOriginPage() {
     const { prevParams, prevState, currentParams } = getState().router;
 
     const prevStateName = prevState && prevState.name;
+    if (isNexusOneViolationDetailOriginName(prevStateName)) {
+      const targetState =
+        prevStateName === originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL
+          ? originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW
+          : prevStateName;
+      const id = currentParams.violationId || prevParams?.id;
+      if (!id) {
+        return;
+      }
+      return dispatch(
+        stateGo(targetState, {
+          ...prevParams,
+          id,
+        })
+      );
+    }
 
     // If user canceled waiver creation or request, return to previous view
     switch (prevStateName) {

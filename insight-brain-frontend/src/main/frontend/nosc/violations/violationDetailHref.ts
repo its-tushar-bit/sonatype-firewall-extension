@@ -5,7 +5,7 @@
  */
 
 /**
- * In-hash href for a violation card drill-in. Targets the embedded Classic violation detail
+ * In-hash href for a violation card drill-in. Targets the native Nexus One violation detail
  * (state {@code nexusOneViolationDetail}, url {@code /violations/{id}}) registered by CLM-42256.
  *
  * Built as a plain hash string rather than via {@code router.stateService.href} — mirroring the

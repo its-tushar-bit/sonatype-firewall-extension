@@ -31,6 +31,7 @@ import {
   LayoutGrid,
   AlertCircle,
   SlidersHorizontal,
+  Lock,
 } from 'lucide-react';
 
 /**
@@ -81,6 +82,8 @@ export const ActionIcons = {
   AlertCircle,
   /** Sliders — filter controls (e.g. the mobile filter-drawer trigger). */
   Filter: SlidersHorizontal,
+  /** Lock — enterprise-gated actions (e.g. Request Waiver). */
+  Lock,
 } as const;
 
 export type ActionIconName = keyof typeof ActionIcons;

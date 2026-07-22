@@ -149,6 +149,7 @@ import hostedReposSlice from '../hostedRepos/hostedReposSlice';
 import repositoryComponentsSlice from '../hostedRepos/repositoryComponentsSlice';
 import previewDashboardNewestRisksReducer from '../nosc/dashboard/previewDashboardNewestRisksSlice';
 import applicationDetailReducer from '../nosc/applications/applicationDetailSlice';
+import violationDetailReducer from '../nosc/violations/detail/violationDetailSlice';
 import noscWaiversReducer from '../nosc/waivers/noscWaiversSlice';
 
 export default combineReducers({
@@ -157,6 +158,7 @@ export default combineReducers({
   dashboard: dashboardReducer,
   previewDashboardNewestRisks: previewDashboardNewestRisksReducer,
   applicationDetail: applicationDetailReducer,
+  violationDetail: violationDetailReducer,
   noscWaivers: noscWaiversReducer,
   manageFilters: manageFiltersReducer,
   dashboardFilter: dashboardFilterReducer,

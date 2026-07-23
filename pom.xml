@@ -40,7 +40,7 @@
     <guide-api.version>0.10.0-01</guide-api.version>
     <slf4j.version>2.0.18</slf4j.version>
     <!-- logback 1.4.x requires Java 11 -->
-    <logback.version>1.5.36</logback.version>
+    <logback.version>1.5.37</logback.version>
     <log4j.version>2.26.1</log4j.version>
     <jackson.version>2.22.1</jackson.version>
     <jackson.tools.version>3.1.5</jackson.tools.version>

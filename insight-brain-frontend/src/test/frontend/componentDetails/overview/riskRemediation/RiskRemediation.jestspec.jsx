@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import userEvent from '@testing-library/user-event';
 import { RiskRemediation } from 'MainRoot/componentDetails/overview/riskRemediation/RiskRemediation';
 import { screen, render, within, fireEvent } from 'TestRoot/SpecUtil';
 
@@ -330,7 +331,7 @@ describe('RiskRemediation', () => {
     expect(listElements.length).toBe(2);
   });
 
-  it('does NOT render RiskRemediation if fetching VersionExplorerData throws "componentIdentifier" error', () => {
+  it('renders RiskRemediation with a retryable load error if fetching VersionExplorerData throws "componentIdentifier" error', async () => {
     renderComponent({
       ...minimalProps,
       versionExplorerData: {
@@ -342,7 +343,13 @@ describe('RiskRemediation', () => {
       },
     });
 
-    expect(screen.queryByTestId('overview-component-risk-remediation-tile')).not.toBeInTheDocument();
+    expect(screen.getByTestId('overview-component-risk-remediation-tile')).toBeInTheDocument();
+    expect(screen.getByText(/componentIdentifier is required/)).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /retry/i }));
+
+    expect(loadVersionExplorerDataSpy).toHaveBeenCalledTimes(2);
   });
 
   describe('selected version load error modal', () => {

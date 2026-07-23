@@ -36,8 +36,6 @@ export const RiskRemediation = ({
     loadVersionExplorerData();
   }, []);
 
-  const COMPONENT_IDENTIFIER_ERROR_MSG = 'componentidentifier is required';
-
   const {
     loading: versionExplorerLoading,
     loadError: versionExplorerLoadError,
@@ -49,9 +47,6 @@ export const RiskRemediation = ({
   const { loading: selectedVersionLoading, loadError: selectedVersionLoadError, selectedVersion } = selectedVersionData;
   const source = sourceResponse ? sourceResponse.source : null;
   const isTransitiveDependency = componentInformation.directDependency === false;
-  const wasVersionExplorerDataFound = !versionExplorerLoadError
-    ?.toLowerCase()
-    ?.includes(COMPONENT_IDENTIFIER_ERROR_MSG);
 
   const overviewComponentRiskRemediationTile_header = (
     <header className="nx-tile-header">
@@ -134,25 +129,23 @@ export const RiskRemediation = ({
   );
 
   return (
-    wasVersionExplorerDataFound && (
-      <section
-        id="overview-component-risk-remediation-tile"
-        data-testid="overview-component-risk-remediation-tile"
-        className="nx-tile iq-component-risk-remediation-tile"
-      >
-        {overviewComponentRiskRemediationTile_header}
-        {selectedVersionLoadError && selectedVersionLoadErrorModal}
-        <div className="nx-tile-content">
-          <NxLoadWrapper
-            loading={versionExplorerLoading}
-            retryHandler={loadVersionExplorerData}
-            error={versionExplorerLoadError}
-          >
-            {content}
-          </NxLoadWrapper>
-        </div>
-      </section>
-    )
+    <section
+      id="overview-component-risk-remediation-tile"
+      data-testid="overview-component-risk-remediation-tile"
+      className="nx-tile iq-component-risk-remediation-tile"
+    >
+      {overviewComponentRiskRemediationTile_header}
+      {selectedVersionLoadError && selectedVersionLoadErrorModal}
+      <div className="nx-tile-content">
+        <NxLoadWrapper
+          loading={versionExplorerLoading}
+          retryHandler={loadVersionExplorerData}
+          error={versionExplorerLoadError}
+        >
+          {content}
+        </NxLoadWrapper>
+      </div>
+    </section>
   );
 };
 

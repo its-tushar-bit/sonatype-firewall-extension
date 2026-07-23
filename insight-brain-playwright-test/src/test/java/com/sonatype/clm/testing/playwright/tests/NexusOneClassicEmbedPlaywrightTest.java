@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.playwright.pages.AdministratorsEditPage;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.BasePage;
 import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.CopyrightOverrideFormPage;
@@ -194,8 +195,10 @@ public class NexusOneClassicEmbedPlaywrightTest
     playwrightRefreshOrOpen(
         NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics/" + report.getId()));
 
+    // BasePage#escapeForJsRegex is used instead of Pattern.quote() because Playwright Java
+    // serializes this pattern to a JS RegExp, which does not understand Java's \Q...\E quoting.
     Pattern cleanEmbedUrl = Pattern.compile(
-        ".*/nexus-one/index\\.html#/success-metrics/" + Pattern.quote(report.getId()) + "(?:\\?.*)?$");
+        ".*/nexus-one/index\\.html#/success-metrics/" + BasePage.escapeForJsRegex(report.getId()) + "(?:\\?.*)?$");
     page.waitForURL(cleanEmbedUrl, new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();

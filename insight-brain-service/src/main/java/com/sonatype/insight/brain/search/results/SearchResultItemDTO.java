@@ -101,6 +101,14 @@ public class SearchResultItemDTO
 
   public String policyViolationConstraintName;
 
+  public String policyWaiverId;
+
+  public String policyWaiverPolicyId;
+
+  public String policyWaiverPolicyName;
+
+  public String policyWaiverScopeOwnerId;
+
   public String componentEffectiveLicenseId;
 
   public String componentEffectiveLicenseName;
@@ -170,6 +178,10 @@ public class SearchResultItemDTO
     policyViolationPolicyId = document.get(FieldIdentifier.POLICY_VIOLATION_POLICY_ID.label);
     policyViolationWaiverStatus = document.get(FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label);
     policyViolationConstraintName = document.get(FieldIdentifier.POLICY_VIOLATION_CONSTRAINT_NAME.label);
+    policyWaiverId = document.get(FieldIdentifier.POLICY_WAIVER_ID.label);
+    policyWaiverPolicyId = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label);
+    policyWaiverPolicyName = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label);
+    policyWaiverScopeOwnerId = document.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label);
     componentEffectiveLicenseId = document.get(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID.label);
     componentEffectiveLicenseName = document.get(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_NAME.label);
     componentLicenseThreatGroupName = document.get(FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME.label);

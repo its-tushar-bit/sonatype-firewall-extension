@@ -150,6 +150,27 @@ public class OpenSearchSearchIndexClientTest
 
   @Test
   @SuppressWarnings("unchecked")
+  public void searchGlobal_sourceWithNullListElement_convertsWithoutNpe() throws Exception {
+    // Waiver docs carry open-ended multi-value fields whose _source arrays contain a trailing null
+    // (e.g. policyWaiverExpiresAt = [<date>, null]). The null element must be skipped during
+    // document conversion rather than NPE on value.getClass().
+    Map<String, Object> source = new java.util.HashMap<>();
+    source.put("itemType", "POLICY_WAIVER");
+    source.put("policyWaiverExpiresAt", java.util.Arrays.asList("2023-11-16T16:21:57.929Z", null));
+
+    Hit<Map> hit = mock(Hit.class);
+    when(hit.source()).thenReturn(source);
+    stubSearchResponse(List.of(hit), 1L);
+
+    GlobalSearchRequest request =
+        new GlobalSearchRequest(new MatchAllDocsQuery(), null, 10, List.of());
+
+    var result = client.searchGlobal(request);
+    assertThat(result.rows()).hasSize(1);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
   public void searchGlobal_tieBreakerSortsOnDocumentKey_notId() throws Exception {
     Hit<Map> hit = mock(Hit.class);
     when(hit.source()).thenReturn(Map.of("itemType", "APPLICATION"));

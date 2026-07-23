@@ -94,6 +94,11 @@ public class ConversionHelper
 
   private List<Field> keyAndValueToFields(final String key, final Object value) {
     List<Field> fields = new ArrayList<>();
+    if (value == null) {
+      // A null value (e.g. a null element inside a multi-value list such as an open-ended
+      // policyWaiverExpiresAt) contributes no field, matching an absent value.
+      return fields;
+    }
     if (value instanceof String stringValue) {
       fields.add(new TextField(key, stringValue, Store.YES));
     }

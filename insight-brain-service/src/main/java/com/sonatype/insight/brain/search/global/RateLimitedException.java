@@ -6,7 +6,8 @@
 package com.sonatype.insight.brain.search.global;
 
 /**
- * Thrown when a caller exceeds the per-user concurrency budget for {@code /rest/search/results}.
+ * Thrown when a caller exceeds the per-user concurrency budget for a Global Search endpoint
+ * ({@code /rest/search/results} or {@code /rest/search/suggest}). Both endpoints share this 429 path.
  * Mapped to HTTP 429 by {@link RateLimitedExceptionMapper}.
  */
 public class RateLimitedException

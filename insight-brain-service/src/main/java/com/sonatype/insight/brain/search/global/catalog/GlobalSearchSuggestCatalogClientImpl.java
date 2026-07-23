@@ -1,0 +1,214 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.search.global.catalog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sonatype.guide.api.dto.SearchResult;
+import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
+import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
+import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
+import com.sonatype.insight.brain.guide.api.error.GuideApiException;
+import com.sonatype.insight.brain.guide.telemetry.GuideOperationType;
+import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.search.global.SearchSource;
+import com.sonatype.insight.brain.search.global.SuggestItemType;
+import com.sonatype.insight.brain.search.global.SuggestRow;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.error.exception.GatewayTimeoutException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
+import com.sonatype.insight.license.model.LicensedFeature;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.InternalServerErrorException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
+
+/**
+ * Live catalog leg for the Global Search suggest endpoint. Serves the catalog-backed suggest types
+ * ({@link SuggestItemType#COMPONENT}, {@link SuggestItemType#VULNERABILITY}) by calling the HDS
+ * global-search path through the dedicated {@link GlobalSearchCatalogHdsClient} (own connection pool,
+ * sub-second timeout, no retries) and mapping the response documents to {@link SuggestRow}s.
+ *
+ * <h3>Entitlement</h3>
+ *
+ * <p>
+ * {@link #isEnabled()} and {@link #suggest(CatalogSuggestRequest)} apply the same gate the catalog
+ * list endpoint uses: deny on multi-tenant (MTIQ) deployments and require the
+ * {@link LicensedFeature#GUIDE_SEARCH} feature. When not entitled the client degrades — it never
+ * reaches HDS and never fails the response.
+ *
+ * <h3>Failure handling</h3>
+ *
+ * <p>
+ * Every upstream failure mode (5xx, 429, timeout, license-unavailable, network, malformed payload)
+ * collapses to {@link CatalogSuggestResult#unavailable()} so the suggest service degrades the catalog
+ * groups only and never returns a 500. A bare empty response is a distinct state
+ * ({@link CatalogSuggestResult#available(List)} with an empty row list).
+ *
+ * <h3>Href policy</h3>
+ *
+ * <p>
+ * Rows carry NO href. The catalog leg does not emit catalog-outbound links; rows stay within
+ * Lifecycle. A row is never dropped for lacking an href.
+ */
+@Named
+@Primary
+@Singleton
+public class GlobalSearchSuggestCatalogClientImpl
+    implements GlobalSearchSuggestCatalogClient
+{
+  private static final Logger log = LoggerFactory.getLogger(GlobalSearchSuggestCatalogClientImpl.class);
+
+  private static final String GLOBAL_SEARCH_PATH = "rest/search/global";
+
+  private final GlobalSearchCatalogHdsClient hdsClient;
+
+  private final ProductLicense productLicense;
+
+  private final TenantUtil tenantUtil;
+
+  @Inject
+  public GlobalSearchSuggestCatalogClientImpl(
+      final GlobalSearchCatalogHdsClient hdsClient,
+      final ProductLicense productLicense,
+      final TenantUtil tenantUtil)
+  {
+    this.hdsClient = hdsClient;
+    this.productLicense = productLicense;
+    this.tenantUtil = tenantUtil;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return entitled();
+  }
+
+  @Override
+  public CatalogSuggestResult suggest(final CatalogSuggestRequest request) {
+    if (!entitled()) {
+      // Not entitled (MTIQ or missing GUIDE_SEARCH): degrade, never reach HDS, never 500.
+      return CatalogSuggestResult.unavailable();
+    }
+
+    try {
+      // Row mapping (toRows) stays inside this try so a mapping RuntimeException degrades to
+      // unavailable here rather than escaping suggest() — the no-throw guarantee is self-contained.
+      final GuideGlobalSearchResponse response = callCatalogGlobalSearch(request);
+      if (response == null) {
+        log.warn("Catalog suggest returned null response (degrading catalog groups)");
+        return CatalogSuggestResult.unavailable();
+      }
+      if (response.hits() == null || response.hits().isEmpty()) {
+        return CatalogSuggestResult.available(List.of());
+      }
+      return CatalogSuggestResult.available(toRows(response.hits()));
+    }
+    catch (NotFoundException nfe) {
+      // 404 from HDS means no hits, not a broken integration; matches the results leg
+      // (GlobalSearchResultsCatalogClientImpl) so both treat HDS status codes the same way.
+      log.debug("Catalog suggest returned 404 (treating as empty available result)");
+      return CatalogSuggestResult.available(List.of());
+    }
+    catch (PaymentRequiredException | GuideApiException | GatewayTimeoutException
+        | BadGatewayException | InternalServerErrorException upstream)
+    {
+      log.warn("Catalog suggest failed (degrading catalog groups): {}", upstream.getMessage());
+      return CatalogSuggestResult.unavailable();
+    }
+    catch (RuntimeException unexpected) {
+      log.warn("Catalog suggest failed with unexpected exception (degrading catalog groups)", unexpected);
+      return CatalogSuggestResult.unavailable();
+    }
+  }
+
+  /**
+   * Performs the raw HDS call. Carries the {@link GuideUsageEvent} annotation so the AspectJ advice
+   * only sees the request DTO (not the raw query) and only records on actual success — exceptions
+   * propagate to {@link #suggest(CatalogSuggestRequest)} for degrade handling.
+   */
+  @GuideUsageEvent(operationType = GuideOperationType.GLOBAL_SEARCH)
+  GuideGlobalSearchResponse callCatalogGlobalSearch(final CatalogSuggestRequest request) {
+    final Multimap<String, String> params = ArrayListMultimap.create();
+    params.put("query", request.query());
+    params.put("limit", String.valueOf(request.limit()));
+    return hdsClient.getWithMultimap(GuideGlobalSearchResponse.class, GLOBAL_SEARCH_PATH, params);
+  }
+
+  /**
+   * Mirrors the catalog list endpoint gate: deny on multi-tenant deployments and require the
+   * {@link LicensedFeature#GUIDE_SEARCH} feature.
+   */
+  private boolean entitled() {
+    return !tenantUtil.isMultiTenant() && productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH);
+  }
+
+  private static List<SuggestRow> toRows(final List<SearchResult> hits) {
+    final List<SuggestRow> rows = new ArrayList<>(hits.size());
+    for (SearchResult hit : hits) {
+      final SuggestRow row = toRow(hit);
+      if (row != null) {
+        rows.add(row);
+      }
+    }
+    return rows;
+  }
+
+  private static SuggestRow toRow(final SearchResult hit) {
+    if (hit instanceof GuideComponentDocument component) {
+      return componentRow(component);
+    }
+    if (hit instanceof GuideVulnerabilityDocument vuln) {
+      return vulnerabilityRow(vuln);
+    }
+    // Defensive only: GuideGlobalSearchResponse registers exactly two DEDUCTION subtypes
+    // (GuideComponentDocument, GuideVulnerabilityDocument), so Jackson cannot hand us a third type.
+    // If that registration ever grows, drop the unmapped row rather than fail the whole response.
+    log.debug("Catalog suggest returned unrecognized hit type {}",
+        hit == null ? "null" : hit.getClass().getName());
+    return null;
+  }
+
+  private static SuggestRow componentRow(final GuideComponentDocument c) {
+    final String coordinate = CatalogCoordinates.coordinateOf(c);
+    if (coordinate == null) {
+      return null;
+    }
+    final String title = (c.name() != null && !c.name().isBlank()) ? c.name() : coordinate;
+    return new SuggestRow(
+        coordinate,
+        SuggestItemType.COMPONENT,
+        SearchSource.CATALOG,
+        title,
+        c.version(),
+        /* href */ null);
+  }
+
+  private static SuggestRow vulnerabilityRow(final GuideVulnerabilityDocument v) {
+    final String refid = v.refid();
+    if (refid == null || refid.isBlank()) {
+      return null;
+    }
+    return new SuggestRow(
+        refid,
+        SuggestItemType.VULNERABILITY,
+        SearchSource.CATALOG,
+        refid,
+        v.summary(),
+        /* href */ null);
+  }
+
+}

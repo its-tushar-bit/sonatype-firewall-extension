@@ -19,17 +19,30 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
  * authenticated user may run so a single client cannot flood the query path and starve other users.
  *
  * <p>
+ * The cap is <b>per endpoint</b>, not a shared process-wide budget: each Global Search endpoint owns
+ * its own limiter instance, so {@code /rest/search/results} caps a user at
+ * {@link #DEFAULT_PERMITS_PER_USER} concurrent results requests while {@code /rest/search/suggest} caps
+ * the same user at {@link #SUGGEST_PERMITS_PER_USER} concurrent suggest requests, independently. The
+ * higher suggest cap reflects typeahead firing many overlapping requests as the user types.
+ *
+ * <p>
  * Semaphores are created lazily and held in a size-bounded, idle-expiring cache keyed by
  * {@code tenantId + username}. Bounding the cache stops the map from growing without limit for a
  * deployment that sees many distinct principals over its lifetime (e.g. SCIM churn); the tenant
  * component keeps buckets isolated across MTIQ tenants so the same username in two tenants cannot share
- * a permit pool (this limiter is a process-wide singleton). Anonymous requests share a single sentinel
- * bucket so unauthenticated traffic cannot circumvent the limit by rotating principal identities.
+ * a permit pool within a limiter instance. Anonymous requests share a single sentinel bucket so
+ * unauthenticated traffic cannot circumvent the limit by rotating principal identities.
  */
 public final class PerUserRateLimiter
 {
-  /** Default per-user concurrent-request cap for Global Search. */
+  /** Per-user concurrent-request cap for {@code /rest/search/results}. */
   public static final int DEFAULT_PERMITS_PER_USER = 3;
+
+  /**
+   * Per-user concurrent-request cap for {@code /rest/search/suggest}. Higher than the results cap
+   * because typeahead fires many overlapping requests as the user types.
+   */
+  public static final int SUGGEST_PERMITS_PER_USER = 10;
 
   /** How long a caller waits for an available permit before falling through. */
   public static final long ACQUIRE_TIMEOUT_MILLIS = 250L;

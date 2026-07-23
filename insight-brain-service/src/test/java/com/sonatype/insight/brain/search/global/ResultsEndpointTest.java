@@ -56,7 +56,8 @@ public class ResultsEndpointTest
     SearchIndexClient searchIndexClient = org.mockito.Mockito.mock(SearchIndexClient.class);
     org.mockito.Mockito.when(searchIndexClient.getCurrentUserContextIdsWithReadPermission())
         .thenReturn(Set.of("org-1"));
-    resource = new GlobalSearchResource(service, searchIndexClient);
+    resource = new GlobalSearchResource(
+        service, org.mockito.Mockito.mock(SuggestService.class), searchIndexClient);
   }
 
   @After

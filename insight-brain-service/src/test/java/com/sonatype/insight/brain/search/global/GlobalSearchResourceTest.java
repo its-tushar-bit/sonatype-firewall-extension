@@ -54,7 +54,8 @@ public class GlobalSearchResourceTest
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
-    underTest = new GlobalSearchResource(resultsService, searchIndexClient);
+    underTest = new GlobalSearchResource(
+        resultsService, org.mockito.Mockito.mock(SuggestService.class), searchIndexClient);
   }
 
   @After

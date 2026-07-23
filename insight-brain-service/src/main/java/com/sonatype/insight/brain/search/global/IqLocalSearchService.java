@@ -12,12 +12,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.search.global.fieldmap.ComponentCoordinateQuery;
 import com.sonatype.insight.brain.search.global.fieldmap.CompiledQuery;
 import com.sonatype.insight.brain.search.global.fieldmap.FieldMap;
 import com.sonatype.insight.brain.search.global.fieldmap.QueryCompiler;
@@ -37,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -158,7 +161,7 @@ public class IqLocalSearchService
     }
 
     ParsedQuery parsed = QueryParser.parse(inputs.query());
-    ComposedQuery composed = composeBaseQuery(parsed.ast(), types);
+    ComposedQuery composed = composeBaseQuery(inputs.query(), parsed.ast(), types);
     List<String> warnings = mergeWarnings(parsed.warnings(), composed.warnings());
 
     Query finalQuery = searchIndexClient.buildPermittedQuery(composed.query());
@@ -285,23 +288,67 @@ public class IqLocalSearchService
   {
   }
 
-  ComposedQuery composeBaseQuery(final AstNode ast, final Set<ItemType> types) {
+  ComposedQuery composeBaseQuery(final String rawQuery, final AstNode ast, final Set<ItemType> types) {
     LinkedHashSet<String> warnings = new LinkedHashSet<>();
+    // A pasted Package URL is compiled to a targeted coordinate query on component-bearing types so
+    // the exact component is retrieved into the small typeahead window instead of the generic parser
+    // failing open to a match-all (which buries the target row past the fetch limit). Non-component
+    // types get match-nothing for a coordinate query — a purl legitimately matches no application.
+    Optional<Query> coordinateQuery = ComponentCoordinateQuery.compile(rawQuery);
     // Single-type fast path: skip the top-level SHOULD wrap (equivalent semantics) to save a
     // clause against the Lucene max-clause budget.
     if (types.size() == 1) {
       ItemType only = types.iterator().next();
-      CompiledQuery compiled = QueryCompiler.compile(ast, only, fieldMap);
-      warnings.addAll(compiled.warnings());
-      return new ComposedQuery(wrapWithTypeFilter(only, compiled.luceneQuery()), List.copyOf(warnings));
+      Query typeSubquery = subqueryForType(coordinateQuery, ast, only, warnings);
+      return new ComposedQuery(wrapWithTypeFilter(only, typeSubquery), List.copyOf(warnings));
     }
     BooleanQuery.Builder top = new BooleanQuery.Builder();
     for (ItemType type : types) {
-      CompiledQuery compiled = QueryCompiler.compile(ast, type, fieldMap);
-      warnings.addAll(compiled.warnings());
-      top.add(wrapWithTypeFilter(type, compiled.luceneQuery()), Occur.SHOULD);
+      Query typeSubquery = subqueryForType(coordinateQuery, ast, type, warnings);
+      top.add(wrapWithTypeFilter(type, typeSubquery), Occur.SHOULD);
     }
     return new ComposedQuery(top.build(), List.copyOf(warnings));
+  }
+
+  /** Warning surfaced when a coordinate-shaped query is run against a non-component type. */
+  static final String COORDINATE_ON_NON_COMPONENT_WARNING =
+      "Query looks like a component coordinate; it only matches components. Try the Components tab.";
+
+  /**
+   * The coordinate query (when present) replaces the generic compilation for component-bearing
+   * types and yields match-nothing for every other type; otherwise the generic per-type compilation
+   * applies. Component-bearing types are exactly those whose coordinate fields the coordinate query
+   * targets — identified here by the presence of a coordinate group/artifact/name field entry for
+   * the type in the {@link FieldMap} (the same registry the generic compiler validates against).
+   *
+   * <p>
+   * A coordinate query against a non-component type legitimately matches nothing, but returning a
+   * bare {@link MatchNoDocsQuery} would look identical to "no results" on the results endpoint (the
+   * warnings set flows through to the results {@code SectionResult}). Add a user-facing warning so
+   * the empty section is non-silent; the {@link LinkedHashSet} dedups it to once per request.
+   */
+  private Query subqueryForType(
+      final Optional<Query> coordinateQuery,
+      final AstNode ast,
+      final ItemType type,
+      final LinkedHashSet<String> warnings)
+  {
+    if (coordinateQuery.isPresent()) {
+      if (isComponentBearing(type)) {
+        return coordinateQuery.get();
+      }
+      warnings.add(COORDINATE_ON_NON_COMPONENT_WARNING);
+      return new MatchNoDocsQuery();
+    }
+    CompiledQuery compiled = QueryCompiler.compile(ast, type, fieldMap);
+    warnings.addAll(compiled.warnings());
+    return compiled.luceneQuery();
+  }
+
+  private boolean isComponentBearing(final ItemType type) {
+    return fieldMap.lookup(FieldIdentifier.COMPONENT_COORDINATE_ARTIFACT_ID.label)
+        .map(entry -> entry.allowedTypes().contains(type))
+        .orElse(false);
   }
 
   /**

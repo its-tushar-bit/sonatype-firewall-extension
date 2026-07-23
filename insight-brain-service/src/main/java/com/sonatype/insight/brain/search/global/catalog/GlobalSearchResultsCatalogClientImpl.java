@@ -33,8 +33,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.github.packageurl.MalformedPackageURLException;
-import com.github.packageurl.PackageURLBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import jakarta.inject.Inject;
@@ -285,7 +283,7 @@ public class GlobalSearchResultsCatalogClientImpl
   }
 
   private static ResultRow componentRow(final GuideComponentDocument c) {
-    final String coordinate = coordinateOf(c);
+    final String coordinate = CatalogCoordinates.coordinateOf(c);
     if (coordinate == null) {
       return null;
     }
@@ -346,33 +344,5 @@ public class GlobalSearchResultsCatalogClientImpl
       }
     }
     return names.isEmpty() ? null : names;
-  }
-
-  /**
-   * Renders a canonical Package URL ({@code pkg:<format>/<namespace>/<name>@<version>}) for a catalog
-   * component hit via the shared {@link PackageURLBuilder}. Returns {@code null} when the format or name
-   * is missing, or when the coordinate is malformed — such rows are dropped rather than serialized with
-   * a bad coordinate.
-   */
-  static String coordinateOf(final GuideComponentDocument c) {
-    if (c.format() == null || c.format().isBlank() || c.name() == null || c.name().isBlank()) {
-      return null;
-    }
-    PackageURLBuilder builder = PackageURLBuilder.aPackageURL()
-        .withType(c.format())
-        .withName(c.name());
-    if (c.namespace() != null && !c.namespace().isBlank()) {
-      builder.withNamespace(c.namespace());
-    }
-    if (c.version() != null && !c.version().isBlank()) {
-      builder.withVersion(c.version());
-    }
-    try {
-      return builder.build().toString();
-    }
-    catch (MalformedPackageURLException e) {
-      log.debug("Catalog global search produced a malformed purl for format {} name {}", c.format(), c.name());
-      return null;
-    }
   }
 }

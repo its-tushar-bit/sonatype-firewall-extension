@@ -29,8 +29,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 /**
- * JAX-RS resource backing the Global Search frontend. Exposes the paginated full-results endpoint at
- * {@code /rest/search/results}.
+ * JAX-RS resource backing the Global Search frontend. Exposes a typeahead endpoint at
+ * {@code /rest/search/suggest} and a paginated full-results endpoint at {@code /rest/search/results}.
  *
  * <p>
  * Mounted under {@code /rest} — internal UI-backing surface, not the supported public {@code /api/v2}
@@ -54,6 +54,8 @@ public class GlobalSearchResource
 
   public static final String RESULTS_PATH = "results";
 
+  public static final String SUGGEST_PATH = "suggest";
+
   /** Single source of truth lives on {@link ResultsRequest#MAX_QUERY_LENGTH}. */
   static final int MAX_QUERY_LENGTH = ResultsRequest.MAX_QUERY_LENGTH;
 
@@ -68,15 +70,48 @@ public class GlobalSearchResource
 
   private final ResultsService resultsService;
 
+  private final SuggestService suggestService;
+
   private final SearchIndexClient searchIndexClient;
 
   @Inject
   public GlobalSearchResource(
       final ResultsService resultsService,
+      final SuggestService suggestService,
       final SearchIndexClient searchIndexClient)
   {
     this.resultsService = resultsService;
+    this.suggestService = suggestService;
     this.searchIndexClient = searchIndexClient;
+  }
+
+  /**
+   * Typeahead endpoint. Returns up to 10 results across the configured entity types — an optional BEST
+   * MATCH row plus per-type groups in a fixed presentation order. Always returns HTTP 200 with the best
+   * results available; catalog failures do not surface as errors, only as
+   * {@code catalogAvailable: false}.
+   *
+   * <p>
+   * The query is taken raw (no bean-validation annotations) so the feature-flag gate runs first.
+   * Otherwise a flag-off endpoint would still respond {@code 400 Bad Request} to a missing or oversize
+   * {@code q} parameter, leaking its existence to callers who shouldn't be able to see it.
+   *
+   * <p>
+   * The {@code q} parameter is treated as plain text — never interpreted as a Lucene query-string by
+   * the IQ-local leg, never string-concatenated into the catalog URL. The parameter name matches
+   * {@code /results} so the two endpoints share a single query convention.
+   */
+  @GET
+  @Path(SUGGEST_PATH)
+  public SuggestResponse suggest(
+      @QueryParam("q") final String q,
+      @QueryParam("source") final String source)
+  {
+    verifyGlobalSearchEnabled();
+    verifyReadOnAnyContext();
+    final String validated = validateQuery(q);
+    final SearchSource parsedSource = validateSource(source);
+    return suggestService.suggest(validated, parsedSource);
   }
 
   /**

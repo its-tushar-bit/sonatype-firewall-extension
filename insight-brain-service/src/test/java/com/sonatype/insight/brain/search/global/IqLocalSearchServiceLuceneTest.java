@@ -100,6 +100,12 @@ public class IqLocalSearchServiceLuceneTest
       writer.addDocument(componentDoc("commons-lang"));
       writer.addDocument(componentDoc("guava"));
       writer.addDocument(componentDoc("jackson-databind"));
+      // Maven components carrying real coordinate fields, so a pasted purl can be decomposed and
+      // matched against componentCoordinateGroupId/ArtifactId/Version rather than a whole-string
+      // free-text term (which matches no indexed field). aopalliance is the reviewer's example.
+      writer.addDocument(mavenComponentDoc("aopalliance", "aopalliance", "1.0"));
+      writer.addDocument(mavenComponentDoc("aopalliance", "aopalliance", "2.0"));
+      writer.addDocument(mavenComponentDoc("org.springframework", "spring-core", "6.1.0"));
       writer.addDocument(vulnDoc("CVE-2021-44228", "log4j-core", "Remote code execution in Log4j2"));
       writer.addDocument(vulnDoc("CVE-2017-7525", "jackson-databind", "Deserialization gadget chain"));
       writer.commit();
@@ -206,6 +212,55 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   @Test
+  public void componentsTab_naturalPurlWithoutDefaultQualifier_retrievesExactComponent() {
+    // The reviewer's case: a pasted natural purl (no ?type=jar) must retrieve exactly the matching
+    // aopalliance@1.0 component out of several components, so the row reaches the best-match
+    // candidate list. The generic parser would treat pkg:... as an unknown field and fail open to
+    // match-all; the coordinate path narrows to the exact groupId+artifactId+version.
+    SearchInputs inputs = new SearchInputs("pkg:maven/aopalliance/aopalliance@1.0", Tab.COMPONENT,
+        Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.total()).isEqualTo(1L);
+    assertThat(response.rows()).hasSize(1);
+    assertThat(response.rows().get(0).row().componentName).isEqualTo("aopalliance : aopalliance : 1.0");
+    // A purl on a component-bearing type is the happy path — no non-component warning.
+    assertThat(response.warnings())
+        .doesNotContain(IqLocalSearchService.COORDINATE_ON_NON_COMPONENT_WARNING);
+  }
+
+  @Test
+  public void componentsTab_purlWithDefaultQualifier_retrievesExactComponent() {
+    // The exact canonical purl (with ?type=jar) retrieves the same single component — qualifiers are
+    // ignored by the coordinate decomposition, so both the natural and canonical forms match.
+    SearchInputs inputs = new SearchInputs("pkg:maven/aopalliance/aopalliance@1.0?type=jar", Tab.COMPONENT,
+        Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.total()).isEqualTo(1L);
+    assertThat(response.rows().get(0).row().componentName).isEqualTo("aopalliance : aopalliance : 1.0");
+  }
+
+  @Test
+  public void componentsTab_purlForDifferentVersion_retrievesOnlyThatVersion() {
+    SearchInputs inputs = new SearchInputs("pkg:maven/aopalliance/aopalliance@2.0", Tab.COMPONENT,
+        Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.total()).isEqualTo(1L);
+    assertThat(response.rows().get(0).row().componentName).isEqualTo("aopalliance : aopalliance : 2.0");
+  }
+
+  @Test
+  public void applicationsTab_purlQuery_matchesNoApplication() {
+    // A coordinate query yields match-nothing for non-component types — a purl is not an app — but
+    // the empty section must be non-silent: a user-facing warning explains why and points at the
+    // Components tab (the warnings set flows through to the results endpoint's SectionResult).
+    SearchInputs inputs = new SearchInputs("pkg:maven/aopalliance/aopalliance@1.0", Tab.APPLICATION,
+        Set.of(ItemType.APPLICATION), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.rows()).isEmpty();
+    assertThat(response.warnings()).containsOnlyOnce(IqLocalSearchService.COORDINATE_ON_NON_COMPONENT_WARNING);
+  }
+
+  @Test
   public void componentsTab_queryThatMatchesNothing_returnsEmpty() {
     SearchInputs inputs = new SearchInputs("nonexistent-zzz-component", Tab.COMPONENT,
         Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
@@ -219,8 +274,8 @@ public class IqLocalSearchServiceLuceneTest
     SearchInputs inputs = new SearchInputs("", Tab.COMPONENT,
         Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
     IqLocalSearchResponse response = service.search(inputs);
-    // 5 components in the fixture, all NON_VULNERABLE_COMPONENT.
-    assertThat(response.total()).isEqualTo(5L);
+    // 8 components in the fixture, all NON_VULNERABLE_COMPONENT.
+    assertThat(response.total()).isEqualTo(8L);
   }
 
   @Test
@@ -232,7 +287,7 @@ public class IqLocalSearchServiceLuceneTest
         Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
     IqLocalSearchResponse response = service.search(inputs);
     assertThat(response.warnings()).isEmpty();
-    assertThat(response.total()).isEqualTo(5L);
+    assertThat(response.total()).isEqualTo(8L);
     // Stored value is the original (unanalyzed) ItemType name; matching happens on the
     // lowercased analyzed token non_vulnerable_component.
     assertThat(response.rows())
@@ -401,6 +456,7 @@ public class IqLocalSearchServiceLuceneTest
       dto.applicationPublicId = doc.get(FieldIdentifier.APPLICATION_PUBLIC_ID.label);
       dto.organizationName = doc.get(FieldIdentifier.ORGANIZATION_NAME.label);
       dto.itemType = doc.get(FieldIdentifier.ITEM_TYPE.label);
+      dto.componentName = doc.get(FieldIdentifier.COMPONENT_NAME.label);
       rows.add(dto);
     }
     long total = topDocs.totalHits.value;
@@ -476,6 +532,19 @@ public class IqLocalSearchServiceLuceneTest
     Map<String, String> fields = new HashMap<>();
     fields.put(FieldIdentifier.ITEM_TYPE.label, ItemType.NON_VULNERABLE_COMPONENT.name());
     fields.put(FieldIdentifier.COMPONENT_NAME.label, componentName);
+    return docOf(fields);
+  }
+
+  /** A Maven component carrying the coordinate fields a pasted purl is decomposed against. */
+  private static Document mavenComponentDoc(final String groupId, final String artifactId, final String version) {
+    Map<String, String> fields = new HashMap<>();
+    fields.put(FieldIdentifier.ITEM_TYPE.label, ItemType.NON_VULNERABLE_COMPONENT.name());
+    fields.put(FieldIdentifier.COMPONENT_NAME.label, groupId + " : " + artifactId + " : " + version);
+    fields.put(FieldIdentifier.COMPONENT_FORMAT.label, "maven");
+    fields.put(FieldIdentifier.COMPONENT_COORDINATE_GROUP_ID.label, groupId);
+    fields.put(FieldIdentifier.COMPONENT_COORDINATE_ARTIFACT_ID.label, artifactId);
+    fields.put(FieldIdentifier.COMPONENT_COORDINATE_VERSION.label, version);
+    fields.put(FieldIdentifier.COMPONENT_COORDINATE_EXTENSION.label, "jar");
     return docOf(fields);
   }
 

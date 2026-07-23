@@ -59,6 +59,7 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATI
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_EVALUATION_STAGE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_CONSTRAINT_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
 import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION;
 import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION_CATEGORY;
@@ -68,6 +69,7 @@ import static com.sonatype.insight.brain.search.index.ItemType.NON_VULNERABLE_CO
 import static com.sonatype.insight.brain.search.index.ItemType.ORGANIZATION;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY_VIOLATION;
+import static com.sonatype.insight.brain.search.index.ItemType.POLICY_WAIVER;
 import static com.sonatype.insight.brain.search.index.ItemType.SECURITY_VULNERABILITY;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
@@ -124,6 +126,8 @@ public final class QueryCompiler
     m.put(LEGAL_VIOLATION, violationFields);
 
     m.put(POLICY, List.of(POLICY_NAME.label));
+
+    m.put(POLICY_WAIVER, List.of(POLICY_WAIVER_POLICY_NAME.label, APPLICATION_NAME.label, APPLICATION_PUBLIC_ID.label));
 
     m.put(ORGANIZATION, List.of(ORGANIZATION_NAME.label));
 

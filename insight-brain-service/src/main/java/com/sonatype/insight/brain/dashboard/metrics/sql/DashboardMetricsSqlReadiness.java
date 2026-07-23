@@ -87,28 +87,43 @@ public class DashboardMetricsSqlReadiness
   public DashboardMetricsSqlReadinessState state() {
     // Embedded H2 is test/light-prod only. The partial index is a Postgres optimization; treat
     // embedded as ready so SQL mode ON can be exercised without a pg_index probe.
-    if (operationalDataStore.isDatabaseEmbedded()) {
+    final boolean embedded;
+    try {
+      embedded = operationalDataStore.isDatabaseEmbedded();
+    }
+    catch (RuntimeException e) {
+      return infrastructureFailure("determine database type", e);
+    }
+    if (embedded) {
       recordReadiness(DashboardMetricsSqlReadinessState.VALID);
       return DashboardMetricsSqlReadinessState.VALID;
     }
 
-    String tenantSchema = operationalDataStore.getDatabaseSchema();
+    final String tenantSchema;
+    try {
+      tenantSchema = operationalDataStore.getDatabaseSchema();
+    }
+    catch (RuntimeException e) {
+      return infrastructureFailure("resolve tenant schema", e);
+    }
     Instant now = clock.instant();
     // Read config outside the per-tenant lock so a DAO round-trip never sits under the monitor.
     int readinessGraceMinutes = modeProvider.readinessGraceMinutes();
     TenantState tenantState = stateByTenant.get();
 
     CachedState toServe = null;
+    boolean emitGraceDiagnostic = false;
     synchronized (tenantState) {
       CachedState cached = tenantState.cachedState;
       if (cached != null && now.isBefore(cached.checkedAt.plus(CACHE_DURATION))) {
-        emitDiagnosticIfProlonged(tenantState, tenantSchema, cached.state, now, readinessGraceMinutes);
+        emitGraceDiagnostic = markProlongedNotReady(tenantState, cached.state, now, readinessGraceMinutes);
         toServe = cached;
       }
     }
 
     if (toServe == null) {
-      DashboardMetricsSqlReadinessState probed = probe.apply(tenantSchema);
+      // Probe outside the lock; re-check cache before publishing so concurrent callers can share.
+      DashboardMetricsSqlReadinessState probed = probeSafely(tenantSchema);
       Instant checkedAt = clock.instant();
       synchronized (tenantState) {
         CachedState cached = tenantState.cachedState;
@@ -119,10 +134,20 @@ public class DashboardMetricsSqlReadiness
           toServe = new CachedState(probed, checkedAt);
           tenantState.cachedState = toServe;
         }
-        emitDiagnosticIfProlonged(tenantState, tenantSchema, toServe.state, checkedAt, readinessGraceMinutes);
+        emitGraceDiagnostic = markProlongedNotReady(tenantState, toServe.state, checkedAt, readinessGraceMinutes);
       }
     }
 
+    if (emitGraceDiagnostic) {
+      recordNotReadyBeyondGrace();
+      log.warn(
+          "Dashboard metrics SQL is disabled for tenant schema {} because index {} is {}; "
+              + "readiness has not recovered within {} minutes",
+          tenantSchema,
+          INDEX_NAME,
+          toServe.state,
+          readinessGraceMinutes);
+    }
     recordReadiness(toServe.state);
     return toServe.state;
   }
@@ -160,11 +185,38 @@ public class DashboardMetricsSqlReadiness
       log.error("Unable to check dashboard metrics SQL index readiness for tenant schema {}", tenantSchema, e);
       return DashboardMetricsSqlReadinessState.INVALID;
     }
+    catch (RuntimeException e) {
+      log.error("Dashboard metrics SQL readiness infrastructure failed for tenant schema {}", tenantSchema, e);
+      return DashboardMetricsSqlReadinessState.INVALID;
+    }
   }
 
-  private void emitDiagnosticIfProlonged(
+  /**
+   * Guards against probes that throw (notably test doubles). Production {@link #probeIndex} already
+   * maps checked and unchecked failures to {@link DashboardMetricsSqlReadinessState#INVALID}.
+   */
+  private DashboardMetricsSqlReadinessState probeSafely(final String tenantSchema) {
+    try {
+      return probe.apply(tenantSchema);
+    }
+    catch (RuntimeException e) {
+      log.error("Dashboard metrics SQL readiness probe failed for tenant schema {}", tenantSchema, e);
+      return DashboardMetricsSqlReadinessState.INVALID;
+    }
+  }
+
+  private DashboardMetricsSqlReadinessState infrastructureFailure(final String action, final RuntimeException failure) {
+    log.error("Unable to {} for dashboard metrics SQL readiness", action, failure);
+    recordReadiness(DashboardMetricsSqlReadinessState.INVALID);
+    return DashboardMetricsSqlReadinessState.INVALID;
+  }
+
+  /**
+   * Updates prolonged-not-ready bookkeeping under the per-tenant lock and returns whether the caller
+   * should emit the beyond-grace diagnostic outside the lock.
+   */
+  private static boolean markProlongedNotReady(
       final TenantState tenantState,
-      final String tenantSchema,
       final DashboardMetricsSqlReadinessState state,
       final Instant now,
       final int readinessGraceMinutes)
@@ -172,7 +224,7 @@ public class DashboardMetricsSqlReadiness
     if (state == DashboardMetricsSqlReadinessState.VALID) {
       tenantState.notReadySince = null;
       tenantState.diagnosticEmitted = false;
-      return;
+      return false;
     }
 
     if (tenantState.notReadySince == null) {
@@ -181,15 +233,9 @@ public class DashboardMetricsSqlReadiness
     Duration grace = Duration.ofMinutes(readinessGraceMinutes);
     if (!now.isBefore(tenantState.notReadySince.plus(grace)) && !tenantState.diagnosticEmitted) {
       tenantState.diagnosticEmitted = true;
-      recordNotReadyBeyondGrace();
-      log.warn(
-          "Dashboard metrics SQL is disabled for tenant schema {} because index {} is {}; "
-              + "readiness has not recovered within {} minutes",
-          tenantSchema,
-          INDEX_NAME,
-          state,
-          readinessGraceMinutes);
+      return true;
     }
+    return false;
   }
 
   private void recordReadiness(final DashboardMetricsSqlReadinessState state) {

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard.metrics;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsShadowComparisonService;
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsScopeResolver;
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlCoordinator;
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlMode;
@@ -122,6 +124,8 @@ public class DashboardMetricsService
 
   private final DashboardMetricsSqlCoordinator sqlCoordinator;
 
+  private final DashboardMetricsShadowComparisonService shadowComparisonService;
+
   private final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
 
   private final Configuration configuration;
@@ -142,6 +146,7 @@ public class DashboardMetricsService
       DashboardMetricsSqlReadiness sqlReadiness,
       DashboardMetricsScopeResolver sqlScopeResolver,
       DashboardMetricsSqlCoordinator sqlCoordinator,
+      DashboardMetricsShadowComparisonService shadowComparisonService,
       DashboardIndexDimensionQueryBuilder dimensionQueryBuilder,
       Configuration configuration,
       StageTypeService stageTypeService,
@@ -155,6 +160,7 @@ public class DashboardMetricsService
     this.sqlReadiness = sqlReadiness;
     this.sqlScopeResolver = sqlScopeResolver;
     this.sqlCoordinator = sqlCoordinator;
+    this.shadowComparisonService = shadowComparisonService;
     this.dimensionQueryBuilder = dimensionQueryBuilder;
     this.configuration = configuration;
     this.stageTypeService = stageTypeService;
@@ -192,6 +198,7 @@ public class DashboardMetricsService
    * summary/heavy tiers.
    */
   private DashboardMetricsDTO loadMetrics(DashboardMetricsRequestDTO request) {
+    Instant requestStartedAt = Instant.now();
     DashboardMetricsSqlMode effectiveMode =
         sqlReadiness.effectiveMode(sqlModeProvider.configuredMode());
     boolean compatibilityMode = request == null || request.includeHeavyMetrics == null;
@@ -202,7 +209,7 @@ public class DashboardMetricsService
         unsupportedIndexDimensions.isEmpty() ? buildMetricFilterContext(request) : null;
     ResolvedScope sqlScope = null;
     boolean needsWaiverScope = includeSummary && !hasFilter(request == null ? null : request.stageIds);
-    // SHADOW is reserved for dual-run comparison (CLM-42678); serve SQL only when ON.
+    // SHADOW serves the index path and schedules dual-run comparison; SQL serving is ON only.
     boolean useSqlServing = effectiveMode == DashboardMetricsSqlMode.ON;
     boolean needsMigratedScope = useSqlServing
         && unsupportedIndexDimensions.isEmpty()
@@ -215,7 +222,6 @@ public class DashboardMetricsService
     MetricValueDTO organizationsMetric = null;
     MetricValueDTO policiesMetric = null;
     MetricValueDTO waiversMetric = null;
-    Long lastUpdatedAt = null;
     if (includeSummary) {
       if (unsupportedIndexDimensions.isEmpty()) {
         if (useSqlServing) {
@@ -245,7 +251,6 @@ public class DashboardMetricsService
               METRIC_SOURCE_INDEX);
           logBenchmarkDuration("policies", policiesStartedAt);
         }
-        lastUpdatedAt = searchIndexClient.getLastIndexTime();
       }
       else {
         applicationsMetric = MetricValueDTO.unsupported(unsupportedIndexDimensions);
@@ -303,7 +308,14 @@ public class DashboardMetricsService
       }
     }
 
-    return new DashboardMetricsDTO(
+    // Capture index freshness for every tier that can serve index-backed metrics — including
+    // heavy-only requests — so SHADOW persistent classification is never snapshot-blind.
+    Long lastUpdatedAt = null;
+    if ((includeSummary || includeHeavy) && unsupportedIndexDimensions.isEmpty()) {
+      lastUpdatedAt = searchIndexClient.getLastIndexTime();
+    }
+
+    DashboardMetricsDTO response = new DashboardMetricsDTO(
         applicationsMetric,
         violationsMetric,
         componentsMetric,
@@ -313,6 +325,14 @@ public class DashboardMetricsService
         legalMetric,
         waiversMetric,
         lastUpdatedAt);
+    if (effectiveMode == DashboardMetricsSqlMode.SHADOW) {
+      shadowComparisonService.maybeSchedule(
+          request,
+          response,
+          requestStartedAt,
+          response.lastUpdatedAt);
+    }
+    return response;
   }
 
   private MetricValueDTO countWaivers(final ResolvedScope scope) {

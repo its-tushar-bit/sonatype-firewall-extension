@@ -146,10 +146,6 @@ public class DashboardMetricsScopeResolver
       OwnerResolution ownerResolution =
           resolveOwners(expandedOrganizationIds, applicationIds, daoTagIds);
       Map<String, Owner> owners = ownerResolution.owners();
-      if (owners.isEmpty()) {
-        return ResolvedScope.denyAll(NO_ACCESS);
-      }
-
       Set<String> readableOrganizationIds = resolveAuthorizedOrganizationIds(
           ownerResolution.lifeCycleOwners(),
           expandedOrganizationIds,
@@ -157,6 +153,11 @@ public class DashboardMetricsScopeResolver
           tagIds);
       Set<String> readableApplicationIds =
           resolveAuthorizedApplicationIds(owners.values(), expandedOrganizationIds);
+      // Fail closed only when no queryable population remains — including org-child apps that are
+      // readable via the expanded organization filter even when owners/orgs are empty.
+      if (owners.isEmpty() && readableOrganizationIds.isEmpty() && readableApplicationIds.isEmpty()) {
+        return ResolvedScope.denyAll(NO_ACCESS);
+      }
       UserPrincipal user = currentUser.getUserPrincipal();
       boolean hasSupportedFilters =
           hasValues(requestedOrganizationIds) || hasValues(applicationIds) || hasValues(tagIds);

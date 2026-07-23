@@ -69,9 +69,16 @@ public class DashboardMetricsSqlTelemetryTest
   public void readinessCountersUseExpectedTags() {
     underTest.recordReadiness(VALID);
     underTest.recordReadiness(MISSING);
+    underTest.recordMismatch(true);
+    underTest.recordMismatch(false);
+    underTest.recordShadowOutcome(DashboardMetricsSqlTelemetry.ShadowOutcome.COMPLETED);
 
     assertThat(counter("dashboard.metrics.sql.readiness", "state", "VALID").count()).isEqualTo(1);
     assertThat(counter("dashboard.metrics.sql.readiness", "state", "MISSING").count()).isEqualTo(1);
+    assertThat(counter("dashboard.metrics.sql.mismatch", "outcome", "PERSISTENT").count()).isEqualTo(1);
+    assertThat(counter("dashboard.metrics.sql.mismatch", "outcome", "RAW").count()).isEqualTo(1);
+    assertThat(meterRegistry.find("dashboard.metrics.sql.mismatch").tag("outcome", "TRANSIENT").counter()).isNull();
+    assertThat(counter("dashboard.metrics.sql.shadow_outcome", "outcome", "COMPLETED").count()).isEqualTo(1);
   }
 
   @Test
@@ -83,6 +90,8 @@ public class DashboardMetricsSqlTelemetryTest
     nullRegistryTelemetry.recordScopeResolutionFailure();
     nullRegistryTelemetry.recordScopeResolution(1L, ResolvedScope.Kind.DENY_ALL);
     nullRegistryTelemetry.recordQuery(DashboardMetricsSqlTelemetry.Metric.POLICIES, 1L, true);
+    nullRegistryTelemetry.recordShadowOutcome(DashboardMetricsSqlTelemetry.ShadowOutcome.SAMPLED);
+    nullRegistryTelemetry.recordMismatch(false);
   }
 
   @Test

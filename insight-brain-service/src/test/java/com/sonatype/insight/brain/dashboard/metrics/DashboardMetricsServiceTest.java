@@ -9,9 +9,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -29,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsShadowComparisonService;
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsScopeResolver;
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlCoordinator;
 import com.sonatype.insight.brain.dashboard.metrics.sql.DashboardMetricsSqlMode;
@@ -605,6 +608,85 @@ public class DashboardMetricsServiceTest
   }
 
   @Test
+  public void testGetMetrics_ShadowServesCompletedIndexDtoAndSchedulesComparison() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.count(anyString())).thenReturn(3L);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1234L);
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("shadow-user", "shadow-user", User.INTERNAL_REALM_ID));
+    DashboardMetricsSqlModeProvider modeProvider = mock(DashboardMetricsSqlModeProvider.class);
+    when(modeProvider.configuredMode()).thenReturn(DashboardMetricsSqlMode.SHADOW);
+    DashboardMetricsSqlReadiness readiness = mock(DashboardMetricsSqlReadiness.class);
+    when(readiness.effectiveMode(DashboardMetricsSqlMode.SHADOW)).thenReturn(DashboardMetricsSqlMode.SHADOW);
+    DashboardMetricsScopeResolver scopeResolver = mock(DashboardMetricsScopeResolver.class);
+    when(scopeResolver.resolve(any())).thenReturn(ResolvedScope.denyAll(ResolvedScope.DenyReason.NO_ACCESS));
+    DashboardMetricsShadowComparisonService shadowComparisonService =
+        mock(DashboardMetricsShadowComparisonService.class);
+    DashboardMetricsService service = new DashboardMetricsService(
+        searchIndexClient,
+        new MetricFilterValidator(),
+        mock(PolicyWaiverDAO.class),
+        mock(PolicyWaiverRequestDAO.class),
+        modeProvider,
+        readiness,
+        scopeResolver,
+        mock(DashboardMetricsSqlCoordinator.class),
+        shadowComparisonService,
+        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mockConfiguration(),
+        mock(StageTypeService.class),
+        currentUser);
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.includeHeavyMetrics = false;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertThat(metrics.applications.source).isEqualTo("index");
+    assertThat(metrics.lastUpdatedAt).isEqualTo(1234L);
+    verify(shadowComparisonService).maybeSchedule(same(request), same(metrics), any(), eq(1234L));
+  }
+
+  @Test
+  public void testGetMetrics_ShadowHeavyOnlyPopulatesLastUpdatedAtForPersistentClassification() {
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    stubEmptySearchIndexResults(searchIndexClient);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(5678L);
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("shadow-heavy-user", "shadow-heavy-user", User.INTERNAL_REALM_ID));
+    DashboardMetricsSqlModeProvider modeProvider = mock(DashboardMetricsSqlModeProvider.class);
+    when(modeProvider.configuredMode()).thenReturn(DashboardMetricsSqlMode.SHADOW);
+    DashboardMetricsSqlReadiness readiness = mock(DashboardMetricsSqlReadiness.class);
+    when(readiness.effectiveMode(DashboardMetricsSqlMode.SHADOW)).thenReturn(DashboardMetricsSqlMode.SHADOW);
+    DashboardMetricsShadowComparisonService shadowComparisonService =
+        mock(DashboardMetricsShadowComparisonService.class);
+    DashboardMetricsService service = new DashboardMetricsService(
+        searchIndexClient,
+        new MetricFilterValidator(),
+        mock(PolicyWaiverDAO.class),
+        mock(PolicyWaiverRequestDAO.class),
+        modeProvider,
+        readiness,
+        mock(DashboardMetricsScopeResolver.class),
+        mock(DashboardMetricsSqlCoordinator.class),
+        shadowComparisonService,
+        new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
+        mockConfiguration(),
+        mock(StageTypeService.class),
+        currentUser);
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.includeHeavyMetrics = true;
+
+    DashboardMetricsDTO metrics = service.getMetrics(request);
+
+    assertThat(metrics.applications).isNull();
+    assertThat(metrics.violations).isNotNull();
+    assertThat(metrics.lastUpdatedAt).isEqualTo(5678L);
+    verify(shadowComparisonService).maybeSchedule(same(request), same(metrics), any(), eq(5678L));
+  }
+
+  @Test
   public void testGetMetrics_OnServesSqlSourcesForFourMigratedMetrics() throws Exception {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "ON");
     Organization org = tempEntity.newOrganization();
@@ -868,6 +950,35 @@ public class DashboardMetricsServiceTest
   }
 
   @Test
+  public void testGetMetrics_UnreadableApplicationFilterPreservesOrganizationParityInOn() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "OFF");
+    Organization readable = tempEntity.newOrganization("metrics-unreadable-app-parity");
+    tempEntity.newApplication(readable.getId());
+    User reader = tempEntity.newUser("metrics-unreadable-app-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(readable.getId(), readRole.getId(), reader.getUsername());
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsRequestDTO filteredRequest = new DashboardMetricsRequestDTO();
+    filteredRequest.applicationIds = Set.of("nonexistent-or-unreadable-application");
+    DashboardMetricsDTO off = dashboardMetricsService.getMetrics(filteredRequest);
+
+    tempEntity.deleteSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE);
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "ON");
+    DashboardMetricsTestSupport.clearDashboardMetricsCache(dashboardMetricsService);
+    DashboardMetricsDTO on = dashboardMetricsService.getMetrics(filteredRequest);
+
+    assertThat(off.organizations.total).isEqualTo(1);
+    assertThat(on.organizations.total).isEqualTo(off.organizations.total);
+    assertThat(on.organizations.source).isEqualTo("sql");
+    assertThat(on.applications.total).isEqualTo(off.applications.total).isZero();
+    assertThat(on.policies.total).isEqualTo(off.policies.total).isZero();
+    assertThat(on.waivers.total).isEqualTo(off.waivers.total).isZero();
+    assertThat(on.violations.total).isEqualTo(off.violations.total).isZero();
+  }
+
+  @Test
   public void testGetMetrics_CacheKeyStillExcludesMode() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_METRICS_SQL_MODE, "OFF");
     Organization org = tempEntity.newOrganization();
@@ -1066,7 +1177,7 @@ public class DashboardMetricsServiceTest
     verify(searchIndexClient, times(6)).count(anyString());
     verify(searchIndexClient, times(2)).aggregateCountByField(anyString(), anyString(), any());
     verify(searchIndexClient, times(20)).countDistinct(anyString(), any());
-    verify(searchIndexClient, times(2)).getLastIndexTime();
+    verify(searchIndexClient, times(3)).getLastIndexTime();
   }
 
   @Test
@@ -1102,6 +1213,7 @@ public class DashboardMetricsServiceTest
   public void testGetMetrics_HeavyTierSkipsSummaryComputations() {
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
     stubEmptySearchIndexResults(searchIndexClient);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(42L);
 
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal()).thenReturn(
@@ -1118,6 +1230,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsSqlReadiness.class),
         mock(DashboardMetricsScopeResolver.class),
         mock(DashboardMetricsSqlCoordinator.class),
+        mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -1130,8 +1243,9 @@ public class DashboardMetricsServiceTest
 
     assertThat(metrics.applications).isNull();
     assertThat(metrics.violations).isNotNull();
+    assertThat(metrics.lastUpdatedAt).isNotNull();
     verify(searchIndexClient, never()).count(anyString());
-    verify(searchIndexClient, never()).getLastIndexTime();
+    verify(searchIndexClient, times(1)).getLastIndexTime();
     verify(policyWaiverDAO, never()).selectCount(any());
     verify(policyWaiverRequestDAO, never()).selectCount(any());
   }
@@ -1154,6 +1268,7 @@ public class DashboardMetricsServiceTest
         mock(DashboardMetricsSqlReadiness.class),
         mock(DashboardMetricsScopeResolver.class),
         mock(DashboardMetricsSqlCoordinator.class),
+        mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -1207,6 +1322,7 @@ public class DashboardMetricsServiceTest
         offSqlReadiness(),
         scopeResolver,
         mock(DashboardMetricsSqlCoordinator.class),
+        mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -1550,6 +1666,7 @@ public class DashboardMetricsServiceTest
         readiness,
         scopeResolver,
         coordinator,
+        mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(mock(OrganizationDAO.class), mockConfiguration()),
         mockConfiguration(),
         mock(StageTypeService.class),
@@ -1602,6 +1719,7 @@ public class DashboardMetricsServiceTest
         offSqlReadiness(),
         queryableScopeResolver(),
         mock(DashboardMetricsSqlCoordinator.class),
+        mock(DashboardMetricsShadowComparisonService.class),
         new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
         configuration,
         stageTypeService,

@@ -8,9 +8,8 @@ package com.sonatype.insight.brain.dashboard.metrics.sql;
 /**
  * Operator-facing SQL metrics serving mode.
  * <p>
- * {@link #SHADOW} is accepted for forward-compatible configuration and readiness passthrough.
- * Dual-run shadow comparison is implemented in CLM-42678; until then the service treats
- * {@code SHADOW} like {@link #OFF} for metric serving.
+ * {@link #SHADOW} serves index-backed metrics like {@link #OFF} while scheduling sampled,
+ * non-blocking SQL dual-run comparison. {@link #ON} serves migrated metrics from SQL when ready.
  */
 public enum DashboardMetricsSqlMode
 {

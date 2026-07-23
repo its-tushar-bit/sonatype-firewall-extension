@@ -237,6 +237,52 @@ public class DashboardMetricsSqlReadinessTest
     assertThat(underTest.effectiveMode(ON)).isEqualTo(ON);
   }
 
+  @Test
+  public void embeddedDatabaseCheckFailureForcesOffWithoutFailingRequest() {
+    when(operationalDataStore.isDatabaseEmbedded()).thenThrow(new IllegalStateException("database unavailable"));
+    DashboardMetricsSqlReadiness underTest = readiness(_ -> VALID);
+
+    assertThat(underTest.effectiveMode(ON)).isEqualTo(OFF);
+
+    verify(telemetry).recordReadiness(INVALID);
+  }
+
+  @Test
+  public void schemaLookupFailureForcesOffWithoutFailingRequest() {
+    when(operationalDataStore.getDatabaseSchema()).thenThrow(new IllegalStateException("schema unavailable"));
+    DashboardMetricsSqlReadiness underTest = readiness(_ -> VALID);
+
+    assertThat(underTest.effectiveMode(SHADOW)).isEqualTo(OFF);
+
+    verify(telemetry).recordReadiness(INVALID);
+  }
+
+  @Test
+  public void runtimeProbeFailureIsCachedAsInvalidAndForcesOff() {
+    AtomicInteger probeCalls = new AtomicInteger();
+    DashboardMetricsSqlReadiness underTest = readiness(_ -> {
+      probeCalls.incrementAndGet();
+      throw new IllegalStateException("probe unavailable");
+    });
+
+    assertThat(underTest.effectiveMode(ON)).isEqualTo(OFF);
+    assertThat(underTest.state()).isEqualTo(INVALID);
+
+    assertThat(probeCalls).hasValue(1);
+    verify(telemetry, times(2)).recordReadiness(INVALID);
+  }
+
+  @Test
+  public void dataSourceRuntimeFailureForcesOffWithoutFailingRequest() {
+    when(operationalDataStore.getDataSource()).thenThrow(new IllegalStateException("data source unavailable"));
+    DashboardMetricsSqlReadiness underTest =
+        new DashboardMetricsSqlReadiness(operationalDataStore, modeProvider, telemetry);
+
+    assertThat(underTest.effectiveMode(ON)).isEqualTo(OFF);
+
+    verify(telemetry).recordReadiness(INVALID);
+  }
+
   private DashboardMetricsSqlReadiness readiness(
       final Function<String, DashboardMetricsSqlReadinessState> probe)
   {

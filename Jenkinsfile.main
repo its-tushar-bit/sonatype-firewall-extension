@@ -563,6 +563,11 @@ void capturePlaywrightResultsAndCleanup() {
   catch (Throwable t) {
     echo "WARNING: collectTestResults failed (Junit/Failsafe XML may be missing or invalid): ${t.getMessage()}"
   }
+  // Match unit/IT stages: coverage collection always unstashes jacoco-${STAGE_NAME}.
+  // Playwright rarely produces JaCoCo output; allowEmpty keeps MAIN from failing when absent.
+  archiveArtifacts(artifacts: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmptyArchive: true)
+  String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+  stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
   deleteDir()
 }
 

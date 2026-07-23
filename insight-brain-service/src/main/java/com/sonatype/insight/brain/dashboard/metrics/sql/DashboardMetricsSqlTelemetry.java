@@ -33,6 +33,10 @@ public class DashboardMetricsSqlTelemetry
 
   private static final String QUERY_DURATION = "dashboard.metrics.sql.query.duration";
 
+  private static final String SHADOW_OUTCOME = "dashboard.metrics.sql.shadow_outcome";
+
+  private static final String MISMATCH = "dashboard.metrics.sql.mismatch";
+
   private final MeterRegistry meterRegistry;
 
   @Inject
@@ -58,6 +62,14 @@ public class DashboardMetricsSqlTelemetry
 
   public void recordQuery(final Metric metric, final long durationNanos, final boolean success) {
     record(QUERY_DURATION, durationNanos, Tags.of("metric", metric.name(), "outcome", success ? "SUCCESS" : "FAILED"));
+  }
+
+  public void recordShadowOutcome(final ShadowOutcome outcome) {
+    increment(SHADOW_OUTCOME, Tags.of("outcome", outcome.name()));
+  }
+
+  public void recordMismatch(final boolean persistent) {
+    increment(MISMATCH, Tags.of("outcome", persistent ? "PERSISTENT" : "RAW"));
   }
 
   private void increment(final String name, final Tags tags) {
@@ -92,5 +104,13 @@ public class DashboardMetricsSqlTelemetry
     ORGANIZATIONS,
     POLICIES,
     VIOLATIONS
+  }
+
+  public enum ShadowOutcome
+  {
+    SAMPLED,
+    COMPLETED,
+    FAILED,
+    DROPPED
   }
 }

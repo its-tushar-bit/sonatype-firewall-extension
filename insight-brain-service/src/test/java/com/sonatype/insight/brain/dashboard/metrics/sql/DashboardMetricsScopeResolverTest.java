@@ -222,6 +222,24 @@ public class DashboardMetricsScopeResolverTest
   }
 
   @Test
+  public void organizationFilterWithOnlyReadableOrgChildAppsIsNotDenied() {
+    Fixture fixture = new Fixture();
+    fixture.expandedOrganizations = Set.of("parent-org", "child-org");
+    fixture.owners = List.of();
+    fixture.organizationApplications = List.of(fixture.applicationEntity("child-app", "child-org"));
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.organizationIds = Set.of("parent-org");
+
+    ResolvedScope scope = fixture.resolve(request);
+
+    assertThat(scope.kind()).isEqualTo(ResolvedScope.Kind.RESTRICTED);
+    assertThat(scope.denyReason()).isNull();
+    assertThat(scope.ownerIds()).isEmpty();
+    assertThat(scope.organizationIds()).isEmpty();
+    assertThat(scope.applicationIds()).containsExactly("child-app");
+  }
+
+  @Test
   public void unknownOrganizationReturnsDenyAllNoAccess() {
     Fixture fixture = new Fixture();
     fixture.expandedOrganizations = Set.of();
@@ -299,6 +317,24 @@ public class DashboardMetricsScopeResolverTest
     ResolvedScope scope = fixture.resolve(request);
 
     assertThat(scope.organizationIds()).containsExactlyInAnyOrder(Organization.ROOT_ORGANIZATION_ID, "org-a");
+  }
+
+  @Test
+  public void unreadableApplicationFilterRetainsIndependentlyReadableOrganizations() {
+    Fixture fixture = new Fixture();
+    fixture.filteredOwners = List.of();
+    fixture.allOwners = List.of(fixture.organization("readable-org"));
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.applicationIds = Set.of("missing-or-unreadable-app");
+
+    ResolvedScope scope = fixture.resolve(request);
+
+    assertThat(scope.kind()).isEqualTo(ResolvedScope.Kind.RESTRICTED);
+    assertThat(scope.organizationIds()).containsExactly("readable-org");
+    assertThat(scope.applicationIds()).isEmpty();
+    assertThat(scope.ownerIds()).isEmpty();
+    assertThat(scope.policyOwnerIds()).isEmpty();
+    assertThat(scope.requestFiltersApplied()).isTrue();
   }
 
   @Test

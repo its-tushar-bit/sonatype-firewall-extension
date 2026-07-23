@@ -126,7 +126,8 @@ public class DashboardMetricsResourceTest
     assertThat(metrics.organizations).isNull();
     assertThat(metrics.policies).isNull();
     assertThat(metrics.waivers).isNull();
-    assertThat(metrics.lastUpdatedAt).isNull();
+    // Index snapshot time is tier-independent so SHADOW persistent classification works for VIOLATIONS.
+    assertThat(metrics.lastUpdatedAt).isNotNull();
     assertThat(metrics.violations).isNotNull();
     assertThat(metrics.components).isNotNull();
     assertThat(metrics.vulnerabilities).isNotNull();

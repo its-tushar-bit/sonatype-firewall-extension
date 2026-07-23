@@ -61,4 +61,22 @@ public class AgeInDaysConditionTypeTest
     assertThat(conditionType.internalEvaluateCondition(component, "older than", 7)).isTrue();
     assertThat(conditionType.internalEvaluateCondition(component, "younger than", 7)).isFalse();
   }
+
+  @Test
+  public void internalEvaluateCondition_atBoundary_neitherOperatorFires_strictlyInsideEachFires() {
+    Component component = new Component();
+    // Offset by 3.5 days so ageInDays computes to 3 even with GC pauses or CI
+    // scheduler jitter between this line and System.currentTimeMillis() inside
+    // the production code. A smaller buffer (e.g. 1s) flips age to 4 under load
+    // and silently changes which boundary the assertions exercise.
+    long threeDaysAgoMs = System.currentTimeMillis()
+        - (3L * AgeInDaysConditionType.DAY_IN_MILLISECONDS)
+        - (AgeInDaysConditionType.DAY_IN_MILLISECONDS / 2L);
+    component.setCatalogDate(threeDaysAgoMs);
+
+    assertThat(conditionType.internalEvaluateCondition(component, "younger than", 3)).isFalse();
+    assertThat(conditionType.internalEvaluateCondition(component, "older than", 3)).isFalse();
+    assertThat(conditionType.internalEvaluateCondition(component, "younger than", 4)).isTrue();
+    assertThat(conditionType.internalEvaluateCondition(component, "older than", 2)).isTrue();
+  }
 }

@@ -110,7 +110,7 @@ public class AgeInDaysConditionType
       return ageInDays > value;
     }
     else {
-      return ageInDays <= value;
+      return ageInDays < value;
     }
   }
 

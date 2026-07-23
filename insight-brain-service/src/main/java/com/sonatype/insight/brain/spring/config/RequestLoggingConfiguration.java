@@ -208,15 +208,16 @@ public class RequestLoggingConfiguration
   }
 
   /**
-   * Prepares an access appender's {@code logFormat} for the logback-access path. An {@code access-json} appender is
-   * left untouched (it renders through its JSON layout, not a pattern). Every other appender is given a {@link
+   * Prepares an access appender's {@code logFormat} for the logback-access path. An {@code access-json} appender's
+   * layout type is rewritten to the IQ {@code iq-access-json} variant (see {@link #withRemoteUserAccessJsonLayout}) so
+   * the authenticated username renders under {@code remoteUser}. Every other appender is given a {@link
    * ch.qos.logback.access.common.PatternLayout} format: its own {@code logFormat} if set, otherwise the IQ default
-   * ({@link #LEGACY_REQUEST_LOG_FORMAT}, matching the pattern pre-Spring used). In both cases the remote-user token is
+   * ({@link #LEGACY_REQUEST_LOG_FORMAT}). In both cases the remote-user token is
    * rewritten (see {@link #rewriteRemoteUserToken}) so the authenticated username actually renders on this path.
    */
   private Map<String, Object> withDefaultAccessLogFormat(final Map<String, Object> appender) {
     if (isAccessJsonAppender(appender)) {
-      return appender;
+      return withRemoteUserAccessJsonLayout(appender);
     }
     String logFormat = appender.get("logFormat") instanceof String configured && !configured.isBlank()
         ? configured
@@ -224,6 +225,22 @@ public class RequestLoggingConfiguration
     Map<String, Object> withFormat = new LinkedHashMap<>(appender);
     withFormat.put("logFormat", rewriteRemoteUserToken(logFormat));
     return withFormat;
+  }
+
+  /**
+   * Rewrites an {@code access-json} appender's layout type to the IQ {@link RemoteUserAccessJsonLayoutFactory}
+   * variant so the authenticated username renders under {@code remoteUser}. The stock {@code access-json} layout
+   * sources {@code remoteUser} from {@code IAccessEvent.getRemoteUser()}, which the logback-access
+   * {@code RequestWrapper} stubs to {@code null}. Operators keep configuring {@code layout: {type: access-json}};
+   * the rewrite is internal, mirroring the pattern path's {@code %user}->{@code %reqAttribute} rewrite. The
+   * appender and its nested layout map are copied so the incoming config is not mutated. CLM-42654.
+   */
+  private Map<String, Object> withRemoteUserAccessJsonLayout(final Map<String, Object> appender) {
+    Map<String, Object> layout = new LinkedHashMap<>(asMap((Map<?, ?>) appender.get("layout")));
+    layout.put("type", RemoteUserAccessJsonLayoutFactory.TYPE_NAME);
+    Map<String, Object> withLayout = new LinkedHashMap<>(appender);
+    withLayout.put("layout", layout);
+    return withLayout;
   }
 
   /**

@@ -24,7 +24,10 @@ import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.AsyncAppenderBase;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
+import ch.qos.logback.core.LayoutBase;
 import ch.qos.logback.core.rolling.RollingFileAppender;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -37,6 +40,7 @@ import io.dropwizard.logging.common.FileAppenderFactory;
 import io.dropwizard.logging.common.SyslogAppenderFactory;
 import io.dropwizard.logging.common.TcpSocketAppenderFactory;
 import io.dropwizard.logging.common.TlsSocketAppenderFactory;
+import io.dropwizard.logging.json.AccessAttribute;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,6 +55,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -981,6 +986,24 @@ public class RequestLoggingConfigurationTest
     });
   }
 
+  private WebServer createWebServerWithAnonymousUser(final JettyServletWebServerFactory factory) {
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.isAnonymous()).thenReturn(true);
+
+    return factory.getWebServer(servletContext -> {
+      servletContext.addFilter("auth-logging-filter", new AuthenticationLoggingFilter(currentUser))
+          .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+      HttpServlet servlet = new HttpServlet()
+      {
+        @Override
+        protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
+          response.setStatus(HttpServletResponse.SC_OK);
+        }
+      };
+      servletContext.addServlet("test-servlet", servlet).addMapping("/*");
+    });
+  }
+
   private WebServer createWebServer(final JettyServletWebServerFactory factory) {
     return factory.getWebServer(servletContext -> {
       HttpServlet servlet = new HttpServlet()
@@ -1003,5 +1026,162 @@ public class RequestLoggingConfigurationTest
     return HttpClient.newHttpClient()
         .send(request, HttpResponse.BodyHandlers.discarding())
         .statusCode();
+  }
+
+  @Test
+  public void remoteUserAccessJsonLayoutFactoryBuildsRemoteUserLayout() {
+    // CLM-42654: the IQ factory must build our RemoteUserAccessJsonLayout (not the stock AccessJsonLayout),
+    // wiring the inherited formatter/includes so the layout renders like access-json plus a populated remoteUser.
+    RemoteUserAccessJsonLayoutFactory factory = new RemoteUserAccessJsonLayoutFactory();
+    LayoutBase<IAccessEvent> layout =
+        factory.build((LoggerContext) LoggerFactory.getILoggerFactory(), TimeZone.getTimeZone("UTC"));
+    assertThat(layout).isInstanceOf(RemoteUserAccessJsonLayout.class);
+  }
+
+  @Test
+  public void accessAppenderFactoriesResolveIqAccessJsonLayoutType() {
+    RequestLoggingConfiguration configuration = new RequestLoggingConfiguration();
+    // The internal iq-access-json layout type must be discoverable (registered via META-INF/services) so the
+    // layout-type swap in withDefaultAccessLogFormat deserializes rather than failing on an unknown subtype.
+    List<AppenderFactory<IAccessEvent>> factories = configuration.accessAppenderFactories(
+        List.of(Map.of("type", "console",
+            "layout", Map.of("type", RemoteUserAccessJsonLayoutFactory.TYPE_NAME))));
+
+    assertThat(factories).hasSize(1);
+    assertThat(factories.get(0)).isInstanceOf(ConsoleAppenderFactory.class);
+  }
+
+  @Test
+  public void accessAppenderFactoriesSwapAccessJsonLayoutToRemoteUserVariant() {
+    RequestLoggingConfiguration configuration = new RequestLoggingConfiguration();
+    // CLM-42654: an operator-configured access-json layout is transparently rewritten to the IQ remote-user
+    // variant so the username renders under remoteUser; operators keep writing access-json.
+    List<AppenderFactory<IAccessEvent>> factories = configuration.accessAppenderFactories(
+        List.of(Map.of("type", "console", "layout", Map.of("type", "access-json"))));
+
+    assertThat(factories).hasSize(1);
+    ConsoleAppenderFactory<IAccessEvent> console = (ConsoleAppenderFactory<IAccessEvent>) factories.get(0);
+    assertThat(console.getLayout()).isInstanceOf(RemoteUserAccessJsonLayoutFactory.class);
+  }
+
+  @Test
+  public void accessJsonPathRendersAuthenticatedUsername() throws Exception {
+    // CLM-42654: the access-json path is a third IAccessEvent consumer; its remoteUser is sourced from the
+    // stubbed RequestWrapper.getRemoteUser() (null) and omitted. A real authenticated request through
+    // AuthenticationLoggingFilter must now render the username under remoteUser in the JSON line.
+    final String username = "clmtestuser";
+    File requestLog = tempFolder.newFile("request-access-json-username.log");
+
+    RequestLogConfig accessJsonRequestLog = requestLogConfig("logback-access", List.of(
+        Map.of("type", "file", "currentLogFilename", requestLog.getAbsolutePath(), "archive", false,
+            "layout", Map.of("type", "access-json"))));
+    DropwizardServerConfig server = new DropwizardServerConfig();
+    server.requestLog = accessJsonRequestLog;
+    InsightConfig insightConfig = new InsightConfig();
+    insightConfig.setServer(server);
+
+    RequestLoggingConfiguration configuration = new RequestLoggingConfiguration();
+    JettyServletWebServerFactory factory = new JettyServletWebServerFactory(0);
+    configuration.requestLoggingCustomizer(insightConfig, new UserTelemetryRequestLoggingFilter()).customize(factory);
+
+    WebServer webServer = createWebServerWithAuthenticatedUser(factory, username);
+    try {
+      webServer.start();
+      int port = ((JettyWebServer) webServer).getPort();
+
+      assertThat(sendRequest(port, "/api/v2/applications")).isEqualTo(200);
+
+      await().atMost(5, SECONDS)
+          .untilAsserted(() -> assertThat(Files.readString(requestLog.toPath())).contains("/api/v2/applications"));
+    }
+    finally {
+      webServer.stop();
+    }
+
+    // Parse the JSON line and assert the remoteUser field itself, rather than a whole-line substring match that
+    // could pass on a coincidental match in another field (e.g. a header/param value).
+    JsonNode json = new ObjectMapper().readTree(Files.readString(requestLog.toPath()).strip());
+    assertThat(json.hasNonNull("remoteUser")).isTrue();
+    assertThat(json.get("remoteUser").asText()).isEqualTo(username);
+  }
+
+  @Test
+  public void accessJsonPathRendersDashForAnonymousUser() throws Exception {
+    // CLM-42654 AC #2: anonymous requests (filter sets no username attribute) render remoteUser as "-",
+    // consistent with the classic and pattern paths.
+    File requestLog = tempFolder.newFile("request-access-json-anon.log");
+
+    RequestLogConfig accessJsonRequestLog = requestLogConfig("logback-access", List.of(
+        Map.of("type", "file", "currentLogFilename", requestLog.getAbsolutePath(), "archive", false,
+            "layout", Map.of("type", "access-json"))));
+    DropwizardServerConfig server = new DropwizardServerConfig();
+    server.requestLog = accessJsonRequestLog;
+    InsightConfig insightConfig = new InsightConfig();
+    insightConfig.setServer(server);
+
+    RequestLoggingConfiguration configuration = new RequestLoggingConfiguration();
+    JettyServletWebServerFactory factory = new JettyServletWebServerFactory(0);
+    configuration.requestLoggingCustomizer(insightConfig, new UserTelemetryRequestLoggingFilter()).customize(factory);
+
+    WebServer webServer = createWebServerWithAnonymousUser(factory);
+    try {
+      webServer.start();
+      int port = ((JettyWebServer) webServer).getPort();
+
+      assertThat(sendRequest(port, "/api/v2/applications")).isEqualTo(200);
+
+      await().atMost(5, SECONDS)
+          .untilAsserted(() -> assertThat(Files.readString(requestLog.toPath())).contains("/api/v2/applications"));
+    }
+    finally {
+      webServer.stop();
+    }
+
+    JsonNode json = new ObjectMapper().readTree(Files.readString(requestLog.toPath()).strip());
+    assertThat(json.hasNonNull("remoteUser")).isTrue();
+    assertThat(json.get("remoteUser").asText()).isEqualTo("-");
+  }
+
+  @Test
+  public void accessJsonLayoutRendersRemoteUserEvenWhenExcludedViaIncludes() {
+    // CLM-42654: the remoteUser field is populated unconditionally - surfacing the authenticated username is the
+    // point of this layout - so an operator's `includes` set that omits REMOTE_USER must NOT suppress it. This
+    // pins that deliberate override (documented in RemoteUserAccessJsonLayout and
+    // doc/devdocs/request-log-remote-user.md).
+    final String username = "clmtestuser";
+    RemoteUserAccessJsonLayoutFactory factory = new RemoteUserAccessJsonLayoutFactory();
+    factory.setIncludes(EnumSet.of(AccessAttribute.TIMESTAMP)); // deliberately excludes REMOTE_USER
+    RemoteUserAccessJsonLayout layout = (RemoteUserAccessJsonLayout) factory
+        .build((LoggerContext) LoggerFactory.getILoggerFactory(), TimeZone.getTimeZone("UTC"));
+
+    IAccessEvent event = mock(IAccessEvent.class);
+    when(event.getAttribute(AuthenticationLoggingFilter.REQUEST_LOG_REMOTE_USER_ATTRIBUTE)).thenReturn(username);
+
+    Map<String, Object> jsonMap = layout.toJsonMap(event);
+
+    assertThat(jsonMap).containsEntry("remoteUser", username);
+  }
+
+  @Test
+  public void accessJsonLayoutIgnoresCustomFieldNameRenameForRemoteUser() {
+    // CLM-42654: customFieldNames only renames a field's key for stock values; it cannot redirect the
+    // canonical remoteUser this layout populates. The key stays literally `remoteUser` (documented in
+    // RemoteUserAccessJsonLayout and doc/devdocs/request-log-remote-user.md).
+    final String username = "clmtestuser";
+    RemoteUserAccessJsonLayoutFactory factory = new RemoteUserAccessJsonLayoutFactory();
+    factory.setCustomFieldNames(Map.of("remoteUser", "customUserKey"));
+    RemoteUserAccessJsonLayout layout = (RemoteUserAccessJsonLayout) factory
+        .build((LoggerContext) LoggerFactory.getILoggerFactory(), TimeZone.getTimeZone("UTC"));
+
+    IAccessEvent event = mock(IAccessEvent.class);
+    when(event.getAttribute(AuthenticationLoggingFilter.REQUEST_LOG_REMOTE_USER_ATTRIBUTE)).thenReturn(username);
+
+    Map<String, Object> jsonMap = layout.toJsonMap(event);
+
+    assertThat(jsonMap).containsEntry("remoteUser", username);
+    // customUserKey is absent because customFieldNames renames only the stock remoteUser field, which sources from
+    // event.getRemoteUser() (unstubbed here -> null) and is dropped by Dropwizard's MapBuilder before the rename can
+    // emit it. Our override writes the canonical remoteUser key directly, so it is never subject to the rename.
+    assertThat(jsonMap).doesNotContainKey("customUserKey");
   }
 }

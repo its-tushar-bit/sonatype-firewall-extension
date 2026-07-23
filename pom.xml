@@ -56,7 +56,7 @@
      keycloak 24.x migrated to jakarta (breaking change from javax).
      keycloak 25.x has major breaking changes. -->
     <keycloak.version>26.5.6</keycloak.version>
-    <bc-fips.version>2.1.2</bc-fips.version>
+    <bc-fips.version>2.1.3</bc-fips.version>
     <bc-fips-util.version>2.1.4</bc-fips-util.version>
     <bcpkix-fips.version>2.1.9</bcpkix-fips.version>
     <bctls-fips.version>2.1.20</bctls-fips.version>

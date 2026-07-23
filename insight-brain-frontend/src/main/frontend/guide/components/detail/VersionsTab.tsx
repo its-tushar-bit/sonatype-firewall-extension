@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useParams, useOutletContext } from 'react-router';
 import { Box, Card, Flex, Skeleton, Tabs } from '@radix-ui/themes';
 import {
   MobileFilterWrapper,
@@ -24,9 +24,10 @@ import {
   tokens,
 } from '@guide/ui-core/utils';
 import { getComponentVersions } from 'GuideRoot/api/componentsBackend';
-import { toParamsRecord } from 'GuideRoot/utils/searchParams';
+import { buildArtifactFormAction, toParamsRecord } from 'GuideRoot/utils/searchParams';
 import type { ComponentVersionsResponse } from 'GuideRoot/api/componentsBackend';
 import type { SortOption } from '@guide/ui-core/types';
+import type { ArtifactOutletContext } from './ComponentDetailPage';
 
 const LIMIT = 25;
 
@@ -70,6 +71,7 @@ export function VersionsTab() {
   const { ecosystem = '', pkg = '', version = '' } = useParams<{
     ecosystem: string; pkg: string; version: string;
   }>();
+  const { extension, classifier } = useOutletContext<ArtifactOutletContext>();
   const searchParams = useAdapterSearchParams();
   const [response, setResponse] = useState<ComponentVersionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,13 +89,13 @@ export function VersionsTab() {
     setLoading(true);
     setError(null);
 
-    getComponentVersions(ecosystem, pkg, version, query, filters, { offset, limit, sortField, sortOrder })
+    getComponentVersions(ecosystem, pkg, version, query, filters, { offset, limit, sortField, sortOrder }, { extension, classifier })
       .then((data) => { if (!cancelled) setResponse(data); })
       .catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [ecosystem, pkg, version, searchParams]);
+  }, [ecosystem, pkg, version, searchParams, extension, classifier]);
 
   if (loading && response === null) return <VersionsTabSkeleton />;
 
@@ -110,7 +112,8 @@ export function VersionsTab() {
   const aggregations = response?.aggregations ?? {};
   const offset = response?.offset ?? 0;
   const limit = response?.limit ?? LIMIT;
-  const formAction = `/component/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/versions`;
+  const basePath = `/component/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/versions`;
+  const formAction = buildArtifactFormAction(basePath, { extension, classifier });
   const paramsRecord = toParamsRecord(searchParams);
 
   return (
@@ -140,6 +143,7 @@ export function VersionsTab() {
           versions={hits}
           formAction={formAction}
           searchParams={paramsRecord}
+          artifactFilter={{ extension, classifier }}
         />
         {total > limit && (
           <Pagination

@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { useEffect, useState } from 'react';
-import { useParams, Outlet } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { useParams, Outlet, useSearchParams } from 'react-router';
 import {
   PageLayout,
   PageHeading,
@@ -16,6 +16,8 @@ import {
   ComponentTabsLayout,
   ComponentProvider,
   MalwareBanner,
+  ArtifactPendingProvider,
+  useSetArtifactPending,
 } from '@guide/ui-core';
 import {
   getComponentDetail,
@@ -38,28 +40,66 @@ interface DetailState {
   recommendations: RecommendationResponse | null;
 }
 
-export function ComponentDetailPage() {
+export interface ArtifactOutletContext {
+  extension?: string;
+  classifier?: string;
+}
+
+/**
+ * Inner component that has access to ArtifactPendingProvider context.
+ * This allows it to set the pending state during artifact transitions.
+ */
+function ComponentDetailContent() {
   const { ecosystem = '', pkg = '', version = '' } = useParams<{
     ecosystem: string;
     pkg: string;
     version: string;
   }>();
 
+  const [searchParams] = useSearchParams();
+  const extension = searchParams.get('extension') || undefined;
+  const classifier = searchParams.get('classifier') || undefined;
+
   const [state, setState] = useState<DetailState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Tracks the last (ecosystem, pkg, version) tuple we loaded data for. React Router
+  // reuses this component instance across navigations that match the same route
+  // pattern, so a plain "hasLoadedOnce" boolean would incorrectly treat a jump to
+  // a different component as an artifact-only transition. Comparing the tuple
+  // scopes "already loaded" to the current component identity.
+  const loadedComponentKey = useRef<string | null>(null);
+
+  const setArtifactPending = useSetArtifactPending();
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+
+    // Show full-page skeleton whenever the component identity changes (or on first
+    // load). For artifact-only transitions on the same component, keep existing
+    // data on screen and let ArtifactPendingProvider drive skeletons in
+    // TrustScoreCard and TabTriggerWithBadge.
+    const currentKey = `${ecosystem}/${pkg}/${version}`;
+    const isInitialLoad = loadedComponentKey.current !== currentKey;
+    if (isInitialLoad) {
+      setLoading(true);
+      // Clear stale data from the previous component so the skeleton renders
+      // instead of the previous name/version/malware banner while loading.
+      setState(null);
+    } else {
+      // For artifact transitions, set pending state to show skeletons
+      // in TrustScoreCard and TabTriggerWithBadge
+      setArtifactPending(true);
+    }
     setError(null);
 
+    const artifact = { extension, classifier };
     Promise.all([
-      getComponentDetail(ecosystem, pkg, version),
-      getComponentVulnerabilities(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }),
-      getComponentVersions(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }),
-      getComponentDependencies(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }),
-      getRecommendations(ecosystem, pkg, version),
+      getComponentDetail(ecosystem, pkg, version, artifact),
+      getComponentVulnerabilities(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }, artifact),
+      getComponentVersions(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }, artifact),
+      getComponentDependencies(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }, artifact),
+      getRecommendations(ecosystem, pkg, version, artifact),
     ])
       .then(([component, vulnRes, versionsRes, depsRes, recommendations]) => {
         if (!cancelled) {
@@ -81,15 +121,31 @@ export function ComponentDetailPage() {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          // Record the component identity we just finished loading data for
+          // (regardless of outcome — found/404/error). Subsequent effect runs
+          // for the SAME component skip the full-page skeleton and treat the
+          // change as an artifact-only transition.
+          loadedComponentKey.current = currentKey;
+          // Only clear pending state if we set it in this run (artifact transitions),
+          // mirroring the guarded setArtifactPending(true) above.
+          if (!isInitialLoad) setArtifactPending(false);
+        }
       });
 
-    return () => { cancelled = true; };
-  }, [ecosystem, pkg, version]);
+    return () => {
+      cancelled = true;
+    };
+  }, [ecosystem, pkg, version, extension, classifier]);
 
-  if (loading) return <ComponentDetailSkeleton />;
+  if (loading && state === null) return <ComponentDetailSkeleton />;
 
-  if (error) {
+  // Only replace the page with the error view when there is no prior data to
+  // preserve. During an artifact-only transition, `state` still holds the
+  // previously loaded artifact — keep it on screen rather than dropping the
+  // user into a full-page error for a transient fetch failure.
+  if (error && state === null) {
     return <ErrorPage onRetry={reloadPage} />;
   }
 
@@ -119,11 +175,15 @@ export function ComponentDetailPage() {
         packageName={pkg}
         version={version}
         recommendationsResponse={recommendations}
+        artifacts={component.components ?? []}
+        artifactFilter={{ extension, classifier }}
       />
       <MalwareBanner
         isMalware={component.isMalware}
         name={component.name}
         version={component.version}
+        extension={extension}
+        classifier={classifier}
       />
       <ComponentProvider
         component={component}
@@ -132,9 +192,17 @@ export function ComponentDetailPage() {
         dependencyCount={depsCount}
       >
         <ComponentTabsLayout>
-          <Outlet />
+          <Outlet context={{ extension, classifier }} />
         </ComponentTabsLayout>
       </ComponentProvider>
     </PageLayout>
+  );
+}
+
+export function ComponentDetailPage() {
+  return (
+    <ArtifactPendingProvider>
+      <ComponentDetailContent />
+    </ArtifactPendingProvider>
   );
 }

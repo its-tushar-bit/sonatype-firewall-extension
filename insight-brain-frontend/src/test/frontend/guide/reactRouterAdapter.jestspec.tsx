@@ -35,6 +35,7 @@ describe('useReactRouterAdapter', () => {
 
     expect(adapter).not.toBeNull();
     expect(typeof adapter!.navigate).toBe('function');
+    expect(typeof adapter!.refresh).toBe('function');
     expect(typeof adapter!.usePathname).toBe('function');
     expect(typeof adapter!.useSearchParams).toBe('function');
     expect(adapter!.Link).toBeDefined();

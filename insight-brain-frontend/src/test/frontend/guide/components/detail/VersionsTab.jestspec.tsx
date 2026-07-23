@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Route, Routes, useNavigate } from 'react-router';
+import { Route, Routes, useNavigate, Outlet } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { Tabs } from '@radix-ui/themes';
 import { render, screen, waitFor } from '../../test-utils';
@@ -13,6 +13,7 @@ import { VersionsTab } from 'GuideRoot/components/detail/VersionsTab';
 import * as backend from 'GuideRoot/api/componentsBackend';
 import { mockComponentDetail, mockVersions } from 'TestRoot/guide/api/fixtures/componentDetailFixtures';
 import { ComponentProvider } from '@guide/ui-core';
+import type { ArtifactOutletContext } from 'GuideRoot/components/detail/ComponentDetailPage';
 
 jest.mock('GuideRoot/api/componentsBackend', () => ({
   getComponentVersions: jest.fn(),
@@ -56,10 +57,12 @@ function renderTab(versionsResponse = { hits: mockVersions, total: 3, offset: 0,
               versionsCount={versionsResponse.total}
               dependencyCount={2}
             >
-              <VersionsTab />
+              <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
             </ComponentProvider>
           }
-        />
+        >
+          <Route index element={<VersionsTab />} />
+        </Route>
       </Routes>
     </Tabs.Root>,
     { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/versions'] } }
@@ -76,10 +79,12 @@ describe('VersionsTab', () => {
             path="/component/:ecosystem/:pkg/:version/versions"
             element={
               <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
-                <VersionsTab />
+                <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
               </ComponentProvider>
             }
-          />
+          >
+            <Route index element={<VersionsTab />} />
+          </Route>
         </Routes>
       </Tabs.Root>,
       { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/versions'] } }
@@ -149,10 +154,12 @@ describe('VersionsTab', () => {
             element={
               <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
                 <FilterNav />
-                <VersionsTab />
+                <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
               </ComponentProvider>
             }
-          />
+          >
+            <Route index element={<VersionsTab />} />
+          </Route>
         </Routes>
       </Tabs.Root>,
       { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/versions'] } }

@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useSearchParams } from 'react-router';
+import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from '../../test-utils';
 import { ComponentDetailPage } from 'GuideRoot/components/detail/ComponentDetailPage';
 import * as backend from 'GuideRoot/api/componentsBackend';
@@ -39,6 +40,8 @@ jest.mock('@guide/ui-core', () => {
     Breadcrumbs: ({ items }: { items: Array<{ label: string }> }) => (
       <nav>{items.map((i) => <span key={i.label}>{i.label}</span>)}</nav>
     ),
+    ArtifactPendingProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useSetArtifactPending: () => jest.fn(),
   };
 });
 
@@ -144,6 +147,47 @@ describe('ComponentDetailPage', () => {
     expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
   });
 
+  it('keeps the previous artifact view when an artifact-only refetch fails', async () => {
+    function ArtifactSwitcher() {
+      const [, setSearchParams] = useSearchParams();
+      return (
+        <button onClick={() => setSearchParams({ extension: 'jar' })}>switch-artifact</button>
+      );
+    }
+
+    mockGetComponentDetail.mockResolvedValueOnce(mockComponentDetail);
+    render(
+      <Routes>
+        <Route
+          path="/component/:ecosystem/:pkg/:version"
+          element={
+            <>
+              <ArtifactSwitcher />
+              <ComponentDetailPage />
+            </>
+          }
+        />
+      </Routes>,
+      { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21'] } }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('component-header')).toBeInTheDocument();
+    });
+
+    // The next fetch — triggered by the artifact-only transition — fails.
+    mockGetComponentDetail.mockRejectedValueOnce(new Error('Network error'));
+    await userEvent.click(screen.getByRole('button', { name: 'switch-artifact' }));
+
+    await waitFor(() => {
+      expect(mockGetComponentDetail).toHaveBeenCalledTimes(2);
+    });
+
+    // Previous artifact's header stays on screen; no full-page error.
+    expect(screen.getByTestId('component-header')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /we hit a snag/i })).not.toBeInTheDocument();
+  });
+
   it('renders the policy-context picker above the header after load', async () => {
     mockGetComponentDetail.mockResolvedValue(mockComponentDetail);
     renderPage();
@@ -151,5 +195,45 @@ describe('ComponentDetailPage', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /Policy context — open picker/ })).toBeInTheDocument()
     );
+  });
+
+  it('forwards extension and classifier from URL search params to all component API calls', async () => {
+    mockGetComponentDetail.mockResolvedValue(mockComponentDetail);
+    render(
+      <Routes>
+        <Route path="/component/:ecosystem/:pkg/:version" element={<ComponentDetailPage />} />
+      </Routes>,
+      { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21?extension=jar&classifier=sources'] } }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('component-header')).toBeInTheDocument();
+    });
+
+    const artifact = { extension: 'jar', classifier: 'sources' };
+    expect(mockGetComponentDetail).toHaveBeenCalledWith('npm', 'lodash', '4.17.21', artifact);
+    expect(mockGetComponentVulnerabilities).toHaveBeenCalledWith(
+      'npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 1 }, artifact
+    );
+    expect(mockGetComponentVersions).toHaveBeenCalledWith(
+      'npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 1 }, artifact
+    );
+    expect(mockGetComponentDependencies).toHaveBeenCalledWith(
+      'npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 1 }, artifact
+    );
+    expect(mockGetRecommendations).toHaveBeenCalledWith('npm', 'lodash', '4.17.21', artifact);
+  });
+
+  it('passes undefined for extension and classifier when absent from URL search params', async () => {
+    mockGetComponentDetail.mockResolvedValue(mockComponentDetail);
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('component-header')).toBeInTheDocument();
+    });
+
+    const artifact = { extension: undefined, classifier: undefined };
+    expect(mockGetComponentDetail).toHaveBeenCalledWith('npm', 'lodash', '4.17.21', artifact);
+    expect(mockGetRecommendations).toHaveBeenCalledWith('npm', 'lodash', '4.17.21', artifact);
   });
 });

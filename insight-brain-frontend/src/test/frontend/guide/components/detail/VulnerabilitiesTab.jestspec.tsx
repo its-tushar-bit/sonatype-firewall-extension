@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Route, Routes, useNavigate } from 'react-router';
+import { Route, Routes, useNavigate, Outlet } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { Tabs } from '@radix-ui/themes';
 import { render, screen, waitFor } from '../../test-utils';
@@ -13,6 +13,7 @@ import { VulnerabilitiesTab } from 'GuideRoot/components/detail/VulnerabilitiesT
 import * as backend from 'GuideRoot/api/componentsBackend';
 import { mockComponentDetail, mockVulnerabilities } from 'TestRoot/guide/api/fixtures/componentDetailFixtures';
 import { ComponentProvider } from '@guide/ui-core';
+import type { ArtifactOutletContext } from 'GuideRoot/components/detail/ComponentDetailPage';
 
 jest.mock('GuideRoot/api/componentsBackend', () => ({
   getComponentVulnerabilities: jest.fn(),
@@ -42,10 +43,12 @@ function renderTab(vulnResponse = { hits: mockVulnerabilities, total: 2, offset:
               versionsCount={3}
               dependencyCount={2}
             >
-              <VulnerabilitiesTab />
+              <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
             </ComponentProvider>
           }
-        />
+        >
+          <Route index element={<VulnerabilitiesTab />} />
+        </Route>
       </Routes>
     </Tabs.Root>,
     { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/vulnerabilities'] } }
@@ -62,10 +65,12 @@ describe('VulnerabilitiesTab', () => {
             path="/component/:ecosystem/:pkg/:version/vulnerabilities"
             element={
               <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
-                <VulnerabilitiesTab />
+                <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
               </ComponentProvider>
             }
-          />
+          >
+            <Route index element={<VulnerabilitiesTab />} />
+          </Route>
         </Routes>
       </Tabs.Root>,
       { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/vulnerabilities'] } }
@@ -131,10 +136,12 @@ describe('VulnerabilitiesTab', () => {
             element={
               <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
                 <FilterNav />
-                <VulnerabilitiesTab />
+                <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
               </ComponentProvider>
             }
-          />
+          >
+            <Route index element={<VulnerabilitiesTab />} />
+          </Route>
         </Routes>
       </Tabs.Root>,
       { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/vulnerabilities'] } }

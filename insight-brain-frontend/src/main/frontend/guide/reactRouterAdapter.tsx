@@ -50,6 +50,9 @@ FormAdapter.displayName = 'FormAdapter';
 
 export function useReactRouterAdapter(): NavigationAdapter {
   const nav = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useRouterSearchParams();
+
   return useMemo(
     () => ({
       navigate: (url: string, options?: { scroll?: boolean; replace?: boolean }) => {
@@ -58,11 +61,18 @@ export function useReactRouterAdapter(): NavigationAdapter {
           preventScrollReset: options?.scroll === false,
         });
       },
-      usePathname: () => useLocation().pathname,
-      useSearchParams: () => useRouterSearchParams()[0],
+      /**
+       * No-op for React Router's HashRouter. Navigation with updated search params
+       * automatically triggers re-renders via useSearchParams().
+       */
+      refresh: () => {
+        // Intentionally empty - React Router re-renders on search param changes automatically
+      },
+      usePathname: () => location.pathname,
+      useSearchParams: () => searchParams,
       Link: LinkAdapter,
       Form: FormAdapter,
     }),
-    [nav]
+    [nav, location.pathname, searchParams]
   );
 }

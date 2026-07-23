@@ -229,6 +229,26 @@ describe('componentsBackend', () => {
 
       await expect(getComponentDetail('npm', 'lodash', '4.17.21')).rejects.toThrow('server error');
     });
+
+    it('appends extension and classifier params when provided', async () => {
+      mockApiFetch.mockResolvedValue({ format: 'maven', name: 'spring-core', version: '5.3.0' });
+
+      await getComponentDetail('maven', 'org.springframework:spring-core', '5.3.0', { extension: 'jar', classifier: 'sources' });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('extension=jar');
+      expect(path).toContain('classifier=sources');
+    });
+
+    it('omits extension and classifier params when not provided', async () => {
+      mockApiFetch.mockResolvedValue({ format: 'npm', name: 'lodash', version: '4.17.21' });
+
+      await getComponentDetail('npm', 'lodash', '4.17.21');
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).not.toContain('extension=');
+      expect(path).not.toContain('classifier=');
+    });
   });
 
   describe('getComponentVulnerabilities (wired)', () => {
@@ -342,6 +362,18 @@ describe('componentsBackend', () => {
         getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 })
       ).rejects.toThrow('server error');
     });
+
+    it('appends extension and classifier params when provided', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentVulnerabilities(
+        'npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 }, { extension: 'jar', classifier: 'sources' }
+      );
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('extension=jar');
+      expect(path).toContain('classifier=sources');
+    });
   });
 
   describe('getComponentVersions (wired)', () => {
@@ -449,6 +481,18 @@ describe('componentsBackend', () => {
       await expect(
         getComponentVersions('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 })
       ).rejects.toThrow('server error');
+    });
+
+    it('appends extension and classifier params when provided', async () => {
+      mockApiFetch.mockResolvedValue(fakeVersionsResponse);
+
+      await getComponentVersions(
+        'npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 }, { extension: 'jar', classifier: 'sources' }
+      );
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('extension=jar');
+      expect(path).toContain('classifier=sources');
     });
   });
 
@@ -570,6 +614,18 @@ describe('componentsBackend', () => {
         getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 })
       ).rejects.toThrow('server error');
     });
+
+    it('appends extension and classifier params when provided', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies(
+        'npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 }, { extension: 'jar', classifier: 'sources' }
+      );
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('extension=jar');
+      expect(path).toContain('classifier=sources');
+    });
   });
 
   describe('getRecommendations (wired)', () => {
@@ -637,6 +693,30 @@ describe('componentsBackend', () => {
       mockApiFetch.mockRejectedValue(new Error('network failure'));
 
       await expect(getRecommendations('npm', 'lodash', '4.17.21')).resolves.toBeNull();
+    });
+
+    it('includes extension and classifier in the POST body when provided', async () => {
+      mockApiFetch.mockResolvedValue(fakeRecommendations);
+
+      await getRecommendations('maven', 'org.springframework:spring-core', '5.3.0', { extension: 'jar', classifier: 'sources' });
+
+      const [, init] = mockApiFetch.mock.calls[0];
+      expect(JSON.parse(init?.body as string)).toEqual({
+        purl: 'pkg:maven/org.springframework/spring-core@5.3.0',
+        extension: 'jar',
+        classifier: 'sources',
+      });
+    });
+
+    it('omits extension and classifier from the POST body when not provided', async () => {
+      mockApiFetch.mockResolvedValue(fakeRecommendations);
+
+      await getRecommendations('npm', 'lodash', '4.17.21');
+
+      const [, init] = mockApiFetch.mock.calls[0];
+      const body = JSON.parse(init?.body as string);
+      expect(body).not.toHaveProperty('extension');
+      expect(body).not.toHaveProperty('classifier');
     });
   });
 });

@@ -19,3 +19,20 @@ export function toParamsRecord(searchParams: ReadonlySearchParams): Record<strin
 export function toStringArray(v: string | string[] | undefined): string[] {
   return v === undefined ? [] : Array.isArray(v) ? v : [v];
 }
+
+/**
+ * Appends {@code extension}/{@code classifier} as query params to a tab
+ * {@code formAction} URL so that the selected artifact survives the form
+ * submits produced by filter, sort, and pagination controls. Returns
+ * {@code basePath} unchanged when neither field is set.
+ */
+export function buildArtifactFormAction(
+  basePath: string,
+  artifact: { extension?: string; classifier?: string }
+): string {
+  const params = new URLSearchParams();
+  if (artifact.extension) params.set('extension', artifact.extension);
+  if (artifact.classifier) params.set('classifier', artifact.classifier);
+  const query = params.toString();
+  return query ? `${basePath}?${query}` : basePath;
+}

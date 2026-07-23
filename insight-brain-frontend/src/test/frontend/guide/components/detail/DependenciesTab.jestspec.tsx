@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Route, Routes, useNavigate } from 'react-router';
+import { Route, Routes, useNavigate, Outlet } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { Tabs } from '@radix-ui/themes';
 import { render, screen, waitFor } from '../../test-utils';
@@ -13,6 +13,7 @@ import { DependenciesTab } from 'GuideRoot/components/detail/DependenciesTab';
 import * as backend from 'GuideRoot/api/componentsBackend';
 import { mockComponentDetail, mockDependencies } from 'TestRoot/guide/api/fixtures/componentDetailFixtures';
 import { ComponentProvider } from '@guide/ui-core';
+import type { ArtifactOutletContext } from 'GuideRoot/components/detail/ComponentDetailPage';
 
 jest.mock('GuideRoot/api/componentsBackend', () => ({
   getComponentDependencies: jest.fn(),
@@ -49,10 +50,12 @@ function renderTab(depsResponse = { hits: mockDependencies, total: 2, offset: 0,
               versionsCount={3}
               dependencyCount={depsResponse.total}
             >
-              <DependenciesTab />
+              <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
             </ComponentProvider>
           }
-        />
+        >
+          <Route index element={<DependenciesTab />} />
+        </Route>
       </Routes>
     </Tabs.Root>,
     { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/dependencies'] } }
@@ -69,10 +72,12 @@ describe('DependenciesTab', () => {
             path="/component/:ecosystem/:pkg/:version/dependencies"
             element={
               <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
-                <DependenciesTab />
+                <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
               </ComponentProvider>
             }
-          />
+          >
+            <Route index element={<DependenciesTab />} />
+          </Route>
         </Routes>
       </Tabs.Root>,
       { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/dependencies'] } }
@@ -143,10 +148,12 @@ describe('DependenciesTab', () => {
             element={
               <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
                 <FilterNav />
-                <DependenciesTab />
+                <Outlet context={{ extension: undefined, classifier: undefined } satisfies ArtifactOutletContext} />
               </ComponentProvider>
             }
-          />
+          >
+            <Route index element={<DependenciesTab />} />
+          </Route>
         </Routes>
       </Tabs.Root>,
       { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/dependencies'] } }

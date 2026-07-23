@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useOutletContext } from 'react-router';
 import { Box, Card, Flex, Skeleton, Tabs } from '@radix-ui/themes';
 import {
   MobileFilterWrapper,
@@ -26,8 +26,9 @@ import {
   tokens,
 } from '@guide/ui-core/utils';
 import { getComponentVulnerabilities } from 'GuideRoot/api/componentsBackend';
-import { toParamsRecord } from 'GuideRoot/utils/searchParams';
+import { buildArtifactFormAction, toParamsRecord } from 'GuideRoot/utils/searchParams';
 import type { VulnerabilitySearchResponse } from '@guide/ui-core/types';
+import type { ArtifactOutletContext } from './ComponentDetailPage';
 
 const LIMIT = 25;
 
@@ -72,6 +73,7 @@ export function VulnerabilitiesTab() {
   const { ecosystem = '', pkg = '', version = '' } = useParams<{
     ecosystem: string; pkg: string; version: string;
   }>();
+  const { extension, classifier } = useOutletContext<ArtifactOutletContext>();
   const searchParams = useAdapterSearchParams();
   const [response, setResponse] = useState<VulnerabilitySearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,13 +91,13 @@ export function VulnerabilitiesTab() {
     setLoading(true);
     setError(null);
 
-    getComponentVulnerabilities(ecosystem, pkg, version, query, filters, { offset, limit, sortField, sortOrder })
+    getComponentVulnerabilities(ecosystem, pkg, version, query, filters, { offset, limit, sortField, sortOrder }, { extension, classifier })
       .then((data) => { if (!cancelled) setResponse(data); })
       .catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [ecosystem, pkg, version, searchParams]);
+  }, [ecosystem, pkg, version, searchParams, extension, classifier]);
 
   if (loading && response === null) return <VulnerabilitiesTabSkeleton />;
 
@@ -112,7 +114,8 @@ export function VulnerabilitiesTab() {
   const aggregations = response?.aggregations ?? {};
   const offset = response?.offset ?? 0;
   const limit = response?.limit ?? LIMIT;
-  const formAction = `/component/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/vulnerabilities`;
+  const basePath = `/component/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/vulnerabilities`;
+  const formAction = buildArtifactFormAction(basePath, { extension, classifier });
   const paramsRecord = toParamsRecord(searchParams);
 
   return (

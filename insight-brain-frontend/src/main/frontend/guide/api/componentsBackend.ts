@@ -50,6 +50,29 @@ function buildPurl(ecosystem: string, pkg: string, version: string): string {
 }
 
 /**
+ * Optional artifact filter for endpoints that scope results to a specific
+ * artifact of a component (typically Maven's extension/classifier pair).
+ * Bundled as an object so that a swapped call site can't silently transpose
+ * the two — the type checker requires the correct property names.
+ */
+export interface ArtifactFilter {
+  extension?: string;
+  classifier?: string;
+}
+
+/**
+ * Appends {@code extension} and {@code classifier} query params to
+ * {@code params} when set. No-op when {@code artifact} is undefined or both
+ * fields are absent. Centralized so all component endpoints share one spelling
+ * of the wire format.
+ */
+function appendArtifactParams(params: URLSearchParams, artifact?: ArtifactFilter): void {
+  if (!artifact) return;
+  if (artifact.extension) params.set('extension', artifact.extension);
+  if (artifact.classifier) params.set('classifier', artifact.classifier);
+}
+
+/**
  * Calls GET /api/v2/guide/components/search with the supplied URL search params
  * forwarded verbatim. URL parameter keys are aligned with backend `@QueryParam`
  * names by design (see `@guide/ui-core`'s FILTER MAPPING REFERENCE), so no
@@ -113,10 +136,12 @@ export interface ComponentVersionsResponse {
 export async function getComponentDetail(
   ecosystem: string,
   pkg: string,
-  version: string
+  version: string,
+  artifact?: ArtifactFilter
 ): Promise<ComponentDetails | null> {
   const purl = buildPurl(ecosystem, pkg, version);
   const params = new URLSearchParams({ purl });
+  appendArtifactParams(params, artifact);
   return apiFetch<ComponentDetails>(`${API_PREFIX}/components/detail?${params}`)
     .catch((e: unknown) => {
       if (e instanceof ApiError && e.status === 404) return null;
@@ -127,13 +152,17 @@ export async function getComponentDetail(
 export async function getRecommendations(
   ecosystem: string,
   pkg: string,
-  version: string
+  version: string,
+  artifact?: ArtifactFilter
 ): Promise<RecommendationResponse | null> {
   const purl = buildPurl(ecosystem, pkg, version);
+  const body: Record<string, string> = { purl };
+  if (artifact?.extension) body.extension = artifact.extension;
+  if (artifact?.classifier) body.classifier = artifact.classifier;
   return apiFetch<RecommendationResponse>(`${API_PREFIX}/recommendations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ purl }),
+    body: JSON.stringify(body),
   }).catch(() => {
     // Recommendations are supplementary — any failure (404, 500, network) should not block the component detail page.
     return null;
@@ -146,7 +175,8 @@ export async function getComponentVulnerabilities(
   version: string,
   query: string | undefined,
   filters: VulnerabilitiesFilters,
-  options: VulnerabilitiesSearchOptions
+  options: VulnerabilitiesSearchOptions,
+  artifact?: ArtifactFilter
 ): Promise<VulnerabilitySearchResponse> {
   const purl = buildPurl(ecosystem, pkg, version);
   const params = new URLSearchParams({ purl });
@@ -166,6 +196,7 @@ export async function getComponentVulnerabilities(
   if (filters.exploitationKnown !== undefined) params.set('exploitationKnown', String(filters.exploitationKnown));
   if (filters.hasMalware !== undefined) params.set('hasMalware', String(filters.hasMalware));
   if (filters.publishedWindow) params.set('publishedWindow', filters.publishedWindow);
+  appendArtifactParams(params, artifact);
 
   return apiFetch<VulnerabilitySearchResponse>(`${API_PREFIX}/components/vulnerabilities?${params}`);
 }
@@ -176,7 +207,8 @@ export async function getComponentVersions(
   version: string,
   query: string | undefined,
   filters: VersionsFilters,
-  options: ComponentsSearchOptions
+  options: ComponentsSearchOptions,
+  artifact?: ArtifactFilter
 ): Promise<ComponentVersionsResponse> {
   const { offset = 0, limit = 25, sortField, sortOrder } = options;
   const purl = buildPurl(ecosystem, pkg, version);
@@ -192,6 +224,7 @@ export async function getComponentVersions(
   if (filters.minVersionScore !== undefined) params.set('minVersionScore', String(filters.minVersionScore));
   if (filters.maxVersionScore !== undefined) params.set('maxVersionScore', String(filters.maxVersionScore));
   if (filters.publishedWindow) params.set('publishedWindow', filters.publishedWindow);
+  appendArtifactParams(params, artifact);
   return apiFetch<ComponentVersionsResponse>(`${API_PREFIX}/components/versions?${params}`)
     .catch((e: unknown) => {
       if (e instanceof ApiError && e.status === 404) {
@@ -207,7 +240,8 @@ export async function getComponentDependencies(
   version: string,
   query: string | undefined,
   filters: ComponentsFilters,
-  options: ComponentsSearchOptions
+  options: ComponentsSearchOptions,
+  artifact?: ArtifactFilter
 ): Promise<ComponentSearchResponse> {
   const purl = buildPurl(ecosystem, pkg, version);
   const params = new URLSearchParams({ purl });
@@ -227,6 +261,7 @@ export async function getComponentDependencies(
   if (filters.maxVersionScore !== undefined) params.set('maxVersionScore', String(filters.maxVersionScore));
   if (filters.hasMalware !== undefined) params.set('hasMalware', String(filters.hasMalware));
   if (filters.publishedWindow) params.set('publishedWindow', filters.publishedWindow);
+  appendArtifactParams(params, artifact);
 
   return apiFetch<ComponentSearchResponse>(`${API_PREFIX}/components/dependencies?${params}`);
 }

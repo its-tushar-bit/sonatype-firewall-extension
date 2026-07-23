@@ -22,7 +22,9 @@
   },
   "include": [
     "src/main/frontend/**/*.ts",
-    "src/main/frontend/**/*.tsx"
+    "src/main/frontend/**/*.tsx",
+    "src/test/frontend/**/*.ts",
+    "src/test/frontend/**/*.tsx"
   ],
   "exclude": [
     "node_modules",

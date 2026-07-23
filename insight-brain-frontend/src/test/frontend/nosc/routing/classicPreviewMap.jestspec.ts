@@ -86,6 +86,14 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
     });
 
+    it('keeps the Product License admin path identical on both bundles (CLM-42466)', () => {
+      expect(toNexusOneEquivalent('/productlicense')).toBe('/productlicense');
+    });
+
+    it('keeps the Getting Started admin path identical on both bundles (CLM-42466)', () => {
+      expect(toNexusOneEquivalent('/gettingStarted')).toBe('/gettingStarted');
+    });
+
     it('keeps the Users admin path identical on both bundles (CLM-42465)', () => {
       expect(toNexusOneEquivalent('/users')).toBe('/users');
     });
@@ -180,6 +188,14 @@ describe('classicPreviewMap', () => {
 
     it('maps Success Metrics admin back to the same Classic path (CLM-42186)', () => {
       expect(toClassicEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
+    });
+
+    it('maps Product License admin back to the same Classic path (CLM-42466)', () => {
+      expect(toClassicEquivalent('/productlicense')).toBe('/productlicense');
+    });
+
+    it('maps Getting Started admin back to the same Classic path (CLM-42466)', () => {
+      expect(toClassicEquivalent('/gettingStarted')).toBe('/gettingStarted');
     });
 
     it('maps Users admin back to the same Classic path (CLM-42465)', () => {
@@ -343,6 +359,8 @@ describe('classicPreviewMap', () => {
       ['/repositories/mgr-123/repo-456/components'],
       ['/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo'],
       ['/successMetricsConfiguration'],
+      ['/productlicense'],
+      ['/gettingStarted'],
       ['/users'],
       ['/users/_new_'],
       ['/users/some-user-id'],
@@ -394,12 +412,17 @@ describe('classicPreviewMap', () => {
         const classicEquivalent = toClassicEquivalent(previewPath);
         const backToPreview = toNexusOneEquivalent(classicEquivalent);
         // Must land somewhere on the Preview side, not the Classic default.
+        // `/gettingStarted` is a valid Preview destination now that CLM-42466
+        // registers it as an in-shell embed — `system-config`'s classicHref
+        // (/gettingStarted) round-trips to the embed rather than falling
+        // through to /dashboard.
         expect(
           backToPreview.startsWith('/coming-soon/') ||
             backToPreview === '/ui-settings' ||
             backToPreview === '/user-activity' ||
             backToPreview === '/dashboard' ||
             backToPreview === '/applications' ||
+            backToPreview === '/gettingStarted' ||
             backToPreview === '/api' ||
             backToPreview === '/success-metrics' ||
             backToPreview === '/reports' ||

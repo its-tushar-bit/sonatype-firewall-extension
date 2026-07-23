@@ -18,6 +18,8 @@ import {
 import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/SuccessMetricsReportListContainer';
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
 import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
+import ProductLicenseContainer from 'MainRoot/configuration/license/ProductLicenseContainer';
+import GettingStartedContainer from 'MainRoot/configuration/gettingStarted/GettingStartedContainer';
 import UserManagementContainer from 'MainRoot/security/users/UserManagementContainer';
 import UserAddContainer from 'MainRoot/security/users/userConfiguration/UserAddContainer';
 import UserEditContainer from 'MainRoot/security/users/userConfiguration/UserEditContainer';
@@ -559,6 +561,36 @@ router.stateRegistry.register({
   data: {
     title: 'Success Metrics Configuration',
     isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'productlicense',
+  url: '/productlicense',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(ProductLicenseContainer),
+  // CONFIGURE_SYSTEM is the only gate here: a system admin is who installs a license,
+  // and license state is intentionally NOT checked (mirroring Classic's NON_PROTECTED_PATHS
+  // in RouteProductLicenseValidator, which lets an authenticated-but-unlicensed admin
+  // reach this page to install one). ensureNexusOneShellAccess gates the shell on
+  // authenticated + `preview-nexus-one-ui` but does not verify a license.
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Product License',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  // Registered so ProductLicense.jsx's first-install redirect
+  // (`window.location.href = '#/gettingStarted'`) lands on the embedded page
+  // instead of falling through the NOUX otherwise-rule to `/dashboard`.
+  name: 'gettingStarted',
+  url: '/gettingStarted',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(GettingStartedContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Getting Started',
   },
 } as ReactStateDeclaration);
 

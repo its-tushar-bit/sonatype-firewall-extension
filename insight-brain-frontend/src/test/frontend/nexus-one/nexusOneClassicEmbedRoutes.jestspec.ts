@@ -401,6 +401,73 @@ describe('nexusOneClassicEmbedRoutes', () => {
     });
   });
 
+  describe('productlicense Classic-embed admin route (CLM-42466)', () => {
+    const state = () => router.stateRegistry.get('productlicense');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /productlicense', () => {
+      expect(state()?.url).toBe('/productlicense');
+    });
+
+    it('mounts ProductLicenseContainer via mountClassicComponent', () => {
+      expect(state()?.component).toBeDefined();
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // CLM-42466: Getting Started page — registered so ProductLicense.jsx's
+  // first-install redirect (#/gettingStarted) lands here instead of the NOUX
+  // dashboard fallback.
+  describe('gettingStarted Classic-embed admin route (CLM-42466)', () => {
+    const state = () => router.stateRegistry.get('gettingStarted');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /gettingStarted', () => {
+      expect(state()?.url).toBe('/gettingStarted');
+    });
+
+    it('mounts GettingStartedContainer via mountClassicComponent', () => {
+      expect(state()?.component).toBeDefined();
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
   describe('users Classic-embed admin route (CLM-42465)', () => {
     const state = () => router.stateRegistry.get('users');
     const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
@@ -551,6 +618,7 @@ describe('nexusOneClassicEmbedRoutes', () => {
     const match = router.urlService.match({ path: '/users/_new_' });
     expect(match?.rule?.state?.name).toBe('createUser');
   });
+
 
   // CLM-42464: Administrators list page (read-only, no form, no dirty guard)
   describe('administrators Classic-embed admin route', () => {

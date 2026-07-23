@@ -18,8 +18,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -52,6 +55,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO;
@@ -140,6 +144,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.assertj.core.groups.Tuple;
+import org.jooq.exception.DataAccessException;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -201,6 +206,14 @@ public class ComponentInfoServiceTest
 
   @Mock
   private ThirdPartyComponentDAO thirdPartyComponentDAO;
+
+  /**
+   * Named with a "Spy" suffix (rather than {@code @Mock}/{@code @Spy}-annotated) so the test harness wraps the
+   * real, database-backed {@link SourceControlPullRequestDAO} bean in a Mockito spy instead of replacing it
+   * with a bare mock. This keeps tests that rely on real pull request rows (created via {@code tempEntity})
+   * working, while still letting the one test below that exercises DB-failure resilience stub a specific call.
+   */
+  private SourceControlPullRequestDAO sourceControlPullRequestDAOSpy;
 
   @Mock
   private RepositoryQueryService repositoryQueryService;
@@ -3067,6 +3080,50 @@ public class ComponentInfoServiceTest
     assertThat(pullRequestCreationPendingDTONew).isNotNull();
     assertThat(pullRequestCreationPendingDTONew.status).isEqualTo(
         AutomatedRemediationStatus.PULL_REQUEST_CREATION_PENDING);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_PullRequestStatusLookupFailsGracefullyOnDbError() {
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    Policy policy1 = new Policy("security-low", "Security-Low");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
+
+    // mock dependencies for advanced recommendation strategies
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A2_COORDINATES);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    // pull request creation complete, but looking up its current state hits a DB failure (e.g. a transient
+    // connectivity issue) instead of returning normally
+    insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    doThrow(new DataAccessException("simulated DB read failure"))
+        .when(sourceControlPullRequestDAOSpy)
+        .getByApplicationIdAndPullRequestId(anyString(), anyInt());
+
+    ComponentVersionInfoDTO dto =
+        testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    // the whole component-details response must still succeed, reporting the existing pull request rather than
+    // failing the request or silently dropping its status
+    PullRequestDTO pullRequestDTO = (PullRequestDTO) dto.automatedRemediationStatus;
+    assertThat(pullRequestDTO).isNotNull();
+    assertThat(pullRequestDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST);
+    assertThat(pullRequestDTO.url).isEqualTo("https://git.com/pull/1");
+
+    // guard against the stub silently not firing (e.g. if the production call's arguments ever changed) and the
+    // assertions above passing for the wrong reason
+    verify(sourceControlPullRequestDAOSpy).getByApplicationIdAndPullRequestId(application.getId(), 1);
   }
 
   @Test

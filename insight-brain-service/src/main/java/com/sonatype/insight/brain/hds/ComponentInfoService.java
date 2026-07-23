@@ -113,6 +113,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -814,9 +815,19 @@ public class ComponentInfoService
   }
 
   private boolean isPullRequestNoLongerOpen(Application application, SourceControlEvent event) {
-    SourceControlPullRequest pullRequest =
-        sourceControlPullRequestDAO.getByApplicationIdAndPullRequestId(application.getId(),
-            event.getPullRequestNumber());
+    SourceControlPullRequest pullRequest;
+    try {
+      pullRequest = sourceControlPullRequestDAO.getByApplicationIdAndPullRequestId(application.getId(),
+          event.getPullRequestNumber());
+    }
+    catch (DataAccessException e) {
+      // A failure looking up this pull request's current state should not fail the whole component-details
+      // response (and with it the Version Explorer tile). Treat it the same as a pull request that is still
+      // open, so the existing pull request's status keeps being reported instead of being silently skipped.
+      log.warn("Failed to determine whether pull request #{} for application {} is still open; assuming it "
+          + "is: {}", event.getPullRequestNumber(), application.getPublicId(), e.getMessage());
+      return false;
+    }
     return pullRequest != null && PullRequestState.isNoLongerOpen(pullRequest.getState());
   }
 

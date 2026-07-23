@@ -3547,6 +3547,28 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetComponentDetailsList_ContainerFromPackageManifest() {
+    Application app = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createContainerCoordinates("alpine:3.24.1",
+        "apk-tools", "3.0.6-r0");
+
+    NamedComponentDetails componentDetails = newNamedComponentDetails(componentIdentifier);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+    componentDetails.setIdentificationSource(identificationSource);
+
+    when(reportDataReader.getComponentDetailsByIdentifier(componentIdentifier, app.getId(), scanId))
+        .thenReturn(componentDetails);
+
+    ComponentDetailsList result = componentInfoService.getComponentDetailsList(componentIdentifier, app,
+        identificationSource, scanId, DependencyType.DIRECT, true).getLeft();
+
+    assertThat(result.getList().get(0)).usingRecursiveComparison().isEqualTo(componentDetails);
+  }
+
+  @Test
   public void testGetComponentDetails_genericComponent_sbomSource() throws IOException {
     String scanId = "scanId";
     String identificationSource = IdentificationSource.SBOM.getId();

@@ -1108,14 +1108,17 @@ public class ComponentInfoService
     boolean isFromSbomWithCpeMatching = IdentificationSource.SBOM.getId().equals(identificationSource)
         && ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat());
 
-    boolean isFromFirewallForContainers = IdentificationSource.SONATYPE_CONTAINER.getId().equals(identificationSource);
+    boolean isContainerFormat = ComponentIdentifier.FORMAT_CONTAINER.equals(identifier.getFormat());
 
     // Case 1: Terraform components (which are also 'knownFormat')
     if (isKnownFormat(identifier) && identifier.isTerraform()) {
       componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
     }
-    // Case 2: SBOM identification source with formats not supported by HDS (CPE matches) or Firewall for Containers
-    else if (isFromSbomWithCpeMatching || isFromFirewallForContainers) {
+    // Case 2: SBOM identification source with formats not supported by HDS (CPE matches), or any
+    // container-format component regardless of identification source. There is no "all versions" concept for a
+    // container component (e.g. an OS package inside a scanned image), so the current version is read directly
+    // from report data.
+    else if (isFromSbomWithCpeMatching || isContainerFormat) {
       NamedComponentDetails details =
           reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
       if (details != null) {

@@ -400,9 +400,10 @@ public class PolicyWaiverDAO
     }
     ComponentIdentifier wildcardComponentIdentifier = purl.toComponentIdentifier().createAlternativeVersion("*");
     return allVersionWaivers.stream()
-        .filter(waiver -> waiver.getComponentIdentifier()
-            .createAlternativeVersion("*")
-            .equals(wildcardComponentIdentifier))
+        .filter(waiver -> waiver.getComponentIdentifier() != null &&
+            waiver.getComponentIdentifier()
+                .createAlternativeVersion("*")
+                .equals(wildcardComponentIdentifier))
         .collect(Collectors.toList());
   }
 
@@ -447,7 +448,8 @@ public class PolicyWaiverDAO
     if (purl != null) {
       ComponentIdentifier wildcardComponentIdentifier = purl.toComponentIdentifier().createAlternativeVersion("*");
       Predicate<PolicyWaiver> keepOnlyMatchingWildcardPurl =
-          waiver -> waiver.getComponentIdentifier().createAlternativeVersion("*").equals(wildcardComponentIdentifier);
+          waiver -> waiver.getComponentIdentifier() != null &&
+              waiver.getComponentIdentifier().createAlternativeVersion("*").equals(wildcardComponentIdentifier);
 
       List<PolicyWaiver> appliesToAllVersionsOfSomeComponent =
           getActiveByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS);
@@ -469,9 +471,10 @@ public class PolicyWaiverDAO
 
     ComponentIdentifier wildcardComponentIdentifier = purl.toComponentIdentifier().createAlternativeVersion("*");
     Predicate<PolicyWaiver> keepOnlyMatchingWildcardPurl =
-        waiver -> waiver.getComponentIdentifier()
-            .createAlternativeVersion("*")
-            .equals(wildcardComponentIdentifier);
+        waiver -> waiver.getComponentIdentifier() != null &&
+            waiver.getComponentIdentifier()
+                .createAlternativeVersion("*")
+                .equals(wildcardComponentIdentifier);
 
     List<PolicyWaiver> appliesToAllVersionsOfSomeComponent =
         getExpiredByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS);

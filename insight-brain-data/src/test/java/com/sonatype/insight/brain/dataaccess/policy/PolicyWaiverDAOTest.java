@@ -882,6 +882,34 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void testGetApplicableToComponentIncludingAllVersionsByOwnerIds_ignoresAllVersionsWaiverWithNullComponentIdentifier() {
+    // separate policies, since an owner can only have one ALL_VERSIONS waiver per policy regardless of purl
+    Policy policyWithoutPurl = tempEntity.newPolicy(organization);
+    Policy policyWithMatchingPurl = tempEntity.newPolicy(organization);
+    String comment = "Just testing";
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar"));
+
+    // an ALL_VERSIONS waiver with no associatedPackageUrl has a null componentIdentifier - CLM-43046
+    PolicyWaiver waiverWithoutPurl = new PolicyWaiver(policyWithoutPurl.getId(), organization.getId(), comment);
+    waiverWithoutPurl.setComponentMatchStrategy(ALL_VERSIONS);
+    dao.insert(waiverWithoutPurl);
+    PolicyWaiver waiverWithMatchingPurl =
+        new PolicyWaiver(policyWithMatchingPurl.getId(), organization.getId(), comment);
+    waiverWithMatchingPurl.setComponentMatchStrategy(ALL_VERSIONS);
+    waiverWithMatchingPurl.setAssociatedPackageUrl(purl.getPackageUrl());
+    dao.insert(waiverWithMatchingPurl);
+
+    Map<String, List<PolicyWaiver>> grouped = dao.getApplicableToComponentIncludingAllVersionsByOwnerIds(
+        List.of(organization.getId()), HASH, purl);
+    dao.delete(waiverWithoutPurl);
+    dao.delete(waiverWithMatchingPurl);
+
+    assertThat(grouped.get(organization.getId())).extracting(PolicyWaiver::getId)
+        .containsExactly(waiverWithMatchingPurl.getId());
+  }
+
+  @Test
   public void testGetExpiredToComponentIncludingAllVersionsByOwnerIds_returnsOnlyExpiredGroupedByOwner() {
     Application application = tempEntity.newApplication(organization.getId());
     Policy policy = tempEntity.newPolicy(organization);
@@ -905,6 +933,66 @@ public class PolicyWaiverDAOTest
     assertThat(grouped).containsOnlyKeys(organization.getId());
     assertThat(grouped.get(organization.getId())).extracting(PolicyWaiver::getId)
         .containsExactly(orgExpired.getId());
+  }
+
+  @Test
+  public void testGetExpiredToComponentIncludingAllVersionsByOwnerIds_ignoresAllVersionsWaiverWithNullComponentIdentifier() {
+    // separate policies, since an owner can only have one ALL_VERSIONS waiver per policy regardless of purl
+    Policy policyWithoutPurl = tempEntity.newPolicy(organization);
+    Policy policyWithMatchingPurl = tempEntity.newPolicy(organization);
+    Date yesterday = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar"));
+
+    // an expired ALL_VERSIONS waiver with no associatedPackageUrl has a null componentIdentifier - CLM-43046
+    PolicyWaiver expiredWaiverWithoutPurl =
+        new PolicyWaiver(policyWithoutPurl.getId(), organization.getId(), "Just testing");
+    expiredWaiverWithoutPurl.setComponentMatchStrategy(ALL_VERSIONS);
+    expiredWaiverWithoutPurl.setExpiryTime(yesterday);
+    dao.insert(expiredWaiverWithoutPurl);
+    PolicyWaiver expiredWaiverWithMatchingPurl =
+        new PolicyWaiver(policyWithMatchingPurl.getId(), organization.getId(), "Just testing");
+    expiredWaiverWithMatchingPurl.setComponentMatchStrategy(ALL_VERSIONS);
+    expiredWaiverWithMatchingPurl.setAssociatedPackageUrl(purl.getPackageUrl());
+    expiredWaiverWithMatchingPurl.setExpiryTime(yesterday);
+    dao.insert(expiredWaiverWithMatchingPurl);
+
+    Map<String, List<PolicyWaiver>> grouped = dao.getExpiredToComponentIncludingAllVersionsByOwnerIds(
+        List.of(organization.getId()), HASH, purl);
+    dao.delete(expiredWaiverWithoutPurl);
+    dao.delete(expiredWaiverWithMatchingPurl);
+
+    assertThat(grouped.get(organization.getId())).extracting(PolicyWaiver::getId)
+        .containsExactly(expiredWaiverWithMatchingPurl.getId());
+  }
+
+  @Test
+  public void testGetExpiredToComponentIncludingAllVersions_ignoresAllVersionsWaiverWithNullComponentIdentifier() {
+    // separate policies, since an owner can only have one ALL_VERSIONS waiver per policy regardless of purl
+    Policy policyWithoutPurl = tempEntity.newPolicy(organization);
+    Policy policyWithMatchingPurl = tempEntity.newPolicy(organization);
+    Date yesterday = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar"));
+
+    // an expired ALL_VERSIONS waiver with no associatedPackageUrl has a null componentIdentifier - CLM-43046
+    PolicyWaiver expiredWaiverWithoutPurl =
+        new PolicyWaiver(policyWithoutPurl.getId(), organization.getId(), "Just testing");
+    expiredWaiverWithoutPurl.setComponentMatchStrategy(ALL_VERSIONS);
+    expiredWaiverWithoutPurl.setExpiryTime(yesterday);
+    dao.insert(expiredWaiverWithoutPurl);
+    PolicyWaiver expiredWaiverWithMatchingPurl =
+        new PolicyWaiver(policyWithMatchingPurl.getId(), organization.getId(), "Just testing");
+    expiredWaiverWithMatchingPurl.setComponentMatchStrategy(ALL_VERSIONS);
+    expiredWaiverWithMatchingPurl.setAssociatedPackageUrl(purl.getPackageUrl());
+    expiredWaiverWithMatchingPurl.setExpiryTime(yesterday);
+    dao.insert(expiredWaiverWithMatchingPurl);
+
+    List<PolicyWaiver> waivers = dao.getExpiredToComponentIncludingAllVersions(organization.getId(), HASH, purl);
+    dao.delete(expiredWaiverWithoutPurl);
+    dao.delete(expiredWaiverWithMatchingPurl);
+
+    assertThat(waivers).extracting(PolicyWaiver::getId).containsExactly(expiredWaiverWithMatchingPurl.getId());
   }
 
   @Test
@@ -958,6 +1046,23 @@ public class PolicyWaiverDAOTest
       assertThat(waivers).hasSize(2);
       assertThat(waivers).extracting(PolicyWaiver::getId)
           .containsExactly(policyWaiverExpected.getId(), policyWaiverExpected2.getId());
+    }
+  }
+
+  @Test
+  public void testGetApplicableToComponentOnlyAllVersions_ignoresWaiverWithNullComponentIdentifier() {
+    Policy policy = tempEntity.newPolicy(organization);
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar"));
+
+    // an ALL_VERSIONS waiver with no associatedPackageUrl has a null componentIdentifier - CLM-43046
+    PolicyWaiver waiverWithoutPurl = new PolicyWaiver(policy.getId(), application.getId(), null);
+    waiverWithoutPurl.setComponentMatchStrategy(ALL_VERSIONS);
+    dao.insert(waiverWithoutPurl);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> waivers = dao.getApplicableToComponentOnlyAllVersions(tx, application.getId(), purl);
+      assertThat(waivers).isEmpty();
     }
   }
 

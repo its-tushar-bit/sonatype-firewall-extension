@@ -161,6 +161,25 @@ public abstract class AbstractIqApiTest
         () -> anonApiRequest().path(relativePath).body(body, MediaType.APPLICATION_JSON).post());
   }
 
+  /**
+   * Unauthenticated POST with JSON body and a single named query parameter — mirrors
+   * {@link #apiPostJsonWithQuery} for 401 scenarios on endpoints that route via
+   * query params (e.g. {@code /api/v2/githubApp/manifest?ownerId=...}). Shiro rejects
+   * upstream of query-parameter binding, so a synthetic value is sufficient.
+   */
+  protected HttpResponse anonApiPostJsonWithQuery(
+      final String relativePath,
+      final Object body,
+      final String queryName,
+      final Object... queryValues) throws Exception
+  {
+    return exec("POST (anon)", pathWithQuery(relativePath, queryName, queryValues),
+        () -> anonApiRequest().path(relativePath)
+            .query(queryName, queryValues)
+            .body(body, MediaType.APPLICATION_JSON)
+            .post());
+  }
+
   /** Unauthenticated PUT with JSON body (for 401 scenarios on mutating verbs). */
   protected HttpResponse anonApiPutJson(final String relativePath, final Object body) throws Exception {
     return exec("PUT (anon)", relativePath,

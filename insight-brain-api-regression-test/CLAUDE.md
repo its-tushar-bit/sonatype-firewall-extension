@@ -23,7 +23,16 @@ Per code-review direction (PR #16455):
   (e.g. the SCA Integrations team's client). Adding `/rest/` coverage requires explicit
   justification and lives under a sibling `…api.rest` package.
 
-Today the suite covers `api/v2/policyWaivers`.
+The suite covers the full `/api/v2/*` surface declared in `PublicApiPaths.java`
+end-to-end. `PublicApiPaths.java` is the source of truth for what exists; the tests
+under `src/test/java/com/sonatype/clm/testing/api/v2/` are the source of truth for
+what's covered — `ls` that directory to see the current class layout.
+
+Wide-and-shallow contract pins by design: happy path + 401 on every mutating verb;
+happy path + 404 on every owner-scoped GET; 400 on every mutating verb that has a
+reliable pre-DAO validation branch. Depth (multi-flow scenarios, cross-tenant
+isolation, live-external-service happy paths) stays at the resource tier
+(`insight-brain-service/src/test/java/.../ApiXxxResourceTest`).
 
 ---
 
@@ -35,14 +44,14 @@ insight-brain-api-regression-test/
 ├── CLAUDE.md                              # this file
 └── src/test/
     ├── java/com/sonatype/clm/testing/api/
-    │   ├── AbstractIqApiTest.java         # Base class: HTTP helpers, unique-data helpers
+    │   ├── AbstractIqApiTest.java         # Base class: HTTP + unique-data helpers
     │   ├── categories/
     │   │   └── ApiRegressionTest.java     # JUnit @Category marker
-    │   └── v2/                            # /api/v2/* tests (the default surface)
-    │       └── PolicyWaiversApiRegressionTest.java
+    │   ├── v2/                            # /api/v2/* tests (default surface;
+    │   │                                  #   `ls` for the current class layout)
+    │   └── rest/                          # /rest/* carve-outs (see Scope above)
     └── resources/
         └── config-test.yml                # Dropwizard config for the embedded server
-                                           # (also drives logback via its `logging:` block)
 ```
 
 ---

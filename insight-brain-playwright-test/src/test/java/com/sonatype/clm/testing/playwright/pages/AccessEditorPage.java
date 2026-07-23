@@ -89,6 +89,40 @@ public class AccessEditorPage
     return locator(FORM + " .nx-transfer-list__item");
   }
 
+  // ---------------------------------------------------------------------------------------------
+  // "Add an External Group" controls — rendered by AccessPage.jsx when group search is disabled
+  // (e.g. SAML configured in MTIQ). See {@code #associate-group-form-group}.
+  // ---------------------------------------------------------------------------------------------
+
+  public Locator addGroupFormGroup() {
+    return locator("#associate-group-form-group");
+  }
+
+  public Locator addGroupInput() {
+    return locator("#add-associate-group-input");
+  }
+
+  public Locator addGroupButton() {
+    return locator("#add-associate-group-btn");
+  }
+
+  public Locator addGroupSublabel() {
+    return addGroupFormGroup().locator(".nx-sub-label");
+  }
+
+  /**
+   * LDAP group-search-disabled info alert ({@code #ldap-servers-alert}). Only rendered for on-prem
+   * ({@code !isMultiTenant}); absent in MTIQ.
+   */
+  public Locator ldapServersAlert() {
+    return locator("#ldap-servers-alert");
+  }
+
+  public void addExternalGroup(String groupName) {
+    addGroupInput().fill(groupName);
+    addGroupButton().click();
+  }
+
   /**
    * The associated-members {@code NxTransferListHalf} container ({@code .nx-transfer-list__half}).
    * {@code AccessPage} renders {@code NxTransferListHalf} directly — not wrapped in

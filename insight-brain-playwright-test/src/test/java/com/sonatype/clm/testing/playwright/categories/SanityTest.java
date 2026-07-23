@@ -14,6 +14,10 @@ package com.sonatype.clm.testing.playwright.categories;
  * The two partitions are mutually exclusive &mdash; a test never has both categories and
  * never has neither.
  * <p>
+ * <b>Separate MTIQ module.</b> Multi-tenant (MTIQ) UI tests live in the
+ * {@code insight-brain-mtiq-playwright-tests} module, not here, so the single-tenant sanity gate
+ * never boots the MTIQ server.
+ * <p>
  * <b>Inclusion rule for sanity.</b> Tag a {@code @Test} with {@code @Category(SanityTest.class)}
  * only if a failure should block PR merge &mdash; typically critical user paths (login,
  * navigation, base-URL handling, top-level routing) and the happy path of each feature area.

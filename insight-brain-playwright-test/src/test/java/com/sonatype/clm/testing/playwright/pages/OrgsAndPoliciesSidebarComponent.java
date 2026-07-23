@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import java.util.regex.Pattern;
+
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 
@@ -18,6 +20,10 @@ public class OrgsAndPoliciesSidebarComponent
   private static final String ORGANIZATIONS_GROUP = "#organizations-collapsible";
 
   private static final String APPLICATIONS_GROUP = "#applications-collapsible";
+
+  private static final String REPOSITORIES_GROUP = "#repositories-collapsible";
+
+  private static final String REPOSITORY_MANAGERS_GROUP = "#repository-managers-collapsible";
 
   private static final String OWNER_EDITOR_MODAL = "#owner-editor";
 
@@ -51,12 +57,31 @@ public class OrgsAndPoliciesSidebarComponent
     return locator(ROOT + " " + APPLICATIONS_GROUP);
   }
 
+  public Locator repositoriesGroup() {
+    return locator(ROOT + " " + REPOSITORIES_GROUP);
+  }
+
+  public Locator repositoryManagersGroup() {
+    return locator(ROOT + " " + REPOSITORY_MANAGERS_GROUP);
+  }
+
   public Locator addApplicationDropdownTrigger() {
     return container().getByRole(AriaRole.BUTTON, ADD_APPLICATION_OPTS);
   }
 
   public Locator newApplicationOption() {
     return container().getByRole(AriaRole.BUTTON, NEW_APPLICATION_OPTS);
+  }
+
+  /**
+   * "Import Applications" item inside the Applications "Add Application" dropdown. Unlike
+   * {@link #newApplicationOption()} (a {@code <button>}), this is an anchor ({@code role="link"})
+   * that deep-links to SCM onboarding. It only renders when the {@code saas-lifecycle-scm-enabled}
+   * product feature is on (default for MTIQ) and the owner is not a synthetic/SBOM-manager owner.
+   */
+  public Locator importApplicationsOption() {
+    return container().getByRole(AriaRole.LINK,
+        new Locator.GetByRoleOptions().setName("Import Applications"));
   }
 
   public Locator ownerEditorModal() {
@@ -70,7 +95,7 @@ public class OrgsAndPoliciesSidebarComponent
   public void openTreeView() {
     assertThat(container()).isVisible();
     treeViewLink().click();
-    page.waitForURL(java.util.regex.Pattern.compile(".*/management/tree.*"));
+    page.waitForURL(Pattern.compile(".*/management/tree.*"));
   }
 
   public boolean isTreeViewLinkVisible() {

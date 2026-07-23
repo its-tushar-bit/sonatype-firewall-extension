@@ -121,6 +121,16 @@ public abstract class BasePage
         new Locator.GetByRoleOptions().setName("Retry"));
   }
 
+  /**
+   * Inline validation message rendered by {@code NxTextInput} / {@code NxFormGroup}. Walks up from
+   * the given input to its enclosing {@code .nx-form-group} then locates the sibling
+   * {@code .nx-field-validation-message} — dashes-separated, not BEM double-underscore.
+   */
+  protected Locator nxFieldValidationMessage(Locator input) {
+    return input.locator("xpath=ancestor::*[contains(@class,'nx-form-group')][1]")
+        .locator(".nx-field-validation-message");
+  }
+
   protected Locator nxToggleLabel(String accessibleName) {
     return page.locator("label.nx-toggle")
         .filter(new Locator.FilterOptions().setHasText(exactTextPattern(accessibleName)));

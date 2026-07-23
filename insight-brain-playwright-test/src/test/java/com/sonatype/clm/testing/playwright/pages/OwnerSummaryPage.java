@@ -139,6 +139,16 @@ public class OwnerSummaryPage
     return "/assets/index.html#/management/edit/application/" + appPublicId + pathSuffix;
   }
 
+  /**
+   * Deep-link into the repository-manager container edit shell. The container is a singleton whose
+   * owner id is the literal {@code REPOSITORY_CONTAINER_ID}.
+   *
+   * @param pathSuffix path after the owner id, starting with {@code /} (e.g. {@code "/access"}).
+   */
+  public static String editRepositoryContainerUrl(String pathSuffix) {
+    return "/assets/index.html#/management/edit/repository_container/REPOSITORY_CONTAINER_ID" + pathSuffix;
+  }
+
   /** SBOM Manager owner-summary route. */
   public static String sbomUrl(String ownerId) {
     return "/assets/index.html#/sbomManager/management/view/organization/" + ownerId;
@@ -155,6 +165,32 @@ public class OwnerSummaryPage
 
   public Locator ownerName() {
     return locator("#owner-summary .nx-h1");
+  }
+
+  /**
+   * All rendered nav-pill list items ({@code li.iq-nav-pills-menu__pill}). Only pills whose feature
+   * gate is satisfied are in the DOM, so the count reflects the visible pill set. See
+   * {@code NavPills.jsx}.
+   */
+  public Locator navPills() {
+    return locator(".iq-nav-pills-menu__list .iq-nav-pills-menu__pill");
+  }
+
+  /**
+   * A single nav-pill button by its scroll target (e.g. {@code "owner-pill-retention"}); the button
+   * id is {@code "{target}-button"}. Absent from the DOM when the pill's feature gate is off.
+   */
+  public Locator navPillButton(String target) {
+    return locator("#" + target + "-button");
+  }
+
+  /**
+   * The owner-summary tile/section element whose {@code id} is the nav-pill scroll {@code target}
+   * (e.g. {@code "owner-pill-policy"}). These ids are the {@code NavPills} scroll anchors and always
+   * exist for displayed sections, so they are stable across prod bundles (unlike {@code data-testid}).
+   */
+  public Locator ownerSummarySection(String target) {
+    return locator("#" + target);
   }
 
   /**

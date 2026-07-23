@@ -14,8 +14,15 @@
     <!-- Required when this folder is opened alone so Maven / Java LS resolve the reactor and dependencyManagement. -->
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>insight-brain-playwright-test</artifactId>
+  <artifactId>insight-brain-mtiq-playwright-tests</artifactId>
 
+  <!--
+    Multi-tenant (MTIQ) Playwright UI tests. Split out of insight-brain-playwright-test so that
+    nexus-mtiq-server (with its @Primary beans and @ManagementContextConfiguration classes) is NOT
+    on the single-tenant Playwright classpath. Shared Playwright infrastructure (AbstractPlaywrightTest,
+    page objects, utils, LoginPage, category markers) is consumed from the insight-brain-playwright-test
+    test-jar; MTIQ-only harness code (AbstractMtiqUiTest, Mtiq* page objects) lives here.
+  -->
   <properties>
     <skip.functional.tests>false</skip.functional.tests>
     <clm.skip>true</clm.skip>
@@ -31,8 +38,8 @@
     <!-- When true, tests that call playwrightManualPauseIfEnabled() block for Playwright Inspector. -->
     <playwright.manualPause>false</playwright.manualPause>
     <!--
-      JUnit 4 @Category filtering, surfaced through Maven so CI can target specific suites
-      (see com.sonatype.clm.testing.playwright.categories.SanityTest). Empty = no filtering (run everything).
+      JUnit 4 @Category filtering, surfaced through Maven so CI can target specific suites.
+      Empty = no filtering (run every MTIQ test in this module).
     -->
     <failsafe.groups></failsafe.groups>
     <failsafe.excludedGroups></failsafe.excludedGroups>
@@ -40,43 +47,12 @@
 
   <build>
     <plugins>
-      <!--
-        Publish a test-jar so the sibling insight-brain-mtiq-playwright-tests module can reuse the
-        shared Playwright infrastructure (AbstractPlaywrightTest, page objects, utils, LoginPage,
-        SanityTest/RegressionTest category markers) without duplicating it.
-      -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>test-jar</id>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <!-- No unit tests here; Playwright UI tests run under Failsafe. -->
           <skip>true</skip>
         </configuration>
-        <executions>
-          <!-- Lightweight ArchUnit architecture checks run via Surefire (no browser needed). -->
-          <execution>
-            <id>architecture-checks</id>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <skip>false</skip>
-              <includes>
-                <include>**/architecture/*Check.java</include>
-              </includes>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -133,9 +109,18 @@
   </build>
 
   <dependencies>
+    <!-- Shared Playwright infrastructure (AbstractPlaywrightTest, page objects, utils, LoginPage, category markers). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-playwright-test</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.servlet</groupId>
@@ -254,17 +239,32 @@
       <groupId>com.sonatype.clm</groupId>
       <artifactId>com.sonatype.clm.dto.model</artifactId>
     </dependency>
-    <!--
-      MTIQ server + tenancy test harness intentionally NOT declared here. MTIQ Playwright tests live
-      in the sibling insight-brain-mtiq-playwright-tests module; keeping nexus-mtiq-server off this
-      module's classpath is what keeps the single-tenant Spring context free of MTIQ @Primary beans.
-    -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+      <version>${project.version}</version>
+    </dependency>
+    <!-- Multi-tenant (MTIQ) server + its test harness, required by AbstractMtiqUiTest. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-mtiq-server</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>nexus-mtiq-server</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- Applitools removed: visual regression testing replaced by Playwright screenshots/traces -->
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>keycloak-server</artifactId>
@@ -374,16 +374,6 @@
       </build>
     </profile>
     <!--
-      CI sanity profile - runs only tests annotated @Category(SanityTest.class).
-      Activate with:  mvn verify -pl insight-brain-playwright-test -Psanity
-    -->
-    <profile>
-      <id>sanity</id>
-      <properties>
-        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.SanityTest</failsafe.groups>
-      </properties>
-    </profile>
-    <!--
       Allows build of 'functional-test' to be disabled; required for build-automation optimizations.
     -->
     <profile>
@@ -398,11 +388,15 @@
         <skipTests>true</skipTests>
       </properties>
     </profile>
-
+    <!--
+      Explicit MTIQ category filter. The module already only contains MTIQ tests, but this
+      profile mirrors the `sanity`/`regression` shape in `insight-brain-playwright-test` so
+      command lines can consistently use `-Pmtiq` when running just this suite.
+    -->
     <profile>
-      <id>regression</id>
+      <id>mtiq</id>
       <properties>
-        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.RegressionTest</failsafe.groups>
+        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.MtiqTest</failsafe.groups>
       </properties>
     </profile>
   </profiles>

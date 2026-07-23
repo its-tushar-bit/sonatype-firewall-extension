@@ -13,6 +13,10 @@ package com.sonatype.clm.testing.playwright.categories;
  * {@code @Category(RegressionTest.class)} for tests that run in the nightly regression job.
  * The two partitions are mutually exclusive &mdash; a test never has both categories.
  * <p>
+ * <b>Separate MTIQ module.</b> Multi-tenant (MTIQ) UI tests live in the
+ * {@code insight-brain-mtiq-playwright-tests} module, not here, so the single-tenant regression job
+ * never boots the MTIQ server.
+ * <p>
  * <b>Inclusion rule for regression.</b> Tag a {@code @Test} with
  * {@code @Category(RegressionTest.class)} for edge cases, error paths, slow data setup,
  * permutation matrices, and feature-flag combinations that do not need to gate every PR.

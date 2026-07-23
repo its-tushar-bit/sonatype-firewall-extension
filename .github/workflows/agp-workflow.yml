@@ -20,7 +20,8 @@
 # sonatype-guide[bot]). No GITHUB_TOKEN/PAT is needed in this workflow.
 #
 # Required secrets (private-registry access for building this repo's dependencies):
-#   - RC_USERNAME / RC_PASSWORD: Sonatype private registry credentials (org secrets)
+#   - NPM_REGISTRY_AUTH: raw .npmrc content for the Sonatype npm registry (repo/org secret)
+#   - RC_USERNAME / RC_PASSWORD: Sonatype private registry credentials for Maven mirror (org secrets)
 # Optional variables:
 #   - AGP_API_URL: target a specific Sonatype Guide environment (defaults to production if unset)
 
@@ -98,24 +99,6 @@ jobs:
         with:
           guide-url: ${{ vars.AGP_API_URL }}
 
-      - name: Generate .npmrc
-        # Private npm registry auth for this repo's JS/TS modules (package.json subdirs).
-        id: npmrc
-        run: |
-          AUTH_TOKEN=$(echo -n "${RC_USERNAME}:${RC_PASSWORD}" | base64)
-          NPMRC_CONTENT=$(cat <<'NPMRC'
-          always-auth=true
-          registry=https://sonatype.repo.sonatype.app/repository/npm-all/
-          //sonatype.repo.sonatype.app/repository/npm-all/:_auth=AUTH_TOKEN_PLACEHOLDER
-          NPMRC
-          )
-          NPMRC_CONTENT="${NPMRC_CONTENT//AUTH_TOKEN_PLACEHOLDER/$AUTH_TOKEN}"
-          NPMRC_BASE64=$(echo -n "$NPMRC_CONTENT" | base64 -w 0)
-          echo "content=$NPMRC_BASE64" >> "$GITHUB_OUTPUT"
-        env:
-          RC_USERNAME: ${{ secrets.RC_USERNAME }}
-          RC_PASSWORD: ${{ secrets.RC_PASSWORD }}
-
       - name: Run AGP
         uses: sonatype/agp-action@v1
         with:
@@ -126,7 +109,7 @@ jobs:
           vulnerabilities: ${{ inputs.vulnerabilities }}
           verbose: ${{ inputs.verbose || 'false' }}
           # --- Private-registry build tooling for this repo (Maven + npm) ---
-          npmrc-content: ${{ steps.npmrc.outputs.content }}
+          npmrc-content: ${{ secrets.NPM_REGISTRY_AUTH }}
           maven-settings-xml: |
             <?xml version="1.0" encoding="UTF-8"?>
             <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"

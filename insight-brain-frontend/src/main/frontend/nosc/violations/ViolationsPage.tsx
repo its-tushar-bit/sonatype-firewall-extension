@@ -115,8 +115,9 @@ export default function ViolationsPage({
         </Flex>
 
         <Flex gap="4" align="start" wrap="wrap" data-testid="violations-page-layout">
-          {/* Desktop rail; on small screens it is replaced by the mobile drawer below. */}
-          <Box display={{ initial: 'none', sm: 'block' }}>
+          {/* Desktop rail; on small screens it is replaced by the mobile drawer below.
+              Width / containment live on `.nosc-violations-filter-rail` (SCSS). */}
+          <Box display={{ initial: 'none', sm: 'block' }} style={{ flexShrink: 0, minWidth: 0 }}>
             <ViolationsFilterRail {...railProps} />
           </Box>
           <Box className="violations-page__content" data-testid="violations-page-content">

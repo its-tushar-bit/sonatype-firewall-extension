@@ -202,28 +202,49 @@ export function stageLabel(id: string): string {
 }
 
 /**
- * Derive id→display-name maps for the org / application facets from the current page of rows. Facet
- * maps are keyed by internal id only; org/app rows carry both the id and the human-readable name, so
- * we use them to label the sidebar for entities visible on the page. Ids with no matching row fall
- * back to the raw id when no row supplies a name. Stage facets are labeled by {@link stageLabel}
- * instead — a row's {@code stage} is a display name, not the id the facet is keyed by, so it cannot
- * seed an id→name map.
- *
- * Known V1 limitation (accepted tradeoff): labels only cover entities present on the current page of
- * rows (pageSize 25). Org/app facet entries for entities not on the page therefore render their raw
- * id and can't be matched by the sidebar's name-search. The durable fix is server-side — return an
- * id→name map in the facets payload (or a dedicated labels endpoint) so labels don't depend on which
- * rows happen to be visible — tracked in CLM-42443. Until then this row-derived map is the V1 behavior.
+ * Derive id→display-name maps for the org / application facets.
+ * <p>
+ * Page rows seed the maps first; non-empty server {@code organizationNames}/{@code applicationNames}
+ * overlay and win for shared keys — same merge order as Applications {@code mergeLabelMap}. Off-page
+ * facet keys therefore stay friendly from the facets payload (CLM-42757).
+ * Ids still without a name fall back to the raw id (and for applications, {@code applicationPublicId}
+ * from a page row when present). Stage facets use {@link stageLabel} instead.
  */
-export function deriveViolationFacetLabels(rows: ReadonlyArray<ViolationRow>): {
+export function deriveViolationFacetLabels(
+  rows: ReadonlyArray<ViolationRow>,
+  facetNames?: {
+    readonly organizations?: Readonly<Record<string, string>>;
+    readonly applications?: Readonly<Record<string, string>>;
+  },
+): {
   readonly organizations: Readonly<Record<string, string>>;
   readonly applications: Readonly<Record<string, string>>;
 } {
   const organizations: Record<string, string> = {};
   const applications: Record<string, string> = {};
   rows.forEach((row) => {
-    if (row.organizationId && row.organizationName) organizations[row.organizationId] = row.organizationName;
-    if (row.applicationId && row.applicationName) applications[row.applicationId] = row.applicationName;
+    if (row.organizationId && row.organizationName) {
+      organizations[row.organizationId] = row.organizationName;
+    }
+    if (row.applicationId && row.applicationName) {
+      applications[row.applicationId] = row.applicationName;
+    } else if (row.applicationId && row.applicationPublicId && !applications[row.applicationId]) {
+      applications[row.applicationId] = row.applicationPublicId;
+    }
   });
+  overlayFacetNameMap(organizations, facetNames?.organizations);
+  overlayFacetNameMap(applications, facetNames?.applications);
   return { organizations, applications };
+}
+
+function overlayFacetNameMap(
+  target: Record<string, string>,
+  source: Readonly<Record<string, string>> | undefined,
+): void {
+  if (!source) return;
+  Object.entries(source).forEach(([id, label]) => {
+    if (id.trim().length > 0 && label.trim().length > 0) {
+      target[id] = label;
+    }
+  });
 }

@@ -7,7 +7,10 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Theme } from '@radix-ui/themes';
-import ViolationsFilterRail from 'MainRoot/nosc/violations/ViolationsFilterRail';
+import ViolationsFilterRail, {
+  FACET_COLLAPSE_LIMIT,
+  FACET_SERVER_CAP,
+} from 'MainRoot/nosc/violations/ViolationsFilterRail';
 import { MOCK_VIOLATIONS_LIST_RESPONSE } from 'MainRoot/nosc/violations/mockViolationsListData';
 import {
   createDefaultViolationsFilterState,
@@ -22,10 +25,49 @@ beforeAll(() => {
 });
 
 const FACETS = MOCK_VIOLATIONS_LIST_RESPONSE.facets;
-const LABELS = deriveViolationFacetLabels(MOCK_VIOLATIONS_LIST_RESPONSE.violations);
+/** Full list→rail label pipeline: page rows + server facet name maps (CLM-42757). */
+const LABELS = deriveViolationFacetLabels(MOCK_VIOLATIONS_LIST_RESPONSE.violations, {
+  organizations: FACETS?.organizationNames,
+  applications: FACETS?.applicationNames,
+});
 
-function renderRail(overrides: Partial<React.ComponentProps<typeof ViolationsFilterRail>> = {}) {
-  const props = {
+function makeManyOrgs(count = 12): {
+  readonly organizations: Record<string, number>;
+  readonly labels: Record<string, string>;
+} {
+  // Zero-pad labels so localeCompare order matches index order (Violations sorts by label).
+  const organizations = Object.fromEntries(
+    Array.from({ length: count }, (_, index) => [`org-${index}`, index + 1]),
+  );
+  const labels = Object.fromEntries(
+    Array.from({ length: count }, (_, index) => [
+      `org-${index}`,
+      `Organization ${String(index).padStart(2, '0')}`,
+    ]),
+  );
+  return { organizations, labels };
+}
+
+function makeManyApps(count = 12): {
+  readonly applications: Record<string, number>;
+  readonly labels: Record<string, string>;
+} {
+  const applications = Object.fromEntries(
+    Array.from({ length: count }, (_, index) => [`app-${index}`, index + 1]),
+  );
+  const labels = Object.fromEntries(
+    Array.from({ length: count }, (_, index) => [
+      `app-${index}`,
+      `Application ${String(index).padStart(2, '0')}`,
+    ]),
+  );
+  return { applications, labels };
+}
+
+function baseRailProps(
+  overrides: Partial<React.ComponentProps<typeof ViolationsFilterRail>> = {},
+): React.ComponentProps<typeof ViolationsFilterRail> {
+  return {
     facets: FACETS,
     labels: LABELS,
     selected: createDefaultViolationsFilterState(),
@@ -35,6 +77,10 @@ function renderRail(overrides: Partial<React.ComponentProps<typeof ViolationsFil
     onReset: jest.fn(),
     ...overrides,
   };
+}
+
+function renderRail(overrides: Partial<React.ComponentProps<typeof ViolationsFilterRail>> = {}) {
+  const props = baseRailProps(overrides);
   render(
     <Theme>
       <ViolationsFilterRail {...props} />
@@ -65,6 +111,40 @@ describe('ViolationsFilterRail', () => {
     // Count badge for the OPEN state facet (mock: states { OPEN: 2, WAIVED: 1 }).
     const openOption = screen.getByTestId('violations-filter-state-option-OPEN');
     expect(within(openOption.closest('label') as HTMLElement).getByText('2')).toBeInTheDocument();
+  });
+
+  it('labels an off-page organization from server facet name maps', () => {
+    // End-to-end wire story after CLM-42757: facet key not on the current page still gets a friendly name.
+    const facets = {
+      ...FACETS,
+      organizations: { ...(FACETS?.organizations ?? {}), 'org-off-page': 4 },
+      organizationNames: { ...(FACETS?.organizationNames ?? {}), 'org-off-page': 'Off-Page Tribe' },
+    };
+    renderRail({
+      facets,
+      labels: deriveViolationFacetLabels(MOCK_VIOLATIONS_LIST_RESPONSE.violations, {
+        organizations: facets.organizationNames,
+        applications: facets.applicationNames,
+      }),
+    });
+    expect(screen.getByTestId('violations-filter-organizations-option-org-off-page')).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId('violations-filter-organizations').closest('fieldset') as HTMLElement)
+        .getByText('Off-Page Tribe'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the server organization name when it differs from the page-row name', () => {
+    renderRail({
+      labels: deriveViolationFacetLabels(MOCK_VIOLATIONS_LIST_RESPONSE.violations, {
+        organizations: { ...(FACETS?.organizationNames ?? {}), 'org-java': 'Server Java-team' },
+        applications: FACETS?.applicationNames,
+      }),
+    });
+    expect(
+      within(screen.getByTestId('violations-filter-organizations').closest('fieldset') as HTMLElement)
+        .getByText('Server Java-team'),
+    ).toBeInTheDocument();
   });
 
   it('omits LEGACY_VIOLATION from the state facet', () => {
@@ -101,6 +181,176 @@ describe('ViolationsFilterRail', () => {
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 
+  it('collapses long organization lists behind See more', async () => {
+    const { organizations, labels } = makeManyOrgs();
+    renderRail({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+    });
+    expect(screen.getByTestId('violations-filter-organizations-option-org-0')).toBeInTheDocument();
+    expect(screen.queryByTestId('violations-filter-organizations-option-org-11')).not.toBeInTheDocument();
+
+    const seeMore = screen.getByTestId('violations-filter-organizations-see-more');
+    expect(seeMore).toHaveAttribute('aria-expanded', 'false');
+    await user.click(seeMore);
+    expect(screen.getByTestId('violations-filter-organizations-option-org-11')).toBeInTheDocument();
+    expect(seeMore).toHaveTextContent('See less');
+    expect(seeMore).toHaveAttribute('aria-expanded', 'true');
+    // Expanded Orgs/Apps stay height-capped so estate-scale facets cannot blow past the rail.
+    expect(
+      screen.getByTestId('violations-filter-organizations').querySelector('.nosc-violations-filter-scroll'),
+    ).toBeInTheDocument();
+  });
+
+  it('collapses long application lists behind See more', async () => {
+    const { applications, labels } = makeManyApps();
+    renderRail({
+      facets: { ...FACETS, applications },
+      labels: { ...LABELS, applications: labels },
+    });
+    expect(screen.getByTestId('violations-filter-applications-option-app-0')).toBeInTheDocument();
+    expect(screen.queryByTestId('violations-filter-applications-option-app-11')).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('violations-filter-applications-see-more'));
+    expect(screen.getByTestId('violations-filter-applications-option-app-11')).toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-applications-see-more')).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
+  it('collapses See more back to the limited list when the group selection is reset', async () => {
+    const { organizations, labels } = makeManyOrgs();
+    const baseProps = baseRailProps({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+    });
+    const { rerender } = render(
+      <Theme>
+        <ViolationsFilterRail
+          {...baseProps}
+          selected={{ ...createDefaultViolationsFilterState(), organizationIds: new Set(['org-0']) }}
+        />
+      </Theme>,
+    );
+    await user.click(screen.getByTestId('violations-filter-organizations-see-more'));
+    expect(screen.getByTestId('violations-filter-organizations-option-org-11')).toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-organizations-see-more')).toHaveTextContent('See less');
+
+    // Simulate "Reset filters": parent clears selection; expanded must collapse with the search reset.
+    rerender(
+      <Theme>
+        <ViolationsFilterRail {...baseProps} selected={createDefaultViolationsFilterState()} />
+      </Theme>,
+    );
+    expect(screen.queryByTestId('violations-filter-organizations-option-org-11')).not.toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-organizations-see-more')).toHaveTextContent('See more');
+  });
+
+  it('keeps See more expanded when clearing only this group while other filters stay active', async () => {
+    // Intentional: expanded is tied to rail-wide filtersActive / explicit See less, not group selectionEmpty.
+    const { organizations, labels } = makeManyOrgs();
+    const baseProps = baseRailProps({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+    });
+    const { rerender } = render(
+      <Theme>
+        <ViolationsFilterRail
+          {...baseProps}
+          selected={{ ...withStates('OPEN'), organizationIds: new Set(['org-0']) }}
+        />
+      </Theme>,
+    );
+    await user.click(screen.getByTestId('violations-filter-organizations-see-more'));
+    expect(screen.getByTestId('violations-filter-organizations-see-more')).toHaveTextContent('See less');
+
+    // Clear only Orgs; State remains → filtersActive stays true → expanded persists.
+    rerender(
+      <Theme>
+        <ViolationsFilterRail {...baseProps} selected={withStates('OPEN')} />
+      </Theme>,
+    );
+    expect(screen.getByTestId('violations-filter-organizations-option-org-11')).toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-organizations-see-more')).toHaveTextContent('See less');
+  });
+
+  it('collapses See more on Reset even when Orgs had no selection of their own', async () => {
+    // Edge case: expand Orgs while another filter is active (org selectionEmpty stays true across Reset).
+    const { organizations, labels } = makeManyOrgs();
+    const baseProps = baseRailProps({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+    });
+    const { rerender } = render(
+      <Theme>
+        <ViolationsFilterRail {...baseProps} selected={withStates('OPEN')} />
+      </Theme>,
+    );
+    await user.click(screen.getByTestId('violations-filter-organizations-see-more'));
+    expect(screen.getByTestId('violations-filter-organizations-see-more')).toHaveTextContent('See less');
+
+    rerender(
+      <Theme>
+        <ViolationsFilterRail {...baseProps} selected={createDefaultViolationsFilterState()} />
+      </Theme>,
+    );
+    expect(screen.queryByTestId('violations-filter-organizations-option-org-11')).not.toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-organizations-see-more')).toHaveTextContent('See more');
+  });
+
+  it('shows only selected organizations when the collapsed selection meets the See more limit', () => {
+    // When selected count >= FACET_COLLAPSE_LIMIT, collapsed view is selection-only so checked
+    // rows are never pushed out by unselected facet noise.
+    const { organizations, labels } = makeManyOrgs();
+    const selectedIds = Array.from({ length: FACET_COLLAPSE_LIMIT }, (_, index) => `org-${index}`);
+    renderRail({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+      selected: {
+        ...createDefaultViolationsFilterState(),
+        organizationIds: new Set(selectedIds),
+      },
+    });
+    for (const id of selectedIds) {
+      expect(screen.getByTestId(`violations-filter-organizations-option-${id}`)).toBeChecked();
+    }
+    expect(
+      screen.queryByTestId(`violations-filter-organizations-option-org-${FACET_COLLAPSE_LIMIT}`),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-organizations-see-more')).toHaveTextContent('See more');
+  });
+
+  it('surfaces a top-N note when organization facets hit the server cap', () => {
+    const { organizations, labels } = makeManyOrgs(FACET_SERVER_CAP);
+    renderRail({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+    });
+    expect(screen.getByTestId('violations-filter-organizations-server-capped')).toHaveTextContent(
+      `Showing top ${FACET_SERVER_CAP} organizations by violation count`,
+    );
+  });
+
+  it('keeps See more expanded after clearing a search query', async () => {
+    // Intentional: expanded survives search-clear so the user is not forced to re-open See more.
+    const { organizations, labels } = makeManyOrgs();
+    renderRail({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+    });
+    await user.click(screen.getByTestId('violations-filter-organizations-see-more'));
+    const search = screen.getByTestId('violations-filter-organizations-search');
+    await user.type(search, 'Organization 11');
+    expect(screen.queryByTestId('violations-filter-organizations-see-more')).not.toBeInTheDocument();
+    await user.clear(search);
+    expect(screen.getByTestId('violations-filter-organizations-option-org-11')).toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-organizations-see-more')).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
   it('filters the searchable organization list by the sidebar search box', async () => {
     renderRail();
     const orgGroup = screen.getByTestId('violations-filter-organizations');
@@ -110,6 +360,17 @@ describe('ViolationsFilterRail', () => {
     expect(
       within(orgGroup).queryByTestId('violations-filter-organizations-option-org-java'),
     ).not.toBeInTheDocument();
+  });
+
+  it('shows all search matches without collapse when searching a long organization list', async () => {
+    const { organizations, labels } = makeManyOrgs();
+    renderRail({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+    });
+    await user.type(screen.getByTestId('violations-filter-organizations-search'), 'Organization 11');
+    expect(screen.getByTestId('violations-filter-organizations-option-org-11')).toBeInTheDocument();
+    expect(screen.queryByTestId('violations-filter-organizations-see-more')).not.toBeInTheDocument();
   });
 
   it('keeps a selected organization visible when the search query does not match its label', async () => {
@@ -132,14 +393,7 @@ describe('ViolationsFilterRail', () => {
   });
 
   it('clears a stale sidebar search when the group selection is reset', async () => {
-    const baseProps = {
-      facets: FACETS,
-      labels: LABELS,
-      onToggle: jest.fn(),
-      onWaiverTypeChange: jest.fn(),
-      onThreatRangeChange: jest.fn(),
-      onReset: jest.fn(),
-    };
+    const baseProps = baseRailProps();
     const { rerender } = render(
       <Theme>
         <ViolationsFilterRail

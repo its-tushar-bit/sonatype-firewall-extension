@@ -84,6 +84,13 @@ export const MOCK_VIOLATIONS_LIST_RESPONSE: ViolationsListResponse = {
     stages: { build: 2, release: 1 },
     organizations: { 'org-java': 2, 'org-platform': 1 },
     applications: { 'app-apple': 1, 'app-banana': 1, 'app-cherry': 1 },
+    // Optional wire fields (CLM-42757); exercises off-page-friendly label merge in FE tests.
+    organizationNames: { 'org-java': 'Java-team', 'org-platform': 'Platform' },
+    applicationNames: {
+      'app-apple': 'Apple - Java',
+      'app-banana': 'Banana - Java',
+      'app-cherry': 'Cherry - Platform',
+    },
   },
   total: 3,
   page: 0,

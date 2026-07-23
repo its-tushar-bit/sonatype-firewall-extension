@@ -193,7 +193,14 @@ export default function ViolationsList(): JSX.Element {
   }, []);
 
   const violations = data?.violations ?? EMPTY_ROWS;
-  const labels = useMemo(() => deriveViolationFacetLabels(violations), [violations]);
+  const labels = useMemo(
+    () =>
+      deriveViolationFacetLabels(violations, {
+        organizations: facets?.organizationNames,
+        applications: facets?.applicationNames,
+      }),
+    [violations, facets?.organizationNames, facets?.applicationNames],
+  );
 
   const loading = status === 'loading';
   const errorMessage = status === 'error' ? error?.message ?? 'Unable to load violations.' : null;

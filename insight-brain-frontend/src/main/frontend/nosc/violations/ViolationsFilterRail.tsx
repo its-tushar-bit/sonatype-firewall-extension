@@ -16,7 +16,7 @@ import {
   Text,
   TextField,
 } from '@radix-ui/themes';
-import { ActionIcons } from 'MainRoot/nosc/icons';
+import { ActionIcons, NavIcons } from 'MainRoot/nosc/icons';
 import {
   ViolationFilterSetGroup,
   ViolationsFilterState,
@@ -36,6 +36,16 @@ import {
   WAIVER_TYPE_MANUAL,
 } from 'MainRoot/nosc/violations/violationsListApi';
 import './ViolationsFilterRail.scss';
+
+/** Collapsed facet rows before See more (keeps long org/app facet lists usable). */
+export const FACET_COLLAPSE_LIMIT = 8;
+
+/**
+ * Matches {@code ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACETS} /
+ * {@code MAX_APPLICATION_FACETS} (default 15). When the facet map reaches this size the list is
+ * likely truncated server-side — surface that so estate-scale users are not left guessing.
+ */
+export const FACET_SERVER_CAP = 15;
 
 export interface ViolationsFilterRailProps {
   readonly facets?: ViolationsListFacets;
@@ -113,16 +123,20 @@ function CheckboxFilterSection({
         <Flex direction="column" gap="1" pr="2">
           {entries.map(({ id, label, count }) => (
             <Text key={id} as="label" size="2" color="gray" className="nosc-violations-filter-option">
-              <Flex align="center" gap="2" className="nosc-violations-filter-option-row">
+              <Flex align="start" gap="2" className="nosc-violations-filter-option-row">
                 <Checkbox
                   checked={selected.has(id)}
                   onCheckedChange={() => onToggle(group, id)}
                   data-testid={`${testId}-option-${id}`}
                 />
-                <span className="nosc-violations-filter-option-label">{label}</span>
-                <Badge size="1" color="gray" variant="soft" radius="full">
-                  {count}
-                </Badge>
+                <span className="nosc-violations-filter-option-label" title={label}>
+                  {label}
+                </span>
+                {count > 0 && (
+                  <Badge size="1" color="gray" variant="soft" radius="full">
+                    {count}
+                  </Badge>
+                )}
               </Flex>
             </Text>
           ))}
@@ -132,12 +146,26 @@ function CheckboxFilterSection({
   );
 }
 
+function collapseFacetEntries(
+  entries: ReadonlyArray<FacetEntry>,
+  selected: ReadonlySet<string>,
+  limit: number,
+): ReadonlyArray<FacetEntry> {
+  if (entries.length <= limit) return entries;
+  const selectedEntries = entries.filter((entry) => selected.has(entry.id));
+  if (selectedEntries.length >= limit) return selectedEntries;
+  const remaining = limit - selectedEntries.length;
+  const unselected = entries.filter((entry) => !selected.has(entry.id));
+  return [...selectedEntries, ...unselected.slice(0, remaining)];
+}
+
 function SearchableFilterSection({
   title,
   testId,
   group,
   entries,
   selected,
+  filtersActive,
   onToggle,
 }: {
   readonly title: string;
@@ -145,31 +173,48 @@ function SearchableFilterSection({
   readonly group: ViolationFilterSetGroup;
   readonly entries: ReadonlyArray<FacetEntry>;
   readonly selected: ReadonlySet<string>;
+  /** True when any Violations filter is active (not only this group's selection). */
+  readonly filtersActive: boolean;
   readonly onToggle: (group: ViolationFilterSetGroup, id: string) => void;
 }): JSX.Element | null {
   const [query, setQuery] = useState('');
+  const [expanded, setExpanded] = useState(false);
   const selectionEmpty = selected.size === 0;
-  // When the parent clears this group's selection (Reset filters, or unchecking the last item), drop
-  // the local search text too — otherwise the box keeps stale text and the list stays filtered/empty
-  // even though no filter is active.
+  // Intentional (differs from Applications keeping mid-search text): when this group's selection
+  // empties, drop local search so Reset / uncheck-last cannot leave a filtered-empty facet list.
   useEffect(() => {
     if (selectionEmpty) setQuery('');
   }, [selectionEmpty]);
+  // Collapse See more whenever the whole rail returns to the default filter state. Depends on
+  // filtersActive (not this group's selectionEmpty) so Reset still collapses when Orgs/Apps were
+  // expanded with zero items selected in that group.
+  useEffect(() => {
+    if (!filtersActive) setExpanded(false);
+  }, [filtersActive]);
   if (entries.length === 0) return null;
 
   const trimmed = query.trim().toLowerCase();
-  const visible = trimmed
+  const filtered = trimmed
     ? entries.filter(
         (entry) => entry.label.toLowerCase().includes(trimmed) || selected.has(entry.id),
       )
     : entries;
+
+  const searching = trimmed.length > 0;
+  // Intentional: clearing search keeps `expanded` so the user is not forced to re-click See more.
+  const visible = searching || expanded
+    ? filtered
+    : collapseFacetEntries(filtered, selected, FACET_COLLAPSE_LIMIT);
+  const canToggleCollapse = !searching && filtered.length > FACET_COLLAPSE_LIMIT;
+  // Server returns at most FACET_SERVER_CAP org/app buckets; search only filters that set.
+  const serverCapped = entries.length >= FACET_SERVER_CAP;
 
   return (
     <fieldset className="nosc-violations-filter-group" data-testid={testId}>
       <legend className="nosc-violations-filter-legend">{title}</legend>
       <TextField.Root
         size="1"
-        placeholder={`Search ${title.toLowerCase()}...`}
+        placeholder="Search..."
         aria-label={`Search ${title.toLowerCase()}`}
         value={query}
         onChange={(event) => setQuery(event.target.value)}
@@ -180,30 +225,59 @@ function SearchableFilterSection({
           <ActionIcons.Search size={14} />
         </TextField.Slot>
       </TextField.Root>
-      {visible.length === 0 ? (
+      {filtered.length === 0 ? (
         <Text size="1" color="gray" data-testid={`${testId}-empty`}>
           No matches.
         </Text>
       ) : (
-        <ScrollArea type="auto" scrollbars="vertical" className="nosc-violations-filter-scroll">
-          <Flex direction="column" gap="1" pr="2">
-            {visible.map(({ id, label, count }) => (
-              <Text key={id} as="label" size="2" color="gray" className="nosc-violations-filter-option">
-                <Flex align="center" gap="2" className="nosc-violations-filter-option-row">
-                  <Checkbox
-                    checked={selected.has(id)}
-                    onCheckedChange={() => onToggle(group, id)}
-                    data-testid={`${testId}-option-${id}`}
-                  />
-                  <span className="nosc-violations-filter-option-label">{label}</span>
-                  <Badge size="1" color="gray" variant="soft" radius="full">
-                    {count}
-                  </Badge>
-                </Flex>
-              </Text>
-            ))}
-          </Flex>
-        </ScrollArea>
+        <Flex direction="column" gap="1">
+          {/* Scroll cap for both collapsed and expanded lists so estate-scale org/app facets
+              cannot blow past the rail when the user opens See more. */}
+          <ScrollArea type="auto" scrollbars="vertical" className="nosc-violations-filter-scroll">
+            <Flex direction="column" gap="1" pr="2">
+              {visible.map(({ id, label, count }) => (
+                <Text key={id} as="label" size="2" color="gray" className="nosc-violations-filter-option">
+                  <Flex align="start" gap="2" className="nosc-violations-filter-option-row">
+                    <Checkbox
+                      checked={selected.has(id)}
+                      onCheckedChange={() => onToggle(group, id)}
+                      data-testid={`${testId}-option-${id}`}
+                    />
+                    <span className="nosc-violations-filter-option-label" title={label}>
+                      {label}
+                    </span>
+                    {count > 0 && (
+                      <Badge size="1" color="gray" variant="soft" radius="full">
+                        {count}
+                      </Badge>
+                    )}
+                  </Flex>
+                </Text>
+              ))}
+            </Flex>
+          </ScrollArea>
+          {serverCapped && (
+            <Text size="1" color="gray" data-testid={`${testId}-server-capped`}>
+              Showing top {FACET_SERVER_CAP} {title.toLowerCase()} by violation count. Narrow other
+              filters to surface more; search only filters this list.
+            </Text>
+          )}
+          {canToggleCollapse && (
+            <Button
+              type="button"
+              variant="ghost"
+              color="blue"
+              size="1"
+              className="nosc-violations-filter-see-more"
+              aria-expanded={expanded}
+              onClick={() => setExpanded((current) => !current)}
+              data-testid={`${testId}-see-more`}
+            >
+              {expanded ? 'See less' : 'See more'}
+              {expanded ? <NavIcons.Collapse size={14} /> : <NavIcons.Expand size={14} />}
+            </Button>
+          )}
+        </Flex>
       )}
     </fieldset>
   );
@@ -305,8 +379,14 @@ function ThreatLevelSection({
   // step. Re-sync when the controlled range changes elsewhere (e.g. Reset filters).
   const [liveRange, setLiveRange] = useState<[number, number]>([range[0], range[1]]);
   useEffect(() => {
-    setLiveRange([range[0], range[1]]);
-  }, [range]);
+    setLiveRange((current) => (
+      current[0] === range[0] && current[1] === range[1]
+        ? current
+        : [range[0], range[1]]
+    ));
+    // Value-based deps (not `range`) so a new array with the same min/max does not reset the thumbs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional primitive deps
+  }, [range[0], range[1]]);
 
   const legendId = `${testId}-legend`;
   return (
@@ -360,6 +440,7 @@ export default function ViolationsFilterRail({
 }: ViolationsFilterRailProps): JSX.Element {
   const orgLabel = (id: string): string => labels?.organizations[id] ?? id;
   const appLabel = (id: string): string => labels?.applications[id] ?? id;
+  const filtersActive = hasActiveViolationFilters(selected);
 
   return (
     <Box asChild className="nosc-violations-filter-rail" data-testid={`${idPrefix}-rail`}>
@@ -369,7 +450,7 @@ export default function ViolationsFilterRail({
             variant="outline"
             color="gray"
             size="2"
-            disabled={!hasActiveViolationFilters(selected)}
+            disabled={!filtersActive}
             onClick={onReset}
             data-testid={`${idPrefix}-reset`}
           >
@@ -422,6 +503,7 @@ export default function ViolationsFilterRail({
             group="organizationIds"
             entries={toEntries(facets?.organizations, selected.organizationIds, orgLabel)}
             selected={selected.organizationIds}
+            filtersActive={filtersActive}
             onToggle={onToggle}
           />
           <SearchableFilterSection
@@ -430,6 +512,7 @@ export default function ViolationsFilterRail({
             group="applicationIds"
             entries={toEntries(facets?.applications, selected.applicationIds, appLabel)}
             selected={selected.applicationIds}
+            filtersActive={filtersActive}
             onToggle={onToggle}
           />
         </Flex>

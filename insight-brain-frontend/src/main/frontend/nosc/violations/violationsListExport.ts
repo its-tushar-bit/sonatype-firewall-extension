@@ -7,8 +7,14 @@ import { ViolationsFilterState } from 'MainRoot/nosc/violations/violationListTyp
 import {
   isDefaultThreatRange,
   toSortedArray,
-  VIOLATIONS_DEFAULT_ORDER_BY,
 } from 'MainRoot/nosc/violations/violationsListApi';
+
+/**
+ * Classic {@code /rest/dashboard/export/newestRisks} parses orderBy via
+ * {@code DashboardViolationRiskOrderByEnum.valueOf} (e.g. {@code THREAT_LEVEL}), not Martha's list
+ * API tokens ({@code policyThreatLevel}). Match Classic Violations default sort.
+ */
+export const VIOLATIONS_CLASSIC_EXPORT_ORDER_BY = '-THREAT_LEVEL';
 
 /**
  * Build the Classic dashboard export filter payload for the Martha Violations CSV.
@@ -23,11 +29,14 @@ import {
  * {@code waiverType} are index-only ({@code RisksFilterDTO} has no equivalent field), so both are
  * intentionally omitted — the toolbar warns when either is active. Pagination is omitted — the export
  * resource fetches every matching row.
+ *
+ * {@code orderBy} is the Classic enum token ({@link VIOLATIONS_CLASSIC_EXPORT_ORDER_BY}), not the
+ * Martha list {@code -policyThreatLevel} token — the latter yields {@code Invalid orderBy property.}
  */
 export function buildViolationsListExportPayload(
   filters: ViolationsFilterState,
 ): Record<string, unknown> {
-  const payload: Record<string, unknown> = { orderBy: VIOLATIONS_DEFAULT_ORDER_BY };
+  const payload: Record<string, unknown> = { orderBy: VIOLATIONS_CLASSIC_EXPORT_ORDER_BY };
 
   const states = toSortedArray(filters.states);
   const categories = toSortedArray(filters.threatCategories);

@@ -36,7 +36,7 @@ export type ViolationRow = {
   readonly applicationPublicId?: string;
   readonly applicationName?: string;
   readonly componentName?: string;
-  /** Component version; will mirror the backend row DTO field once it lands (added frontend-first). */
+  /** Component version when present on the index row ({@code ViolationRowDTO.componentVersion}). */
   readonly componentVersion?: string;
   readonly componentIdentifier?: ViolationComponentIdentifier;
   /** Latest policy evaluation stage (display name). */
@@ -67,6 +67,16 @@ export type ViolationsListFacets = {
   readonly stages?: Readonly<Record<string, number>>;
   readonly organizations?: Readonly<Record<string, number>>;
   readonly applications?: Readonly<Record<string, number>>;
+  /**
+   * Friendly org display names keyed by the same internal ids as {@link organizations}.
+   * Emitted by {@code ViolationsListFacetsDTO} (CLM-42757); absent maps fall back to page-row names.
+   */
+  readonly organizationNames?: Readonly<Record<string, string>>;
+  /**
+   * Friendly app display names keyed by the same internal ids as {@link applications}.
+   * Emitted by {@code ViolationsListFacetsDTO} (CLM-42757); absent maps fall back to page-row names.
+   */
+  readonly applicationNames?: Readonly<Record<string, string>>;
 };
 
 /**

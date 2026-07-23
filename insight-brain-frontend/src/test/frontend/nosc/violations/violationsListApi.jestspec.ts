@@ -196,6 +196,47 @@ describe('violationsListApi', () => {
       expect(labels.organizations['org-1']).toBe('Java-team');
       expect(labels.applications['app-1']).toBe('Apple - Java');
     });
+
+    it('prefers server facet name maps so off-page facet keys stay friendly', () => {
+      const labels = deriveViolationFacetLabels([], {
+        organizations: { 'org-off-page': 'Platform' },
+        applications: { 'app-off-page': 'Cherry - Platform' },
+      });
+      expect(labels.organizations['org-off-page']).toBe('Platform');
+      expect(labels.applications['app-off-page']).toBe('Cherry - Platform');
+    });
+
+    it('lets server facet names win over page-row names for shared ids', () => {
+      // Applications mergeLabelMap contract: page rows seed, non-empty server maps overlay.
+      const labels = deriveViolationFacetLabels(
+        [
+          {
+            policyViolationId: 'pv-1',
+            organizationId: 'org-1',
+            organizationName: 'Row Name',
+            applicationId: 'app-1',
+            applicationName: 'Row App',
+          },
+        ],
+        {
+          organizations: { 'org-1': 'Server Name' },
+          applications: { 'app-1': 'Server App' },
+        },
+      );
+      expect(labels.organizations['org-1']).toBe('Server Name');
+      expect(labels.applications['app-1']).toBe('Server App');
+    });
+
+    it('falls back to applicationPublicId when a row has no applicationName', () => {
+      const labels = deriveViolationFacetLabels([
+        {
+          policyViolationId: 'pv-1',
+          applicationId: 'app-1',
+          applicationPublicId: 'apple-java',
+        },
+      ]);
+      expect(labels.applications['app-1']).toBe('apple-java');
+    });
   });
 
   describe('violationDetailHref', () => {

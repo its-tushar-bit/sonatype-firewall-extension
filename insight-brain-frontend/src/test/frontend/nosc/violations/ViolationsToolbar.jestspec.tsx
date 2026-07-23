@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { Theme } from '@radix-ui/themes';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import ViolationsToolbar from 'MainRoot/nosc/violations/ViolationsToolbar';
+import { VIOLATIONS_CLASSIC_EXPORT_ORDER_BY } from 'MainRoot/nosc/violations/violationsListExport';
 import { createDefaultViolationsFilterState } from 'MainRoot/nosc/violations/violationsListApi';
 import { ViolationsFilterState } from 'MainRoot/nosc/violations/violationListTypes';
 
@@ -71,7 +72,8 @@ describe('ViolationsToolbar (CLM-42260)', () => {
       .querySelector('input[name="filter"]') as HTMLInputElement;
     const payload = JSON.parse(filterInput.value);
     expect(payload).toEqual({
-      orderBy: '-policyThreatLevel',
+      // Classic newestRisks export sorts on the wire field name (RisksFilterDTO), not the UI alias.
+      orderBy: VIOLATIONS_CLASSIC_EXPORT_ORDER_BY,
       policyViolationStates: ['OPEN'],
       policyThreatCategories: 'security',
       policyThreatLevelRange: { minPolicyThreatLevel: 4, maxPolicyThreatLevel: 10 },

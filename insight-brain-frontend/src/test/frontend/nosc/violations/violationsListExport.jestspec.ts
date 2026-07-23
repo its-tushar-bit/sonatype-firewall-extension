@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { buildViolationsListExportPayload } from 'MainRoot/nosc/violations/violationsListExport';
+import {
+  buildViolationsListExportPayload,
+  VIOLATIONS_CLASSIC_EXPORT_ORDER_BY,
+} from 'MainRoot/nosc/violations/violationsListExport';
 import { createDefaultViolationsFilterState } from 'MainRoot/nosc/violations/violationsListApi';
 import { ViolationsFilterState } from 'MainRoot/nosc/violations/violationListTypes';
 
@@ -12,9 +15,9 @@ function filterState(overrides: Partial<ViolationsFilterState> = {}): Violations
 }
 
 describe('buildViolationsListExportPayload (CLM-42260)', () => {
-  it('sends only the fixed orderBy when no filters are active', () => {
+  it('sends Classic THREAT_LEVEL orderBy (not Martha list policyThreatLevel)', () => {
     expect(buildViolationsListExportPayload(createDefaultViolationsFilterState())).toEqual({
-      orderBy: '-policyThreatLevel',
+      orderBy: VIOLATIONS_CLASSIC_EXPORT_ORDER_BY,
     });
   });
 
@@ -30,7 +33,7 @@ describe('buildViolationsListExportPayload (CLM-42260)', () => {
       }),
     );
     expect(payload).toEqual({
-      orderBy: '-policyThreatLevel',
+      orderBy: VIOLATIONS_CLASSIC_EXPORT_ORDER_BY,
       // states as a sorted array of enum names (PolicyViolationStateFilter @JsonCreator).
       policyViolationStates: ['OPEN', 'WAIVED'],
       // categories as a comma-delimited string (PolicyThreatCategoryFilter String ctor).
@@ -50,7 +53,10 @@ describe('buildViolationsListExportPayload (CLM-42260)', () => {
 
   it('omits empty groups so an unfiltered export payload stays minimal', () => {
     const payload = buildViolationsListExportPayload(filterState({ states: new Set(['OPEN']) }));
-    expect(payload).toEqual({ orderBy: '-policyThreatLevel', policyViolationStates: ['OPEN'] });
+    expect(payload).toEqual({
+      orderBy: VIOLATIONS_CLASSIC_EXPORT_ORDER_BY,
+      policyViolationStates: ['OPEN'],
+    });
     expect(payload).not.toHaveProperty('policyThreatCategories');
     expect(payload).not.toHaveProperty('stageIds');
   });
@@ -60,7 +66,10 @@ describe('buildViolationsListExportPayload (CLM-42260)', () => {
       filterState({ waiverType: 'AUTO', states: new Set(['WAIVED']) }),
     );
     // Only the exportable state filter is present; the auto/manual waiver selection is dropped.
-    expect(payload).toEqual({ orderBy: '-policyThreatLevel', policyViolationStates: ['WAIVED'] });
+    expect(payload).toEqual({
+      orderBy: VIOLATIONS_CLASSIC_EXPORT_ORDER_BY,
+      policyViolationStates: ['WAIVED'],
+    });
     expect(payload).not.toHaveProperty('waivedWithAutoWaiver');
   });
 });

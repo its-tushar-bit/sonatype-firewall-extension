@@ -88,8 +88,6 @@ public class NexusOneClassicEmbedPlaywrightTest
   // literal against baseUrlConfiguration.serverData.baseUrl.
   private static final String DIRTY_GUARD_TEST_BASE_URL = "http://dirty-guard-test.invalid";
 
-  private static final String ADMINISTRATORS_TEST_USER_ITEM = "Jane Doe (test-b)";
-
   private static final EnterpriseReportingHdsStubs ENTERPRISE_REPORTING_HDS =
       TestDataManager.load("enterprise-reporting-hds-stubs", EnterpriseReportingHdsStubs.class);
 
@@ -750,6 +748,17 @@ public class NexusOneClassicEmbedPlaywrightTest
   }
 
   /**
+   * Seeds a non-admin user this test owns so the search dropdown on the Administrators edit
+   * form has a deterministic candidate to select, and returns the exact
+   * {@code "<displayName> (<internalName>)"} label {@code formatGroupUsers.js} renders for it.
+   */
+  private String seedSearchableAdministratorCandidate() {
+    String username = TemporaryEntity.uuid();
+    tempEntity.newUser(username, "Jane", "Doe", username + "@doe.net");
+    return "Jane Doe (" + username + ")";
+  }
+
+  /**
    * CLM-42464 dirty-guard cancel path: selecting a user from the search dropdown
    * adds them to addedUsers, setting isDirty=true; a hash navigation triggers
    * the shell dirty-guard; Cancel keeps the user on the edit page with the dirty
@@ -758,13 +767,14 @@ public class NexusOneClassicEmbedPlaywrightTest
   @Test
   @Category(RegressionTest.class)
   public void testEmbeddedAdministratorsEdit_dirtyGuardBlocksNavigationOnCancel() {
+    String searchableUserItem = seedSearchableAdministratorCandidate();
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
 
     AdministratorsEditPage editPage = new AdministratorsEditPage();
     UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
 
     editPage.root().waitFor();
-    editPage.searchAndAddByText("*", ADMINISTRATORS_TEST_USER_ITEM);
+    editPage.searchAndAddByText("*", searchableUserItem);
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
     assertThat(modal.container()).isVisible();
@@ -783,6 +793,7 @@ public class NexusOneClassicEmbedPlaywrightTest
   @Test
   @Category(RegressionTest.class)
   public void testEmbeddedAdministratorsEdit_dirtyGuardAllowsNavigationOnContinue() {
+    String searchableUserItem = seedSearchableAdministratorCandidate();
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators/" + Role.POLICY_ADMIN_ROLE_ID));
 
     AdministratorsEditPage editPage = new AdministratorsEditPage();
@@ -790,7 +801,7 @@ public class NexusOneClassicEmbedPlaywrightTest
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
 
     editPage.root().waitFor();
-    editPage.searchAndAddByText("*", ADMINISTRATORS_TEST_USER_ITEM);
+    editPage.searchAndAddByText("*", searchableUserItem);
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/administrators"));
     assertThat(modal.container()).isVisible();

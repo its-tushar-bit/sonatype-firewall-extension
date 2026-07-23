@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.TimeoutError;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -46,6 +47,7 @@ import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.pages.UserManagementPage;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.clm.testing.playwright.utils.HdsStubs;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -136,10 +138,13 @@ public class NexusOneClassicEmbedPlaywrightTest
   public void testLegacyComingSoonApiUrl_redirectsToCleanEmbedPath() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/api"));
 
+    Pattern cleanEmbedUrl = Pattern.compile(".*/nexus-one/index\\.html#/api(?:\\?.*)?$");
+    page.waitForURL(cleanEmbedUrl, new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
+
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     ApiDocumentationPageAssertions apiAssertions = new ApiDocumentationPageAssertions(new ApiDocumentationPage());
 
-    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/api(?:\\?.*)?$"));
+    assertThat(page).hasURL(cleanEmbedUrl);
     assertThat(embedPage.classicComponentMount()).isVisible();
     apiAssertions.shouldShowSwaggerLoaded();
   }
@@ -169,11 +174,14 @@ public class NexusOneClassicEmbedPlaywrightTest
   public void testLegacyComingSoonSuccessMetricsUrl_redirectsToCleanEmbedPath() {
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
 
+    Pattern cleanEmbedUrl = Pattern.compile(".*/nexus-one/index\\.html#/success-metrics(?:\\?.*)?$");
+    page.waitForURL(cleanEmbedUrl, new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
+
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     SuccessMetricsPage successMetrics = new SuccessMetricsPage();
     SuccessMetricsPageAssertions successMetricsAssertions = new SuccessMetricsPageAssertions(successMetrics);
 
-    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/success-metrics(?:\\?.*)?$"));
+    assertThat(page).hasURL(cleanEmbedUrl);
     assertThat(embedPage.classicComponentMount()).isVisible();
     successMetricsAssertions.shouldBeLoaded();
     successMetricsAssertions.shouldHaveHeading("Success Metrics");
@@ -188,12 +196,15 @@ public class NexusOneClassicEmbedPlaywrightTest
     playwrightRefreshOrOpen(
         NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics/" + report.getId()));
 
+    Pattern cleanEmbedUrl = Pattern.compile(
+        ".*/nexus-one/index\\.html#/success-metrics/" + Pattern.quote(report.getId()) + "(?:\\?.*)?$");
+    page.waitForURL(cleanEmbedUrl, new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
+
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     SuccessMetricsPage successMetrics = new SuccessMetricsPage();
     SuccessMetricsPageAssertions successMetricsAssertions = new SuccessMetricsPageAssertions(successMetrics);
 
-    assertThat(page).hasURL(Pattern.compile(
-        ".*/nexus-one/index\\.html#/success-metrics/" + Pattern.quote(report.getId()) + "(?:\\?.*)?$"));
+    assertThat(page).hasURL(cleanEmbedUrl);
     assertThat(embedPage.classicComponentMount()).isVisible();
     successMetricsAssertions.shouldShowIndividualReport(reportName);
   }
@@ -244,10 +255,14 @@ public class NexusOneClassicEmbedPlaywrightTest
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/legal"));
 
+    Pattern applicationsDashboardUrl = Pattern.compile(".*/legal/applicationsDashboard.*");
+    page.waitForURL(applicationsDashboardUrl,
+        new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
+
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     LegalDashboardPageAssertions legalAssertions = new LegalDashboardPageAssertions(new LegalDashboardPage());
 
-    assertThat(page).hasURL(Pattern.compile(".*/legal/applicationsDashboard.*"));
+    assertThat(page).hasURL(applicationsDashboardUrl);
     assertThat(embedPage.classicComponentMount()).isVisible();
     legalAssertions.shouldBeVisible();
   }
@@ -396,11 +411,14 @@ public class NexusOneClassicEmbedPlaywrightTest
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/reports"));
 
+    Pattern cleanEmbedUrl = Pattern.compile(".*/nexus-one/index\\.html#/reports(?:\\?.*)?$");
+    page.waitForURL(cleanEmbedUrl, new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
+
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     EnterpriseReportingPageAssertions enterpriseAssertions =
         new EnterpriseReportingPageAssertions(new EnterpriseReportingPage());
 
-    assertThat(page).hasURL(Pattern.compile(".*/nexus-one/index\\.html#/reports(?:\\?.*)?$"));
+    assertThat(page).hasURL(cleanEmbedUrl);
     assertThat(embedPage.classicComponentMount()).isVisible();
     enterpriseAssertions.shouldBeLoaded();
   }
@@ -437,11 +455,14 @@ public class NexusOneClassicEmbedPlaywrightTest
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/orgs-and-policies"));
 
+    Pattern rootOrgSummaryUrl = Pattern.compile(".*/management/view/organization/.*");
+    page.waitForURL(rootOrgSummaryUrl, new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
+
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     OwnerSummaryPageAssertions ownerSummaryAssertions =
         new OwnerSummaryPageAssertions(new OwnerSummaryPage());
 
-    assertThat(page).hasURL(Pattern.compile(".*/management/view/organization/.*"));
+    assertThat(page).hasURL(rootOrgSummaryUrl);
     assertThat(embedPage.classicComponentMount()).isVisible();
     ownerSummaryAssertions.shouldBeVisible();
   }

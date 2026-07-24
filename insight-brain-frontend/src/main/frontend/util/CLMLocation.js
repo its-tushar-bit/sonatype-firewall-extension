@@ -166,6 +166,22 @@ export function getSearchCatalogUrl() {
 }
 
 /**
+ * Nexus One Vulnerabilities card list (Martha V1, CLM-42216). POST with
+ * `{ tab, page, pageSize, search?, includeFacets, orderBy }`; gated by PREVIEW_NEXUS_ONE_UI.
+ */
+export function getVulnerabilitiesListUrl() {
+  return uriTemplate`/rest/dashboard/vulnerabilities/list`;
+}
+
+/**
+ * Nexus One Vulnerabilities blast-radius CSV export (Martha V1, CLM-42216).
+ * Multipart form POST with hidden {@code filter} JSON; My Scan Data only.
+ */
+export function getVulnerabilitiesExportUrl() {
+  return uriTemplate`/rest/dashboard/vulnerabilities/export`;
+}
+
+/**
  * Retrieve the list of application risk in the most recent stage.  Supports filters
  * @since 1.11
  */

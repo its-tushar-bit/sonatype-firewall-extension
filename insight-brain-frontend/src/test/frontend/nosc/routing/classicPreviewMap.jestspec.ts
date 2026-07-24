@@ -282,6 +282,26 @@ describe('classicPreviewMap', () => {
     });
   });
 
+  describe('Vulnerabilities list and detail', () => {
+    it('maps Nexus One /vulnerabilities list <-> Classic CVE search path', () => {
+      expect(toClassicEquivalent('/vulnerabilities')).toBe('/vulnerabilities');
+      expect(toNexusOneEquivalent('/vulnerabilities')).toBe('/vulnerabilities');
+    });
+
+    it('maps /vulnerabilities/{vulnId} detail identity both ways', () => {
+      expect(toClassicEquivalent('/vulnerabilities/CVE-2021-44228')).toBe(
+        '/vulnerabilities/CVE-2021-44228',
+      );
+      expect(toNexusOneEquivalent('/vulnerabilities/CVE-2021-44228')).toBe(
+        '/vulnerabilities/CVE-2021-44228',
+      );
+    });
+
+    it('prefers native Martha over Coming Soon when Classic /vulnerabilities is toggled', () => {
+      expect(toNexusOneEquivalent('/vulnerabilities')).not.toBe('/coming-soon/vulnerability-lookup');
+    });
+  });
+
   describe('Violation detail page round-trip (CLM-42256)', () => {
     it('maps /violations/{id} -> Classic violation detail page', () => {
       expect(toClassicEquivalent('/violations/violation-123')).toBe('/violation/violation-123');
@@ -353,6 +373,7 @@ describe('classicPreviewMap', () => {
     it.each([
       ['/dashboard'],
       ['/applications'],
+      ['/vulnerabilities'],
       ['/ui-settings'],
       ['/repositories'],
       ['/repositories/mgr-123'],
@@ -428,7 +449,9 @@ describe('classicPreviewMap', () => {
             backToPreview === '/reports' ||
             backToPreview === '/legal' ||
             backToPreview === '/orgs-and-policies' ||
-            backToPreview === '/repositories',
+            backToPreview === '/repositories' ||
+            // vulnerability-lookup Classic href collides with native Martha list
+            backToPreview === '/vulnerabilities',
         ).toBe(true);
       },
     );

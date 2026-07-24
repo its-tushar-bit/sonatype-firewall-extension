@@ -94,6 +94,7 @@ describe('LeftNav', () => {
   it.each([
     ['components', '#/components'],
     ['violations', '#/violations'],
+    ['vulnerabilities', '#/vulnerabilities'],
     ['waivers', '#/waivers'],
     ['api', '#/api'],
     ['success-metrics', '#/success-metrics'],
@@ -108,14 +109,14 @@ describe('LeftNav', () => {
     expect(link.getAttribute('href')).not.toContain('coming-soon');
   });
 
-  it.each([
-    ['vulnerabilities', '#/coming-soon/vulnerabilities'],
-    ['settings', '#/coming-soon/settings'],
-  ])('renders the Coming Soon %s item pointing at %s', (id, expectedHash) => {
-    renderLeftNav(fullyLicensedState);
-    const link = screen.getByTestId(`nosc-leftnav-${id}`);
-    expect(link.getAttribute('href')).toContain(expectedHash);
-  });
+  it.each([['settings', '#/coming-soon/settings']])(
+    'renders the Coming Soon %s item pointing at %s',
+    (id, expectedHash) => {
+      renderLeftNav(fullyLicensedState);
+      const link = screen.getByTestId(`nosc-leftnav-${id}`);
+      expect(link.getAttribute('href')).toContain(expectedHash);
+    },
+  );
 
   it('renders a divider before Success Metrics and before API', () => {
     renderLeftNav(fullyLicensedState);

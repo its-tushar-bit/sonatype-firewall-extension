@@ -14,6 +14,7 @@ import { SearchOmnibar } from 'MainRoot/nosc/search/SearchOmnibar';
 import router from 'MainRoot/router/routerInstance';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import { registerNexusOneApplicationDetailStatesForHref } from 'TestRoot/nosc/search/registerNexusOneApplicationDetailStatesForHref';
+import { registerNexusOneVulnerabilityDetailStatesForHref } from 'TestRoot/nosc/search/registerNexusOneVulnerabilityDetailStatesForHref';
 
 // Click targets use the real UI-Router singleton (Nexus One states registered
 // below) and the real bundleIndexUrl (Classic deep-links) with a test base URL —
@@ -110,6 +111,7 @@ describe('SearchOmnibar (P1-F13 multi-entity)', () => {
     // Register the Nexus One states the omnibar links to, and pin a base URL so
     // the real bundleIndexUrl can resolve Classic deep-links.
     registerNexusOneApplicationDetailStatesForHref();
+    registerNexusOneVulnerabilityDetailStatesForHref();
     registerState('nexusOneSearch', '/search?q');
     registerState('platformHome', '/home');
     _setBaseUrlForTesting('http://localhost');
@@ -186,14 +188,14 @@ describe('SearchOmnibar (P1-F13 multi-entity)', () => {
     });
   });
 
-  it('navigates to /vulnerabilities/{id} when a CVE row is clicked', async () => {
+  it('navigates to native vulnerability detail when a CVE row is clicked (CLM-42216)', async () => {
     const user = userEvent.setup();
     renderInTheme();
     const input = screen.getByRole('combobox');
     await user.type(input, SEARCH_QUERY);
     const vulnRow = await screen.findByTestId('nosc-search-row-vulnerability');
     await user.click(vulnRow);
-    expect(assignMock).toHaveBeenCalledWith(`${CLASSIC}#/vulnerabilities/CVE-2021-44228`);
+    expect(assignMock).toHaveBeenCalledWith('#/vulnerabilities/CVE-2021-44228');
   });
 
   it('navigates to the native Preview Application Detail page when an Application row is clicked (CLM-39709)', async () => {
@@ -261,7 +263,7 @@ describe('SearchOmnibar (P1-F13 multi-entity)', () => {
     await user.keyboard('{ArrowDown}');
     await user.keyboard('{Enter}');
     // First row in fixture order is the best-match Vulnerability.
-    expect(assignMock).toHaveBeenCalledWith(`${CLASSIC}#/vulnerabilities/CVE-2021-44228`);
+    expect(assignMock).toHaveBeenCalledWith('#/vulnerabilities/CVE-2021-44228');
   });
 
   it('Escape clears the input and closes the dropdown', async () => {

@@ -45,9 +45,9 @@ export interface ComingSoonModule {
  */
 // Most `classicHref` values were verified live against the dev IQ on
 // 2026-05-14: each lands on a real UI-Router state (no "Unknown Address"
-// unrecoverable errors). The `vulnerabilities` and `settings` stubs added later
-// are placeholders pointing at the generic Classic dashboard (see the TODO
-// markers at their entries below), not per-domain analogs.
+// unrecoverable errors). The `settings` stub added later is a placeholder
+// pointing at the generic Classic dashboard (see the TODO marker below), not a
+// per-domain analog.
 // Mapping notes:
 //
 //   reports               → /operationalReporting (Operational Reporting page)
@@ -67,10 +67,9 @@ export interface ComingSoonModule {
 //
 //   success-metrics       → /labs/successMetrics
 //   vulnerability-lookup  → /vulnerabilities (legacy CVE-search stub; distinct
-//                           from the newer `vulnerabilities` list stub below.
-//                           No LeftNav consumer today; retained for the
-//                           follow-on native CVE detail page — see
-//                           docs/local/CLM-39545/follow-on/)
+//                           from the native Martha `#/vulnerabilities` list.
+//                           No LeftNav consumer today; retained for Classic
+//                           escape-hatch / follow-on detail work)
 //   legal                 → /legal/dashboard
 //   api                   → /api
 export const COMING_SOON_MODULES = {
@@ -154,15 +153,9 @@ export const COMING_SOON_MODULES = {
     description: 'Automate software compliance and reporting.',
     classicHref: '/assets/#/dashboard/violations',
   },
-  // TODO(CLM-42160): `vulnerabilities` and `settings` use the generic Classic
-  // dashboard as a placeholder classicHref until each native module is built.
-  // Update each classicHref to its real Classic analog then.
-  // `components` graduated to native `#/components` (CLM-42214).
-  vulnerabilities: {
-    label: 'Vulnerabilities',
-    description: 'Browse the vulnerabilities affecting components across your application portfolio.',
-    classicHref: '/assets/#/dashboard',
-  },
+  // TODO(CLM-42160): `settings` uses the generic Classic dashboard as a
+  // placeholder classicHref until its native module is built.
+  // `components` and `vulnerabilities` graduated to native list pages.
   settings: {
     label: 'Settings',
     description: 'Manage Nexus One preferences and configuration.',
@@ -189,7 +182,6 @@ export const COMING_SOON_MODULE_ORDER: readonly ComingSoonModuleSlug[] = [
   'guide',
   'firewall',
   'sbom-manager',
-  'vulnerabilities',
   'settings',
 ];
 

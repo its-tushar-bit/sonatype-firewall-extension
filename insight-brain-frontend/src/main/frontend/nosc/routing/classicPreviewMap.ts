@@ -63,6 +63,10 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/dashboard', '/dashboard/violations'],
   ['/applications', '/dashboard/applications'],
   ['/components', '/dashboard/components'],
+  // Native Vulnerabilities list shares Classic CVE-search hash path.
+  // Listed before COMING_SOON_ENTRIES so Classic `/vulnerabilities` toggles to
+  // native Martha, not `/coming-soon/vulnerability-lookup`.
+  ['/vulnerabilities', '/vulnerabilities'],
   ['/ui-settings', '/previewUiSettings'],
   ['/search', '/dashboard/violations'],
   // Identity entries: admin config pages share the same hash path on both
@@ -132,6 +136,7 @@ function isNexusOnePath(path: string): boolean {
   if (path === '/applications' || path.startsWith('/applications/')) return true;
   if (path === '/components' || path.startsWith('/components/')) return true;
   if (path === '/violations' || path.startsWith('/violations/')) return true;
+  if (path === '/vulnerabilities' || path.startsWith('/vulnerabilities/')) return true;
   if (path === '/search' || path.startsWith('/search/')) return true;
   if (path === '/waivers' || path.startsWith('/waivers/')) return true;
   if (path === '/ui-settings' || path.startsWith('/ui-settings/')) return true;
@@ -166,6 +171,14 @@ const DETAIL_PAGE_MAPPINGS: ReadonlyArray<DetailPageMapping> = [
     classicTemplate: (id) => `/violation/${id}`,
     classicMatch: /^\/violation\/([^/]+)\/?$/,
     nexusOneTemplate: (id) => `/violations/${id}`,
+  },
+  {
+    // Native vulnerability detail: same hash path on Classic CVE view and Nexus One.
+    // Encoded slash ids (e.g. sonatype-2024%2F12345) stay a single path segment.
+    nexusOneMatch: /^\/vulnerabilities\/([^/]+)\/?$/,
+    classicTemplate: (id) => `/vulnerabilities/${id}`,
+    classicMatch: /^\/vulnerabilities\/([^/]+)\/?$/,
+    nexusOneTemplate: (id) => `/vulnerabilities/${id}`,
   },
   {
     // Administrators edit (CLM-42464): identity mapping — both bundles share the

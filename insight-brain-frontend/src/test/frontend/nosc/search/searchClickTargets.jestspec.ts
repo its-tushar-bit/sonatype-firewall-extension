@@ -14,6 +14,7 @@ import router from 'MainRoot/router/routerInstance';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import { ItemType, SearchResultItemDTO } from 'MainRoot/nosc/search/searchTypes';
 import { registerNexusOneApplicationDetailStatesForHref } from 'TestRoot/nosc/search/registerNexusOneApplicationDetailStatesForHref';
+import { registerNexusOneVulnerabilityDetailStatesForHref } from 'TestRoot/nosc/search/registerNexusOneVulnerabilityDetailStatesForHref';
 
 const CLASSIC = 'http://localhost/assets/index.html';
 
@@ -25,6 +26,7 @@ function registerState(name: string, url: string): void {
 
 beforeAll(() => {
   registerNexusOneApplicationDetailStatesForHref();
+  registerNexusOneVulnerabilityDetailStatesForHref();
   registerState('nexusOneSearch', '/search?q');
   registerState('platformHome', '/home');
   _setBaseUrlForTesting('http://localhost');
@@ -53,9 +55,15 @@ describe('clickHrefFor', () => {
     );
   });
 
-  it('Vulnerability → Classic vulnerability detail', () => {
+  it('Vulnerability → Nexus One vulnerability detail', () => {
     expect(clickHrefFor(dto('SECURITY_VULNERABILITY', { vulnerabilityId: 'CVE-2021-44228' }))).toBe(
-      `${CLASSIC}#/vulnerabilities/CVE-2021-44228`,
+      '#/vulnerabilities/CVE-2021-44228',
+    );
+  });
+
+  it('URL-encodes Sonatype-style slash ids in the vuln path param', () => {
+    expect(clickHrefFor(dto('SECURITY_VULNERABILITY', { vulnerabilityId: 'sonatype-2024/12345' }))).toBe(
+      '#/vulnerabilities/sonatype-2024%2F12345',
     );
   });
 

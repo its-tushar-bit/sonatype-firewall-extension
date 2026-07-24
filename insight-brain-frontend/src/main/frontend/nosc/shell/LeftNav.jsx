@@ -100,7 +100,7 @@ const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
  *                          Every reachable /management/* sub-route also mounts
  *                          in-shell — see MANAGEMENT_ACTIVE_HREFS)
  *   Violations           → /preview/violations            (native; PreviewViolationsList)
- *   Vulnerabilities      → /coming-soon/vulnerabilities   (Coming Soon)
+ *   Vulnerabilities      → /preview/vulnerabilities       (native; PreviewVulnerabilitiesList)
  *   Waivers              → /preview/waivers               (native)
  *   --- divider ---
  *   Success Metrics      → /success-metrics               (native Classic embed)
@@ -318,7 +318,7 @@ function buildNavItems(flags) {
       id: 'vulnerabilities',
       label: 'Vulnerabilities',
       Icon: DomainIcons.Vulnerability,
-      href: comingSoonHref('vulnerabilities'),
+      href: '/vulnerabilities',
     });
   }
   if (isLicensed && isOrgsAndAppsEnabled) {

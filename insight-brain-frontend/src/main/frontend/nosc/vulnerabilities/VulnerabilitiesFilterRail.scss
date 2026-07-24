@@ -1,0 +1,63 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.nosc-vulnerabilities-filter-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.nosc-vulnerabilities-filter-legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-12);
+}
+
+.nosc-vulnerabilities-filter-rail {
+  width: 220px;
+  max-width: 220px;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.nosc-vulnerabilities-filter-option {
+  cursor: pointer;
+}
+
+.nosc-vulnerabilities-filter-option-row {
+  min-width: 0;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.nosc-vulnerabilities-filter-option-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  /* Keep long ecosystem names inside the rail — never overflow into the card grid. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.nosc-vulnerabilities-filter-scroll {
+  max-height: 200px;
+}
+
+@media (max-width: 768px) {
+  .nosc-vulnerabilities-filter-rail {
+    width: 100%;
+  }
+}
+
+/* Inside the mobile filter drawer the rail should always fill the dialog width. */
+.vulnerabilities-page__filter-drawer .nosc-vulnerabilities-filter-rail {
+  width: 100%;
+}

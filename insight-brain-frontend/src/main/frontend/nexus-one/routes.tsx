@@ -87,6 +87,7 @@ import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import PreviewViolationsList from 'MainRoot/nosc/violations/ViolationsList';
 import PreviewComponentsList from 'MainRoot/nosc/componentsList/ComponentsList';
+import PreviewVulnerabilitiesList from 'MainRoot/nosc/vulnerabilities/VulnerabilitiesList';
 import {
   NEXUS_ONE_VIOLATIONS_STATE_NAME,
   NEXUS_ONE_VIOLATIONS_URL,
@@ -95,6 +96,10 @@ import {
   NEXUS_ONE_COMPONENTS_STATE_NAME,
   NEXUS_ONE_COMPONENTS_URL,
 } from 'MainRoot/nosc/componentsList/componentsRoute';
+import {
+  NEXUS_ONE_VULNERABILITIES_STATE_NAME,
+  NEXUS_ONE_VULNERABILITIES_URL,
+} from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesRoute';
 import {
   WaiversListPage as PreviewWaiversList,
   WaiverDetailPage as PreviewWaiverDetail,
@@ -225,6 +230,15 @@ router.stateRegistry.register({
   url: NEXUS_ONE_VIOLATIONS_URL,
   component: PreviewViolationsList,
   data: { title: 'Nexus One — Violations' },
+} as ReactStateDeclaration);
+
+// Martha V1 Vulnerabilities list, wired to POST /rest/dashboard/vulnerabilities/list.
+// Sibling of native detail at /vulnerabilities/{vulnId} (nexusOneVulnerabilityDetail).
+router.stateRegistry.register({
+  name: NEXUS_ONE_VULNERABILITIES_STATE_NAME,
+  url: NEXUS_ONE_VULNERABILITIES_URL,
+  component: PreviewVulnerabilitiesList,
+  data: { title: 'Nexus One — Vulnerabilities' },
 } as ReactStateDeclaration);
 
 // Martha V1 Components portfolio list (CLM-42214). Query params match Applications so

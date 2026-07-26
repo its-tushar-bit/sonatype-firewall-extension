@@ -166,21 +166,22 @@ mavenSnapshotPipeline(
 
 /**
  * Build + push the MTIQ multi-arch Docker image to Sonatype private registry.
- * Requires the `jdks` profile to have run first (populates target/jdks/).
+ * Consumes the module build outputs in nexus-mtiq-server/target/
+ * (nexus-mtiq-server.jar uber jar, otel-java-agent.jar, jvm.options), so the
+ * module must have been built (mvn install/package) earlier in the pipeline.
+ * No jreleaser/jlink step or `jdks` profile is needed anymore: the JRE is the
+ * openjdk25-jre-headless apk package installed inside the (base-less) Dockerfile.
  */
 void pushMtiqDockerImage() {
   String iqVersion = getMavenProjectVersion('.')
   String imageVersion = mtiqImageVersion()
   echo "Building MTIQ Docker image: iqVersion='${iqVersion}' imageVersion='${imageVersion}'"
 
-  mvn jreleaserConfig(), ' -pl :nexus-mtiq-server jreleaser:assemble'
-
   dir('nexus-mtiq-server') {
     withSonatypeDockerRegistry() {
       sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit@${buildkitImageDigest}"
       sh """docker buildx build --platform=linux/amd64,linux/arm64 \\
             --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} \\
-            --build-arg IQ_SERVER_VERSION=${iqVersion} \\
             --push \\
             --tag ${sonatypeDockerRegistryId()}/mtiq/server:${imageVersion} ."""
     }

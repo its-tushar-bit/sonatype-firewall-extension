@@ -3,10 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxModal, NxH2, NxFormGroup, NxTextInput, NxButton, NxStatefulForm } from '@sonatype/react-shared-components';
+import {
+  NxErrorAlert,
+  NxModal,
+  NxH2,
+  NxFormGroup,
+  NxTextInput,
+  NxButton,
+  NxStatefulForm,
+} from '@sonatype/react-shared-components';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { validateNonEmpty } from 'MainRoot/util/validationUtil';
 import { actions } from 'MainRoot/firewall/iqProxy/firewallIqProxySlice';
@@ -20,8 +28,15 @@ export default function AddRepositoryManagerModal({ onClose }) {
   const creatingManager = useSelector(selectCreatingManager);
   const createManagerError = useSelector(selectCreateManagerError);
 
+  useEffect(() => {
+    dispatch(actions.clearCreateManagerError());
+  }, [dispatch]);
+
   const onChangeName = (value) => {
     setManagerName(userInput(validateNonEmpty, value));
+    if (createManagerError) {
+      dispatch(actions.clearCreateManagerError());
+    }
   };
 
   const onSave = () => {
@@ -29,6 +44,10 @@ export default function AddRepositoryManagerModal({ onClose }) {
       .unwrap()
       .then((data) => {
         onClose(data.name);
+      })
+      .catch(() => {
+        // Failure state is surfaced inline on the name field via createManagerError;
+        // swallow here so NxStatefulForm does not show its own submit-error card + Retry.
       });
   };
 
@@ -44,17 +63,21 @@ export default function AddRepositoryManagerModal({ onClose }) {
         onSubmit={onSave}
         submitBtnText="Save"
         validationErrors={managerName.validationErrors}
-        submitError={createManagerError}
         loading={creatingManager}
         additionalFooterBtns={additionalFooterButtons}
       >
         <NxModal.Header>
-          <NxH2>New Repository Manager</NxH2>
+          <NxH2>New Virtual Repository Manager</NxH2>
         </NxModal.Header>
         <NxModal.Content>
-          <NxFormGroup label="Repository Manager Name" isRequired>
+          <NxFormGroup label="Virtual Repository Manager Name" isRequired>
             <NxTextInput onChange={onChangeName} {...managerName} validatable />
           </NxFormGroup>
+          {createManagerError && (
+            <NxErrorAlert className="iq-add-virtual-repository-manager-modal__error">
+              {createManagerError}
+            </NxErrorAlert>
+          )}
         </NxModal.Content>
       </NxStatefulForm>
     </NxModal>

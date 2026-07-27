@@ -217,7 +217,6 @@ const onRouterFinish = (state, { payload }) => {
     state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
     state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
     state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
-    state.toggleVirtualRepositoryManagersCheck = initialState.toggleVirtualRepositoryManagersCheck;
     state.toggleRepositoriesCheck = initialState.toggleRepositoriesCheck;
     resetFilter(state);
   }
@@ -234,7 +233,6 @@ const loadFulfilled = (state, { payload }) => {
   state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
   state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
   state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
-  state.toggleVirtualRepositoryManagersCheck = initialState.toggleVirtualRepositoryManagersCheck;
   state.toggleRepositoriesCheck = initialState.toggleRepositoriesCheck;
   state.flattenEntries = payload.flattenEntries;
 };
@@ -291,8 +289,15 @@ const removeRepositoryManagerFromOwnerHierarchy = (state, { payload: repositoryM
 
     const repositoryContainer = state.ownersMap[repositoryManager.parentId];
     if (repositoryContainer) {
-      const repositoryManagerIds = reject(equals(repositoryManagerId))(repositoryContainer.repositoryManagerIds);
-      state.ownersMap[repositoryContainer.id] = { ...repositoryContainer, repositoryManagerIds };
+      const repositoryManagerIds = reject(equals(repositoryManagerId))(repositoryContainer.repositoryManagerIds || []);
+      const virtualRepositoryManagerIds = reject(equals(repositoryManagerId))(
+        repositoryContainer.virtualRepositoryManagerIds || []
+      );
+      state.ownersMap[repositoryContainer.id] = {
+        ...repositoryContainer,
+        repositoryManagerIds,
+        virtualRepositoryManagerIds,
+      };
       state.displayedOrganization = getDisplayedOrganization(state.ownersMap, state.topParentOrganizationId, {
         repositoryContainerId: repositoryContainer.id,
       });
@@ -476,6 +481,9 @@ const ownerSideNavSlice = createSlice({
     toggleApplicationsCollapse: toggleBooleanProp('toggleApplicationsCheck'),
     toggleRepositoryManagersCollapse: toggleBooleanProp('toggleRepositoryManagersCheck'),
     toggleVirtualRepositoryManagersCollapse: toggleBooleanProp('toggleVirtualRepositoryManagersCheck'),
+    expandVirtualRepositoryManagers: (state) => {
+      state.toggleVirtualRepositoryManagersCheck = true;
+    },
     toggleRepositoresCollapse: toggleBooleanProp('toggleRepositoriesCheck'),
     setDisplayedOrganization: propSet('displayedOrganization'),
     setFilterQuery,

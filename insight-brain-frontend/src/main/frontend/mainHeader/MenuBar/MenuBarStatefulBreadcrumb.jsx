@@ -114,9 +114,19 @@ const getBreadcrumb = (
   while (!isNilOrEmpty(currentOwner)) {
     const [parentEntityIdKey, routeParams] = getOwnerInfo(currentOwner);
     const isRepoContainerCrumb = currentOwner.type === 'repository_container';
-    const showAsVirtual = isRepoContainerCrumb && (isVirtualRepositoryManager || isVirtualRepositoryContainer);
-    const crumbType = showAsVirtual ? 'virtual_repository_container' : currentOwner.type;
-    const crumbName = showAsVirtual ? 'Virtual Repository Managers' : currentOwner.name;
+    const isRepoManagerCrumb = currentOwner.type === 'repository_manager';
+    const isVirtualManagerCrumb = isRepoManagerCrumb && currentOwner.managerType === 'virtual';
+    const showContainerAsVirtual = isRepoContainerCrumb && (isVirtualRepositoryManager || isVirtualRepositoryContainer);
+
+    let crumbType = currentOwner.type;
+    let crumbName = currentOwner.name;
+    if (showContainerAsVirtual) {
+      crumbType = 'virtual_repository_container';
+      crumbName = 'Virtual Repository Managers';
+    } else if (isVirtualManagerCrumb) {
+      crumbType = 'virtual_repository_manager';
+    }
+
     breadcrumb.unshift({
       name: crumbName,
       href: uiRouterState.href(`${routePrefix}management.view.${crumbType}`, routeParams),

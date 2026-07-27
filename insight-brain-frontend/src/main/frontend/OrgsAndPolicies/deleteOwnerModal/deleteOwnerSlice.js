@@ -18,6 +18,7 @@ import {
   selectIsRepositoryManager,
   selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsVirtualRepositoryManager } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
@@ -53,6 +54,8 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
   const isApp = selectIsApplication(state);
   const isOrg = selectIsOrganization(state);
   const isRepositoryManager = selectIsRepositoryManager(state);
+  const isVirtualRepositoryManager =
+    selectIsVirtualRepositoryManager(state) || ownerToDelete?.managerType === 'virtual';
   const isRepository = selectIsRepository(state);
   const isSbomManager = selectIsSbomManager(state);
 
@@ -89,9 +92,10 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
               ownerSideNavActions.updateDisplayedOrganization({ organizationId: ownerToDelete.parentOrganizationId })
             );
           } else if (isRepositoryManager) {
-            dispatch(
-              stateGo('management.view.repository_container', { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' })
-            );
+            const containerRoute = isVirtualRepositoryManager
+              ? 'management.view.virtual_repository_container'
+              : 'management.view.repository_container';
+            dispatch(stateGo(containerRoute, { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' }));
             dispatch(ownerSideNavActions.removeRepositoryManagerFromOwnerHierarchy(ownerToDelete.id));
             dispatch(ownerSideNavActions.updateDisplayedOrganization({ organizationId: ownerToDelete.parentId }));
           } else if (isRepository) {

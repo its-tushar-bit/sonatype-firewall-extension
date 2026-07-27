@@ -1081,6 +1081,13 @@ const ownerTypesForFirewall = [
     hideOverflowY: true,
   },
   {
+    type: 'virtual_repository_manager',
+    name: 'Virtual Repository Manager',
+    id: 'repositoryManagerId',
+    component: RepositoryManagerSummaryView,
+    hideOverflowY: true,
+  },
+  {
     type: 'repository',
     name: 'Repository',
     id: 'repositoryId',

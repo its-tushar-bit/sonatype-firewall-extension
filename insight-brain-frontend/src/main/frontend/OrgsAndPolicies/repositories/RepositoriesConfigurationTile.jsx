@@ -214,21 +214,27 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
         submitMaskMessage="Updating…"
       >
         <NxModal.Header>
-          <NxH2>Edit Repository Manager</NxH2>
+          <NxH2>{virtualOnly ? 'Edit Virtual Repository Manager' : 'Edit Repository Manager'}</NxH2>
         </NxModal.Header>
         <NxModal.Content>
           <NxReadOnly>
-            <NxReadOnly.Label>Repository Manager ID</NxReadOnly.Label>
+            <NxReadOnly.Label>
+              {virtualOnly ? 'Virtual Repository Manager ID' : 'Repository Manager ID'}
+            </NxReadOnly.Label>
             <NxReadOnly.Data>{editRepositoryManagerNameModalInfo.managerInstanceId}</NxReadOnly.Data>
           </NxReadOnly>
-          <NxFormGroup label="Repository Manager Name">
+          <NxFormGroup label={virtualOnly ? 'Virtual Repository Manager Name' : 'Repository Manager Name'}>
             <NxStatefulTextInput
               validator={(value) => validateRepositoryName(value)}
               defaultValue={editRepositoryManagerNameModalInfo.managerName || ''}
               onChange={(value) => setRepositoryManagerName(value.trim())}
             />
           </NxFormGroup>
-          <NxP>Any changes made will apply to all repositories for this repository manager.</NxP>
+          <NxP>
+            {virtualOnly
+              ? 'Any changes made will apply to all proxy repositories for this virtual repository manager.'
+              : 'Any changes made will apply to all repositories for this repository manager.'}
+          </NxP>
         </NxModal.Content>
       </NxStatefulForm>
     </NxModal>

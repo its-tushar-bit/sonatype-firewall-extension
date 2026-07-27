@@ -17,7 +17,11 @@ const RepositoryManager = memo(function RepositoryManager({ repositoryManagerId,
   const uiRouterState = useRouterState();
   const repositoryManager = useSelector((state) => selectOwnerById(state, repositoryManagerId));
   const prefixRoute = useSelector(selectPrefixRoute);
-  const repositoryManagerUrl = uiRouterState.href(prefixRoute('management.view.repository_manager'), {
+  const routeName =
+    repositoryManager?.managerType === 'virtual'
+      ? 'management.view.virtual_repository_manager'
+      : 'management.view.repository_manager';
+  const repositoryManagerUrl = uiRouterState.href(prefixRoute(routeName), {
     repositoryManagerId,
   });
 

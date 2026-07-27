@@ -47,10 +47,18 @@ const createVirtualRepositoryManagerFulfilled = (state) => {
   state.creatingManager = false;
 };
 
-const createVirtualRepositoryManagerFailed = (state, { payload }) => {
+const createVirtualRepositoryManagerFailed = (state, { payload, meta }) => {
   state.creatingManager = false;
-  state.createManagerError =
-    Messages.getHttpErrorMessage(payload) || 'An error occurred while creating the repository manager.';
+  const status = payload?.response?.status;
+  const submittedName = meta?.arg?.name;
+  const backendMessage = Messages.getHttpErrorMessage(payload);
+  const isDuplicateName =
+    status === 409 || (typeof backendMessage === 'string' && /already exists/i.test(backendMessage));
+  if (isDuplicateName && submittedName) {
+    state.createManagerError = `A Virtual Repository Manager named '${submittedName}' already exists.`;
+    return;
+  }
+  state.createManagerError = backendMessage || 'An error occurred while creating the virtual repository manager.';
 };
 
 const fetchVirtualRepositoryManagersRequested = (state) => {
@@ -101,6 +109,9 @@ const firewallIqProxySlice = createSlice({
   initialState,
   reducers: {
     reset: always(initialState),
+    clearCreateManagerError: (state) => {
+      state.createManagerError = null;
+    },
   },
   extraReducers: {
     [saveRepository.pending]: saveRepositoryRequested,

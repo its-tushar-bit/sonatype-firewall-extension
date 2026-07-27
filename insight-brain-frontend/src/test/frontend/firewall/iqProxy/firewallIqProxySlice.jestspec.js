@@ -99,33 +99,70 @@ describe('firewallIqProxySlice', () => {
       expect(newState.creatingManager).toBe(false);
     });
 
-    it('/rejected sets creatingManager to false and stores error message', () => {
+    it('/rejected sets creatingManager to false and stores backend error message when not a duplicate', () => {
       const state = { creatingManager: true, createManagerError: null };
-      const payload = { response: { data: { message: 'Name already exists.' } } };
+      const payload = { response: { data: { message: 'Something went wrong.' } } };
+      const meta = { arg: { name: 'foo' } };
 
-      const newState = reducer(state, { type: 'firewallIqProxy/createVirtualRepositoryManager/rejected', payload });
+      const newState = reducer(state, {
+        type: 'firewallIqProxy/createVirtualRepositoryManager/rejected',
+        payload,
+        meta,
+      });
 
       expect(newState.creatingManager).toBe(false);
-      expect(newState.createManagerError).toBe('Name already exists.');
+      expect(newState.createManagerError).toBe('Something went wrong.');
     });
 
-    it('/rejected falls back to response data string when no message field', () => {
+    it('/rejected formats the type-scoped duplicate-name error when status is 409 (FIRE-663)', () => {
       const state = { creatingManager: true, createManagerError: null };
-      const payload = { response: { data: 'Server error' } };
+      const payload = { response: { status: 409, data: 'Some backend text.' } };
+      const meta = { arg: { name: 'Public NPM Mirror' } };
 
-      const newState = reducer(state, { type: 'firewallIqProxy/createVirtualRepositoryManager/rejected', payload });
+      const newState = reducer(state, {
+        type: 'firewallIqProxy/createVirtualRepositoryManager/rejected',
+        payload,
+        meta,
+      });
 
       expect(newState.creatingManager).toBe(false);
-      expect(newState.createManagerError).toBe('Server error');
+      expect(newState.createManagerError).toBe(
+        `A Virtual Repository Manager named 'Public NPM Mirror' already exists.`
+      );
+    });
+
+    it('/rejected still detects duplicate name from response text when status is missing (FIRE-663)', () => {
+      const state = { creatingManager: true, createManagerError: null };
+      const payload = { response: { data: `A virtual repository manager named 'man-1' already exists.` } };
+      const meta = { arg: { name: 'man-1' } };
+
+      const newState = reducer(state, {
+        type: 'firewallIqProxy/createVirtualRepositoryManager/rejected',
+        payload,
+        meta,
+      });
+
+      expect(newState.createManagerError).toBe(`A Virtual Repository Manager named 'man-1' already exists.`);
     });
 
     it('/rejected uses fallback message when payload is undefined', () => {
       const state = { creatingManager: true, createManagerError: null };
 
-      const newState = reducer(state, { type: 'firewallIqProxy/createVirtualRepositoryManager/rejected', payload: undefined });
+      const newState = reducer(state, {
+        type: 'firewallIqProxy/createVirtualRepositoryManager/rejected',
+        payload: undefined,
+      });
 
       expect(newState.creatingManager).toBe(false);
-      expect(newState.createManagerError).toBe('An error occurred while creating the repository manager.');
+      expect(newState.createManagerError).toBe('An error occurred while creating the virtual repository manager.');
+    });
+
+    it('clearCreateManagerError resets the error to null', () => {
+      const state = { ...initialState, createManagerError: `A Virtual Repository Manager named 'x' already exists.` };
+
+      const newState = reducer(state, actions.clearCreateManagerError());
+
+      expect(newState.createManagerError).toBeNull();
     });
   });
 

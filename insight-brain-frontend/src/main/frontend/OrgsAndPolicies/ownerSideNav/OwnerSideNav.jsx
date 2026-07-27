@@ -170,6 +170,7 @@ export default function OwnerSideNav() {
     setIsAddRepoManagerModalOpen(false);
     if (name) {
       dispatch(actions.forceReload());
+      dispatch(actions.expandVirtualRepositoryManagers());
       if (isFirewallEnterpriseConfigPlaneEnabled) {
         dispatch(firewallIqProxyActions.fetchVirtualRepositoryManagers());
       }

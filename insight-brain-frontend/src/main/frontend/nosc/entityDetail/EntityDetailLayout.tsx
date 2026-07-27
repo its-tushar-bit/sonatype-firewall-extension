@@ -107,26 +107,29 @@ export function EntityDetailLayout({
             ))}
           </Tabs.List>
 
-          {tabs.map((tab) => (
-            <Tabs.Content
-              key={tab.value}
-              value={tab.value}
-              data-testid={`${testIdPrefix}-tab-content-${tab.value}`}
+          {/*
+            One stable Tabs.Content for all tabs (value tracks the active tab).
+            Pages own which bodies stay mounted (e.g. keep Security Details after
+            first visit). Remounting children on every tab change would re-fetch
+            and drop in-tab UI state. resetKeys clears a prior tab's ErrorBoundary
+            when the active tab changes.
+          */}
+          <Tabs.Content
+            value={resolvedActiveTab}
+            forceMount
+            data-testid={`${testIdPrefix}-tab-content-${resolvedActiveTab}`}
+          >
+            <ErrorBoundary
+              resetKeys={[resolvedActiveTab]}
+              onError={(error) => {
+                // eslint-disable-next-line no-console
+                console.error('Entity detail tab failed to load', error);
+              }}
+              fallbackRender={() => <TabErrorFallback testIdPrefix={testIdPrefix} />}
             >
-              {/* Only the active tab mounts an ErrorBoundary; switching tabs remounts a fresh boundary. */}
-              {tab.value === resolvedActiveTab ? (
-                <ErrorBoundary
-                  onError={(error) => {
-                    // eslint-disable-next-line no-console
-                    console.error('Entity detail tab failed to load', error);
-                  }}
-                  fallbackRender={() => <TabErrorFallback testIdPrefix={testIdPrefix} />}
-                >
-                  {children}
-                </ErrorBoundary>
-              ) : null}
-            </Tabs.Content>
-          ))}
+              {children}
+            </ErrorBoundary>
+          </Tabs.Content>
         </Tabs.Root>
       </main>
     </Box>

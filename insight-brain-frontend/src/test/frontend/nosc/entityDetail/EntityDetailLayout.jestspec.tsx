@@ -27,36 +27,50 @@ describe('EntityDetailLayout', () => {
     { value: 'findings', label: 'Findings', testId: 'entity-detail-tab-findings' },
   ];
 
-  it('renders slots and mounts children inside the active tab content', async () => {
+  it('renders slots and keeps children mounted across tab changes', async () => {
     const user = userEvent.setup();
-    const onTabChange = jest.fn();
+    let mountCount = 0;
 
-    render(
-      <EntityDetailLayout
-        breadcrumb={<nav aria-label="Breadcrumb">Lifecycle / App One</nav>}
-        header={<h1>App One</h1>}
-        context={null}
-        tabs={tabs}
-        activeTab="overview"
-        onTabChange={onTabChange}
-        mainTestId="nosc-entity-detail-main"
-      >
-        <section>Overview content</section>
-      </EntityDetailLayout>,
-    );
+    function MountProbe(): React.ReactElement {
+      React.useEffect(() => {
+        mountCount += 1;
+      }, []);
+      return <section>Stable child</section>;
+    }
+
+    function Harness(): React.ReactElement {
+      const [tab, setTab] = React.useState('overview');
+      return (
+        <EntityDetailLayout
+          breadcrumb={<nav aria-label="Breadcrumb">Lifecycle / App One</nav>}
+          header={<h1>App One</h1>}
+          context={null}
+          tabs={tabs}
+          activeTab={tab}
+          onTabChange={setTab}
+          mainTestId="nosc-entity-detail-main"
+        >
+          <MountProbe />
+        </EntityDetailLayout>
+      );
+    }
+
+    render(<Harness />);
 
     const main = screen.getByTestId('nosc-entity-detail-main');
     expect(within(main).getByLabelText('Breadcrumb')).toHaveTextContent('Lifecycle / App One');
     expect(within(main).getByRole('heading', { name: 'App One' })).toBeInTheDocument();
-
-    const tabPanel = within(main).getByRole('tabpanel');
-    expect(within(tabPanel).getByText('Overview content')).toBeInTheDocument();
+    expect(within(main).getByRole('tabpanel')).toHaveTextContent('Stable child');
     expect(screen.getByTestId('nosc-entity-detail-tab-content-overview')).toBeInTheDocument();
+    expect(mountCount).toBe(1);
 
     await user.click(screen.getByTestId('entity-detail-tab-findings'));
 
-    expect(onTabChange).toHaveBeenCalledWith('findings');
-    expect(screen.getByTestId('entity-detail-tab-findings')).toBeInTheDocument();
+    expect(screen.getByTestId('entity-detail-tab-findings')).toHaveAttribute('data-state', 'active');
+    expect(screen.getByTestId('nosc-entity-detail-tab-content-findings')).toBeInTheDocument();
+    expect(screen.getByText('Stable child')).toBeInTheDocument();
+    // Same child instance stays mounted when the controlled tab changes.
+    expect(mountCount).toBe(1);
   });
 
   it('falls back to the first tab for display without calling onTabChange', () => {
@@ -159,7 +173,7 @@ describe('EntityDetailLayout', () => {
     expect(screen.getByTestId('nosc-entity-detail-context-rail')).toBeInTheDocument();
   });
 
-  it('shows a generic ErrorBoundary fallback and clears it when the tab remounts', async () => {
+  it('shows a generic ErrorBoundary fallback and clears it when the active tab changes', async () => {
     const user = userEvent.setup();
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 

@@ -79,6 +79,11 @@ export interface PolicyWaiverDetailDTO extends PolicyWaiverDTO {
   associatedPackageUrl?: string | null;
   scopeOwnerType?: string | null;
   scopeOwnerName?: string | null;
+  /**
+   * The v2 detail payload spells this without the `is` prefix the dashboard list
+   * row uses; both are read when presenting expiry.
+   */
+  expireWhenRemediationAvailable?: boolean;
   forContainerImage?: boolean;
   constraintFacts?: ReadonlyArray<PolicyWaiverConstraintFact> | null;
 }

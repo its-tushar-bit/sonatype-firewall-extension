@@ -41,18 +41,17 @@ describe('WaiverDetailPage', () => {
       .reply(200, body);
   }
 
-  it('renders policy + threat + scope + constraint conditions on success', async () => {
+  it('renders policy, threat, constraint blurb and the Waiver Details card on success', async () => {
     reply({
       id: ROUTE.waiverId,
       threatLevel: 9,
       policyName: 'Critical CVSS 9+',
       ownerId: ROUTE.ownerId,
       ownerType: ROUTE.ownerType,
-      scope: 'Application: Apple - Java',
       scopeOwnerType: 'application',
       scopeOwnerName: 'Apple - Java',
       createTime: '2026-05-01T10:00:00Z',
-      expiryTime: '2026-12-31T00:00:00Z',
+      expiryTime: '2036-12-31T00:00:00Z',
       creatorName: 'msjohnson',
       reasonText: 'Risk accepted by AppSec',
       comment: 'Approved in CHG-12345',
@@ -69,62 +68,165 @@ describe('WaiverDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Critical CVSS 9+')).toBeInTheDocument();
     });
-    expect(screen.getByText(/Threat 9/i)).toBeInTheDocument();
-    expect(screen.getByText('Apple - Java')).toBeInTheDocument();
-    // Constraint + conditions
-    expect(screen.getByText('Severity 9+')).toBeInTheDocument();
-    expect(screen.getByText('CVSS Score >= 9.0')).toBeInTheDocument();
-    expect(screen.getByText('Has fix available')).toBeInTheDocument();
-    // Reason + comment
-    expect(screen.getByText('Risk accepted by AppSec')).toBeInTheDocument();
-    expect(screen.getByText('Approved in CHG-12345')).toBeInTheDocument();
-    // Lifecycle dates (UTC calendar day via waiverDisplayUtils)
-    expect(
-      screen.getByText(formatDateUtcYYYYMMDD('2026-05-01T10:00:00Z')),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(formatDateUtcYYYYMMDD('2026-12-31T00:00:00Z')),
-    ).toBeInTheDocument();
-    expect(screen.getByText('msjohnson')).toBeInTheDocument();
-    // "Continue in Classic" deep-link with all 3 segments
-    const classicLink = screen.getByTestId('preview-waiver-detail-classic-link');
-    expect(classicLink).toHaveAttribute(
+    expect(screen.getByLabelText('Threat level 9')).toBeInTheDocument();
+
+    // Constraint blurb reads "{constraint} is in violation for:" + condition bullets.
+    const constraint = screen.getByTestId('preview-waiver-detail-constraint');
+    expect(constraint).toHaveTextContent('Severity 9+ is in violation for:');
+    expect(within(constraint).getByText('CVSS Score >= 9.0')).toBeInTheDocument();
+    expect(within(constraint).getByText('Has fix available')).toBeInTheDocument();
+
+    // Waiver Details card rows.
+    expect(screen.getByTestId('preview-waiver-detail-created')).toHaveTextContent(
+      `${formatDateUtcYYYYMMDD('2026-05-01T10:00:00Z')} by msjohnson`,
+    );
+    expect(screen.getByTestId('preview-waiver-detail-reason')).toHaveTextContent(
+      'Risk accepted by AppSec',
+    );
+    expect(screen.getByTestId('preview-waiver-detail-comments')).toHaveTextContent(
+      'Approved in CHG-12345',
+    );
+
+    // Classic escapes.
+    expect(screen.getByTestId('preview-waiver-detail-classic-link')).toHaveAttribute(
       'href',
-      expect.stringContaining(`/waiver/details/${ROUTE.ownerType}/${ROUTE.ownerId}/${ROUTE.waiverId}/waiver`)
+      expect.stringContaining(
+        `/waiver/details/${ROUTE.ownerType}/${ROUTE.ownerId}/${ROUTE.waiverId}/waiver`,
+      ),
     );
   });
 
-  it('renders an Auto-waiver badge and "Auto" expiry when isAutoWaiver=true', async () => {
+  it('composes the Scope, Component and Expires meta strip from the v2 payload', async () => {
     reply({
       id: ROUTE.waiverId,
-      threatLevel: 5,
-      policyName: 'Auto-managed waiver',
+      threatLevel: 8,
+      policyName: 'Security-High',
       ownerId: ROUTE.ownerId,
       ownerType: ROUTE.ownerType,
-      scope: 'Application: Apple - Java',
-      scopeOwnerName: 'Apple - Java',
-      isAutoWaiver: true,
+      scopeOwnerType: 'repository_manager',
+      scopeOwnerName: 'Repository Manager',
+      expiryTime: '2036-07-02T00:00:00Z',
+      componentIdentifier: {
+        format: 'maven',
+        coordinates: { artifactId: 'shiro-core', version: '1.13.0' },
+      },
     });
+
     renderDetail();
-    await waitFor(() => {
-      expect(screen.getByText('Auto-waiver')).toBeInTheDocument();
-    });
-    expect(screen.getByText(/auto \(managed by iq\)/i)).toBeInTheDocument();
+
+    await screen.findByTestId('preview-waiver-detail-meta');
+    expect(screen.getByTestId('preview-waiver-detail-meta-scope')).toHaveTextContent(
+      'Repository Manager (Repository Manager)',
+    );
+    expect(screen.getByTestId('preview-waiver-detail-meta-component')).toHaveTextContent(
+      'shiro-core:1.13.0',
+    );
+    expect(screen.getByTestId('preview-waiver-detail-meta-expires')).toHaveTextContent(
+      formatDateUtcYYYYMMDD('2036-07-02T00:00:00Z'),
+    );
   });
 
-  it('shows "Does not expire" when there is no expiryTime and not auto', async () => {
+  it('flags a past expiry as Expired in both the meta strip and the details card', async () => {
+    reply({
+      id: ROUTE.waiverId,
+      threatLevel: 8,
+      policyName: 'Lapsed waiver',
+      ownerId: ROUTE.ownerId,
+      ownerType: ROUTE.ownerType,
+      scopeOwnerName: 'Apple - Java',
+      expiryTime: '2020-01-01T00:00:00Z',
+    });
+
+    renderDetail();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-waiver-detail-meta-expired-badge')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('preview-waiver-detail-expired-badge')).toBeInTheDocument();
+    expect(screen.getByTestId('preview-waiver-detail-expires')).toHaveTextContent('Expired');
+  });
+
+  it('hides the Component meta chip for container-image waivers', async () => {
+    reply({
+      id: ROUTE.waiverId,
+      threatLevel: 8,
+      policyName: 'Container waiver',
+      ownerId: ROUTE.ownerId,
+      ownerType: ROUTE.ownerType,
+      scopeOwnerName: 'Apple - Java',
+      forContainerImage: true,
+      componentIdentifier: {
+        format: 'maven',
+        coordinates: { artifactId: 'ignored', version: '1.0.0' },
+      },
+    });
+
+    renderDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText('Container image')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('preview-waiver-detail-meta-component')).not.toBeInTheDocument();
+  });
+
+  it('shows "Never" when there is no expiry and the waiver is not auto', async () => {
     reply({
       id: ROUTE.waiverId,
       threatLevel: 3,
       policyName: 'Indefinite waiver',
       ownerId: ROUTE.ownerId,
       ownerType: ROUTE.ownerType,
-      scope: 'Org: Root',
       scopeOwnerName: 'Root',
     });
     renderDetail();
     await waitFor(() => {
-      expect(screen.getByText('Does not expire')).toBeInTheDocument();
+      expect(screen.getByTestId('preview-waiver-detail-expires')).toHaveTextContent('Never');
+    });
+    expect(screen.queryByTestId('preview-waiver-detail-expired-badge')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('preview-waiver-detail-meta-expired-badge')).not.toBeInTheDocument();
+  });
+
+  it('renders an Auto-waiver badge and Auto expiry in the meta strip and details card', async () => {
+    reply({
+      id: ROUTE.waiverId,
+      threatLevel: 5,
+      policyName: 'Managed auto-waiver',
+      ownerId: ROUTE.ownerId,
+      ownerType: ROUTE.ownerType,
+      scopeOwnerName: 'Apple - Java',
+      isAutoWaiver: true,
+      expiryTime: '2036-12-31T00:00:00Z',
+    });
+
+    renderDetail();
+
+    await waitFor(() => {
+      expect(screen.getByText('Auto-waiver')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('preview-waiver-detail-meta-expires')).toHaveTextContent(
+      'Auto (managed by IQ)',
+    );
+    expect(screen.getByTestId('preview-waiver-detail-expires')).toHaveTextContent(
+      'Auto (managed by IQ)',
+    );
+    expect(screen.queryByTestId('preview-waiver-detail-expired-badge')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('preview-waiver-detail-meta-expired-badge')).not.toBeInTheDocument();
+  });
+
+  it('falls back to an empty-state blockquote when there is no comment', async () => {
+    reply({
+      id: ROUTE.waiverId,
+      threatLevel: 1,
+      policyName: 'Quiet waiver',
+      ownerId: ROUTE.ownerId,
+      ownerType: ROUTE.ownerType,
+      scopeOwnerName: 'Root',
+    });
+    renderDetail();
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-waiver-detail-comments')).toHaveTextContent(
+        'No additional comments',
+      );
     });
   });
 
@@ -143,17 +245,14 @@ describe('WaiverDetailPage', () => {
   it('maps root_organization in the URL to organization for the details API', async () => {
     const ownerId = 'root-org-internal';
     const waiverId = 'w-root';
-    axiosMock
-      .onGet(getWaiverDetailsUrl('organization', ownerId, waiverId))
-      .reply(200, {
-        id: waiverId,
-        threatLevel: 1,
-        policyName: 'Root org waiver',
-        ownerId,
-        ownerType: 'organization',
-        scope: 'Org: Root',
-        scopeOwnerName: 'Root',
-      });
+    axiosMock.onGet(getWaiverDetailsUrl('organization', ownerId, waiverId)).reply(200, {
+      id: waiverId,
+      threatLevel: 1,
+      policyName: 'Root org waiver',
+      ownerId,
+      ownerType: 'organization',
+      scopeOwnerName: 'Root',
+    });
 
     renderNexusOneRoute(<WaiverDetailPage />, 'nexusOneWaiverDetail', {
       ownerType: 'root_organization',
@@ -171,17 +270,14 @@ describe('WaiverDetailPage', () => {
   it('maps all_repositories in the URL to repository_container for the details API', async () => {
     const ownerId = 'repo-container-1';
     const waiverId = 'w-repo';
-    axiosMock
-      .onGet(getWaiverDetailsUrl('repository_container', ownerId, waiverId))
-      .reply(200, {
-        id: waiverId,
-        threatLevel: 3,
-        policyName: 'Repository waiver',
-        ownerId,
-        ownerType: 'repository_container',
-        scope: 'All repositories',
-        scopeOwnerName: 'All repositories',
-      });
+    axiosMock.onGet(getWaiverDetailsUrl('repository_container', ownerId, waiverId)).reply(200, {
+      id: waiverId,
+      threatLevel: 3,
+      policyName: 'Repository waiver',
+      ownerId,
+      ownerType: 'repository_container',
+      scopeOwnerName: 'All repositories',
+    });
 
     renderNexusOneRoute(<WaiverDetailPage />, 'nexusOneWaiverDetail', {
       ownerType: 'all_repositories',
@@ -198,37 +294,68 @@ describe('WaiverDetailPage', () => {
     );
   });
 
-  it('back link goes to /waivers', async () => {
+  it('lowercases enum-style owner types coming from list deep-links', async () => {
+    const ownerId = 'app-from-ana';
+    const waiverId = 'w-ana';
+    axiosMock.onGet(getWaiverDetailsUrl('application', ownerId, waiverId)).reply(200, {
+      id: waiverId,
+      threatLevel: 5,
+      policyName: 'Ana deep-link waiver',
+      ownerId,
+      ownerType: 'application',
+      scopeOwnerName: 'Apple - Java',
+    });
+
+    renderNexusOneRoute(<WaiverDetailPage />, 'nexusOneWaiverDetail', {
+      ownerType: 'APPLICATION',
+      ownerId,
+      waiverId,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Ana deep-link waiver')).toBeInTheDocument();
+    });
+    expect(axiosMock.history.get[0].url).toBe(
+      getWaiverDetailsUrl('application', ownerId, waiverId),
+    );
+  });
+
+  it('breadcrumb links back to /waivers and names the current page', async () => {
     reply({
       id: ROUTE.waiverId,
       threatLevel: 1,
       ownerId: ROUTE.ownerId,
       ownerType: ROUTE.ownerType,
-      scope: 'Org: Root',
+      scopeOwnerName: 'Root',
     });
     renderDetail();
     await waitFor(() => {
       expect(screen.getByTestId('preview-waiver-detail-back-link')).toBeInTheDocument();
     });
-    const back = screen.getByTestId('preview-waiver-detail-back-link');
-    expect(back).toHaveAttribute('href', '#/waivers');
+    expect(screen.getByTestId('preview-waiver-detail-back-link')).toHaveAttribute(
+      'href',
+      '#/waivers',
+    );
+    expect(screen.getByTestId('preview-waiver-detail-breadcrumb')).toHaveTextContent(
+      /Waivers\s*\/\s*Waiver Details/,
+    );
   });
 
-  it('renders EntityDetailLayout chrome and Classic list escape after load', async () => {
+  it('renders Overview as the only tab plus the Classic list escape', async () => {
     reply({
       id: ROUTE.waiverId,
       threatLevel: 1,
       policyName: 'Layout waiver',
       ownerId: ROUTE.ownerId,
       ownerType: ROUTE.ownerType,
-      scope: 'Application: Apple - Java',
+      scopeOwnerName: 'Apple - Java',
     });
     renderDetail();
 
     expect(screen.getByTestId('preview-waiver-detail-page')).toBeInTheDocument();
-    expect(screen.getByTestId('preview-waiver-detail-tabs')).toBeInTheDocument();
+    const tabs = screen.getByTestId('preview-waiver-detail-tabs');
+    expect(within(tabs).getAllByRole('tab')).toHaveLength(1);
     expect(screen.getByTestId('preview-waiver-detail-tab-overview')).toBeInTheDocument();
-    expect(screen.getByTestId('preview-waiver-detail-breadcrumb')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByTestId('preview-waiver-detail-header')).toBeInTheDocument();
@@ -239,24 +366,20 @@ describe('WaiverDetailPage', () => {
     expect(classicList).toHaveAttribute('href', expect.stringContaining('/dashboard/waivers'));
   });
 
-  it('links vulnerability to Classic until native vulnerability detail lands', async () => {
+  it('links vulnerability to native Nexus One vulnerability detail', async () => {
     reply({
       id: ROUTE.waiverId,
       threatLevel: 9,
       policyName: 'Vuln waiver',
       ownerId: ROUTE.ownerId,
       ownerType: ROUTE.ownerType,
-      scope: 'Application: Apple - Java',
+      scopeOwnerName: 'Apple - Java',
       vulnerabilityId: 'CVE-2024-1234',
     });
     renderDetail();
 
     const vulnLink = await screen.findByTestId('preview-waiver-detail-vuln-link');
-    expect(vulnLink).toHaveAttribute(
-      'href',
-      expect.stringContaining('/vulnerabilities/CVE-2024-1234'),
-    );
-    expect(vulnLink.getAttribute('href')).not.toMatch(/^#\/vulnerabilities\//);
+    expect(vulnLink).toHaveAttribute('href', '#/vulnerabilities/CVE-2024-1234');
   });
 
   it('related-risk context rail marks the vulnerability as current after metadata loads', async () => {
@@ -266,7 +389,7 @@ describe('WaiverDetailPage', () => {
       policyName: 'Rail waiver',
       ownerId: ROUTE.ownerId,
       ownerType: ROUTE.ownerType,
-      scope: 'Application: Apple - Java',
+      scopeOwnerName: 'Apple - Java',
       vulnerabilityId: 'CVE-2024-9999',
     });
     renderDetail();
@@ -279,5 +402,21 @@ describe('WaiverDetailPage', () => {
       expect(within(rail).getByText(placeholder)).toBeInTheDocument();
       expect(within(rail).queryByRole('link', { name: placeholder })).not.toBeInTheDocument();
     }
+  });
+
+  it('issues exactly one detail GET and no estate fan-out', async () => {
+    reply({
+      id: ROUTE.waiverId,
+      threatLevel: 4,
+      policyName: 'Single GET waiver',
+      ownerId: ROUTE.ownerId,
+      ownerType: ROUTE.ownerType,
+      scopeOwnerName: 'Apple - Java',
+    });
+    renderDetail();
+
+    await screen.findByTestId('preview-waiver-detail-body');
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.post).toHaveLength(0);
   });
 });

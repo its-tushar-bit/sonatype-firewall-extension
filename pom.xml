@@ -151,6 +151,7 @@
     <spring-framework.version>7.0.8</spring-framework.version>
     <aspectj.version>1.9.25.1</aspectj.version>
     <aspectj-maven-plugin.version>1.14.1</aspectj-maven-plugin.version>
+    <pmd.version>7.26.0</pmd.version>
   </properties>
 
   <scm>
@@ -1463,6 +1464,16 @@
         <artifactId>aspectjrt</artifactId>
         <version>${aspectj.version}</version>
       </dependency>
+      <dependency>
+        <groupId>net.sourceforge.pmd</groupId>
+        <artifactId>pmd-core</artifactId>
+        <version>${pmd.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sourceforge.pmd</groupId>
+        <artifactId>pmd-java</artifactId>
+        <version>${pmd.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -1611,6 +1622,22 @@
               <groupId>org.aspectj</groupId>
               <artifactId>aspectjtools</artifactId>
               <version>${aspectj.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <dependencies>
+            <dependency>
+              <groupId>net.sourceforge.pmd</groupId>
+              <artifactId>pmd-core</artifactId>
+              <version>${pmd.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>net.sourceforge.pmd</groupId>
+              <artifactId>pmd-java</artifactId>
+              <version>${pmd.version}</version>
             </dependency>
           </dependencies>
         </plugin>

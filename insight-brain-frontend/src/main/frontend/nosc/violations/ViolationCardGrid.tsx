@@ -12,13 +12,31 @@ import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 import { ViolationRow } from 'MainRoot/nosc/violations/violationListTypes';
 import { ViolationThreatBadge } from 'MainRoot/nosc/violations/ViolationThreatBadge';
 import { violationDetailHref } from 'MainRoot/nosc/violations/violationDetailHref';
-import { violationStateLabel } from 'MainRoot/nosc/violations/violationsListApi';
+import {
+  threatCategoryLabel,
+  violationStateLabel,
+} from 'MainRoot/nosc/violations/violationsListApi';
 import './ViolationCardGrid.scss';
 
 const STATE_BADGE_COLOR: Readonly<Record<string, 'red' | 'gray'>> = {
   OPEN: 'red',
   WAIVED: 'gray',
 };
+
+/** Martha policy chrome: {@code Security-Critical} from threatCategory + severity (not policyName). */
+export function policyTypeSeverityLabel(row: ViolationRow): string | undefined {
+  const category = row.threatCategory?.trim()
+    ? threatCategoryLabel(row.threatCategory.trim())
+    : undefined;
+  const severityRaw = row.severity?.trim();
+  const severity = severityRaw
+    ? severityRaw.charAt(0).toUpperCase() + severityRaw.slice(1).toLowerCase()
+    : undefined;
+  if (category && severity) return `${category}-${severity}`;
+  if (category) return category;
+  if (severity) return severity;
+  return row.policyName?.trim() || undefined;
+}
 
 /** Relative "first seen …" phrase; sub-minute timestamps read as "just now". */
 function formatFirstSeen(ms: number): string {
@@ -38,7 +56,7 @@ function componentDisplay(row: ViolationRow): string {
 function violationCardAriaLabel(v: ViolationRow): string {
   const state = v.state ?? 'OPEN';
   const component = componentDisplay(v);
-  const policy = v.policyName || '(unknown policy)';
+  const policy = policyTypeSeverityLabel(v) || '(unknown policy)';
   // Lead with the actual state so the label never contradicts it (e.g. a waived card must not be
   // announced as "Open violation …"). Include the threat level so severity — shown visually by the
   // badge — is also announced. Reads as "Open violation for X on Y, threat level 10" / "Waived
@@ -67,6 +85,7 @@ function ViolationCard({ violation: v }: { readonly violation: ViolationRow }): 
   // The list API does not index the violation timestamp yet, so this is undefined today; the line is
   // omitted when absent.
   const firstSeen = v.firstOccurredTime != null ? formatFirstSeen(v.firstOccurredTime) : '';
+  const policyLabel = policyTypeSeverityLabel(v);
 
   return (
     <Card asChild>
@@ -81,7 +100,7 @@ function ViolationCard({ violation: v }: { readonly violation: ViolationRow }): 
         <Flex direction="column" gap="2">
           <Flex align="center" justify="between" gap="4" wrap="wrap">
             <Flex align="center" gap="3" style={{ minWidth: 0, flex: 1 }}>
-              <ViolationThreatBadge threat={v.threatLevel} size="1" />
+              <ViolationThreatBadge threat={v.threatLevel} size="2" />
               <Text size="3" weight="bold" style={{ wordBreak: 'break-word' }}>
                 {component}
               </Text>
@@ -116,9 +135,9 @@ function ViolationCard({ violation: v }: { readonly violation: ViolationRow }): 
           </Flex>
 
           <Flex gap="4" wrap="wrap" align="center">
-            {v.policyName && (
-              <Text size="1" color="gray" weight="medium">
-                {v.policyName}
+            {policyLabel && (
+              <Text size="1" color="gray" weight="medium" data-testid="violation-card-policy">
+                {policyLabel}
               </Text>
             )}
             {v.organizationName && (

@@ -65,7 +65,7 @@ describe('ViolationsList', () => {
 
     await screen.findByTestId('violation-card-grid');
     const link = screen.getByRole('link', {
-      name: /open violation for security - critical on log4j-core : 2\.14\.0/i,
+      name: /open violation for Security-Critical on log4j-core : 2\.14\.0/i,
     });
     expect(link).toHaveAttribute('href', '#/violations/pv-log4j-critical');
   });
@@ -77,7 +77,7 @@ describe('ViolationsList', () => {
     await screen.findByTestId('violation-card-grid');
     expect(
       screen.getByRole('link', {
-        name: /waived violation for quality - standards on busybox : 1\.33 in cherry - platform,.*auto-waived/i,
+        name: /waived violation for Quality-Moderate on busybox : 1\.33 in cherry - platform,.*auto-waived/i,
       }),
     ).toBeInTheDocument();
   });
@@ -102,7 +102,7 @@ describe('ViolationsList', () => {
     expect(screen.getByText('(unknown component)')).toBeInTheDocument();
     expect(
       screen.getByRole('link', {
-        name: /open violation for security - critical on \(unknown component\)/i,
+        name: /open violation for Security-Critical on \(unknown component\)/i,
       }),
     ).toBeInTheDocument();
   });

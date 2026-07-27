@@ -29,4 +29,6 @@ export type ComponentListRow = {
   readonly ecosystem?: string;
   readonly organization?: string;
   readonly source: 'local' | 'catalog';
+  /** Optional in-app detail href from the catalog API when present. */
+  readonly href?: string;
 };

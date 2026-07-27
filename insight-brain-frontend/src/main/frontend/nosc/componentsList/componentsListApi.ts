@@ -113,6 +113,7 @@ export function mapCatalogComponentRow(row: ApiCatalogRow): ComponentListRow | n
   if (!id) return null;
   const source = row.source === 'catalog' ? 'catalog' : 'local';
   const fields = row.fields ?? undefined;
+  const href = row.href?.trim() || undefined;
   return {
     id,
     name: row.title?.trim() || id,
@@ -120,6 +121,7 @@ export function mapCatalogComponentRow(row: ApiCatalogRow): ComponentListRow | n
     ecosystem: asStringField(fields, 'ecosystem'),
     organization: asStringField(fields, 'organization'),
     source,
+    ...(href ? { href } : {}),
   };
 }
 

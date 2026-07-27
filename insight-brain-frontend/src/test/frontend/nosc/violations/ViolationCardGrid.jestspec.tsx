@@ -17,6 +17,7 @@ const OPEN_CRITICAL: ViolationRow = {
   policyViolationId: 'pv-1',
   threatLevel: 10,
   severity: 'critical',
+  threatCategory: 'security',
   policyName: 'Security - Critical',
   organizationName: 'Java-team',
   applicationName: 'Apple - Java',
@@ -32,6 +33,7 @@ const WAIVED_AUTO: ViolationRow = {
   policyViolationId: 'pv-2',
   threatLevel: 3,
   severity: 'moderate',
+  threatCategory: 'quality',
   policyName: 'Quality - Standards',
   organizationName: 'Platform',
   applicationName: 'Cherry - Platform',
@@ -46,6 +48,7 @@ const WAIVED_MANUAL: ViolationRow = {
   policyViolationId: 'pv-3',
   threatLevel: 5,
   severity: 'severe',
+  threatCategory: 'security',
   policyName: 'Security - High',
   componentName: 'jackson-databind',
   componentVersion: '2.9.9',
@@ -58,6 +61,7 @@ const OPEN_COORDS_ONLY: ViolationRow = {
   policyViolationId: 'pv-4',
   threatLevel: 7,
   severity: 'severe',
+  threatCategory: 'security',
   policyName: 'Security - High',
   componentName: 'guava',
   componentIdentifier: { format: 'maven', coordinates: { version: '30.1-jre' } },
@@ -79,11 +83,12 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     expect(screen.getAllByTestId('violation-card')).toHaveLength(2);
   });
 
-  it('shows component name with version, policy, org, app, and stage', () => {
+  it('shows component name with version, type+severity policy, org, app, and stage', () => {
     renderGrid([OPEN_CRITICAL]);
     const card = screen.getByTestId('violation-card');
     expect(within(card).getByText('log4j-core : 2.14.0')).toBeInTheDocument();
-    expect(within(card).getByText('Security - Critical')).toBeInTheDocument();
+    expect(within(card).getByTestId('violation-card-policy')).toHaveTextContent('Security-Critical');
+    expect(within(card).queryByText('Security - Critical')).not.toBeInTheDocument();
     expect(within(card).getByText('Java-team')).toBeInTheDocument();
     expect(within(card).getByText('Apple - Java')).toBeInTheDocument();
     expect(within(card).getByText('Build')).toBeInTheDocument();
@@ -176,7 +181,7 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     // Accessible name leads with the state and references the policy, component, application, and
     // threat level so screen readers announce the same context/severity the card shows visually.
     expect(link).toHaveAccessibleName(
-      'Open violation for Security - Critical on log4j-core : 2.14.0 in Apple - Java, threat level 10',
+      'Open violation for Security-Critical on log4j-core : 2.14.0 in Apple - Java, threat level 10',
     );
   });
 });

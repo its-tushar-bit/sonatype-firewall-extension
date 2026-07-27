@@ -40,6 +40,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -140,7 +141,7 @@ public class HostedComponentEvaluationServiceSyncTest
 
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("hds-scan-001");
-    when(scanUploader.uploadForRepository(eq(scanEntity), eq(REPO_ID), eq("release"), anyString(), eq(false)))
+    when(scanUploader.upload(eq(scanEntity), eq(repository), eq("release"), anyString(), isNull(), eq(true)))
         .thenReturn(receipt);
   }
 
@@ -302,7 +303,7 @@ public class HostedComponentEvaluationServiceSyncTest
 
   @Test
   public void evaluateSynchronously_scanUploadThrows_stillCleansUpScanFile() throws Exception {
-    when(scanUploader.uploadForRepository(any(), anyString(), anyString(), anyString(), anyBoolean()))
+    when(scanUploader.upload(any(), any(Repository.class), anyString(), anyString(), any(), anyBoolean()))
         .thenThrow(new IOException("HDS network error"));
 
     assertThatThrownBy(() -> service.evaluateSynchronously(
@@ -359,8 +360,8 @@ public class HostedComponentEvaluationServiceSyncTest
         repository, COMPONENT_ID, PURL, "stage-release", inboundScanFile,
         CORRELATION_ID, REQUESTED_BY, CLIENT);
 
-    verify(scanUploader).uploadForRepository(eq(scanEntity), eq(REPO_ID), eq("stage-release"), eq(CLIENT),
-        eq(false));
+    verify(scanUploader).upload(eq(scanEntity), eq(repository), eq("stage-release"), eq(CLIENT),
+        isNull(), eq(true));
     verify(evaluator).evaluateForHostedEnforcement(any(), any(), eq(false), eq(CLIENT), eq("stage-release"));
   }
 
@@ -373,8 +374,8 @@ public class HostedComponentEvaluationServiceSyncTest
         repository, COMPONENT_ID, PURL, "  " /* blank */, inboundScanFile,
         CORRELATION_ID, REQUESTED_BY, CLIENT);
 
-    verify(scanUploader).uploadForRepository(eq(scanEntity), eq(REPO_ID), eq("release"), eq(CLIENT),
-        eq(false));
+    verify(scanUploader).upload(eq(scanEntity), eq(repository), eq("release"), eq(CLIENT),
+        isNull(), eq(true));
     verify(evaluator).evaluateForHostedEnforcement(any(), any(), eq(false), eq(CLIENT), eq("release"));
   }
 

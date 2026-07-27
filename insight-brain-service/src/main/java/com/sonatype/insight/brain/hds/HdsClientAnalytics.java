@@ -36,13 +36,6 @@ public class HdsClientAnalytics
     return analytics;
   }
 
-  public static HdsClientAnalytics forRepository(String repositoryId) {
-    HdsClientAnalytics analytics = new HdsClientAnalytics();
-    analytics.ownerType = OwnerType.REPOSITORY;
-    analytics.ownerId = obfuscate(repositoryId);
-    return analytics;
-  }
-
   public OwnerType getOwnerType() {
     return ownerType;
   }

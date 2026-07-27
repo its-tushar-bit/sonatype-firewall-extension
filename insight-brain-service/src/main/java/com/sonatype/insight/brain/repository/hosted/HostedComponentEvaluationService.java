@@ -211,7 +211,7 @@ public class HostedComponentEvaluationService
       }
 
       ScanReceipt scanReceipt = scanUploaderProvider.get()
-          .uploadForRepository(scanEntity, repositoryId, effectiveStage, clientUserAgent, false);
+          .upload(scanEntity, repository, effectiveStage, clientUserAgent, null, true);
       log.debug("HDS upload completed for sync enforcement: scanId={}, correlationId={}",
           scanReceipt != null ? scanReceipt.getScanId() : null, correlationId);
 

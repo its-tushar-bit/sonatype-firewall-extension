@@ -396,7 +396,7 @@ public class HostedComponentScanQueueConsumer
       // raw scan record (matches today's behaviour for non-archive scans that fail to parse), then
       // bail — no application, no evaluation, no report.
       ScanReceipt scanReceipt = scanUploaderProvider.get()
-          .uploadForRepository(scanEntity, repositoryId, stage, null, true);
+          .upload(scanEntity, repository, stage, null, null, true);
       log.warn("Could not extract any component info from scan file for job id={}; uploaded via repository pipeline"
           + " (scanId={}) and skipping policy evaluation.",
           job.getId(), scanReceipt.getScanId());
@@ -417,7 +417,7 @@ public class HostedComponentScanQueueConsumer
           job.getId(), scanReceipt.getScanId(), application.getPublicId(), outerComponentInfo.pathname());
     }
     else {
-      scanReceipt = scanUploaderProvider.get().uploadForRepository(scanEntity, repositoryId, stage, null, true);
+      scanReceipt = scanUploaderProvider.get().upload(scanEntity, repository, stage, null, null, true);
       // WARN, not DEBUG — getOrCreateApplication should always succeed in normal operation. A
       // null return means the synthetic-application creation failed (org missing, permission
       // issue, race during cleanup), and the scan falls back to the repository pipeline which
@@ -498,8 +498,9 @@ public class HostedComponentScanQueueConsumer
     //
     // Guarded on application != null because the application-id is a required attribute of this
     // telemetry event and is not available on the repository-upload fallback path above
-    // (uploadForRepository). scanReceipt is guaranteed non-null after either upload branch (both
-    // throw on failure), but kept as a defensive guard against future refactors.
+    // (the Repository-typed upload branch, which no longer needs a synthetic application).
+    // scanReceipt is guaranteed non-null after either upload branch (both throw on failure), but
+    // kept as a defensive guard against future refactors.
     if (application != null && scanReceipt != null) {
       int effectiveCount = readEffectiveComponentCount(repositoryId, outerComponentInfo.pathname(),
           componentInfos.size());
@@ -709,8 +710,8 @@ public class HostedComponentScanQueueConsumer
    * and stamps the {@code scanId} so the UI Report link becomes clickable.
    * <p>
    * <b>Note on the double HDS upload:</b> the sync enforcement path already uploaded the scan via
-   * {@code uploadForRepository} before the evaluation. This method performs a second upload via
-   * {@code upload(scanEntity, application, ...)} so HDS keys the report bundle to the synthetic
+   * {@code upload(scanEntity, repository, ...)} before the evaluation. This method performs a
+   * second upload via {@code upload(scanEntity, application, ...)} so HDS keys the report bundle to the synthetic
    * application's id (not the repository id) — that's what makes the per-component Report link
    * resolvable in the UI. The duplicate upload is acceptable because HDS de-dupes identical scan
    * payloads; the marginal latency on the sync path is small compared to the initial upload + dual

@@ -19,7 +19,8 @@ import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -69,19 +70,19 @@ public class ScanUploader
   }
 
   /**
-   * Uploads an existing scan file to the HDS server.
+   * Uploads an existing scan file to the HDS server on behalf of any {@link Owner}.
    *
    * @since 1.8
    */
   public ScanReceipt upload(
       ScanEntity scanEntity,
-      Application application,
+      Owner owner,
       String stageTypeId,
       String clientUserAgent,
       ThirdPartyScanContext thirdPartyScanContext,
       boolean isWebUIRequest) throws IOException
   {
-    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
+    HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(owner);
 
     validateIntegrationVersion(clientUserAgent, isWebUIRequest);
 
@@ -109,40 +110,24 @@ public class ScanUploader
       isCpeDataMatchingEnabled = true;
     }
     else if (thirdPartyScanContext == null || thirdPartyScanContext.getContainerItemContentType() == null) {
-      isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(application.getId());
+      isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(owner);
     }
 
     uploadMetadata.put("enableCpeDataMatching", Boolean.toString(isCpeDataMatchingEnabled));
     ScanReceipt receipt =
         client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanEntity, uploadMetadata);
-    augmentScanReceipt(application.getPublicId(), receipt, stageTypeId, thirdPartyScanContext);
+
+    log.debug("Successfully uploaded scan id {} for stageType {}", receipt.getScanId(), stageTypeId);
+    AuditData.get().setScanId(receipt.getScanId());
+
+    // TODO(CLM-42796): Application-only for now — HRC has no publicId and
+    // UserInterfaceLinksHelper has no HRC URL builder yet. Extend to report-bearing
+    // owners (HRC) once HRC report routes + link builders exist. Do NOT make this
+    // unconditional: report-less repository/enforcement uploads must still skip.
+    if (owner.getType() == OwnerType.APPLICATION) {
+      augmentScanReceipt(owner.getPublicId(), receipt, stageTypeId, thirdPartyScanContext);
+    }
     return receipt;
-  }
-
-  public ScanReceipt uploadForRepository(
-      ScanEntity scanEntity,
-      String repositoryId,
-      String stageTypeId,
-      String clientUserAgent,
-      boolean isWebUIRequest) throws IOException
-  {
-    HdsClientAnalytics analytics = HdsClientAnalytics.forRepository(repositoryId);
-
-    validateIntegrationVersion(clientUserAgent, isWebUIRequest);
-
-    String uploadId = UUID.randomUUID().toString().replace("-", "");
-    Map<String, String> uploadMetadata = new HashMap<>();
-    uploadMetadata.put("uploadId", uploadId);
-    if (stageTypeId != null && !stageTypeId.isEmpty()) {
-      uploadMetadata.put("stageTypeId", stageTypeId);
-    }
-    Map<String, String> matcherConfiguration = configuration.getMatcherConfiguration();
-    if (MapUtils.isNotEmpty(matcherConfiguration)) {
-      uploadMetadata.putAll(matcherConfiguration);
-    }
-    uploadMetadata.put("enableCpeDataMatching", Boolean.toString(false));
-
-    return client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanEntity, uploadMetadata);
   }
 
   void augmentScanReceipt(
@@ -151,9 +136,6 @@ public class ScanUploader
       String stageTypeId,
       ThirdPartyScanContext thirdPartyScanContext)
   {
-    log.debug("Successfully uploaded scan id {} for stageType {}", receipt.getScanId(), stageTypeId);
-    AuditData.get().setScanId(receipt.getScanId());
-
     // HDS knows nothing about where CLM Server stores reports, add this info to the receipt.
     if (StageTypes.COMPLIANCE.getId().equals(stageTypeId) && thirdPartyScanContext != null
         && thirdPartyScanContext.getApplicationVersion() != null)

@@ -14,6 +14,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -238,7 +240,7 @@ public class CpeMatchingConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.APPLICATION, appId, mockDto))
-        .withMessage("Application with ID " + appId + " does not exist.");
+        .withMessage("Owner with ID " + appId + " does not exist.");
   }
 
   @Test
@@ -249,7 +251,7 @@ public class CpeMatchingConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.ORGANIZATION, orgId,
             mockDto))
-        .withMessage("Organization with ID " + orgId + " does not exist.");
+        .withMessage("Owner with ID " + orgId + " does not exist.");
   }
 
   @Test
@@ -453,7 +455,7 @@ public class CpeMatchingConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> cpeMatchingConfigurationService.disableCpeMatchingConfiguration(OwnerType.APPLICATION,
             "fakeId", null))
-        .withMessageContaining("Application with ID fakeId does not exist");
+        .withMessageContaining("Owner with ID fakeId does not exist");
   }
 
   @Test
@@ -461,7 +463,7 @@ public class CpeMatchingConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> cpeMatchingConfigurationService.disableCpeMatchingConfiguration(OwnerType.ORGANIZATION,
             "fakeId", null))
-        .withMessageContaining("Organization with ID fakeId does not exist");
+        .withMessageContaining("Owner with ID fakeId does not exist");
   }
 
   @Test
@@ -709,5 +711,97 @@ public class CpeMatchingConfigurationServiceTest
     assertThat(appCpeConfig.allowOverride).isFalse(); // Taken from Parent Org
     assertThat(appCpeConfig.inheritedFromOrganizationName).isEqualTo("Root Organization");
     assertThat(appCpeConfig.inheritedFromOrganizationAllowOverride).isFalse(); // Taken from Parent Org
+  }
+
+  @Test
+  public void isCpeDataMatchingEnabled_application_twoArgOverload_matchesShim() {
+    Application app = tempEntity.newApplicationWithParent();
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(app.getId(), true, false));
+
+    boolean singleArg = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
+    boolean twoArg = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(OwnerType.APPLICATION, app.getId());
+
+    assertThat(twoArg).isEqualTo(singleArg);
+    assertThat(twoArg).isTrue();
+  }
+
+  @Test
+  public void isCpeDataMatchingEnabled_repository_walksAncestorChainInheritedFromRootOrg() {
+    // Root Organization has CPE enabled; a Repository under the default RepositoryContainer inherits it.
+    // Ancestor chain: Repository -> RepositoryManager -> REPOSITORY_CONTAINER_ID -> ROOT_ORGANIZATION_ID
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(Organization.ROOT_ORGANIZATION_ID, true, true));
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(repositoryManager);
+
+    // Repository has no own cpe_matching_configuration row -> must inherit from Root Organization ancestor.
+    boolean result =
+        cpeMatchingConfigurationService.isCpeDataMatchingEnabled(OwnerType.REPOSITORY, repo.getId());
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void isCpeDataMatchingEnabled_sbomManagerOnly_returnsTrueForAllOwnerTypes() {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+
+    Application app = tempEntity.newApplicationWithParent();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(repositoryManager);
+
+    assertThat(cpeMatchingConfigurationService.isCpeDataMatchingEnabled(OwnerType.APPLICATION, app.getId()))
+        .isTrue();
+    assertThat(cpeMatchingConfigurationService.isCpeDataMatchingEnabled(OwnerType.REPOSITORY, repo.getId()))
+        .isTrue();
+  }
+
+  @Test
+  public void getCpeMatchingConfigurationNoAuthz_unknownOwnerId_throwsNotFoundException() {
+    // Use an ID that resolves to no owner subtype in OwnerDAO.
+    String bogusId = "00000000-0000-0000-0000-000000000000";
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> cpeMatchingConfigurationService.getCpeMatchingConfigurationNoAuthz(
+            OwnerType.APPLICATION, bogusId));
+  }
+
+  @Test
+  public void isCpeDataMatchingEnabled_ownerOverload_matchesTwoArgVariantForApplication() {
+    Application app = tempEntity.newApplicationWithParent();
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(app.getId(), true, false));
+
+    boolean twoArg = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(OwnerType.APPLICATION, app.getId());
+    boolean ownerArg = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app);
+
+    assertThat(ownerArg).isEqualTo(twoArg);
+    assertThat(ownerArg).isTrue();
+  }
+
+  @Test
+  public void isCpeDataMatchingEnabled_ownerOverload_matchesTwoArgVariantForRepository() {
+    // Root Organization has CPE enabled; a Repository inherits via the ancestor chain.
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(Organization.ROOT_ORGANIZATION_ID, true, true));
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(repositoryManager);
+
+    boolean twoArg = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(OwnerType.REPOSITORY, repo.getId());
+    boolean ownerArg = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(repo);
+
+    assertThat(ownerArg).isEqualTo(twoArg);
+    assertThat(ownerArg).isTrue();
+  }
+
+  @Test
+  public void getCpeMatchingConfigurationNoAuthz_ownerOverload_matchesTwoArgVariant() {
+    Application app = tempEntity.newApplicationWithParent();
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(app.getId(), true, false));
+
+    CpeMatchingConfigurationDTO twoArg =
+        cpeMatchingConfigurationService.getCpeMatchingConfigurationNoAuthz(OwnerType.APPLICATION, app.getId());
+    CpeMatchingConfigurationDTO ownerArg =
+        cpeMatchingConfigurationService.getCpeMatchingConfigurationNoAuthz(app);
+
+    assertThat(ownerArg.enabled).isEqualTo(twoArg.enabled);
+    assertThat(ownerArg.allowOverride).isEqualTo(twoArg.allowOverride);
+    assertThat(ownerArg.enabledInParent).isEqualTo(twoArg.enabledInParent);
   }
 }

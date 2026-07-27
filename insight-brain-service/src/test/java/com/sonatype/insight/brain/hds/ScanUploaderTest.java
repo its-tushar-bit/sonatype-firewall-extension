@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableMap;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -182,7 +184,8 @@ public class ScanUploaderTest
   @Test
   public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabled() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
-    when(mockCpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId())).thenReturn(true);
+    when(mockCpeMatchingConfigurationService.isCpeDataMatchingEnabled(app))
+        .thenReturn(true);
 
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");
@@ -246,7 +249,7 @@ public class ScanUploaderTest
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
-    verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app.getId());
+    verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app);
   }
 
   @Test
@@ -255,7 +258,8 @@ public class ScanUploaderTest
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
-    when(mockCpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId())).thenReturn(false);
+    when(mockCpeMatchingConfigurationService.isCpeDataMatchingEnabled(app))
+        .thenReturn(false);
 
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");
@@ -295,7 +299,7 @@ public class ScanUploaderTest
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
-    verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app.getId());
+    verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app);
   }
 
   @Test
@@ -320,7 +324,7 @@ public class ScanUploaderTest
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
-    verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app.getId());
+    verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app);
   }
 
   @Test
@@ -345,7 +349,7 @@ public class ScanUploaderTest
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
-    verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app.getId());
+    verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app);
   }
 
   @Test
@@ -473,6 +477,32 @@ public class ScanUploaderTest
         .isThrownBy(() -> scanUploader.upload(scanEntity, app, null, "Maven_Plugin/1.2.0 (Java 11.0.13; Linux)",
             thirdPartyScanContext, false))
         .withMessageContaining("Invalid supported version count: -1");
+  }
+
+  @Test
+  public void testUpload_repositoryOwner_skipsUrlAugmentation() throws Exception {
+    // Regression guard for the OwnerType.APPLICATION branch introduced in CLM-42781:
+    // non-APPLICATION owners must not have their receipt augmented with UI report URLs.
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "test-repo");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("repo-scan-id");
+
+    when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(ScanEntity.class), anyMap(), any(String[].class))) //
+            .thenReturn(receipt);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), repository.getId());
+    ScanReceipt result = scanUploader.upload(scanEntity, repository, null, null, thirdPartyScanContext, false);
+
+    // Raw HDS receipt is returned unchanged: no UI URL fields populated.
+    assertThat(result).isSameAs(receipt);
+    assertThat(result.getScanId()).isEqualTo("repo-scan-id");
+    assertThat(result.getReportUrl()).isNull();
+    assertThat(result.getPdfUrl()).isNull();
+    assertThat(result.getDataUrl()).isNull();
+    assertThat(result.getPrioritiesUrl()).isNull();
   }
 
   @Test

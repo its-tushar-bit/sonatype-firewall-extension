@@ -13,6 +13,7 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -45,6 +46,8 @@ public class CpeMatchingConfigurationService
 
   private final OrganizationDAO organizationDAO;
 
+  private final OwnerDAO ownerDAO;
+
   private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
 
   private final ProductLicense productLicense;
@@ -55,11 +58,13 @@ public class CpeMatchingConfigurationService
   public CpeMatchingConfigurationService(
       final ApplicationDAO applicationDAO,
       final OrganizationDAO organizationDAO,
+      final OwnerDAO ownerDAO,
       final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
       final ProductLicense productLicense)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
+    this.ownerDAO = ownerDAO;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
     this.productLicense = productLicense;
   }
@@ -73,7 +78,20 @@ public class CpeMatchingConfigurationService
   }
 
   public CpeMatchingConfigurationDTO getCpeMatchingConfigurationNoAuthz(OwnerType ownerType, String ownerId) {
-    requireOwnerExists(ownerType, ownerId);
+    requireOwnerExists(ownerId);
+    return computeConfigurationDto(ownerType, ownerId);
+  }
+
+  /**
+   * Internal fast-path overload for callers that already hold a resolved {@link Owner} — the
+   * non-null reference is itself the existence proof, so the redundant existence probe done by
+   * the {@code (OwnerType, String)} variant is skipped.
+   */
+  public CpeMatchingConfigurationDTO getCpeMatchingConfigurationNoAuthz(Owner owner) {
+    return computeConfigurationDto(owner.getType(), owner.getId());
+  }
+
+  private CpeMatchingConfigurationDTO computeConfigurationDto(OwnerType ownerType, String ownerId) {
     CpeMatchingConfiguration ownerConfig = cpeMatchingConfigurationDAO.getByOwnerId(ownerId);
 
     CpeMatchingConfiguration inheritedConfig =
@@ -202,7 +220,7 @@ public class CpeMatchingConfigurationService
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       final Boolean allowOverride)
   {
-    requireOwnerExists(ownerType, internalOwnerId);
+    requireOwnerExists(internalOwnerId);
     switch (ownerType) {
       case APPLICATION:
         disableForApplication(internalOwnerId);
@@ -216,34 +234,36 @@ public class CpeMatchingConfigurationService
   }
 
   /**
-   * Determines whether CPE data matching is enabled for a given application.
+   * Determines whether CPE data matching is enabled for a given owner.
    * CPE matching will be enabled if:
    * <p/>
    * 1. The product license includes the CPE_MATCHING feature, AND <br/>
    * 2. Either:
    * a. SBOM Manager product is licensed without Lifecycle product, OR
-   * b. The application has CPE matching explicitly enabled in its configuration
-   *
-   * @param appInternalId The unique identifier of the application to check
-   * @return true if CPE data matching is enabled for the application, false otherwise
+   * b. The owner has CPE matching explicitly enabled in its configuration (or inherits it from an ancestor)
    */
-  public boolean isCpeDataMatchingEnabled(String appInternalId) {
+  public boolean isCpeDataMatchingEnabled(OwnerType ownerType, String ownerId) {
     return productLicense.hasFeature(LicensedFeature.CPE_MATCHING) &&
         ((hasSbomManagerProduct(productLicense) && !hasLifecycleProduct(productLicense)) ||
-            BooleanUtils.isTrue(getCpeMatchingConfigurationNoAuthz(OwnerType.APPLICATION, appInternalId).enabled));
+            BooleanUtils.isTrue(getCpeMatchingConfigurationNoAuthz(ownerType, ownerId).enabled));
   }
 
-  private void requireOwnerExists(final OwnerType ownerType, final String ownerId) {
-    switch (ownerType) {
-      case APPLICATION:
-        applicationDAO.getByIdNotNull(ownerId);
-        break;
-      case ORGANIZATION:
-        organizationDAO.getByIdNotNull(ownerId);
-        break;
-      default:
-        throw new IllegalStateException("Unknown owner type: " + ownerType);
-    }
+  /**
+   * Internal fast-path overload for callers that already hold a resolved {@link Owner} — skips
+   * the redundant existence check the {@code (OwnerType, String)} variant performs.
+   */
+  public boolean isCpeDataMatchingEnabled(Owner owner) {
+    return productLicense.hasFeature(LicensedFeature.CPE_MATCHING) &&
+        ((hasSbomManagerProduct(productLicense) && !hasLifecycleProduct(productLicense)) ||
+            BooleanUtils.isTrue(getCpeMatchingConfigurationNoAuthz(owner).enabled));
+  }
+
+  public boolean isCpeDataMatchingEnabled(String appInternalId) {
+    return isCpeDataMatchingEnabled(OwnerType.APPLICATION, appInternalId);
+  }
+
+  private void requireOwnerExists(final String ownerId) {
+    ownerDAO.getByIdNotNull(ownerId);
   }
 
   private void disableForOrganization(final String orgId, final Boolean allowOverride) {

@@ -494,7 +494,7 @@ public class HostedComponentScanQueueConsumerTest
 
   @Test
   public void executeJob_withNullApplication_usesRepositoryUploadPathAndDoesNotStampScanId() throws Exception {
-    // Unparsable scan content → componentInfo == null → application == null → uploadForRepository branch
+    // Unparsable scan content → componentInfo == null → application == null → Repository-typed upload branch
     HostedComponentScanQueue job = insertPendingJob("repo-null-app");
 
     ScanReceipt receipt = new ScanReceipt();
@@ -508,7 +508,7 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    // HDS was called (uploadForRepository path hit the same endpoint)
+    // HDS was called (Repository-typed upload path hits the same endpoint)
     assertThat(hdsMockServer.getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)).isNotNull();
 
     // scan_id must NOT be stamped — stampScanId is only called when application != null

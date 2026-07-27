@@ -7,11 +7,15 @@ package com.sonatype.insight.brain.search.index;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -30,6 +34,129 @@ public abstract class IndexingContext
   private final Map<String, String> vulnDescByVulnId = new ConcurrentHashMap<>();
 
   private final Map<String, String> licenseNameById = new ConcurrentHashMap<>();
+
+  /**
+   * Memoized {@code applicationId} -> its category (tag) names, so the tag lookup runs at most once
+   * per app per indexing run rather than once per stage and once per violation doc. Populated
+   * on-demand by {@link #getApplicationCategoryNames}.
+   */
+  private final Map<String, List<String>> categoryNamesByApplicationId = new ConcurrentHashMap<>();
+
+  /**
+   * Category (tag) names for an application, computed once per run via {@code loader} and cached.
+   * The loader must return a non-null (possibly empty) list.
+   */
+  public List<String> getApplicationCategoryNames(
+      final String applicationId,
+      final Function<String, List<String>> loader)
+  {
+    return categoryNamesByApplicationId.computeIfAbsent(applicationId, loader);
+  }
+
+  /**
+   * Memoized {@code applicationId} -> latest-evaluation epoch-millis, populated load-on-miss by
+   * {@link #getLatestEvaluationEpochMsByApp}. Apps with no evaluation are absent (so the caller
+   * omits the "never evaluated" field), but a {@link #latestEvaluationLoadedApps} marker records
+   * which app ids have been loaded so a genuine "never evaluated" app is not re-queried on every
+   * call.
+   */
+  private final Map<String, Long> latestEvaluationEpochMsByApp = new ConcurrentHashMap<>();
+
+  /** App ids whose latest-evaluation load has already run (present here even when they had no evaluation row). */
+  private final Set<String> latestEvaluationLoadedApps = ConcurrentHashMap.newKeySet();
+
+  /**
+   * Memoized {@code applicationId} -> its {@code "stage:severity:count"} rollup tokens, populated
+   * load-on-miss by {@link #getStageSeverityCountsByApp}. Apps with no unfixed violations are
+   * absent (so the caller omits the field), but {@link #stageSeverityCountsLoadedApps} records the
+   * app ids already loaded so an app with no violations is not re-queried on every call.
+   */
+  private final Map<String, List<String>> stageSeverityCountsByApp = new ConcurrentHashMap<>();
+
+  /** App ids whose stage-severity-count load has already run (present here even when they had no violations). */
+  private final Set<String> stageSeverityCountsLoadedApps = ConcurrentHashMap.newKeySet();
+
+  /**
+   * Latest-evaluation epoch-millis per app, cached load-on-miss via {@code loader}. On each call the
+   * app ids not yet loaded are collected and passed to {@code loader} as a single batch; the loader
+   * returns the {@code appId -> latest epoch-ms} map for the apps that have an evaluation (absent =
+   * never evaluated). The full-reindex path pre-warms with all app ids (one batch query); the
+   * incremental per-app path loads each missing app on demand (still a batch DAO call over just the
+   * missing ids). Idempotent: an already-loaded app id is never re-queried, even when it has no
+   * evaluation. Returns only the subset for {@code applicationIds} (O(requested)), so a caller
+   * cannot accidentally iterate the whole accumulated cache; absent means "never evaluated".
+   */
+  public Map<String, Long> getLatestEvaluationEpochMsByApp(
+      final Set<String> applicationIds,
+      final Function<Set<String>, Map<String, Long>> loader)
+  {
+    loadMissing(applicationIds, latestEvaluationLoadedApps, loader, latestEvaluationEpochMsByApp::putAll);
+    return subsetFor(applicationIds, latestEvaluationEpochMsByApp);
+  }
+
+  /**
+   * Per-app {@code "stage:severity:count"} rollup tokens, cached load-on-miss via {@code loader}.
+   * On each call the app ids not yet loaded are collected and passed to {@code loader} as a single
+   * batch; the loader returns the {@code appId -> tokens} map for the apps that have unfixed
+   * violations (absent = none). The full-reindex path pre-warms with all app ids (one batch query);
+   * the incremental per-app path loads each missing app on demand (still a batch DAO call over just
+   * the missing ids). Idempotent: an already-loaded app id is never re-queried, even when it has no
+   * violations. Returns only the subset for {@code applicationIds} (O(requested)), so a caller
+   * cannot accidentally iterate the whole accumulated cache; an app with no violations is absent.
+   */
+  public Map<String, List<String>> getStageSeverityCountsByApp(
+      final Set<String> applicationIds,
+      final Function<Set<String>, Map<String, List<String>>> loader)
+  {
+    loadMissing(applicationIds, stageSeverityCountsLoadedApps, loader, stageSeverityCountsByApp::putAll);
+    return subsetFor(applicationIds, stageSeverityCountsByApp);
+  }
+
+  /**
+   * Determines which of {@code requestedIds} have not yet been loaded (tracked in {@code loadedIds}),
+   * batch-loads only those via {@code loader}, stores the result via {@code cacheStore}, and marks
+   * every requested id loaded — so apps with no rows are cached as "loaded, absent" and never
+   * re-queried. Synchronized on {@code loadedIds} so a concurrent caller does not issue a duplicate
+   * load for the same ids.
+   */
+  private static <V> void loadMissing(
+      final Set<String> requestedIds,
+      final Set<String> loadedIds,
+      final Function<Set<String>, Map<String, V>> loader,
+      final Consumer<Map<String, V>> cacheStore)
+  {
+    if (CollectionUtils.isEmpty(requestedIds) || loadedIds.containsAll(requestedIds)) {
+      return;
+    }
+    synchronized (loadedIds) {
+      Set<String> missing = new HashSet<>(requestedIds);
+      missing.removeAll(loadedIds);
+      if (missing.isEmpty()) {
+        return;
+      }
+      cacheStore.accept(loader.apply(missing));
+      loadedIds.addAll(missing);
+    }
+  }
+
+  /**
+   * A copy of {@code cache} restricted to {@code requestedIds} (only ids actually present in the
+   * cache). O(requested), so callers see only the entries they asked for rather than the whole
+   * accumulated map.
+   */
+  private static <V> Map<String, V> subsetFor(final Set<String> requestedIds, final Map<String, V> cache) {
+    if (CollectionUtils.isEmpty(requestedIds)) {
+      return Map.of();
+    }
+    Map<String, V> subset = new HashMap<>();
+    for (String id : requestedIds) {
+      V value = cache.get(id);
+      if (value != null) {
+        subset.put(id, value);
+      }
+    }
+    return subset;
+  }
 
   /**
    * Memoized {@code org.getId()} -> its full ancestor-org id chain (incl. self), so the

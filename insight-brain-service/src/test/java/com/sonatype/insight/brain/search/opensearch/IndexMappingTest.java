@@ -130,6 +130,33 @@ public class IndexMappingTest
     Property threatLevel = mappings.get(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label);
     assertThat(threatLevel).isNotNull();
     assertThat(threatLevel.isInteger()).isTrue();
+
+    // Sortable created-at / expires-at epoch-millis twins must be explicit long mappings so a fresh
+    // index does not date-detect them; the created-at twin backs the WAIVER default created-desc sort.
+    Property createdAtEpoch = mappings.get(FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label);
+    assertThat(createdAtEpoch).as("mapping for %s", FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label)
+        .isNotNull();
+    assertThat(createdAtEpoch.isLong()).isTrue();
+    Property expiresAtEpoch = mappings.get(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label);
+    assertThat(expiresAtEpoch).as("mapping for %s", FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label)
+        .isNotNull();
+    assertThat(expiresAtEpoch.isLong()).isTrue();
+  }
+
+  @Test
+  public void applicationEvaluationDenormFields_areMappedWithExpectedTypes() {
+    Map<String, Property> mappings = new IndexMapping().getMappings();
+
+    Property lastEval = mappings.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label);
+    assertThat(lastEval).as("mapping for %s", FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label)
+        .isNotNull();
+    // Explicit long mapping so a fresh index does not date-detect the epoch-millis into a date field.
+    assertThat(lastEval.isLong()).isTrue();
+
+    Property stageSeverity = mappings.get(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label);
+    assertThat(stageSeverity).as("mapping for %s", FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label)
+        .isNotNull();
+    assertThat(stageSeverity.isKeyword()).isTrue();
   }
 
   private static KeywordProperty keywordPropertyFor(final String fieldName) {

@@ -77,6 +77,19 @@ public final class IndexQueryRow
     return new Builder();
   }
 
+  /** A builder pre-populated from this row, for enriching an already-mapped row with extra fields. */
+  public Builder toBuilder() {
+    final Builder b = new Builder()
+        .entityType(entityType)
+        .source(source)
+        .id(id)
+        .title(title)
+        .subtitle(subtitle)
+        .href(href);
+    b.fields.putAll(fields);
+    return b;
+  }
+
   public static final class Builder
   {
     private String entityType;

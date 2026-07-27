@@ -86,11 +86,39 @@ public enum FieldIdentifier
   POLICY_WAIVER_REASON("policyWaiverReason"),
   POLICY_WAIVER_COMMENT("policyWaiverComment"),
   POLICY_WAIVER_CREATED_AT("policyWaiverCreatedAt"),
+  // Numeric-long twin of POLICY_WAIVER_CREATED_AT (epoch millis) backing the WAIVER default
+  // created-desc sort. The keyword POLICY_WAIVER_CREATED_AT stays for display; the numeric sort
+  // doc-values twin is emitted in LuceneIndexingContext (Lucene) / the long mapping (OpenSearch),
+  // mirroring POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.
+  POLICY_WAIVER_CREATED_AT_EPOCH_MS("policyWaiverCreatedAtEpochMs"),
   POLICY_WAIVER_EXPIRES_AT("policyWaiverExpiresAt"),
+  // Range-queryable numeric-long twin of POLICY_WAIVER_EXPIRES_AT (epoch millis), for the active-vs-
+  // expired filter. The keyword POLICY_WAIVER_EXPIRES_AT stays for display/sort; this is filter-only.
+  POLICY_WAIVER_EXPIRES_AT_EPOCH_MS("policyWaiverExpiresAtEpochMs"),
   POLICY_WAIVER_SCOPE_OWNER_ID("policyWaiverScopeOwnerId"),
   POLICY_WAIVER_SCOPE_OWNER_TYPE("policyWaiverScopeOwnerType"),
   POLICY_WAIVER_THREAT_LEVEL("policyWaiverThreatLevel"),
-  POLICY_WAIVER_WAIVED_BY("policyWaiverWaivedBy");
+  POLICY_WAIVER_WAIVED_BY("policyWaiverWaivedBy"),
+  // Auto-vs-manual discriminator: "true" for AutoPolicyWaiver docs, "false" for PolicyWaiver docs.
+  POLICY_WAIVER_AUTO("policyWaiverAuto"),
+
+  // Application evaluation denormalization — written on ItemType.APPLICATION docs.
+  /**
+   * Epoch-millis of the application's latest evaluation (max evaluation time across stages).
+   * Range-queryable {@link org.apache.lucene.document.LongPoint} + numeric sort doc-values +
+   * stored display value. Null when the application has never been evaluated.
+   */
+  APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS("applicationLastEvaluationTimeEpochMs"),
+
+  /**
+   * Per-stage x severity violation breakdown for the evaluation-card pills. Multi-valued keyword;
+   * each value encodes {@code "stage:severity:count"} (e.g. {@code "build:critical:3"}), where
+   * stage is the {@link com.sonatype.clm.dto.model.stage.StageType} id, severity is the lowercase
+   * {@link com.sonatype.insight.brain.utils.ThreatLevel} name, and count is the number of active
+   * (unfixed and unwaived) violations in that (stage, severity) bucket. Absent stages/severities emit
+   * no entry (sparse).
+   */
+  APPLICATION_STAGE_SEVERITY_COUNT("applicationStageSeverityCount");
 
   public final String label;
 

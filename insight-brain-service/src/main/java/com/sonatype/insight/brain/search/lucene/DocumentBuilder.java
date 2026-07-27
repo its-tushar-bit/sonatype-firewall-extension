@@ -33,6 +33,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
@@ -45,8 +46,10 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_PUBLIC_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VERSION;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_FORMAT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_HASH;
@@ -84,9 +87,12 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.DOCUMENT_KEY;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_AUTO;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_COMMENT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_CREATED_AT;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_NAME;
@@ -204,6 +210,10 @@ public class DocumentBuilder
 
   private Optional<Field[]> policyWaiverExpiresAt = Optional.empty();
 
+  private Optional<Field[]> policyWaiverCreatedAtEpochMs = Optional.empty();
+
+  private Optional<Field[]> policyWaiverExpiresAtEpochMs = Optional.empty();
+
   private Optional<Field> policyWaiverScopeOwnerId = Optional.empty();
 
   private Optional<Field> policyWaiverScopeOwnerType = Optional.empty();
@@ -211,6 +221,14 @@ public class DocumentBuilder
   private Optional<Field[]> policyWaiverThreatLevel = Optional.empty();
 
   private Optional<Field> policyWaiverWaivedBy = Optional.empty();
+
+  private Optional<Field> policyWaiverAuto = Optional.empty();
+
+  private Optional<Field[]> applicationCategoryNames = Optional.empty();
+
+  private Optional<Field[]> applicationLastEvaluationTimeEpochMs = Optional.empty();
+
+  private Optional<Field[]> applicationStageSeverityCounts = Optional.empty();
 
   public DocumentBuilder(ItemType itemType) {
     this.itemType = itemType;
@@ -598,6 +616,36 @@ public class DocumentBuilder
     return this;
   }
 
+  /**
+   * Sortable epoch-millis twin of {@link #setPolicyWaiverCreatedAt} backing the WAIVER default
+   * created-desc sort. A {@link LongPoint} (indexed) plus a {@link StoredField} (so
+   * {@link LuceneIndexingContext#addDocuments} can read the numeric value and add the sort
+   * doc-values twin); OpenSearch sorts on its {@code long} mapping. Null (missing create time)
+   * writes nothing, so such a doc sorts last under created-desc (missing-value default).
+   */
+  public DocumentBuilder setPolicyWaiverCreatedAtEpochMs(final Long epochMs) {
+    if (epochMs != null) {
+      this.policyWaiverCreatedAtEpochMs = Optional.of(new Field[]{
+        new LongPoint(POLICY_WAIVER_CREATED_AT_EPOCH_MS.label, epochMs),
+        new StoredField(POLICY_WAIVER_CREATED_AT_EPOCH_MS.label, epochMs)});
+    }
+    return this;
+  }
+
+  /**
+   * Range-queryable epoch-millis twin of {@link #setPolicyWaiverExpiresAt} for the active-vs-expired
+   * filter. A {@link LongPoint} (indexed, not stored) supports {@code [now TO *]} range queries; the
+   * stored ISO-8601 keyword stays the display/sort form. A null expiry writes nothing, so a
+   * never-expiring waiver has no epoch point and is treated as active by the compiled range clause.
+   */
+  public DocumentBuilder setPolicyWaiverExpiresAtEpochMs(final Long epochMs) {
+    if (epochMs != null) {
+      this.policyWaiverExpiresAtEpochMs =
+          Optional.of(new Field[]{new LongPoint(POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, epochMs)});
+    }
+    return this;
+  }
+
   private static Field[] toIso8601DateFields(final String fieldLabel, final String iso8601) {
     return new Field[]{
       new StringField(fieldLabel, iso8601, Store.YES)
@@ -627,9 +675,68 @@ public class DocumentBuilder
     return this;
   }
 
+  /**
+   * Auto-vs-manual discriminator stored as a keyword-style {@link StringField} "true"/"false" so it
+   * is exact-match queryable and round-trips through the OpenSearch {@code _source}. No sort
+   * doc-values are needed: it is only used for filtering, never sorting.
+   */
+  public DocumentBuilder setPolicyWaiverAuto(final boolean auto) {
+    this.policyWaiverAuto = Optional.of(new StringField(POLICY_WAIVER_AUTO.label, Boolean.toString(auto), Store.YES));
+    return this;
+  }
+
   public DocumentBuilder setPolicyWaiverWaivedBy(final String waivedBy) {
     if (waivedBy != null) {
       this.policyWaiverWaivedBy = Optional.of(new TextField(POLICY_WAIVER_WAIVED_BY.label, waivedBy, Store.YES));
+    }
+    return this;
+  }
+
+  // ---- Application evaluation denormalization ----------------------------------------------
+
+  /**
+   * Multi-valued category (tag) names for the owning application. Distinct from the single-valued
+   * {@link #setApplicationCategoryName} used by APPLICATION_CATEGORY docs; both write the shared
+   * {@link FieldIdentifier#APPLICATION_CATEGORY_NAME} label so a category filter matches across
+   * category entities, applications, and violation docs. A null/empty collection writes nothing,
+   * so pre-reindex docs (no category field) are matched by nothing rather than NPE-ing.
+   */
+  public DocumentBuilder setApplicationCategoryNames(final Collection<String> categoryNames) {
+    if (categoryNames != null && !categoryNames.isEmpty()) {
+      this.applicationCategoryNames = Optional.of(categoryNames.stream()
+          .filter(Objects::nonNull)
+          .map(name -> new TextField(APPLICATION_CATEGORY_NAME.label, name, Store.YES))
+          .toArray(Field[]::new));
+    }
+    return this;
+  }
+
+  /**
+   * Epoch-millis of the application's latest evaluation. A {@link LongPoint} (indexed, not stored)
+   * backs {@code [x TO *]} range filters; a {@link StoredField} keeps the display value. The numeric
+   * sort doc-values twin is added in {@link LuceneIndexingContext#addDocuments}, not here, so no null
+   * serializes into the OpenSearch {@code _source}. Null (never evaluated) writes nothing.
+   */
+  public DocumentBuilder setApplicationLastEvaluationTimeEpochMs(final Long epochMs) {
+    if (epochMs != null) {
+      this.applicationLastEvaluationTimeEpochMs = Optional.of(new Field[]{
+        new LongPoint(APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label, epochMs),
+        new StoredField(APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label, epochMs)});
+    }
+    return this;
+  }
+
+  /**
+   * Multi-valued per-stage x severity violation counts, each entry {@code "stage:severity:count"}.
+   * A null/empty collection writes nothing (an app with no violations emits no entries), so the
+   * evaluation-card pills read zero for every bucket rather than NPE-ing on a pre-reindex doc.
+   */
+  public DocumentBuilder setApplicationStageSeverityCounts(final Collection<String> encodedEntries) {
+    if (encodedEntries != null && !encodedEntries.isEmpty()) {
+      this.applicationStageSeverityCounts = Optional.of(encodedEntries.stream()
+          .filter(Objects::nonNull)
+          .map(entry -> new StringField(APPLICATION_STAGE_SEVERITY_COUNT.label, entry, Store.YES))
+          .toArray(Field[]::new));
     }
     return this;
   }
@@ -684,11 +791,17 @@ public class DocumentBuilder
     policyWaiverReason.ifPresent(this::setFields);
     policyWaiverComment.ifPresent(this::setFields);
     policyWaiverCreatedAt.ifPresent(this::setFields);
+    policyWaiverCreatedAtEpochMs.ifPresent(this::setFields);
     policyWaiverExpiresAt.ifPresent(this::setFields);
+    policyWaiverExpiresAtEpochMs.ifPresent(this::setFields);
     policyWaiverScopeOwnerId.ifPresent(this::setFields);
     policyWaiverScopeOwnerType.ifPresent(this::setFields);
     policyWaiverThreatLevel.ifPresent(this::setFields);
     policyWaiverWaivedBy.ifPresent(this::setFields);
+    policyWaiverAuto.ifPresent(this::setFields);
+    applicationCategoryNames.ifPresent(this::setFields);
+    applicationLastEvaluationTimeEpochMs.ifPresent(this::setFields);
+    applicationStageSeverityCounts.ifPresent(this::setFields);
     addDocumentKey();
     return document;
   }

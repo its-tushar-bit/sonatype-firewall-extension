@@ -40,9 +40,21 @@ public final class GlobalSearchSortAllowlist
   /** Sort key every tab supports; maps to Lucene/OpenSearch native _score. */
   public static final String RELEVANCE = "relevance";
 
+  /** WAIVER default sort key: newest waiver first, backed by the created-at epoch-millis twin. */
+  public static final String WAIVER_CREATED = "created";
+
   public static final String DEFAULT_SORT = RELEVANCE;
 
   private static final Map<Tab, Set<String>> ALLOWLIST = buildAllowlist();
+
+  /**
+   * Default sort per tab, applied when the request supplies no sort key. Prototype defaults:
+   * Applications = latest evaluation (newest first), Violations = threat (highest first), Waivers =
+   * created (newest first). Every other tab defaults to relevance. Each non-relevance default MUST
+   * also be in {@link #ALLOWLIST} for its tab and carry a sortable index field in
+   * {@code IqLocalSearchService.SORTABLE_FIELD_BY_KEY}.
+   */
+  private static final Map<Tab, String> DEFAULT_SORT_BY_TAB = buildDefaultSortByTab();
 
   private GlobalSearchSortAllowlist() {
   }
@@ -54,14 +66,32 @@ public final class GlobalSearchSortAllowlist
 
     m.put(COMPONENT, ImmutableSet.of(RELEVANCE, "name"));
     m.put(VULNERABILITY, ImmutableSet.of(RELEVANCE, "name"));
-    m.put(APPLICATION, ImmutableSet.of(RELEVANCE, "name", "policyEvaluationStage"));
+    m.put(APPLICATION, ImmutableSet.of(RELEVANCE, "name", "policyEvaluationStage", "lastEvaluationTime"));
 
-    m.put(VIOLATION, ImmutableSet.of(RELEVANCE, "name"));
-    // WAIVER is relevance-only for now: there is no WAIVER ItemType or sortable index field yet, so a
-    // non-relevance key here would pass requireAllowed then log an invariant violation at sort time.
-    m.put(WAIVER, ImmutableSet.of(RELEVANCE));
+    m.put(VIOLATION, ImmutableSet.of(RELEVANCE, "name", "threat"));
+    // WAIVER supports relevance + created (newest first), backed by the created-at epoch-millis twin.
+    m.put(WAIVER, ImmutableSet.of(RELEVANCE, WAIVER_CREATED));
 
     return Collections.unmodifiableMap(m);
+  }
+
+  private static Map<Tab, String> buildDefaultSortByTab() {
+    Map<Tab, String> m = new EnumMap<>(Tab.class);
+    m.put(APPLICATION, "lastEvaluationTime");
+    m.put(VIOLATION, "threat");
+    m.put(WAIVER, WAIVER_CREATED);
+    return Collections.unmodifiableMap(m);
+  }
+
+  /**
+   * Default sort key for a tab (relevance unless the tab has a prototype-specified default). Returned
+   * key is always allowlisted for the tab. Used when a request supplies no sort key.
+   */
+  public static String defaultSortFor(final Tab tab) {
+    if (tab == null) {
+      return RELEVANCE;
+    }
+    return DEFAULT_SORT_BY_TAB.getOrDefault(tab, RELEVANCE);
   }
 
   public static boolean isAllowed(final Tab tab, final String sortKey) {

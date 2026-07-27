@@ -131,6 +131,77 @@ public class DocumentBuilderTest
     assertThat(withoutClosure).isEqualTo(withClosure);
   }
 
+  @Test
+  public void applicationLastEvaluationTime_storesEpochMsAndSurvivesRoundTrip() {
+    ConversionHelper conversionHelper = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
+    Document built = new DocumentBuilder(ItemType.APPLICATION)
+        .setApplicationId("app-1")
+        .setApplicationName("Acme")
+        .setApplicationLastEvaluationTimeEpochMs(1784746240000L)
+        .build();
+
+    assertThat(built.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label))
+        .isEqualTo("1784746240000");
+
+    Map<String, Object> source = conversionHelper.documentToMap(built);
+    assertThatCode(() -> conversionHelper.mapToDocument(source)).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void applicationLastEvaluationTime_nullWritesNoField() {
+    Document built = new DocumentBuilder(ItemType.APPLICATION)
+        .setApplicationId("app-1")
+        .setApplicationLastEvaluationTimeEpochMs(null)
+        .build();
+
+    assertThat(built.getFields(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label)).isEmpty();
+  }
+
+  @Test
+  public void applicationStageSeverityCounts_areMultiValuedKeywords() {
+    Document built = new DocumentBuilder(ItemType.APPLICATION)
+        .setApplicationId("app-1")
+        .setApplicationStageSeverityCounts(List.of("build:critical:3", "build:severe:1", "release:low:5"))
+        .build();
+
+    assertThat(built.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder("build:critical:3", "build:severe:1", "release:low:5");
+  }
+
+  @Test
+  public void applicationStageSeverityCounts_nullOrEmptyWritesNoField() {
+    assertThat(new DocumentBuilder(ItemType.APPLICATION).setApplicationStageSeverityCounts(null)
+        .build()
+        .getFields(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label)).isEmpty();
+    assertThat(new DocumentBuilder(ItemType.APPLICATION).setApplicationStageSeverityCounts(List.of())
+        .build()
+        .getFields(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label)).isEmpty();
+  }
+
+  @Test
+  public void applicationCategoryNames_areMultiValuedAndSurviveRoundTrip() {
+    ConversionHelper conversionHelper = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
+    Document built = new DocumentBuilder(ItemType.POLICY_VIOLATION)
+        .setApplicationName("Acme")
+        .setApplicationCategoryNames(List.of("Finance", "Internal"))
+        .build();
+
+    assertThat(built.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label))
+        .containsExactlyInAnyOrder("Finance", "Internal");
+    assertThatCode(() -> conversionHelper.mapToDocument(conversionHelper.documentToMap(built)))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void applicationCategoryNames_nullOrEmptyWritesNoField() {
+    assertThat(new DocumentBuilder(ItemType.POLICY_VIOLATION).setApplicationCategoryNames(null)
+        .build()
+        .getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+    assertThat(new DocumentBuilder(ItemType.LEGAL_VIOLATION).setApplicationCategoryNames(List.of())
+        .build()
+        .getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+  }
+
   private static String keyOf(final Document doc) {
     return doc.get(FieldIdentifier.DOCUMENT_KEY.label);
   }

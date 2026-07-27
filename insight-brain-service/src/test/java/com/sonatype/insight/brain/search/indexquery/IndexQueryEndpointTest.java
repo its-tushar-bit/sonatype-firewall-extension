@@ -7,9 +7,14 @@ package com.sonatype.insight.brain.search.indexquery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +30,7 @@ import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
 import jakarta.ws.rs.core.Response;
+import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -34,9 +40,14 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -50,9 +61,21 @@ import org.apache.lucene.store.Directory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 public class IndexQueryEndpointTest
 {
+  /** A year either side of the captured "now" keeps the active/expired classification stable regardless of run time. */
+  private static final Duration EXPIRY_OFFSET = Duration.ofDays(365);
+
+  /** Well past "now" (active); set in {@link #setUp} against the same clock the expiry filter reads at request time. */
+  private long futureExpiryMs;
+
+  /**
+   * Well before "now" (expired); set in {@link #setUp} against the same clock the expiry filter reads at request time.
+   */
+  private long pastExpiryMs;
+
   private SearchIndexClient searchIndexClient;
 
   private Directory directory;
@@ -68,8 +91,16 @@ public class IndexQueryEndpointTest
     SystemConfigurationPropertyFeatureTestSupport.install();
     SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
 
+    final Instant now = Instant.now();
+    futureExpiryMs = now.plus(EXPIRY_OFFSET).toEpochMilli();
+    pastExpiryMs = now.minus(EXPIRY_OFFSET).toEpochMilli();
+
     directory = new ByteBuffersDirectory();
     Map<String, Analyzer> perField = new HashMap<>();
+    // allowedContextIds is a case-sensitive keyword in production (no lowercase normalizer) so the
+    // TermInSetQuery permission clause matches the raw context id byte-for-byte. Index it the same
+    // way here (plain KeywordAnalyzer), otherwise the default lowercasing would break the match.
+    perField.put(FieldIdentifier.ALLOWED_CONTEXT_IDS.label, new KeywordAnalyzer());
     PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), perField);
     try (IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(analyzer))) {
       writer.addDocument(appDoc("acme-prod", "Acme Prod", "Acme"));
@@ -77,6 +108,16 @@ public class IndexQueryEndpointTest
       writer.addDocument(appDoc("widget-co", "Widget Inventory", "Widget Co"));
       writer.addDocument(policyViolationDoc("pv-1", "Acme Prod", "Acme"));
       writer.addDocument(policyViolationDoc("pv-2", "Widget Inventory", "Widget Co"));
+      // w-acme-1: future expiry (active). w-widget-1: past expiry (expired). Others: no expiry (active).
+      writer.addDocument(manualWaiverDoc("w-acme-1", "Security High", "Acme", 8, "alice", futureExpiryMs));
+      writer.addDocument(manualWaiverDoc("w-acme-2", "License Copyleft", "Acme", 4, "bob", null));
+      writer.addDocument(manualWaiverDoc("w-widget-1", "Security High", "Widget Co", 9, "carol", pastExpiryMs));
+      // App-scoped manual waiver owned by the Acme Prod application (carries applicationName/Id).
+      writer.addDocument(appScopedWaiverDoc("w-acme-app-1", "Security High", "Acme", "Acme Prod", "acme-prod", 6));
+      writer.addDocument(autoWaiverDoc("w-auto-1", "Acme", 10));
+      // POLICY rows for the waiverCount aggregation: pol-sec-high (has waivers), pol-orphan (none).
+      writer.addDocument(policyDoc("pol-sec-high", "Security High", "Acme", 8));
+      writer.addDocument(policyDoc("pol-orphan", "Unused Policy", "Acme", 3));
       writer.commit();
     }
     reader = DirectoryReader.open(directory);
@@ -84,6 +125,8 @@ public class IndexQueryEndpointTest
 
     searchIndexClient = mock(SearchIndexClient.class);
     when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    // Default: global read access (no permission narrowing). The RBAC test overrides these three
+    // stubs to drive the real production permission clause instead.
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of("org-1"));
     when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
@@ -129,8 +172,9 @@ public class IndexQueryEndpointTest
 
   @Test
   public void applicationQuery_facetsRequested_areWholeCorpusCounts() {
-    // Values are seeded from the returned page (Acme, Widget Co), but counts come from the whole-corpus
-    // RBAC-scoped count() over the item type + filters, not the page tallies (which would be 2 and 1).
+    // Org facet buckets by the display name (values from the page), counting the whole corpus, not the
+    // page tallies (2 and 1). The value equals the name so it round-trips back through the
+    // name-matching organizations filter.
     when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("organizationName:\"Acme\"")))
         .thenReturn(50L);
     when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("organizationName:\"Widget Co\"")))
@@ -141,12 +185,23 @@ public class IndexQueryEndpointTest
     assertThat(response.facets()).isNotNull();
     // Counts are whole-corpus filter-wide totals now, so the wire flag says so.
     assertThat(response.facetsOverPageOnly()).isFalse();
-    assertThat(response.facets()).containsKey("organizationName");
+    assertThat(response.facets()).containsKey("organizations");
     Map<String, Long> orgCounts = new HashMap<>();
-    response.facets()
-        .get("organizationName")
-        .forEach(b -> orgCounts.put(b.value(), b.count()));
+    response.facets().get("organizations").forEach(b -> orgCounts.put(b.value(), b.count()));
     assertThat(orgCounts).containsEntry("Acme", 50L).containsEntry("Widget Co", 7L);
+  }
+
+  @Test
+  public void applicationQuery_defaultView_neverAddsAutoWaiverRestriction() {
+    // Only WAIVER carries an AUTO_WAIVER_TOGGLE entry, so a non-WAIVER default view (absent toggle)
+    // must never emit the manual-only policyWaiverAuto:"false" clause -- the compiler's default-clause
+    // loop is skipped entirely for non-WAIVER types.
+    when(searchIndexClient.count(any())).thenReturn(1L);
+    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
+    resource.query(req);
+    ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
+    verify(searchIndexClient, atLeastOnce()).count(queries.capture());
+    assertThat(queries.getAllValues()).allSatisfy(q -> assertThat(q).doesNotContain("policyWaiverAuto"));
   }
 
   @Test
@@ -172,6 +227,469 @@ public class IndexQueryEndpointTest
     IndexQueryResponse response = resource.query(req);
     assertThat(response.entityType()).isEqualTo("VIOLATION");
     assertThat(response.rows()).extracting(IndexQueryRow::getId).containsExactly("pv-1");
+  }
+
+  @Test
+  public void waiverQuery_returnsWaiverRowsWithExpectedFields() {
+    // includeAutoWaivers defaults to manual-only, so include it explicitly to see both kinds here.
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.entityType()).isEqualTo("WAIVER");
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1", "w-auto-1");
+    assertThat(response.rows()).allSatisfy(r -> assertThat(r.getSource()).isEqualTo("local"));
+
+    IndexQueryRow manual = response.rows()
+        .stream()
+        .filter(r -> r.getId().equals("w-acme-1"))
+        .findFirst()
+        .orElseThrow();
+    assertThat(manual.getTitle()).isEqualTo("Security High");
+    // Org-scoped waiver subtitle is the owning organization's display name, not the raw scope enum.
+    assertThat(manual.getSubtitle()).isEqualTo("Acme");
+    assertThat(manual.getFields()).containsEntry("policyName", "Security High")
+        .containsEntry("threatLevel", 8)
+        .containsEntry("waivedBy", "alice")
+        .containsEntry("reason", "waived for release")
+        .containsEntry("auto", false)
+        .containsEntry("scopeOwnerType", "ORGANIZATION");
+
+    // App-scoped waiver subtitle is the owning application's display name.
+    IndexQueryRow appScoped = response.rows()
+        .stream()
+        .filter(r -> r.getId().equals("w-acme-app-1"))
+        .findFirst()
+        .orElseThrow();
+    assertThat(appScoped.getSubtitle()).isEqualTo("Acme Prod");
+
+    IndexQueryRow auto = response.rows()
+        .stream()
+        .filter(r -> r.getId().equals("w-auto-1"))
+        .findFirst()
+        .orElseThrow();
+    assertThat(auto.getFields()).containsEntry("auto", true);
+    // Auto-waiver title is synthesized on the read side (not indexed); policyName field stays null.
+    assertThat(auto.getTitle()).isEqualTo("Auto-waiver (threat >= 10)");
+    assertThat(auto.getFields().get("policyName")).isNull();
+  }
+
+  @Test
+  public void waiverQuery_policyFilter_doesNotMatchSyntheticAutoWaiverTitle() {
+    // The synthetic "Auto-waiver ..." label is composed on the read side and never indexed, so the
+    // policy filter (on the indexed policyWaiverPolicyName) cannot match an auto waiver by it.
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("policy", List.of("Auto-waiver (threat >= 10)"), "includeAutoWaivers", true),
+        1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-auto-1");
+    assertThat(response.rows()).isEmpty();
+  }
+
+  @Test
+  public void waiverQuery_freeTextQuery_doesNotMatchSyntheticAutoWaiverTitle() {
+    // Free-text search over the indexed fields must not match the read-side synthetic label either.
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("query", "Auto-waiver", "includeAutoWaivers", true), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-auto-1");
+  }
+
+  @Test
+  public void waiverQuery_organizationsFilter_narrowsToScopedOrg() {
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("organizations", List.of("Widget Co")), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).containsExactly("w-widget-1");
+  }
+
+  @Test
+  public void waiverQuery_policyThreatLevelRange_narrowsByThreat() {
+    // No includeAutoWaivers -> manual-only default, so the auto w-auto-1 (threat 10) is excluded too.
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("policyThreatLevel", List.of(7, 10)), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    // threat >= 7 AND manual: w-acme-1 (8), w-widget-1 (9); excludes w-acme-2 (4) and auto w-auto-1.
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-widget-1");
+  }
+
+  @Test
+  public void waiverQuery_includeAutoWaiversTrue_returnsBothKinds() {
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1", "w-auto-1");
+  }
+
+  @Test
+  public void waiverQuery_includeAutoWaiversFalse_returnsManualOnly() {
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("includeAutoWaivers", false), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1");
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-auto-1");
+  }
+
+  @Test
+  public void waiverQuery_includeAutoWaiversAbsent_defaultsToManualOnly() {
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1");
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-auto-1");
+  }
+
+  @Test
+  public void waiverQuery_includeAutoWaiversExplicitNull_defaultsToManualOnly() {
+    // An explicit JSON null must behave exactly like omitting the key: manual only, not both kinds.
+    Map<String, Object> filters = new HashMap<>();
+    filters.put("includeAutoWaivers", null);
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", filters, 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1");
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-auto-1");
+  }
+
+  @Test
+  public void waiverQuery_includeAutoWaiversNonBoolean_mapsTo400() {
+    assertMappedStatus(
+        new IndexQueryRequest("WAIVER", Map.of("includeAutoWaivers", "yes"), 1, 25, null, null, false), 400);
+  }
+
+  @Test
+  public void waiverQuery_facetsRequested_areWholeCorpusOrgCounts() {
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("organizationName:\"Acme\"")))
+        .thenReturn(30L);
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("organizationName:\"Widget Co\"")))
+        .thenReturn(5L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.facets()).isNotNull().containsKey("organizationName");
+    Map<String, Long> orgCounts = new HashMap<>();
+    response.facets().get("organizationName").forEach(b -> orgCounts.put(b.value(), b.count()));
+    assertThat(orgCounts).containsEntry("Acme", 30L).containsEntry("Widget Co", 5L);
+  }
+
+  @Test
+  public void waiverQuery_applicationsFilter_narrowsToAppScopedWaiver() {
+    // App-scoped w-acme-app-1 carries applicationName "Acme Prod"; org-scoped waivers carry none, so
+    // the applications filter narrows to the app-scoped waiver only (org-scoped excluded).
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("applications", List.of("Acme Prod")), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).containsExactly("w-acme-app-1");
+  }
+
+  @Test
+  public void waiverQuery_applicationIdFilter_narrowsToAppScopedWaiver() {
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("applicationId", List.of("acme-prod")), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).containsExactly("w-acme-app-1");
+  }
+
+  @Test
+  public void waiverQuery_policyFilter_narrowsByPolicyName() {
+    // includeAutoWaivers true, but auto w-auto-1 carries no indexed policy name, so it does not match.
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("policy", List.of("Security High"), "includeAutoWaivers", true), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    // Security High manual waivers across scopes: w-acme-1 (org), w-widget-1 (org), w-acme-app-1 (app).
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-widget-1", "w-acme-app-1");
+  }
+
+  @Test
+  public void waiverQuery_expiryActive_excludesExpiredWaivers() {
+    // includeAutoWaivers true to cover both kinds. w-widget-1 has a past expiry (expired); everything
+    // else either has a future expiry (w-acme-1) or no expiry (never expires) -> all active.
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("expiry", "active", "includeAutoWaivers", true), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-acme-app-1", "w-auto-1");
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-widget-1");
+  }
+
+  @Test
+  public void waiverQuery_expiryExpired_returnsOnlyPastExpiryWaivers() {
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("expiry", "expired", "includeAutoWaivers", true), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    // Only w-widget-1 has a past expiry; never-expiring (null) docs are treated as active, not expired.
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).containsExactly("w-widget-1");
+  }
+
+  @Test
+  public void waiverQuery_expiryInvalidValue_mapsTo400() {
+    assertMappedStatus(
+        new IndexQueryRequest("WAIVER", Map.of("expiry", "soon"), 1, 25, null, null, false), 400);
+  }
+
+  @Test
+  public void waiverQuery_facetsRequested_includeAutoManualBuckets() {
+    // includeAutoWaivers true so both auto and manual rows seed the "auto" facet buckets (true/false).
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverAuto:\"true\"")))
+        .thenReturn(3L);
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverAuto:\"false\"")))
+        .thenReturn(7L);
+
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, true);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.facets()).isNotNull().containsKey("auto");
+    Map<String, Long> autoCounts = new HashMap<>();
+    response.facets().get("auto").forEach(b -> autoCounts.put(b.value(), b.count()));
+    assertThat(autoCounts).containsEntry("true", 3L).containsEntry("false", 7L);
+  }
+
+  @Test
+  public void waiverQuery_facetsDefaultView_autoFacetIsWholeCorpus() {
+    // Default (manual-only) view: the auto/manual facet must still report BOTH true and false counts
+    // over the whole corpus (it tells the user what flipping the include toggle would show), so its
+    // count base must NOT inherit the default policyWaiverAuto:"false" exclusion clause.
+    when(searchIndexClient.count(contains("policyWaiverAuto:\"true\""))).thenReturn(4L);
+    when(searchIndexClient.count(contains("policyWaiverAuto:\"false\""))).thenReturn(9L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.facets()).isNotNull().containsKey("auto");
+    assertAutoFacetBaseDropsManualRestriction();
+    Map<String, Long> autoCounts = new HashMap<>();
+    response.facets().get("auto").forEach(b -> autoCounts.put(b.value(), b.count()));
+    // Both buckets present with real whole-corpus counts even though the page shows only manual rows.
+    assertThat(autoCounts).containsEntry("true", 4L).containsEntry("false", 9L);
+  }
+
+  @Test
+  public void waiverQuery_facetsExplicitIncludeAutoWaiversFalse_autoFacetIsWholeCorpus() {
+    // Explicit includeAutoWaivers:false restricts rows to manual, exactly like the absent-key default.
+    // The auto/manual facet must still report BOTH buckets over the whole corpus: the explicit-false
+    // restriction must be dropped from the facet base too, not only the default one.
+    when(searchIndexClient.count(contains("policyWaiverAuto:\"true\""))).thenReturn(5L);
+    when(searchIndexClient.count(contains("policyWaiverAuto:\"false\""))).thenReturn(11L);
+
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("includeAutoWaivers", false), 1, 25, null, null, true);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.facets()).isNotNull().containsKey("auto");
+    assertAutoFacetBaseDropsManualRestriction();
+    Map<String, Long> autoCounts = new HashMap<>();
+    response.facets().get("auto").forEach(b -> autoCounts.put(b.value(), b.count()));
+    // The "true" bucket reports the whole-corpus auto count, not 0, despite the explicit-false toggle.
+    assertThat(autoCounts).containsEntry("true", 5L).containsEntry("false", 11L);
+  }
+
+  /**
+   * Captures every {@link SearchIndexClient#count(String)} query and asserts the auto/manual facet base
+   * had the manual-only {@code policyWaiverAuto:"false"} restriction stripped. The auto "true" bucket is
+   * built as {@code <facetBase> AND policyWaiverAuto:"true"}; if the base still carried the manual-only
+   * restriction the query would read {@code ... policyWaiverAuto:"false" ... AND policyWaiverAuto:"true"},
+   * which counts 0. A {@code contains}-based stub cannot see that -- it would match either query and let
+   * an un-dropped restriction pass -- so we assert on the captured string directly.
+   */
+  private void assertAutoFacetBaseDropsManualRestriction() {
+    ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
+    verify(searchIndexClient, atLeastOnce()).count(queries.capture());
+    String autoTrueBucketQuery = queries.getAllValues()
+        .stream()
+        .filter(q -> q.contains("policyWaiverAuto:\"true\""))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("no count() query built the auto 'true' bucket"));
+    assertThat(autoTrueBucketQuery)
+        .as("auto/manual facet base must drop the manual-only restriction so it counts the whole corpus")
+        .doesNotContain("policyWaiverAuto:\"false\"");
+  }
+
+  @Test
+  public void waiverQuery_rowsCarryWaiverDetailHref() {
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+
+    // Org-scoped manual waiver: /preview/waivers/{ownerType-lowercased}/{ownerId}/{waiverId}.
+    IndexQueryRow orgScoped = response.rows()
+        .stream()
+        .filter(r -> r.getId().equals("w-acme-1"))
+        .findFirst()
+        .orElseThrow();
+    assertThat(orgScoped.getHref()).isEqualTo("/preview/waivers/organization/org-w-acme-1/w-acme-1");
+
+    // App-scoped waiver carries its application owner id.
+    IndexQueryRow appScoped = response.rows()
+        .stream()
+        .filter(r -> r.getId().equals("w-acme-app-1"))
+        .findFirst()
+        .orElseThrow();
+    assertThat(appScoped.getHref()).isEqualTo("/preview/waivers/application/acme-prod/w-acme-app-1");
+
+    // Auto waiver carries the same scope owner id/type production indexes, so its href resolves too.
+    IndexQueryRow autoScoped = response.rows()
+        .stream()
+        .filter(r -> r.getId().equals("w-auto-1"))
+        .findFirst()
+        .orElseThrow();
+    assertThat(autoScoped.getHref()).isEqualTo("/preview/waivers/organization/org-w-auto-1/w-auto-1");
+  }
+
+  @Test
+  public void waiverQuery_facetsRequested_includeThreatLevelBuckets() {
+    // Numeric threat-level facet counts per discrete value via an exact-value range [v TO v]
+    // (a phrase-quoted term does not match the IntPoint policyWaiverThreatLevel field).
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverThreatLevel:[8 TO 8]")))
+        .thenReturn(3L);
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverThreatLevel:[9 TO 9]")))
+        .thenReturn(2L);
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverThreatLevel:[10 TO 10]")))
+        .thenReturn(1L);
+
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, true);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.facets()).isNotNull().containsKey("threatLevel");
+    Map<String, Long> threatCounts = new HashMap<>();
+    response.facets().get("threatLevel").forEach(b -> threatCounts.put(b.value(), b.count()));
+    assertThat(threatCounts).containsEntry("8", 3L).containsEntry("9", 2L).containsEntry("10", 1L);
+  }
+
+  @Test
+  public void waiverQuery_pageSizeOne_pagesWithCursor() {
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 1, null, null, false);
+    IndexQueryResponse first = resource.query(req);
+    assertThat(first.rows()).hasSize(1);
+    assertThat(first.nextSearchAfter()).isNotBlank();
+
+    IndexQueryRequest next = new IndexQueryRequest("WAIVER", Map.of(), 2, 1, null, first.nextSearchAfter(), false);
+    IndexQueryResponse second = resource.query(next);
+    assertThat(second.rows()).hasSize(1);
+    assertThat(second.rows().get(0).getId()).isNotEqualTo(first.rows().get(0).getId());
+  }
+
+  @Test
+  public void waiverQuery_scopedUser_seesOnlyPermittedWaivers() {
+    // Fail-closed RBAC through the PRODUCTION permission clause: a user permitted only Acme's context
+    // resolves to a TermInSetQuery over the indexed allowedContextIds field (built by the real
+    // AbstractSearchIndexClient.buildAllowedContextIdsLuceneFilter), ANDed onto the base query by the
+    // real wrapWithPermissionFilter. runRealSearch runs that composed query against Lucene, so the
+    // scoping is driven by the real permission wiring, not the harness's org-name stand-in.
+    final RealPermissionClause permissions = new RealPermissionClause();
+    when(searchIndexClient.getCurrentUserContextIdsWithReadPermission())
+        .thenReturn(Set.of(contextIdFor("Acme")));
+    when(searchIndexClient.buildAllowedContextIdsFilter(any()))
+        .thenAnswer(inv -> permissions.buildFilter(inv.getArgument(0)));
+    when(searchIndexClient.wrapWithPermissionFilter(any(), any()))
+        .thenAnswer(inv -> permissions.wrap(inv.getArgument(0), inv.getArgument(1)));
+
+    // includeAutoWaivers true so the RBAC assertion covers both manual and auto Acme waivers. The
+    // Widget Co waiver (w-widget-1) carries a different allowedContextId, so it must be filtered out
+    // by the permission clause itself.
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-acme-app-1", "w-auto-1");
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-widget-1");
+  }
+
+  /**
+   * Exposes the real {@link AbstractSearchIndexClient} permission-clause methods
+   * ({@code buildAllowedContextIdsLuceneFilter} / {@code wrapWithPermissionFilter}) so the RBAC test
+   * drives the production permission wiring rather than a harness stand-in. Construction passes nulls
+   * for the DI collaborators none of which are touched by the permission-clause methods.
+   */
+  private static final class RealPermissionClause
+      extends AbstractSearchIndexClient
+  {
+    private RealPermissionClause() {
+      super(null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+          null, null, null, null, null, null, null, null);
+    }
+
+    org.apache.lucene.search.Query buildFilter(final Set<String> permittedContextIds) {
+      return buildAllowedContextIdsLuceneFilter(permittedContextIds);
+    }
+
+    org.apache.lucene.search.Query wrap(
+        final org.apache.lucene.search.Query baseQuery,
+        final org.apache.lucene.search.Query permissionFilter)
+    {
+      return wrapWithPermissionFilter(baseQuery, permissionFilter);
+    }
+
+    @Override
+    protected void updateMaxQueryClauseCount() {
+    }
+
+    @Override
+    protected boolean isChangeSpecificError(final Exception e) {
+      return false;
+    }
+
+    @Override
+    protected boolean isSystemicError(final Exception e) {
+      return false;
+    }
+
+    @Override
+    public long count(final String metricQuery) {
+      return 0;
+    }
+
+    @Override
+    public long countDistinct(final String metricQuery, final List<String> compositeKeyFields) {
+      return 0;
+    }
+
+    @Override
+    public com.sonatype.insight.brain.search.index.MetricAggregationResult aggregateCountByField(
+        final String metricQuery,
+        final String bucketField,
+        final Map<String, int[]> ranges)
+    {
+      return null;
+    }
+
+    @Override
+    public com.sonatype.insight.brain.search.results.SearchResultDTO searchIndex(
+        final String q,
+        final int pageSize,
+        final int page,
+        final boolean allComponents,
+        final boolean isSbomManagerMode,
+        final List<String> searchAfter)
+    {
+      return null;
+    }
+
+    @Override
+    public void populateIndex() {
+    }
+
+    @Override
+    public void updateIndex(
+        final List<com.sonatype.insight.brain.model.SearchIndexChange> changes,
+        final java.util.function.Consumer<com.sonatype.insight.brain.model.SearchIndexChange> cb)
+    {
+    }
+
+    @Override
+    public void updateIndex() {
+    }
+
+    @Override
+    public Long getLastIndexTime() {
+      return null;
+    }
+
+    @Override
+    public long getIndexSize() {
+      return 0;
+    }
   }
 
   @Test(expected = jakarta.ws.rs.NotFoundException.class)
@@ -237,6 +755,46 @@ public class IndexQueryEndpointTest
     assertThat(body).containsEntry("code", FilterValidationException.Code.SORT_NOT_ALLOWED.name());
     assertThat(String.valueOf(body.get("message"))).doesNotContain("secretSortName");
     assertThat(body).doesNotContainValue("secretSortName");
+  }
+
+  @Test
+  public void policyQuery_waiverCount_countsWaiversReferencingEachPolicy() {
+    // Whole-corpus, RBAC-scoped count of POLICY_WAIVER docs whose policyWaiverPolicyId equals the row's
+    // policy id. pol-sec-high has 3 manual waivers; pol-orphan has none (absent stub -> mock default 0).
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverPolicyId:\"pol-sec-high\"")))
+        .thenReturn(3L);
+    when(searchIndexClient.count(org.mockito.ArgumentMatchers.contains("policyWaiverPolicyId:\"pol-orphan\"")))
+        .thenReturn(0L);
+
+    IndexQueryRequest req = new IndexQueryRequest("POLICY", Map.of(), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+
+    Map<String, Object> byId = new HashMap<>();
+    response.rows().forEach(r -> byId.put(r.getId(), r.getFields().get("waiverCount")));
+    assertThat(byId).containsEntry("pol-sec-high", 3L).containsEntry("pol-orphan", 0L);
+  }
+
+  @Test
+  public void policyQuery_waiverCount_countQueryScopesToPolicyWaiverDocsAndPolicyId() {
+    when(searchIndexClient.count(any())).thenReturn(1L);
+    resource.query(new IndexQueryRequest("POLICY", Map.of(), 1, 25, null, null, false));
+    ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
+    verify(searchIndexClient, atLeastOnce()).count(queries.capture());
+    // Each waiverCount query is scoped to POLICY_WAIVER docs AND a specific policy id (RBAC applied
+    // inside count()), never an unscoped or cross-item-type count.
+    assertThat(queries.getAllValues())
+        .filteredOn(q -> q.contains("policyWaiverPolicyId:"))
+        .isNotEmpty()
+        .allSatisfy(q -> assertThat(q).contains("itemType:policy_waiver"));
+  }
+
+  @Test
+  public void policyQuery_waiverCount_rbacScopedZeroWhenNoReadableContexts() {
+    // A caller with no readable contexts counts 0 (SearchIndexClient.count fails closed); the mock
+    // default (0) models that, so every policy row reports waiverCount 0 rather than a leaked total.
+    IndexQueryResponse response = resource.query(new IndexQueryRequest("POLICY", Map.of(), 1, 25, null, null, false));
+    assertThat(response.rows()).isNotEmpty();
+    assertThat(response.rows()).allSatisfy(r -> assertThat(r.getFields().get("waiverCount")).isEqualTo(0L));
   }
 
   @Test
@@ -312,12 +870,7 @@ public class IndexQueryEndpointTest
     for (int i = 0; i < returnCount; i++) {
       ScoreDoc hit = ordered.get(i);
       Document doc = searcher.storedFields().document(hit.doc);
-      SearchResultItemDTO dto = new SearchResultItemDTO();
-      dto.itemType = doc.get(FieldIdentifier.ITEM_TYPE.label);
-      dto.applicationName = doc.get(FieldIdentifier.APPLICATION_NAME.label);
-      dto.applicationPublicId = doc.get(FieldIdentifier.APPLICATION_PUBLIC_ID.label);
-      dto.organizationName = doc.get(FieldIdentifier.ORGANIZATION_NAME.label);
-      dto.policyViolationId = doc.get(FieldIdentifier.POLICY_VIOLATION_ID.label);
+      SearchResultItemDTO dto = new SearchResultItemDTO(doc);
       rows.add(dto);
       if (i == returnCount - 1 && ordered.size() > request.pageSize()) {
         nextSearchAfter = List.of(String.valueOf(hit.doc));
@@ -331,8 +884,123 @@ public class IndexQueryEndpointTest
     doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_VIOLATION.name(), Store.YES));
     doc.add(new TextField(FieldIdentifier.POLICY_VIOLATION_ID.label, violationId, Store.YES));
     doc.add(new TextField(FieldIdentifier.APPLICATION_NAME.label, appName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_ID.label, appName.toLowerCase().replace(' ', '-'), Store.YES));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_ID.label, orgName.toLowerCase().replace(' ', '-'), Store.YES));
+    doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
+    return doc;
+  }
+
+  private static Document policyDoc(
+      final String policyId,
+      final String policyName,
+      final String orgName,
+      final int threatLevel)
+  {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_ID.label, policyId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_NAME.label, policyName, Store.YES));
+    doc.add(new IntPoint(FieldIdentifier.POLICY_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StoredField(FieldIdentifier.POLICY_THREAT_LEVEL.label, threatLevel));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_ID.label, orgName.toLowerCase().replace(' ', '-'), Store.YES));
+    doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
+    addAllowedContextId(doc, orgName);
+    return doc;
+  }
+
+  private static Document manualWaiverDoc(
+      final String waiverId,
+      final String policyName,
+      final String orgName,
+      final int threatLevel,
+      final String waivedBy,
+      final Long expiresAtEpochMs)
+  {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_ID.label, waiverId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label, policyName, Store.YES));
+    // Manual waivers carry a policyId + reason; auto waivers do not.
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label, "pol-" + waiverId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_REASON.label, "waived for release", Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label, "ORGANIZATION", Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label, "org-" + waiverId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label, waivedBy, Store.YES));
+    doc.add(new IntPoint(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StoredField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_AUTO.label, "false", Store.YES));
+    // Mirror production: a null expiry writes no epoch point, so the doc is never in the expired range.
+    if (expiresAtEpochMs != null) {
+      doc.add(new LongPoint(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, expiresAtEpochMs));
+    }
     doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
     doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
+    addAllowedContextId(doc, orgName);
+    return doc;
+  }
+
+  // Denormalized permission-filter field the production RBAC clause (TermInSetQuery over
+  // allowedContextIds) matches on. Case-sensitive keyword, so index the raw context id.
+  private static void addAllowedContextId(final Document doc, final String orgName) {
+    doc.add(new StringField(FieldIdentifier.ALLOWED_CONTEXT_IDS.label, contextIdFor(orgName), Store.YES));
+  }
+
+  private static String contextIdFor(final String orgName) {
+    return "ctx-" + orgName.toLowerCase(java.util.Locale.ROOT).replace(' ', '-');
+  }
+
+  /**
+   * An application-scoped manual waiver: it carries applicationName/applicationId (written by
+   * {@code setOwner(Application)} in production) so the applications/applicationId filters can match it,
+   * whereas org-scoped waivers carry neither.
+   */
+  private static Document appScopedWaiverDoc(
+      final String waiverId,
+      final String policyName,
+      final String orgName,
+      final String appName,
+      final String appId,
+      final int threatLevel)
+  {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_ID.label, waiverId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label, policyName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label, "pol-" + waiverId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_REASON.label, "waived for release", Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label, "APPLICATION", Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label, appId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label, "dave", Store.YES));
+    doc.add(new IntPoint(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StoredField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_AUTO.label, "false", Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_NAME.label, appName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_ID.label, appId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
+    addAllowedContextId(doc, orgName);
+    return doc;
+  }
+
+  private static Document autoWaiverDoc(final String waiverId, final String orgName, final int threatLevel) {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_ID.label, waiverId, Store.YES));
+    // Auto waivers carry no indexed policy name (nor policyId/reason); the display title is
+    // synthesized on the read side so the label is never text-searchable and can change without a
+    // reindex. Mirrors DocumentBuilderHelper leaving policyWaiverPolicyName null for auto waivers.
+    doc.add(new IntPoint(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StoredField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_AUTO.label, "true", Store.YES));
+    // Auto waivers still carry scope owner id/type (DocumentBuilderHelper sets both), so the
+    // read-side waiverHref resolves to a valid detail link like the manual/app fixtures do.
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label, "ORGANIZATION", Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label, "org-" + waiverId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
+    addAllowedContextId(doc, orgName);
     return doc;
   }
 
@@ -340,8 +1008,10 @@ public class IndexQueryEndpointTest
     Document doc = new Document();
     doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name(), Store.YES));
     doc.add(new TextField(FieldIdentifier.APPLICATION_PUBLIC_ID.label, publicId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_ID.label, publicId + "-id", Store.YES));
     doc.add(new TextField(FieldIdentifier.APPLICATION_NAME.label, name, Store.YES));
     doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_ID.label, orgName.toLowerCase().replace(' ', '-'), Store.YES));
     // The organizations filter rewrites to parentOrganizationName, so index it or the filter matches nothing.
     doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
     return doc;

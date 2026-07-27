@@ -262,14 +262,20 @@ public class CatalogServiceTest
   }
 
   @Test
-  public void localSource_nonRelevanceSort_whileFieldSortDisabled_recordedAsWarning() {
-    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+  public void localSource_nonRelevanceSort_isAppliedAsFieldSort_noRelevanceOnlyWarning() {
+    // Field sort is enabled: a local COMPONENT name sort runs a real field sort, so no
+    // "relevance-only" warning is emitted and the validated key is echoed for cursor minting.
+    ArgumentCaptor<GlobalSearchRequest> captor = ArgumentCaptor.forClass(GlobalSearchRequest.class);
+    when(searchIndexClient.searchGlobal(captor.capture()))
         .thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
     CatalogRequest req = new CatalogRequest("COMPONENT", "local", Map.of(), 1, 25, "name", null, false);
 
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
 
-    assertThat(response.warnings()).anyMatch(w -> w.contains("relevance-only"));
+    assertThat(response.warnings()).noneMatch(w -> w.contains("relevance-only"));
+    assertThat(captor.getValue().sort()).as("local name sort must be a real field sort").isNotNull();
+    assertThat(captor.getValue().sort().getSort()[0].getField())
+        .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_NAME.label);
   }
 
   @Test

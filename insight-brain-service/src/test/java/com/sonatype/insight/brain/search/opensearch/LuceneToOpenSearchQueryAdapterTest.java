@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -200,6 +201,35 @@ public class LuceneToOpenSearchQueryAdapterTest
     assertThat(result.range().field()).isEqualTo("vulnerabilitySeverity");
     assertThat(result.range().gte().to(Double.class)).isEqualTo(3.5);
     assertThat(result.range().lte().to(Double.class)).isEqualTo(7.5);
+  }
+
+  @Test
+  public void longPointRangeQuery_waiverExpiry_translatesWithEightByteBounds() {
+    // policyWaiverExpiresAtEpochMs is a Long field; a value beyond the 32-bit int range confirms the
+    // decoder uses LongPoint's 8-byte layout rather than misreading it as an IntPoint.
+    long lo = 1_700_000_000_000L;
+    long hi = 1_800_000_000_000L;
+    Query range = LongPoint.newRangeQuery("policyWaiverExpiresAtEpochMs", lo, hi);
+    org.opensearch.client.opensearch._types.query_dsl.Query result =
+        LuceneToOpenSearchQueryAdapter.toOpenSearch(range);
+    assertThat(result._kind()).isEqualTo(Kind.Range);
+    assertThat(result.range().field()).isEqualTo("policyWaiverExpiresAtEpochMs");
+    assertThat(result.range().gte().to(Long.class)).isEqualTo(lo);
+    assertThat(result.range().lte().to(Long.class)).isEqualTo(hi);
+  }
+
+  @Test
+  public void longPointRangeQuery_appLastEvaluation_translatesToRangeWithLongBounds() {
+    // 8-byte LongPoint layout must be decoded with LongPoint.decodeDimension, not IntPoint's 4-byte.
+    long lo = 1_700_000_000_000L;
+    long hi = 1_800_000_000_000L;
+    Query range = LongPoint.newRangeQuery("applicationLastEvaluationTimeEpochMs", lo, hi);
+    org.opensearch.client.opensearch._types.query_dsl.Query result =
+        LuceneToOpenSearchQueryAdapter.toOpenSearch(range);
+    assertThat(result._kind()).isEqualTo(Kind.Range);
+    assertThat(result.range().field()).isEqualTo("applicationLastEvaluationTimeEpochMs");
+    assertThat(result.range().gte().to(Long.class)).isEqualTo(lo);
+    assertThat(result.range().lte().to(Long.class)).isEqualTo(hi);
   }
 
   @Test

@@ -24,11 +24,13 @@ public class FieldMapTest
     assertThat(entry).isPresent();
     assertThat(entry.get().label()).isEqualTo(FieldIdentifier.APPLICATION_NAME.label);
     assertThat(entry.get().kind()).isEqualTo(FieldKind.KEYWORD);
-    // applicationName is indexed on violation docs too (via the owning application), so violation-
-    // scoped queries must resolve it rather than compile to MatchNoDocsQuery.
+    // applicationName is indexed on violation docs (via the owning application), on
+    // SECURITY_VULNERABILITY docs (setOwner in the vuln build path), and on app-scoped waiver docs,
+    // so all those scopes must resolve it rather than compile to MatchNoDocsQuery.
     assertThat(entry.get().allowedTypes())
         .containsExactlyInAnyOrder(
-            ItemType.APPLICATION, ItemType.POLICY_VIOLATION, ItemType.LEGAL_VIOLATION);
+            ItemType.APPLICATION, ItemType.POLICY_VIOLATION, ItemType.LEGAL_VIOLATION,
+            ItemType.SECURITY_VULNERABILITY, ItemType.POLICY_WAIVER);
   }
 
   @Test
@@ -146,9 +148,43 @@ public class FieldMapTest
   }
 
   @Test
-  public void applicationScopedFieldsNotValidForVulnerabilities() {
-    FieldEntry entry = map.lookup("applicationName").orElseThrow();
+  public void applicationOnlyFieldsNotValidForVulnerabilities() {
+    // applicationName/organizationName/policyEvaluationStage are indexed on vuln docs and were
+    // widened to SECURITY_VULNERABILITY, but application-identity fields (applicationId) stay
+    // APPLICATION-only, so a vuln-scoped query on them still compiles to no docs.
+    FieldEntry entry = map.lookup("applicationId").orElseThrow();
     assertThat(entry.allowedTypes()).doesNotContain(ItemType.SECURITY_VULNERABILITY);
+  }
+
+  @Test
+  public void organizationAndAppAndStageFieldsWidenedToVulnerabilities() {
+    assertThat(map.lookup("applicationName").orElseThrow().allowedTypes())
+        .contains(ItemType.SECURITY_VULNERABILITY);
+    assertThat(map.lookup("organizationName").orElseThrow().allowedTypes())
+        .contains(ItemType.SECURITY_VULNERABILITY);
+    assertThat(map.lookup("organizationId").orElseThrow().allowedTypes())
+        .contains(ItemType.SECURITY_VULNERABILITY);
+    assertThat(map.lookup("policyEvaluationStage").orElseThrow().allowedTypes())
+        .contains(ItemType.SECURITY_VULNERABILITY);
+  }
+
+  @Test
+  public void applicationCategoryNameWidenedToViolations() {
+    FieldEntry entry = map.lookup("applicationCategoryName").orElseThrow();
+    assertThat(entry.allowedTypes()).containsExactlyInAnyOrder(
+        ItemType.APPLICATION, ItemType.POLICY_VIOLATION, ItemType.LEGAL_VIOLATION);
+  }
+
+  @Test
+  public void applicationEvaluationDenormFieldsAreApplicationScoped() {
+    FieldEntry epochMs = map.lookup("applicationLastEvaluationTimeEpochMs").orElseThrow();
+    assertThat(epochMs.kind()).isEqualTo(FieldKind.NUMERIC);
+    assertThat(epochMs.numericType()).isEqualTo(Long.class);
+    assertThat(epochMs.allowedTypes()).containsExactly(ItemType.APPLICATION);
+
+    FieldEntry stageSeverity = map.lookup("applicationStageSeverityCount").orElseThrow();
+    assertThat(stageSeverity.kind()).isEqualTo(FieldKind.KEYWORD);
+    assertThat(stageSeverity.allowedTypes()).containsExactly(ItemType.APPLICATION);
   }
 
   @Test
@@ -197,6 +233,7 @@ public class FieldMapTest
         "applicationName", "applicationId", "applicationPublicId", "applicationVersion",
         "applicationCategoryId", "applicationCategoryName", "applicationCategoryColor",
         "applicationCategoryDescription", "sbomSpecification",
+        "applicationLastEvaluationTimeEpochMs", "applicationStageSeverityCount",
         "componentHash", "componentName", "componentFormat",
         "componentCoordinateName", "componentCoordinateGroupId", "componentCoordinateArtifactId",
         "componentCoordinateVersion", "componentCoordinateClassifier", "componentCoordinateExtension",
@@ -214,12 +251,20 @@ public class FieldMapTest
   }
 
   @Test
-  public void numericFieldFactoryRejectsUnsupportedType() {
+  public void numericFieldFactoryAcceptsIntLongFloat() {
     assertThat(new FieldEntry("x", FieldKind.NUMERIC, java.util.Set.of(), null, Integer.class).numericType())
         .isEqualTo(Integer.class);
+    assertThat(new FieldEntry("x", FieldKind.NUMERIC, java.util.Set.of(), null, Long.class).numericType())
+        .isEqualTo(Long.class);
+    assertThat(new FieldEntry("x", FieldKind.NUMERIC, java.util.Set.of(), null, Float.class).numericType())
+        .isEqualTo(Float.class);
+  }
+
+  @Test
+  public void numericFieldFactoryRejectsUnsupportedType() {
     org.assertj.core.api.Assertions
-        .assertThatThrownBy(() -> new FieldEntry("x", FieldKind.NUMERIC, java.util.Set.of(), null, Long.class))
+        .assertThatThrownBy(() -> new FieldEntry("x", FieldKind.NUMERIC, java.util.Set.of(), null, Double.class))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Integer.class or Float.class");
+        .hasMessageContaining("Integer.class, Long.class, or Float.class");
   }
 }

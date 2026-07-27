@@ -7,15 +7,19 @@ package com.sonatype.insight.brain.search.lucene;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexingContext;
+import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
 
 public class LuceneIndexingContext
@@ -37,10 +41,32 @@ public class LuceneIndexingContext
     indexWriter.deleteDocuments(getConversionHelper().stringToQuery(query));
   }
 
+  /**
+   * Keyword sort doc-values twin, lower-cased to match the OpenSearch {@code keyword} mapping's
+   * {@code lowercase} normalizer (see {@code IndexMapping.createProperty}). Both backends must sort
+   * on the same normalized bytes so a name/stage sort orders identically regardless of case, and so
+   * the {@code searchAfter} boundary from one backend anchors the same row on the other. No-op when
+   * the field is absent (never-set field on this doc type).
+   */
   private static void addSortDocValues(final Document document, final String fieldLabel) {
     String value = document.get(fieldLabel);
     if (value != null) {
-      document.add(new SortedDocValuesField(fieldLabel, new BytesRef(value)));
+      document.add(new SortedDocValuesField(fieldLabel, new BytesRef(value.toLowerCase(Locale.ROOT))));
+    }
+  }
+
+  /**
+   * Numeric sort doc-values twin for an epoch-millis long field. Reads the stored numeric value
+   * (LongPoint alone is not stored/retrievable) so the field is sortable in Lucene; OpenSearch
+   * sorts on its {@code long} mapping. No-op when the field is absent (never-evaluated app).
+   */
+  private static void addNumericSortDocValues(final Document document, final String fieldLabel) {
+    for (IndexableField field : document.getFields(fieldLabel)) {
+      Number numeric = field.numericValue();
+      if (numeric != null) {
+        document.add(new SortedNumericDocValuesField(fieldLabel, numeric.longValue()));
+        return;
+      }
     }
   }
 
@@ -55,6 +81,20 @@ public class LuceneIndexingContext
       }
       addSortDocValues(document, FieldIdentifier.POLICY_WAIVER_CREATED_AT.label);
       addSortDocValues(document, FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label);
+      // Keyword sort twins for the allowlisted name/stage sort keys. DocumentBuilder writes these as
+      // analysed TextFields (no doc-values), so the sortable twin lives here; only one of these
+      // labels is populated per doc (by item type), so the null-check in addSortDocValues no-ops the rest.
+      addSortDocValues(document, FieldIdentifier.APPLICATION_NAME.label);
+      addSortDocValues(document, FieldIdentifier.POLICY_EVALUATION_STAGE.label);
+      addSortDocValues(document, FieldIdentifier.COMPONENT_NAME.label);
+      addSortDocValues(document, FieldIdentifier.VULNERABILITY_ID.label);
+      addSortDocValues(document, FieldIdentifier.POLICY_VIOLATION_POLICY_NAME.label);
+      addNumericSortDocValues(document, FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label);
+      addNumericSortDocValues(document, FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label);
+      // Threat level is set only on POLICY_VIOLATION docs; skip the field scan on the other item types.
+      if (ItemType.POLICY_VIOLATION.name().equals(document.get(FieldIdentifier.ITEM_TYPE.label))) {
+        addNumericSortDocValues(document, FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+      }
     }
     indexWriter.addDocuments(documents);
   }

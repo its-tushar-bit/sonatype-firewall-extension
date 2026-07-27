@@ -24,6 +24,7 @@ import java.util.Set;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService.IqLocalSearchResponse;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService.SearchInputs;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -33,6 +34,9 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TermQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -553,12 +557,42 @@ public class IqLocalSearchServiceTest
   }
 
   @Test
-  public void sortFor_nonRelevanceKey_returnsNullWhileFieldSortDisabled() {
-    // Guard: while SORT_BY_FIELD_ENABLED is false, non-relevance keys must resolve to null.
-    // The moment doc-values are wired and the flag flips, this expectation must be updated
-    // together with the SORTABLE_FIELD_BY_KEY coverage check below.
-    assertThat(IqLocalSearchService.SORT_BY_FIELD_ENABLED).isFalse();
-    assertThat(IqLocalSearchService.sortFor(Tab.APPLICATION, "name")).isNull();
+  public void fieldSort_isEnabled() {
+    // Field sort is on: every allowlisted key now has a sortable doc-values twin on both backends.
+    assertThat(IqLocalSearchService.SORT_BY_FIELD_ENABLED).isTrue();
+    assertThat(IqLocalSearchService.isFieldSortEnabled()).isTrue();
+  }
+
+  @Test
+  public void sortFor_stringKey_buildsAscendingKeywordSortOnMappedField() {
+    Sort sort = IqLocalSearchService.sortFor(Tab.APPLICATION, "name");
+    assertThat(sort).isNotNull();
+    SortField field = sort.getSort()[0];
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.APPLICATION_NAME.label);
+    assertThat(field.getType()).isEqualTo(SortField.Type.STRING);
+    assertThat(field.getReverse()).isFalse();
+  }
+
+  @Test
+  public void sortFor_numericKey_buildsDescendingLongSortOnMappedField() {
+    Sort sort = IqLocalSearchService.sortFor(Tab.APPLICATION, "lastEvaluationTime");
+    assertThat(sort).isNotNull();
+    SortField field = sort.getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(field.getReverse()).isTrue();
+  }
+
+  @Test
+  public void sortFor_waiverCreatedKey_buildsDescendingLongSortOnEpochTwin() {
+    Sort sort = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_CREATED);
+    assertThat(sort).isNotNull();
+    SortField field = sort.getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(field.getReverse()).isTrue();
   }
 
   @Test
@@ -589,6 +623,53 @@ public class IqLocalSearchServiceTest
         .anyMatch(c -> c.getOccur() == BooleanClause.Occur.FILTER
             && c.getQuery() instanceof org.apache.lucene.search.MatchNoDocsQuery);
     assertThat(hasMatchNone).isTrue();
+  }
+
+  @Test
+  public void sortableFieldMap_mapsNewAppAndViolationSortKeys() {
+    // PR-B sort keys: applications sort by latest evaluation, violations by threat level.
+    assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.APPLICATION, "lastEvaluationTime"))
+        .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS);
+    assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.VIOLATION, "threat"))
+        .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL);
+  }
+
+  @Test
+  public void buildSortField_numericFields_sortDescendingAsLong() {
+    // Numeric-backed fields (latest-evaluation, threat level, waiver created-at) sort on their
+    // numeric doc-values twin, descending (newest/highest first). The numeric-vs-string branch is
+    // chosen from the FieldIdentifier itself, not a hardcoded sort-key set.
+    for (FieldIdentifier f : List.of(
+        FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS,
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL,
+        FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS))
+    {
+      SortField field = IqLocalSearchService.buildSortField(f).getSort()[0];
+      // Numeric fields use SortedNumericSortField (reads the SortedNumericDocValues twin); its
+      // getType() is CUSTOM, so assert the numeric type via getNumericType().
+      assertThat(field).as("field for %s", f).isInstanceOf(SortedNumericSortField.class);
+      assertThat(((SortedNumericSortField) field).getNumericType())
+          .as("numeric type for %s", f)
+          .isEqualTo(SortField.Type.LONG);
+      assertThat(field.getReverse()).as("reverse for %s", f).isTrue();
+      assertThat(field.getField()).isEqualTo(f.label);
+    }
+  }
+
+  @Test
+  public void buildSortField_stringFields_sortAscendingAsKeyword() {
+    for (FieldIdentifier f : List.of(
+        FieldIdentifier.APPLICATION_NAME,
+        FieldIdentifier.COMPONENT_NAME,
+        FieldIdentifier.VULNERABILITY_ID,
+        FieldIdentifier.POLICY_EVALUATION_STAGE,
+        FieldIdentifier.POLICY_VIOLATION_POLICY_NAME))
+    {
+      SortField field = IqLocalSearchService.buildSortField(f).getSort()[0];
+      assertThat(field.getType()).as("type for %s", f).isEqualTo(SortField.Type.STRING);
+      assertThat(field.getReverse()).as("reverse for %s", f).isFalse();
+      assertThat(field.getField()).isEqualTo(f.label);
+    }
   }
 
   @Test

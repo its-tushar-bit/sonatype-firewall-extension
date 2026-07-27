@@ -193,13 +193,14 @@ public class IndexQueryServiceTest
     assertThat(resp.facets()).isNotNull();
     // Counts are whole-corpus now, so the page-only flag is false.
     assertThat(resp.facetsOverPageOnly()).isFalse();
-    assertThat(resp.facets()).containsKey("organizationName");
+    assertThat(resp.facets()).containsKey("organizations");
     Map<String, Long> orgCounts = resp.facets()
-        .get("organizationName")
+        .get("organizations")
         .stream()
         .collect(java.util.stream.Collectors.toMap(
             IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
-    // Whole-corpus counts (9/4), NOT the page tallies (2/1).
+    // Whole-corpus counts (9/4), NOT the page tallies (2/1). Buckets are keyed on the org name so the
+    // value round-trips back through the name-matching organizations filter.
     assertThat(orgCounts).containsEntry("Acme", 9L).containsEntry("Widget Co", 4L);
   }
 
@@ -216,7 +217,7 @@ public class IndexQueryServiceTest
     IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
 
     long acme = resp.facets()
-        .get("organizationName")
+        .get("organizations")
         .stream()
         .filter(bkt -> bkt.value().equals("Acme"))
         .findFirst()
@@ -224,7 +225,8 @@ public class IndexQueryServiceTest
         .count();
     // Whole-corpus count (42), not the single page row.
     assertThat(acme).isEqualTo(42L);
-    // The count must be item-type + filter scoped.
+    // The count must be item-type + filter scoped; the org facet buckets and counts by name so it
+    // round-trips through the name-matching organizations filter.
     ArgumentCaptor<String> countQueries = ArgumentCaptor.forClass(String.class);
     verify(searchIndexClient, org.mockito.Mockito.atLeastOnce()).count(countQueries.capture());
     assertThat(countQueries.getAllValues()).anySatisfy(qy -> {
@@ -234,36 +236,47 @@ public class IndexQueryServiceTest
   }
 
   @Test
-  public void query_facetValuesExceedingBudget_boundsCountCalls_andWarnsTruncated() {
-    // 20 distinct orgs + 20 distinct stages across the page. Per-field cap (20) admits all of each, but
-    // the global budget (30) stops count() partway through the second field, so the fan-out is bounded
-    // and a truncation warning is surfaced.
+  public void query_facetValuesExceedingBudget_boundsCountCalls_andWarnsTruncated_butKeepsFixedFacets() {
+    // A diverse VIOLATION page: 20 distinct orgs + 20 apps + 20 categories + 20 stages + 20 policy
+    // types. The per-field cap (20) admits all of each (100 candidate dynamic counts), far over the
+    // budget, so count() fan-out is bounded and a truncation warning is surfaced. The fixed
+    // states/waiverType facets are processed FIRST, so the always-relevant OPEN/WAIVED and AUTO/MANUAL
+    // counts survive rather than being starved by the dynamic facets.
     List<SearchResultItemDTO> page = new java.util.ArrayList<>();
     for (int i = 0; i < 20; i++) {
       SearchResultItemDTO d = new SearchResultItemDTO();
-      d.itemType = "APPLICATION";
-      d.applicationPublicId = "app-" + i;
+      d.itemType = "POLICY_VIOLATION";
+      d.policyViolationId = "pv-" + i;
+      d.applicationName = "App " + i;
+      d.applicationId = "app-" + i + "-id";
       d.organizationName = "Org " + i;
+      d.organizationId = "org-" + i;
+      d.applicationCategoryNames = List.of("Cat " + i);
       d.policyEvaluationStage = "stage-" + i;
+      d.policyViolationThreatCategory = "cat-" + i;
+      d.policyViolationWaiverStatus = "Active";
       page.add(d);
     }
     when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(page, page.size(), List.of()));
     when(searchIndexClient.count(any())).thenReturn(1L);
 
-    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
-    IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
+    IndexQueryRequest req = new IndexQueryRequest("VIOLATION", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.VIOLATION, req);
 
     verify(searchIndexClient, org.mockito.Mockito.atMost(IndexQueryService.MAX_FACET_COUNT_QUERIES)).count(any());
     assertThat(resp.warnings()).contains(IndexQueryService.FACET_COUNTS_TRUNCATED);
+    // The bounded, always-wanted fixed facets are computed first, so they are never truncated away.
+    assertThat(resp.facets().get("states")).extracting(IndexQueryResponse.IndexQueryFacetBucket::value)
+        .containsExactlyInAnyOrder("OPEN", "WAIVED");
+    assertThat(resp.facets().get("waiverType")).extracting(IndexQueryResponse.IndexQueryFacetBucket::value)
+        .containsExactlyInAnyOrder("AUTO", "MANUAL");
   }
 
   @Test
   public void query_facetValuesWithinBudget_noTruncationWarning() {
-    // Two distinct orgs and two stages: four count() calls, well within the budget, so no warning.
+    // Two distinct orgs: a handful of count() calls, well within the budget, so no warning.
     SearchResultItemDTO a = appDto("acme-1", "App One", "Acme");
-    a.policyEvaluationStage = "build";
     SearchResultItemDTO b = appDto("widget-1", "App Two", "Widget Co");
-    b.policyEvaluationStage = "stage-release";
     when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(a, b), 2, List.of()));
     when(searchIndexClient.count(any())).thenReturn(1L);
 
@@ -391,19 +404,22 @@ public class IndexQueryServiceTest
     IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
     assertThat(resp.nextSearchAfter()).isNotBlank();
 
+    // A blank APPLICATION request sort resolves to the per-entity default (lastEvaluationTime), so
+    // the cursor is minted/validated against that sort key, not relevance.
+    String defaultSort = GlobalSearchSortAllowlist.defaultSortFor(Tab.APPLICATION);
     // The generation token the default backend would mint/validate on the follow-up request (5-arg
     // with null servingBackendId falls back to backendId() == "primary"). The served cursor must NOT
     // match it — it is pinned to "secondary" — so the default backend rejects it as stale rather than
     // silently mis-paginating a secondary-format cursor.
     String defaultBackendToken = iq.mintNextCursor(
-        Tab.APPLICATION, GlobalSearchSortAllowlist.RELEVANCE, 25, List.of("cursorTuple"), null)
+        Tab.APPLICATION, defaultSort, 25, List.of("cursorTuple"), null)
         .generationToken();
     assertThatExceptionOfType(StaleCursorException.class)
         .isThrownBy(() -> GlobalSearchCursor.decode(resp.nextSearchAfter(), defaultBackendToken));
 
     // The same cursor minted for the serving backend does validate, confirming it is pinned there.
     String servingToken = iq.mintNextCursor(
-        Tab.APPLICATION, GlobalSearchSortAllowlist.RELEVANCE, 25, List.of("cursorTuple"), "secondary")
+        Tab.APPLICATION, defaultSort, 25, List.of("cursorTuple"), "secondary")
         .generationToken();
     assertThat(servingToken).isNotEqualTo(defaultBackendToken);
     assertThat(GlobalSearchCursor.decode(resp.nextSearchAfter(), servingToken).sortValues())
@@ -420,10 +436,66 @@ public class IndexQueryServiceTest
     assertThat(resp.nextSearchAfter()).isNull();
   }
 
+  @Test
+  public void query_blankSort_applicationDefaultsToLastEvaluationTimeDesc() {
+    when(searchIndexClient.searchGlobal(any())).thenReturn(emptyResult());
+    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, false);
+    IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
+
+    org.apache.lucene.search.Sort sort = captureRequest().sort();
+    assertThat(sort).as("application default sort must be a field sort, not relevance").isNotNull();
+    org.apache.lucene.search.SortField field = sort.getSort()[0];
+    assertThat(field.getField())
+        .isEqualTo(
+            com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label);
+    assertThat(field.getReverse()).as("newest first").isTrue();
+  }
+
+  @Test
+  public void query_blankSort_violationDefaultsToThreatDesc() {
+    when(searchIndexClient.searchGlobal(any())).thenReturn(emptyResult());
+    IndexQueryRequest req = new IndexQueryRequest("VIOLATION", Map.of(), 1, 25, null, null, false);
+    service.query(IndexQueryType.VIOLATION, req);
+
+    org.apache.lucene.search.Sort sort = captureRequest().sort();
+    assertThat(sort).isNotNull();
+    org.apache.lucene.search.SortField field = sort.getSort()[0];
+    assertThat(field.getField())
+        .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+    assertThat(field.getReverse()).isTrue();
+  }
+
+  @Test
+  public void query_blankSort_waiverDefaultsToCreatedDesc() {
+    when(searchIndexClient.searchGlobal(any())).thenReturn(emptyResult());
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, false);
+    service.query(IndexQueryType.WAIVER, req);
+
+    org.apache.lucene.search.Sort sort = captureRequest().sort();
+    assertThat(sort).isNotNull();
+    org.apache.lucene.search.SortField field = sort.getSort()[0];
+    assertThat(field.getField())
+        .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label);
+    assertThat(field.getReverse()).isTrue();
+  }
+
+  @Test
+  public void query_blankSort_policyStaysRelevance() {
+    when(searchIndexClient.searchGlobal(any())).thenReturn(emptyResult());
+    IndexQueryRequest req = new IndexQueryRequest("POLICY", Map.of(), 1, 25, null, null, false);
+    service.query(IndexQueryType.POLICY, req);
+    // POLICY has no tab and is relevance-only: sortFor returns null (native _score).
+    assertThat(captureRequest().sort()).isNull();
+  }
+
   private Query capture() {
+    return captureRequest().baseQuery();
+  }
+
+  private GlobalSearchRequest captureRequest() {
     ArgumentCaptor<GlobalSearchRequest> captor = ArgumentCaptor.forClass(GlobalSearchRequest.class);
     verify(searchIndexClient).searchGlobal(captor.capture());
-    return captor.getValue().baseQuery();
+    return captor.getValue();
   }
 
   private static IndexQueryRequest request(final Map<String, Object> filters) {
@@ -434,8 +506,10 @@ public class IndexQueryServiceTest
     SearchResultItemDTO d = new SearchResultItemDTO();
     d.itemType = "APPLICATION";
     d.applicationPublicId = publicId;
+    d.applicationId = publicId + "-id";
     d.applicationName = name;
     d.organizationName = org;
+    d.organizationId = org.toLowerCase(java.util.Locale.ROOT).replace(' ', '-');
     return d;
   }
 

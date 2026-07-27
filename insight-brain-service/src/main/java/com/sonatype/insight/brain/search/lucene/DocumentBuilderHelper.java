@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Map;
 import java.util.Set;
@@ -85,11 +86,13 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.github.packageurl.PackageURLBuilder;
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -431,6 +434,17 @@ public class DocumentBuilderHelper
     if (CollectionUtils.isEmpty(applications)) {
       return Collections.emptyList();
     }
+    // Pre-compute the two per-app rollups (latest evaluation time, stage x severity violation counts)
+    // across ALL apps in this reindex batch and memoize them on the IndexingContext (mirroring
+    // applicationCategoryNames) so we issue a bounded number of queries (one grouped evaluation
+    // query + one chunked IN-clause violations query) for the whole reindex instead of two per app.
+    Set<String> applicationIds = applications.stream()
+        .filter(Objects::nonNull)
+        .map(Application::getId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    latestEvaluationEpochMsByApp(indexingContext, applicationIds);
+    stageSeverityCountsByApp(indexingContext, applicationIds);
     return applications.stream()
         .map(app -> buildDocument(indexingContext, app, parentOrgsByOrganization))
         .toList();
@@ -458,12 +472,169 @@ public class DocumentBuilderHelper
     }
     List<String> allowedContextIds =
         resolveClosure(indexingContext, parentOrgsByOrganization, org, application.getId());
-    return new DocumentBuilder(ItemType.APPLICATION)
+    DocumentBuilder builder = new DocumentBuilder(ItemType.APPLICATION)
         .setOwner(application)
         .setOwner(org)
-        .setAllowedContextIds(allowedContextIds)
-        .build();
+        .setAllowedContextIds(allowedContextIds);
+
+    List<String> categoryNames = applicationCategoryNames(indexingContext, application.getId());
+    if (!categoryNames.isEmpty()) {
+      builder.setApplicationCategoryNames(categoryNames);
+    }
+
+    // Both rollups are memoized on the IndexingContext: the full-reindex path warms them once for
+    // the whole app batch (buildApplicationDocs), and the single-app path warms them lazily for a
+    // one-element set. A get() miss means the app has no evaluation / no unfixed violations.
+    Long lastEvaluationEpochMs =
+        latestEvaluationEpochMsByApp(indexingContext, Set.of(application.getId())).get(application.getId());
+    if (lastEvaluationEpochMs != null) {
+      builder.setApplicationLastEvaluationTimeEpochMs(lastEvaluationEpochMs);
+    }
+
+    List<String> stageSeverityCounts = stageSeverityCountsByApp(indexingContext, Set.of(application.getId()))
+        .getOrDefault(application.getId(), Collections.emptyList());
+    if (!stageSeverityCounts.isEmpty()) {
+      builder.setApplicationStageSeverityCounts(stageSeverityCounts);
+    }
+
+    return builder.build();
   }
+
+  /**
+   * Category (tag) names for an application, resolved via {@link TagDAO#getByApplicationId}. Empty
+   * (not null) when the app has no categories so callers uniformly skip an absent field.
+   */
+  private List<String> applicationCategoryNames(final IndexingContext indexingContext, final String applicationId) {
+    return indexingContext.getApplicationCategoryNames(applicationId,
+        id -> tagDAO.getByApplicationId(id)
+            .stream()
+            .map(Tag::getName)
+            .filter(Objects::nonNull)
+            .toList());
+  }
+
+  /**
+   * Delimiter separating the {@code stage}, {@code severity} and {@code count} segments of an
+   * {@code applicationStageSeverityCount} token. Shared by {@link #encodeStageSeverityCount} so the
+   * encode side and any decode side agree on one wire contract.
+   */
+  static final char STAGE_SEVERITY_COUNT_DELIMITER = ':';
+
+  /**
+   * Encodes one {@code applicationStageSeverityCount} token as
+   * {@code stageId + ':' + severity + ':' + count}, where {@code severity} is the lowercase
+   * {@link ThreatLevel} name. The inverse is {@link #decodeStageSeverityCount}.
+   */
+  static String encodeStageSeverityCount(final String stageId, final ThreatLevel level, final int count) {
+    // stageId must be delimiter-free or it would corrupt the token / break decodeStageSeverityCount.
+    // Holds today because all stage ids come from the ALL_STAGE_IDS registry; guard makes it explicit
+    // for any future custom stage id.
+    Preconditions.checkArgument(stageId.indexOf(STAGE_SEVERITY_COUNT_DELIMITER) < 0,
+        "stageId must not contain the '%s' delimiter: %s", STAGE_SEVERITY_COUNT_DELIMITER, stageId);
+    return stageId + STAGE_SEVERITY_COUNT_DELIMITER + level.name().toLowerCase(Locale.ROOT)
+        + STAGE_SEVERITY_COUNT_DELIMITER + count;
+  }
+
+  /**
+   * Splits an {@code applicationStageSeverityCount} token back into its {@code [stageId, severity,
+   * count]} segments. Inverse of {@link #encodeStageSeverityCount}; the count segment is left as a
+   * string for the caller to parse. Throws {@link IllegalArgumentException} on a malformed token.
+   */
+  static String[] decodeStageSeverityCount(final String token) {
+    String[] parts = token.split(String.valueOf(STAGE_SEVERITY_COUNT_DELIMITER), 3);
+    if (parts.length != 3) {
+      throw new IllegalArgumentException("Malformed stage:severity:count token: " + token);
+    }
+    return parts;
+  }
+
+  /**
+   * Latest-evaluation epoch-millis per app, memoized on {@code indexingContext} and warmed once per
+   * run by a single grouped {@link PolicyEvaluationDAO#getLastByApplicationIdsAndStageIds} query
+   * (which itself handles large app sets). The returned map's values are the max
+   * {@link PolicyEvaluation#getTime} across each app's per-stage latest evaluations; apps with no
+   * evaluation rows are absent (so the doc omits the field and reads as "never evaluated").
+   */
+  private Map<String, Long> latestEvaluationEpochMsByApp(
+      final IndexingContext indexingContext,
+      final Set<String> applicationIds)
+  {
+    return indexingContext.getLatestEvaluationEpochMsByApp(applicationIds, this::loadLatestEvaluationEpochMsByApp);
+  }
+
+  private Map<String, Long> loadLatestEvaluationEpochMsByApp(final Set<String> applicationIds) {
+    if (CollectionUtils.isEmpty(applicationIds)) {
+      return Collections.emptyMap();
+    }
+    Map<String, Long> latestByApp = new HashMap<>();
+    for (PolicyEvaluation evaluation : policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds,
+        ALL_STAGE_IDS))
+    {
+      if (evaluation == null || evaluation.getApplicationId() == null || evaluation.getTime() == null) {
+        continue;
+      }
+      latestByApp.merge(evaluation.getApplicationId(), evaluation.getTime().getTime(), Math::max);
+    }
+    return latestByApp;
+  }
+
+  /**
+   * Per-app {@code "stage:severity:count"} tokens ({@code stage} = {@link StageType#getId},
+   * {@code severity} = lowercase {@link ThreatLevel} name, {@code count} = number of active (unfixed
+   * and unwaived) violations in that bucket), memoized on {@code indexingContext} and warmed once per run by a
+   * single chunked IN-clause {@link PolicyViolationDAO#getActiveByApplicationIds} query (which
+   * auto-chunks large collections). Active = unfixed and unwaived (and non-legacy), so a waived
+   * violation is not counted as an active threat. Only non-zero buckets are emitted (sparse), so an
+   * app with no active violations is absent from the map and the doc omits the field; a violation on
+   * a stage outside {@link #ALL_STAGE_IDS} is dropped.
+   */
+  private Map<String, List<String>> stageSeverityCountsByApp(
+      final IndexingContext indexingContext,
+      final Set<String> applicationIds)
+  {
+    return indexingContext.getStageSeverityCountsByApp(applicationIds, this::loadStageSeverityCountsByApp);
+  }
+
+  private Map<String, List<String>> loadStageSeverityCountsByApp(final Set<String> applicationIds) {
+    if (CollectionUtils.isEmpty(applicationIds)) {
+      return Collections.emptyMap();
+    }
+    List<PolicyViolation> violations = policyViolationDAO.getActiveByApplicationIds(applicationIds);
+    if (CollectionUtils.isEmpty(violations)) {
+      return Collections.emptyMap();
+    }
+    // app -> stage -> (severity -> count); restricted to the known stages so the output matches a
+    // per-stage query over StageTypes.getAll() (a violation on an unknown stage is dropped).
+    Map<String, Map<String, Map<ThreatLevel, Integer>>> countByAppStageAndLevel = new HashMap<>();
+    for (PolicyViolation violation : violations) {
+      String appId = violation.getApplicationId();
+      String stageId = violation.getStageTypeId();
+      if (appId == null || stageId == null || !ALL_STAGE_IDS.contains(stageId)) {
+        continue;
+      }
+      ThreatLevel level = ThreatLevel.from(violation.getThreatLevel());
+      countByAppStageAndLevel
+          .computeIfAbsent(appId, id -> new HashMap<>())
+          .computeIfAbsent(stageId, id -> new HashMap<>())
+          .merge(level, 1, Integer::sum);
+    }
+    Map<String, List<String>> encodedByApp = new HashMap<>();
+    countByAppStageAndLevel.forEach((appId, countByStageAndLevel) -> {
+      List<String> encoded = new ArrayList<>();
+      countByStageAndLevel.forEach((stageId, countByLevel) -> countByLevel.forEach(
+          (level, count) -> encoded.add(encodeStageSeverityCount(stageId, level, count))));
+      encodedByApp.put(appId, encoded);
+    });
+    return encodedByApp;
+  }
+
+  /**
+   * The ids of every {@link StageType} in the global {@link StageTypes} registry, computed once.
+   * {@code StageTypes} is a static, tenant-independent registry, so this is safe to share across
+   * runs and tenants (CLAUDE.md §8 static allocation).
+   */
+  private static final Set<String> ALL_STAGE_IDS =
+      StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toUnmodifiableSet());
 
   public List<Document> buildTagDocs(IndexingContext indexingContext) {
     return tagDAO.getAll().stream().map(tag -> buildDocument(indexingContext, tag)).toList();
@@ -587,10 +758,13 @@ public class DocumentBuilderHelper
    * {@link AutoPolicyWaiver}. Container-image waivers are excluded by {@code buildDocument}.
    */
   public List<Document> buildPolicyWaiverDocs(IndexingContext indexingContext) {
-    // getAll() loads every manual and auto waiver into memory for the full reindex.
-    // TODO(CLM-41642): verify/page this for large-tenant scale before enabling the reindex flag in prod.
-    // Container-image waivers are never indexed (buildDocument returns null), so drop them up front
+    // Loads the waiver corpus with getAll(), matching the sibling full-reindex paths (buildTagDocs /
+    // buildLabelDocs / buildPolicyDocs). Container-image waivers are never indexed (buildDocument
+    // returns null), so drop them up front
     // rather than folding their policy/reason ids into the batch lookups only to discard the docs.
+    // TODO(CLM-41642): verify at large-tenant scale before broad rollout; shares the pre-existing
+    // unpaged getAll() risk of buildTagDocs/buildLabelDocs/buildPolicyDocs (streaming is a shared
+    // future refactor for all builders).
     List<PolicyWaiver> manualWaivers = policyWaiverDAO.getAll()
         .stream()
         .filter(waiver -> !waiver.isForContainerImage() && !waiver.isForContainerImageComponent())
@@ -745,10 +919,13 @@ public class DocumentBuilderHelper
         .setPolicyWaiverReason(reasonText)
         .setPolicyWaiverComment(waiver.getComment())
         .setPolicyWaiverCreatedAt(toIso8601(waiver.getCreateTime()))
+        .setPolicyWaiverCreatedAtEpochMs(toEpochMs(waiver.getCreateTime()))
         .setPolicyWaiverExpiresAt(toIso8601(waiver.getExpiryTime()))
+        .setPolicyWaiverExpiresAtEpochMs(toEpochMs(waiver.getExpiryTime()))
         .setPolicyWaiverScopeOwnerId(owner.getId())
         .setPolicyWaiverScopeOwnerType(owner.getType().name())
         .setPolicyWaiverWaivedBy(waiver.getCreatorName())
+        .setPolicyWaiverAuto(false)
         .setOwner(owner)
         .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner));
     if (threatLevel != null) {
@@ -767,24 +944,22 @@ public class DocumentBuilderHelper
     if (!isIndexableOwner(owner)) {
       return null;
     }
-    // Auto-waivers have no policy name; the read side needs a non-empty title to render, so it is
-    // synthesized from the threat level.
-    // TODO(CLM-41642): confirm the synthetic title wording with product.
+    // Auto-waivers have no policy name; policyWaiverPolicyName is left null so the synthetic display
+    // title is composed on the read side (IndexQueryRowMapper). Keeping it out of the indexed field
+    // means the label is not text-searchable or matched by the policy filter, and its wording can
+    // change without a reindex.
     return new DocumentBuilder(ItemType.POLICY_WAIVER)
         .setPolicyWaiverId(waiver.getId())
-        .setPolicyWaiverPolicyName(syntheticAutoWaiverTitle(waiver.getThreatLevel()))
         .setPolicyWaiverThreatLevel(waiver.getThreatLevel())
         .setPolicyWaiverWaivedBy(waiver.getCreatorName())
         .setPolicyWaiverCreatedAt(toIso8601(waiver.getCreateTime()))
+        .setPolicyWaiverCreatedAtEpochMs(toEpochMs(waiver.getCreateTime()))
         .setPolicyWaiverScopeOwnerId(owner.getId())
         .setPolicyWaiverScopeOwnerType(owner.getType().name())
+        .setPolicyWaiverAuto(true)
         .setOwner(owner)
         .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
         .build();
-  }
-
-  private static String syntheticAutoWaiverTitle(final int threatLevel) {
-    return "Auto-waiver (threat >= " + threatLevel + ")";
   }
 
   // v1 waiver indexing rule: only app/org-scoped owners are indexed (null and repository-family
@@ -800,6 +975,10 @@ public class DocumentBuilderHelper
 
   private static String toIso8601(final Date date) {
     return date == null ? null : ISO8601_MILLIS.format(Instant.ofEpochMilli(date.getTime()));
+  }
+
+  private static Long toEpochMs(final Date date) {
+    return date == null ? null : date.getTime();
   }
 
   public List<Document> buildSbomDocs(IndexingContext indexingContext) {
@@ -952,7 +1131,8 @@ public class DocumentBuilderHelper
           application.getId(), stageType.getId());
       Map<String, String> constraintNameByFactsId = loadConstraintNames(violations);
       List<Document> policyViolationDocs = buildPolicyViolationDocuments(
-          organization, parentOrganizations, application, stageType, scanId, violations, constraintNameByFactsId);
+          indexingContext, organization, parentOrganizations, application, stageType, scanId, violations,
+          constraintNameByFactsId);
 
       // Batch-load license threat groups for all components
       Set<String> allLicenseIds = components.stream()
@@ -1211,6 +1391,7 @@ public class DocumentBuilderHelper
    * Builds POLICY_VIOLATION documents for each policy violation.
    */
   private List<Document> buildPolicyViolationDocuments(
+      IndexingContext indexingContext,
       Organization organization,
       Collection<Organization> parentOrganizations,
       Application application,
@@ -1223,10 +1404,12 @@ public class DocumentBuilderHelper
       return Collections.emptyList();
     }
 
+    List<String> categoryNames = applicationCategoryNames(indexingContext, application.getId());
     List<Document> documents = new ArrayList<>();
     for (PolicyViolation violation : violations) {
       Document doc = buildPolicyViolationDocument(
-          organization, parentOrganizations, application, stageType, reportId, violation, constraintNameByFactsId);
+          organization, parentOrganizations, application, stageType, reportId, violation, constraintNameByFactsId,
+          categoryNames);
       if (doc != null) {
         documents.add(doc);
       }
@@ -1244,7 +1427,8 @@ public class DocumentBuilderHelper
       StageType stageType,
       String reportId,
       PolicyViolation violation,
-      Map<String, String> constraintNameByFactsId)
+      Map<String, String> constraintNameByFactsId,
+      List<String> categoryNames)
   {
     if (violation == null) {
       return null;
@@ -1267,6 +1451,10 @@ public class DocumentBuilderHelper
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
         .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()));
+
+    if (categoryNames != null && !categoryNames.isEmpty()) {
+      builder.setApplicationCategoryNames(categoryNames);
+    }
 
     if (violation.getPolicyId() != null) {
       builder.setPolicyViolationPolicyId(violation.getPolicyId());
@@ -1318,6 +1506,7 @@ public class DocumentBuilderHelper
 
     List<Document> documents = new ArrayList<>();
     Map<String, String> licenseNameCache = indexingContext.getLicenseNameById();
+    List<String> categoryNames = applicationCategoryNames(indexingContext, application.getId());
 
     for (String licenseId : licenseIds) {
       String cachedName = licenseNameCache.computeIfAbsent(licenseId, id -> {
@@ -1332,7 +1521,7 @@ public class DocumentBuilderHelper
         for (LicenseThreatGroup threatGroup : threatGroups) {
           Document doc = buildLegalViolationDocument(
               organization, parentOrganizations, application, stageType, reportId, component,
-              licenseId, licenseName, threatGroup);
+              licenseId, licenseName, threatGroup, categoryNames);
           if (doc != null) {
             documents.add(doc);
           }
@@ -1341,7 +1530,7 @@ public class DocumentBuilderHelper
       else {
         Document doc = buildLegalViolationDocument(
             organization, parentOrganizations, application, stageType, reportId, component,
-            licenseId, licenseName, null);
+            licenseId, licenseName, null, categoryNames);
         if (doc != null) {
           documents.add(doc);
         }
@@ -1362,7 +1551,8 @@ public class DocumentBuilderHelper
       Component component,
       String licenseId,
       String licenseName,
-      LicenseThreatGroup threatGroup)
+      LicenseThreatGroup threatGroup,
+      List<String> categoryNames)
   {
     if (component == null || licenseId == null) {
       return null;
@@ -1378,6 +1568,10 @@ public class DocumentBuilderHelper
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
         .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()));
+
+    if (categoryNames != null && !categoryNames.isEmpty()) {
+      builder.setApplicationCategoryNames(categoryNames);
+    }
 
     if (component.getHash() != null) {
       builder.setComponentHash(component.getHash());

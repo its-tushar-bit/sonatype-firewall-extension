@@ -30,6 +30,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.index.DirectoryReader;
@@ -318,17 +319,111 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   @Test
-  public void search_appliesSortKey_byApplicationName() {
+  public void search_appliesSortKey_byApplicationName_ascendingCaseInsensitive() {
     SearchInputs inputs = new SearchInputs("acme", Tab.APPLICATION,
         Set.of(ItemType.APPLICATION), 25, "name", null);
     IqLocalSearchResponse response = service.search(inputs);
-    // The validated sort key is echoed back even though the physical sort resolves to
-    // relevance (the current DocumentBuilder does not emit doc-values for the sortable
-    // keys yet). Both Acme apps plus the "Acme West" child-org app (prefix match on its own
-    // organizationName) must be returned, in any relevance order.
+    // Field sort is on: the name sort runs a real STRING sort on the lower-cased applicationName
+    // doc-values (the fixture indexes them, matching production). Ascending by display name:
+    // "Acme Dev" < "Acme Prod" < "Acme West App".
     assertThat(response.sortKey()).isEqualTo("name");
     assertThat(response.rows()).extracting(r -> r.row().applicationPublicId)
-        .containsExactlyInAnyOrder("acme-dev", "acme-prod", "acme-west");
+        .containsExactly("acme-dev", "acme-prod", "acme-west");
+  }
+
+  @Test
+  public void search_appliesNumericThreatSort_descending_notLexicographic() throws Exception {
+    // Stand up a tiny violation fixture with threat levels 2 and 10. A lexicographic sort would
+    // order "10" before "2"; the numeric SortedNumericDocValues sort must place 10 (higher threat)
+    // first under threat-desc.
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(violationDoc("v-threat-2", 2));
+        writer.addDocument(violationDoc("v-threat-10", 10));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byThreat = IqLocalSearchService.sortFor(Tab.VIOLATION, "threat");
+        Query allViolations = new org.apache.lucene.search.TermQuery(
+            new org.apache.lucene.index.Term(FieldIdentifier.ITEM_TYPE.label,
+                ItemType.POLICY_VIOLATION.name().toLowerCase()));
+        TopDocs top = localSearcher.search(allViolations, 10, byThreat);
+        List<String> order = new ArrayList<>();
+        for (ScoreDoc sd : top.scoreDocs) {
+          order.add(localSearcher.storedFields()
+              .document(sd.doc)
+              .get(FieldIdentifier.POLICY_VIOLATION_ID.label));
+        }
+        assertThat(order).containsExactly("v-threat-10", "v-threat-2");
+      }
+    }
+  }
+
+  @Test
+  public void search_appliesNumericCreatedSort_descending_forWaiver() throws Exception {
+    // WAIVER default created-desc: newest waiver first. Epoch-millis 3000 (newest) before 1000.
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(waiverDoc("w-old", 1000L));
+        writer.addDocument(waiverDoc("w-new", 3000L));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byCreated = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_CREATED);
+        Query allWaivers = new org.apache.lucene.search.TermQuery(
+            new org.apache.lucene.index.Term(FieldIdentifier.ITEM_TYPE.label,
+                ItemType.POLICY_WAIVER.name().toLowerCase()));
+        TopDocs top = localSearcher.search(allWaivers, 10, byCreated);
+        List<String> order = new ArrayList<>();
+        for (ScoreDoc sd : top.scoreDocs) {
+          order.add(localSearcher.storedFields()
+              .document(sd.doc)
+              .get(FieldIdentifier.POLICY_WAIVER_ID.label));
+        }
+        assertThat(order).containsExactly("w-new", "w-old");
+      }
+    }
+  }
+
+  @Test
+  public void searchAfter_numericFieldSortedPage2_returnsRowsPastPage1() throws Exception {
+    // Cursor stability under a NUMERIC (threat-desc) field sort: page 1 (size 1) returns the
+    // highest-threat doc; searchAfter its numeric sort value must return the next-lower doc, not
+    // repeat page 1. Proves the SortedNumericSortField cursor anchors correctly (numeric, not string).
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(violationDoc("v-2", 2));
+        writer.addDocument(violationDoc("v-7", 7));
+        writer.addDocument(violationDoc("v-10", 10));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byThreat = IqLocalSearchService.sortFor(Tab.VIOLATION, "threat");
+        Query allViolations = new org.apache.lucene.search.TermQuery(
+            new org.apache.lucene.index.Term(FieldIdentifier.ITEM_TYPE.label,
+                ItemType.POLICY_VIOLATION.name().toLowerCase()));
+
+        TopDocs page1 = localSearcher.search(allViolations, 1, byThreat);
+        assertThat(localSearcher.storedFields()
+            .document(page1.scoreDocs[0].doc)
+            .get(FieldIdentifier.POLICY_VIOLATION_ID.label)).isEqualTo("v-10");
+
+        // Anchor searchAfter on the highest threat value (10); next page must be v-7 then v-2.
+        FieldDoc after = new FieldDoc(localReader.maxDoc() - 1, Float.NaN, new Object[]{10L});
+        TopDocs page2 = localSearcher.searchAfter(after, allViolations, 10, byThreat);
+        List<String> page2Ids = new ArrayList<>();
+        for (ScoreDoc sd : page2.scoreDocs) {
+          page2Ids.add(localSearcher.storedFields()
+              .document(sd.doc)
+              .get(FieldIdentifier.POLICY_VIOLATION_ID.label));
+        }
+        assertThat(page2Ids).containsExactly("v-7", "v-2");
+        assertThat(page2Ids).doesNotContain("v-10");
+      }
+    }
   }
 
   @Test
@@ -546,6 +641,25 @@ public class IqLocalSearchServiceLuceneTest
     fields.put(FieldIdentifier.COMPONENT_COORDINATE_VERSION.label, version);
     fields.put(FieldIdentifier.COMPONENT_COORDINATE_EXTENSION.label, "jar");
     return docOf(fields);
+  }
+
+  /** POLICY_VIOLATION doc carrying the numeric threat sort doc-values twin (mirrors production). */
+  private static Document violationDoc(final String violationId, final int threatLevel) {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_VIOLATION.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_VIOLATION_ID.label, violationId, Store.YES));
+    doc.add(new SortedNumericDocValuesField(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label, threatLevel));
+    return doc;
+  }
+
+  /** POLICY_WAIVER doc carrying the created-at epoch-millis numeric sort doc-values twin. */
+  private static Document waiverDoc(final String waiverId, final long createdAtEpochMs) {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_ID.label, waiverId, Store.YES));
+    doc.add(new SortedNumericDocValuesField(
+        FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label, createdAtEpochMs));
+    return doc;
   }
 
   private static Document vulnDoc(final String vulnId, final String componentName, final String description) {

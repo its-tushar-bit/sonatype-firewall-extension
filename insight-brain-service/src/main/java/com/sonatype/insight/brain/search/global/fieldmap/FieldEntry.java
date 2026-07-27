@@ -18,7 +18,8 @@ import static com.sonatype.insight.brain.search.global.fieldmap.FieldKind.TEXT;
  *
  * @param allowedTypes a lookup for an {@link ItemType} outside this set yields {@code MatchNoDocsQuery}.
  * @param enumValues when non-null, values outside the set emit a warning but the query is still built.
- * @param numericType for {@link FieldKind#NUMERIC} only; must be {@code Integer.class} or {@code Float.class}.
+ * @param numericType for {@link FieldKind#NUMERIC} only; must be {@code Integer.class},
+ *          {@code Long.class}, or {@code Float.class}.
  */
 public record FieldEntry(
     String label,
@@ -33,9 +34,9 @@ public record FieldEntry(
       enumValues = Set.copyOf(enumValues);
     }
     if (kind == NUMERIC) {
-      if (numericType != Integer.class && numericType != Float.class) {
+      if (numericType != Integer.class && numericType != Long.class && numericType != Float.class) {
         throw new IllegalArgumentException(
-            "NUMERIC field " + label + " must declare numericType=Integer.class or Float.class");
+            "NUMERIC field " + label + " must declare numericType=Integer.class, Long.class, or Float.class");
       }
     }
   }
@@ -54,6 +55,10 @@ public record FieldEntry(
 
   public static FieldEntry numericInt(String label, Set<ItemType> types) {
     return new FieldEntry(label, NUMERIC, types, null, Integer.class);
+  }
+
+  public static FieldEntry numericLong(String label, Set<ItemType> types) {
+    return new FieldEntry(label, NUMERIC, types, null, Long.class);
   }
 
   public static FieldEntry numericFloat(String label, Set<ItemType> types) {

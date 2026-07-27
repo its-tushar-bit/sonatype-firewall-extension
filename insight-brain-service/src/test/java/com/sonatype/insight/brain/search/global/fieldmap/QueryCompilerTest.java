@@ -293,6 +293,35 @@ public class QueryCompilerTest
   }
 
   @Test
+  public void numericLongExactValueBuildsLongPointExact() {
+    CompiledQuery r = compile(
+        new FieldNode("applicationLastEvaluationTimeEpochMs", new ExactValue("1784746240000")),
+        ItemType.APPLICATION);
+    assertThat(r.warnings()).isEmpty();
+    assertThat(r.luceneQuery().toString()).contains("applicationLastEvaluationTimeEpochMs");
+    assertThat(r.luceneQuery().toString()).contains("[1784746240000 TO 1784746240000]");
+  }
+
+  @Test
+  public void numericLongOpenHighRangeBuildsLongPointRange() {
+    CompiledQuery r = compile(
+        new FieldNode("applicationLastEvaluationTimeEpochMs", new RangeValue("1700000000000", "*", true, true)),
+        ItemType.APPLICATION);
+    assertThat(r.warnings()).isEmpty();
+    assertThat(r.luceneQuery().toString()).contains("[1700000000000 TO ");
+    assertThat(r.luceneQuery().toString()).contains(String.valueOf(Long.MAX_VALUE));
+  }
+
+  @Test
+  public void numericLongExclusiveRangeAdjustsBounds() {
+    CompiledQuery r = compile(
+        new FieldNode("applicationLastEvaluationTimeEpochMs", new RangeValue("100", "200", false, false)),
+        ItemType.APPLICATION);
+    assertThat(r.warnings()).isEmpty();
+    assertThat(r.luceneQuery().toString()).contains("[101 TO 199]");
+  }
+
+  @Test
   public void numericFloatExactValueBuildsFloatPointExact() {
     CompiledQuery r = compile(new FieldNode("vulnerabilitySeverity", new ExactValue("7.5")),
         ItemType.SECURITY_VULNERABILITY);
@@ -432,8 +461,19 @@ public class QueryCompilerTest
   }
 
   @Test
-  public void applicationNameOnVulnerabilityMatchesNothing() {
+  public void applicationNameOnVulnerabilityMatchesTerm() {
+    // applicationName was widened to SECURITY_VULNERABILITY (the field is indexed on vuln docs via
+    // setOwner), so a vuln-scoped query now compiles to a real TermQuery instead of MatchNoDocs.
     CompiledQuery r = compile(new FieldNode("applicationName", new ExactValue("acme")),
+        ItemType.SECURITY_VULNERABILITY);
+    assertThat(r.warnings()).isEmpty();
+    assertThat(r.luceneQuery()).isEqualTo(new TermQuery(new Term("applicationName", "acme")));
+  }
+
+  @Test
+  public void applicationIdOnVulnerabilityMatchesNothing() {
+    // applicationId stays APPLICATION-only (not widened), so it still compiles to no docs.
+    CompiledQuery r = compile(new FieldNode("applicationId", new ExactValue("acme-app-id")),
         ItemType.SECURITY_VULNERABILITY);
     assertThat(r.warnings()).isEmpty();
     assertThat(r.luceneQuery()).isInstanceOf(MatchNoDocsQuery.class);

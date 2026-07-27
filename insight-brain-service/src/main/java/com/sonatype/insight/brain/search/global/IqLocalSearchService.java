@@ -43,6 +43,7 @@ import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TermQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,11 +52,15 @@ import static com.sonatype.insight.brain.search.global.Tab.APPLICATION;
 import static com.sonatype.insight.brain.search.global.Tab.COMPONENT;
 import static com.sonatype.insight.brain.search.global.Tab.VIOLATION;
 import static com.sonatype.insight.brain.search.global.Tab.VULNERABILITY;
+import static com.sonatype.insight.brain.search.global.Tab.WAIVER;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.ITEM_TYPE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_EVALUATION_STAGE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_POLICY_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
 import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION_CATEGORY;
 import static com.sonatype.insight.brain.search.index.ItemType.COMPONENT_LABEL;
@@ -70,10 +75,12 @@ import static com.sonatype.insight.brain.search.index.ItemType.SBOM_METADATA;
  * untouched).
  *
  * <p>
- * Sort handling: the sort key is validated against {@link GlobalSearchSortAllowlist}, but physical
- * sort needs doc-values that {@link com.sonatype.insight.brain.search.lucene.DocumentBuilder} does
- * not yet emit; until then {@link #sortFor(Tab, String)} resolves every sort to relevance. The
- * validated key is still echoed in {@link IqLocalSearchResponse#sortKey}.
+ * Sort handling: the sort key is validated against {@link GlobalSearchSortAllowlist}, then mapped to
+ * a physical {@link Sort} by {@link #sortFor(Tab, String)}. Numeric keys sort on a
+ * {@code SortedNumericDocValues} twin (reverse LONG); string keys sort on a lower-cased keyword
+ * {@code SortedDocValues} twin, matching the OpenSearch {@code keyword} mapping's lowercase
+ * normalizer so both backends order identically. The validated key is echoed in
+ * {@link IqLocalSearchResponse#sortKey}.
  */
 @Named
 @Singleton
@@ -86,10 +93,12 @@ public class IqLocalSearchService
   public static final int MAX_PAGE_SIZE = 100;
 
   /**
-   * Flip once {@code DocumentBuilder} emits doc-values for every field in {@link #SORTABLE_FIELD_BY_KEY}.
-   * TODO(CLM-41642): enable field sort and remove the relevance-only short-circuit in {@link #sortFor}.
+   * Physical field sort is enabled: every field in {@link #SORTABLE_FIELD_BY_KEY} has a sortable
+   * doc-values twin on both backends (numeric twin via {@code LuceneIndexingContext} / OpenSearch
+   * numeric mapping; lower-cased keyword twin via {@code LuceneIndexingContext} / OpenSearch keyword
+   * mapping). Retained as a constant so a regression can flip it off without a code rewrite.
    */
-  static final boolean SORT_BY_FIELD_ENABLED = false;
+  static final boolean SORT_BY_FIELD_ENABLED = true;
 
   /** Whether physical field sort is active; while {@code false}, every sort resolves to relevance. */
   public static boolean isFieldSortEnabled() {
@@ -384,8 +393,9 @@ public class IqLocalSearchService
 
   /**
    * Map an allowlisted (tab, sortKey) to a Lucene {@link Sort}. Returns {@code null}
-   * (relevance-only) while {@link #SORT_BY_FIELD_ENABLED} is off. Once enabled, a null index field
-   * for an allowlisted key is an invariant violation — a missing {@link #SORTABLE_FIELD_BY_KEY} entry.
+   * (relevance-only) for the relevance key or while {@link #SORT_BY_FIELD_ENABLED} is off. A null
+   * index field for an allowlisted non-relevance key is an invariant violation — a missing
+   * {@link #SORTABLE_FIELD_BY_KEY} entry — and falls back to relevance rather than throwing.
    */
   static Sort sortFor(final Tab tab, final String sortKey) {
     if (sortKey == null || GlobalSearchSortAllowlist.RELEVANCE.equals(sortKey)) {
@@ -400,8 +410,48 @@ public class IqLocalSearchService
           + "this is an invariant violation — falling back to relevance.", sortKey, tab);
       return null;
     }
-    return new Sort(new SortField(indexField.label, SortField.Type.STRING));
+    return buildSortField(indexField);
   }
+
+  /** Missing-value sentinel for a numeric sort: absent numeric fields sort LAST under descending order. */
+  private static final long NUMERIC_MISSING_LAST = Long.MIN_VALUE;
+
+  /**
+   * Build the {@link Sort} for a resolved sortable index field, choosing the numeric-vs-string
+   * shape from the field itself rather than from a hardcoded key set. Numeric fields (epoch-millis,
+   * threat level) sort on their {@code SortedNumericDocValues} twin newest/highest first (reverse
+   * LONG) via a {@link SortedNumericSortField} — the doc-values are emitted as
+   * {@code SortedNumericDocValuesField} by {@code LuceneIndexingContext}, which a plain
+   * {@link SortField} of type LONG cannot read. Docs missing the numeric field sort last
+   * (never-evaluated app, waiver without a create time). String fields sort ascending on their
+   * lower-cased keyword {@code SortedDocValues} twin (case-insensitive A→Z, matching the OpenSearch
+   * keyword lowercase normalizer). Both backends receive the same {@code (field, direction)} and
+   * OpenSearch picks numeric-vs-lexicographic from its field mapping type, so the ordering is identical.
+   */
+  static Sort buildSortField(final FieldIdentifier indexField) {
+    if (NUMERIC_SORT_FIELDS.contains(indexField)) {
+      SortedNumericSortField sortField =
+          new SortedNumericSortField(indexField.label, SortField.Type.LONG, true);
+      // Descending order: a doc with no value must sort AFTER real values, i.e. compare as the
+      // smallest possible long under the reversed comparator.
+      sortField.setMissingValue(NUMERIC_MISSING_LAST);
+      return new Sort(sortField);
+    }
+    // Absent keyword sorts last under ascending order (STRING_LAST), so a never-set name/stage does
+    // not lead the page.
+    SortField sortField = new SortField(indexField.label, SortField.Type.STRING, false);
+    sortField.setMissingValue(SortField.STRING_LAST);
+    return new Sort(sortField);
+  }
+
+  /**
+   * Sortable index fields backed by a numeric doc-values twin, sorted descending (newest/highest
+   * first). Every other sortable field sorts ascending as a lower-cased keyword string.
+   */
+  private static final Set<FieldIdentifier> NUMERIC_SORT_FIELDS = Set.of(
+      APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS,
+      POLICY_VIOLATION_THREAT_LEVEL,
+      POLICY_WAIVER_CREATED_AT_EPOCH_MS);
 
   /**
    * Resolve the IQ-local index field backing an allowlisted (tab, sortKey), independent of
@@ -418,11 +468,19 @@ public class IqLocalSearchService
     Map<Tab, Map<String, FieldIdentifier>> m = new EnumMap<>(Tab.class);
     m.put(APPLICATION, Map.of(
         "name", APPLICATION_NAME,
-        "policyEvaluationStage", POLICY_EVALUATION_STAGE));
+        "policyEvaluationStage", POLICY_EVALUATION_STAGE,
+        // Default "latest evaluation" sort; numeric doc-values emitted by LuceneIndexingContext.
+        "lastEvaluationTime", APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS));
     // VIOLATION unions POLICY_VIOLATION + LEGAL_VIOLATION; both carry the policy-name field.
-    m.put(VIOLATION, Map.of("name", POLICY_VIOLATION_POLICY_NAME));
+    // threat sorts POLICY_VIOLATION docs by threat level; LEGAL_VIOLATION docs carry no threat-level
+    // doc-values, so they sort last under a threat sort (missing-value default).
+    m.put(VIOLATION, Map.of(
+        "name", POLICY_VIOLATION_POLICY_NAME,
+        "threat", POLICY_VIOLATION_THREAT_LEVEL));
     m.put(COMPONENT, Map.of("name", COMPONENT_NAME));
     m.put(VULNERABILITY, Map.of("name", VULNERABILITY_ID));
+    // WAIVER default "created" (newest first) sorts on the created-at epoch-millis numeric twin.
+    m.put(WAIVER, Map.of(GlobalSearchSortAllowlist.WAIVER_CREATED, POLICY_WAIVER_CREATED_AT_EPOCH_MS));
     return Collections.unmodifiableMap(m);
   }
 

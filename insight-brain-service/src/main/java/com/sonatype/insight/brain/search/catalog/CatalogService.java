@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.catalog.CatalogLocalRequestBuilder.LocalQuery;
 import com.sonatype.insight.brain.search.catalog.CatalogResponse.CatalogFacetBucket;
 import com.sonatype.insight.brain.search.global.GlobalSearchCursor;
-import com.sonatype.insight.brain.search.global.GlobalSearchSortAllowlist;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService.IqLocalRow;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService.IqLocalSearchResponse;
@@ -380,9 +379,6 @@ public class CatalogService
 
     final List<String> warnings = new ArrayList<>(result.warnings());
     warnings.addAll(local.warnings());
-    if (!GlobalSearchSortAllowlist.RELEVANCE.equals(sortKey) && !IqLocalSearchService.isFieldSortEnabled()) {
-      warnings.add("sort is relevance-only until field sort is enabled");
-    }
 
     // Facet VALUES come from the returned page, but each bucket COUNT is a whole-corpus,
     // RBAC-scoped count over the same active filters + item type (not page-only).

@@ -106,11 +106,17 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label, createProperty("integer"));
 
-    // TODO(CLM-41642): these explicit policyWaiver* mappings only apply to a freshly created index.
-    // On upgrade, incremental waiver enqueue writes docs into the pre-existing index (which lacks
-    // these fields) before any full reindex, so OpenSearch dynamic-maps policyWaiver* fields (dates
-    // vs keyword, text vs keyword). It self-heals on the next full reindex. The read path must
-    // reindex-gate waiver queries or tolerate the dynamically mapped types on a pre-existing index.
+    // These explicit policyWaiver* mappings only apply to a freshly created index. On upgrade,
+    // incremental waiver enqueue writes docs into the pre-existing index (which lacks these fields)
+    // before any full reindex, so OpenSearch would dynamic-map policyWaiver* fields (text vs keyword
+    // for policyWaiverAuto; the epoch-millis long could be mis-typed). date_detection is off at index
+    // creation (see OpenSearchSearchIndexClient.createIndex), so date-ish keyword fields are never
+    // auto-typed as date, but the keyword-vs-text drift on a pre-existing index remains until reindex.
+    // Decision: WAIVER is a new entity type; correct auto/expiry filtering requires the explicit
+    // mappings, which are guaranteed only after a full reindex. The WAIVER read path is gated behind
+    // the GLOBAL_SEARCH feature flag (off by default) and the reindex is admin-triggered, so WAIVER
+    // filtering is not exercised in production before a full reindex has run. The upgrade note that a
+    // reindex is required before WAIVER results are correct is captured in the PR / runbook.
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_ID.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label, createProperty("keyword"));
@@ -118,11 +124,28 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_COMMENT.label, createProperty("text"));
     // ISO-8601 stored as a single keyword token (DocumentBuilder intent); must not date-detect.
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label, createProperty("keyword"));
+    // Sortable epoch-millis twin of POLICY_WAIVER_CREATED_AT backing the WAIVER default created-desc
+    // sort; a numeric long, not date-detected. Mirrors POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label, createProperty("long"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label, createProperty("keyword"));
+    // Range-queryable epoch-millis twin of POLICY_WAIVER_EXPIRES_AT backing the active-vs-expired
+    // filter; must be a numeric long, not date-detected. Mirrors the explicit CREATED_AT_EPOCH_MS long.
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, createProperty("long"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, createProperty("integer"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label, createProperty("keyword"));
+    // Auto-vs-manual discriminator stored as the keyword string "true"/"false".
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_AUTO.label, createProperty("keyword"));
+
+    // Application evaluation denormalization. These explicit mappings only apply to a freshly
+    // created index; on upgrade an incremental app change writes into the pre-existing index (which
+    // lacks these fields) before any full reindex, so OpenSearch dynamic-maps them (long vs
+    // date-detect, keyword vs text). Self-heals on the next full reindex, which every new field
+    // requires to populate on existing indices.
+    propertyMappings.put(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label, createProperty("long"));
+    // Multi-valued "stage:severity:count" tokens; keyword so each entry is matched/faceted whole.
+    propertyMappings.put(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label, createProperty("keyword"));
 
     // Denormalized permission-filter field. Case-sensitive keyword (no normalizer) so opaque
     // context IDs are matched byte-for-byte. Multi-valued (set per document by DocumentBuilder).

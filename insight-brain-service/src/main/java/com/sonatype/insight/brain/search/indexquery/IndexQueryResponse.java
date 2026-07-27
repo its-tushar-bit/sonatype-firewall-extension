@@ -41,8 +41,18 @@ public record IndexQueryResponse(
     warnings = warnings == null ? List.of() : List.copyOf(warnings);
   }
 
+  /**
+   * One facet bucket. {@code value} is the filter key the matching filter consumes (the indexed term:
+   * a name for app/org facets, the term for everything else), so a bucket value round-trips directly
+   * back as a filter value; {@code displayName} is an optional human-readable label when it differs
+   * from the value (null otherwise, so simple facets stay a flat value+count pair on the wire).
+   */
   @JsonInclude(Include.NON_NULL)
-  public record IndexQueryFacetBucket(String value, long count)
+  public record IndexQueryFacetBucket(String value, String displayName, long count)
   {
+    /** Value-only bucket (no distinct display name). */
+    public IndexQueryFacetBucket(final String value, final long count) {
+      this(value, null, count);
+    }
   }
 }

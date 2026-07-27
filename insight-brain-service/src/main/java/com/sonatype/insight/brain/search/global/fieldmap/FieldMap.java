@@ -18,8 +18,10 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_PUBLIC_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VERSION;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_COORDINATE_ARCHITECTURE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_COORDINATE_ARTIFACT_ID;
@@ -56,6 +58,12 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_AUTO;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_WAIVED_BY;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.REPORT_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.SBOM_SPECIFICATION;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_DESCRIPTION;
@@ -67,6 +75,7 @@ import static com.sonatype.insight.brain.search.index.ItemType.LEGAL_VIOLATION;
 import static com.sonatype.insight.brain.search.index.ItemType.NON_VULNERABLE_COMPONENT;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY_VIOLATION;
+import static com.sonatype.insight.brain.search.index.ItemType.POLICY_WAIVER;
 import static com.sonatype.insight.brain.search.index.ItemType.SBOM_METADATA;
 import static com.sonatype.insight.brain.search.index.ItemType.SECURITY_VULNERABILITY;
 
@@ -79,13 +88,6 @@ import static com.sonatype.insight.brain.search.index.ItemType.SECURITY_VULNERAB
 public final class FieldMap
 {
   private static final Set<ItemType> APP_TYPES = EnumSet.of(APPLICATION);
-
-  // applicationName is indexed on APPLICATION docs and on violation docs (violations set their
-  // owning application via DocumentBuilder.setOwner), so the field resolves for all three types.
-  private static final Set<ItemType> APP_AND_VIOLATION_TYPES = EnumSet.of(
-      APPLICATION,
-      POLICY_VIOLATION,
-      LEGAL_VIOLATION);
 
   private static final Set<ItemType> COMPONENT_BEARING_TYPES = EnumSet.of(
       NON_VULNERABLE_COMPONENT,
@@ -115,16 +117,55 @@ public final class FieldMap
       POLICY_VIOLATION,
       LEGAL_VIOLATION,
       SBOM_METADATA,
-      POLICY);
+      POLICY,
+      // Org-owned waivers carry parentOrganizationName/Id via DocumentBuilder.setOwner; app-owned
+      // waivers do not, so the organizations filter narrows org-scoped waivers only (as for POLICY).
+      POLICY_WAIVER,
+      // SECURITY_VULNERABILITY docs already carry parentOrganization* (set in DocumentBuilderHelper's
+      // vuln build path); widening the org filters to this type is purely additive — it enables local
+      // vuln filtering by org without changing any other type's compiled query.
+      SECURITY_VULNERABILITY);
+
+  private static final Set<ItemType> WAIVER_TYPES = EnumSet.of(POLICY_WAIVER);
+
+  // applicationId is set on APPLICATION docs and on app-scoped waiver docs (setOwner(Application)); org-
+  // scoped waivers carry no applicationId so an applications filter narrows to app-scoped waivers only.
+  // POLICY_WAIVER only ADDS itself as an allowed type; allowedTypes is consulted per-entity-type in
+  // QueryCompiler.compileField, so APPLICATION/VIOLATION/VULN queries are unaffected.
+  private static final Set<ItemType> APP_ID_AND_WAIVER_TYPES = EnumSet.of(APPLICATION, POLICY_WAIVER);
+
+  // policyEvaluationStage resolves on APPLICATION, violation and vuln docs (not waivers).
+  private static final Set<ItemType> APP_VIOLATION_AND_VULN_TYPES = EnumSet.of(
+      APPLICATION,
+      POLICY_VIOLATION,
+      LEGAL_VIOLATION,
+      SECURITY_VULNERABILITY);
+
+  // applicationCategoryName is query-resolvable on APPLICATION, POLICY_VIOLATION and LEGAL_VIOLATION
+  // docs (the denormalized app categories, multi-valued). The single-valued APPLICATION_CATEGORY
+  // entity doc carries its own category name but is intentionally NOT in this set, so a
+  // category-scoped query does not resolve against it (it compiles to MatchNoDocsQuery there).
+  // allowedTypes is consumed via .contains(entityType), so listing only these types is additive.
+  private static final Set<ItemType> CATEGORY_NAME_TYPES = EnumSet.of(
+      APPLICATION,
+      POLICY_VIOLATION,
+      LEGAL_VIOLATION);
+
+  // applicationName is set on APPLICATION, violation, SECURITY_VULNERABILITY (setOwner in each build
+  // path) and on app-scoped waiver docs. policyEvaluationStage is set on the policy-evaluation vuln
+  // path (buildApplicationStageSVDocs) but is absent on SBOM-sourced vuln docs. Widening these filters
+  // is purely additive — allowedTypes is consumed via .contains(entityType), so existing types are
+  // unaffected.
+  private static final Set<ItemType> APP_VIOLATION_VULN_AND_WAIVER_TYPES = EnumSet.of(
+      APPLICATION,
+      POLICY_VIOLATION,
+      LEGAL_VIOLATION,
+      SECURITY_VULNERABILITY,
+      POLICY_WAIVER);
 
   private static final Set<ItemType> REPORT_CARRYING_TYPES = EnumSet.of(
       APPLICATION,
       NON_VULNERABLE_COMPONENT,
-      POLICY_VIOLATION,
-      LEGAL_VIOLATION);
-
-  private static final Set<ItemType> STAGE_TYPES = EnumSet.of(
-      APPLICATION,
       POLICY_VIOLATION,
       LEGAL_VIOLATION);
 
@@ -135,7 +176,9 @@ public final class FieldMap
 
   private static final Set<String> THREAT_CATEGORIES = Set.of("security", "license", "quality", "other");
 
-  private static final Set<String> WAIVER_STATUSES = Set.of("Active", "Expired");
+  // Canonical indexed policyViolationWaiverStatus vocabulary written by DocumentBuilderHelper.
+  // Active = open (unwaived); Waived = manual waiver; AutoWaived = auto waiver.
+  private static final Set<String> WAIVER_STATUSES = Set.of("Active", "Waived", "AutoWaived");
 
   private static final Set<String> EVALUATION_STAGES = Set.of(
       "proxy", "develop", "source", "build", "stage-release", "release", "operate", "compliance");
@@ -145,8 +188,11 @@ public final class FieldMap
 
   private static final Set<String> SBOM_SPECIFICATIONS = Set.of("CycloneDX", "SPDX");
 
+  private static final Set<String> BOOLEAN_VALUES = Set.of("true", "false");
+
   private static final Set<String> ITEM_TYPE_VALUES = Set.of(
-      "APPLICATION", "COMPONENT", "SECURITY_VULNERABILITY", "POLICY_VIOLATION", "LEGAL_VIOLATION", "POLICY");
+      "APPLICATION", "COMPONENT", "SECURITY_VULNERABILITY", "POLICY_VIOLATION", "LEGAL_VIOLATION", "POLICY",
+      "POLICY_WAIVER");
 
   private final Map<String, FieldEntry> entries;
 
@@ -178,13 +224,22 @@ public final class FieldMap
     // Discriminator
     m.put("itemType", FieldEntry.keyword(ITEM_TYPE.label, ALL_TYPES, ITEM_TYPE_VALUES));
 
-    // Application
-    m.put("applicationName", FieldEntry.keyword(APPLICATION_NAME.label, APP_AND_VIOLATION_TYPES));
-    m.put("applicationId", FieldEntry.keyword(APPLICATION_ID.label, APP_TYPES));
+    // Application. applicationName/applicationId include POLICY_WAIVER so app-scoped waivers can be
+    // filtered by their owning application; org-scoped waivers (no applicationName/Id) simply won't match.
+    m.put("applicationName", FieldEntry.keyword(APPLICATION_NAME.label, APP_VIOLATION_VULN_AND_WAIVER_TYPES));
+    m.put("applicationId", FieldEntry.keyword(APPLICATION_ID.label, APP_ID_AND_WAIVER_TYPES));
     m.put("applicationPublicId", FieldEntry.keyword(APPLICATION_PUBLIC_ID.label, APP_TYPES));
     m.put("applicationVersion", FieldEntry.keyword(APPLICATION_VERSION.label, APP_TYPES));
     m.put("applicationCategoryId", FieldEntry.keyword(APPLICATION_CATEGORY_ID.label, APP_TYPES));
-    m.put("applicationCategoryName", FieldEntry.keyword(APPLICATION_CATEGORY_NAME.label, APP_TYPES));
+    m.put("applicationCategoryName", FieldEntry.keyword(APPLICATION_CATEGORY_NAME.label, CATEGORY_NAME_TYPES));
+    // Application evaluation denormalization (indexed on APPLICATION docs).
+    m.put("applicationLastEvaluationTimeEpochMs",
+        FieldEntry.numericLong(APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label, APP_TYPES));
+    // Retrievable/queryable only, not a facet: faceting is opt-in via the FACET_FIELDS maps in
+    // IndexQueryService/CatalogService and this count-bearing token ("stage:severity:count") is not
+    // listed there, so it is read off the row and never aggregated into buckets.
+    m.put("applicationStageSeverityCount",
+        FieldEntry.keyword(APPLICATION_STAGE_SEVERITY_COUNT.label, APP_TYPES));
     m.put("applicationCategoryColor",
         FieldEntry.keyword(APPLICATION_CATEGORY_COLOR.label, APP_TYPES, CATEGORY_COLORS));
     m.put("applicationCategoryDescription",
@@ -270,6 +325,20 @@ public final class FieldMap
     m.put("policyViolationWaiverStatus",
         FieldEntry.keyword(POLICY_VIOLATION_WAIVER_STATUS.label, VIOLATION_TYPES, WAIVER_STATUSES));
 
+    // Policy waiver. policyWaiverThreatLevel is a distinct key from the POLICY policyThreatLevel:
+    // waiver docs index the threat level under POLICY_WAIVER_THREAT_LEVEL, not POLICY_THREAT_LEVEL.
+    m.put("policyWaiverThreatLevel",
+        FieldEntry.numericInt(POLICY_WAIVER_THREAT_LEVEL.label, WAIVER_TYPES));
+    m.put("policyWaiverPolicyName", FieldEntry.keyword(POLICY_WAIVER_POLICY_NAME.label, WAIVER_TYPES));
+    m.put("policyWaiverPolicyId", FieldEntry.keyword(POLICY_WAIVER_POLICY_ID.label, WAIVER_TYPES));
+    m.put("policyWaiverWaivedBy", FieldEntry.keyword(POLICY_WAIVER_WAIVED_BY.label, WAIVER_TYPES));
+    // Auto-vs-manual discriminator, indexed as the keyword "true"/"false".
+    m.put("policyWaiverAuto", FieldEntry.keyword(POLICY_WAIVER_AUTO.label, WAIVER_TYPES, BOOLEAN_VALUES));
+    // Range-queryable epoch-millis expiry (LongPoint) backing the active-vs-expired filter. A doc with
+    // no expiry has no point value, so it never matches an expiry range and is treated as active.
+    m.put("policyWaiverExpiresAtEpochMs",
+        FieldEntry.numericLong(POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, WAIVER_TYPES));
+
     // Vulnerability
     m.put("vulnerabilityId", FieldEntry.keyword(VULNERABILITY_ID.label, VULNERABILITY_TYPES));
     m.put("vulnerabilityDescription",
@@ -279,7 +348,7 @@ public final class FieldMap
     m.put("vulnerabilitySeverity",
         FieldEntry.numericFloat(VULNERABILITY_SEVERITY.label, VULNERABILITY_TYPES));
     m.put("policyEvaluationStage",
-        FieldEntry.keyword(POLICY_EVALUATION_STAGE.label, STAGE_TYPES, EVALUATION_STAGES));
+        FieldEntry.keyword(POLICY_EVALUATION_STAGE.label, APP_VIOLATION_AND_VULN_TYPES, EVALUATION_STAGES));
     m.put("reportId", FieldEntry.keyword(REPORT_ID.label, REPORT_CARRYING_TYPES));
 
     return new FieldMap(m);

@@ -21,7 +21,9 @@ public enum IndexQueryType
   APPLICATION(Tab.APPLICATION, Set.of(ItemType.APPLICATION)),
   // VIOLATION unions POLICY_VIOLATION + LEGAL_VIOLATION, mirroring the global-search VIOLATION tab.
   VIOLATION(Tab.VIOLATION, Set.of(ItemType.POLICY_VIOLATION, ItemType.LEGAL_VIOLATION)),
-  POLICY(null, Set.of(ItemType.POLICY));
+  POLICY(null, Set.of(ItemType.POLICY)),
+  // WAIVER unions manual and auto waivers, both indexed as POLICY_WAIVER docs.
+  WAIVER(Tab.WAIVER, Set.of(ItemType.POLICY_WAIVER));
 
   private final Tab tab;
 

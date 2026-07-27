@@ -77,6 +77,11 @@ public class LuceneComponents
         new PointsConfig(numberFormat, Integer.class));
     pointsConfigsByFieldName.put(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label,
         new PointsConfig(numberFormat, Integer.class));
+    pointsConfigsByFieldName.put(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label,
+        new PointsConfig(numberFormat, Long.class));
+    // Epoch-millis long backing the applications "latest evaluation" range filter/sort.
+    pointsConfigsByFieldName.put(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
+        new PointsConfig(numberFormat, Long.class));
     StandardQueryParser queryParser = new StandardQueryParser(newAnalyzerForSearch());
     queryParser.setPointsConfigMap(pointsConfigsByFieldName);
     queryParser.setAllowLeadingWildcard(true);

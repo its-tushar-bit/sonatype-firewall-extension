@@ -85,30 +85,63 @@ public class GlobalSearchSortAllowlistTest
         .isThrownBy(() -> GlobalSearchSortAllowlist.requireAllowed(Tab.APPLICATION, "maxCvss"));
   }
 
-  // ---- Merged violation tab: relevance + name only ------------------------------------------
+  // ---- Merged violation tab: relevance + name + threat --------------------------------------
 
   @Test
-  public void violationTab_acceptsRelevanceAndName_rejectsOthers() {
+  public void violationTab_acceptsRelevanceNameAndThreat_rejectsOthers() {
     Tab tab = Tab.VIOLATION;
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "relevance")).isTrue();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "name")).isTrue();
+    assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "threat")).isTrue();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "maxCvss")).isFalse();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "epss")).isFalse();
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> GlobalSearchSortAllowlist.requireAllowed(tab, "unknown"));
   }
 
-  // ---- Waiver tab: relevance only (no WAIVER ItemType / sortable field yet) ------------------
+  @Test
+  public void applicationTab_acceptsLatestEvaluationSort() {
+    assertThat(GlobalSearchSortAllowlist.isAllowed(Tab.APPLICATION, "lastEvaluationTime")).isTrue();
+  }
+
+  // ---- Waiver tab: relevance + created (newest first) ---------------------------------------
 
   @Test
-  public void waiverTab_acceptsRelevanceOnly() {
+  public void waiverTab_acceptsRelevanceAndCreated_rejectsOthers() {
     Tab tab = Tab.WAIVER;
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "relevance")).isTrue();
+    assertThat(GlobalSearchSortAllowlist.isAllowed(tab, GlobalSearchSortAllowlist.WAIVER_CREATED)).isTrue();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "name"))
-        .as("WAIVER must not allow name until a WAIVER sortable index field exists")
+        .as("WAIVER must not allow name (no waiver-name sortable field)")
         .isFalse();
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> GlobalSearchSortAllowlist.requireAllowed(tab, "name"));
+  }
+
+  // ---- Per-entity default sort --------------------------------------------------------------
+
+  @Test
+  public void defaultSort_perTab_matchesPrototypeDefaults() {
+    assertThat(GlobalSearchSortAllowlist.defaultSortFor(Tab.APPLICATION)).isEqualTo("lastEvaluationTime");
+    assertThat(GlobalSearchSortAllowlist.defaultSortFor(Tab.VIOLATION)).isEqualTo("threat");
+    assertThat(GlobalSearchSortAllowlist.defaultSortFor(Tab.WAIVER))
+        .isEqualTo(GlobalSearchSortAllowlist.WAIVER_CREATED);
+    assertThat(GlobalSearchSortAllowlist.defaultSortFor(Tab.COMPONENT))
+        .isEqualTo(GlobalSearchSortAllowlist.RELEVANCE);
+    assertThat(GlobalSearchSortAllowlist.defaultSortFor(Tab.VULNERABILITY))
+        .isEqualTo(GlobalSearchSortAllowlist.RELEVANCE);
+    assertThat(GlobalSearchSortAllowlist.defaultSortFor(null))
+        .isEqualTo(GlobalSearchSortAllowlist.RELEVANCE);
+  }
+
+  @Test
+  public void defaultSort_perTab_isAlwaysAllowlistedForThatTab() {
+    for (Tab tab : Tab.values()) {
+      String def = GlobalSearchSortAllowlist.defaultSortFor(tab);
+      assertThat(GlobalSearchSortAllowlist.isAllowed(tab, def))
+          .as("default sort %s for tab %s must be allowlisted", def, tab)
+          .isTrue();
+    }
   }
 
   // ---- requireAllowed default behaviour -----------------------------------------------------

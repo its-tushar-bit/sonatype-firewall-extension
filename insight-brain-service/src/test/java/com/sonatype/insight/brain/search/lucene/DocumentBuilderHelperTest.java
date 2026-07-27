@@ -7,9 +7,13 @@ package com.sonatype.insight.brain.search.lucene;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -30,6 +34,8 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -43,6 +49,7 @@ import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexingContext;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -51,13 +58,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -69,6 +79,9 @@ public class DocumentBuilderHelperTest
 
   @Inject
   private com.sonatype.insight.brain.dataaccess.OwnerDAO ownerDAO;
+
+  @Inject
+  private com.sonatype.insight.brain.search.ConversionHelper conversionHelper;
 
   @Inject
   private com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO waiverDAO;
@@ -85,21 +98,44 @@ public class DocumentBuilderHelperTest
   @Mock
   private IndexingContext indexingContextMock;
 
-  @org.junit.Before
+  @Before
   public void stubIndexingContextAncestorWalk() {
     // getAncestorOrgIds now encapsulates the OwnerDAO.walkHierarchy walk (memoized per run in the
     // real IndexingContext). The mock has no cache, so delegate to the real ownerDAO walk here so
     // the closure tests exercise the genuine ancestor chain rather than an empty stub result.
-    org.mockito.Mockito.lenient()
-        .when(indexingContextMock.getAncestorOrgIds(org.mockito.ArgumentMatchers.any()))
+    lenient()
+        .when(indexingContextMock.getAncestorOrgIds(any()))
         .thenAnswer(inv -> {
-          com.sonatype.insight.brain.model.Organization org = inv.getArgument(0);
+          Organization org = inv.getArgument(0);
           if (org == null) {
-            return java.util.List.of();
+            return List.of();
           }
-          java.util.List<String> ids = new java.util.ArrayList<>();
+          List<String> ids = new ArrayList<>();
           ownerDAO.walkHierarchy(org).forEach(o -> ids.add(o.getId()));
           return ids;
+        });
+  }
+
+  /**
+   * The two app rollups are memoized on the real IndexingContext; the mock has no cache, so run the
+   * loader inline against the (real or mocked) DAOs, mirroring {@link #stubCategoryLoaderPassthrough}.
+   */
+  @Before
+  @SuppressWarnings("unchecked")
+  public void stubIndexingContextRollupLoaders() {
+    lenient()
+        .when(indexingContextMock.getLatestEvaluationEpochMsByApp(anySet(), any()))
+        .thenAnswer(inv -> {
+          Set<String> ids = inv.getArgument(0);
+          Function<Set<String>, Map<String, Long>> loader = inv.getArgument(1);
+          return loader.apply(ids);
+        });
+    lenient()
+        .when(indexingContextMock.getStageSeverityCountsByApp(anySet(), any()))
+        .thenAnswer(inv -> {
+          Set<String> ids = inv.getArgument(0);
+          Function<Set<String>, Map<String, List<String>>> loader = inv.getArgument(1);
+          return loader.apply(ids);
         });
   }
 
@@ -207,6 +243,316 @@ public class DocumentBuilderHelperTest
   public void testBuildApplicationDocs_EmptyWhenMissingData() {
     assertThat(documentBuilderHelper.buildApplicationDocs(indexingContextMock, null)).isEmpty();
     assertThat(documentBuilderHelper.buildApplicationDocs(indexingContextMock, Collections.emptyList())).isEmpty();
+  }
+
+  @Test
+  public void testBuildApplicationDoc_denormalizesLatestEvaluationTimeAndCategories() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    Tag tag = tempEntity.newTag(org.getId(), "Finance");
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+
+    when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
+    // Real IndexingContext memoizes categories; the mock has no cache, so run the loader inline.
+    stubCategoryLoaderPassthrough(app.getId());
+
+    long buildMs = 1_700_000_000_000L;
+    long releaseMs = 1_800_000_000_000L;
+    PolicyEvaluation buildEval = new PolicyEvaluation();
+    buildEval.setApplicationId(app.getId());
+    buildEval.setTime(new Date(buildMs));
+    PolicyEvaluation releaseEval = new PolicyEvaluation();
+    releaseEval.setApplicationId(app.getId());
+    releaseEval.setTime(new Date(releaseMs));
+    // The rollup loader batch-loads the per-app latest evaluations in one query and takes the max
+    // time per app across the returned rows (release > build).
+    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(eq(Set.of(app.getId())), anySet()))
+        .thenReturn(List.of(buildEval, releaseEval));
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
+
+    assertThat(doc).isNotNull();
+    // Latest = max across stages (release), not build.
+    assertThat(doc.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label))
+        .isEqualTo(String.valueOf(releaseMs));
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).contains("Finance");
+  }
+
+  @Test
+  public void testBuildApplicationDoc_neverEvaluatedApp_omitsEvaluationFields() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+
+    when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
+    stubCategoryLoaderPassthrough(app.getId());
+    // No evaluations -> the batch load returns an empty list, so the doc omits the field.
+    stubNoEvaluationsByDefault(app.getId());
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
+
+    assertThat(doc).isNotNull();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label)).isEmpty();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label)).isEmpty();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+  }
+
+  @Test
+  public void testBuildApplicationDoc_rollsUpUnfixedViolationsByStageAndSeverity() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+
+    // Two unfixed violations on the BUILD stage: one CRITICAL (level 9), one SEVERE (level 5).
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-rollup", new Date(), "commit-1");
+    tempEntity.newPolicyViolation(eval, tempEntity.newPolicy(org.getId(), "crit-policy", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+    tempEntity.newPolicyViolation(eval, tempEntity.newPolicy(org.getId(), "sev-policy", 5), 5,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
+    stubCategoryLoaderPassthrough(app.getId());
+    stubNoEvaluationsByDefault(app.getId());
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
+
+    assertThat(doc).isNotNull();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder("build:critical:1", "build:severe:1");
+  }
+
+  @Test
+  public void testBuildApplicationDoc_stageSeverityRollupExcludesWaivedViolations() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+
+    // Two CRITICAL (level 9) violations on the same BUILD stage/severity bucket: one active, one
+    // waived. The pill must count only the active one — a waived violation is not an active threat.
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-waived", new Date(), "commit-1");
+    tempEntity.newPolicyViolation(eval, tempEntity.newPolicy(org.getId(), "crit-active", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+    PolicyViolation waived = tempEntity.newPolicyViolation(
+        eval, tempEntity.newPolicy(org.getId(), "crit-waived", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "2");
+    waived.setWaiveTime(new Date());
+    tempEntity.updatePolicyViolation(waived);
+
+    when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
+    stubCategoryLoaderPassthrough(app.getId());
+    stubNoEvaluationsByDefault(app.getId());
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
+
+    assertThat(doc).isNotNull();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactly("build:critical:1");
+  }
+
+  private void stubCategoryLoaderPassthrough(final String applicationId) {
+    when(indexingContextMock.getApplicationCategoryNames(eq(applicationId), any()))
+        .thenAnswer(inv -> {
+          Function<String, List<String>> loader = inv.getArgument(1);
+          return loader.apply(applicationId);
+        });
+  }
+
+  private void stubNoEvaluationsByDefault(final String applicationId) {
+    lenient()
+        .when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(eq(Set.of(applicationId)), anySet()))
+        .thenReturn(Collections.emptyList());
+  }
+
+  /**
+   * Batches two apps in one {@code buildApplicationDocs} run and asserts each app's APPLICATION doc
+   * carries its own latest-evaluation time and its own stage:severity:count tokens — proving the
+   * cross-app grouping in the batched rollups does not bleed one app's values into another.
+   */
+  @Test
+  public void testBuildApplicationDocs_batchedRollups_noCrossAppBleed() {
+    Organization org = tempEntity.newOrganization();
+    Application appA = tempEntity.newApplicationWithParent(org);
+    Application appB = tempEntity.newApplicationWithParent(org);
+
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    stubCategoryLoaderPassthrough(appA.getId());
+    stubCategoryLoaderPassthrough(appB.getId());
+
+    // appA evaluated at buildMsA, appB at buildMsB (distinct) — the batched evaluation query returns
+    // both apps' rows in one list; grouping must map each app to its own max time.
+    long msA = 1_700_000_000_000L;
+    long msB = 1_650_000_000_000L;
+    PolicyEvaluation evalA = new PolicyEvaluation();
+    evalA.setApplicationId(appA.getId());
+    evalA.setTime(new Date(msA));
+    PolicyEvaluation evalB = new PolicyEvaluation();
+    evalB.setApplicationId(appB.getId());
+    evalB.setTime(new Date(msB));
+    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(anySet(), anySet()))
+        .thenReturn(List.of(evalA, evalB));
+
+    // appA gets a CRITICAL BUILD violation; appB gets a SEVERE BUILD violation. The batched
+    // violations query is the real DAO (H2), so seed real rows.
+    PolicyEvaluation seedEvalA = tempEntity.newPolicyEvaluation(
+        appA.getId(), StageTypes.BUILD.getId(), "scan-a", new Date(), "commit-a");
+    tempEntity.newPolicyViolation(seedEvalA, tempEntity.newPolicy(org.getId(), "crit-a", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+    PolicyEvaluation seedEvalB = tempEntity.newPolicyEvaluation(
+        appB.getId(), StageTypes.BUILD.getId(), "scan-b", new Date(), "commit-b");
+    tempEntity.newPolicyViolation(seedEvalB, tempEntity.newPolicy(org.getId(), "sev-b", 5), 5,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    List<Document> docs =
+        documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(appA, appB));
+
+    Document docA = docs.stream()
+        .filter(d -> appA.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+    Document docB = docs.stream()
+        .filter(d -> appB.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(docA.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label))
+        .isEqualTo(String.valueOf(msA));
+    assertThat(docB.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label))
+        .isEqualTo(String.valueOf(msB));
+    assertThat(docA.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder("build:critical:1");
+    assertThat(docB.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder("build:severe:1");
+  }
+
+  /**
+   * The INCREMENTAL indexing path (AbstractSearchIndexClient.updateIndexForApplication) shares ONE
+   * IndexingContext across a batch and calls {@code buildDocument(ctx, app)} once per app, each with
+   * a single-app id set. With a real IndexingContext this exercises the load-on-miss cache: the
+   * first app must not "claim" the cache for the whole batch — every subsequent app must still load
+   * and emit its own latest-evaluation time and stage:severity:count tokens. Regression for the
+   * one-shot cache-gate bug that silently omitted those fields for every app after the first.
+   */
+  @Test
+  public void testBuildDocument_incrementalPath_sharedContext_allAppsCarryRollups() {
+    Organization org = tempEntity.newOrganization();
+    Application appA = tempEntity.newApplicationWithParent(org);
+    Application appB = tempEntity.newApplicationWithParent(org);
+
+    // Real IndexingContext so the genuine load-on-miss cache runs (the mock bypasses it).
+    IndexingContext realContext = new IndexingContext(ownerDAO, conversionHelper)
+    {
+      @Override
+      public void deleteDocuments(final String query) {
+      }
+
+      @Override
+      public void addDocuments(final List<Document> documents) {
+      }
+    };
+
+    // Each per-app evaluation query (Set.of(appId)) returns only that app's row, mirroring the
+    // incremental path where updateIndexForApplication passes one app id at a time.
+    long msA = 1_700_000_000_000L;
+    long msB = 1_650_000_000_000L;
+    PolicyEvaluation evalA = new PolicyEvaluation();
+    evalA.setApplicationId(appA.getId());
+    evalA.setTime(new Date(msA));
+    PolicyEvaluation evalB = new PolicyEvaluation();
+    evalB.setApplicationId(appB.getId());
+    evalB.setTime(new Date(msB));
+    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(eq(Set.of(appA.getId())), anySet()))
+        .thenReturn(List.of(evalA));
+    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(eq(Set.of(appB.getId())), anySet()))
+        .thenReturn(List.of(evalB));
+
+    // Real H2-backed violations: appA a CRITICAL BUILD violation, appB a SEVERE BUILD violation.
+    PolicyEvaluation seedEvalA = tempEntity.newPolicyEvaluation(
+        appA.getId(), StageTypes.BUILD.getId(), "scan-inc-a", new Date(), "commit-inc-a");
+    tempEntity.newPolicyViolation(seedEvalA, tempEntity.newPolicy(org.getId(), "crit-inc-a", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+    PolicyEvaluation seedEvalB = tempEntity.newPolicyEvaluation(
+        appB.getId(), StageTypes.BUILD.getId(), "scan-inc-b", new Date(), "commit-inc-b");
+    tempEntity.newPolicyViolation(seedEvalB, tempEntity.newPolicy(org.getId(), "sev-inc-b", 5), 5,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    // Build A then B against the SAME context, exactly as the incremental batch does.
+    Document docA = documentBuilderHelper.buildDocument(realContext, appA);
+    Document docB = documentBuilderHelper.buildDocument(realContext, appB);
+
+    assertThat(docA.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label))
+        .isEqualTo(String.valueOf(msA));
+    assertThat(docA.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder("build:critical:1");
+
+    // The bug: with the one-shot gate, B misses the cache entirely and both fields are OMITTED.
+    assertThat(docB.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label))
+        .isEqualTo(String.valueOf(msB));
+    assertThat(docB.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder("build:severe:1");
+  }
+
+  /**
+   * Locks the {@code applicationStageSeverityCount} wire format: encode + decode must round-trip,
+   * and the encoded token must be the exact {@code stage:severity:count} shape consumers bind to.
+   */
+  @Test
+  public void testStageSeverityCount_encodeDecodeRoundTrip() {
+    String token = DocumentBuilderHelper.encodeStageSeverityCount(
+        StageTypes.BUILD.getId(), ThreatLevel.CRITICAL, 7);
+    assertThat(token).isEqualTo("build:critical:7");
+
+    String[] parts = DocumentBuilderHelper.decodeStageSeverityCount(token);
+    assertThat(parts[0]).isEqualTo(StageTypes.BUILD.getId());
+    assertThat(parts[1]).isEqualTo("critical");
+    assertThat(Integer.parseInt(parts[2])).isEqualTo(7);
+
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> DocumentBuilderHelper.decodeStageSeverityCount("malformed"));
+
+    // encode rejects a stageId containing the delimiter, which would corrupt the token.
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> DocumentBuilderHelper.encodeStageSeverityCount("sta:ge", ThreatLevel.CRITICAL, 1));
+  }
+
+  /**
+   * The batched {@code buildApplicationDocs} path and the single-app {@code buildDocument} path must
+   * produce the same latest-evaluation time and the same stage:severity:count tokens for one app —
+   * batching is a query-count optimization and must not change any indexed field value.
+   */
+  @Test
+  public void testBuildApplicationDocs_batchedMatchesPerAppFieldValues() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    stubCategoryLoaderPassthrough(app.getId());
+
+    long evalMs = 1_700_000_000_000L;
+    PolicyEvaluation latestEval = new PolicyEvaluation();
+    latestEval.setApplicationId(app.getId());
+    latestEval.setTime(new Date(evalMs));
+    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(anySet(), anySet()))
+        .thenReturn(List.of(latestEval));
+
+    PolicyEvaluation seedEval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-match", new Date(), "commit-match");
+    tempEntity.newPolicyViolation(seedEval, tempEntity.newPolicy(org.getId(), "crit-match", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+    tempEntity.newPolicyViolation(seedEval, tempEntity.newPolicy(org.getId(), "sev-match", 5), 5,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    Document batchedDoc = documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(app))
+        .stream()
+        .filter(d -> app.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+    Document perAppDoc = documentBuilderHelper.buildDocument(indexingContextMock, app);
+
+    assertThat(batchedDoc.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label))
+        .isEqualTo(perAppDoc.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label))
+        .isEqualTo(String.valueOf(evalMs));
+    assertThat(batchedDoc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder(perAppDoc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder("build:critical:1", "build:severe:1");
   }
 
   @Test
@@ -681,7 +1027,7 @@ public class DocumentBuilderHelperTest
   }
 
   @Test
-  public void testBuildDocument_AutoPolicyWaiver_populatesSyntheticTitleAndSubset() {
+  public void testBuildDocument_AutoPolicyWaiver_leavesPolicyNameNullAndIndexesSubset() {
     Organization organization = tempEntity.newOrganization();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(organization.getId(), 9, true, false);
     when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
@@ -690,7 +1036,9 @@ public class DocumentBuilderHelperTest
 
     assertThat(itemTypeOf(doc)).isEqualTo(ItemType.POLICY_WAIVER.name());
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_ID.label)).isEqualTo(waiver.getId());
-    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).contains("Auto-waiver").contains("9");
+    // Auto-waivers carry no indexed policy name; the display title is synthesized on the read side
+    // (IndexQueryRowMapper) so it is never text-searchable and can change without a reindex.
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).isNull();
     assertThat(doc.getField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label).numericValue().intValue())
         .isEqualTo(9);
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label)).isEqualTo(organization.getId());
@@ -729,7 +1077,8 @@ public class DocumentBuilderHelperTest
 
     Document autoDoc = waiverDocById(docs, autoWaiver.getId());
     assertThat(autoDoc).isNotNull();
-    assertThat(autoDoc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).contains("Auto-waiver");
+    // Auto-waivers index no policy name; the read side synthesizes their display title.
+    assertThat(autoDoc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).isNull();
 
     assertThat(waiverDocById(docs, containerWaiver.getId())).isNull();
   }

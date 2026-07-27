@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.search.global.fieldmap.FieldMap;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -204,9 +205,16 @@ public final class LuceneToOpenSearchQueryAdapter
     }
     JsonData gte;
     JsonData lte;
+    // The decoder must match the point's byte-width: FloatPoint/IntPoint are 4-byte, LongPoint is
+    // 8-byte. Decoding a LongPoint with IntPoint.decodeDimension would misread the range bounds.
     if (numericType == Float.class) {
       gte = JsonData.of((double) FloatPoint.decodeDimension(prq.getLowerPoint(), 0));
       lte = JsonData.of((double) FloatPoint.decodeDimension(prq.getUpperPoint(), 0));
+    }
+    else if (numericType == Long.class) {
+      // LongPoint uses an 8-byte-per-dimension layout, unlike the 4-byte Int/Float layout.
+      gte = JsonData.of(LongPoint.decodeDimension(prq.getLowerPoint(), 0));
+      lte = JsonData.of(LongPoint.decodeDimension(prq.getUpperPoint(), 0));
     }
     else {
       gte = JsonData.of(IntPoint.decodeDimension(prq.getLowerPoint(), 0));

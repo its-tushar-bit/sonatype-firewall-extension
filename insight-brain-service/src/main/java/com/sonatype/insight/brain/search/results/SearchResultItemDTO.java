@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.search.results;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -67,6 +69,15 @@ public class SearchResultItemDTO
 
   public String applicationCategoryName;
 
+  /** Multi-valued category names denormalized onto APPLICATION and violation docs. */
+  public List<String> applicationCategoryNames;
+
+  /** Epoch-millis of the application's latest evaluation; null when never evaluated. */
+  public Long applicationLastEvaluationTimeEpochMs;
+
+  /** Raw {@code "stage:severity:count"} tokens for the application evaluation-card breakdown. */
+  public List<String> applicationStageSeverityCounts;
+
   public String applicationCategoryColor;
 
   public String applicationCategoryDescription;
@@ -101,14 +112,6 @@ public class SearchResultItemDTO
 
   public String policyViolationConstraintName;
 
-  public String policyWaiverId;
-
-  public String policyWaiverPolicyId;
-
-  public String policyWaiverPolicyName;
-
-  public String policyWaiverScopeOwnerId;
-
   public String componentEffectiveLicenseId;
 
   public String componentEffectiveLicenseName;
@@ -116,6 +119,28 @@ public class SearchResultItemDTO
   public String componentLicenseThreatGroupName;
 
   public Integer componentLicenseThreatLevel;
+
+  public String policyWaiverId;
+
+  public String policyWaiverPolicyName;
+
+  public String policyWaiverPolicyId;
+
+  public String policyWaiverReason;
+
+  public String policyWaiverCreatedAt;
+
+  public String policyWaiverExpiresAt;
+
+  public String policyWaiverScopeOwnerId;
+
+  public String policyWaiverScopeOwnerType;
+
+  public Integer policyWaiverThreatLevel;
+
+  public String policyWaiverWaivedBy;
+
+  public Boolean policyWaiverAuto;
 
   public int resultIndex;
 
@@ -158,6 +183,11 @@ public class SearchResultItemDTO
     vulnerabilityStatus = document.get(FieldIdentifier.VULNERABILITY_STATUS.label);
     applicationCategoryId = document.get(FieldIdentifier.APPLICATION_CATEGORY_ID.label);
     applicationCategoryName = document.get(FieldIdentifier.APPLICATION_CATEGORY_NAME.label);
+    applicationCategoryNames = valuesOrNull(document.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label));
+    applicationLastEvaluationTimeEpochMs =
+        parseLongOrNull(document.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label));
+    applicationStageSeverityCounts =
+        valuesOrNull(document.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label));
     applicationCategoryColor = document.get(FieldIdentifier.APPLICATION_CATEGORY_COLOR.label);
     applicationCategoryDescription = document.get(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION.label);
     componentLabelId = document.get(FieldIdentifier.COMPONENT_LABEL_ID.label);
@@ -178,16 +208,26 @@ public class SearchResultItemDTO
     policyViolationPolicyId = document.get(FieldIdentifier.POLICY_VIOLATION_POLICY_ID.label);
     policyViolationWaiverStatus = document.get(FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label);
     policyViolationConstraintName = document.get(FieldIdentifier.POLICY_VIOLATION_CONSTRAINT_NAME.label);
-    policyWaiverId = document.get(FieldIdentifier.POLICY_WAIVER_ID.label);
-    policyWaiverPolicyId = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label);
-    policyWaiverPolicyName = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label);
-    policyWaiverScopeOwnerId = document.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label);
     componentEffectiveLicenseId = document.get(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID.label);
     componentEffectiveLicenseName = document.get(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_NAME.label);
     componentLicenseThreatGroupName = document.get(FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME.label);
     String componentLicenseThreatLevelString = document.get(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label);
     componentLicenseThreatLevel =
         componentLicenseThreatLevelString == null ? null : Integer.valueOf(componentLicenseThreatLevelString);
+    policyWaiverId = document.get(FieldIdentifier.POLICY_WAIVER_ID.label);
+    policyWaiverPolicyName = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label);
+    policyWaiverPolicyId = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label);
+    policyWaiverReason = document.get(FieldIdentifier.POLICY_WAIVER_REASON.label);
+    policyWaiverCreatedAt = document.get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label);
+    policyWaiverExpiresAt = document.get(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label);
+    policyWaiverScopeOwnerId = document.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label);
+    policyWaiverScopeOwnerType = document.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label);
+    String policyWaiverThreatLevelString = document.get(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label);
+    policyWaiverThreatLevel =
+        policyWaiverThreatLevelString == null ? null : Integer.valueOf(policyWaiverThreatLevelString);
+    policyWaiverWaivedBy = document.get(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label);
+    String policyWaiverAutoString = document.get(FieldIdentifier.POLICY_WAIVER_AUTO.label);
+    policyWaiverAuto = policyWaiverAutoString == null ? null : Boolean.valueOf(policyWaiverAutoString);
   }
 
   /**
@@ -204,5 +244,27 @@ public class SearchResultItemDTO
       log.warn("Ignoring non-numeric vulnerabilitySeverity index value: {}", value);
       return null;
     }
+  }
+
+  /** Parses an indexed epoch-millis long without failing the whole response on a malformed document. */
+  static Long parseLongOrNull(final String value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      return Long.valueOf(value);
+    }
+    catch (NumberFormatException e) {
+      log.warn("Ignoring non-numeric applicationLastEvaluationTimeEpochMs index value: {}", value);
+      return null;
+    }
+  }
+
+  /** Wraps a multi-valued field's stored values as an immutable list, or {@code null} when absent/empty. */
+  static List<String> valuesOrNull(final String[] values) {
+    if (values == null || values.length == 0) {
+      return null;
+    }
+    return List.copyOf(Arrays.asList(values));
   }
 }

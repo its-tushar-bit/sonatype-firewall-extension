@@ -194,6 +194,43 @@ public class OpenSearchSearchIndexClientTest
 
   @Test
   @SuppressWarnings("unchecked")
+  public void searchGlobal_numericFieldSort_emitsNumericFieldSortDesc_beforeDocumentKeyTieBreak() throws Exception {
+    // Both backends receive the SAME (field, direction) from IqLocalSearchService.buildSortField. On
+    // OpenSearch the epoch-millis field is mapped as a long, so the FieldSort sorts numerically (not
+    // lexicographically); the DOCUMENT_KEY tie-break is always appended last for a stable cursor.
+    Hit<Map> hit = mock(Hit.class);
+    when(hit.source()).thenReturn(Map.of("itemType", "APPLICATION"));
+    stubSearchResponse(List.of(hit), 1L);
+
+    // Mirrors IqLocalSearchService.buildSortField for a numeric field: a descending SortedNumericSortField.
+    org.apache.lucene.search.Sort numericSort = new org.apache.lucene.search.Sort(
+        new org.apache.lucene.search.SortedNumericSortField(
+            FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
+            org.apache.lucene.search.SortField.Type.LONG, true));
+    GlobalSearchRequest request =
+        new GlobalSearchRequest(new MatchAllDocsQuery(), numericSort, 10, List.of());
+    client.searchGlobal(request);
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    List<org.opensearch.client.opensearch._types.SortOptions> fieldSorts = captor.getValue()
+        .sort()
+        .stream()
+        .filter(org.opensearch.client.opensearch._types.SortOptions::isField)
+        .toList();
+    // First field sort: the epoch-millis twin, descending (newest first).
+    assertThat(fieldSorts.get(0).field().field())
+        .isEqualTo(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label);
+    assertThat(fieldSorts.get(0).field().order())
+        .isEqualTo(org.opensearch.client.opensearch._types.SortOrder.Desc);
+    // Last field sort: the DOCUMENT_KEY tie-break, ascending.
+    var last = fieldSorts.get(fieldSorts.size() - 1).field();
+    assertThat(last.field()).isEqualTo(FieldIdentifier.DOCUMENT_KEY.label);
+    assertThat(last.order()).isEqualTo(org.opensearch.client.opensearch._types.SortOrder.Asc);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
   public void searchGlobal_hasMoreWithSortTuple_emitsCursor() throws Exception {
     Hit<Map> boundary = mock(Hit.class);
     when(boundary.source()).thenReturn(Map.of("itemType", "APPLICATION"));

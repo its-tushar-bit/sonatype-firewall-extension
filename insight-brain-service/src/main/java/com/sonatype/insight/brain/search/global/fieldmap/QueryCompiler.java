@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -421,22 +422,22 @@ public final class QueryCompiler
 
   private static Query compileNumeric(FieldEntry entry, FieldValue value, String fieldName, List<String> warnings) {
     String label = entry.label();
-    boolean isFloat = entry.numericType() == Float.class;
+    Class<? extends Number> numericType = entry.numericType();
 
     if (value instanceof ExactValue e) {
-      return exactNumeric(label, e.value(), isFloat, fieldName, warnings);
+      return exactNumeric(label, e.value(), numericType, fieldName, warnings);
     }
     if (value instanceof PhraseValue p) {
       warnings.add("Quoted value on numeric filter \"" + fieldName + "\" — attempting to parse as a number.");
-      return exactNumeric(label, p.value(), isFloat, fieldName, warnings);
+      return exactNumeric(label, p.value(), numericType, fieldName, warnings);
     }
     if (value instanceof PrefixValue p) {
       warnings.add("Prefix query on numeric filter \"" + fieldName
           + "\" is not supported — falling back to exact-value match on \"" + p.prefix() + "\".");
-      return exactNumeric(label, p.prefix(), isFloat, fieldName, warnings);
+      return exactNumeric(label, p.prefix(), numericType, fieldName, warnings);
     }
     if (value instanceof RangeValue r) {
-      return rangeNumeric(label, r, isFloat, fieldName, warnings);
+      return rangeNumeric(label, r, numericType, fieldName, warnings);
     }
     return new MatchAllDocsQuery();
   }
@@ -444,13 +445,16 @@ public final class QueryCompiler
   private static Query exactNumeric(
       String label,
       String raw,
-      boolean isFloat,
+      Class<? extends Number> numericType,
       String fieldName,
       List<String> warnings)
   {
     try {
-      if (isFloat) {
+      if (numericType == Float.class) {
         return FloatPoint.newExactQuery(label, Float.parseFloat(raw));
+      }
+      if (numericType == Long.class) {
+        return LongPoint.newExactQuery(label, Long.parseLong(raw));
       }
       return IntPoint.newExactQuery(label, Integer.parseInt(raw));
     }
@@ -463,11 +467,28 @@ public final class QueryCompiler
   private static Query rangeNumeric(
       String label,
       RangeValue r,
-      boolean isFloat,
+      Class<? extends Number> numericType,
       String fieldName,
       List<String> warnings)
   {
+    boolean isFloat = numericType == Float.class;
+    boolean isLong = numericType == Long.class;
     try {
+      if (isLong) {
+        long lo = parseLongBound(r.lo(), true);
+        long hi = parseLongBound(r.hi(), false);
+        if (!r.loInclusive() && lo != Long.MIN_VALUE) {
+          lo = Math.addExact(lo, 1);
+        }
+        if (!r.hiInclusive() && hi != Long.MAX_VALUE) {
+          hi = Math.subtractExact(hi, 1);
+        }
+        if (lo > hi) {
+          warnings.add("Range for filter \"" + fieldName + "\" is empty or inverted — ignored.");
+          return new MatchNoDocsQuery();
+        }
+        return LongPoint.newRangeQuery(label, lo, hi);
+      }
       if (isFloat) {
         float lo = parseFloatBound(r.lo(), true);
         float hi = parseFloatBound(r.hi(), false);
@@ -516,6 +537,13 @@ public final class QueryCompiler
       return isLow ? Integer.MIN_VALUE : Integer.MAX_VALUE;
     }
     return Integer.parseInt(bound);
+  }
+
+  private static long parseLongBound(String bound, boolean isLow) {
+    if (bound == null || bound.equals("*")) {
+      return isLow ? Long.MIN_VALUE : Long.MAX_VALUE;
+    }
+    return Long.parseLong(bound);
   }
 
   private static float parseFloatBound(String bound, boolean isLow) {

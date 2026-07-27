@@ -609,7 +609,10 @@ public class AbstractSearchIndexClientTest
     assertThat(ctx.addedDocs).hasSize(1);
     Document doc = ctx.addedDocs.get(0);
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_ID.label)).isEqualTo(autoWaiver.getId());
-    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).contains("Auto-waiver").contains("9");
+    // Auto-waivers carry no indexed policy name; the display title is synthesized on the read side.
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).isNull();
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_AUTO.label)).isEqualTo("true");
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label)).isEqualTo("9");
   }
 
   @Test

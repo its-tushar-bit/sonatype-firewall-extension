@@ -74,9 +74,7 @@ export default function AddRepositoryManagerModal({ onClose }) {
             <NxTextInput onChange={onChangeName} {...managerName} validatable />
           </NxFormGroup>
           {createManagerError && (
-            <NxErrorAlert className="iq-add-virtual-repository-manager-modal__error">
-              {createManagerError}
-            </NxErrorAlert>
+            <NxErrorAlert className="iq-add-virtual-repository-manager-modal__error">{createManagerError}</NxErrorAlert>
           )}
         </NxModal.Content>
       </NxStatefulForm>

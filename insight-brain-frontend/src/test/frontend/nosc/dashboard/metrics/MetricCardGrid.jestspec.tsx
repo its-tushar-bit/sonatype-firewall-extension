@@ -475,7 +475,7 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     expect(screen.queryByTestId('metric-card-legal')).not.toBeInTheDocument();
   });
 
-  it('always renders the bottom quick-link row deep-linking to Classic (CLM-40927)', async () => {
+  it('always renders the bottom quick-link row (CLM-40927 / CLM-43206)', async () => {
     axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
     renderGrid();
 
@@ -483,7 +483,14 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     expect(screen.getByRole('heading', { name: 'Success Metrics' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Enterprise Reporting' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'API' })).toBeInTheDocument();
-    expect(screen.getByTestId('dashboard-quicklink-api').getAttribute('href')).toContain('/api');
+    // In-shell Classic embeds stay on the Nexus One bundle (CLM-43206), matching LeftNav.
+    expect(screen.getByTestId('dashboard-quicklink-success-metrics').getAttribute('href')).toMatch(
+      /#\/success-metrics$/,
+    );
+    expect(screen.getByTestId('dashboard-quicklink-enterprise-reporting').getAttribute('href')).toMatch(
+      /#\/reports$/,
+    );
+    expect(screen.getByTestId('dashboard-quicklink-api').getAttribute('href')).toMatch(/#\/api$/);
   });
 
   it('still renders quick links when the initial metrics request fails (static navigation)', () => {

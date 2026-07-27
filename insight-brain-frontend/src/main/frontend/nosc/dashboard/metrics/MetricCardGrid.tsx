@@ -112,8 +112,9 @@ interface QuickLink {
 
 const QUICK_LINKS: readonly QuickLink[] = [
   // Intentionally always visible to match the Martha mockup quick-link row.
-  // LeftNav gates these behind license/feature flags (#16363); follow-up to align
-  // dashboard visibility once product confirms parity requirements.
+  // LeftNav gates these behind license/feature flags and relabels Reports
+  // (Enterprise vs Operational) (#16363); follow-up to align dashboard visibility
+  // and labels once product confirms parity requirements.
   {
     id: 'success-metrics',
     title: 'Success Metrics',

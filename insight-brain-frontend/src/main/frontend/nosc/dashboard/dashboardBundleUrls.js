@@ -38,28 +38,30 @@ export function dashboardComponentsHref() {
   return nexusOneEntityHref('/components');
 }
 
-// Cheap-tier cards (CLM-40927) deep-link to their Classic equivalents until native
-// Nexus One pages exist, mirroring the LeftNav Classic deep-link convention.
+// CLM-43206 Dashboard Deep Dives v1: prefer native NOUX when it exists.
 export function dashboardVulnerabilitiesHref() {
-  return bundleIndexUrl('classic', '/vulnerabilities');
+  return nexusOneEntityHref('/vulnerabilities');
 }
 
+// Legal embeds Classic Legal Dashboard in-shell at /legal (NATIVE_CLASSIC_EMBED).
 export function dashboardLegalHref() {
-  return bundleIndexUrl('classic', '/legal/dashboard');
+  return nexusOneEntityHref(embeddedHref('legal'));
 }
 
+// Orgs & Policies embeds Classic management in-shell at #/orgs-and-policies
+// (NATIVE_CLASSIC_EMBED).
 export function dashboardOrgsAndPoliciesHref() {
-  return bundleIndexUrl('classic', '/management/view/organization/ROOT_ORGANIZATION_ID');
+  return nexusOneEntityHref(embeddedHref('orgs-and-policies'));
 }
 
-// Bottom-row quick links: Success Metrics and API use LeftNav embed targets;
-// Enterprise Reporting still deep-links to Classic.
+// Bottom-row quick links — Success Metrics, Enterprise Reporting, and API stay
+// in-shell Classic embeds (same destinations as LeftNav; CLM-43206).
 export function dashboardSuccessMetricsHref() {
   return nexusOneEntityHref(embeddedHref('success-metrics'));
 }
 
 export function dashboardEnterpriseReportingHref() {
-  return bundleIndexUrl('classic', '/enterpriseReporting');
+  return nexusOneEntityHref(embeddedHref('reports'));
 }
 
 export function dashboardApiHref() {

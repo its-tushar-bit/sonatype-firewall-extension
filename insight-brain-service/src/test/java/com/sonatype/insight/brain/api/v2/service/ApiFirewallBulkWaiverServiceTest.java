@@ -712,6 +712,45 @@ public class ApiFirewallBulkWaiverServiceTest
     // Transaction should be auto-rolled back (no manual rollback needed in try-with-resources)
   }
 
+  /**
+   * An ALL_VERSIONS waiver for a violation with no component identifier can never match anything, so
+   * savePolicyWaiver rejects it with a BadRequestException. Consistent with the other per-violation
+   * failures above (cross-tenant, database error), that failure aborts the whole bulk request rather
+   * than silently skipping just the unmatchable violation.
+   */
+  @Test
+  public void testAddBulkPolicyWaivers_AllVersionsWithoutComponentIdentifier_FailsWholeBatch() {
+    // Arrange
+    List<String> violationIds = Arrays.asList(VIOLATION_ID_1, VIOLATION_ID_2);
+    ApiWaiverOptionsDTO waiverOptions =
+        new ApiWaiverOptionsDTO(WAIVER_COMMENT, ALL_VERSIONS, null, null, false);
+    ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
+
+    RepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    RepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
+
+    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
+    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
+    Owner owner = createOwner(INTERNAL_OWNER_ID);
+    when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
+
+    // First waiver succeeds, second is rejected because its violation has no component identifier
+    when(apiPolicyWaiverService.savePolicyWaiver(
+        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
+        ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
+            .thenReturn(policyWaiver)
+            .thenThrow(new BadRequestException(
+                "Cannot create an ALL_VERSIONS waiver for a component that could not be identified."));
+
+    // Act & Assert
+    assertThatThrownBy(() -> service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot create an ALL_VERSIONS waiver for a component that could not be identified.");
+
+    verify(transactionContext, never()).commit();
+  }
+
   // ============================================================================
   // UNQUARANTINE TESTS (REQ-9.x)
   // ============================================================================

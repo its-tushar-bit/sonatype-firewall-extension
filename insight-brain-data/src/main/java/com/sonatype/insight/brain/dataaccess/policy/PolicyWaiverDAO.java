@@ -445,19 +445,10 @@ public class PolicyWaiverDAO
       String ownerId,
       PackageUrlIdentifier purl)
   {
-    if (purl != null) {
-      ComponentIdentifier wildcardComponentIdentifier = purl.toComponentIdentifier().createAlternativeVersion("*");
-      Predicate<PolicyWaiver> keepOnlyMatchingWildcardPurl =
-          waiver -> waiver.getComponentIdentifier() != null &&
-              waiver.getComponentIdentifier().createAlternativeVersion("*").equals(wildcardComponentIdentifier);
-
-      List<PolicyWaiver> appliesToAllVersionsOfSomeComponent =
-          getActiveByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS);
-      return appliesToAllVersionsOfSomeComponent.stream()
-          .filter(keepOnlyMatchingWildcardPurl)
-          .collect(Collectors.toList());
+    if (purl == null) {
+      return Collections.emptyList();
     }
-    return Collections.emptyList();
+    return keepMatchingWildcardPurl(getActiveByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS), purl);
   }
 
   private List<PolicyWaiver> getExpiredByOwnerIdAndPurl(
@@ -468,19 +459,7 @@ public class PolicyWaiverDAO
     if (purl == null) {
       return Collections.emptyList();
     }
-
-    ComponentIdentifier wildcardComponentIdentifier = purl.toComponentIdentifier().createAlternativeVersion("*");
-    Predicate<PolicyWaiver> keepOnlyMatchingWildcardPurl =
-        waiver -> waiver.getComponentIdentifier() != null &&
-            waiver.getComponentIdentifier()
-                .createAlternativeVersion("*")
-                .equals(wildcardComponentIdentifier);
-
-    List<PolicyWaiver> appliesToAllVersionsOfSomeComponent =
-        getExpiredByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS);
-    return appliesToAllVersionsOfSomeComponent.stream()
-        .filter(keepOnlyMatchingWildcardPurl)
-        .toList();
+    return keepMatchingWildcardPurl(getExpiredByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS), purl);
   }
 
   public List<PolicyWaiver> getByOwnerHierarchyAndPolicyId(Owner owner, String policyId) {

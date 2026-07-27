@@ -371,6 +371,20 @@ public class ApiPolicyWaiverRequestServiceTest
   }
 
   @Test
+  public void testAddPolicyWaiverRequestByPolicyViolationId_AllVersionsWithoutComponentIdentifier() {
+    policyViolation.setComponentIdentifier(null);
+    policyViolationDAO.update(policyViolation);
+
+    assertThatThrownBy(() -> apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(
+        OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_VERSIONS, null, null, false)))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Cannot request an ALL_VERSIONS waiver for a component that could not be identified.");
+
+    assertThat(policyWaiverRequestDAO.getByOwnerId(app.getId())).isEmpty();
+  }
+
+  @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_ExpirationInThePast() {
     Date yesterday = DateUtils.addDays(new Date(), -1);
 
@@ -915,6 +929,29 @@ public class ApiPolicyWaiverRequestServiceTest
   }
 
   @Test
+  public void testReviewPolicyWaiverRequest_Approved_WithMatcherStrategy_AllVersions_WithoutComponentIdentifier() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getPublicId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    policyViolation.setComponentIdentifier(null);
+    policyViolationDAO.update(policyViolation);
+
+    // A request approved with a matcher-strategy override that turns out to be un-matchable (the
+    // underlying violation's component identifier is null by the time it is reviewed) must still be
+    // rejected, the same as at request-creation time, rather than approved into a dead waiver.
+    assertThatThrownBy(() -> apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION,
+        app.getId(), policyWaiverRequestDTO.policyWaiverRequestId, new ApiPolicyWaiverRequestReviewDTO(
+            "waiver comment", ALL_VERSIONS, null, null, false, PolicyWaiverRequestStatus.APPROVED.name())))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Cannot create an ALL_VERSIONS waiver for a component that could not be identified.");
+
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
+    assertThat(policyWaiverRequest.getStatus()).isEqualTo(REQUESTED);
+  }
+
+  @Test
   public void testReviewPolicyWaiverRequest_Approved_WithMatcherStrategy_AllComponents() {
     ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
         .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
@@ -1345,6 +1382,26 @@ public class ApiPolicyWaiverRequestServiceTest
           new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_VERSIONS, null, null, false));
     }).isInstanceOf(BadRequestException.class)
         .hasMessage("A policy waiver request for the same policy violation already exists.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_AllVersionsWithoutComponentIdentifier() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    policyViolation.setComponentIdentifier(null);
+    policyViolationDAO.update(policyViolation);
+
+    assertThatThrownBy(() -> apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION,
+        app.getId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_VERSIONS, null, null, false)))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Cannot request an ALL_VERSIONS waiver for a component that could not be identified.");
+
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
+    assertThat(policyWaiverRequest.getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
   }
 
   @Test

@@ -406,6 +406,17 @@ public class ApiPolicyWaiverRequestService
     }
   }
 
+  private void validateAllVersionsHasComponentIdentifier(
+      ComponentMatcherStrategyForWaiver matcherStrategy,
+      AbstractPolicyViolation abstractPolicyViolation)
+  {
+    if (matcherStrategy == ALL_VERSIONS && abstractPolicyViolation.getComponentIdentifier() == null) {
+      // an ALL_VERSIONS waiver with no component identifier can never match anything
+      throw new BadRequestException(
+          "Cannot request an ALL_VERSIONS waiver for a component that could not be identified.");
+    }
+  }
+
   @Authorize(permission = Permission.READ)
   void checkReadPermission(
       @AuthzContext(Key.TYPE) @SuppressWarnings("unused") OwnerType ownerType,
@@ -461,6 +472,8 @@ public class ApiPolicyWaiverRequestService
       String policyWaiverReasonId,
       boolean expireWhenRemediationAvailable)
   {
+    validateAllVersionsHasComponentIdentifier(matcherStrategy, abstractPolicyViolation);
+
     String hash =
         matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS ? null : abstractPolicyViolation.getHash();
     PolicyWaiverRequest policyWaiverRequest =
@@ -1303,6 +1316,8 @@ public class ApiPolicyWaiverRequestService
       String policyWaiverReasonId,
       boolean expireWhenRemediationAvailable)
   {
+    validateAllVersionsHasComponentIdentifier(matcherStrategy, abstractPolicyViolation);
+
     String hash =
         matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS ? null : abstractPolicyViolation.getHash();
     policyWaiverRequest.setHash(hash);

@@ -441,6 +441,20 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
+  public void testAddPolicyWaiverByPolicyViolationId_AllVersionsWithoutComponentIdentifier() {
+    policyViolation.setComponentIdentifier(null);
+    policyViolationDAO.update(policyViolation);
+
+    assertThatThrownBy(() -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION,
+        app.getId(), policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null, null,
+            false)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Cannot create an ALL_VERSIONS waiver for a component that could not be identified.");
+
+    assertThat(policyWaiverDAO.getActiveByOwnerId(app.getId())).isEmpty();
+  }
+
+  @Test
   public void testAddPolicyWaiverByPolicyViolationId_WithoutPackageUrl() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, null, null, false));
@@ -2884,6 +2898,25 @@ public class ApiPolicyWaiverServiceTest
         () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
             .isInstanceOf(BadRequestException.class)
             .hasMessage("Expire When Remediation Available Waivers can only be applied to Exact Components.");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_AllVersionsWithoutComponentIdentifier() {
+    policyViolation.setComponentIdentifier(null);
+    policyViolationDAO.update(policyViolation);
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = ALL_VERSIONS;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions);
+
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Cannot create an ALL_VERSIONS waiver for a component that could not be identified.");
+
+    assertThat(policyWaiverDAO.getActiveByOwnerId(app.getId())).isEmpty();
   }
 
   @Test

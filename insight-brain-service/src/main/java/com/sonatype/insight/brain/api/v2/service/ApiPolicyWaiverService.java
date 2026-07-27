@@ -1107,6 +1107,12 @@ public class ApiPolicyWaiverService
           log.debug("Skipping duplicate waiver for PolicyViolation ID {}: {}",
               abstractPolicyViolation.getId(), e.getMessage());
         }
+        else if (e instanceof BadRequestException) {
+          // Fail the entire operation, but surface the same 400 a caller would get from the single-waiver path
+          // (e.g. an ALL_VERSIONS waiver for an unidentified component) instead of masking it as a 500.
+          successfulWaivers.clear();
+          throw (BadRequestException) e;
+        }
         else {
           // All other exceptions should fail the entire operation
           successfulWaivers.clear();
@@ -1244,6 +1250,12 @@ public class ApiPolicyWaiverService
       boolean isForContainerImageComponent,
       boolean isForContainerImage)
   {
+    if (matcherStrategy == ALL_VERSIONS && abstractPolicyViolation.getComponentIdentifier() == null) {
+      // an ALL_VERSIONS waiver with no component identifier can never match anything
+      throw new BadRequestException(
+          "Cannot create an ALL_VERSIONS waiver for a component that could not be identified.");
+    }
+
     String hash = (matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS)
         ? null
         : abstractPolicyViolation.getHash();

@@ -43,9 +43,10 @@ export function dashboardVulnerabilitiesHref() {
   return nexusOneEntityHref('/vulnerabilities');
 }
 
-// Legal embeds Classic Legal Dashboard in-shell at /legal (NATIVE_CLASSIC_EMBED).
+// Legal V1 (CLM-43207): native NOUX LEGAL_VIOLATION triage at /legal.
+// Metric totals may not match list counts (card distinct vs list stage/LTG rows) — product-accepted.
 export function dashboardLegalHref() {
-  return nexusOneEntityHref(embeddedHref('legal'));
+  return nexusOneEntityHref('/legal');
 }
 
 // Orgs & Policies embeds Classic management in-shell at #/orgs-and-policies

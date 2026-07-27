@@ -34,8 +34,8 @@ describe('nativeClassicEmbedSlugs', () => {
     expect(isNativeClassicEmbedSlug('organizations')).toBe(false);
   });
 
-  it('CLEAN_PATH_OWNED_ELSEWHERE lists repositories', () => {
-    expect([...CLEAN_PATH_OWNED_ELSEWHERE]).toEqual(['repositories']);
+  it('CLEAN_PATH_OWNED_ELSEWHERE lists repositories and legal', () => {
+    expect([...CLEAN_PATH_OWNED_ELSEWHERE].sort()).toEqual(['legal', 'repositories']);
   });
 
   it('usesEmbeddedHrefPrimary is true for every embed except CLEAN_PATH_OWNED_ELSEWHERE', () => {
@@ -46,7 +46,7 @@ describe('nativeClassicEmbedSlugs', () => {
   });
 
   describe('embeddedHref()', () => {
-    it.each(['api', 'success-metrics', 'reports', 'legal', 'orgs-and-policies'] as const)(
+    it.each(['api', 'success-metrics', 'reports', 'orgs-and-policies'] as const)(
       'returns /%s',
       (slug) => {
         expect(embeddedHref(slug)).toBe(`/${slug}`);
@@ -62,6 +62,7 @@ describe('nativeClassicEmbedSlugs', () => {
     it('throws for Coming Soon stubs and CLEAN_PATH_OWNED_ELSEWHERE slugs', () => {
       expect(() => embeddedHref('settings')).toThrow(/clean-primary embed slug/);
       expect(() => embeddedHref('repositories')).toThrow(/clean-primary embed slug/);
+      expect(() => embeddedHref('legal')).toThrow(/clean-primary embed slug/);
     });
   });
 });

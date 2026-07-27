@@ -109,6 +109,23 @@ describe('LeftNav', () => {
     expect(link.getAttribute('href')).not.toContain('coming-soon');
   });
 
+  it('shows Legal in LeftNav without Advanced Legal Pack (CLM-43207)', () => {
+    const state = {
+      ...fullyLicensedState,
+      productFeatures: {
+        ...fullyLicensedState.productFeatures,
+        productFeatures: {
+          ...fullyLicensedState.productFeatures.productFeatures,
+          'advanced-legal-pack': false,
+        },
+      },
+    };
+    renderLeftNav(state);
+    const link = screen.getByTestId('nosc-leftnav-legal');
+    expect(link).toBeInTheDocument();
+    expect(link.getAttribute('href')).toContain('#/legal');
+  });
+
   it.each([['settings', '#/coming-soon/settings']])(
     'renders the Coming Soon %s item pointing at %s',
     (id, expectedHash) => {

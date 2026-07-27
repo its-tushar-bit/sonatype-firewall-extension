@@ -74,6 +74,13 @@ import BaseUrlConfiguration from 'MainRoot/configuration/baseUrl/BaseUrlConfigur
 // Classic applicationReport child states (component details, raw data, etc.) so
 // in-report links from the embedded ReportPage resolve inside the Nexus One bundle.
 import 'MainRoot/applicationReport/route';
+import { setApplicationReportRootWrapper } from 'MainRoot/applicationReport/applicationReportNexusOneShell';
+// Classic Component Details / Application Report styles (License Detections hanging
+// indent, etc.) — N1 does not load scss/scss.scss. Same pattern as orgsAndPoliciesEmbed.
+import 'MainRoot/scss/applicationReportEmbed.scss';
+// Offset applicationReport.* (Component Details Legal, etc.) inside NOUX chrome —
+// without this, `.nx-page-main` underruns LeftNav when deep-linking into the tree.
+setApplicationReportRootWrapper((node) => <ClassicComponentMount>{node}</ClassicComponentMount>);
 // Classic violation child states (sidebarView.violation, transitive violations)
 // so in-detail links from the embedded ViolationPage resolve inside the Nexus One
 // bundle. Registered at the singular /violation/{id} path — distinct from the
@@ -86,12 +93,17 @@ import 'MainRoot/waivers/route';
 import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage';
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import PreviewViolationsList from 'MainRoot/nosc/violations/ViolationsList';
+import PreviewLegalList from 'MainRoot/nosc/legal/LegalList';
 import PreviewComponentsList from 'MainRoot/nosc/componentsList/ComponentsList';
 import PreviewVulnerabilitiesList from 'MainRoot/nosc/vulnerabilities/VulnerabilitiesList';
 import {
   NEXUS_ONE_VIOLATIONS_STATE_NAME,
   NEXUS_ONE_VIOLATIONS_URL,
 } from 'MainRoot/nosc/violations/violationsRoute';
+import {
+  NEXUS_ONE_LEGAL_STATE_NAME,
+  NEXUS_ONE_LEGAL_URL,
+} from 'MainRoot/nosc/legal/legalRoute';
 import {
   NEXUS_ONE_COMPONENTS_STATE_NAME,
   NEXUS_ONE_COMPONENTS_URL,
@@ -232,6 +244,15 @@ router.stateRegistry.register({
   data: { title: 'Nexus One — Violations' },
 } as ReactStateDeclaration);
 
+// Nexus One Legal V1 — LEGAL_VIOLATION license-risk triage at /legal (CLM-43207).
+// Owns the clean path; Classic ALP dashboard remains at legal.applicationsDashboard.
+router.stateRegistry.register({
+  name: NEXUS_ONE_LEGAL_STATE_NAME,
+  url: NEXUS_ONE_LEGAL_URL,
+  component: PreviewLegalList,
+  data: { title: 'Nexus One — Legal' },
+} as ReactStateDeclaration);
+
 // Martha V1 Vulnerabilities list, wired to POST /rest/dashboard/vulnerabilities/list.
 // Sibling of native detail at /vulnerabilities/{vulnId} (nexusOneVulnerabilityDetail).
 router.stateRegistry.register({
@@ -352,7 +373,9 @@ const NATIVE_CLASSIC_COMPONENTS: Partial<Record<ComingSoonModuleSlug, React.Comp
 type ClassicEmbedRedirect = string | { readonly state: string; readonly params: Record<string, string> };
 
 const NATIVE_CLASSIC_EMBED_REDIRECTS: Partial<Record<ComingSoonModuleSlug, ClassicEmbedRedirect>> = {
-  legal: 'legal.applicationsDashboard',
+  // LeftNav / deep-dive target /legal (nexusOneLegal LEGAL_VIOLATION triage). Stale /coming-soon/legal
+  // bookmarks redirect there; Classic ALP dashboard stays at legal.applicationsDashboard. CLM-43207.
+  legal: NEXUS_ONE_LEGAL_STATE_NAME,
   // LeftNav targets /repositories (nexusOneRepositories); the /coming-soon/repositories entry
   // redirects to that canonical route so stale Coming Soon bookmarks land on the highlighted,
   // feature-gated page instead of a parallel mount. CLM-42184.

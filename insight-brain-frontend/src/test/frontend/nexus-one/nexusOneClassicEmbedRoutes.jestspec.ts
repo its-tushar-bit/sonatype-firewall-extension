@@ -48,10 +48,9 @@ describe('nexusOneClassicEmbedRoutes', () => {
       if (!isNativeClassicEmbedSlug(slug)) {
         expect(state?.component).toBe(ComingSoonRoute);
       } else if (slug === 'legal') {
-        // Legal's entry redirects rather than mounting a component of its own — see the
-        // dedicated tests below for why.
+        // Clean /legal is owned by nexusOneLegal (LEGAL_VIOLATION triage). Coming Soon entry redirects there.
         expect(state?.component).toBeUndefined();
-        expect(state?.redirectTo).toBe('legal.applicationsDashboard');
+        expect(state?.redirectTo).toBe('nexusOneLegal');
       } else if (slug === 'orgs-and-policies') {
         // Orgs and Policies' entry redirects into the embedded management tree - see below.
         expect(state?.component).toBeUndefined();
@@ -91,16 +90,14 @@ describe('nexusOneClassicEmbedRoutes', () => {
     expect(router.stateRegistry.get(`${comingSoonStateName('repositories')}LegacyPath`)).toBeFalsy();
   });
 
-  it('redirects the Legal Coming Soon entry straight to the Applications tab', () => {
-    // The entry never mounts LegalDashboardMount itself: it's a flat top-level state, one UIView
-    // level shallower than legal.applicationsDashboard (a child of the abstract 'legal' state).
-    // Mounting it directly there would change the root UIView's resolved component type from
-    // LegalDashboardMount to UIView on the very first tab transition, forcing an unmount/remount
-    // regardless of the shared reference asserted below. Redirecting sidesteps that entirely —
-    // the user always lands directly on a legal.*Dashboard child.
+  it('redirects the Legal Coming Soon entry to nexusOneLegal (LEGAL_VIOLATION triage)', () => {
+    // Clean /legal is owned by Nexus One Legal V1 (CLM-43207). Classic ALP dashboard remains at
+    // legal.applicationsDashboard for deep links / review workflows.
     const state = router.stateRegistry.get(comingSoonStateName('legal'));
+    expect(state?.url).toBe(comingSoonHref('legal'));
     expect(state?.component).toBeUndefined();
-    expect(state?.redirectTo).toBe('legal.applicationsDashboard');
+    expect(state?.redirectTo).toBe('nexusOneLegal');
+    expect(router.stateRegistry.get('nexusOneLegal')?.url).toContain('/legal');
   });
 
   it('registers Legal tab-switch states so in-page tab clicks resolve in-shell', () => {

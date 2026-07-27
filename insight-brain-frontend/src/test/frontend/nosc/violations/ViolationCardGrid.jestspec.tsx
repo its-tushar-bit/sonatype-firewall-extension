@@ -69,10 +69,13 @@ const OPEN_COORDS_ONLY: ViolationRow = {
   waivedWithAutoWaiver: false,
 };
 
-function renderGrid(rows: ReadonlyArray<ViolationRow>) {
+function renderGrid(
+  rows: ReadonlyArray<ViolationRow>,
+  overrides: Partial<React.ComponentProps<typeof ViolationCardGrid>> = {},
+) {
   return render(
     <Theme>
-      <ViolationCardGrid violations={rows} />
+      <ViolationCardGrid violations={rows} {...overrides} />
     </Theme>,
   );
 }
@@ -183,5 +186,27 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     expect(link).toHaveAccessibleName(
       'Open violation for Security-Critical on log4j-core : 2.14.0 in Apple - Java, threat level 10',
     );
+  });
+
+  describe('Legal list props (CLM-43207)', () => {
+    it('uses getCardHref when provided and hides state / waiver badges', () => {
+      const getCardHref = jest.fn(() => '#/legal/component/abc123');
+      renderGrid([OPEN_CRITICAL, WAIVED_AUTO], { getCardHref, hideStateBadges: true });
+
+      expect(getCardHref).toHaveBeenCalled();
+      const links = screen.getAllByTestId('violation-card-link');
+      expect(links[0]).toHaveAttribute('href', '#/legal/component/abc123');
+      expect(screen.queryByText('Open')).not.toBeInTheDocument();
+      expect(screen.queryByText('Waived')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('violation-card-waiver')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('violation-card-auto-waiver')).not.toBeInTheDocument();
+    });
+
+    it('omits the OPEN/WAIVED prefix from the card aria-label when state badges are hidden', () => {
+      renderGrid([OPEN_CRITICAL], { hideStateBadges: true });
+      expect(screen.getByTestId('violation-card-link')).toHaveAccessibleName(
+        'Security - Critical on log4j-core : 2.14.0 in Apple - Java, threat level 10',
+      );
+    });
   });
 });

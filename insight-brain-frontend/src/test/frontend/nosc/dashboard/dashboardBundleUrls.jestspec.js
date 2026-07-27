@@ -28,7 +28,7 @@ describe('dashboardBundleUrls deep dives (CLM-43206)', () => {
     );
   });
 
-  it('dashboardLegalHref uses the clean NOUX Legal embed path', () => {
+  it('dashboardLegalHref targets Nexus One Legal V1 triage', () => {
     expect(dashboardLegalHref()).toBe('http://localhost/assets/nexus-one/index.html#/legal');
   });
 

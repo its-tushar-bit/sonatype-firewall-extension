@@ -28,6 +28,10 @@ import {
   NEXUS_ONE_VULNERABILITIES_STATE_NAME,
   NEXUS_ONE_VULNERABILITIES_URL,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesRoute';
+import {
+  NEXUS_ONE_LEGAL_STATE_NAME,
+  NEXUS_ONE_LEGAL_URL,
+} from 'MainRoot/nosc/legal/legalRoute';
 
 /**
  * Mirrors the Radix Theme that {@code NexusOneShellLayout} provides in
@@ -64,6 +68,7 @@ const STATES: ReactStateDeclaration[] = [
   { name: NEXUS_ONE_VIOLATIONS_STATE_NAME, url: NEXUS_ONE_VIOLATIONS_URL },
   { name: NEXUS_ONE_COMPONENTS_STATE_NAME, url: NEXUS_ONE_COMPONENTS_URL },
   { name: NEXUS_ONE_VULNERABILITIES_STATE_NAME, url: NEXUS_ONE_VULNERABILITIES_URL },
+  { name: NEXUS_ONE_LEGAL_STATE_NAME, url: NEXUS_ONE_LEGAL_URL },
   { name: 'platformHome', url: '/home' },
   ...nexusOneDashboardStates(),
 ];

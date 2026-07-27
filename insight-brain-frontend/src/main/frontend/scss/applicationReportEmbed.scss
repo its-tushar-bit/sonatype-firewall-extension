@@ -1,0 +1,17 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// Classic loads these via scss/scss.scss. The Nexus One bundle embeds
+// applicationReport.* (Component Details Legal tab, etc.) but does not load
+// scss.scss, so import this aggregate from nexus-one/routes.tsx for parity.
+// Keep in sync with the matching @use lines in scss.scss.
+
+@use '../applicationReport/applicationReport';
+@use '../componentDetails/ComponentDetails';
+@use '../componentDetails/ViolationsTableTile/componentWaivers/componentWaiversPopover';
+@use '../componentDetails/TransferList/TransferList';
+@use '../componentDetails/TransferList/TransferListHalf';
+@use '../componentDetails/overview/occurrencesPopover/occurrencesPopover';

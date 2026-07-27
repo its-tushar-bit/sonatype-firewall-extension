@@ -8,6 +8,7 @@ import { UIView } from '@uirouter/react';
 import { useDispatch } from 'react-redux';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { setReportParameters, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
+import { wrapApplicationReportRoot } from 'MainRoot/applicationReport/applicationReportNexusOneShell';
 
 export default function ApplicationReportRoot() {
   const dispatch = useDispatch();
@@ -50,5 +51,5 @@ export default function ApplicationReportRoot() {
     }
   }, [dispatch, params.publicId, params.scanId]);
 
-  return <UIView />;
+  return wrapApplicationReportRoot(<UIView />);
 }

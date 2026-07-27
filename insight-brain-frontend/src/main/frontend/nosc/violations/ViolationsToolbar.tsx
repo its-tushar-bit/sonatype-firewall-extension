@@ -19,6 +19,15 @@ export interface ViolationsToolbarProps {
   readonly onSearchSubmit: (term: string) => void;
   /** Sidebar filter selection — drives the CSV export payload. */
   readonly filters: ViolationsFilterState;
+  /** When true, hide the Classic violations CSV export (Legal V1 has no legal CSV yet). */
+  readonly hideCsvExport?: boolean;
+  /**
+   * Plural result noun for the count label and search aria (default: violation/violations).
+   * Legal passes {@code "license risk findings"}.
+   */
+  readonly resultNoun?: string;
+  /** Singular form used when {@link resultNoun} is set and {@code totalCount === 1}. */
+  readonly resultNounSingular?: string;
 }
 
 /**
@@ -37,6 +46,9 @@ export default function ViolationsToolbar({
   searchValue,
   onSearchSubmit,
   filters,
+  hideCsvExport = false,
+  resultNoun,
+  resultNounSingular,
 }: ViolationsToolbarProps): JSX.Element {
   const [draft, setDraft] = useState(searchValue);
 
@@ -84,6 +96,13 @@ export default function ViolationsToolbar({
       ? 'violations-toolbar-csv-caveat-hint'
       : undefined;
 
+  const countLabel = resultNoun
+    ? `${totalCount} ${
+        totalCount === 1 ? (resultNounSingular ?? resultNoun) : resultNoun
+      }`
+    : `${totalCount} ${totalCount === 1 ? 'violation' : 'violations'}`;
+  const searchAriaLabel = resultNoun ? `Search ${resultNoun}` : 'Search violations';
+
   return (
     <Flex align="center" justify="between" gap="3" wrap="wrap" data-testid="violations-toolbar">
       <Flex align="center" gap="3" flexGrow="1" minWidth="240px">
@@ -102,7 +121,7 @@ export default function ViolationsToolbar({
         >
           <TextField.Root
             placeholder="Search component, application, organization, policy..."
-            aria-label="Search violations"
+            aria-label={searchAriaLabel}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             data-testid="violations-toolbar-search"
@@ -121,38 +140,40 @@ export default function ViolationsToolbar({
       <Flex align="center" gap="3">
         {/* CSV export posts the active sidebar filters (not the free-text search) to the Classic
             violations export, which returns the full filtered set. Disabled with an explanatory hint
-            when there is nothing to export. */}
-        <form
-          action={getNewestRisksExportUrl()}
-          method="post"
-          encType="multipart/form-data"
-          data-testid="violations-toolbar-export-form"
-        >
-          <input type="hidden" name="filter" value={exportPayloadJson} />
-          <Button
-            variant="outline"
-            color="gray"
-            size="2"
-            type="submit"
-            disabled={!canExport}
-            title={csvExportTitle}
-            aria-describedby={csvHintId}
-            data-testid="violations-toolbar-csv"
+            when there is nothing to export. Hidden entirely when the host list has no CSV (Legal V1). */}
+        {!hideCsvExport && (
+          <form
+            action={getNewestRisksExportUrl()}
+            method="post"
+            encType="multipart/form-data"
+            data-testid="violations-toolbar-export-form"
           >
-            <ActionIcons.Download size={14} />
-            CSV
-          </Button>
-        </form>
-        {!canExport && (
+            <input type="hidden" name="filter" value={exportPayloadJson} />
+            <Button
+              variant="outline"
+              color="gray"
+              size="2"
+              type="submit"
+              disabled={!canExport}
+              title={csvExportTitle}
+              aria-describedby={csvHintId}
+              data-testid="violations-toolbar-csv"
+            >
+              <ActionIcons.Download size={14} />
+              CSV
+            </Button>
+          </form>
+        )}
+        {!hideCsvExport && !canExport && (
           <VisuallyHidden id="violations-toolbar-csv-empty-hint">
             CSV export is unavailable when there are no violations.
           </VisuallyHidden>
         )}
-        {canExport && hasUnexportedNarrowing && (
+        {!hideCsvExport && canExport && hasUnexportedNarrowing && (
           <VisuallyHidden id="violations-toolbar-csv-caveat-hint">{exportCaveat}</VisuallyHidden>
         )}
         <Text size="2" color="gray" data-testid="violations-toolbar-count">
-          {totalCount} {totalCount === 1 ? 'violation' : 'violations'}
+          {countLabel}
         </Text>
       </Flex>
     </Flex>

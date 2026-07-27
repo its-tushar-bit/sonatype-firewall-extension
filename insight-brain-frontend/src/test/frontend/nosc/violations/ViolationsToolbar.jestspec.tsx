@@ -22,6 +22,8 @@ function renderToolbar(props: {
   searchValue?: string;
   filters?: ViolationsFilterState;
   onSearchSubmit?: (term: string) => void;
+  hideCsvExport?: boolean;
+  resultNoun?: string;
 } = {}) {
   const onSearchSubmit = props.onSearchSubmit ?? jest.fn();
   render(
@@ -31,6 +33,8 @@ function renderToolbar(props: {
         searchValue={props.searchValue ?? ''}
         onSearchSubmit={onSearchSubmit}
         filters={props.filters ?? filterState()}
+        hideCsvExport={props.hideCsvExport}
+        resultNoun={props.resultNoun}
       />
     </Theme>,
   );
@@ -199,5 +203,20 @@ describe('ViolationsToolbar (CLM-42260)', () => {
   it('reflects the total count', () => {
     renderToolbar({ totalCount: 1 });
     expect(screen.getByTestId('violations-toolbar-count')).toHaveTextContent('1 violation');
+  });
+
+  it('hides CSV export when hideCsvExport is set', () => {
+    renderToolbar({ hideCsvExport: true });
+    expect(screen.queryByTestId('violations-toolbar-csv')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('violations-toolbar-export-form')).not.toBeInTheDocument();
+  });
+
+  it('brands count and search aria when resultNoun is provided', () => {
+    renderToolbar({ totalCount: 2, resultNoun: 'license risk findings' });
+    expect(screen.getByTestId('violations-toolbar-count')).toHaveTextContent('2 license risk findings');
+    expect(screen.getByTestId('violations-toolbar-search')).toHaveAttribute(
+      'aria-label',
+      'Search license risk findings',
+    );
   });
 });

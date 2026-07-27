@@ -53,10 +53,12 @@ function componentDisplay(row: ViolationRow): string {
   return version ? `${name} : ${version}` : name;
 }
 
-function violationCardAriaLabel(v: ViolationRow): string {
+function violationCardAriaLabel(
+  v: ViolationRow,
+  options: { readonly hideStateBadges?: boolean } = {},
+): string {
   const state = v.state ?? 'OPEN';
   const component = componentDisplay(v);
-  const policy = policyTypeSeverityLabel(v) || '(unknown policy)';
   // Lead with the actual state so the label never contradicts it (e.g. a waived card must not be
   // announced as "Open violation …"). Include the threat level so severity — shown visually by the
   // badge — is also announced. Reads as "Open violation for X on Y, threat level 10" / "Waived
@@ -64,19 +66,35 @@ function violationCardAriaLabel(v: ViolationRow): string {
   // Carry the application into the accessible name so link-by-link navigation keeps the primary drill
   // context (the visible card still shows org/stage/first-seen for sighted users).
   const target = v.applicationName ? `${component} in ${v.applicationName}` : component;
-  const parts = [`${violationStateLabel(state)} violation for ${policy} on ${target}`];
+  // When state badges are hidden (Legal), prefer policyName (LTG / license) and omit OPEN/WAIVED —
+  // Wave A policyTypeSeverity chrome is for POLICY_VIOLATION cards only.
+  const policy = options.hideStateBadges
+    ? v.policyName?.trim() || '(unknown policy)'
+    : policyTypeSeverityLabel(v) || '(unknown policy)';
+  const lead = options.hideStateBadges
+    ? `${policy} on ${target}`
+    : `${violationStateLabel(state)} violation for ${policy} on ${target}`;
+  const parts = [lead];
   if (v.threatLevel != null) {
     parts.push(`threat level ${v.threatLevel}`);
   }
   // Gate on the waived state (not just the flag) so a stale `waivedWithAutoWaiver` on an OPEN row
   // never announces "auto-waived" while the visual badges — which are gated on `isWaived` — show none.
-  if (state === 'WAIVED' && v.waivedWithAutoWaiver) {
+  if (!options.hideStateBadges && state === 'WAIVED' && v.waivedWithAutoWaiver) {
     parts.push('auto-waived');
   }
   return parts.join(', ');
 }
 
-function ViolationCard({ violation: v }: { readonly violation: ViolationRow }): JSX.Element {
+function ViolationCard({
+  violation: v,
+  href,
+  hideStateBadges = false,
+}: {
+  readonly violation: ViolationRow;
+  readonly href: string;
+  readonly hideStateBadges?: boolean;
+}): JSX.Element {
   // Severity band → color token; mapped to border color in ViolationCardGrid.scss (keep in sync).
   const threatColor = threatColorFor(v.threatLevel ?? 0);
   const state = v.state ?? 'OPEN';
@@ -85,17 +103,20 @@ function ViolationCard({ violation: v }: { readonly violation: ViolationRow }): 
   // The list API does not index the violation timestamp yet, so this is undefined today; the line is
   // omitted when absent.
   const firstSeen = v.firstOccurredTime != null ? formatFirstSeen(v.firstOccurredTime) : '';
-  const policyLabel = policyTypeSeverityLabel(v);
+  // Legal (hideStateBadges) shows LTG / license via policyName; Violations use Wave A chrome.
+  const policyLabel = hideStateBadges
+    ? v.policyName?.trim() || undefined
+    : policyTypeSeverityLabel(v);
 
   return (
     <Card asChild>
       <Link
-        href={violationDetailHref(v.policyViolationId)}
+        href={href}
         underline="none"
         className="violation-card-link"
         data-threat-color={threatColor}
         data-testid="violation-card-link"
-        aria-label={violationCardAriaLabel(v)}
+        aria-label={violationCardAriaLabel(v, { hideStateBadges })}
       >
         <Flex direction="column" gap="2">
           <Flex align="center" justify="between" gap="4" wrap="wrap">
@@ -105,33 +126,35 @@ function ViolationCard({ violation: v }: { readonly violation: ViolationRow }): 
                 {component}
               </Text>
             </Flex>
-            <Flex align="center" gap="2" wrap="wrap">
-              <Badge color={STATE_BADGE_COLOR[state] ?? 'gray'} variant="soft" size="1">
-                {violationStateLabel(state)}
-              </Badge>
-              {/* One waiver pill per waived row, and the two kinds are mutually exclusive so the auto
-                  tag reads as distinct rather than layered on top of the manual indicator (CLM-42261):
-                  a manual waiver keeps the standard "Waiver Applied" (blue outline); an auto-waiver
-                  shows a distinct "Auto-waived" pill (orange soft + bolt glyph). Soft, not solid, so it
-                  reads as informational alongside the soft state badge rather than as a warning. Both
-                  gate on isWaived so a stale waivedWithAutoWaiver flag can't tag an OPEN row. */}
-              {isWaived &&
-                (v.waivedWithAutoWaiver ? (
-                  <Badge
-                    color="orange"
-                    variant="soft"
-                    size="1"
-                    data-testid="violation-card-auto-waiver"
-                  >
-                    <DomainIcons.AutoWaiver size={11} aria-hidden />
-                    Auto-waived
-                  </Badge>
-                ) : (
-                  <Badge color="blue" variant="outline" size="1" data-testid="violation-card-waiver">
-                    Waiver Applied
-                  </Badge>
-                ))}
-            </Flex>
+            {!hideStateBadges && (
+              <Flex align="center" gap="2" wrap="wrap">
+                <Badge color={STATE_BADGE_COLOR[state] ?? 'gray'} variant="soft" size="1">
+                  {violationStateLabel(state)}
+                </Badge>
+                {/* One waiver pill per waived row, and the two kinds are mutually exclusive so the auto
+                    tag reads as distinct rather than layered on top of the manual indicator (CLM-42261):
+                    a manual waiver keeps the standard "Waiver Applied" (blue outline); an auto-waiver
+                    shows a distinct "Auto-waived" pill (orange soft + bolt glyph). Soft, not solid, so it
+                    reads as informational alongside the soft state badge rather than as a warning. Both
+                    gate on isWaived so a stale waivedWithAutoWaiver flag can't tag an OPEN row. */}
+                {isWaived &&
+                  (v.waivedWithAutoWaiver ? (
+                    <Badge
+                      color="orange"
+                      variant="soft"
+                      size="1"
+                      data-testid="violation-card-auto-waiver"
+                    >
+                      <DomainIcons.AutoWaiver size={11} aria-hidden />
+                      Auto-waived
+                    </Badge>
+                  ) : (
+                    <Badge color="blue" variant="outline" size="1" data-testid="violation-card-waiver">
+                      Waiver Applied
+                    </Badge>
+                  ))}
+              </Flex>
+            )}
           </Flex>
 
           <Flex gap="4" wrap="wrap" align="center">
@@ -181,15 +204,27 @@ function ViolationCard({ violation: v }: { readonly violation: ViolationRow }): 
 
 export interface ViolationCardGridProps {
   readonly violations: ReadonlyArray<ViolationRow>;
+  /** Override card href (Legal findings drill to Classic report). */
+  readonly getCardHref?: (violation: ViolationRow) => string;
+  /** Hide OPEN/WAIVED + waiver pills (Legal findings have no waiver state). */
+  readonly hideStateBadges?: boolean;
 }
 
 /** Card list for Martha V1 Violations — one clickable card per violation row. */
-export default function ViolationCardGrid({ violations }: ViolationCardGridProps): JSX.Element {
+export default function ViolationCardGrid({
+  violations,
+  getCardHref,
+  hideStateBadges = false,
+}: ViolationCardGridProps): JSX.Element {
   return (
     <Flex direction="column" gap="3" data-testid="violation-card-grid">
       {violations.map((violation) => (
         <Box key={violation.policyViolationId} data-testid="violation-card">
-          <ViolationCard violation={violation} />
+          <ViolationCard
+            violation={violation}
+            href={getCardHref?.(violation) ?? violationDetailHref(violation.policyViolationId)}
+            hideStateBadges={hideStateBadges}
+          />
         </Box>
       ))}
     </Flex>

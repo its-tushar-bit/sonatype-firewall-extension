@@ -73,6 +73,22 @@ export interface ViolationsFilterRailProps {
    * drawer). Defaults to the desktop instance.
    */
   readonly idPrefix?: string;
+  /** When true, hide Violation State checkboxes (Legal findings have no OPEN/WAIVED). */
+  readonly hideStateFilter?: boolean;
+  /** When true, hide waiver-type radios (Legal findings have no waiver status). */
+  readonly hideWaiverTypeFilter?: boolean;
+  /** Title for the threat-category checkbox section (Legal: "License Threat Group"). */
+  readonly threatCategorySectionTitle?: string;
+  /**
+   * When true, facet option labels are the raw category ids (LTG display names).
+   * Default false uses {@link threatCategoryLabel} (Policy Type title-case).
+   */
+  readonly threatCategoryUseIdentityLabels?: boolean;
+  /**
+   * Override for whether Reset / mobile active-dot consider filters narrowed. When omitted, derived
+   * from {@link hasActiveViolationFilters}.
+   */
+  readonly filtersActive?: boolean;
 }
 
 type FacetEntry = { readonly id: string; readonly label: string; readonly count: number };
@@ -437,10 +453,16 @@ export default function ViolationsFilterRail({
   onThreatRangeChange,
   onReset,
   idPrefix = 'violations-filter',
+  hideStateFilter = false,
+  hideWaiverTypeFilter = false,
+  threatCategorySectionTitle = 'Policy Type',
+  threatCategoryUseIdentityLabels = false,
+  filtersActive: filtersActiveProp,
 }: ViolationsFilterRailProps): JSX.Element {
   const orgLabel = (id: string): string => labels?.organizations[id] ?? id;
   const appLabel = (id: string): string => labels?.applications[id] ?? id;
-  const filtersActive = hasActiveViolationFilters(selected);
+  const filtersActive = filtersActiveProp ?? hasActiveViolationFilters(selected);
+  const categoryLabel = threatCategoryUseIdentityLabels ? (id: string) => id : threatCategoryLabel;
 
   return (
     <Box asChild className="nosc-violations-filter-rail" data-testid={`${idPrefix}-rail`}>
@@ -460,27 +482,31 @@ export default function ViolationsFilterRail({
         </Flex>
 
         <Flex direction="column" gap="4">
+          {!hideStateFilter && (
+            <CheckboxFilterSection
+              title="Violation State"
+              testId={`${idPrefix}-state`}
+              group="states"
+              entries={toEntries(facets?.states, selected.states, violationStateLabel).filter((entry) =>
+                SELECTABLE_VIOLATION_STATES.has(entry.id),
+              )}
+              selected={selected.states}
+              onToggle={onToggle}
+            />
+          )}
+          {!hideWaiverTypeFilter && (
+            <WaiverTypeSection
+              facets={facets}
+              value={selected.waiverType}
+              onWaiverTypeChange={onWaiverTypeChange}
+              testId={`${idPrefix}-waiver-type`}
+            />
+          )}
           <CheckboxFilterSection
-            title="Violation State"
-            testId={`${idPrefix}-state`}
-            group="states"
-            entries={toEntries(facets?.states, selected.states, violationStateLabel).filter((entry) =>
-              SELECTABLE_VIOLATION_STATES.has(entry.id),
-            )}
-            selected={selected.states}
-            onToggle={onToggle}
-          />
-          <WaiverTypeSection
-            facets={facets}
-            value={selected.waiverType}
-            onWaiverTypeChange={onWaiverTypeChange}
-            testId={`${idPrefix}-waiver-type`}
-          />
-          <CheckboxFilterSection
-            title="Policy Type"
+            title={threatCategorySectionTitle}
             testId={`${idPrefix}-policy-type`}
             group="threatCategories"
-            entries={toEntries(facets?.threatCategories, selected.threatCategories, threatCategoryLabel)}
+            entries={toEntries(facets?.threatCategories, selected.threatCategories, categoryLabel)}
             selected={selected.threatCategories}
             onToggle={onToggle}
           />

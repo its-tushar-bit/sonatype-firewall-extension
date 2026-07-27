@@ -26,7 +26,12 @@ export type NativeClassicEmbedSlug = (typeof NATIVE_CLASSIC_EMBED_SLUGS)[number]
  * Embed slugs whose clean {@code /${slug}} path is already owned by another route.
  * Those embeds keep {@code /coming-soon/${slug}} as their primary Coming Soon URL.
  */
-const CLEAN_PATH_OWNED_ELSEWHERE_SLUGS = ['repositories'] as const satisfies readonly NativeClassicEmbedSlug[];
+/**
+ * {@code repositories} — owned by {@code nexusOneRepositories}.
+ * {@code legal} — owned by {@code nexusOneLegal} (LEGAL_VIOLATION license-risk triage, CLM-43207).
+ * Classic ALP dashboard remains at {@code /legal/applicationsDashboard}.
+ */
+const CLEAN_PATH_OWNED_ELSEWHERE_SLUGS = ['repositories', 'legal'] as const satisfies readonly NativeClassicEmbedSlug[];
 
 export const CLEAN_PATH_OWNED_ELSEWHERE: ReadonlySet<ComingSoonModuleSlug> = new Set(
   CLEAN_PATH_OWNED_ELSEWHERE_SLUGS,

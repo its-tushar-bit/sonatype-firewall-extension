@@ -47,6 +47,52 @@ export interface ViolationsPageProps {
   readonly page: number;
   readonly pageSize: number;
   readonly onPageChange: (nextPage: number) => void;
+  /** Page heading (default: Violations). Legal V1 passes "Legal". */
+  readonly title?: string;
+  /** Subtitle under the heading. */
+  readonly description?: string;
+  readonly hideStateFilter?: boolean;
+  readonly hideWaiverTypeFilter?: boolean;
+  /** When true, hide the Classic violations CSV export control. */
+  readonly hideCsvExport?: boolean;
+  /** Relabel Policy Type section (Legal: License Threat Group). */
+  readonly threatCategorySectionTitle?: string;
+  /**
+   * When true, threat-category facet options use identity labels (LTG names).
+   * Passed through to {@link ViolationsFilterRail}.
+   */
+  readonly threatCategoryUseIdentityLabels?: boolean;
+  /** Override card href / hide waiver-state chrome (Legal findings). */
+  readonly getCardHref?: (violation: ViolationRow) => string;
+  readonly hideCardStateBadges?: boolean;
+  /** Override Reset / mobile active-dot narrowing. */
+  readonly filtersActive?: boolean;
+  /** Root main data-testid (default: preview-violations-page). */
+  readonly pageTestId?: string;
+  /** Optional heading icon; defaults to Vulnerability. Legal passes DomainIcons.Legal. */
+  readonly HeadingIcon?: typeof DomainIcons.Vulnerability;
+  /** AsyncPageState error banner title (default: Failed to load violations). */
+  readonly errorTitle?: string;
+  /**
+   * Plural noun used in filter/search-aware empty copy (default: "violations").
+   * Legal passes "license risk findings" so narrowing messages stay branded without hard-overrides.
+   */
+  readonly emptyResultNoun?: string;
+  /**
+   * Singular form for the toolbar count when {@link emptyResultNoun} is customized
+   * (e.g. Legal: "license risk finding").
+   */
+  readonly emptyResultNounSingular?: string;
+  /**
+   * Idle empty-state secondary copy (no search / no filters). Filter/search-aware descriptions
+   * still win when narrowing is active.
+   */
+  readonly emptyIdleDescription?: string;
+  /**
+   * Mobile filter drawer helper text. Defaults to Violations copy; Legal passes LTG-aware wording
+   * (state/waiver are hidden on that page).
+   */
+  readonly filterDrawerDescription?: string;
 }
 
 /**
@@ -73,12 +119,32 @@ export default function ViolationsPage({
   page,
   pageSize,
   onPageChange,
+  title = 'Violations',
+  description = 'Policy violations across every application visible to your account, highest threat first.',
+  hideStateFilter = false,
+  hideWaiverTypeFilter = false,
+  hideCsvExport = false,
+  threatCategorySectionTitle,
+  threatCategoryUseIdentityLabels = false,
+  getCardHref,
+  hideCardStateBadges = false,
+  filtersActive: filtersActiveProp,
+  pageTestId = 'preview-violations-page',
+  HeadingIcon = DomainIcons.Vulnerability,
+  errorTitle = 'Failed to load violations',
+  emptyResultNoun = 'violations',
+  emptyResultNounSingular,
+  emptyIdleDescription,
+  filterDrawerDescription = 'Narrow violations by state, threat, stage, organization, and application.',
 }: ViolationsPageProps): JSX.Element {
   const offsets = usePreviewShellOffsets();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const showPagination = totalCount > pageSize || page > 1;
-  const filtersActive = hasActiveViolationFilters(filters);
+  const filtersActive = filtersActiveProp ?? hasActiveViolationFilters(filters);
   const hasSearch = Boolean(searchValue);
+  const idleEmptyDescription =
+    emptyIdleDescription ??
+    `${emptyResultNoun.charAt(0).toUpperCase()}${emptyResultNoun.slice(1)} visible to your account will appear here once data is loaded.`;
 
   const railProps = {
     facets,
@@ -88,6 +154,11 @@ export default function ViolationsPage({
     onWaiverTypeChange,
     onThreatRangeChange,
     onReset: onResetFilters,
+    hideStateFilter,
+    hideWaiverTypeFilter,
+    threatCategorySectionTitle,
+    threatCategoryUseIdentityLabels,
+    filtersActive,
   };
 
   return (
@@ -103,14 +174,14 @@ export default function ViolationsPage({
         backgroundColor: 'var(--gray-1)',
       }}
     >
-      <main data-testid="preview-violations-page">
+      <main data-testid={pageTestId}>
         <Flex direction="column" gap="2" mb="5">
           <Flex align="center" gap="3">
-            <DomainIcons.Vulnerability size={28} color="var(--accent-9)" />
-            <Heading size="6">Violations</Heading>
+            <HeadingIcon size={28} color="var(--accent-9)" />
+            <Heading size="6">{title}</Heading>
           </Flex>
           <Text size="2" color="gray">
-            Policy violations across every application visible to your account, highest threat first.
+            {description}
           </Text>
         </Flex>
 
@@ -155,7 +226,7 @@ export default function ViolationsPage({
                   >
                     <Dialog.Title size="3">Filters</Dialog.Title>
                     <Dialog.Description size="1" color="gray" mb="3">
-                      Narrow violations by state, threat, stage, organization, and application.
+                      {filterDrawerDescription}
                     </Dialog.Description>
                     <ViolationsFilterRail {...railProps} idPrefix="violations-filter-mobile" />
                     <Flex justify="end" mt="4">
@@ -174,6 +245,11 @@ export default function ViolationsPage({
                 searchValue={searchValue}
                 onSearchSubmit={onSearchSubmit}
                 filters={filters}
+                hideCsvExport={hideCsvExport}
+                resultNoun={emptyResultNoun === 'violations' ? undefined : emptyResultNoun}
+                resultNounSingular={
+                  emptyResultNoun === 'violations' ? undefined : emptyResultNounSingular
+                }
               />
 
               <AsyncPageState
@@ -182,7 +258,7 @@ export default function ViolationsPage({
                 onRetry={onRetry}
                 loadingTestId="violations-list-loading"
                 errorTestId="violations-list-error"
-                errorTitle="Failed to load violations"
+                errorTitle={errorTitle}
                 errorVariant="banner"
               >
                 {violations.length === 0 ? (
@@ -193,15 +269,15 @@ export default function ViolationsPage({
                     py="8"
                     data-testid="violations-list-empty"
                   >
-                    <DomainIcons.Vulnerability size={32} color="var(--gray-9)" />
+                    <HeadingIcon size={32} color="var(--gray-9)" />
                     <Text size="3" color="gray">
                       {hasSearch && filtersActive
-                        ? 'No violations match your search and filters.'
+                        ? `No ${emptyResultNoun} match your search and filters.`
                         : hasSearch
-                          ? 'No violations match your search.'
+                          ? `No ${emptyResultNoun} match your search.`
                           : filtersActive
-                            ? 'No violations match your filters.'
-                            : 'No violations to display.'}
+                            ? `No ${emptyResultNoun} match your filters.`
+                            : `No ${emptyResultNoun} to display.`}
                     </Text>
                     <Text size="2" color="gray">
                       {hasSearch && filtersActive
@@ -210,7 +286,7 @@ export default function ViolationsPage({
                           ? 'Try adjusting or clearing your search.'
                           : filtersActive
                             ? 'Try adjusting or resetting your filters.'
-                            : 'Violations visible to your account will appear here once data is loaded.'}
+                            : idleEmptyDescription}
                     </Text>
                     {/* Give the empty state actionable recovery controls: clear the committed search
                         and/or reset the filter selection so a zero-result narrowing isn't a dead end. */}
@@ -242,7 +318,11 @@ export default function ViolationsPage({
                     )}
                   </Flex>
                 ) : (
-                  <ViolationCardGrid violations={violations} />
+                  <ViolationCardGrid
+                    violations={violations}
+                    getCardHref={getCardHref}
+                    hideStateBadges={hideCardStateBadges}
+                  />
                 )}
 
                 {/* Rendered independent of the empty/grid branch so an out-of-range page (page > 1

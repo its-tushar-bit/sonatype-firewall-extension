@@ -38,6 +38,13 @@ export type ViolationRow = {
   readonly componentName?: string;
   /** Component version when present on the index row ({@code ViolationRowDTO.componentVersion}). */
   readonly componentVersion?: string;
+  /**
+   * Component hash — used by Legal V1 card drill (ALP Classic Legal / non-ALP Component Details).
+   * Not returned on POLICY_VIOLATION list rows today.
+   */
+  readonly componentHash?: string;
+  /** Report/scan id for Component Details drill context (Legal V1 stash). */
+  readonly reportId?: string;
   readonly componentIdentifier?: ViolationComponentIdentifier;
   /** Latest policy evaluation stage (display name). */
   readonly stage?: string;

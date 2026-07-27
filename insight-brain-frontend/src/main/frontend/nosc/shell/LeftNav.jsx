@@ -23,7 +23,6 @@ import {
   TOP_NAV_HEIGHT_PX,
 } from 'MainRoot/nosc/shell/previewShellLayout';
 import {
-  selectIsAdvancedLegalPackSupported,
   selectIsApiPageSupported,
   selectIsDashboardSupported,
   selectIsHostedRepositoryEvaluationEnabled,
@@ -89,10 +88,11 @@ const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
  *   Components           → /preview/components            (native; Components list)
  *   Hosted Repos         → /repositories                 (native embedded
  *                          Classic mount)
- *   Legal                → /legal                        (native embed; redirects
- *                          to Legal Applications dashboard. Every reachable
- *                          deep link also mounts in-shell — application details,
- *                          component overview, attribution reports, and the
+ *   Legal                → /legal                        (Nexus One Legal /
+ *                          LEGAL_VIOLATION triage; Classic ALP at
+ *                          /legal/applicationsDashboard. Every reachable deep link
+ *                          also mounts in-shell — application details, component
+ *                          overview, attribution reports, and the
  *                          copyright/notice/license-file/license-details
  *                          families — none of it exits to Classic)
  *   Orgs & Policies      → /orgs-and-policies            (native embed; redirects
@@ -245,7 +245,6 @@ function buildNavItems(flags) {
     isLicensed,
     isDashboardAvailable,
     isSuccessMetricsEnabled,
-    isLegalEnabled,
     isApiPageEnabled,
     isOrgsAndAppsEnabled,
     isIntegratedEnterpriseReportingSupported,
@@ -287,12 +286,15 @@ function buildNavItems(flags) {
       href: '/repositories',
     });
   }
-  if (isLicensed && isLegalEnabled) {
+  // Legal V1 license-risk list (CLM-43207) is available without Advanced Legal Pack — same
+  // Lifecycle gate as Applications / Violations. Classic ALP dashboard stays under
+  // /legal/applicationsDashboard (still highlighted via LEGAL_ACTIVE_HREFS).
+  if (isLicensed && isOrgsAndAppsEnabled) {
     items.push({
       id: 'legal',
       label: 'Legal',
       Icon: DomainIcons.Legal,
-      href: embeddedHref('legal'),
+      href: '/legal',
       activeHrefs: LEGAL_ACTIVE_HREFS,
     });
   }
@@ -405,7 +407,6 @@ export default function LeftNav() {
   const isLicensed = useSelector(selectIsLicensed);
   const isDashboardAvailable = useSelector(selectIsDashboardSupported);
   const isSuccessMetricsEnabled = useSelector(selectIsSuccessMetricsEnabled);
-  const isLegalEnabled = useSelector(selectIsAdvancedLegalPackSupported);
   const isApiPageEnabled = useSelector(selectIsApiPageSupported);
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
   const isIntegratedEnterpriseReportingSupported = useSelector(selectIsIntegratedEnterpriseReportingSupported);
@@ -440,7 +441,6 @@ export default function LeftNav() {
         isLicensed,
         isDashboardAvailable,
         isSuccessMetricsEnabled,
-        isLegalEnabled,
         isApiPageEnabled,
         isOrgsAndAppsEnabled,
         isIntegratedEnterpriseReportingSupported,

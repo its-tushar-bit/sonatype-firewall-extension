@@ -17,6 +17,17 @@ import {
   STATE_LABELS,
   THREAT_CATEGORY_LABELS,
 } from 'MainRoot/nosc/violations/violationsListApi';
+import {
+  asString,
+  MAX_DEEP_LINK_PAGE,
+  parseCsvParam,
+  parsePageIndex,
+  parseThreatRangeParam,
+  serializeCsvParam,
+  serializeThreatRangeParam,
+} from 'MainRoot/nosc/list/listQueryCodec';
+
+export { MAX_DEEP_LINK_PAGE };
 
 /**
  * URL-friendly names for the list-page hash query. Sort is intentionally absent: the Violations list
@@ -37,51 +48,20 @@ const SUPPORTED_STATES = new Set<string>(Object.keys(STATE_LABELS));
 /** Policy threat categories the facet exposes; unknown tokens in the URL are dropped. */
 const SUPPORTED_CATEGORIES = new Set<string>(Object.keys(THREAT_CATEGORY_LABELS));
 
-function asString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
-
-function parseCsvParam(value: unknown): ReadonlyArray<string> {
-  const raw = asString(value);
-  if (!raw?.trim()) return [];
-  return raw.split(',').map((part) => part.trim()).filter(Boolean);
-}
-
-function serializeCsvParam(values: ReadonlySet<string>): string | undefined {
-  if (values.size === 0) return undefined;
-  return Array.from(values).sort().join(',');
-}
-
 function parseFilteredSet(value: unknown, allowed: ReadonlySet<string>): ReadonlySet<string> {
   return new Set(parseCsvParam(value).filter((id) => allowed.has(id)));
 }
 
-/** Parse a strictly-integer token, or undefined for anything else (e.g. {@code 4abc}, {@code 4.5}). */
-function parseIntegerToken(token: string): number | undefined {
-  return /^\d+$/.test(token) ? Number(token) : undefined;
-}
-
-/**
- * Parse a {@code "min-max"} threat range param, clamped to the [0, 10] domain and forced ascending.
- * Falls back to the full-domain default when the value is missing or malformed. Tokens must be whole
- * integers ({@code Number.parseInt} would accept {@code 4abc}), matching the drop-malformed intent.
- */
 function parseThreatRange(value: unknown): ViolationThreatRange {
-  const raw = asString(value);
-  if (!raw) return DEFAULT_VIOLATION_THREAT_RANGE;
-  const parts = raw.split('-');
-  if (parts.length !== 2) return DEFAULT_VIOLATION_THREAT_RANGE;
-  const min = parseIntegerToken(parts[0].trim());
-  const max = parseIntegerToken(parts[1].trim());
-  if (min === undefined || max === undefined) return DEFAULT_VIOLATION_THREAT_RANGE;
-  const clamp = (n: number): number => Math.min(VIOLATION_THREAT_MAX, Math.max(VIOLATION_THREAT_MIN, n));
-  const lo = clamp(min);
-  const hi = clamp(max);
-  return [Math.min(lo, hi), Math.max(lo, hi)];
+  return parseThreatRangeParam(value, {
+    minDomain: VIOLATION_THREAT_MIN,
+    maxDomain: VIOLATION_THREAT_MAX,
+    defaultRange: DEFAULT_VIOLATION_THREAT_RANGE,
+  });
 }
 
 function serializeThreatRange(range: ViolationThreatRange): string | undefined {
-  return isDefaultThreatRange(range) ? undefined : `${range[0]}-${range[1]}`;
+  return serializeThreatRangeParam(range, isDefaultThreatRange);
 }
 
 // URL tokens for the waiver-type radio. Lowercase in the hash for readability; ANY is the default and
@@ -102,21 +82,6 @@ function parseWaiverType(value: unknown): ViolationWaiverType {
 
 function serializeWaiverType(waiverType: ViolationWaiverType): string | undefined {
   return WAIVER_TYPE_TO_URL[waiverType];
-}
-
-/**
- * Soft ceiling for deep-linked 1-based {@code page} values. Prevents a stale bookmark like
- * {@code ?page=999999} from posting an absurd 0-based index on the first request; the container still
- * response-clamps to the real last page once {@code total} is known.
- */
-export const MAX_DEEP_LINK_PAGE = 10_000;
-
-function parsePageIndex(value: unknown): number {
-  const pageParam = typeof value === 'string' ? Number.parseInt(value, 10) : 1;
-  if (!Number.isFinite(pageParam) || pageParam <= 1) {
-    return 0;
-  }
-  return Math.min(pageParam, MAX_DEEP_LINK_PAGE) - 1;
 }
 
 /** Parse UI-Router params for the Martha Violations list page (CLM-42260). */

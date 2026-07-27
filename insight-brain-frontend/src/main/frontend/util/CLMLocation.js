@@ -157,6 +157,15 @@ export function getViolationsListUrl() {
 }
 
 /**
+ * Nexus One Legal findings list (CLM-43207). POST with
+ * `{ page, pageSize, search?, includeFacets, orderBy, … }`; index LEGAL_VIOLATION.
+ * Gated by PREVIEW_NEXUS_ONE_UI.
+ */
+export function getLegalListUrl() {
+  return uriTemplate`/rest/dashboard/legal/list`;
+}
+
+/**
  * Ana shared catalog list (CLM-41642 / CLM-42214). POST
  * `{ entityType, source: local|catalog, filters?, page?, pageSize?, searchAfter?, includeFacets? }`.
  * Gated by GLOBAL_SEARCH (404 when off).

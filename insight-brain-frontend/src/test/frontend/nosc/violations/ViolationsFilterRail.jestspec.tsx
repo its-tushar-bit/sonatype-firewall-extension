@@ -486,4 +486,29 @@ describe('ViolationsFilterRail', () => {
       expect(screen.getByTestId('violations-filter-waiver-type-option-auto')).toBeChecked();
     });
   });
+
+  describe('Legal list props (CLM-43207)', () => {
+    it('hides state and waiver sections when hideStateFilter / hideWaiverTypeFilter are set', () => {
+      renderRail({ hideStateFilter: true, hideWaiverTypeFilter: true });
+      expect(screen.queryByTestId('violations-filter-state')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('violations-filter-waiver-type')).not.toBeInTheDocument();
+      expect(screen.getByTestId('violations-filter-policy-type')).toBeInTheDocument();
+    });
+
+    it('uses LTG section title and identity labels when threatCategoryUseIdentityLabels is set', () => {
+      renderRail({
+        facets: {
+          totalViolations: 1,
+          threatCategories: { Copyleft: 3, Banned: 1 },
+        },
+        threatCategorySectionTitle: 'License Threat Group',
+        threatCategoryUseIdentityLabels: true,
+      });
+      const policyType = screen.getByTestId('violations-filter-policy-type');
+      expect(within(policyType).getByText('License Threat Group')).toBeInTheDocument();
+      // Identity mode keeps raw LTG names (not Policy Type title-case maps).
+      expect(within(policyType).getByText('Copyleft')).toBeInTheDocument();
+      expect(within(policyType).getByText('Banned')).toBeInTheDocument();
+    });
+  });
 });

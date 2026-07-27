@@ -651,20 +651,24 @@ public class RepositoryComponentDAO
    */
   public Map<LocalDate, Long> getConsolidatedQuarantinedComponentsMetricByDate(Date date) {
     try (TransactionContext tx = createTransactionContext()) {
+      // Collectors.toMap with Long::sum tolerates duplicate LocalDate keys that some PostgreSQL
+      // session configurations can produce; ResultQuery.collect auto-manages the underlying cursor.
       return tx.dsl()
           .select(DSL.cast(REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class).as("metrics_date"),
               DSL.count(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID).as("metrics_value"))
           .from(REPOSITORY_COMPONENT)
           .where(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(date))
           .groupBy(DSL.cast(REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class))
-          .fetchMap(
+          .collect(Collectors.toMap(
               record -> record.get("metrics_date", java.sql.Date.class).toLocalDate(),
-              record -> record.get("metrics_value", Long.class));
+              record -> record.get("metrics_value", Long.class),
+              Long::sum));
     }
   }
 
   public Map<LocalDate, Long> getQuarantinedCountByRepositoryIdAndDate(String repositoryId, Date date) {
     try (TransactionContext tx = createTransactionContext()) {
+      // See getConsolidatedQuarantinedComponentsMetricByDate above for the merge-fn rationale.
       return tx.dsl()
           .select(DSL.cast(REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class).as("quarantine_date"),
               DSL.count().as("count"))
@@ -672,9 +676,10 @@ public class RepositoryComponentDAO
           .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .and(REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(date))
           .groupBy(DSL.cast(REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class))
-          .fetchMap(
+          .collect(Collectors.toMap(
               record -> record.get("quarantine_date", java.sql.Date.class).toLocalDate(),
-              record -> record.get("count", Long.class));
+              record -> record.get("count", Long.class),
+              Long::sum));
     }
   }
 
@@ -721,6 +726,7 @@ public class RepositoryComponentDAO
       var dateCondition = exclusiveDate
           ? REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(date)
           : REPOSITORY_COMPONENT.UNQUARANTINE_TIME.ge(date);
+      // See getConsolidatedQuarantinedComponentsMetricByDate above for the merge-fn rationale.
       return tx.dsl()
           .select(DSL.cast(REPOSITORY_COMPONENT.UNQUARANTINE_TIME, java.sql.Date.class).as("unquarantine_date"),
               DSL.count().as("count"))
@@ -729,9 +735,10 @@ public class RepositoryComponentDAO
           .and(dateCondition)
           .and(REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(true))
           .groupBy(DSL.cast(REPOSITORY_COMPONENT.UNQUARANTINE_TIME, java.sql.Date.class))
-          .fetchMap(
+          .collect(Collectors.toMap(
               record -> record.get("unquarantine_date", java.sql.Date.class).toLocalDate(),
-              record -> record.get("count", Long.class));
+              record -> record.get("count", Long.class),
+              Long::sum));
     }
   }
 

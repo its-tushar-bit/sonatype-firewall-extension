@@ -1319,6 +1319,30 @@ public class RepositoryComponentDAOTest
     assertThat(result).hasSize(3);
   }
 
+  // Guards the merge-function fix: multiple quarantines on the same calendar day (different hours) must
+  // aggregate into a single map entry with the counts summed. Runs against Postgres because the failure
+  // mode reported by the customer is Postgres-specific, though we could not reproduce their exact throw
+  // in test environments.
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetConsolidatedQuarantinedComponentsMetricByDate_MultipleQuarantinesSameDay_Postgres() {
+    Repository repo = tempEntity.newRepository();
+    Date day1At08 = Date.from(LocalDateTime.of(2026, 7, 14, 8, 0).toInstant(ZoneOffset.UTC));
+    Date day1At15 = Date.from(LocalDateTime.of(2026, 7, 14, 15, 0).toInstant(ZoneOffset.UTC));
+    Date day2At10 = Date.from(LocalDateTime.of(2026, 7, 15, 10, 0).toInstant(ZoneOffset.UTC));
+    tempEntity.newRepositoryComponent(repo.getId(), "path-day1-08", day1At08, null);
+    tempEntity.newRepositoryComponent(repo.getId(), "path-day1-15", day1At15, null);
+    tempEntity.newRepositoryComponent(repo.getId(), "path-day2-10", day2At10, null);
+
+    Date floor = Date.from(LocalDateTime.of(2026, 1, 1, 0, 0).toInstant(ZoneOffset.UTC));
+    Map<LocalDate, Long> result = dao.getConsolidatedQuarantinedComponentsMetricByDate(floor);
+
+    assertThat(result)
+        .containsEntry(LocalDate.of(2026, 7, 14), 2L)
+        .containsEntry(LocalDate.of(2026, 7, 15), 1L);
+  }
+
   @Test
   public void testGetRepositoryToComponentsByHash() {
     // Setup test data

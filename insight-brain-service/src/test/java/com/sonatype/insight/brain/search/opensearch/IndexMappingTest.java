@@ -186,6 +186,32 @@ public class IndexMappingTest
     assertThat(stageSeverity.isKeyword()).isTrue();
   }
 
+  @Test
+  public void applicationViolationAggregateFields_areMappedWithExpectedTypes() {
+    Map<String, Property> mappings = new IndexMapping().getMappings();
+
+    // A4/A6 ints backing the RANGE filter and the numeric sorts.
+    Stream.of(
+        FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL,
+        FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL)
+        .forEach(field -> {
+          Property property = mappings.get(field.label);
+          assertThat(property).as("mapping for %s", field.label).isNotNull();
+          assertThat(property.isInteger()).as("%s is integer", field.label).isTrue();
+        });
+
+    // A1/A2/A3 multi-valued keyword sets backing the TERMS filters.
+    Stream.of(
+        FieldIdentifier.APPLICATION_VIOLATION_STAGE,
+        FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE,
+        FieldIdentifier.APPLICATION_VIOLATION_STATE)
+        .forEach(field -> {
+          Property property = mappings.get(field.label);
+          assertThat(property).as("mapping for %s", field.label).isNotNull();
+          assertThat(property.isKeyword()).as("%s is keyword", field.label).isTrue();
+        });
+  }
+
   private static KeywordProperty keywordPropertyFor(final String fieldName) {
     Property property = new IndexMapping().getMappings().get(fieldName);
     assertThat(property).isNotNull();

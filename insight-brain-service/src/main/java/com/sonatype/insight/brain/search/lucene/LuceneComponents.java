@@ -85,6 +85,9 @@ public class LuceneComponents
     // Epoch-millis long backing the applications "latest evaluation" range filter/sort.
     pointsConfigsByFieldName.put(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
         new PointsConfig(numberFormat, Long.class));
+    // IntPoint backing the applications policyThreatLevel range filter/facet (max threat per app).
+    pointsConfigsByFieldName.put(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label,
+        new PointsConfig(numberFormat, Integer.class));
     StandardQueryParser queryParser = new StandardQueryParser(newAnalyzerForSearch());
     queryParser.setPointsConfigMap(pointsConfigsByFieldName);
     queryParser.setAllowLeadingWildcard(true);

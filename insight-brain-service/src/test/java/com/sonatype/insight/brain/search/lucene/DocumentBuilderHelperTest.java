@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -91,6 +92,9 @@ public class DocumentBuilderHelperTest
   @Inject
   private PolicyWaiverReasonDAO waiverReasonDAO;
 
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
   @Mock
   private PolicyEvaluationDAO policyEvaluationDAOMock;
 
@@ -133,10 +137,10 @@ public class DocumentBuilderHelperTest
           return loader.apply(ids);
         });
     lenient()
-        .when(indexingContextMock.getStageSeverityCountsByApp(anySet(), any()))
+        .when(indexingContextMock.getViolationRollupByApp(anySet(), any()))
         .thenAnswer(inv -> {
           Set<String> ids = inv.getArgument(0);
-          Function<Set<String>, Map<String, List<String>>> loader = inv.getArgument(1);
+          Function<Set<String>, Map<String, IndexingContext.ViolationRollup>> loader = inv.getArgument(1);
           return loader.apply(ids);
         });
     // Category names are memoized on the real IndexingContext; the mock has no cache, so route the
@@ -854,6 +858,255 @@ public class DocumentBuilderHelperTest
     assertThat(batchedDoc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
         .containsExactlyInAnyOrder(perAppDoc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
         .containsExactlyInAnyOrder("build:critical:1", "build:severe:1");
+  }
+
+  /**
+   * Mixed active violations across stages and policy types: A4 max threat = max raw active threat level,
+   * A1 stages set = active-violation stages, A2 policy types set = active-violation categories, and the
+   * active-only pills still reflect only active rows. A3 states = open (all active).
+   */
+  @Test
+  public void testBuildApplicationDocs_mixedActiveViolations_aggregatesAndPills() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    stubNoEvaluationsByDefault(app.getId());
+
+    PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-b", new Date(), "commit-b");
+    PolicyEvaluation releaseEval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.RELEASE.getId(), "scan-r", new Date(), "commit-r");
+    // BUILD: a CRITICAL(9) SECURITY and a MODERATE(3) LICENSE; RELEASE: a SEVERE(7) QUALITY.
+    tempEntity.newPolicyViolation(buildEval, tempEntity.newPolicy(org.getId(), "crit", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+    tempEntity.newPolicyViolation(buildEval, tempEntity.newPolicy(org.getId(), "lic", 3), 3,
+        PolicyThreatCategory.LICENSE, "g", "a", "2");
+    tempEntity.newPolicyViolation(releaseEval, tempEntity.newPolicy(org.getId(), "qual", 7), 7,
+        PolicyThreatCategory.QUALITY, "g", "a", "3");
+
+    Document doc = documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(app))
+        .stream()
+        .filter(d -> app.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+
+    // A4: max raw active threat level.
+    assertThat(doc.get(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label)).isEqualTo("9");
+    // A1: stages with active violations.
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label))
+        .containsExactlyInAnyOrder(StageTypes.BUILD.getId(), StageTypes.RELEASE.getId());
+    // A2: policy types present among active violations (lowercased).
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label))
+        .containsExactlyInAnyOrder("security", "license", "quality");
+    // A3: all active -> only open.
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STATE.label)).containsExactly("open");
+    // A6: worst state ordinal = 0 (Open).
+    assertThat(doc.get(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label)).isEqualTo("0");
+    // Active-only pills unchanged by the wider fetch.
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactlyInAnyOrder("build:critical:1", "build:moderate:1", "release:severe:1");
+  }
+
+  /**
+   * A3 correctness with waived + legacy + active mixed: the violation-state set must surface waived and
+   * legacy (from the wider unfixed fetch) while the active-only pills, A1/A2/A4 stay active-only. A6 is
+   * the worst (min) ordinal across the states present.
+   */
+  @Test
+  public void testBuildApplicationDocs_violationStates_activeWaivedLegacy() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    stubNoEvaluationsByDefault(app.getId());
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-mixed", new Date(), "commit-mixed");
+    Policy activePolicy = tempEntity.newPolicy(org.getId(), "active", 9);
+    Policy waivedPolicy = tempEntity.newPolicy(org.getId(), "waived", 8);
+    Policy legacyPolicy = tempEntity.newPolicy(org.getId(), "legacy", 10);
+    // Active CRITICAL(9); a waived SEVERE(8); a legacy CRITICAL(10). Only the active one feeds A1/A2/A4/pills.
+    tempEntity.newPolicyViolation(eval, activePolicy, 9, PolicyThreatCategory.SECURITY, "g", "a", "1");
+    PolicyWaiver waiver = tempEntity.newWaiver(waivedPolicy.getId(), org.getId());
+    tempEntity.newWaivedPolicyViolation(eval, waivedPolicy, 8, PolicyThreatCategory.LICENSE,
+        com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates("g", "a", "2"), "h2", waiver);
+    tempEntity.newLegacyPolicyViolation(eval, legacyPolicy);
+
+    Document doc = documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(app))
+        .stream()
+        .filter(d -> app.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+
+    // A3: all three states surface from the wider unfixed fetch.
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STATE.label))
+        .containsExactlyInAnyOrder("open", "waived", "legacy");
+    // A6: worst (min) ordinal is Open = 0.
+    assertThat(doc.get(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label)).isEqualTo("0");
+    // A4/A1/A2: active-only -> only the active CRITICAL(9) SECURITY BUILD violation counts.
+    assertThat(doc.get(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label)).isEqualTo("9");
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label))
+        .containsExactly(StageTypes.BUILD.getId());
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label)).containsExactly("security");
+    // Active-only pills: only the active CRITICAL, not the waived/legacy rows.
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
+        .containsExactly("build:critical:1");
+  }
+
+  /**
+   * A6 ordinal reflects the WORST (min) state when the app has no active (open) violation — only a waived
+   * and a legacy row — so the ordinal is Waived(1), not Open. Pills and A4 are absent (no active row).
+   */
+  @Test
+  public void testBuildApplicationDocs_violationStateOrdinal_waivedAndLegacyOnly() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    stubNoEvaluationsByDefault(app.getId());
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-wl", new Date(), "commit-wl");
+    Policy waivedPolicy = tempEntity.newPolicy(org.getId(), "waived-only", 8);
+    Policy legacyPolicy = tempEntity.newPolicy(org.getId(), "legacy-only", 10);
+    PolicyWaiver waiver = tempEntity.newWaiver(waivedPolicy.getId(), org.getId());
+    tempEntity.newWaivedPolicyViolation(eval, waivedPolicy, 8, PolicyThreatCategory.LICENSE,
+        com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates("g", "a", "1"), "h1", waiver);
+    tempEntity.newLegacyPolicyViolation(eval, legacyPolicy);
+
+    Document doc = documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(app))
+        .stream()
+        .filter(d -> app.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STATE.label))
+        .containsExactlyInAnyOrder("waived", "legacy");
+    // Worst (min) ordinal across {waived=1, legacy=2} = 1.
+    assertThat(doc.get(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label)).isEqualTo("1");
+    // No active violation -> no max-threat, no active pills/stages/types.
+    assertThat(doc.get(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label)).isNull();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label)).isEmpty();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label)).isEmpty();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label)).isEmpty();
+  }
+
+  /**
+   * An app with no unfixed violation emits NONE of the aggregate fields (sparse), so the RANGE/TERMS
+   * filters and the ordinal sort treat it as "no threat / no state" and it sorts last.
+   */
+  @Test
+  public void testBuildApplicationDocs_noViolations_aggregatesAbsent() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    stubNoEvaluationsByDefault(app.getId());
+
+    Document doc = documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(app))
+        .stream()
+        .filter(d -> app.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(doc.get(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label)).isNull();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label)).isEmpty();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label)).isEmpty();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STATE.label)).isEmpty();
+    assertThat(doc.get(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label)).isNull();
+  }
+
+  /**
+   * A violation on a stage outside the global registry is dropped from A1 and the pills, but its threat
+   * level and policy type still feed A4/A2 (they are not stage-scoped) and its state still feeds A3.
+   */
+  @Test
+  public void testBuildApplicationDocs_unknownStage_droppedFromStagesButNotThreat() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    stubNoEvaluationsByDefault(app.getId());
+
+    PolicyEvaluation unknownStageEval = tempEntity.newPolicyEvaluation(
+        app.getId(), "not-a-real-stage", "scan-u", new Date(), "commit-u");
+    tempEntity.newPolicyViolation(unknownStageEval, tempEntity.newPolicy(org.getId(), "u", 6), 6,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    Document doc = documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(app))
+        .stream()
+        .filter(d -> app.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+
+    // Stage dropped from A1 and pills, but the threat level/type still feed A4/A2 and the state feeds A3.
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label)).isEmpty();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label)).isEmpty();
+    assertThat(doc.get(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label)).isEqualTo("6");
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label)).containsExactly("security");
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_VIOLATION_STATE.label)).containsExactly("open");
+  }
+
+  /**
+   * The wider aggregate fetch must remain ONE bounded query for the whole app batch — no N+1. Asserts the
+   * violations DAO is hit exactly once via {@code getUnfixedByApplicationIds} across a two-app batch, and
+   * the active-only stage-severity query {@code getActiveByApplicationIds} is NOT used anymore.
+   */
+  @Test
+  public void testBuildApplicationDocs_violationRollup_singleQueryNoNPlusOne() {
+    Organization org = tempEntity.newOrganization();
+    Application appA = tempEntity.newApplicationWithParent(org);
+    Application appB = tempEntity.newApplicationWithParent(org);
+
+    // Real IndexingContext so the genuine per-run memo dedupes: buildApplicationDocs warms the whole
+    // batch in ONE loader call, and each per-app buildDocument then hits the cache. The mock context
+    // has no cache and would re-run the loader per call, which measures the stub, not the real path.
+    IndexingContext realContext = new IndexingContext(ownerDAO, conversionHelper)
+    {
+      @Override
+      public void deleteDocuments(final String query) {
+      }
+
+      @Override
+      public void addDocuments(final List<Document> documents) {
+      }
+    };
+
+    PolicyViolationDAO spyViolationDAO = spy(policyViolationDAO);
+    DocumentBuilderHelper helperWithSpy = swapViolationDAO(documentBuilderHelper, spyViolationDAO);
+
+    PolicyEvaluation evalA = tempEntity.newPolicyEvaluation(
+        appA.getId(), StageTypes.BUILD.getId(), "scan-n1a", new Date(), "commit-n1a");
+    tempEntity.newPolicyViolation(evalA, tempEntity.newPolicy(org.getId(), "na", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+    PolicyEvaluation evalB = tempEntity.newPolicyEvaluation(
+        appB.getId(), StageTypes.BUILD.getId(), "scan-n1b", new Date(), "commit-n1b");
+    tempEntity.newPolicyViolation(evalB, tempEntity.newPolicy(org.getId(), "nb", 5), 5,
+        PolicyThreatCategory.LICENSE, "g", "a", "2");
+
+    try {
+      helperWithSpy.buildApplicationDocs(realContext, List.of(appA, appB));
+
+      // One widened violations query for the whole two-app batch (no N+1), and the active-only
+      // stage-severity query is no longer used — the wider fetch backs both pills and aggregates.
+      verify(spyViolationDAO, times(1)).getUnfixedByApplicationIds(anySet());
+      verify(spyViolationDAO, never()).getActiveByApplicationIds(anySet());
+    }
+    finally {
+      swapViolationDAO(documentBuilderHelper, policyViolationDAO);
+    }
+  }
+
+  /** Reflectively swaps the {@code policyViolationDAO} field so the batch fetch can be spied. */
+  private static DocumentBuilderHelper swapViolationDAO(
+      final DocumentBuilderHelper helper,
+      final PolicyViolationDAO dao)
+  {
+    try {
+      java.lang.reflect.Field field = DocumentBuilderHelper.class.getDeclaredField("policyViolationDAO");
+      field.setAccessible(true);
+      field.set(helper, dao);
+      return helper;
+    }
+    catch (ReflectiveOperationException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   @Test
@@ -1710,6 +1963,22 @@ public class DocumentBuilderHelperTest
     // This should not throw an exception and should properly round the severity
     assertThat(documentBuilderHelper.buildDocument(organization, application, sbomMetadata, fileCoordinate,
         coordinateSecurity, parentOrgs)).isNotNull();
+  }
+
+  /**
+   * An unknown violation-state token must degrade gracefully (sort last) rather than throw, so a future
+   * state or unexpected token does not abort the indexing batch.
+   */
+  @Test
+  public void testStateSortPriority_UnknownTokenSortsLastWithoutThrowing() throws Exception {
+    java.lang.reflect.Method method =
+        DocumentBuilderHelper.class.getDeclaredMethod("stateSortPriority", String.class);
+    method.setAccessible(true);
+
+    assertThat((int) method.invoke(null, "open")).isEqualTo(0);
+    assertThat((int) method.invoke(null, "waived")).isEqualTo(1);
+    assertThat((int) method.invoke(null, "legacy")).isEqualTo(2);
+    assertThat((int) method.invoke(null, "some-future-state")).isEqualTo(Integer.MAX_VALUE);
   }
 
   @Test

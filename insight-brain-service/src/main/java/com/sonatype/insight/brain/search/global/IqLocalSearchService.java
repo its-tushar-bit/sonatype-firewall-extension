@@ -54,7 +54,9 @@ import static com.sonatype.insight.brain.search.global.Tab.VIOLATION;
 import static com.sonatype.insight.brain.search.global.Tab.VULNERABILITY;
 import static com.sonatype.insight.brain.search.global.Tab.WAIVER;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.ITEM_TYPE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_EVALUATION_STAGE;
@@ -462,6 +464,9 @@ public class IqLocalSearchService
       return new Sort(sortField);
     }
     if (NUMERIC_ASC_SORT_FIELDS.contains(indexField)) {
+      // Ascending numeric (waiver expiry: soonest first; violation-state ordinal: Open=0 first). A doc
+      // with no value must still sort AFTER real values, so its missing value compares as the largest
+      // possible long under ascending.
       return ascendingNumericSort(indexField.label);
     }
     // Absent keyword sorts last under ascending order (STRING_LAST), so a never-set name/stage does
@@ -490,17 +495,20 @@ public class IqLocalSearchService
    */
   private static final Set<FieldIdentifier> NUMERIC_DESC_SORT_FIELDS = Set.of(
       APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS,
+      APPLICATION_MAX_POLICY_THREAT_LEVEL,
       POLICY_VIOLATION_THREAT_LEVEL,
       POLICY_WAIVER_CREATED_AT_EPOCH_MS,
       POLICY_WAIVER_THREAT_LEVEL);
 
   /**
    * Sortable index fields backed by a numeric doc-values twin, sorted ASCENDING (soonest/lowest
-   * first) with missing values placed last. Only WAIVER expiration sorts this way (soonest expiry
-   * first, never-expires last).
+   * first) with missing values placed last. WAIVER expiration sorts soonest-first (never-expires
+   * last); the application violation-state ordinal sorts Open(0) before Waived(1) before Legacy(2),
+   * with apps having no violation-state ordinal placed last.
    */
   private static final Set<FieldIdentifier> NUMERIC_ASC_SORT_FIELDS = Set.of(
-      POLICY_WAIVER_EXPIRES_AT_EPOCH_MS);
+      POLICY_WAIVER_EXPIRES_AT_EPOCH_MS,
+      APPLICATION_VIOLATION_STATE_SORT_ORDINAL);
 
   /**
    * Resolve the IQ-local index field backing an allowlisted (tab, sortKey), independent of
@@ -519,7 +527,11 @@ public class IqLocalSearchService
         "name", APPLICATION_NAME,
         "policyEvaluationStage", POLICY_EVALUATION_STAGE,
         // Default "latest evaluation" sort; numeric doc-values emitted by LuceneIndexingContext.
-        "lastEvaluationTime", APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS));
+        "lastEvaluationTime", APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS,
+        // A5: policy-threat-level desc (highest threat first), numeric max-threat twin.
+        "policyThreatLevel", APPLICATION_MAX_POLICY_THREAT_LEVEL,
+        // A6: violation-state asc (Open first), numeric worst-state-ordinal twin.
+        "violationState", APPLICATION_VIOLATION_STATE_SORT_ORDINAL));
     // VIOLATION unions POLICY_VIOLATION + LEGAL_VIOLATION; both carry the policy-name field.
     // threat sorts POLICY_VIOLATION docs by threat level; LEGAL_VIOLATION docs carry no threat-level
     // doc-values, so they sort last under a threat sort (missing-value default).

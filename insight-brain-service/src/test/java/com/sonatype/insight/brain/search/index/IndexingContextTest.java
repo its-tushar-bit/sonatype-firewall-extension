@@ -22,7 +22,7 @@ import org.junit.Test;
 
 /**
  * Focused contract test for the {@link IndexingContext} load-on-miss memoization used by the
- * evaluation and stage/severity rollups. The contract is: load an app on first request, load a
+ * evaluation and violation rollups. The contract is: load an app on first request, load a
  * later app that was not in the first request (load-on-miss, NOT freeze-after-first-load), and cache
  * an app absent so a never-evaluated app is not re-queried.
  */
@@ -101,38 +101,41 @@ public class IndexingContextTest
   }
 
   @Test
-  public void stageSeverityCounts_loadsOnMiss_forAppNotInFirstRequest() {
+  public void violationRollup_loadsOnMiss_forAppNotInFirstRequest() {
     IndexingContext context = newContext();
     AtomicInteger loads = new AtomicInteger();
-    Function<Set<String>, Map<String, List<String>>> loader = ids -> {
+    IndexingContext.ViolationRollup rollupA = new IndexingContext.ViolationRollup(
+        List.of("build:low:1"), null, Set.of(), Set.of(), Set.of(), null);
+    IndexingContext.ViolationRollup rollupB = new IndexingContext.ViolationRollup(
+        List.of("build:high:2"), null, Set.of(), Set.of(), Set.of(), null);
+    Function<Set<String>, Map<String, IndexingContext.ViolationRollup>> loader = ids -> {
       loads.incrementAndGet();
-      return ids.contains("appB") ? Map.of("appB", List.of("build:high:2")) : Map.of("appA", List.of("build:low:1"));
+      return ids.contains("appB") ? Map.of("appB", rollupB) : Map.of("appA", rollupA);
     };
 
-    Map<String, List<String>> first = context.getStageSeverityCountsByApp(Set.of("appA"), loader);
-    Map<String, List<String>> second = context.getStageSeverityCountsByApp(Set.of("appB"), loader);
+    Map<String, IndexingContext.ViolationRollup> first = context.getViolationRollupByApp(Set.of("appA"), loader);
+    Map<String, IndexingContext.ViolationRollup> second = context.getViolationRollupByApp(Set.of("appB"), loader);
 
     // appB was not in the first request but still loads on miss (loader ran a second time for it).
-    assertThat(first).containsEntry("appA", List.of("build:low:1"));
-    assertThat(second).containsEntry("appB", List.of("build:high:2"));
+    assertThat(first).containsEntry("appA", rollupA);
+    assertThat(second).containsEntry("appB", rollupB);
     assertThat(loads.get()).isEqualTo(2);
     // appA stays cached: re-requesting it returns the memoized value without another load.
-    assertThat(context.getStageSeverityCountsByApp(Set.of("appA"), loader))
-        .containsEntry("appA", List.of("build:low:1"));
+    assertThat(context.getViolationRollupByApp(Set.of("appA"), loader)).containsEntry("appA", rollupA);
     assertThat(loads.get()).isEqualTo(2);
   }
 
   @Test
-  public void stageSeverityCounts_appWithNoViolations_isCachedAbsent_andNotRequeried() {
+  public void violationRollup_appWithNoViolations_isCachedAbsent_andNotRequeried() {
     IndexingContext context = newContext();
     AtomicInteger loads = new AtomicInteger();
-    Function<Set<String>, Map<String, List<String>>> loader = ids -> {
+    Function<Set<String>, Map<String, IndexingContext.ViolationRollup>> loader = ids -> {
       loads.incrementAndGet();
       return Map.of();
     };
 
-    context.getStageSeverityCountsByApp(Set.of("appC"), loader);
-    context.getStageSeverityCountsByApp(Set.of("appC"), loader);
+    context.getViolationRollupByApp(Set.of("appC"), loader);
+    context.getViolationRollupByApp(Set.of("appC"), loader);
 
     assertThat(loads.get()).isEqualTo(1);
   }

@@ -19,10 +19,14 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_PUBLIC_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VERSION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_STAGE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_STATE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_COORDINATE_ARCHITECTURE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_COORDINATE_ARTIFACT_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_COORDINATE_CLASSIFIER;
@@ -206,6 +210,10 @@ public final class FieldMap
 
   private static final Set<String> THREAT_CATEGORIES = Set.of("security", "license", "quality", "other");
 
+  // Precomputed violation-state set values written on APPLICATION docs (lowercased), distinct from the
+  // violation-doc waiver-status vocabulary: here the app's states are already resolved to open/waived/legacy.
+  private static final Set<String> APPLICATION_VIOLATION_STATES = Set.of("open", "waived", "legacy");
+
   // Indexed policyWaiverRequestStatus vocabulary (PolicyWaiverRequestStatus enum names).
   private static final Set<String> WAIVER_REQUEST_STATUSES = Set.of("REQUESTED", "APPROVED", "REJECTED");
 
@@ -277,6 +285,17 @@ public final class FieldMap
     // listed there, so it is read off the row and never aggregated into buckets.
     m.put("applicationStageSeverityCount",
         FieldEntry.keyword(APPLICATION_STAGE_SEVERITY_COUNT.label, APP_TYPES));
+    // Denormalized violation aggregates on APPLICATION docs backing the Applications filter/sort rail.
+    // stages/policyTypes/violationStates are precomputed multi-valued keyword sets (TERMS filters);
+    // applicationMaxPolicyThreatLevel is the max-threat int (RANGE filter + desc sort). All APP-only.
+    m.put("applicationViolationStage",
+        FieldEntry.keyword(APPLICATION_VIOLATION_STAGE.label, APP_TYPES, EVALUATION_STAGES));
+    m.put("applicationViolationPolicyType",
+        FieldEntry.keyword(APPLICATION_VIOLATION_POLICY_TYPE.label, APP_TYPES, THREAT_CATEGORIES));
+    m.put("applicationViolationState",
+        FieldEntry.keyword(APPLICATION_VIOLATION_STATE.label, APP_TYPES, APPLICATION_VIOLATION_STATES));
+    m.put("applicationMaxPolicyThreatLevel",
+        FieldEntry.numericInt(APPLICATION_MAX_POLICY_THREAT_LEVEL.label, APP_TYPES));
     m.put("applicationCategoryColor",
         FieldEntry.keyword(APPLICATION_CATEGORY_COLOR.label, APP_TYPES, CATEGORY_COLORS));
     m.put("applicationCategoryDescription",

@@ -665,6 +665,37 @@ public class IqLocalSearchServiceTest
   }
 
   @Test
+  public void sortableFieldMap_mapsApplicationsPolicyThreatAndViolationStateSortKeys() {
+    // A5: policy-threat-level sort -> max-threat int twin. A6: violation-state sort -> worst-state ordinal.
+    assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.APPLICATION, "policyThreatLevel"))
+        .isEqualTo(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL);
+    assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.APPLICATION, "violationState"))
+        .isEqualTo(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL);
+  }
+
+  @Test
+  public void buildSortField_maxPolicyThreat_sortsDescending() {
+    // A5: highest threat first (reverse LONG), matching the prototype policy-threat sort.
+    SortField field = IqLocalSearchService.buildSortField(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL)
+        .getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(field.getReverse()).isTrue();
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label);
+  }
+
+  @Test
+  public void buildSortField_violationStateOrdinal_sortsAscendingOpenFirst() {
+    // A6: Open(0) before Waived(1) before Legacy(2). Ascending numeric; apps with no ordinal sort last.
+    SortField field = IqLocalSearchService.buildSortField(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL)
+        .getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(field.getReverse()).as("violation-state ordinal sorts ascending (Open first)").isFalse();
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label);
+  }
+
+  @Test
   public void buildSortField_numericFields_sortDescendingAsLong() {
     // Numeric-backed fields (latest-evaluation, threat level, waiver created-at) sort on their
     // numeric doc-values twin, descending (newest/highest first). The numeric-vs-string branch is

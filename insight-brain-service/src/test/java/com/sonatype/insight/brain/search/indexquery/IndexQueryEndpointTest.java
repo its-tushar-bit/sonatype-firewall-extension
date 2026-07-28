@@ -170,6 +170,128 @@ public class IndexQueryEndpointTest
     assertThat(response.rows()).extracting(IndexQueryRow::getId).containsExactly("widget-co");
   }
 
+  /**
+   * Full-path E2E of the Applications aggregate filters (A1/A2/A3/A4) against a self-contained index of
+   * aggregate-bearing app docs: TERMS OR-within a filter, TERMS AND-across distinct filters, and the
+   * max-threat RANGE. Runs through the real resource -> service -> compiler -> Lucene search path.
+   */
+  @Test
+  public void applicationQuery_aggregateFilters_termsAndRange() throws Exception {
+    try (Directory aggDir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(aggDir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        // app-a: BUILD, security, open, threat 9. app-b: RELEASE, license, waived, threat 4.
+        // app-c: BUILD, quality, legacy, threat 7.
+        writer.addDocument(appAggDoc("app-a", "App A", "Acme",
+            List.of("build"), List.of("security"), List.of("open"), 9));
+        writer.addDocument(appAggDoc("app-b", "App B", "Acme",
+            List.of("release"), List.of("license"), List.of("waived"), 4));
+        writer.addDocument(appAggDoc("app-c", "App C", "Acme",
+            List.of("build"), List.of("quality"), List.of("legacy"), 7));
+        writer.commit();
+      }
+      try (IndexReader aggReader = DirectoryReader.open(aggDir)) {
+        IndexQueryResource aggResource = resourceOver(aggReader);
+
+        // A1 TERMS OR-within: stages=[build,release] -> app-a, app-b, app-c (build OR release).
+        assertThat(idsOf(aggResource, Map.of("stages", List.of("build", "release"))))
+            .containsExactlyInAnyOrder("app-a", "app-b", "app-c");
+        // A1 single: stages=[build] -> app-a, app-c.
+        assertThat(idsOf(aggResource, Map.of("stages", List.of("build"))))
+            .containsExactlyInAnyOrder("app-a", "app-c");
+        // A2 policyTypes=[security] -> app-a.
+        assertThat(idsOf(aggResource, Map.of("policyTypes", List.of("security")))).containsExactly("app-a");
+        // A3 violationStates=[waived,legacy] -> app-b, app-c.
+        assertThat(idsOf(aggResource, Map.of("violationStates", List.of("waived", "legacy"))))
+            .containsExactlyInAnyOrder("app-b", "app-c");
+        // A4 RANGE policyThreatLevel=[7,10] -> app-a(9), app-c(7).
+        assertThat(idsOf(aggResource, Map.of("policyThreatLevel", List.of(7, 10))))
+            .containsExactlyInAnyOrder("app-a", "app-c");
+        // AND-across distinct filters: stages=[build] AND policyTypes=[quality] -> app-c only.
+        assertThat(idsOf(aggResource, Map.of("stages", List.of("build"), "policyTypes", List.of("quality"))))
+            .containsExactly("app-c");
+      }
+    }
+  }
+
+  private List<String> idsOf(final IndexQueryResource res, final Map<String, Object> filters) {
+    IndexQueryResponse response = res.query(new IndexQueryRequest("APPLICATION", filters, 1, 25, null, null, false));
+    return response.rows().stream().map(IndexQueryRow::getId).toList();
+  }
+
+  /** Rebuilds the resource stack over an alternate reader so a test can drive its own fixture index. */
+  private IndexQueryResource resourceOver(final IndexReader altReader) {
+    IndexSearcher altSearcher = new IndexSearcher(altReader);
+    SearchIndexClient altClient = mock(SearchIndexClient.class);
+    when(altClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(altClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of("org-1"));
+    when(altClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
+    when(altClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
+    when(altClient.buildPermittedQuery(any())).thenCallRealMethod();
+    when(altClient.getLastIndexTime()).thenReturn(1000L);
+    when(altClient.backendId()).thenReturn("lucene");
+    when(altClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenAnswer(inv -> runRealSearchOn(altSearcher, altReader, inv.getArgument(0)));
+    IqLocalSearchService iq = new IqLocalSearchService(altClient);
+    return new IndexQueryResource(new IndexQueryService(iq, altClient, null), altClient);
+  }
+
+  private static GlobalSearchResult runRealSearchOn(
+      final IndexSearcher altSearcher,
+      final IndexReader altReader,
+      final GlobalSearchRequest request) throws Exception
+  {
+    List<String> after = request.searchAfter();
+    TopDocs all = altSearcher.search(request.baseQuery(), Math.max(1, altReader.maxDoc()));
+    int startDocExclusive = (after != null && !after.isEmpty()) ? Integer.parseInt(after.get(0)) : -1;
+    List<ScoreDoc> ordered = new ArrayList<>();
+    for (ScoreDoc sd : all.scoreDocs) {
+      if (sd.doc > startDocExclusive) {
+        ordered.add(sd);
+      }
+    }
+    List<SearchResultItemDTO> rows = new ArrayList<>();
+    int returnCount = Math.min(ordered.size(), request.pageSize());
+    List<String> nextSearchAfter = List.of();
+    for (int i = 0; i < returnCount; i++) {
+      ScoreDoc hit = ordered.get(i);
+      rows.add(new SearchResultItemDTO(altSearcher.storedFields().document(hit.doc)));
+      if (i == returnCount - 1 && ordered.size() > request.pageSize()) {
+        nextSearchAfter = List.of(String.valueOf(hit.doc));
+      }
+    }
+    return new GlobalSearchResult(rows, all.totalHits.value, nextSearchAfter);
+  }
+
+  private static Document appAggDoc(
+      final String publicId,
+      final String name,
+      final String orgName,
+      final List<String> stages,
+      final List<String> policyTypes,
+      final List<String> states,
+      final int maxThreatLevel)
+  {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_PUBLIC_ID.label, publicId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_ID.label, publicId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_NAME.label, name, Store.YES));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
+    for (String stage : stages) {
+      doc.add(new StringField(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label, stage, Store.YES));
+    }
+    for (String type : policyTypes) {
+      doc.add(new StringField(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label, type, Store.YES));
+    }
+    for (String state : states) {
+      doc.add(new StringField(FieldIdentifier.APPLICATION_VIOLATION_STATE.label, state, Store.YES));
+    }
+    doc.add(new IntPoint(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel));
+    doc.add(new StoredField(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel));
+    return doc;
+  }
+
   @Test
   public void applicationQuery_facetsRequested_areWholeCorpusCounts() {
     // Org facet buckets by the display name (values from the page), counting the whole corpus, not the

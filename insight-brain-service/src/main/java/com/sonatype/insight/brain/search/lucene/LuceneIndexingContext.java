@@ -91,10 +91,16 @@ public class LuceneIndexingContext
       addSortDocValues(document, FieldIdentifier.POLICY_VIOLATION_POLICY_NAME.label);
       addNumericSortDocValues(document, FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label);
       addNumericSortDocValues(document, FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label);
-      // Threat level is set only on POLICY_VIOLATION docs; skip the field scan on the other item types.
       final String itemType = document.get(FieldIdentifier.ITEM_TYPE.label);
+      // Threat level is set only on POLICY_VIOLATION docs; skip the field scan on the other item types.
       if (ItemType.POLICY_VIOLATION.name().equals(itemType)) {
         addNumericSortDocValues(document, FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+      }
+      // The denormalized violation-aggregate int twins are set only on APPLICATION docs; guard the scan
+      // to that type so the max-threat (desc) and violation-state-ordinal (asc) sorts are sortable.
+      if (ItemType.APPLICATION.name().equals(itemType)) {
+        addNumericSortDocValues(document, FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label);
+        addNumericSortDocValues(document, FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label);
       }
       // Waiver + waiver-request docs back the WAIVER threat (descending) and expiration (ascending)
       // sorts on their numeric epoch/level twins, mirroring the POLICY_VIOLATION threat-level guard.

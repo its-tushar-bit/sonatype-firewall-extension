@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -66,6 +67,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -457,7 +459,7 @@ public class DocumentBuilderHelper
     // Pre-warm the per-app caches on indexingContext; return values are intentionally discarded
     // (the per-app buildDocument calls below read the warmed caches).
     latestEvaluationEpochMsByApp(indexingContext, applicationIds);
-    stageSeverityCountsByApp(indexingContext, applicationIds);
+    violationRollupByApp(indexingContext, applicationIds);
     categoryNamesByApp(indexingContext, applicationIds);
     return applications.stream()
         .map(app -> buildDocument(indexingContext, app, parentOrgsByOrganization))
@@ -510,10 +512,17 @@ public class DocumentBuilderHelper
         builder.setApplicationLastEvaluationTimeEpochMs(lastEvaluationEpochMs);
       }
 
-      List<String> stageSeverityCounts = stageSeverityCountsByApp(indexingContext, Set.of(applicationId))
-          .getOrDefault(applicationId, Collections.emptyList());
-      if (!stageSeverityCounts.isEmpty()) {
-        builder.setApplicationStageSeverityCounts(stageSeverityCounts);
+      IndexingContext.ViolationRollup rollup =
+          violationRollupByApp(indexingContext, Set.of(applicationId)).get(applicationId);
+      if (rollup != null) {
+        if (!rollup.stageSeverityTokens().isEmpty()) {
+          builder.setApplicationStageSeverityCounts(rollup.stageSeverityTokens());
+        }
+        builder.setApplicationMaxPolicyThreatLevel(rollup.maxThreatLevel());
+        builder.setApplicationViolationStages(rollup.stages());
+        builder.setApplicationViolationPolicyTypes(rollup.policyTypes());
+        builder.setApplicationViolationStates(rollup.states());
+        builder.setApplicationViolationStateSortOrdinal(rollup.stateSortOrdinal());
       }
     }
 
@@ -630,53 +639,137 @@ public class DocumentBuilderHelper
   }
 
   /**
-   * Per-app {@code "stage:severity:count"} tokens ({@code stage} = {@link StageType#getId},
-   * {@code severity} = lowercase {@link ThreatLevel} name, {@code count} = number of active (unfixed
-   * and unwaived) violations in that bucket), memoized on {@code indexingContext} and warmed once per run by a
-   * single chunked IN-clause {@link PolicyViolationDAO#getActiveByApplicationIds} query (which
-   * auto-chunks large collections). Active = unfixed and unwaived (and non-legacy), so a waived
-   * violation is not counted as an active threat. Only non-zero buckets are emitted (sparse), so an
-   * app with no active violations is absent from the map and the doc omits the field; a violation on
-   * a stage outside {@link #ALL_STAGE_IDS} is dropped.
+   * Per-app combined {@link IndexingContext.ViolationRollup}, memoized on {@code indexingContext} and
+   * warmed once per run by a SINGLE chunked IN-clause {@link PolicyViolationDAO#getUnfixedByApplicationIds}
+   * query (which auto-chunks large collections). One widened fetch backs both the active-only display
+   * pills and the denormalized filter/sort aggregates — no extra query, no N+1.
    */
-  private Map<String, List<String>> stageSeverityCountsByApp(
+  private Map<String, IndexingContext.ViolationRollup> violationRollupByApp(
       final IndexingContext indexingContext,
       final Set<String> applicationIds)
   {
-    return indexingContext.getStageSeverityCountsByApp(applicationIds, this::loadStageSeverityCountsByApp);
+    return indexingContext.getViolationRollupByApp(applicationIds, this::loadViolationRollupByApp);
   }
 
-  private Map<String, List<String>> loadStageSeverityCountsByApp(final Set<String> applicationIds) {
+  /**
+   * Builds every app's {@link IndexingContext.ViolationRollup} from ONE widened
+   * {@link PolicyViolationDAO#getUnfixedByApplicationIds} fetch (unfixed = active + waived + legacy),
+   * classifying each violation once:
+   * <ul>
+   * <li>the ACTIVE-only stage:severity:count pills, max threat level, stages and policy-type sets are
+   * accumulated from {@code violation.isActive()} rows only — so widening the fetch does NOT change the
+   * active-only display pills;</li>
+   * <li>the violation-state set (open/waived/legacy) is classified over the whole unfixed set, so waived
+   * and legacy states surface;</li>
+   * <li>the worst (min) state-sort ordinal is the min priority across that state set.</li>
+   * </ul>
+   * A violation on a stage outside {@link #ALL_STAGE_IDS} is dropped from the stage rollups. An app with
+   * no unfixed violation is absent from the map (so the doc omits every field).
+   */
+  private Map<String, IndexingContext.ViolationRollup> loadViolationRollupByApp(final Set<String> applicationIds) {
     if (CollectionUtils.isEmpty(applicationIds)) {
       return Collections.emptyMap();
     }
-    List<PolicyViolation> violations = policyViolationDAO.getActiveByApplicationIds(applicationIds);
+    List<PolicyViolation> violations = policyViolationDAO.getUnfixedByApplicationIds(applicationIds);
     if (CollectionUtils.isEmpty(violations)) {
       return Collections.emptyMap();
     }
-    // app -> stage -> (severity -> count); restricted to the known stages so the output matches a
-    // per-stage query over StageTypes.getAll() (a violation on an unknown stage is dropped).
-    Map<String, Map<String, Map<ThreatLevel, Integer>>> countByAppStageAndLevel = new HashMap<>();
+    Map<String, RollupAccumulator> accumulators = new HashMap<>();
     for (PolicyViolation violation : violations) {
       String appId = violation.getApplicationId();
-      String stageId = violation.getStageTypeId();
-      if (appId == null || stageId == null || !ALL_STAGE_IDS.contains(stageId)) {
+      if (appId == null) {
         continue;
       }
-      ThreatLevel level = ThreatLevel.from(violation.getThreatLevel());
-      countByAppStageAndLevel
-          .computeIfAbsent(appId, id -> new HashMap<>())
-          .computeIfAbsent(stageId, id -> new HashMap<>())
-          .merge(level, 1, Integer::sum);
+      accumulators.computeIfAbsent(appId, id -> new RollupAccumulator()).add(violation);
     }
-    Map<String, List<String>> encodedByApp = new HashMap<>();
-    countByAppStageAndLevel.forEach((appId, countByStageAndLevel) -> {
-      List<String> encoded = new ArrayList<>();
-      countByStageAndLevel.forEach((stageId, countByLevel) -> countByLevel.forEach(
-          (level, count) -> encoded.add(encodeStageSeverityCount(stageId, level, count))));
-      encodedByApp.put(appId, encoded);
-    });
-    return encodedByApp;
+    Map<String, IndexingContext.ViolationRollup> rollupByApp = new HashMap<>();
+    accumulators.forEach((appId, acc) -> rollupByApp.put(appId, acc.toRollup()));
+    return rollupByApp;
+  }
+
+  /** Violation-state tokens surfaced on APPLICATION docs; the ordinal mirrors the prototype's priority. */
+  private static final String STATE_OPEN = "open";
+
+  private static final String STATE_WAIVED = "waived";
+
+  private static final String STATE_LEGACY = "legacy";
+
+  /**
+   * Prototype VIOLATION_STATE_PRIORITY: Open sorts before Waived before Legacy (ascending). An
+   * unknown token sorts last ({@link Integer#MAX_VALUE}) and is logged rather than throwing, so a
+   * future state or unexpected token degrades one app's sort ordinal instead of aborting the whole
+   * indexing batch (consistent with the drop-unknown-stage handling earlier in this class).
+   */
+  private static int stateSortPriority(final String state) {
+    return switch (state) {
+      case STATE_OPEN -> 0;
+      case STATE_WAIVED -> 1;
+      case STATE_LEGACY -> 2;
+      default -> {
+        log.warn("Unknown violation state {}; sorting it last", state);
+        yield Integer.MAX_VALUE;
+      }
+    };
+  }
+
+  /**
+   * Single-pass per-app accumulator. Active rows feed the display pills, max threat level, stages and
+   * policy-type sets; every unfixed row (active/waived/legacy) feeds the state set. Legacy is checked
+   * before waived so a legacy-and-waived violation classifies as legacy (matching the isActive gate,
+   * which excludes both).
+   */
+  private static final class RollupAccumulator
+  {
+    private final Map<String, Map<ThreatLevel, Integer>> activeCountByStageAndLevel = new HashMap<>();
+
+    private final Set<String> activeStages = new HashSet<>();
+
+    private final Set<String> activePolicyTypes = new HashSet<>();
+
+    private final Set<String> states = new HashSet<>();
+
+    private Integer maxActiveThreatLevel = null;
+
+    void add(final PolicyViolation violation) {
+      if (violation.isLegacyViolation()) {
+        states.add(STATE_LEGACY);
+      }
+      else if (violation.isWaived()) {
+        states.add(STATE_WAIVED);
+      }
+      else {
+        states.add(STATE_OPEN);
+      }
+      if (!violation.isActive()) {
+        return;
+      }
+      int threatLevel = violation.getThreatLevel();
+      maxActiveThreatLevel = maxActiveThreatLevel == null ? threatLevel : Math.max(maxActiveThreatLevel, threatLevel);
+      PolicyThreatCategory category = violation.getThreatCategory();
+      if (category != null) {
+        activePolicyTypes.add(category.getName());
+      }
+      String stageId = violation.getStageTypeId();
+      if (stageId != null && ALL_STAGE_IDS.contains(stageId)) {
+        activeStages.add(stageId);
+        activeCountByStageAndLevel
+            .computeIfAbsent(stageId, id -> new HashMap<>())
+            .merge(ThreatLevel.from(threatLevel), 1, Integer::sum);
+      }
+    }
+
+    IndexingContext.ViolationRollup toRollup() {
+      List<String> tokens = new ArrayList<>();
+      activeCountByStageAndLevel.forEach((stageId, countByLevel) -> countByLevel.forEach(
+          (level, count) -> tokens.add(encodeStageSeverityCount(stageId, level, count))));
+      // states is non-empty here (an accumulator exists only for an app with >=1 unfixed violation),
+      // so the ordinal is always present; an app with no unfixed violation is absent from the map and
+      // has no ordinal, so it sorts last under the ascending violation-state sort.
+      OptionalInt minStateOrdinal = states.stream().mapToInt(DocumentBuilderHelper::stateSortPriority).min();
+      Integer stateSortOrdinal = minStateOrdinal.isPresent() ? minStateOrdinal.getAsInt() : null;
+      return new IndexingContext.ViolationRollup(
+          tokens, maxActiveThreatLevel, activeStages, activePolicyTypes, states, stateSortOrdinal);
+    }
   }
 
   /**

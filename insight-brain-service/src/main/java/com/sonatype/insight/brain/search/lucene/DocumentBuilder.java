@@ -48,10 +48,15 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_PUBLIC_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VERSION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_STAGE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_STATE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_FORMAT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_HASH;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_COLOR;
@@ -254,6 +259,16 @@ public class DocumentBuilder
   private Optional<Field[]> applicationLastEvaluationTimeEpochMs = Optional.empty();
 
   private Optional<Field[]> applicationStageSeverityCounts = Optional.empty();
+
+  private Optional<Field[]> applicationMaxPolicyThreatLevel = Optional.empty();
+
+  private Optional<Field[]> applicationViolationStages = Optional.empty();
+
+  private Optional<Field[]> applicationViolationPolicyTypes = Optional.empty();
+
+  private Optional<Field[]> applicationViolationStates = Optional.empty();
+
+  private Optional<Field[]> applicationViolationStateSortOrdinal = Optional.empty();
 
   public DocumentBuilder(ItemType itemType) {
     this.itemType = itemType;
@@ -857,6 +872,76 @@ public class DocumentBuilder
     return this;
   }
 
+  /**
+   * Max policy threat level (0-10) across the app's active violations. An {@link IntPoint} (indexed)
+   * backs {@code [min TO max]} range filters; a {@link StoredField} keeps the display value. The
+   * numeric sort doc-values twin is added in {@link LuceneIndexingContext#addDocuments}, not here, so
+   * no null serializes into the OpenSearch {@code _source}. Null (no active violation) writes nothing.
+   */
+  public DocumentBuilder setApplicationMaxPolicyThreatLevel(final Integer maxThreatLevel) {
+    if (maxThreatLevel != null) {
+      this.applicationMaxPolicyThreatLevel = Optional.of(new Field[]{
+        new IntPoint(APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel),
+        new StoredField(APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel)});
+    }
+    return this;
+  }
+
+  /**
+   * Multi-valued set of stage ids with an active violation. Each entry is a keyword {@link StringField}
+   * so a stages filter matches whole ids. A null/empty collection writes nothing (an app with no active
+   * violation matches no stages filter rather than NPE-ing on a pre-reindex doc).
+   */
+  public DocumentBuilder setApplicationViolationStages(final Collection<String> stageIds) {
+    this.applicationViolationStages = toKeywordFields(APPLICATION_VIOLATION_STAGE.label, stageIds);
+    return this;
+  }
+
+  /**
+   * Multi-valued set of policy threat categories present among the app's active violations. Keyword
+   * {@link StringField}s (lowercased security/license/quality/other). Null/empty writes nothing.
+   */
+  public DocumentBuilder setApplicationViolationPolicyTypes(final Collection<String> policyTypes) {
+    this.applicationViolationPolicyTypes = toKeywordFields(APPLICATION_VIOLATION_POLICY_TYPE.label, policyTypes);
+    return this;
+  }
+
+  /**
+   * Multi-valued set of violation states present among the app's unfixed violations (open/waived/legacy,
+   * lowercased). Keyword {@link StringField}s. Null/empty writes nothing.
+   */
+  public DocumentBuilder setApplicationViolationStates(final Collection<String> states) {
+    this.applicationViolationStates = toKeywordFields(APPLICATION_VIOLATION_STATE.label, states);
+    return this;
+  }
+
+  /**
+   * Worst (minimum) violation-state priority across the app's states (Open=0/Waived=1/Legacy=2). An
+   * {@link IntPoint} + {@link StoredField}; the numeric sort doc-values twin is added in
+   * {@link LuceneIndexingContext#addDocuments}. Null (no violation) writes nothing, so the app sorts
+   * last under the ascending violation-state sort (Open first).
+   */
+  public DocumentBuilder setApplicationViolationStateSortOrdinal(final Integer ordinal) {
+    if (ordinal != null) {
+      this.applicationViolationStateSortOrdinal = Optional.of(new Field[]{
+        new IntPoint(APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label, ordinal),
+        new StoredField(APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label, ordinal)});
+    }
+    return this;
+  }
+
+  private static Optional<Field[]> toKeywordFields(final String label, final Collection<String> values) {
+    if (values == null || values.isEmpty()) {
+      return Optional.empty();
+    }
+    Field[] fields = values.stream()
+        .filter(Objects::nonNull)
+        .distinct()
+        .map(value -> (Field) new StringField(label, value, Store.YES))
+        .toArray(Field[]::new);
+    return fields.length == 0 ? Optional.empty() : Optional.of(fields);
+  }
+
   public Document build() {
     organizationId.ifPresent(this::setFields);
     organizationName.ifPresent(this::setFields);
@@ -926,6 +1011,11 @@ public class DocumentBuilder
     applicationCategoryNames.ifPresent(this::setFields);
     applicationLastEvaluationTimeEpochMs.ifPresent(this::setFields);
     applicationStageSeverityCounts.ifPresent(this::setFields);
+    applicationMaxPolicyThreatLevel.ifPresent(this::setFields);
+    applicationViolationStages.ifPresent(this::setFields);
+    applicationViolationPolicyTypes.ifPresent(this::setFields);
+    applicationViolationStates.ifPresent(this::setFields);
+    applicationViolationStateSortOrdinal.ifPresent(this::setFields);
     addDocumentKey();
     return document;
   }

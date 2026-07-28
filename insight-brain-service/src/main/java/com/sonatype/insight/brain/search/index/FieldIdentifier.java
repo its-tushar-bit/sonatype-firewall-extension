@@ -139,7 +139,47 @@ public enum FieldIdentifier
    * (unfixed and unwaived) violations in that (stage, severity) bucket. Absent stages/severities emit
    * no entry (sparse).
    */
-  APPLICATION_STAGE_SEVERITY_COUNT("applicationStageSeverityCount");
+  APPLICATION_STAGE_SEVERITY_COUNT("applicationStageSeverityCount"),
+
+  /**
+   * Max raw policy threat level (0-10) across the application's active (unfixed, unwaived, non-legacy)
+   * violations. Range-queryable {@link org.apache.lucene.document.IntPoint} + numeric sort doc-values +
+   * stored display value, mirroring {@link #APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS}. Absent when the
+   * app has no active violations (so the doc omits the field and reads as "no threat"). Backs the
+   * Applications policy-threat-level range filter and the policy-threat-level sort (desc).
+   */
+  APPLICATION_MAX_POLICY_THREAT_LEVEL("applicationMaxPolicyThreatLevel"),
+
+  /**
+   * Set of {@link com.sonatype.insight.brain.model.policy.StageType} ids that have at least one active
+   * violation on the application. Multi-valued keyword (validated against the global stage registry);
+   * a stage with no active violation emits no entry. Backs the Applications stages filter.
+   */
+  APPLICATION_VIOLATION_STAGE("applicationViolationStage"),
+
+  /**
+   * Set of policy threat categories ({@code security}/{@code license}/{@code quality}/{@code other},
+   * lowercased) present among the application's active violations. Multi-valued keyword. Backs the
+   * Applications policy-types filter.
+   */
+  APPLICATION_VIOLATION_POLICY_TYPE("applicationViolationPolicyType"),
+
+  /**
+   * Set of violation states ({@code open}/{@code waived}/{@code legacy}, lowercased) present among the
+   * application's unfixed violations. Multi-valued keyword. Distinct from the active-only stage/severity
+   * rollup: this classifies the wider unfixed set so waived and legacy states surface, but the
+   * active-only display pills ({@link #APPLICATION_STAGE_SEVERITY_COUNT}) are unaffected. Backs the
+   * Applications violation-state filter.
+   */
+  APPLICATION_VIOLATION_STATE("applicationViolationState"),
+
+  /**
+   * Worst (minimum) violation-state priority across the application's states, Open=0/Waived=1/Legacy=2
+   * (the prototype's VIOLATION_STATE_PRIORITY). Range-queryable {@link org.apache.lucene.document.IntPoint}
+   * + numeric sort doc-values + stored value. Absent when the app has no violations, so under an ascending
+   * "violation state" sort (Open first) an app with no violations sorts last. Backs the violation-state sort.
+   */
+  APPLICATION_VIOLATION_STATE_SORT_ORDINAL("applicationViolationStateSortOrdinal");
 
   public final String label;
 

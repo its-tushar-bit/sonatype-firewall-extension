@@ -90,7 +90,8 @@ public final class GlobalSearchSortAllowlist
     // enabled. It can be added once sortFor selects a numeric SortField and the index emits the
     // sorted-numeric twin for the field.
     m.put(VULNERABILITY, ImmutableSet.of(RELEVANCE, "name"));
-    m.put(APPLICATION, ImmutableSet.of(RELEVANCE, "name", "policyEvaluationStage", "lastEvaluationTime"));
+    m.put(APPLICATION, ImmutableSet.of(
+        RELEVANCE, "name", "policyEvaluationStage", "lastEvaluationTime", "policyThreatLevel", "violationState"));
 
     m.put(VIOLATION, ImmutableSet.of(RELEVANCE, "name", "threat"));
     // WAIVER supports relevance + created (newest first, default), threat (highest first), and

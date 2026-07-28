@@ -394,6 +394,33 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   @Test
+  public void search_appliesNumericMaxPolicyThreatSort_descending_forApplication() throws Exception {
+    // A5: highest max-threat first. Lexicographic would order "10" before "9"; numeric places 10 first,
+    // then 9, then 3. An app with no max-threat (null ordinal) sorts last (missing-value default).
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(appThreatDoc("a-9", 9));
+        writer.addDocument(appThreatDoc("a-10", 10));
+        writer.addDocument(appThreatDoc("a-3", 3));
+        writer.addDocument(appThreatDoc("a-none", null));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byThreat = IqLocalSearchService.sortFor(Tab.APPLICATION, "policyThreatLevel");
+        Query allApps = new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+            FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name().toLowerCase()));
+        TopDocs top = localSearcher.search(allApps, 10, byThreat);
+        List<String> order = new ArrayList<>();
+        for (ScoreDoc sd : top.scoreDocs) {
+          order.add(localSearcher.storedFields().document(sd.doc).get(FieldIdentifier.APPLICATION_PUBLIC_ID.label));
+        }
+        assertThat(order).containsExactly("a-10", "a-9", "a-3", "a-none");
+      }
+    }
+  }
+
+  @Test
   public void search_appliesNumericThreatSort_descending_forWaiver() throws Exception {
     // WAIVER threat sort: highest threat first, NUMERIC (not lexicographic). If it sorted the level
     // as a string, "10" would order before "2"; numeric order puts 10 (w-hi) first, then 2 (w-lo).
@@ -412,6 +439,32 @@ public class IqLocalSearchServiceLuceneTest
           order.add(localSearcher.storedFields().document(sd.doc).get(FieldIdentifier.POLICY_WAIVER_ID.label));
         }
         assertThat(order).as("threat sorts numerically, highest first").containsExactly("w-hi", "w-lo");
+      }
+    }
+  }
+
+  @Test
+  public void search_appliesViolationStateOrdinalSort_ascending_openFirst_forApplication() throws Exception {
+    // A6: Open(0) first, then Waived(1), then Legacy(2). An app with no ordinal sorts last.
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(appStateOrdinalDoc("a-legacy", 2));
+        writer.addDocument(appStateOrdinalDoc("a-open", 0));
+        writer.addDocument(appStateOrdinalDoc("a-waived", 1));
+        writer.addDocument(appStateOrdinalDoc("a-none", null));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byState = IqLocalSearchService.sortFor(Tab.APPLICATION, "violationState");
+        Query allApps = new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+            FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name().toLowerCase()));
+        TopDocs top = localSearcher.search(allApps, 10, byState);
+        List<String> order = new ArrayList<>();
+        for (ScoreDoc sd : top.scoreDocs) {
+          order.add(localSearcher.storedFields().document(sd.doc).get(FieldIdentifier.APPLICATION_PUBLIC_ID.label));
+        }
+        assertThat(order).containsExactly("a-open", "a-waived", "a-legacy", "a-none");
       }
     }
   }
@@ -775,6 +828,30 @@ public class IqLocalSearchServiceLuceneTest
     doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_VIOLATION.name(), Store.YES));
     doc.add(new TextField(FieldIdentifier.POLICY_VIOLATION_ID.label, violationId, Store.YES));
     doc.add(new SortedNumericDocValuesField(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label, threatLevel));
+    return doc;
+  }
+
+  /** APPLICATION doc carrying the max-policy-threat numeric sort twin (null = no active violation). */
+  private static Document appThreatDoc(final String publicId, final Integer maxThreatLevel) {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_PUBLIC_ID.label, publicId, Store.YES));
+    if (maxThreatLevel != null) {
+      doc.add(new SortedNumericDocValuesField(
+          FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel));
+    }
+    return doc;
+  }
+
+  /** APPLICATION doc carrying the violation-state-ordinal numeric sort twin (null = no violation). */
+  private static Document appStateOrdinalDoc(final String publicId, final Integer ordinal) {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_PUBLIC_ID.label, publicId, Store.YES));
+    if (ordinal != null) {
+      doc.add(new SortedNumericDocValuesField(
+          FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label, ordinal));
+    }
     return doc;
   }
 

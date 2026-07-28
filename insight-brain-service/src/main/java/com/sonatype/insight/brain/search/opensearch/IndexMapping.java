@@ -163,6 +163,14 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label, createProperty("long"));
     // Multi-valued "stage:severity:count" tokens; keyword so each entry is matched/faceted whole.
     propertyMappings.put(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label, createProperty("keyword"));
+    // Denormalized violation aggregates for the Applications filter/sort rail. Integer max threat level
+    // (range filter + desc sort) and the worst state-sort ordinal (asc sort); multi-valued keyword sets
+    // of stages / policy types / states (TERMS filters). Same reindex-to-populate caveat as above.
+    propertyMappings.put(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, createProperty("integer"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_VIOLATION_STATE.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label, createProperty("integer"));
 
     // Denormalized permission-filter field. Case-sensitive keyword (no normalizer) so opaque
     // context IDs are matched byte-for-byte. Multi-valued (set per document by DocumentBuilder).

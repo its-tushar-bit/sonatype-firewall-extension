@@ -78,17 +78,27 @@ public final class IndexQueryFilterSchema
 
   private static Map<IndexQueryType, Map<String, FilterDef>> buildSchema() {
     return Map.of(
-        // No policyThreatLevel/violationStates/stages on APPLICATION: they are aggregations over the
-        // app's violations, not indexed application attributes (policyEvaluationStage is written only on
-        // violation/vuln docs, never on an APPLICATION doc), so they cannot be honoured here.
-        // applicationCategoryName is now denormalized (multi-valued) onto APPLICATION docs, so the
-        // categories filter is honoured. Filter semantics: values within one filter are OR'd; distinct
-        // filters AND-narrow (standard faceted-search rail — see the filter compiler).
-        IndexQueryType.APPLICATION, Map.of(
-            "query", FREE_TEXT_QUERY,
-            "organizations", new FilterDef("organizationName", Kind.TERMS),
-            "applications", new FilterDef("applicationName", Kind.TERMS),
-            "applicationCategories", new FilterDef("applicationCategoryName", Kind.TERMS)),
+        // stages/policyTypes/violationStates/policyThreatLevel are now honoured on APPLICATION docs via
+        // denormalized aggregates written in the one violations rollup pass (DocumentBuilderHelper):
+        // applicationViolationStage/PolicyType/State are precomputed multi-valued keyword sets (TERMS,
+        // NOT Kind.STATE — the state set already lists open/waived/legacy), and applicationMaxPolicyThreatLevel
+        // is the max-threat int (RANGE). age is a RANGE over the existing applicationLastEvaluationTimeEpochMs
+        // (no index change), taking a two-element [minEpochMs, maxEpochMs] numeric bound.
+        // applicationCategoryName is denormalized (multi-valued) onto
+        // APPLICATION docs, so the categories filter is honoured. Filter semantics: values within one filter are
+        // OR'd; distinct filters AND-narrow (standard faceted-search rail — see the filter compiler).
+        IndexQueryType.APPLICATION, Map.ofEntries(
+            Map.entry("query", FREE_TEXT_QUERY),
+            Map.entry("organizations", new FilterDef("organizationName", Kind.TERMS)),
+            Map.entry("applications", new FilterDef("applicationName", Kind.TERMS)),
+            Map.entry("applicationCategories", new FilterDef("applicationCategoryName", Kind.TERMS)),
+            Map.entry("stages", new FilterDef("applicationViolationStage", Kind.TERMS)),
+            Map.entry("policyTypes", new FilterDef("applicationViolationPolicyType", Kind.TERMS)),
+            Map.entry("violationStates", new FilterDef("applicationViolationState", Kind.TERMS)),
+            Map.entry("policyThreatLevel", new FilterDef("applicationMaxPolicyThreatLevel", Kind.RANGE)),
+            // age: RANGE over applicationLastEvaluationTimeEpochMs; caller resolves window -> [fromEpochMs, toEpochMs]
+            // epoch bounds. No server-side window resolution is applied here.
+            Map.entry("age", new FilterDef("applicationLastEvaluationTimeEpochMs", Kind.RANGE))),
         // applicationCategoryName is now denormalized (multi-valued) onto violation docs, so the
         // categories filter is honoured here too. states/waiverType compile against
         // policyViolationWaiverStatus (OPEN = not waived). Values within one filter are OR'd; distinct

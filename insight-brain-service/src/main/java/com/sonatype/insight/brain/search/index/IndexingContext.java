@@ -77,15 +77,50 @@ public abstract class IndexingContext
   private final Set<String> latestEvaluationLoadedApps = ConcurrentHashMap.newKeySet();
 
   /**
-   * Memoized {@code applicationId} -> its {@code "stage:severity:count"} rollup tokens, populated
-   * load-on-miss by {@link #getStageSeverityCountsByApp}. Apps with no unfixed violations are
-   * absent (so the caller omits the field), but {@link #stageSeverityCountsLoadedApps} records the
-   * app ids already loaded so an app with no violations is not re-queried on every call.
+   * Memoized {@code applicationId} -> its combined {@link ViolationRollup} (the active-only
+   * {@code "stage:severity:count"} display tokens plus the denormalized filter/sort aggregates),
+   * populated load-on-miss by {@link #getViolationRollupByApp}. Both are computed from ONE widened
+   * violations query, so the pills and the aggregates share a single DB round-trip per app batch. Apps
+   * with no unfixed violations are absent (so the caller omits the fields), but
+   * {@link #violationRollupLoadedApps} records the app ids already loaded so a no-violation app is not
+   * re-queried on every call.
    */
-  private final Map<String, List<String>> stageSeverityCountsByApp = new ConcurrentHashMap<>();
+  private final Map<String, ViolationRollup> violationRollupByApp = new ConcurrentHashMap<>();
 
-  /** App ids whose stage-severity-count load has already run (present here even when they had no violations). */
-  private final Set<String> stageSeverityCountsLoadedApps = ConcurrentHashMap.newKeySet();
+  /** App ids whose violation-rollup load has already run (present here even when they had no violations). */
+  private final Set<String> violationRollupLoadedApps = ConcurrentHashMap.newKeySet();
+
+  /**
+   * Combined per-application violation rollup surfaced onto APPLICATION docs, computed in one widened
+   * violations query.
+   * <ul>
+   * <li>{@code stageSeverityTokens} — the ACTIVE-only {@code "stage:severity:count"} display pills
+   * (never null, possibly empty), unchanged by the wider fetch;</li>
+   * <li>{@code maxThreatLevel} — max raw threat level across ACTIVE violations (null when none);</li>
+   * <li>{@code stages}/{@code policyTypes} — sets derived from ACTIVE violations only (never null);</li>
+   * <li>{@code states} — open/waived/legacy classified over the wider UNFIXED set so waived/legacy
+   * surface (never null);</li>
+   * <li>{@code stateSortOrdinal} — worst (min) state-sort priority across {@code states} (null when
+   * the app has no unfixed violation).</li>
+   * </ul>
+   */
+  public record ViolationRollup(
+      List<String> stageSeverityTokens,
+      Integer maxThreatLevel,
+      Set<String> stages,
+      Set<String> policyTypes,
+      Set<String> states,
+      Integer stateSortOrdinal)
+  {
+    public ViolationRollup {
+      // Defend the Javadoc's "never null" contract and freeze the collections so the cached rollup
+      // cannot be mutated after construction (maxThreatLevel/stateSortOrdinal are explicitly nullable).
+      stageSeverityTokens = stageSeverityTokens == null ? List.of() : List.copyOf(stageSeverityTokens);
+      stages = stages == null ? Set.of() : Set.copyOf(stages);
+      policyTypes = policyTypes == null ? Set.of() : Set.copyOf(policyTypes);
+      states = states == null ? Set.of() : Set.copyOf(states);
+    }
+  }
 
   /**
    * Latest-evaluation epoch-millis per app, cached load-on-miss via {@code loader}. On each call the
@@ -115,12 +150,12 @@ public abstract class IndexingContext
    * violations. Returns only the subset for {@code applicationIds} (O(requested)), so a caller
    * cannot accidentally iterate the whole accumulated cache; an app with no violations is absent.
    */
-  public Map<String, List<String>> getStageSeverityCountsByApp(
+  public Map<String, ViolationRollup> getViolationRollupByApp(
       final Set<String> applicationIds,
-      final Function<Set<String>, Map<String, List<String>>> loader)
+      final Function<Set<String>, Map<String, ViolationRollup>> loader)
   {
-    loadMissing(applicationIds, stageSeverityCountsLoadedApps, loader, stageSeverityCountsByApp::putAll);
-    return subsetFor(applicationIds, stageSeverityCountsByApp);
+    loadMissing(applicationIds, violationRollupLoadedApps, loader, violationRollupByApp::putAll);
+    return subsetFor(applicationIds, violationRollupByApp);
   }
 
   /**

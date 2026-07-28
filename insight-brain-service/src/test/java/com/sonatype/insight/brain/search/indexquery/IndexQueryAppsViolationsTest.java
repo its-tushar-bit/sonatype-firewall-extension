@@ -6,20 +6,19 @@
 package com.sonatype.insight.brain.search.indexquery;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
-import com.sonatype.insight.brain.search.global.FilterValidationException;
 import com.sonatype.insight.brain.search.global.GlobalSearchRequest;
 import com.sonatype.insight.brain.search.global.GlobalSearchResult;
 import com.sonatype.insight.brain.search.ConversionHelper;
@@ -35,7 +34,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -203,10 +204,13 @@ public class IndexQueryAppsViolationsTest
   }
 
   @Test
-  public void applicationStagesFilter_isRejectedAsUnknown() {
-    assertThatThrownBy(() -> resource.query(new IndexQueryRequest(
-        "APPLICATION", Map.of("stages", List.of("build")), 1, 25, null, null, false)))
-            .isInstanceOf(FilterValidationException.class);
+  public void applicationStagesFilter_compilesAgainstDenormalizedField_andNarrowsToActiveStage() {
+    // The APPLICATION stages filter compiles against the denormalized applicationViolationStage set
+    // (one entry per stage with an active violation), so filtering by build keeps only apps that
+    // actually carry a build-stage violation.
+    IndexQueryResponse resp = resource.query(new IndexQueryRequest(
+        "APPLICATION", Map.of("stages", List.of("build")), 1, 25, null, null, false));
+    assertThat(resp.rows()).extracting(IndexQueryRow::getId).containsExactly("acme-prod");
   }
 
   // ---- Violations --------------------------------------------------------------------------
@@ -405,8 +409,15 @@ public class IndexQueryAppsViolationsTest
     if (lastEvalEpochMs != null) {
       doc.add(new StoredField(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label, lastEvalEpochMs));
     }
+    Set<String> activeStages = new LinkedHashSet<>();
     for (String token : stageSeverityTokens) {
-      doc.add(new TextField(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label, token, Store.YES));
+      doc.add(new StringField(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label, token, Store.YES));
+      activeStages.add(token.substring(0, token.indexOf(':')));
+    }
+    // Denormalized multi-valued keyword set backing the APPLICATION stages filter (one entry per
+    // stage carrying an active violation), mirroring DocumentBuilderHelper's violations rollup.
+    for (String stage : activeStages) {
+      doc.add(new StringField(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label, stage, Store.YES));
     }
     return doc;
   }
@@ -443,6 +454,108 @@ public class IndexQueryAppsViolationsTest
     for (String category : categories) {
       doc.add(new TextField(FieldIdentifier.APPLICATION_CATEGORY_NAME.label, category, Store.YES));
     }
+    return doc;
+  }
+
+  // ---- policyThreatLevel RANGE + facets regression (Lucene pointsConfig) -------------------
+
+  /**
+   * Regression: with a {@code policyThreatLevel} RANGE filter active AND facets requested, the
+   * range clause lands in the whole-corpus facet base query. The facet counts are computed via the
+   * real Lucene {@code newQueryParser()} points-config path, so if
+   * {@code applicationMaxPolicyThreatLevel} were missing from {@code pointsConfigsByFieldName} the
+   * {@code [7 TO 10]} clause would parse as a lexical term over an IntPoint-only field, matching
+   * nothing and zeroing every facet count. Non-zero counts prove the points config is registered.
+   */
+  @Test
+  public void applicationPolicyThreatLevelRange_withFacets_countsAreNotZeroed() throws Exception {
+    try (Directory threatDir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer =
+          new IndexWriter(threatDir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer())))
+      {
+        // Two Acme apps at/above the range, one below; one Widget app above.
+        writer.addDocument(appThreatDoc("acme-hi", "Acme Hi", "Acme", 9));
+        writer.addDocument(appThreatDoc("acme-mid", "Acme Mid", "Acme", 7));
+        writer.addDocument(appThreatDoc("acme-lo", "Acme Lo", "Acme", 3));
+        writer.addDocument(appThreatDoc("widget-hi", "Widget Hi", "Widget Co", 8));
+        writer.commit();
+      }
+      try (IndexReader threatReader = DirectoryReader.open(threatDir)) {
+        IndexSearcher threatSearcher = new IndexSearcher(threatReader);
+        ConversionHelper realConversion = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
+
+        SearchIndexClient client = mock(SearchIndexClient.class);
+        when(client.isGlobalSearchEnabled()).thenReturn(true);
+        when(client.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of("org-1"));
+        when(client.buildAllowedContextIdsFilter(any())).thenReturn(null);
+        when(client.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
+        when(client.buildPermittedQuery(any())).thenCallRealMethod();
+        when(client.getLastIndexTime()).thenReturn(1000L);
+        when(client.backendId()).thenReturn("lucene");
+        when(client.searchGlobal(any(GlobalSearchRequest.class)))
+            .thenAnswer(inv -> runRealSearchOn(threatSearcher, threatReader, inv.getArgument(0)));
+        when(client.count(any()))
+            .thenAnswer(inv -> (long) threatSearcher.count(realConversion.stringToQuery(inv.getArgument(0))));
+
+        IqLocalSearchService iq = new IqLocalSearchService(client);
+        IndexQueryResource threatResource = new IndexQueryResource(new IndexQueryService(iq, client, null), client);
+
+        // policyThreatLevel=[7,10] narrows result rows to acme-hi(9), acme-mid(7), widget-hi(8).
+        IndexQueryResponse resp = threatResource.query(new IndexQueryRequest(
+            "APPLICATION", Map.of("policyThreatLevel", List.of(7, 10)), 1, 25, null, null, true));
+        assertThat(resp.rows()).extracting(IndexQueryRow::getId)
+            .containsExactlyInAnyOrder("acme-hi", "acme-mid", "widget-hi");
+
+        // The whole-corpus org facet is counted against a base that carries the RANGE clause. Before
+        // the points-config fix these counts collapse to 0; after it, Acme=2 and Widget Co=1.
+        Map<String, Long> orgCounts = countsByValue(resp, "organizations");
+        assertThat(orgCounts).containsEntry("Acme", 2L).containsEntry("Widget Co", 1L);
+      }
+    }
+  }
+
+  private static GlobalSearchResult runRealSearchOn(
+      final IndexSearcher altSearcher,
+      final IndexReader altReader,
+      final GlobalSearchRequest request) throws Exception
+  {
+    List<String> after = request.searchAfter();
+    TopDocs all = altSearcher.search(request.baseQuery(), Math.max(1, altReader.maxDoc()));
+    int startDocExclusive = (after != null && !after.isEmpty()) ? Integer.parseInt(after.get(0)) : -1;
+    List<ScoreDoc> ordered = new ArrayList<>();
+    for (ScoreDoc sd : all.scoreDocs) {
+      if (sd.doc > startDocExclusive) {
+        ordered.add(sd);
+      }
+    }
+    List<SearchResultItemDTO> rows = new ArrayList<>();
+    int returnCount = Math.min(ordered.size(), request.pageSize());
+    List<String> nextSearchAfter = List.of();
+    for (int i = 0; i < returnCount; i++) {
+      ScoreDoc hit = ordered.get(i);
+      rows.add(new SearchResultItemDTO(altSearcher.storedFields().document(hit.doc)));
+      if (i == returnCount - 1 && ordered.size() > request.pageSize()) {
+        nextSearchAfter = List.of(String.valueOf(hit.doc));
+      }
+    }
+    return new GlobalSearchResult(rows, all.totalHits.value, nextSearchAfter);
+  }
+
+  private static Document appThreatDoc(
+      final String publicId,
+      final String name,
+      final String orgName,
+      final int maxThreatLevel)
+  {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_PUBLIC_ID.label, publicId, Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_ID.label, publicId + "-appid", Store.YES));
+    doc.add(new TextField(FieldIdentifier.APPLICATION_NAME.label, name, Store.YES));
+    doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
+    doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
+    doc.add(new IntPoint(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel));
+    doc.add(new StoredField(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel));
     return doc;
   }
 }

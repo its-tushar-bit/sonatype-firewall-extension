@@ -318,4 +318,30 @@ public class FieldMapTest
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Integer.class, Long.class, or Float.class");
   }
+
+  @Test
+  public void applicationViolationAggregateFilters_areApplicationScopedKeywordsAndRange() {
+    // A1/A2/A3 multi-valued keyword TERMS filters, APPLICATION-only.
+    FieldEntry stage = map.lookup("applicationViolationStage").orElseThrow();
+    assertThat(stage.label()).isEqualTo(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label);
+    assertThat(stage.kind()).isEqualTo(FieldKind.KEYWORD);
+    assertThat(stage.allowedTypes()).containsExactly(ItemType.APPLICATION);
+
+    FieldEntry policyType = map.lookup("applicationViolationPolicyType").orElseThrow();
+    assertThat(policyType.label()).isEqualTo(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label);
+    assertThat(policyType.kind()).isEqualTo(FieldKind.KEYWORD);
+    assertThat(policyType.allowedTypes()).containsExactly(ItemType.APPLICATION);
+
+    FieldEntry state = map.lookup("applicationViolationState").orElseThrow();
+    assertThat(state.label()).isEqualTo(FieldIdentifier.APPLICATION_VIOLATION_STATE.label);
+    assertThat(state.kind()).isEqualTo(FieldKind.KEYWORD);
+    assertThat(state.allowedTypes()).containsExactly(ItemType.APPLICATION);
+
+    // A4 max-threat int RANGE filter, APPLICATION-only.
+    FieldEntry maxThreat = map.lookup("applicationMaxPolicyThreatLevel").orElseThrow();
+    assertThat(maxThreat.label()).isEqualTo(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label);
+    assertThat(maxThreat.kind()).isEqualTo(FieldKind.NUMERIC);
+    assertThat(maxThreat.numericType()).isEqualTo(Integer.class);
+    assertThat(maxThreat.allowedTypes()).containsExactly(ItemType.APPLICATION);
+  }
 }

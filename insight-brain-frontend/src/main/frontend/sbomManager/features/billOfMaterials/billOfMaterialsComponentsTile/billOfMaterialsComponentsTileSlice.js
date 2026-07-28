@@ -98,6 +98,7 @@ const resetLoadComponentsConfigurations = (state) => {
   state.sortConfiguration = { ...defaultSortConfiguration };
   state.filterConfiguration = { ...defaultFilterConfiguration };
   state.pagination = { ...paginationInitialState };
+  state.componentSearch = null;
 };
 
 const setLoadingComponents = (state, { payload }) => {

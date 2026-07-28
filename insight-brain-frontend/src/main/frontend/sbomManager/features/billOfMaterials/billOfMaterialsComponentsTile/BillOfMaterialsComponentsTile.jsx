@@ -341,7 +341,7 @@ export default function BillOfMaterialsComponentsTile() {
             <NxH2>Components</NxH2>
           </NxTile.HeaderTitle>
           <NxTile.HeaderActions className="sbom-manager-bill-of-materials-components-tile__actions">
-            <ComponentsTileComponentSearch onSearch={componentSearch} />
+            <ComponentsTileComponentSearch key={`${internalAppId}-${sbomVersion}`} onSearch={componentSearch} />
             <NxButton variant="tertiary" onClick={toggleFilterDrawer} disabled={loadingComponents}>
               <NxFontAwesomeIcon icon={faFilter} />
               <span>Filter By</span>

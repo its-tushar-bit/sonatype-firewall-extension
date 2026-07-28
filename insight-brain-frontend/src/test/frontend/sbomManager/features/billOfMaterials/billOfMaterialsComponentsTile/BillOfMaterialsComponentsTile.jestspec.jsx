@@ -16,6 +16,7 @@ import {
   SORT_BY_FIELDS,
   SORT_DIRECTION,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
 describe('BillOfMaterialsComponentsTile', () => {
   let axiosMock, initialState;
@@ -239,6 +240,31 @@ describe('BillOfMaterialsComponentsTile', () => {
       });
 
       expect(searchTextBox).toBeVisible();
+    });
+
+    it('clears the search input when the SBOM version changes without unmounting the tile', async () => {
+      const user = userEvent.setup();
+
+      const { store } = render(<BillOfMaterialsComponentsTile />, { preloadedState: initialState });
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const searchTextBox = screen.getByRole('textbox', { name: /Component Search/i });
+      await user.type(searchTextBox, 'junit');
+      expect(searchTextBox).toHaveValue('junit');
+
+      const bomRouteState = { name: 'sbomManager.management.view.bom', url: '', data: {} };
+      store.dispatch({
+        type: UI_ROUTER_ON_FINISH,
+        payload: {
+          fromState: bomRouteState,
+          fromParams: { versionId: SBOM_VERSION },
+          toState: bomRouteState,
+          toParams: { versionId: 'NEXT-SBOM-VERSION' },
+        },
+      });
+
+      await waitFor(() => expect(screen.getByRole('textbox', { name: /Component Search/i })).toHaveValue(''));
     });
   });
 

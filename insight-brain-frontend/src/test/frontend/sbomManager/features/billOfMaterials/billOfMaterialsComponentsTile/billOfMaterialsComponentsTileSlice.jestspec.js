@@ -88,6 +88,8 @@ describe('billOfMaterialsComponentsTileSlice', function () {
     pagination: { ...paginationInitialState },
 
     filterDrawer: { ...filterDrawerInitialState },
+
+    componentSearch: null,
   });
 
   describe('setLoadingComponents', () => {
@@ -129,6 +131,7 @@ describe('billOfMaterialsComponentsTileSlice', function () {
           pageCount: 99,
           currentPage: 42,
         },
+        componentSearch: 'junit',
       };
 
       const newState = reducer(state, {
@@ -138,6 +141,7 @@ describe('billOfMaterialsComponentsTileSlice', function () {
       expect(newState.sortConfiguration).toEqual(defaultSortConfiguration);
       expect(newState.filterConfiguration).toEqual(defaultFilterConfiguration);
       expect(newState.pagination).toEqual(paginationInitialState);
+      expect(newState.componentSearch).toBeNull();
     });
   });
 

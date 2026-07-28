@@ -25,6 +25,7 @@ import UserAddContainer from 'MainRoot/security/users/userConfiguration/UserAddC
 import UserEditContainer from 'MainRoot/security/users/userConfiguration/UserEditContainer';
 import UserActivityDetailsContainer from 'MainRoot/configuration/userActivityOverview/UserActivityDetailsContainer';
 import SystemNoticeConfigurationContainer from 'MainRoot/configuration/systemNoticeConfiguration/SystemNoticeConfigurationContainer';
+import AuthorizedAdvancedSearchConfig from 'MainRoot/nexus-one/AuthorizedAdvancedSearchConfig';
 import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
 import ApiPage from 'MainRoot/api/ApiPage';
@@ -761,6 +762,17 @@ router.stateRegistry.register({
   data: {
     title: 'Administrator Edit',
     isDirty: ['administratorsConfig', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'advancedSearchConfig',
+  url: '/advancedSearchConfig',
+  component: mountClassicComponent(AuthorizedAdvancedSearchConfig),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Advanced Search Configuration',
+    isDirty: ['advancedSearchConfig', 'viewState', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

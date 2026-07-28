@@ -366,6 +366,11 @@ describe('nexusOneClassicEmbedRoutes', () => {
       '/systemNoticeConfiguration',
       ['systemNoticeConfiguration', 'viewState', 'isDirty'],
     ],
+    [
+      'advancedSearchConfig',
+      '/advancedSearchConfig',
+      ['advancedSearchConfig', 'viewState', 'isDirty'],
+    ],
   ])('%s Classic-embed admin route', (stateName, url, isDirtyPath) => {
     const state = () => router.stateRegistry.get(stateName);
     const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
@@ -395,6 +400,19 @@ describe('nexusOneClassicEmbedRoutes', () => {
       (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
 
       await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      const rootState = rootReducer(undefined, { type: '@@INIT' });
+      const path = state()?.data?.isDirty as string[];
+      // Handle both 2-level [slice, field] and 3-level [slice, viewState, field] paths
+      let value: unknown;
+      if (path.length === 2) {
+        value = (rootState as Record<string, Record<string, unknown>>)[path[0]]?.[path[1]];
+      } else if (path.length === 3) {
+        value = (rootState as Record<string, Record<string, Record<string, unknown>>>)[path[0]]?.[path[1]]?.[path[2]];
+      }
+      expect(typeof value).toBe('boolean');
     });
   });
 

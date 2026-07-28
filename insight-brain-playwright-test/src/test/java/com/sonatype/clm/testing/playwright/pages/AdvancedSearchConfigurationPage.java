@@ -33,4 +33,12 @@ public class AdvancedSearchConfigurationPage
   public Locator tile() {
     return locator("#advanced-search-config");
   }
+
+  public Locator enabledCheckbox() {
+    return locator("#advanced-search-config-is-enabled-checkbox");
+  }
+
+  public Locator saveButton() {
+    return container().getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Save"));
+  }
 }

@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsEditPage;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
+import com.sonatype.clm.testing.playwright.pages.AdvancedSearchConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.BasePage;
@@ -1018,5 +1019,176 @@ public class NexusOneClassicEmbedPlaywrightTest
     page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
     SystemNoticePage noticePage = new SystemNoticePage();
     assertThat(noticePage.container()).isHidden();
+  }
+
+  // ===================================================================================
+  // Advanced Search Configuration embed tests (CLM-42963)
+  // ===================================================================================
+
+  /**
+   * CLM-42963: Classic advancedSearchConfig route is mounted inside Nexus One at
+   * {@code /advancedSearchConfig} on the Nexus One bundle, rendering the Classic form
+   * as-is inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedAdvancedSearchConfiguration_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    AdvancedSearchConfigurationPage configPage = new AdvancedSearchConfigurationPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(configPage.pageHeading()).isVisible();
+  }
+
+  /**
+   * CLM-42963 dirty-guard cancel path: toggling the checkbox dirties the form;
+   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user on
+   * the config page with the dirty value preserved.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAdvancedSearchConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
+
+    AdvancedSearchConfigurationPage configPage = new AdvancedSearchConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    configPage.container().waitFor();
+
+    // Capture the initial state, then flip it to dirty the form. Read-then-flip
+    // avoids the hardcoded assumption that the checkbox starts unchecked — a
+    // prior test in this class (or a server-side setting from a previous run)
+    // can leave it in either state.
+    // The dirty value is client-only, so no server-side cleanup is needed.
+    boolean wasChecked = configPage.enabledCheckbox().isChecked();
+    configPage.enabledCheckbox().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(configPage.container()).isVisible();
+
+    // Assert the checkbox is flipped from its initial state — the dirty value survived.
+    if (wasChecked) {
+      assertThat(configPage.enabledCheckbox()).not().isChecked();
+    }
+    else {
+      assertThat(configPage.enabledCheckbox()).isChecked();
+    }
+  }
+
+  /**
+   * CLM-42963 dirty-guard continue path: Continue closes the modal and lets
+   * the transition proceed; the config page unmounts and the user lands on
+   * the target route.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAdvancedSearchConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
+
+    AdvancedSearchConfigurationPage configPage = new AdvancedSearchConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    configPage.container().waitFor();
+
+    // Toggle the checkbox to dirty the form.
+    configPage.enabledCheckbox().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/success-metrics"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(configPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42963 auth gate: a user without CONFIGURE_SYSTEM navigating to
+   * /advancedSearchConfig is redirected to the Nexus One violations dashboard
+   * before the admin form ever mounts.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAdvancedSearchConfiguration_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    AdvancedSearchConfigurationPage configPage = new AdvancedSearchConfigurationPage();
+    assertThat(configPage.container()).isHidden();
+  }
+
+  /**
+   * CLM-42963 save-through-shell path: the form's save action works when driven
+   * through the shell's redux/router bridge. Fill the form, save, reload, and
+   * assert the persisted value re-populates.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAdvancedSearchConfiguration_saveThroughShellPersists() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
+
+    AdvancedSearchConfigurationPage configPage = new AdvancedSearchConfigurationPage();
+
+    configPage.container().waitFor();
+
+    // Capture the current server-side state so we can restore it in the finally
+    // block regardless of whether the assertions below pass or fail.
+    boolean wasEnabled = configPage.enabledCheckbox().isChecked();
+
+    try {
+      // Flip the checkbox to the opposite state and save through the shell's
+      // redux/router bridge.
+      if (wasEnabled) {
+        configPage.enabledCheckbox().uncheck();
+      }
+      else {
+        configPage.enabledCheckbox().check();
+      }
+      configPage.saveButton().click();
+      waitForSubmitMask();
+
+      // Reload the embed URL and assert the persisted value re-populates.
+      playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
+      configPage.container().waitFor();
+
+      if (wasEnabled) {
+        assertThat(configPage.enabledCheckbox()).not().isChecked();
+      }
+      else {
+        assertThat(configPage.enabledCheckbox()).isChecked();
+      }
+    }
+    finally {
+      // Restore the original state for downstream tests. Must run even if the
+      // assertions above throw, otherwise the mutated server state leaks.
+      playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/advancedSearchConfig"));
+      configPage.container().waitFor();
+      if (configPage.enabledCheckbox().isChecked() != wasEnabled) {
+        if (wasEnabled) {
+          configPage.enabledCheckbox().check();
+        }
+        else {
+          configPage.enabledCheckbox().uncheck();
+        }
+        configPage.saveButton().click();
+        waitForSubmitMask();
+      }
+    }
   }
 }

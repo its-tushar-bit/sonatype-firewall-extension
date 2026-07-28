@@ -9,13 +9,20 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from 'TestRoot/SpecUtil';
 import PreviewSystemPreferencesMenu from 'MainRoot/nosc/shell/PreviewSystemPreferencesMenu';
 import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
+import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 
 // The gear menu only needs a stable href() for visible items; isolate it from
 // the real ui-router instance so the test exercises gating, not routing.
-jest.mock('MainRoot/react/RouterStateContext', () => ({
-  __esModule: true,
-  useRouterState: () => ({ href: () => '#' }),
-}));
+// Setup runs in beforeEach because setupJest.js clears all spies with
+// jest.restoreAllMocks() in its afterEach — otherwise the spy set at module
+// load survives only the first test.
+const mockHref = jest.fn(() => '#');
+beforeEach(() => {
+  mockHref.mockClear();
+  jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue({ href: mockHref } as ReturnType<
+    typeof RouterStateContext.useRouterState
+  >);
+});
 
 beforeAll(installRadixJsdomShims);
 
@@ -55,5 +62,51 @@ describe('PreviewSystemPreferencesMenu', () => {
       within(menu).getByTestId('nexus-one-top-nav-settings-item-user-tokens')
     ).toBeInTheDocument();
     expect(within(menu).queryByText('No preferences available')).not.toBeInTheDocument();
+  });
+
+  it('calls href with plain "advancedSearchConfig" state, never firewall-prefixed - CLM-42963', async () => {
+    // Regression guard for the sibling bug pattern (firewall-prefixed href resolving
+    // to a NOUX state that doesn't exist). Advanced Search's `showIf` explicitly
+    // excludes firewall-only-license and standalone-firewall modes, so the item
+    // is only rendered under non-firewall licenses where `firewallPrefix === ''`.
+    // Under those conditions, `prefix: firewallPrefix` would still produce the
+    // plain state name — so the effective guard is "the entry must not hardcode
+    // `firewall.advancedSearchConfig` as its stateName". This test enforces that.
+    const user = userEvent.setup();
+
+    renderInTheme({
+      mainHeader: { permissions: { CONFIGURE_SYSTEM: true } },
+      productLicense: { license: { products: ['Sonatype Lifecycle'] } },
+      productFeatures: { productFeatures: { 'advanced-search-configuration': true } },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    const menu = await screen.findByRole('menu');
+    const advancedSearchItem = within(menu).getByTestId(
+      'nexus-one-top-nav-settings-item-advanced-search'
+    );
+    expect(advancedSearchItem).toBeInTheDocument();
+
+    expect(mockHref).toHaveBeenCalledWith('advancedSearchConfig');
+    expect(mockHref).not.toHaveBeenCalledWith('firewall.advancedSearchConfig');
+  });
+
+  it('hides Advanced Search entry entirely under firewall-only license - CLM-42963', async () => {
+    // Advanced Search is not part of the Firewall product feature set, so the entry
+    // must be hidden under a firewall-only license. This is the actual mechanism
+    // that prevents the sibling gear-menu prefix bug for this page — the item is
+    // never rendered in the license mode that would trigger the broken href.
+    const user = userEvent.setup();
+
+    renderInTheme({
+      mainHeader: { permissions: { CONFIGURE_SYSTEM: true } },
+      productLicense: { license: { products: ['Sonatype Repository Firewall'] } },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    const menu = await screen.findByRole('menu');
+    expect(
+      within(menu).queryByTestId('nexus-one-top-nav-settings-item-advanced-search')
+    ).not.toBeInTheDocument();
   });
 });

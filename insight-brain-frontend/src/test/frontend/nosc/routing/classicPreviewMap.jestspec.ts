@@ -120,6 +120,10 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/administrators')).toBe('/administrators');
     });
 
+    it('keeps the Advanced Search admin path identical on both bundles (CLM-42963)', () => {
+      expect(toNexusOneEquivalent('/advancedSearchConfig')).toBe('/advancedSearchConfig');
+    });
+
     it('falls back to NEXUS_ONE_DEFAULT_PATH for unmapped Classic URLs', () => {
       // `/orgsAndPolicies` (with the typo'd lowercase first letter)
       // and a fake nonsense path are both genuinely unmapped — they
@@ -222,6 +226,10 @@ describe('classicPreviewMap', () => {
 
     it('maps Administrators admin back to the same Classic path (CLM-42464)', () => {
       expect(toClassicEquivalent('/administrators')).toBe('/administrators');
+    });
+
+    it('maps Advanced Search admin back to the same Classic path (CLM-42963)', () => {
+      expect(toClassicEquivalent('/advancedSearchConfig')).toBe('/advancedSearchConfig');
     });
 
     it('falls back to CLASSIC_DEFAULT_PATH for unmapped Preview URLs', () => {
@@ -389,6 +397,7 @@ describe('classicPreviewMap', () => {
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
       ['/administrators'],
+      ['/advancedSearchConfig'],
     ])('nexus-one %s -> classic -> nexus-one returns to a path that maps back', (previewPath) => {
       const classicEquivalent = toClassicEquivalent(previewPath);
       const backToPreview = toNexusOneEquivalent(classicEquivalent);

@@ -43,6 +43,25 @@ public final class GlobalSearchSortAllowlist
   /** WAIVER default sort key: newest waiver first, backed by the created-at epoch-millis twin. */
   public static final String WAIVER_CREATED = "created";
 
+  /**
+   * WAIVER sort key: oldest waiver first, backed by the SAME created-at epoch-millis twin as
+   * {@link #WAIVER_CREATED} but ASCENDING (missing create time sorts last).
+   */
+  public static final String WAIVER_OLDEST = "oldest";
+
+  /**
+   * WAIVER sort key: highest threat level first, backed by the waiver threat-level numeric twin.
+   * Mirrors the VIOLATION {@code threat} key (numeric, descending, missing-last).
+   */
+  public static final String WAIVER_THREAT = "threat";
+
+  /**
+   * WAIVER sort key: soonest expiry first, backed by the expires-at epoch-millis field. Numeric but
+   * ASCENDING (unlike created/threat), and never-expiring waivers (no expiry value) sort LAST,
+   * matching the prototype's {@code Infinity} fallback for a missing expiration date.
+   */
+  public static final String WAIVER_EXPIRATION = "expiration";
+
   public static final String DEFAULT_SORT = RELEVANCE;
 
   private static final Map<Tab, Set<String>> ALLOWLIST = buildAllowlist();
@@ -74,8 +93,10 @@ public final class GlobalSearchSortAllowlist
     m.put(APPLICATION, ImmutableSet.of(RELEVANCE, "name", "policyEvaluationStage", "lastEvaluationTime"));
 
     m.put(VIOLATION, ImmutableSet.of(RELEVANCE, "name", "threat"));
-    // WAIVER supports relevance + created (newest first), backed by the created-at epoch-millis twin.
-    m.put(WAIVER, ImmutableSet.of(RELEVANCE, WAIVER_CREATED));
+    // WAIVER supports relevance + created (newest first, default), threat (highest first), and
+    // expiration (soonest first, never-expires last). All three non-relevance keys are backed by
+    // numeric epoch/level twins (see IqLocalSearchService.SORTABLE_FIELD_BY_KEY).
+    m.put(WAIVER, ImmutableSet.of(RELEVANCE, WAIVER_CREATED, WAIVER_OLDEST, WAIVER_THREAT, WAIVER_EXPIRATION));
 
     return Collections.unmodifiableMap(m);
   }

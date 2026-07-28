@@ -137,6 +137,23 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label, createProperty("keyword"));
     // Auto-vs-manual discriminator stored as the keyword string "true"/"false".
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_AUTO.label, createProperty("keyword"));
+    // Denormalized policy threat category on POLICY_WAIVER + POLICY_WAIVER_REQUEST docs (keyword so the
+    // policyType facet/filter matches whole). Same fresh-index-only caveat as the other waiver fields.
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_TYPE.label, createProperty("keyword"));
+    // Scope granularity (application/organization/component) keyword; backs the scope facet/filter.
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_SCOPE.label, createProperty("keyword"));
+
+    // Policy waiver REQUEST fields (ItemType.POLICY_WAIVER_REQUEST). Same fresh-index-only upgrade
+    // caveat as the policyWaiver* fields above: correct request-status/policyType filtering requires
+    // the explicit mappings, guaranteed only after a full reindex; WAIVER is gated behind the
+    // GLOBAL_SEARCH feature flag and the reindex is admin-triggered, so not exercised pre-reindex.
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.REQUESTER_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.REVIEWER_NAME.label, createProperty("keyword"));
+    // ISO-8601 stored as a single keyword token (display only); must not date-detect.
+    propertyMappings.put(FieldIdentifier.REVIEW_TIME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.REJECTION_REASON.label, createProperty("text"));
+    propertyMappings.put(FieldIdentifier.NOTE_TO_REVIEWER.label, createProperty("text"));
 
     // Application evaluation denormalization. These explicit mappings only apply to a freshly
     // created index; on upgrade an incremental app change writes into the pre-existing index (which

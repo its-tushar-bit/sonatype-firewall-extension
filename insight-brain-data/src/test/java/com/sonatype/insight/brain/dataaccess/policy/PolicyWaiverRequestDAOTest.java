@@ -16,6 +16,11 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.db.jooq.JooqSqlCounterListener;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -45,11 +50,49 @@ public class PolicyWaiverRequestDAOTest
 {
   private PolicyWaiverRequestDAO dao;
 
+  private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createPolicyWaiverRequestDAO();
+    searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+  }
+
+  // ADVANCED_SEARCH_ENABLED must be set: SearchIndexChangeDAO.insert gates recording on the flag.
+  @Test
+  public void testCRUD_RecordsSearchIndexChange() {
+    systemConfigurationPropertyDAO
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    Policy policy = tempEntity.newPolicy(organization);
+    PolicyWaiverRequest request = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequest(policy.getId(), organization.getId(), "comment"));
+
+    // Insert enqueues a POLICY_WAIVER_REQUEST change carrying the raw (unprefixed) request id.
+    assertThat(requestChanges()).containsExactly(request.getId());
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+
+    // A status transition (REQUESTED -> REJECTED) via update() must also reindex, otherwise the
+    // requested/rejected tabs would show stale status after an approver's review action.
+    request.setStatus(REJECTED);
+    dao.update(request);
+    assertThat(requestChanges()).containsExactly(request.getId());
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+
+    dao.delete(request);
+    assertThat(requestChanges()).containsExactly(request.getId());
+  }
+
+  private List<String> requestChanges() {
+    return searchIndexChangeDAO.getAll()
+        .stream()
+        .filter(c -> c.getChangeType() == ChangeType.POLICY_WAIVER_REQUEST)
+        .map(SearchIndexChange::getChangeData)
+        .toList();
   }
 
   @Test

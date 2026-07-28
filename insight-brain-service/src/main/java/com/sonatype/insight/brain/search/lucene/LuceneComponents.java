@@ -62,6 +62,9 @@ public class LuceneComponents
     // Match the OpenSearch `text` mapping for waiver reason/comment so both backends tokenize alike.
     fieldAnalyzers.put(FieldIdentifier.POLICY_WAIVER_REASON.label, standardAnalyzer);
     fieldAnalyzers.put(FieldIdentifier.POLICY_WAIVER_COMMENT.label, standardAnalyzer);
+    // Waiver-request free-text fields tokenize the same way so fielded word-level search matches.
+    fieldAnalyzers.put(FieldIdentifier.REJECTION_REASON.label, standardAnalyzer);
+    fieldAnalyzers.put(FieldIdentifier.NOTE_TO_REVIEWER.label, standardAnalyzer);
     return new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), fieldAnalyzers);
   }
 

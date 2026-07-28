@@ -62,8 +62,17 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAI
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_TYPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_SCOPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_WAIVED_BY;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REJECTION_REASON;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REQUESTER_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REVIEWER_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REVIEW_TIME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.NOTE_TO_REVIEWER;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.REPORT_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.SBOM_SPECIFICATION;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_DESCRIPTION;
@@ -76,6 +85,7 @@ import static com.sonatype.insight.brain.search.index.ItemType.NON_VULNERABLE_CO
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY_VIOLATION;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY_WAIVER;
+import static com.sonatype.insight.brain.search.index.ItemType.POLICY_WAIVER_REQUEST;
 import static com.sonatype.insight.brain.search.index.ItemType.SBOM_METADATA;
 import static com.sonatype.insight.brain.search.index.ItemType.SECURITY_VULNERABILITY;
 
@@ -121,18 +131,29 @@ public final class FieldMap
       // Org-owned waivers carry parentOrganizationName/Id via DocumentBuilder.setOwner; app-owned
       // waivers do not, so the organizations filter narrows org-scoped waivers only (as for POLICY).
       POLICY_WAIVER,
+      // Waiver requests share the same owner denormalization as waivers, so the org filter narrows
+      // org-scoped requests only, same asymmetry.
+      POLICY_WAIVER_REQUEST,
       // SECURITY_VULNERABILITY docs already carry parentOrganization* (set in DocumentBuilderHelper's
       // vuln build path); widening the org filters to this type is purely additive — it enables local
       // vuln filtering by org without changing any other type's compiled query.
       SECURITY_VULNERABILITY);
 
-  private static final Set<ItemType> WAIVER_TYPES = EnumSet.of(POLICY_WAIVER);
+  // WAIVER_TYPES covers fields present on BOTH manual/auto waivers and waiver requests (policy name/id,
+  // threat level, policy type, scope). WAIVER_ONLY_TYPES covers waiver-only fields (waivedBy, auto,
+  // expiry) absent on request docs; WAIVER_REQUEST_TYPES covers the request-only fields.
+  private static final Set<ItemType> WAIVER_TYPES = EnumSet.of(POLICY_WAIVER, POLICY_WAIVER_REQUEST);
+
+  private static final Set<ItemType> WAIVER_ONLY_TYPES = EnumSet.of(POLICY_WAIVER);
+
+  private static final Set<ItemType> WAIVER_REQUEST_TYPES = EnumSet.of(POLICY_WAIVER_REQUEST);
 
   // applicationId is set on APPLICATION docs and on app-scoped waiver docs (setOwner(Application)); org-
   // scoped waivers carry no applicationId so an applications filter narrows to app-scoped waivers only.
   // POLICY_WAIVER only ADDS itself as an allowed type; allowedTypes is consulted per-entity-type in
   // QueryCompiler.compileField, so APPLICATION/VIOLATION/VULN queries are unaffected.
-  private static final Set<ItemType> APP_ID_AND_WAIVER_TYPES = EnumSet.of(APPLICATION, POLICY_WAIVER);
+  private static final Set<ItemType> APP_ID_AND_WAIVER_TYPES =
+      EnumSet.of(APPLICATION, POLICY_WAIVER, POLICY_WAIVER_REQUEST);
 
   // applicationCategoryName is query-resolvable on APPLICATION, POLICY_VIOLATION and LEGAL_VIOLATION
   // docs (the denormalized app categories, multi-valued). The single-valued APPLICATION_CATEGORY
@@ -169,7 +190,8 @@ public final class FieldMap
       LEGAL_VIOLATION,
       SECURITY_VULNERABILITY,
       NON_VULNERABLE_COMPONENT,
-      POLICY_WAIVER);
+      POLICY_WAIVER,
+      POLICY_WAIVER_REQUEST);
 
   private static final Set<ItemType> REPORT_CARRYING_TYPES = EnumSet.of(
       APPLICATION,
@@ -183,6 +205,12 @@ public final class FieldMap
       "orange", "yellow");
 
   private static final Set<String> THREAT_CATEGORIES = Set.of("security", "license", "quality", "other");
+
+  // Indexed policyWaiverRequestStatus vocabulary (PolicyWaiverRequestStatus enum names).
+  private static final Set<String> WAIVER_REQUEST_STATUSES = Set.of("REQUESTED", "APPROVED", "REJECTED");
+
+  // Indexed policyWaiverScope vocabulary: owner granularity plus component-targeting.
+  private static final Set<String> WAIVER_SCOPES = Set.of("application", "organization", "component");
 
   // Canonical indexed policyViolationWaiverStatus vocabulary written by DocumentBuilderHelper.
   // Active = open (unwaived); Waived = manual waiver; AutoWaived = auto waiver.
@@ -200,7 +228,7 @@ public final class FieldMap
 
   private static final Set<String> ITEM_TYPE_VALUES = Set.of(
       "APPLICATION", "COMPONENT", "SECURITY_VULNERABILITY", "POLICY_VIOLATION", "LEGAL_VIOLATION", "POLICY",
-      "POLICY_WAIVER");
+      "POLICY_WAIVER", "POLICY_WAIVER_REQUEST");
 
   private final Map<String, FieldEntry> entries;
 
@@ -340,13 +368,30 @@ public final class FieldMap
         FieldEntry.numericInt(POLICY_WAIVER_THREAT_LEVEL.label, WAIVER_TYPES));
     m.put("policyWaiverPolicyName", FieldEntry.keyword(POLICY_WAIVER_POLICY_NAME.label, WAIVER_TYPES));
     m.put("policyWaiverPolicyId", FieldEntry.keyword(POLICY_WAIVER_POLICY_ID.label, WAIVER_TYPES));
-    m.put("policyWaiverWaivedBy", FieldEntry.keyword(POLICY_WAIVER_WAIVED_BY.label, WAIVER_TYPES));
+    // waivedBy/auto are set only on waiver docs, never on request docs, so narrow to WAIVER_ONLY_TYPES.
+    m.put("policyWaiverWaivedBy", FieldEntry.keyword(POLICY_WAIVER_WAIVED_BY.label, WAIVER_ONLY_TYPES));
     // Auto-vs-manual discriminator, indexed as the keyword "true"/"false".
-    m.put("policyWaiverAuto", FieldEntry.keyword(POLICY_WAIVER_AUTO.label, WAIVER_TYPES, BOOLEAN_VALUES));
+    m.put("policyWaiverAuto", FieldEntry.keyword(POLICY_WAIVER_AUTO.label, WAIVER_ONLY_TYPES, BOOLEAN_VALUES));
     // Range-queryable epoch-millis expiry (LongPoint) backing the active-vs-expired filter. A doc with
     // no expiry has no point value, so it never matches an expiry range and is treated as active.
+    // Both waivers and requests carry an expiry epoch, so WAIVER_TYPES.
     m.put("policyWaiverExpiresAtEpochMs",
         FieldEntry.numericLong(POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, WAIVER_TYPES));
+    // Denormalized policy threat category on both waiver and request docs; backs the policyType facet/filter.
+    m.put("policyWaiverPolicyType",
+        FieldEntry.keyword(POLICY_WAIVER_POLICY_TYPE.label, WAIVER_TYPES, THREAT_CATEGORIES));
+    // Owner type (APPLICATION/ORGANIZATION) on both waiver and request docs; RBAC/href/display only.
+    m.put("policyWaiverScopeOwnerType", FieldEntry.keyword(POLICY_WAIVER_SCOPE_OWNER_TYPE.label, WAIVER_TYPES));
+    // Scope granularity (application/organization/component); backs the scope facet + filter.
+    m.put("policyWaiverScope", FieldEntry.keyword(POLICY_WAIVER_SCOPE.label, WAIVER_TYPES, WAIVER_SCOPES));
+    // Request-only fields (ItemType.POLICY_WAIVER_REQUEST). status backs the waiverStates filter.
+    m.put("policyWaiverRequestStatus",
+        FieldEntry.keyword(POLICY_WAIVER_REQUEST_STATUS.label, WAIVER_REQUEST_TYPES, WAIVER_REQUEST_STATUSES));
+    m.put("requesterName", FieldEntry.keyword(REQUESTER_NAME.label, WAIVER_REQUEST_TYPES));
+    m.put("reviewerName", FieldEntry.keyword(REVIEWER_NAME.label, WAIVER_REQUEST_TYPES));
+    m.put("reviewTime", FieldEntry.keyword(REVIEW_TIME.label, WAIVER_REQUEST_TYPES));
+    m.put("rejectionReason", FieldEntry.text(REJECTION_REASON.label, WAIVER_REQUEST_TYPES));
+    m.put("noteToReviewer", FieldEntry.text(NOTE_TO_REVIEWER.label, WAIVER_REQUEST_TYPES));
 
     // Vulnerability
     m.put("vulnerabilityId", FieldEntry.keyword(VULNERABILITY_ID.label, VULNERABILITY_TYPES));

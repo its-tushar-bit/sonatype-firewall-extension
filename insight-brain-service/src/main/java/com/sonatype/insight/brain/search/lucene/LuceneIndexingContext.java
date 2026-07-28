@@ -92,8 +92,18 @@ public class LuceneIndexingContext
       addNumericSortDocValues(document, FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label);
       addNumericSortDocValues(document, FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label);
       // Threat level is set only on POLICY_VIOLATION docs; skip the field scan on the other item types.
-      if (ItemType.POLICY_VIOLATION.name().equals(document.get(FieldIdentifier.ITEM_TYPE.label))) {
+      final String itemType = document.get(FieldIdentifier.ITEM_TYPE.label);
+      if (ItemType.POLICY_VIOLATION.name().equals(itemType)) {
         addNumericSortDocValues(document, FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+      }
+      // Waiver + waiver-request docs back the WAIVER threat (descending) and expiration (ascending)
+      // sorts on their numeric epoch/level twins, mirroring the POLICY_VIOLATION threat-level guard.
+      // Gated to these item types so the field scan does not run on unrelated docs.
+      if (ItemType.POLICY_WAIVER.name().equals(itemType)
+          || ItemType.POLICY_WAIVER_REQUEST.name().equals(itemType))
+      {
+        addNumericSortDocValues(document, FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label);
+        addNumericSortDocValues(document, FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label);
       }
     }
     indexWriter.addDocuments(documents);

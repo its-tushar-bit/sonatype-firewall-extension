@@ -61,6 +61,8 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_EVA
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_POLICY_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
 import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION_CATEGORY;
 import static com.sonatype.insight.brain.search.index.ItemType.COMPONENT_LABEL;
@@ -97,6 +99,14 @@ public class IqLocalSearchService
    * doc-values twin on both backends (numeric twin via {@code LuceneIndexingContext} / OpenSearch
    * numeric mapping; lower-cased keyword twin via {@code LuceneIndexingContext} / OpenSearch keyword
    * mapping). Retained as a constant so a regression can flip it off without a code rewrite.
+   * <p>
+   * The WAIVER {@code threat} and {@code expiration} sort keys already sort correctly on OpenSearch
+   * (the {@code policyWaiverThreatLevel} integer and {@code policyWaiverExpiresAtEpochMs} long
+   * mappings are natively sortable). On Lucene they require a {@code SortedNumericDocValues} twin
+   * emitted in {@code LuceneIndexingContext.addDocuments} for POLICY_WAIVER docs (threat can be read
+   * from the existing stored threat-level value; expiration needs a stored numeric twin added first,
+   * since the expiry epoch point is not currently stored). That index-write-path change is owned by
+   * the waiver-request indexing workstream and populated by a full reindex.
    */
   static final boolean SORT_BY_FIELD_ENABLED = true;
 
@@ -410,6 +420,11 @@ public class IqLocalSearchService
           + "this is an invariant violation — falling back to relevance.", sortKey, tab);
       return null;
     }
+    // "oldest" reuses the created-at epoch twin (a NUMERIC_DESC field) but ASCENDING, so it cannot go
+    // through the field-based dispatch in buildSortField; force ascending here (missing create time last).
+    if (GlobalSearchSortAllowlist.WAIVER_OLDEST.equals(sortKey)) {
+      return ascendingNumericSort(indexField.label);
+    }
     return buildSortField(indexField);
   }
 
@@ -417,25 +432,37 @@ public class IqLocalSearchService
   private static final long NUMERIC_MISSING_LAST = Long.MIN_VALUE;
 
   /**
+   * Missing-value sentinel for an ASCENDING numeric sort: absent numeric fields sort LAST under
+   * ascending order, so a never-expiring waiver (no expiry value) trails the soonest-first list,
+   * mirroring the prototype's {@code Infinity} fallback for a missing expiration date.
+   */
+  private static final long NUMERIC_ASC_MISSING_LAST = Long.MAX_VALUE;
+
+  /**
    * Build the {@link Sort} for a resolved sortable index field, choosing the numeric-vs-string
-   * shape from the field itself rather than from a hardcoded key set. Numeric fields (epoch-millis,
-   * threat level) sort on their {@code SortedNumericDocValues} twin newest/highest first (reverse
-   * LONG) via a {@link SortedNumericSortField} — the doc-values are emitted as
-   * {@code SortedNumericDocValuesField} by {@code LuceneIndexingContext}, which a plain
+   * shape from the field itself rather than from a hardcoded key set. Descending numeric fields
+   * (epoch-millis create time, threat level) sort on their {@code SortedNumericDocValues} twin
+   * newest/highest first (reverse LONG) via a {@link SortedNumericSortField} — the doc-values are
+   * emitted as {@code SortedNumericDocValuesField} by {@code LuceneIndexingContext}, which a plain
    * {@link SortField} of type LONG cannot read. Docs missing the numeric field sort last
-   * (never-evaluated app, waiver without a create time). String fields sort ascending on their
-   * lower-cased keyword {@code SortedDocValues} twin (case-insensitive A→Z, matching the OpenSearch
-   * keyword lowercase normalizer). Both backends receive the same {@code (field, direction)} and
-   * OpenSearch picks numeric-vs-lexicographic from its field mapping type, so the ordering is identical.
+   * (never-evaluated app, waiver without a create time). Ascending numeric fields (expiry) sort
+   * soonest first with a missing value (never-expires) placed last. String fields sort ascending on
+   * their lower-cased keyword {@code SortedDocValues} twin (case-insensitive A→Z, matching the
+   * OpenSearch keyword lowercase normalizer). Both backends receive the same {@code (field,
+   * direction)} and OpenSearch picks numeric-vs-lexicographic from its field mapping type, so the
+   * ordering is identical.
    */
   static Sort buildSortField(final FieldIdentifier indexField) {
-    if (NUMERIC_SORT_FIELDS.contains(indexField)) {
+    if (NUMERIC_DESC_SORT_FIELDS.contains(indexField)) {
       SortedNumericSortField sortField =
           new SortedNumericSortField(indexField.label, SortField.Type.LONG, true);
       // Descending order: a doc with no value must sort AFTER real values, i.e. compare as the
       // smallest possible long under the reversed comparator.
       sortField.setMissingValue(NUMERIC_MISSING_LAST);
       return new Sort(sortField);
+    }
+    if (NUMERIC_ASC_SORT_FIELDS.contains(indexField)) {
+      return ascendingNumericSort(indexField.label);
     }
     // Absent keyword sorts last under ascending order (STRING_LAST), so a never-set name/stage does
     // not lead the page.
@@ -445,13 +472,35 @@ public class IqLocalSearchService
   }
 
   /**
-   * Sortable index fields backed by a numeric doc-values twin, sorted descending (newest/highest
-   * first). Every other sortable field sorts ascending as a lower-cased keyword string.
+   * Ascending numeric sort over a doc-values twin (forward LONG); a doc with no value sorts LAST via
+   * {@link #NUMERIC_ASC_MISSING_LAST}. Shared by the {@code NUMERIC_ASC_SORT_FIELDS} dispatch and the
+   * {@code oldest} created-at special case (created-at lives in {@code NUMERIC_DESC_SORT_FIELDS}, so it
+   * can only resolve ascending by label).
    */
-  private static final Set<FieldIdentifier> NUMERIC_SORT_FIELDS = Set.of(
+  private static Sort ascendingNumericSort(final String label) {
+    SortedNumericSortField sortField = new SortedNumericSortField(label, SortField.Type.LONG, false);
+    sortField.setMissingValue(NUMERIC_ASC_MISSING_LAST);
+    return new Sort(sortField);
+  }
+
+  /**
+   * Sortable index fields backed by a numeric doc-values twin, sorted descending (newest/highest
+   * first). Every field not in {@link #NUMERIC_ASC_SORT_FIELDS} or this set sorts ascending as a
+   * lower-cased keyword string.
+   */
+  private static final Set<FieldIdentifier> NUMERIC_DESC_SORT_FIELDS = Set.of(
       APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS,
       POLICY_VIOLATION_THREAT_LEVEL,
-      POLICY_WAIVER_CREATED_AT_EPOCH_MS);
+      POLICY_WAIVER_CREATED_AT_EPOCH_MS,
+      POLICY_WAIVER_THREAT_LEVEL);
+
+  /**
+   * Sortable index fields backed by a numeric doc-values twin, sorted ASCENDING (soonest/lowest
+   * first) with missing values placed last. Only WAIVER expiration sorts this way (soonest expiry
+   * first, never-expires last).
+   */
+  private static final Set<FieldIdentifier> NUMERIC_ASC_SORT_FIELDS = Set.of(
+      POLICY_WAIVER_EXPIRES_AT_EPOCH_MS);
 
   /**
    * Resolve the IQ-local index field backing an allowlisted (tab, sortKey), independent of
@@ -482,8 +531,15 @@ public class IqLocalSearchService
     // and sortFor builds only a STRING SortField, so a severity sort is held out of the allowlist
     // until numeric field-sort machinery lands (kept aligned with GlobalSearchSortAllowlist).
     m.put(VULNERABILITY, Map.of("name", VULNERABILITY_ID));
-    // WAIVER default "created" (newest first) sorts on the created-at epoch-millis numeric twin.
-    m.put(WAIVER, Map.of(GlobalSearchSortAllowlist.WAIVER_CREATED, POLICY_WAIVER_CREATED_AT_EPOCH_MS));
+    // WAIVER default "created" (newest first) sorts on the created-at epoch-millis numeric twin;
+    // "threat" (highest first) on the threat-level numeric twin; "expiration" (soonest first,
+    // never-expires last) ASCENDING on the expires-at epoch-millis twin.
+    m.put(WAIVER, Map.of(
+        GlobalSearchSortAllowlist.WAIVER_CREATED, POLICY_WAIVER_CREATED_AT_EPOCH_MS,
+        // "oldest" reuses the created-at twin but sorts ascending (see sortFor).
+        GlobalSearchSortAllowlist.WAIVER_OLDEST, POLICY_WAIVER_CREATED_AT_EPOCH_MS,
+        GlobalSearchSortAllowlist.WAIVER_THREAT, POLICY_WAIVER_THREAT_LEVEL,
+        GlobalSearchSortAllowlist.WAIVER_EXPIRATION, POLICY_WAIVER_EXPIRES_AT_EPOCH_MS));
     return Collections.unmodifiableMap(m);
   }
 

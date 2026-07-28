@@ -142,6 +142,22 @@ public class SearchResultItemDTO
 
   public Boolean policyWaiverAuto;
 
+  public String policyWaiverPolicyType;
+
+  public String policyWaiverScope;
+
+  public String policyWaiverRequestStatus;
+
+  public String requesterName;
+
+  public String reviewerName;
+
+  public String reviewTime;
+
+  public String rejectionReason;
+
+  public String noteToReviewer;
+
   public int resultIndex;
 
   public SearchResultItemDTO() {
@@ -228,6 +244,14 @@ public class SearchResultItemDTO
     policyWaiverWaivedBy = document.get(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label);
     String policyWaiverAutoString = document.get(FieldIdentifier.POLICY_WAIVER_AUTO.label);
     policyWaiverAuto = policyWaiverAutoString == null ? null : Boolean.valueOf(policyWaiverAutoString);
+    policyWaiverPolicyType = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_TYPE.label);
+    policyWaiverScope = document.get(FieldIdentifier.POLICY_WAIVER_SCOPE.label);
+    policyWaiverRequestStatus = document.get(FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS.label);
+    requesterName = document.get(FieldIdentifier.REQUESTER_NAME.label);
+    reviewerName = document.get(FieldIdentifier.REVIEWER_NAME.label);
+    reviewTime = document.get(FieldIdentifier.REVIEW_TIME.label);
+    rejectionReason = document.get(FieldIdentifier.REJECTION_REASON.label);
+    noteToReviewer = document.get(FieldIdentifier.NOTE_TO_REVIEWER.label);
   }
 
   /**

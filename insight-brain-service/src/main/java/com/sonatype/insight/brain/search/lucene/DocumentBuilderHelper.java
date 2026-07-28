@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -67,8 +68,12 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -189,6 +194,8 @@ public class DocumentBuilderHelper
 
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
+  private final PolicyWaiverRequestDAO policyWaiverRequestDAO;
+
   @Inject
   public DocumentBuilderHelper(
       final LabelDAO labelDAO,
@@ -211,7 +218,8 @@ public class DocumentBuilderHelper
       final LicenseThreatGroupDAO licenseThreatGroupDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
-      final PolicyWaiverReasonDAO policyWaiverReasonDAO)
+      final PolicyWaiverReasonDAO policyWaiverReasonDAO,
+      final PolicyWaiverRequestDAO policyWaiverRequestDAO)
   {
     this.labelDAO = labelDAO;
     this.organizationDAO = organizationDAO;
@@ -236,6 +244,7 @@ public class DocumentBuilderHelper
     this.policyWaiverDAO = policyWaiverDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
+    this.policyWaiverRequestDAO = policyWaiverRequestDAO;
   }
 
   // Visible for testing
@@ -820,18 +829,8 @@ public class DocumentBuilderHelper
         .map(PolicyWaiver::getWaiverReasonId)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
-    Map<String, Policy> policiesById = policyIds.isEmpty()
-        ? Collections.emptyMap()
-        : policyDAO.getByIds(policyIds)
-            .stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.toMap(Policy::getId, p -> p, (a, b) -> a));
-    Map<String, PolicyWaiverReason> reasonsById = reasonIds.isEmpty()
-        ? Collections.emptyMap()
-        : policyWaiverReasonDAO.getAllByIds(new ArrayList<>(reasonIds))
-            .stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.toMap(PolicyWaiverReason::getId, r -> r, (a, b) -> a));
+    Map<String, Policy> policiesById = loadPoliciesByIds(policyIds);
+    Map<String, PolicyWaiverReason> reasonsById = loadReasonsByIds(reasonIds);
 
     List<Document> docs = new ArrayList<>();
     for (PolicyWaiver waiver : manualWaivers) {
@@ -870,12 +869,7 @@ public class DocumentBuilderHelper
         .map(PolicyWaiver::getWaiverReasonId)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
-    Map<String, PolicyWaiverReason> reasonsById = reasonIds.isEmpty()
-        ? Collections.emptyMap()
-        : policyWaiverReasonDAO.getAllByIds(new ArrayList<>(reasonIds))
-            .stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.toMap(PolicyWaiverReason::getId, r -> r, (a, b) -> a));
+    Map<String, PolicyWaiverReason> reasonsById = loadReasonsByIds(reasonIds);
     Map<String, Policy> policiesById = policy == null ? Collections.emptyMap() : Map.of(policy.getId(), policy);
 
     List<Document> docs = new ArrayList<>();
@@ -933,11 +927,13 @@ public class DocumentBuilderHelper
 
     String policyName = null;
     Integer threatLevel = null;
+    PolicyThreatCategory policyType = null;
     if (waiver.getPolicyId() != null) {
       Policy policy = policiesById.get(waiver.getPolicyId());
       if (policy != null) {
         policyName = policy.getName();
         threatLevel = policy.getThreatLevel();
+        policyType = threatCategoryOrNull(policy);
       }
     }
     // A manual waiver whose policy cannot be resolved (orphaned policy) indexes with a null policy
@@ -964,8 +960,144 @@ public class DocumentBuilderHelper
         .setPolicyWaiverExpiresAtEpochMs(toEpochMs(waiver.getExpiryTime()))
         .setPolicyWaiverScopeOwnerId(owner.getId())
         .setPolicyWaiverScopeOwnerType(owner.getType().name())
+        .setPolicyWaiverScope(scopeFor(owner, isComponentTargeted(waiver)))
         .setPolicyWaiverWaivedBy(waiver.getCreatorName())
         .setPolicyWaiverAuto(false)
+        .setPolicyWaiverPolicyType(policyType)
+        .setOwner(owner)
+        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner));
+    if (threatLevel != null) {
+      builder.setPolicyWaiverThreatLevel(threatLevel);
+    }
+    return builder.build();
+  }
+
+  /**
+   * Full-reindex docs for waiver REQUESTS ({@link PolicyWaiverRequest}), a distinct
+   * {@code ItemType.POLICY_WAIVER_REQUEST} unioned into the WAIVER query type. Mirrors
+   * {@link #buildPolicyWaiverDocs} exactly: batch-load the referenced policies/reasons with one
+   * IN-clause query each (not a getById per request), skip non-indexable (repository-family) owners,
+   * and reuse the identical {@code computeAllowedContextIdsForOwner} closure so request-doc RBAC is
+   * byte-for-byte the same as waiver-doc RBAC (MTIQ-critical). Approved requests are indexed too (for
+   * completeness); the {@code waiverStates} filter surface deliberately omits APPROVED, so the
+   * requested/rejected tabs never select them (the API-only {@code status} TERMS filter can still
+   * target any status value directly).
+   */
+  public List<Document> buildPolicyWaiverRequestDocs(IndexingContext indexingContext) {
+    // TODO(CLM-41642): verify at large-tenant scale before broad rollout; shares the pre-existing
+    // unpaged getAll() risk of the sibling builders (streaming is a shared future refactor).
+    List<PolicyWaiverRequest> requests = policyWaiverRequestDAO.getAll();
+
+    Set<String> policyIds = requests.stream()
+        .map(PolicyWaiverRequest::getPolicyId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Set<String> reasonIds = requests.stream()
+        .map(PolicyWaiverRequest::getWaiverReasonId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Map<String, Policy> policiesById = loadPoliciesByIds(policyIds);
+    Map<String, PolicyWaiverReason> reasonsById = loadReasonsByIds(reasonIds);
+
+    List<Document> docs = new ArrayList<>();
+    for (PolicyWaiverRequest request : requests) {
+      Document doc = buildDocument(indexingContext, request, policiesById, reasonsById);
+      if (doc != null) {
+        docs.add(doc);
+      }
+    }
+    return docs;
+  }
+
+  /**
+   * Incremental single-doc path keyed on the raw request id: loads the {@link PolicyWaiverRequest}
+   * and builds its doc (null if the request is gone or its owner is non-indexable). Keeps the request
+   * DAO lookup on this helper so {@code AbstractSearchIndexClient} needs no extra injected DAO.
+   */
+  public Document buildPolicyWaiverRequestDocById(IndexingContext indexingContext, String requestId) {
+    PolicyWaiverRequest request = requestId == null ? null : policyWaiverRequestDAO.getById(requestId);
+    return request == null ? null : buildDocument(indexingContext, request);
+  }
+
+  // Single-doc rebuild entry point (AbstractSearchIndexClient.updateIndexForPolicyWaiverRequest calls
+  // buildPolicyWaiverRequestDocById, which delegates here after loading the request's policy/reason).
+  public Document buildDocument(IndexingContext indexingContext, PolicyWaiverRequest request) {
+    String policyId = request == null ? null : request.getPolicyId();
+    Policy policy = policyId == null ? null : policyDAO.getById(policyId);
+    String reasonId = request == null ? null : request.getWaiverReasonId();
+    PolicyWaiverReason reason = reasonId == null ? null : policyWaiverReasonDAO.getById(reasonId);
+    return buildDocument(
+        indexingContext,
+        request,
+        policy == null ? Collections.emptyMap() : Map.of(policy.getId(), policy),
+        reason == null ? Collections.emptyMap() : Map.of(reasonId, reason));
+  }
+
+  private Document buildDocument(
+      IndexingContext indexingContext,
+      PolicyWaiverRequest request,
+      Map<String, Policy> policiesById,
+      Map<String, PolicyWaiverReason> reasonsById)
+  {
+    if (request == null) {
+      return null;
+    }
+    // Container-image requests are managed on the Firewall container surface, not Global Search,
+    // mirroring the committed-waiver guard (:893). A committed docker-component waiver is dropped
+    // there, so its request must be dropped here too or the request would surface where the waiver
+    // is hidden. The request has no persisted isForContainerImage flag, so infer it from the docker
+    // component format that ApiPolicyWaiverRequestService uses to set isForContainerImageComponent.
+    if (isForContainerImageComponent(request)) {
+      return null;
+    }
+    Owner owner = indexingContext.getOwner(request.getOwnerId());
+    // v1 indexes only app/org-scoped requests; repository-family owners are out of scope, mirroring
+    // the waiver rule so request-doc scope matches waiver-doc scope exactly.
+    if (!isIndexableOwner(owner)) {
+      return null;
+    }
+
+    String policyName = null;
+    Integer threatLevel = null;
+    PolicyThreatCategory policyType = null;
+    if (request.getPolicyId() != null) {
+      Policy policy = policiesById.get(request.getPolicyId());
+      if (policy != null) {
+        policyName = policy.getName();
+        threatLevel = policy.getThreatLevel();
+        policyType = threatCategoryOrNull(policy);
+      }
+    }
+
+    String reasonText = null;
+    if (request.getWaiverReasonId() != null) {
+      PolicyWaiverReason reason = reasonsById.get(request.getWaiverReasonId());
+      if (reason != null) {
+        reasonText = reason.getReasonText();
+      }
+    }
+
+    PolicyWaiverRequestStatus status = request.getStatus();
+    DocumentBuilder builder = new DocumentBuilder(ItemType.POLICY_WAIVER_REQUEST)
+        .setPolicyWaiverId(request.getId())
+        .setPolicyWaiverPolicyName(policyName)
+        .setPolicyWaiverPolicyId(request.getPolicyId())
+        .setPolicyWaiverReason(reasonText)
+        .setPolicyWaiverComment(request.getComment())
+        .setPolicyWaiverCreatedAt(toIso8601(request.getRequestTime()))
+        .setPolicyWaiverCreatedAtEpochMs(toEpochMs(request.getRequestTime()))
+        .setPolicyWaiverExpiresAt(toIso8601(request.getExpiryTime()))
+        .setPolicyWaiverExpiresAtEpochMs(toEpochMs(request.getExpiryTime()))
+        .setPolicyWaiverScopeOwnerId(owner.getId())
+        .setPolicyWaiverScopeOwnerType(owner.getType().name())
+        .setPolicyWaiverScope(scopeFor(owner, isComponentTargeted(request)))
+        .setPolicyWaiverPolicyType(policyType)
+        .setPolicyWaiverRequestStatus(status == null ? null : status.name())
+        .setRequesterName(request.getRequesterName())
+        .setReviewerName(request.getReviewerName())
+        .setReviewTime(toIso8601(request.getReviewTime()))
+        .setRejectionReason(request.getRejectionReason())
+        .setNoteToReviewer(request.getNoteToReviewer())
         .setOwner(owner)
         .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner));
     if (threatLevel != null) {
@@ -996,16 +1128,109 @@ public class DocumentBuilderHelper
         .setPolicyWaiverCreatedAtEpochMs(toEpochMs(waiver.getCreateTime()))
         .setPolicyWaiverScopeOwnerId(owner.getId())
         .setPolicyWaiverScopeOwnerType(owner.getType().name())
+        // Auto-waivers apply to any component in scope, so they are owner-scoped, never component-targeted.
+        .setPolicyWaiverScope(scopeFor(owner, false))
         .setPolicyWaiverAuto(true)
         .setOwner(owner)
         .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
         .build();
   }
 
-  // v1 waiver indexing rule: only app/org-scoped owners are indexed (null and repository-family
-  // owners are out of scope).
+  // Waiver/request indexing rule: only app/org-owned waivers are indexed (null and repository-family
+  // owners are out of scope — repository/container waivers are managed on the Firewall surface). A
+  // component-TARGETING waiver is still owned by an app/org, so it is indexed here with the owner's
+  // permission closure and reports scope "component" via setPolicyWaiverScope; there is no separate
+  // component owner type, so no waiver is ever indexed with an empty/unsafe RBAC closure.
   private static boolean isIndexableOwner(final Owner owner) {
     return owner instanceof Application || owner instanceof Organization;
+  }
+
+  // Scope discriminator values (lowercase, matching the FieldMap WAIVER_SCOPES vocabulary).
+  private static final String SCOPE_COMPONENT = "component";
+
+  private static final String SCOPE_APPLICATION = "application";
+
+  private static final String SCOPE_ORGANIZATION = "organization";
+
+  /**
+   * Facet/filter scope granularity: {@code component} when the waiver/request targets a specific
+   * component, otherwise the owner granularity ({@code application}/{@code organization}). The owner
+   * is always an app or org here (repository-family owners are filtered out by isIndexableOwner), so
+   * the RBAC closure is unchanged — this only classifies the display/facet scope, never the
+   * permission owner.
+   */
+  private static String scopeFor(final Owner owner, final boolean componentTargeted) {
+    if (componentTargeted) {
+      return SCOPE_COMPONENT;
+    }
+    return owner instanceof Application ? SCOPE_APPLICATION : SCOPE_ORGANIZATION;
+  }
+
+  /**
+   * A manual waiver targets a specific component when it carries a component identifier / hash rather
+   * than applying to all components in its owner scope. {@code ALL_COMPONENTS} is the owner-wide
+   * strategy; any other strategy (or a present component hash / purl) targets a component.
+   */
+  private static boolean isComponentTargeted(final PolicyWaiver waiver) {
+    return waiver.getComponentMatchStrategy() != ComponentMatcherStrategyForWaiver.ALL_COMPONENTS
+        || waiver.getHash() != null
+        || waiver.getAssociatedPackageUrl() != null;
+  }
+
+  /** Batch-load policies by id into an id-keyed map (one IN-clause query; empty in → empty map). */
+  private Map<String, Policy> loadPoliciesByIds(final Set<String> policyIds) {
+    return policyIds.isEmpty()
+        ? Collections.emptyMap()
+        : policyDAO.getByIds(policyIds)
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(Policy::getId, p -> p, (a, b) -> a));
+  }
+
+  /** Batch-load waiver reasons by id into an id-keyed map (one IN-clause query; empty in → empty map). */
+  private Map<String, PolicyWaiverReason> loadReasonsByIds(final Set<String> reasonIds) {
+    return reasonIds.isEmpty()
+        ? Collections.emptyMap()
+        : policyWaiverReasonDAO.getAllByIds(new ArrayList<>(reasonIds))
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(PolicyWaiverReason::getId, r -> r, (a, b) -> a));
+  }
+
+  /**
+   * A request targets a container-image component when its component identifier is docker-format —
+   * the same signal {@code ApiPolicyWaiverRequestService} uses to set {@code isForContainerImageComponent}
+   * on the approved committed waiver. Kept out of Global Search to match the committed-waiver exclusion.
+   */
+  private static boolean isForContainerImageComponent(final PolicyWaiverRequest request) {
+    final ComponentIdentifier identifier = request.getComponentIdentifier();
+    return identifier != null && "docker".equalsIgnoreCase(identifier.getFormat());
+  }
+
+  /**
+   * As {@link #isComponentTargeted(PolicyWaiver)}, but {@code policy_waiver_request.component_match_strategy}
+   * is nullable with no {@code ALL_COMPONENTS} backfill (unlike the {@code policy_waiver} table, backfilled
+   * by {@code schema_incremental_0266.sql}). A null strategy with no hash/purl is owner-wide, not
+   * component-targeted, so guard the strategy comparison against null.
+   */
+  private static boolean isComponentTargeted(final PolicyWaiverRequest request) {
+    return (request.getComponentMatchStrategy() != null
+        && request.getComponentMatchStrategy() != ComponentMatcherStrategyForWaiver.ALL_COMPONENTS)
+        || request.getHash() != null
+        || request.getAssociatedPackageUrl() != null;
+  }
+
+  /**
+   * Null-safe {@link Policy#getThreatCategory()}: a policy loaded without its constraints (e.g. a
+   * detached/preloaded policy on the single-doc rebuild path) would NPE inside getThreatCategory,
+   * which iterates getConstraints(). Return null in that case so the doc simply omits policyType
+   * (read back as OTHER) rather than failing the build.
+   */
+  private static PolicyThreatCategory threatCategoryOrNull(final Policy policy) {
+    if (policy == null || policy.getConstraints() == null) {
+      return null;
+    }
+    return policy.getThreatCategory();
   }
 
   // Fixed-width UTC form (always millis) so lexicographic keyword sort is chronological;

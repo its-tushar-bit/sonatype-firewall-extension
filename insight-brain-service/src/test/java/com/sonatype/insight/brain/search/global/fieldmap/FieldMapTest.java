@@ -26,12 +26,13 @@ public class FieldMapTest
     assertThat(entry.get().kind()).isEqualTo(FieldKind.KEYWORD);
     // applicationName is indexed on violation docs (via the owning application), on
     // SECURITY_VULNERABILITY docs, on NON_VULNERABLE_COMPONENT docs (setOwner in each build path),
-    // and on app-scoped waiver docs, so all those scopes must resolve it rather than compile to
-    // MatchNoDocsQuery.
+    // and on app-scoped waiver AND waiver-request docs, so all those scopes must resolve it rather
+    // than compile to MatchNoDocsQuery.
     assertThat(entry.get().allowedTypes())
         .containsExactlyInAnyOrder(
             ItemType.APPLICATION, ItemType.POLICY_VIOLATION, ItemType.LEGAL_VIOLATION,
-            ItemType.SECURITY_VULNERABILITY, ItemType.NON_VULNERABLE_COMPONENT, ItemType.POLICY_WAIVER);
+            ItemType.SECURITY_VULNERABILITY, ItemType.NON_VULNERABLE_COMPONENT, ItemType.POLICY_WAIVER,
+            ItemType.POLICY_WAIVER_REQUEST);
   }
 
   @Test
@@ -261,7 +262,43 @@ public class FieldMapTest
         "policyViolationPolicyName", "policyViolationConstraintName", "policyViolationPolicyId",
         "policyViolationThreatCategory", "policyViolationThreatLevel", "policyViolationWaiverStatus",
         "vulnerabilityId", "vulnerabilityDescription", "vulnerabilityStatus", "vulnerabilitySeverity",
-        "policyEvaluationStage", "reportId");
+        "policyEvaluationStage", "reportId",
+        "policyWaiverPolicyType", "policyWaiverScopeOwnerType", "policyWaiverScope", "policyWaiverRequestStatus",
+        "requesterName", "reviewerName", "reviewTime", "rejectionReason", "noteToReviewer");
+  }
+
+  @Test
+  public void waiverSharedFieldsResolveOnBothWaiverAndRequestTypes() {
+    // policyType/scope/policyName are denormalized on both POLICY_WAIVER and POLICY_WAIVER_REQUEST docs.
+    assertThat(map.lookup("policyWaiverPolicyType").orElseThrow().allowedTypes())
+        .contains(ItemType.POLICY_WAIVER, ItemType.POLICY_WAIVER_REQUEST);
+    assertThat(map.lookup("policyWaiverScopeOwnerType").orElseThrow().allowedTypes())
+        .contains(ItemType.POLICY_WAIVER, ItemType.POLICY_WAIVER_REQUEST);
+    assertThat(map.lookup("policyWaiverPolicyName").orElseThrow().allowedTypes())
+        .contains(ItemType.POLICY_WAIVER, ItemType.POLICY_WAIVER_REQUEST);
+  }
+
+  @Test
+  public void waiverOnlyFieldsResolveOnWaiverTypeButNotRequestType() {
+    // waivedBy/auto are set only on committed waiver docs, never on request docs.
+    assertThat(map.lookup("policyWaiverWaivedBy").orElseThrow().allowedTypes())
+        .contains(ItemType.POLICY_WAIVER)
+        .doesNotContain(ItemType.POLICY_WAIVER_REQUEST);
+    assertThat(map.lookup("policyWaiverAuto").orElseThrow().allowedTypes())
+        .contains(ItemType.POLICY_WAIVER)
+        .doesNotContain(ItemType.POLICY_WAIVER_REQUEST);
+  }
+
+  @Test
+  public void requestOnlyFieldsResolveOnRequestTypeOnly() {
+    for (String key : java.util.List.of(
+        "policyWaiverRequestStatus", "requesterName", "reviewerName", "reviewTime",
+        "rejectionReason", "noteToReviewer"))
+    {
+      assertThat(map.lookup(key).orElseThrow().allowedTypes())
+          .as("allowedTypes for %s", key)
+          .containsExactly(ItemType.POLICY_WAIVER_REQUEST);
+    }
   }
 
   @Test

@@ -17,7 +17,8 @@ public enum ItemType
   SBOM_METADATA,
   POLICY_VIOLATION,
   LEGAL_VIOLATION,
-  POLICY_WAIVER;
+  POLICY_WAIVER,
+  POLICY_WAIVER_REQUEST;
 
   /**
    * The name to use when constructing a search Term for this item type. For whatever reason it must be lowercase

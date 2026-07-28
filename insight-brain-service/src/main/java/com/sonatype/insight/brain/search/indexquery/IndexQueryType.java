@@ -22,8 +22,10 @@ public enum IndexQueryType
   // VIOLATION unions POLICY_VIOLATION + LEGAL_VIOLATION, mirroring the global-search VIOLATION tab.
   VIOLATION(Tab.VIOLATION, Set.of(ItemType.POLICY_VIOLATION, ItemType.LEGAL_VIOLATION)),
   POLICY(null, Set.of(ItemType.POLICY)),
-  // WAIVER unions manual and auto waivers, both indexed as POLICY_WAIVER docs.
-  WAIVER(Tab.WAIVER, Set.of(ItemType.POLICY_WAIVER));
+  // WAIVER unions manual/auto waivers (POLICY_WAIVER docs) with waiver requests (POLICY_WAIVER_REQUEST
+  // docs). The waiverStates filter selects across both: existing = POLICY_WAIVER, requested/rejected =
+  // POLICY_WAIVER_REQUEST by status.
+  WAIVER(Tab.WAIVER, Set.of(ItemType.POLICY_WAIVER, ItemType.POLICY_WAIVER_REQUEST));
 
   private final Tab tab;
 

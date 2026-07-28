@@ -101,6 +101,27 @@ public enum FieldIdentifier
   POLICY_WAIVER_WAIVED_BY("policyWaiverWaivedBy"),
   // Auto-vs-manual discriminator: "true" for AutoPolicyWaiver docs, "false" for PolicyWaiver docs.
   POLICY_WAIVER_AUTO("policyWaiverAuto"),
+  // Denormalized policy threat category (SECURITY/LICENSE/QUALITY/OTHER), written on both POLICY_WAIVER
+  // and POLICY_WAIVER_REQUEST docs so the policyType facet/filter resolves without a per-row policy load.
+  // Namespaced (not POLICY_THREAT_CATEGORY) so the waiver policyType filter cannot collide with the
+  // POLICY entity's own threat-category field. Null (unresolvable policy) reads back as OTHER.
+  POLICY_WAIVER_POLICY_TYPE("policyWaiverPolicyType"),
+  // Facet/filter scope granularity (application/organization/component) written on both POLICY_WAIVER
+  // and POLICY_WAIVER_REQUEST docs. Distinct from POLICY_WAIVER_SCOPE_OWNER_TYPE (the RBAC/href owner
+  // type, always application/organization): a waiver owned by an app/org but TARGETING a specific
+  // component reports scope "component" here while keeping its owner type for RBAC and display.
+  POLICY_WAIVER_SCOPE("policyWaiverScope"),
+
+  // Policy waiver REQUEST fields — written only on ItemType.POLICY_WAIVER_REQUEST documents.
+  // Discriminator keyword {REQUESTED,APPROVED,REJECTED}; the waiverStates filter selects requested/
+  // rejected requests by this value (approved requests are indexed but never selected).
+  POLICY_WAIVER_REQUEST_STATUS("policyWaiverRequestStatus"),
+  REQUESTER_NAME("requesterName"),
+  REVIEWER_NAME("reviewerName"),
+  // Review time stored as an ISO-8601 keyword token (display only), mirroring the waiver date fields.
+  REVIEW_TIME("reviewTime"),
+  REJECTION_REASON("rejectionReason"),
+  NOTE_TO_REVIEWER("noteToReviewer"),
 
   // Application evaluation denormalization — written on ItemType.APPLICATION docs.
   /**

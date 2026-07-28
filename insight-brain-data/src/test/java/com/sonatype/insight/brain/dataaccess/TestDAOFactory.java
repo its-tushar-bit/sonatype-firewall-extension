@@ -728,7 +728,7 @@ public class TestDAOFactory
   @Override
   public PolicyWaiverRequestDAO createPolicyWaiverRequestDAO() {
     OwnerDAO ownerDAO = createOwnerDAO();
-    return new PolicyWaiverRequestDAO(dataStoreProvider.getOperationalDataStore(), ownerDAO);
+    return new PolicyWaiverRequestDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, ownerDAO);
   }
 
   @Override

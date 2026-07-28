@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.global;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -21,8 +22,13 @@ import com.sonatype.insight.brain.search.global.IqLocalSearchService.SearchInput
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryFilterCompiler;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryType;
+import com.sonatype.insight.brain.search.lucene.DocumentBuilder;
 import com.sonatype.insight.brain.search.lucene.LowerCaseKeywordAnalyzer;
+import com.sonatype.insight.brain.search.lucene.LuceneComponents;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
@@ -388,6 +394,126 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   @Test
+  public void search_appliesNumericThreatSort_descending_forWaiver() throws Exception {
+    // WAIVER threat sort: highest threat first, NUMERIC (not lexicographic). If it sorted the level
+    // as a string, "10" would order before "2"; numeric order puts 10 (w-hi) first, then 2 (w-lo).
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(waiverThreatDoc("w-lo", 2));
+        writer.addDocument(waiverThreatDoc("w-hi", 10));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byThreat = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_THREAT);
+        TopDocs top = localSearcher.search(allWaiversQuery(), 10, byThreat);
+        List<String> order = new ArrayList<>();
+        for (ScoreDoc sd : top.scoreDocs) {
+          order.add(localSearcher.storedFields().document(sd.doc).get(FieldIdentifier.POLICY_WAIVER_ID.label));
+        }
+        assertThat(order).as("threat sorts numerically, highest first").containsExactly("w-hi", "w-lo");
+      }
+    }
+  }
+
+  @Test
+  public void search_appliesNumericExpirationSort_ascending_neverExpiresLast_forWaiver() throws Exception {
+    // WAIVER expiration sort: soonest expiry first (ASCENDING, numeric), and a never-expiring waiver
+    // (no expires-at twin) sorts LAST. Epoch 1000 (w-soon) before 3000 (w-late) before never (w-never).
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(waiverExpiresDoc("w-late", 3000L));
+        writer.addDocument(waiverExpiresDoc("w-never", null));
+        writer.addDocument(waiverExpiresDoc("w-soon", 1000L));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byExpiration = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_EXPIRATION);
+        TopDocs top = localSearcher.search(allWaiversQuery(), 10, byExpiration);
+        List<String> order = new ArrayList<>();
+        for (ScoreDoc sd : top.scoreDocs) {
+          order.add(localSearcher.storedFields().document(sd.doc).get(FieldIdentifier.POLICY_WAIVER_ID.label));
+        }
+        assertThat(order).as("expiration ascending, never-expires last")
+            .containsExactly("w-soon", "w-late", "w-never");
+      }
+    }
+  }
+
+  private static Query allWaiversQuery() {
+    return new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+        FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name().toLowerCase()));
+  }
+
+  @Test
+  public void search_appliesNumericCreatedSort_ascending_oldestFirst_forWaiver() throws Exception {
+    // WAIVER "oldest" sort reuses the created-at twin but ASCENDING: oldest (epoch 1000) first.
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(waiverDoc("w-old", 1000L));
+        writer.addDocument(waiverDoc("w-new", 3000L));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byOldest = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_OLDEST);
+        TopDocs top = localSearcher.search(allWaiversQuery(), 10, byOldest);
+        List<String> order = new ArrayList<>();
+        for (ScoreDoc sd : top.scoreDocs) {
+          order.add(localSearcher.storedFields().document(sd.doc).get(FieldIdentifier.POLICY_WAIVER_ID.label));
+        }
+        assertThat(order).as("oldest sorts created-at ascending").containsExactly("w-old", "w-new");
+      }
+    }
+  }
+
+  @Test
+  public void luceneIndexingContext_emitsWaiverAndRequestNumericTwins_soSortsWork() throws Exception {
+    // Round-trip proof that LuceneIndexingContext.addDocuments emits the threat + expiry numeric
+    // sort twins for BOTH POLICY_WAIVER and POLICY_WAIVER_REQUEST docs (not just query-side fixtures).
+    Directory dir = new ByteBuffersDirectory();
+    try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+      com.sonatype.insight.brain.search.lucene.LuceneIndexingContext ctx =
+          new com.sonatype.insight.brain.search.lucene.LuceneIndexingContext(null, writer, null);
+      Document waiver = new com.sonatype.insight.brain.search.lucene.DocumentBuilder(ItemType.POLICY_WAIVER)
+          .setPolicyWaiverId("w1")
+          .setPolicyWaiverThreatLevel(7)
+          .setPolicyWaiverExpiresAtEpochMs(5000L)
+          .build();
+      Document request =
+          new com.sonatype.insight.brain.search.lucene.DocumentBuilder(ItemType.POLICY_WAIVER_REQUEST)
+              .setPolicyWaiverId("r1")
+              .setPolicyWaiverThreatLevel(3)
+              .setPolicyWaiverExpiresAtEpochMs(2000L)
+              .build();
+      ctx.addDocuments(List.of(waiver, request));
+      writer.commit();
+    }
+    try (IndexReader localReader = DirectoryReader.open(dir)) {
+      IndexSearcher localSearcher = new IndexSearcher(localReader);
+      // Expiration ascending across both item types: request (2000) before waiver (5000).
+      Query bothTypes = new org.apache.lucene.search.BooleanQuery.Builder()
+          .add(new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+              FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name().toLowerCase())),
+              org.apache.lucene.search.BooleanClause.Occur.SHOULD)
+          .add(new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+              FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER_REQUEST.name().toLowerCase())),
+              org.apache.lucene.search.BooleanClause.Occur.SHOULD)
+          .build();
+      Sort byExpiration = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_EXPIRATION);
+      TopDocs top = localSearcher.search(bothTypes, 10, byExpiration);
+      List<String> order = new ArrayList<>();
+      for (ScoreDoc sd : top.scoreDocs) {
+        order.add(localSearcher.storedFields().document(sd.doc).get(FieldIdentifier.POLICY_WAIVER_ID.label));
+      }
+      assertThat(order).as("twins emitted for both item types; expiration ascending spans both")
+          .containsExactly("r1", "w1");
+    }
+    dir.close();
+  }
+
+  @Test
   public void searchAfter_numericFieldSortedPage2_returnsRowsPastPage1() throws Exception {
     // Cursor stability under a NUMERIC (threat-desc) field sort: page 1 (size 1) returns the
     // highest-threat doc; searchAfter its numeric sort value must return the next-lower doc, not
@@ -662,6 +788,35 @@ public class IqLocalSearchServiceLuceneTest
     return doc;
   }
 
+  /**
+   * POLICY_WAIVER doc carrying the threat-level numeric sort doc-values twin. Mirrors the twin
+   * {@code LuceneIndexingContext} will emit for POLICY_WAIVER docs (owned by the waiver-request
+   * indexing workstream); the test emits it directly to prove the query-side sort ordering.
+   */
+  private static Document waiverThreatDoc(final String waiverId, final int threatLevel) {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_ID.label, waiverId, Store.YES));
+    doc.add(new SortedNumericDocValuesField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
+    return doc;
+  }
+
+  /**
+   * POLICY_WAIVER doc carrying the expires-at epoch-millis numeric sort doc-values twin, or no twin
+   * for a never-expiring waiver (null). Mirrors the twin {@code LuceneIndexingContext} will emit for
+   * POLICY_WAIVER docs (owned by the waiver-request indexing workstream).
+   */
+  private static Document waiverExpiresDoc(final String waiverId, final Long expiresAtEpochMs) {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_ID.label, waiverId, Store.YES));
+    if (expiresAtEpochMs != null) {
+      doc.add(new SortedNumericDocValuesField(
+          FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, expiresAtEpochMs));
+    }
+    return doc;
+  }
+
   private static Document vulnDoc(final String vulnId, final String componentName, final String description) {
     Map<String, String> fields = new HashMap<>();
     fields.put(FieldIdentifier.ITEM_TYPE.label, ItemType.SECURITY_VULNERABILITY.name());
@@ -691,4 +846,73 @@ public class IqLocalSearchServiceLuceneTest
   // here would duplicate that coverage and would over-constrain the internal Query tree the
   // AST compiler produces (which now uses a richer Query set including PhraseQuery and
   // PointRangeQuery, not the narrow PrefixQuery+TermQuery subset the old builder emitted).
+
+  /**
+   * Live round-trip on a real Lucene index proving the request-status filters actually match. The
+   * status is written by {@link DocumentBuilder} (lowercased keyword) and the query strings are the
+   * ones {@link IndexQueryFilterCompiler} emits, parsed through the production analyzer
+   * ({@code LuceneComponents.newQueryParser}). Before the fix the StringField held the uppercase
+   * enum name while the query term was lowercased by {@code LowerCaseKeywordAnalyzer}, so
+   * waiverStates=[requested]/[rejected], status=[REJECTED], and explicit includeAutoWaivers:false +
+   * request states all returned ZERO on Lucene (OpenSearch's keyword normalizer hid this).
+   */
+  @Test
+  public void requestStatusFilters_matchOnRealLuceneIndex_notZeroedByCaseMismatch() throws Exception {
+    final LuceneComponents luceneComponents = new LuceneComponents(mock(InsightWork.class));
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(luceneComponents.newAnalyzerForSearch()))) {
+        writer.addDocument(new DocumentBuilder(ItemType.POLICY_WAIVER_REQUEST)
+            .setPolicyWaiverId("req-requested")
+            .setPolicyWaiverRequestStatus("REQUESTED")
+            .build());
+        writer.addDocument(new DocumentBuilder(ItemType.POLICY_WAIVER_REQUEST)
+            .setPolicyWaiverId("req-rejected")
+            .setPolicyWaiverRequestStatus("REJECTED")
+            .build());
+        writer.addDocument(new DocumentBuilder(ItemType.POLICY_WAIVER)
+            .setPolicyWaiverId("committed-waiver")
+            .setPolicyWaiverAuto(false)
+            .build());
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        final IndexSearcher localSearcher = new IndexSearcher(localReader);
+
+        assertThat(hits(localSearcher, luceneComponents,
+            IndexQueryFilterCompiler.compileWithClauses(
+                IndexQueryType.WAIVER, Map.of("waiverStates", List.of("requested"))).q()))
+                    .as("waiverStates=[requested] returns the REQUESTED request on Lucene")
+                    .isEqualTo(1);
+
+        assertThat(hits(localSearcher, luceneComponents,
+            IndexQueryFilterCompiler.compileWithClauses(
+                IndexQueryType.WAIVER, Map.of("waiverStates", List.of("rejected"))).q()))
+                    .as("waiverStates=[rejected] returns the REJECTED request on Lucene")
+                    .isEqualTo(1);
+
+        assertThat(hits(localSearcher, luceneComponents,
+            IndexQueryFilterCompiler.compileWithClauses(
+                IndexQueryType.WAIVER, Map.of("status", List.of("REJECTED"))).q()))
+                    .as("status=[REJECTED] returns the REJECTED request on Lucene")
+                    .isEqualTo(1);
+
+        final Map<String, Object> explicitFalseWithStates = new HashMap<>();
+        explicitFalseWithStates.put("waiverStates", List.of("requested", "rejected"));
+        explicitFalseWithStates.put("includeAutoWaivers", false);
+        assertThat(hits(localSearcher, luceneComponents,
+            IndexQueryFilterCompiler.compileWithClauses(IndexQueryType.WAIVER, explicitFalseWithStates).q()))
+                .as("explicit includeAutoWaivers:false + request states returns both requests on Lucene")
+                .isEqualTo(2);
+      }
+    }
+  }
+
+  private static int hits(
+      final IndexSearcher searcher,
+      final LuceneComponents components,
+      final String queryString) throws Exception
+  {
+    final Query query = components.newQueryParser().apply(queryString);
+    return (int) searcher.search(query, 100).totalHits.value;
+  }
 }

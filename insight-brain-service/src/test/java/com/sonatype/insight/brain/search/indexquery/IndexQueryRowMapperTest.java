@@ -80,6 +80,35 @@ public class IndexQueryRowMapperTest
     assertThat(row.getHref()).isEqualTo("/preview/waivers/application/app-1/w-1");
   }
 
+  @Test
+  public void waiverRequest_carriesRequestFieldsAndRequestedHref() {
+    SearchResultItemDTO d = manualWaiver();
+    d.itemType = "POLICY_WAIVER_REQUEST";
+    d.policyWaiverPolicyName = "Security-High";
+    d.policyWaiverRequestStatus = "REQUESTED";
+    d.requesterName = "Alice";
+    d.rejectionReason = null;
+
+    IndexQueryRow row = IndexQueryRowMapper.toRow(IndexQueryType.WAIVER, d);
+
+    assertThat(row.getFields().get("isRequested")).isEqualTo(Boolean.TRUE);
+    assertThat(row.getFields().get("status")).isEqualTo("REQUESTED");
+    assertThat(row.getFields().get("requesterName")).isEqualTo("Alice");
+    // Request href carries the ?requested=true discriminator.
+    assertThat(row.getHref()).isEqualTo("/preview/waivers/application/app-1/w-1?requested=true");
+  }
+
+  @Test
+  public void waiver_policyTypeDefaultsToOtherWhenMissing() {
+    SearchResultItemDTO d = manualWaiver();
+    d.policyWaiverPolicyType = null;
+
+    IndexQueryRow row = IndexQueryRowMapper.toRow(IndexQueryType.WAIVER, d);
+
+    // Missing denormalized policyType reads back as "other" per the index contract.
+    assertThat(row.getFields().get("policyType")).isEqualTo("other");
+  }
+
   private static SearchResultItemDTO manualWaiver() {
     SearchResultItemDTO d = new SearchResultItemDTO();
     d.policyWaiverId = "w-1";

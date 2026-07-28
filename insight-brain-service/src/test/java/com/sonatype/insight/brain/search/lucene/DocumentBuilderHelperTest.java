@@ -1443,6 +1443,163 @@ public class DocumentBuilderHelperTest
   }
 
   @Test
+  public void buildPolicyWaiverRequestDocs_indexesRequestFieldsAndPolicyType() {
+    Organization organization = tempEntity.newOrganization();
+    when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);
+    Policy policy = tempEntity.newPolicy(organization.getId(), "req policy", 6);
+    com.sonatype.insight.brain.model.policy.PolicyWaiverRequest request =
+        tempEntity.newPolicyWaiverRequest(new com.sonatype.insight.brain.model.policy.PolicyWaiverRequest(
+            policy.getId(), organization.getId(), "please waive")
+                .setRequesterName("Alice"));
+
+    List<Document> docs = documentBuilderHelper.buildPolicyWaiverRequestDocs(indexingContextMock);
+
+    Document doc = waiverDocById(docs, request.getId());
+    assertThat(doc).isNotNull();
+    assertThat(doc.get(FieldIdentifier.ITEM_TYPE.label))
+        .isEqualTo(com.sonatype.insight.brain.search.index.ItemType.POLICY_WAIVER_REQUEST.name());
+    // Status is indexed lowercased so Lucene exact-match (via the query-time LowerCaseKeywordAnalyzer)
+    // and the OpenSearch lowercase keyword normalizer both hit; the RowMapper uppercases it on read.
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS.label)).isEqualTo("requested");
+    assertThat(doc.get(FieldIdentifier.REQUESTER_NAME.label)).isEqualTo("Alice");
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label)).isEqualTo("req policy");
+    // policyType denormalized from the resolved policy (present on request docs, like waiver docs).
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_TYPE.label)).isNotBlank();
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label)).isEqualTo("ORGANIZATION");
+  }
+
+  @Test
+  public void buildPolicyWaiverRequestDoc_rbacClosureMatchesWaiverClosureForSameOwner() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    when(indexingContextMock.getOwner(app.getId())).thenReturn(app);
+    Policy policy = tempEntity.newPolicy(org.getId(), "p", 5);
+
+    PolicyWaiver waiver = tempEntity.newWaiver("h-w", policy.getId(), app.getId(), "w");
+    com.sonatype.insight.brain.model.policy.PolicyWaiverRequest request =
+        tempEntity.newPolicyWaiverRequest(new com.sonatype.insight.brain.model.policy.PolicyWaiverRequest(
+            policy.getId(), app.getId(), "r"));
+
+    Document waiverDoc = documentBuilderHelper.buildDocument(indexingContextMock, waiver);
+    Document requestDoc = documentBuilderHelper.buildDocument(indexingContextMock, request);
+
+    // RBAC closure must be byte-for-byte identical for the same owner (MTIQ correctness).
+    assertThat(requestDoc.getValues(FieldIdentifier.ALLOWED_CONTEXT_IDS.label))
+        .containsExactlyInAnyOrder(waiverDoc.getValues(FieldIdentifier.ALLOWED_CONTEXT_IDS.label));
+  }
+
+  @Test
+  public void buildPolicyWaiverRequestDoc_approvedRequestIsIndexedWithApprovedStatus() {
+    Organization org = tempEntity.newOrganization();
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    Policy policy = tempEntity.newPolicy(org.getId(), "p", 5);
+    com.sonatype.insight.brain.model.policy.PolicyWaiverRequest request =
+        tempEntity.newPolicyWaiverRequest(new com.sonatype.insight.brain.model.policy.PolicyWaiverRequest(
+            policy.getId(), org.getId(), "r")
+                .setStatus(com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus.APPROVED));
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, request);
+    // Approved requests ARE indexed (for completeness); the query-surface waiverStates filter simply
+    // never selects the APPROVED status.
+    assertThat(doc).isNotNull();
+    // Status indexed lowercased (see buildPolicyWaiverRequestDocs_indexesRequestFieldsAndPolicyType).
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS.label)).isEqualTo("approved");
+  }
+
+  @Test
+  public void buildPolicyWaiverRequestDoc_nonIndexableOwnerReturnsNull() {
+    com.sonatype.insight.brain.model.policy.PolicyWaiverRequest request =
+        new com.sonatype.insight.brain.model.policy.PolicyWaiverRequest("p", "repo-owner", "r");
+    request.setId("req-1");
+    // No owner resolves for the id (repository-family / missing) -> not indexable -> null doc.
+    when(indexingContextMock.getOwner("repo-owner")).thenReturn(null);
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, request)).isNull();
+  }
+
+  @Test
+  public void buildPolicyWaiverDoc_componentTargetedWaiver_indexesComponentScopeWithOwnerRbac() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    when(indexingContextMock.getOwner(app.getId())).thenReturn(app);
+    Policy policy = tempEntity.newPolicy(org.getId(), "p", 5);
+    // A component-targeted waiver: carries a hash (EXACT_COMPONENT), owned by an application.
+    PolicyWaiver componentWaiver = tempEntity.newWaiver("comp-hash", policy.getId(), app.getId(), "c");
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, componentWaiver);
+
+    // scope granularity is "component" (targets a specific component)...
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE.label)).isEqualTo("component");
+    // ...while the RBAC/owner type stays APPLICATION (owner-based permission closure unchanged).
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label)).isEqualTo("APPLICATION");
+    // RBAC closure is the owning app + its org ancestors, exactly as a non-component waiver on the app.
+    PolicyWaiver ownerWideWaiver = new PolicyWaiver(null, policy.getId(), app.getId(), "owner-wide");
+    ownerWideWaiver.setComponentMatchStrategy(
+        com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS);
+    ownerWideWaiver.setId("owner-wide-id");
+    Document ownerWideDoc = documentBuilderHelper.buildDocument(indexingContextMock, ownerWideWaiver, policy);
+    assertThat(doc.getValues(FieldIdentifier.ALLOWED_CONTEXT_IDS.label))
+        .containsExactlyInAnyOrder(ownerWideDoc.getValues(FieldIdentifier.ALLOWED_CONTEXT_IDS.label));
+    assertThat(ownerWideDoc.get(FieldIdentifier.POLICY_WAIVER_SCOPE.label)).isEqualTo("application");
+  }
+
+  @Test
+  public void buildPolicyWaiverDoc_orgWideWaiver_indexesOrganizationScope() {
+    Organization org = tempEntity.newOrganization();
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    Policy policy = tempEntity.newPolicy(org.getId(), "p", 5);
+    PolicyWaiver waiver = new PolicyWaiver(null, policy.getId(), org.getId(), "org-wide");
+    waiver.setComponentMatchStrategy(
+        com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS);
+    waiver.setId("org-wide-id");
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, waiver, policy);
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE.label)).isEqualTo("organization");
+  }
+
+  @Test
+  public void buildPolicyWaiverRequestDoc_nullComponentMatchStrategy_notComponentTargeted() {
+    // policy_waiver_request.component_match_strategy is nullable with no ALL_COMPONENTS backfill. A
+    // null strategy with no hash/purl is owner-wide, not component-targeted, so the scope must be the
+    // owner granularity (organization) — not "component".
+    Organization org = tempEntity.newOrganization();
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    Policy policy = tempEntity.newPolicy(org.getId(), "p", 5);
+    com.sonatype.insight.brain.model.policy.PolicyWaiverRequest request =
+        new com.sonatype.insight.brain.model.policy.PolicyWaiverRequest(policy.getId(), org.getId(), "r");
+    request.setId("req-null-strategy");
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, request);
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE.label)).isEqualTo("organization");
+  }
+
+  @Test
+  public void buildPolicyWaiverRequestDoc_dockerComponentRequest_notIndexed() {
+    // A docker-component request maps to a committed waiver with isForContainerImageComponent=true,
+    // which is excluded from Global Search; the request must be excluded too so the two surfaces match.
+    // The container-image guard runs before the owner lookup, so no owner stub is needed.
+    com.sonatype.insight.brain.model.policy.PolicyWaiverRequest request =
+        new com.sonatype.insight.brain.model.policy.PolicyWaiverRequest("p", "org-1", "r");
+    request.setId("req-docker");
+    request.setAssociatedPackageUrl("pkg:docker/library/ubuntu@20.04");
+
+    assertThat(documentBuilderHelper.buildDocument(indexingContextMock, request)).isNull();
+  }
+
+  @Test
+  public void buildPolicyWaiverDoc_denormalizesPolicyTypeOnWaiverDoc() {
+    Organization org = tempEntity.newOrganization();
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    Policy policy = tempEntity.newPolicy(org.getId(), "p", 5);
+    PolicyWaiver waiver = tempEntity.newWaiver("h-pt", policy.getId(), org.getId(), "w");
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, waiver);
+    // GAP2+3 handoff: policyType is now denormalized onto POLICY_WAIVER docs too.
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_TYPE.label)).isNotBlank();
+  }
+
+  @Test
   public void buildPolicyWaiverDocsForPolicy_preservesReasonAndPolicyFieldsAndExcludesContainerImage() {
     Organization organization = tempEntity.newOrganization();
     when(indexingContextMock.getOwner(organization.getId())).thenReturn(organization);

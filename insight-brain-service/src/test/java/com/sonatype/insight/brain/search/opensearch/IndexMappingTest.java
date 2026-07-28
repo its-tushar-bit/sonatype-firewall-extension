@@ -144,6 +144,33 @@ public class IndexMappingTest
   }
 
   @Test
+  public void policyWaiverRequestFields_areMappedWithExpectedTypes() {
+    Map<String, Property> mappings = new IndexMapping().getMappings();
+
+    // policyType (both waiver + request docs), request status, requester/reviewer name, review time
+    // are keyword; rejection reason + note to reviewer are analyzed text.
+    Stream.of(
+        FieldIdentifier.POLICY_WAIVER_POLICY_TYPE,
+        FieldIdentifier.POLICY_WAIVER_SCOPE,
+        FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS,
+        FieldIdentifier.REQUESTER_NAME,
+        FieldIdentifier.REVIEWER_NAME,
+        FieldIdentifier.REVIEW_TIME)
+        .forEach(field -> {
+          Property property = mappings.get(field.label);
+          assertThat(property).as("mapping for %s", field.label).isNotNull();
+          assertThat(property.isKeyword()).as("%s is keyword", field.label).isTrue();
+        });
+
+    Stream.of(FieldIdentifier.REJECTION_REASON, FieldIdentifier.NOTE_TO_REVIEWER)
+        .forEach(field -> {
+          Property property = mappings.get(field.label);
+          assertThat(property).as("mapping for %s", field.label).isNotNull();
+          assertThat(property.isText()).as("%s is text", field.label).isTrue();
+        });
+  }
+
+  @Test
   public void applicationEvaluationDenormFields_areMappedWithExpectedTypes() {
     Map<String, Property> mappings = new IndexMapping().getMappings();
 

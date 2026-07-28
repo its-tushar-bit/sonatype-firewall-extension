@@ -40,7 +40,11 @@ public class SearchIndexChange
     // changeData encodes the waiver kind with a prefix so the updater resolves the correct table
     // directly: "MANUAL:<id>" for policy_waiver, "AUTO:<id>" for auto_policy_waiver (mirroring the
     // SBOM "appId:version" split). The raw id follows the prefix.
-    POLICY_WAIVER
+    POLICY_WAIVER,
+
+    // Waiver-request change; changeData is the raw policy_waiver_request id (no prefix — a single
+    // table). Indexed as ItemType.POLICY_WAIVER_REQUEST, distinct from POLICY_WAIVER.
+    POLICY_WAIVER_REQUEST
   }
 
   // changeData prefixes for POLICY_WAIVER changes (see ChangeType.POLICY_WAIVER).

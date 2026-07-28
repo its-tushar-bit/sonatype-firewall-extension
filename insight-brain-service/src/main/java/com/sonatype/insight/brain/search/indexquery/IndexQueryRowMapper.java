@@ -12,6 +12,7 @@ import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.search.global.SearchSource;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.indexquery.ApplicationStageSeverityBreakdown.Breakdown;
@@ -148,22 +149,74 @@ public final class IndexQueryRowMapper
     // (orphaned policy, per buildPolicyWaiverDocs) also indexes a null policy name, so fall back to a
     // generic label there too rather than rendering a blank row title.
     final String title = waiverTitle(auto, d.policyWaiverPolicyName, d.policyWaiverThreatLevel);
-    return base(IndexQueryType.WAIVER, id)
+    // A POLICY_WAIVER_REQUEST doc is a pending/rejected/approved request, distinct from a committed
+    // waiver; it carries the request-only fields (status, requester, review info) and links with
+    // ?requested=true so the read side can route to the request detail rather than a waiver detail.
+    final boolean isRequested = ItemType.POLICY_WAIVER_REQUEST.name().equalsIgnoreCase(d.itemType);
+    final IndexQueryRow.Builder builder = base(IndexQueryType.WAIVER, id)
         .title(title)
         .subtitle(waiverScopeOwnerName(d))
         .field("policyName", d.policyWaiverPolicyName)
         .field("policyId", d.policyWaiverPolicyId)
+        .field("policyType", waiverPolicyType(d.policyWaiverPolicyType))
         .field("reason", d.policyWaiverReason)
         .field("threatLevel", d.policyWaiverThreatLevel)
         .field("createdAt", d.policyWaiverCreatedAt)
         .field("expiresAt", d.policyWaiverExpiresAt)
         .field("scopeOwnerId", d.policyWaiverScopeOwnerId)
         .field("scopeOwnerType", d.policyWaiverScopeOwnerType)
+        // scope is the facet granularity (application/organization/component); scopeOwnerType stays
+        // the RBAC/href owner type. Fall back to the lowercased owner type for pre-reindex docs.
+        .field("scope", waiverScope(d))
         .field("waivedBy", d.policyWaiverWaivedBy)
         .field("auto", auto)
-        .field("organizationName", d.organizationName)
-        .href(waiverHref(d))
-        .build();
+        .field("isRequested", isRequested)
+        .field("organizationName", d.organizationName);
+    if (isRequested) {
+      builder
+          .field("status", waiverRequestStatus(d.policyWaiverRequestStatus))
+          .field("requesterName", d.requesterName)
+          .field("reviewerName", d.reviewerName)
+          .field("reviewTime", d.reviewTime)
+          .field("rejectionReason", d.rejectionReason)
+          .field("noteToReviewer", d.noteToReviewer);
+    }
+    return builder.href(isRequested ? waiverRequestHref(d) : waiverHref(d)).build();
+  }
+
+  /**
+   * Request status is indexed lowercased (Lucene stores the raw keyword token; OpenSearch's
+   * {@code lowercase} normalizer only affects the match term, not {@code _source}), so normalize the
+   * read value back to the canonical uppercase enum name for a backend-consistent API response.
+   */
+  private static String waiverRequestStatus(final String indexed) {
+    return indexed == null ? null : indexed.toUpperCase(Locale.ROOT);
+  }
+
+  /** Denormalized policy threat category; a missing value reads back as OTHER (per the index contract). */
+  private static String waiverPolicyType(final String indexed) {
+    return indexed != null ? indexed : PolicyThreatCategory.OTHER.getName();
+  }
+
+  /**
+   * Facet scope granularity. Prefer the indexed policyWaiverScope (application/organization/component);
+   * a pre-reindex doc without it falls back to the lowercased owner type so the scope facet still buckets.
+   */
+  private static String waiverScope(final SearchResultItemDTO d) {
+    if (d.policyWaiverScope != null) {
+      return d.policyWaiverScope;
+    }
+    return d.policyWaiverScopeOwnerType == null ? null : d.policyWaiverScopeOwnerType.toLowerCase(Locale.ROOT);
+  }
+
+  /**
+   * Deep link for a waiver REQUEST row: the same scoped waiver path plus {@code ?requested=true} so the
+   * read side distinguishes a pending/rejected request from a committed waiver. Requires the three
+   * path parts like {@link #waiverHref}; returns null otherwise.
+   */
+  private static String waiverRequestHref(final SearchResultItemDTO d) {
+    final String base = waiverHref(d);
+    return base == null ? null : base + "?requested=true";
   }
 
   /**

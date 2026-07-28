@@ -42,7 +42,22 @@ public final class IndexQueryFilterSchema
      * A missing expiry epoch means "never expires" and is therefore always active. Only
      * "active"/"expired" are accepted; any other value is a 400.
      */
-    EXPIRY_STATUS
+    EXPIRY_STATUS,
+    /**
+     * The {@code waiverStates} multi-select on WAIVER queries, spanning both item types:
+     * <ul>
+     * <li>{@code existing} — committed waivers ({@code itemType:policy_waiver});</li>
+     * <li>{@code requested} — pending requests ({@code itemType:policy_waiver_request} AND
+     * {@code policyWaiverRequestStatus:"REQUESTED"});</li>
+     * <li>{@code rejected} — rejected requests ({@code itemType:policy_waiver_request} AND
+     * {@code policyWaiverRequestStatus:"REJECTED"});</li>
+     * <li>{@code excluded} — auto-waiver exclusions, compiled to auto waivers
+     * ({@code itemType:policy_waiver} AND {@code policyWaiverAuto:"true"}).</li>
+     * </ul>
+     * Multiple selected states are OR'd. Approved requests are indexed but selected by no state.
+     * Absent (no waiverStates) leaves the WAIVER item-type union unrestricted.
+     */
+    WAIVER_STATES
   }
 
   public record FilterDef(String field, Kind kind)
@@ -104,14 +119,23 @@ public final class IndexQueryFilterSchema
         // waiver's policy NAME, mirroring how the other entity types filter by human-readable names.
         // expiry is the active-vs-expired status toggle (see Kind.EXPIRY_STATUS), compiled against the
         // policyWaiverExpiresAtEpochMs numeric point vs server-now with null-expiry treated as active.
-        IndexQueryType.WAIVER, Map.of(
-            "query", FREE_TEXT_QUERY,
-            "organizations", new FilterDef("organizationName", Kind.TERMS),
-            "applications", new FilterDef("applicationName", Kind.TERMS),
-            "applicationId", new FilterDef("applicationId", Kind.TERMS),
-            "policy", new FilterDef("policyWaiverPolicyName", Kind.TERMS),
-            "policyThreatLevel", new FilterDef("policyWaiverThreatLevel", Kind.RANGE),
-            "expiry", new FilterDef("policyWaiverExpiresAtEpochMs", Kind.EXPIRY_STATUS),
-            "includeAutoWaivers", new FilterDef("policyWaiverAuto", Kind.AUTO_WAIVER_TOGGLE)));
+        // waiverStates spans both item types (see Kind.WAIVER_STATES). status filters requests by the
+        // policyWaiverRequestStatus discriminator; scope by the indexed scope owner type; policyTypes by
+        // the denormalized policyWaiverPolicyType. All three are OR-within / AND-across standard TERMS.
+        IndexQueryType.WAIVER, Map.ofEntries(
+            Map.entry("query", FREE_TEXT_QUERY),
+            Map.entry("organizations", new FilterDef("organizationName", Kind.TERMS)),
+            Map.entry("applications", new FilterDef("applicationName", Kind.TERMS)),
+            Map.entry("applicationId", new FilterDef("applicationId", Kind.TERMS)),
+            Map.entry("policy", new FilterDef("policyWaiverPolicyName", Kind.TERMS)),
+            Map.entry("policyTypes", new FilterDef("policyWaiverPolicyType", Kind.TERMS)),
+            Map.entry("scope", new FilterDef("policyWaiverScope", Kind.TERMS)),
+            Map.entry("status", new FilterDef("policyWaiverRequestStatus", Kind.TERMS)),
+            // WAIVER_STATES self-compiles its item-type/status clauses (see compileWaiverStates), so
+            // it takes no index field — null like FREE_TEXT_QUERY.
+            Map.entry("waiverStates", new FilterDef(null, Kind.WAIVER_STATES)),
+            Map.entry("policyThreatLevel", new FilterDef("policyWaiverThreatLevel", Kind.RANGE)),
+            Map.entry("expiry", new FilterDef("policyWaiverExpiresAtEpochMs", Kind.EXPIRY_STATUS)),
+            Map.entry("includeAutoWaivers", new FilterDef("policyWaiverAuto", Kind.AUTO_WAIVER_TOGGLE))));
   }
 }

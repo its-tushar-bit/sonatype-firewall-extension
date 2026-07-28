@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.search.indexquery;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -83,7 +85,17 @@ public class IndexQueryService
       // the auto-vs-manual discriminator counted over the whole corpus (see FacetMode.AUTO_WAIVER_TOGGLE).
       // threatLevel is a numeric IntPoint, so it counts per discrete value via an exact-value range
       // [v TO v] rather than a phrase-quoted term (which does not match a point field).
+      // scope buckets by the indexed policyWaiverScope field: "application", "organization", or
+      // "component" (when the waiver/request targets a specific component rather than all components in
+      // the owner scope), so a page containing a component-targeted waiver surfaces a component bucket.
+      // status is the fixed active/expiring/expired/auto-waived vocabulary derived from the expires-at
+      // epoch point vs server-now and the auto discriminator (see FacetMode.WAIVER_STATUS).
       IndexQueryType.WAIVER, List.of(
+          Facet.waiverStatus("status"),
+          Facet.value("scope", "scope", "policyWaiverScope"),
+          // policyType buckets by the denormalized policyWaiverPolicyType keyword (SECURITY/LICENSE/
+          // QUALITY/OTHER), seeded from each row's policyType field. Present on both waiver and request docs.
+          Facet.value("policyType", "policyType", "policyWaiverPolicyType"),
           Facet.value("organizationName", "organizationName", "organizationName"),
           Facet.autoWaiverToggle("auto", "policyWaiverAuto"),
           Facet.numeric("threatLevel", "threatLevel", "policyWaiverThreatLevel")));
@@ -105,9 +117,10 @@ public class IndexQueryService
    * Sized to admit a realistic worst-case page across all entity types without truncating while still
    * guarding against a pathological one, and kept below the sum of the per-field caps
    * ({@value #MAX_FACET_BUCKETS_PER_FIELD} x the facet count per entity type) so it is a live guard
-   * rather than an unreachable ceiling. The densest WAIVER page — organizationName (up to
+   * rather than an unreachable ceiling. The densest WAIVER page — the fixed status vocabulary (4),
+   * scope (at most 3 values: application, organization, component), organizationName (up to
    * {@value #MAX_FACET_BUCKETS_PER_FIELD}), the auto/manual toggle (2), and threatLevel (numeric, at
-   * most the ~11 discrete IQ threat levels), ~33 counts — fits comfortably under this budget too.
+   * most the ~11 discrete IQ threat levels), ~40 counts — fits comfortably under this budget too.
    */
   static final int MAX_FACET_COUNT_QUERIES = 60;
 
@@ -134,15 +147,32 @@ public class IndexQueryService
 
   private final MeterRegistry meterRegistry;
 
+  /**
+   * Server clock the {@code expiry} filter and the WAIVER status facet resolve the active-vs-expired
+   * boundary against. One clock is captured per request so the page query and its facet counts see a
+   * single "now". Injectable for deterministic tests; production uses {@link Clock#systemUTC()}.
+   */
+  private final Clock clock;
+
   @Inject
   public IndexQueryService(
       final IqLocalSearchService iqLocalSearchService,
       final SearchIndexClient searchIndexClient,
       @Nullable final MeterRegistry meterRegistry)
   {
+    this(iqLocalSearchService, searchIndexClient, meterRegistry, Clock.systemUTC());
+  }
+
+  IndexQueryService(
+      final IqLocalSearchService iqLocalSearchService,
+      final SearchIndexClient searchIndexClient,
+      @Nullable final MeterRegistry meterRegistry,
+      final Clock clock)
+  {
     this.iqLocalSearchService = iqLocalSearchService;
     this.searchIndexClient = searchIndexClient;
     this.meterRegistry = meterRegistry;
+    this.clock = clock;
   }
 
   /** How a facet's buckets are derived + counted. */
@@ -164,8 +194,30 @@ public class IndexQueryService
      * manual-only {@code policyWaiverAuto:"false"} restriction, so both buckets reflect the full corpus
      * regardless of the current include-toggle view.
      */
-    AUTO_WAIVER_TOGGLE
+    AUTO_WAIVER_TOGGLE,
+    /**
+     * Fixed WAIVER active/expiring/expired/auto-waived buckets, derived from the expires-at epoch point
+     * vs server-now (reusing the {@code expiry} filter's active/expired range shape) and the
+     * {@code policyWaiverAuto} discriminator. Whole-corpus, not self-restricting to the user's expiry
+     * or auto selection.
+     */
+    WAIVER_STATUS
   }
+
+  /** WAIVER status facet bucket keys, matching the prototype STATUS_OPTIONS. */
+  static final String STATUS_ACTIVE = "active";
+
+  static final String STATUS_EXPIRING = "expiring";
+
+  static final String STATUS_EXPIRED = "expired";
+
+  static final String STATUS_AUTO_WAIVED = "auto-waived";
+
+  /**
+   * Expiring-soon window: a waiver is "expiring" when its expiry falls within this many days of now,
+   * matching the prototype's {@code EXPIRY_THRESHOLD_DAYS}. "expiring" is a subset of "active".
+   */
+  static final int STATUS_EXPIRING_WINDOW_DAYS = 30;
 
   /**
    * One facet.
@@ -196,10 +248,18 @@ public class IndexQueryService
     static Facet autoWaiverToggle(final String key, final String indexField) {
       return new Facet(FacetMode.AUTO_WAIVER_TOGGLE, key, null, indexField);
     }
+
+    static Facet waiverStatus(final String key) {
+      return new Facet(FacetMode.WAIVER_STATUS, key, null, null);
+    }
   }
 
   public IndexQueryResponse query(final IndexQueryType queryType, final IndexQueryRequest request) {
-    final CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(queryType, request.getFilters());
+    // Fix one "now" per request so the page query's expiry filter and the WAIVER status facet resolve
+    // the active-vs-expired boundary against the same instant.
+    final Clock requestClock = Clock.fixed(clock.instant(), clock.getZone());
+    final CompiledQuery compiled =
+        IndexQueryFilterCompiler.compileWithClauses(queryType, request.getFilters(), requestClock);
     final String q = compiled.q();
     final Tab tab = tabFor(queryType);
     final String sortKey = validateSort(queryType, tab, request.getSort());
@@ -245,7 +305,7 @@ public class IndexQueryService
     // Facet VALUES come from the returned page, but each bucket COUNT is a whole-corpus, RBAC-scoped
     // count over the same active structured filters + item type (not page-only).
     final Map<String, List<IndexQueryFacetBucket>> facets =
-        request.isIncludeFacets() ? computeFacets(queryType, compiled, rows, warnings) : null;
+        request.isIncludeFacets() ? computeFacets(queryType, compiled, rows, warnings, requestClock) : null;
 
     return new IndexQueryResponse(
         queryType.name(),
@@ -374,7 +434,8 @@ public class IndexQueryService
       final IndexQueryType queryType,
       final CompiledQuery compiled,
       final List<IndexQueryRow> rows,
-      final List<String> warnings)
+      final List<String> warnings,
+      final Clock requestClock)
   {
     final List<Facet> facetFields = FACET_FIELDS.getOrDefault(queryType, List.of());
     if (facetFields.isEmpty()) {
@@ -404,6 +465,10 @@ public class IndexQueryService
         // carry it and the "true" bucket would always count 0.
         case AUTO_WAIVER_TOGGLE -> autoWaiverToggleBuckets(
             facet, baseMetricQueryWithoutAutoRestriction(queryType, compiled), budget, truncated);
+        // Status counts over the whole corpus regardless of the user's own expiry/auto selection, so
+        // the base drops both the expiry range clause and the manual-only auto restriction.
+        case WAIVER_STATUS -> fixedBuckets(
+            baseMetricQueryForStatus(queryType, compiled), budget, truncated, statusClauses(requestClock));
       };
       out.put(facet.key(), buckets);
     }
@@ -548,6 +613,73 @@ public class IndexQueryService
     m.put(IndexQueryWaiverStatus.WAIVER_TYPE_MANUAL,
         "policyViolationWaiverStatus:" + quote(IndexQueryWaiverStatus.WAIVED));
     return m;
+  }
+
+  /** Index field carrying the waiver expiry epoch-millis point (also the {@code expiry} filter field). */
+  private static final String WAIVER_EXPIRES_AT_EPOCH_FIELD = "policyWaiverExpiresAtEpochMs";
+
+  /** Index field carrying the auto-vs-manual discriminator ("true"/"false"). */
+  private static final String WAIVER_AUTO_FIELD = "policyWaiverAuto";
+
+  /** Item-type clause restricting a query to committed waivers (excludes waiver-request docs). */
+  private static final String COMMITTED_WAIVER_TYPE_CLAUSE =
+      "itemType:" + ItemType.POLICY_WAIVER.searchFieldName();
+
+  /**
+   * Fixed WAIVER status buckets (active / expiring / expired / auto-waived), derived from the
+   * expires-at epoch point vs {@code now} and the auto discriminator. Status is a committed-waiver
+   * lifecycle dimension, so every bucket is scoped to {@code itemType:policy_waiver} — waiver-request
+   * docs (which also carry an expires-at point) are the separate {@code waiverStates} axis and must not
+   * inflate the active/expiring/expired counts:
+   * <ul>
+   * <li>{@code expired} = expiry present AND at or before now ({@code field:[* TO now]}), matching
+   * the {@code expiry} filter's expired shape;</li>
+   * <li>{@code active} = NOT expired (never-expiring waivers carry no point and so are active),
+   * matching the {@code expiry} filter's active shape;</li>
+   * <li>{@code expiring} = expiry within the next {@value #STATUS_EXPIRING_WINDOW_DAYS} days
+   * ({@code field:[now TO now+window]}); a subset of active, so its count can exceed neither the
+   * active total nor overlap the expired bucket;</li>
+   * <li>{@code auto-waived} = {@code policyWaiverAuto:"true"}, orthogonal to the expiry-derived
+   * buckets (an auto-waiver can also be active/expiring/expired).</li>
+   * </ul>
+   */
+  private static Map<String, String> statusClauses(final Clock clock) {
+    final long now = clock.millis();
+    final long windowEnd = now + Duration.ofDays(STATUS_EXPIRING_WINDOW_DAYS).toMillis();
+    final String expiredClause = WAIVER_EXPIRES_AT_EPOCH_FIELD + ":[* TO " + now + "]";
+    final Map<String, String> m = new LinkedHashMap<>();
+    m.put(STATUS_ACTIVE, "(" + COMMITTED_WAIVER_TYPE_CLAUSE + " AND NOT " + expiredClause + ")");
+    m.put(STATUS_EXPIRING, "(" + COMMITTED_WAIVER_TYPE_CLAUSE + " AND "
+        + WAIVER_EXPIRES_AT_EPOCH_FIELD + ":[" + now + " TO " + windowEnd + "])");
+    m.put(STATUS_EXPIRED, "(" + COMMITTED_WAIVER_TYPE_CLAUSE + " AND " + expiredClause + ")");
+    m.put(STATUS_AUTO_WAIVED, WAIVER_AUTO_FIELD + ":" + quote("true"));
+    return m;
+  }
+
+  /**
+   * Facet-count base for the WAIVER status facet: drops the user's own expiry range clause(s) and the
+   * manual-only auto restriction, so each status bucket counts independent of the user's current
+   * expiry/auto selection. The base does NOT drop the user's {@code waiverStates} clauses, so status
+   * counts remain scoped to the active waiverStates selection (e.g. with {@code waiverStates=[existing]}
+   * the active/expiring/expired buckets reflect manual committed waivers only, and the auto-waived
+   * bucket is 0). This is deliberate: status contextually narrows within the waiverStates dimension
+   * rather than reporting the whole WAIVER union.
+   */
+  private static String baseMetricQueryForStatus(
+      final IndexQueryType queryType,
+      final CompiledQuery compiled)
+  {
+    final List<String> excluded = new ArrayList<>();
+    final String autoRestriction = compiled.autoWaiverRestrictionClause();
+    if (autoRestriction != null) {
+      excluded.add(autoRestriction);
+    }
+    for (String clause : compiled.fieldClauses()) {
+      if (clause.contains(WAIVER_EXPIRES_AT_EPOCH_FIELD)) {
+        excluded.add(clause);
+      }
+    }
+    return baseMetricQuery(queryType, compiled, excluded);
   }
 
   /**

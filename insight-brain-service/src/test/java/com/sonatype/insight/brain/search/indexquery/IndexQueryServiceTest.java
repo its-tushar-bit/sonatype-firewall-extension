@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.indexquery;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -303,6 +304,220 @@ public class IndexQueryServiceTest
   }
 
   @Test
+  public void query_waiverScopeFacet_bucketsByGranularityIncludingComponent_wholeCorpusCounts() {
+    // A page mixing application-, organization- and component-scoped waivers; the scope facet buckets
+    // by the indexed policyWaiverScope granularity (application / organization / component) with
+    // whole-corpus counts. The component bucket is the follow-up addition (component-targeted waivers).
+    SearchResultItemDTO app = waiverDtoWithScope("w-app", "application");
+    SearchResultItemDTO org = waiverDtoWithScope("w-org", "organization");
+    SearchResultItemDTO comp = waiverDtoWithScope("w-comp", "component");
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(app, org, comp), 3, List.of()));
+    when(searchIndexClient.count(contains("policyWaiverScope:\"application\""))).thenReturn(30L);
+    when(searchIndexClient.count(contains("policyWaiverScope:\"organization\""))).thenReturn(12L);
+    when(searchIndexClient.count(contains("policyWaiverScope:\"component\""))).thenReturn(7L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
+
+    Map<String, Long> scope = resp.facets()
+        .get("scope")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(scope)
+        .containsEntry("application", 30L)
+        .containsEntry("organization", 12L)
+        .containsEntry("component", 7L);
+  }
+
+  private static SearchResultItemDTO waiverDtoWithScope(final String id, final String scope) {
+    SearchResultItemDTO d = waiverDto(id, "APPLICATION", 5, false);
+    d.policyWaiverScope = scope;
+    return d;
+  }
+
+  @Test
+  public void query_waiverStatusFacet_countsActiveExpiringExpiredAutoWaived_wholeCorpus() {
+    // Fixed clock so the active/expiring/expired epoch boundaries are deterministic.
+    final java.time.Clock fixed =
+        java.time.Clock.fixed(java.time.Instant.parse("2026-01-01T00:00:00Z"), java.time.ZoneOffset.UTC);
+    final IndexQueryService svc = new IndexQueryService(iq, searchIndexClient, null, fixed);
+    final long now = fixed.millis();
+    final long windowEnd = now + java.time.Duration.ofDays(IndexQueryService.STATUS_EXPIRING_WINDOW_DAYS).toMillis();
+
+    SearchResultItemDTO w = waiverDto("w-1", "APPLICATION", 5, false);
+    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(w), 1, List.of()));
+    final String expiredRange = "policyWaiverExpiresAtEpochMs:[* TO " + now + "]";
+    final String expiringRange = "policyWaiverExpiresAtEpochMs:[" + now + " TO " + windowEnd + "]";
+    // active = "NOT <expiredRange>"; expired = ends with <expiredRange> but has no NOT;
+    // expiring = the [now TO now+window] range; auto = policyWaiverAuto:"true". argThat disambiguates
+    // active-vs-expired since both contain the expired range substring. Every expiry-derived bucket is
+    // scoped to committed waivers (itemType:policy_waiver) so pending-request docs never inflate them.
+    when(searchIndexClient.count(argThat(qy -> qy != null && qy.contains("NOT " + expiredRange)
+        && qy.contains("itemType:policy_waiver AND NOT")))).thenReturn(80L);
+    when(searchIndexClient.count(argThat(qy -> qy != null && qy.contains(expiringRange)
+        && qy.contains("itemType:policy_waiver AND policyWaiverExpiresAtEpochMs:[" + now)))).thenReturn(15L);
+    when(searchIndexClient.count(argThat(
+        qy -> qy != null && qy.contains(expiredRange) && !qy.contains("NOT ") && !qy.contains(expiringRange)
+            && qy.contains("itemType:policy_waiver AND " + expiredRange))))
+                .thenReturn(20L);
+    when(searchIndexClient.count(argThat(qy -> qy != null && qy.contains("policyWaiverAuto:\"true\"")))).thenReturn(5L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = svc.query(IndexQueryType.WAIVER, req);
+
+    Map<String, Long> status = resp.facets()
+        .get("status")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(status)
+        .containsEntry(IndexQueryService.STATUS_ACTIVE, 80L)
+        .containsEntry(IndexQueryService.STATUS_EXPIRING, 15L)
+        .containsEntry(IndexQueryService.STATUS_EXPIRED, 20L)
+        .containsEntry(IndexQueryService.STATUS_AUTO_WAIVED, 5L);
+  }
+
+  @Test
+  public void query_waiverPolicyTypeFacet_bucketsByDenormalizedPolicyType_wholeCorpus() {
+    // A page of waivers with distinct policy types; the policyType facet buckets by the denormalized
+    // policyWaiverPolicyType keyword with whole-corpus counts.
+    SearchResultItemDTO sec = waiverDtoWithPolicyType("w-sec", "security");
+    SearchResultItemDTO lic = waiverDtoWithPolicyType("w-lic", "license");
+    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(sec, lic), 2, List.of()));
+    when(searchIndexClient.count(contains("policyWaiverPolicyType:\"security\""))).thenReturn(40L);
+    when(searchIndexClient.count(contains("policyWaiverPolicyType:\"license\""))).thenReturn(9L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
+
+    Map<String, Long> policyType = resp.facets()
+        .get("policyType")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(policyType).containsEntry("security", 40L).containsEntry("license", 9L);
+  }
+
+  @Test
+  public void query_waiverStatesFilter_spansBothItemTypes() {
+    // requested + rejected states compile to POLICY_WAIVER_REQUEST status clauses; existing to
+    // POLICY_WAIVER. Proves the waiverStates multi-select query spans both item types.
+    IndexQueryFilterCompiler.CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("waiverStates", List.of("existing", "requested", "rejected")));
+    assertThat(compiled.q()).contains("itemType:policy_waiver AND policyWaiverAuto:\"false\"");
+    assertThat(compiled.q())
+        .contains("itemType:policy_waiver_request AND policyWaiverRequestStatus:\"REQUESTED\"");
+    assertThat(compiled.q())
+        .contains("itemType:policy_waiver_request AND policyWaiverRequestStatus:\"REJECTED\"");
+  }
+
+  @Test
+  public void query_waiverStatesWithRequestStates_doesNotLayerManualOnlyAutoDefault() {
+    // Regression: the absent-includeAutoWaivers default must NOT append a top-level auto:"false"
+    // restriction when waiverStates is present. A bare policyWaiverAuto:"false" AND'd on top would
+    // drop every POLICY_WAIVER_REQUEST doc (request docs carry no policyWaiverAuto field), zeroing
+    // out the requested/rejected tabs. waiverStates owns the item-type + auto scoping per state.
+    IndexQueryFilterCompiler.CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("waiverStates", List.of("requested")));
+    // The request-state clause is present...
+    assertThat(compiled.q())
+        .contains("itemType:policy_waiver_request AND policyWaiverRequestStatus:\"REQUESTED\"");
+    // ...and NO manual-only auto default is layered on (which would exclude all request docs).
+    assertThat(compiled.autoWaiverRestrictionClause()).isNull();
+    assertThat(compiled.q()).doesNotContain("policyWaiverAuto");
+  }
+
+  @Test
+  public void query_waiverStatesWithExplicitAutoFalse_doesNotANDMutuallyExclusiveClauses() {
+    // Regression: an explicit includeAutoWaivers:false must NOT layer the manual-only
+    // (itemType:policy_waiver AND auto:"false") restriction on top of a request-scoped waiverStates
+    // selection. AND'ing it with the request-doc clause (itemType:policy_waiver_request AND ...) is an
+    // impossible item-type condition that zeroes the requested/rejected tabs regardless of Map order.
+    IndexQueryFilterCompiler.CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER,
+        new java.util.LinkedHashMap<>(Map.of("waiverStates", List.of("requested"), "includeAutoWaivers", false)));
+    // The request-state clause survives...
+    assertThat(compiled.q())
+        .contains("itemType:policy_waiver_request AND policyWaiverRequestStatus:\"REQUESTED\"");
+    // ...and the manual-only auto restriction is dropped, so the two item types are not AND'd.
+    assertThat(compiled.autoWaiverRestrictionClause()).isNull();
+    assertThat(compiled.q()).doesNotContain("policyWaiverAuto");
+  }
+
+  @Test
+  public void query_emptyWaiverStates_behavesLikeAbsent_appliesManualOnlyDefault() {
+    // An empty waiverStates:[] selects no state, so it must not suppress the manual-only committed
+    // default the way a populated request-scoped selection does.
+    IndexQueryFilterCompiler.CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("waiverStates", List.of()));
+    assertThat(compiled.autoWaiverRestrictionClause())
+        .isEqualTo("(itemType:policy_waiver AND policyWaiverAuto:\"false\")");
+    assertThat(compiled.q()).contains("itemType:policy_waiver AND policyWaiverAuto:\"false\"");
+  }
+
+  @Test
+  public void query_waiverStatesRequested_returnsRequestDocs_notZeroedByAutoDefault() {
+    // End-to-end at the service layer: waiverStates=[requested] returns the request row rather than
+    // being zeroed by a spurious auto:false restriction. The search mock echoes the request doc.
+    SearchResultItemDTO reqDoc = new SearchResultItemDTO();
+    reqDoc.itemType = "POLICY_WAIVER_REQUEST";
+    reqDoc.policyWaiverId = "req-1";
+    reqDoc.policyWaiverRequestStatus = "REQUESTED";
+    reqDoc.requesterName = "Alice";
+    reqDoc.policyWaiverScopeOwnerType = "APPLICATION";
+    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(reqDoc), 1, List.of()));
+
+    IndexQueryRequest req =
+        new IndexQueryRequest("WAIVER", Map.of("waiverStates", List.of("requested")), 1, 25, null, null, false);
+    IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
+
+    assertThat(resp.rows()).singleElement().satisfies(r -> {
+      assertThat(r.getId()).isEqualTo("req-1");
+      assertThat(r.getFields().get("status")).isEqualTo("REQUESTED");
+      assertThat(r.getFields().get("isRequested")).isEqualTo(Boolean.TRUE);
+    });
+  }
+
+  @Test
+  public void query_statusFilter_doesNotLayerManualOnlyAutoDefault() {
+    // A status filter targets the request-only policyWaiverRequestStatus field, so the manual-only
+    // default (which restricts to POLICY_WAIVER docs) must be suppressed — otherwise status=REJECTED
+    // AND (itemType:policy_waiver AND auto:false) matches no request docs and returns nothing.
+    IndexQueryFilterCompiler.CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("status", List.of("REJECTED")));
+    assertThat(compiled.q()).contains("policyWaiverRequestStatus:\"REJECTED\"");
+    assertThat(compiled.autoWaiverRestrictionClause()).isNull();
+    assertThat(compiled.q()).doesNotContain("policyWaiverAuto");
+  }
+
+  @Test
+  public void query_waiverDefault_manualOnlyClauseIsItemTypeScoped_notBareAutoFalse() {
+    // The absent-includeAutoWaivers default is item-type-scoped so it excludes committed auto waivers
+    // WITHOUT dropping POLICY_WAIVER_REQUEST docs via a field mismatch. The recorded restriction clause
+    // must be the scoped form, never a bare policyWaiverAuto:"false".
+    IndexQueryFilterCompiler.CompiledQuery compiled =
+        IndexQueryFilterCompiler.compileWithClauses(IndexQueryType.WAIVER, Map.of());
+    assertThat(compiled.autoWaiverRestrictionClause())
+        .isEqualTo("(itemType:policy_waiver AND policyWaiverAuto:\"false\")");
+  }
+
+  @Test
+  public void query_waiverStatesFilter_rejectsUnknownState() {
+    assertThatExceptionOfType(FilterValidationException.class).isThrownBy(
+        () -> IndexQueryFilterCompiler.compileWithClauses(
+            IndexQueryType.WAIVER, Map.of("waiverStates", List.of("bogus"))))
+        .satisfies(e -> assertThat(e.getCode()).isEqualTo(FilterValidationException.Code.INVALID_FILTER));
+  }
+
+  private static SearchResultItemDTO waiverDtoWithPolicyType(final String id, final String policyType) {
+    SearchResultItemDTO d = waiverDto(id, "APPLICATION", 5, false);
+    d.policyWaiverPolicyType = policyType;
+    return d;
+  }
+
+  @Test
   public void query_runsInDefaultMode_notSbomManagerMode() {
     SearchResultItemDTO a = appDto("acme-1", "App One", "Acme");
     when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(a), 1, List.of()));
@@ -480,6 +695,30 @@ public class IndexQueryServiceTest
   }
 
   @Test
+  public void query_waiverThreatSort_appliesDescendingThreatLevelSort() {
+    when(searchIndexClient.searchGlobal(any())).thenReturn(emptyResult());
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, "threat", null, false);
+    service.query(IndexQueryType.WAIVER, req);
+
+    org.apache.lucene.search.SortField field = captureRequest().sort().getSort()[0];
+    assertThat(field.getField())
+        .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label);
+    assertThat(field.getReverse()).as("threat highest-first").isTrue();
+  }
+
+  @Test
+  public void query_waiverExpirationSort_appliesAscendingExpiresSort() {
+    when(searchIndexClient.searchGlobal(any())).thenReturn(emptyResult());
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, "expiration", null, false);
+    service.query(IndexQueryType.WAIVER, req);
+
+    org.apache.lucene.search.SortField field = captureRequest().sort().getSort()[0];
+    assertThat(field.getField())
+        .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label);
+    assertThat(field.getReverse()).as("expiration soonest-first (ascending)").isFalse();
+  }
+
+  @Test
   public void query_blankSort_policyStaysRelevance() {
     when(searchIndexClient.searchGlobal(any())).thenReturn(emptyResult());
     IndexQueryRequest req = new IndexQueryRequest("POLICY", Map.of(), 1, 25, null, null, false);
@@ -515,5 +754,21 @@ public class IndexQueryServiceTest
 
   private static GlobalSearchResult emptyResult() {
     return new GlobalSearchResult(List.of(), 0, List.of());
+  }
+
+  private static SearchResultItemDTO waiverDto(
+      final String id,
+      final String scopeOwnerType,
+      final int threatLevel,
+      final boolean auto)
+  {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "POLICY_WAIVER";
+    d.policyWaiverId = id;
+    d.policyWaiverScopeOwnerType = scopeOwnerType;
+    d.policyWaiverThreatLevel = threatLevel;
+    d.policyWaiverAuto = auto;
+    d.organizationName = "Acme";
+    return d;
   }
 }

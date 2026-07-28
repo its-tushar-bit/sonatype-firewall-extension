@@ -387,6 +387,7 @@ public abstract class AbstractSearchIndexClient
         }
         return APPLICATION_NAME;
       case POLICY_WAIVER:
+      case POLICY_WAIVER_REQUEST:
         return POLICY_WAIVER_POLICY_NAME;
       default:
         throw new IllegalArgumentException("Unsupported item type " + itemType);
@@ -491,6 +492,9 @@ public abstract class AbstractSearchIndexClient
         break;
       case POLICY_WAIVER:
         updateIndexForPolicyWaiver(change.getChangeData(), indexingContext);
+        break;
+      case POLICY_WAIVER_REQUEST:
+        updateIndexForPolicyWaiverRequest(change.getChangeData(), indexingContext);
         break;
       default:
         throw new IllegalArgumentException("Unknown change type: " + change.getChangeType());
@@ -651,6 +655,27 @@ public abstract class AbstractSearchIndexClient
       }
     }
 
+    if (doc != null) {
+      indexingContext.addNonNullDocuments(Collections.singletonList(doc));
+    }
+  }
+
+  private void updateIndexForPolicyWaiverRequest(
+      final String requestId,
+      final IndexingContext indexingContext) throws IOException
+  {
+    // The request doc's POLICY_WAIVER_ID field stores the request id, so delete by that id then
+    // rebuild the single doc (null when the request is gone or its owner is non-indexable). Guard on
+    // itemType:policy_waiver_request so a committed POLICY_WAIVER sharing the id (both are UUIDs, so
+    // this never happens in practice) can never be cross-deleted — makes the isolation intentional.
+    String queryForObsoleteDocs = "(" +
+        indexingContext.newQuery(FieldIdentifier.POLICY_WAIVER_ID, requestId) +
+        " AND " +
+        indexingContext.newQuery(FieldIdentifier.ITEM_TYPE, ItemType.POLICY_WAIVER_REQUEST.searchFieldName()) +
+        ")";
+    indexingContext.deleteDocuments(queryForObsoleteDocs);
+
+    Document doc = documentBuilderHelper.buildPolicyWaiverRequestDocById(indexingContext, requestId);
     if (doc != null) {
       indexingContext.addNonNullDocuments(Collections.singletonList(doc));
     }
@@ -1090,9 +1115,10 @@ public abstract class AbstractSearchIndexClient
         .append(appVersionCondition)
         .append(")");
 
-    // Policy waivers are a Global Search item type; legacy advanced search must never surface them
-    // (AC11: legacy advanced search behavior is unchanged), so exclude them in both modes.
+    // Policy waivers and waiver requests are Global Search item types; legacy advanced search must
+    // never surface them (AC11: legacy advanced search behavior is unchanged), so exclude both in both modes.
     queryBuilder.append(" AND NOT itemType:").append(POLICY_WAIVER.searchFieldName());
+    queryBuilder.append(" AND NOT itemType:").append(ItemType.POLICY_WAIVER_REQUEST.searchFieldName());
 
     if (isSbomManagerMode) {
       // SBOM Manager mode exclusions
@@ -1242,6 +1268,12 @@ public abstract class AbstractSearchIndexClient
             getIndexingExecutor())
             .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
+    CompletableFuture<Void> policyWaiverRequestDocs =
+        CompletableFuture.supplyAsync(
+            () -> documentBuilderHelper.buildPolicyWaiverRequestDocs(indexingContext),
+            getIndexingExecutor())
+            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+
     Function<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
         application -> CompletableFuture
             .supplyAsync(
@@ -1270,6 +1302,8 @@ public abstract class AbstractSearchIndexClient
     log.info("policy indexing complete");
     policyWaiverDocs.join();
     log.info("policy waiver indexing complete");
+    policyWaiverRequestDocs.join();
+    log.info("policy waiver request indexing complete");
     sbomDocs.join();
     log.info("SBOM metadata indexing complete");
     CompletableFuture.allOf(sbomSVDocs.toArray(CompletableFuture[]::new)).join();

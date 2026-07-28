@@ -19,8 +19,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
@@ -49,9 +52,20 @@ public class PolicyWaiverRequestDAO
   private final OwnerDAO ownerDAO;
 
   @Inject
-  public PolicyWaiverRequestDAO(OperationalDataStore operationalDataStore, OwnerDAO ownerDAO) {
-    super(operationalDataStore);
+  public PolicyWaiverRequestDAO(
+      OperationalDataStore operationalDataStore,
+      SearchIndexManager searchIndexManager,
+      OwnerDAO ownerDAO)
+  {
+    super(operationalDataStore, searchIndexManager);
     this.ownerDAO = ownerDAO;
+  }
+
+  // Enqueues a Global Search index change for the request's POLICY_WAIVER_REQUEST doc on insert/
+  // update/delete. changeData is the raw request id (no kind prefix — a single table).
+  @Override
+  protected SearchIndexChange newSearchIndexChange(PolicyWaiverRequest entity) {
+    return new SearchIndexChange(ChangeType.POLICY_WAIVER_REQUEST, entity.getId());
   }
 
   @Override

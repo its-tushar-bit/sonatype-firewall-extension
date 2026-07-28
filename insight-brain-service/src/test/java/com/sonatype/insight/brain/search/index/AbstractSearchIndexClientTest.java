@@ -664,9 +664,10 @@ public class AbstractSearchIndexClientTest
     String defaultMode = client.appendSbomFilteringToQuery("foo", false);
     String sbomMode = client.appendSbomFilteringToQuery("foo", true);
     String exclusion = "AND NOT itemType:" + ItemType.POLICY_WAIVER.searchFieldName();
+    String requestExclusion = "AND NOT itemType:" + ItemType.POLICY_WAIVER_REQUEST.searchFieldName();
 
-    assertThat(defaultMode).contains(exclusion);
-    assertThat(sbomMode).contains(exclusion);
+    assertThat(defaultMode).contains(exclusion).contains(requestExclusion);
+    assertThat(sbomMode).contains(exclusion).contains(requestExclusion);
   }
 
   @Test

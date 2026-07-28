@@ -596,6 +596,31 @@ public class IqLocalSearchServiceTest
   }
 
   @Test
+  public void sortFor_waiverThreatKey_buildsDescendingLongSortOnThreatLevel() {
+    Sort sort = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_THREAT);
+    assertThat(sort).isNotNull();
+    SortField field = sort.getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(field.getReverse()).as("threat sorts highest-first (descending)").isTrue();
+  }
+
+  @Test
+  public void sortFor_waiverExpirationKey_buildsAscendingLongSortOnExpiresTwin() {
+    Sort sort = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_EXPIRATION);
+    assertThat(sort).isNotNull();
+    SortField field = sort.getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    // Expiration sorts soonest-first (ASCENDING), unlike created/threat.
+    assertThat(field.getReverse()).as("expiration sorts soonest-first (ascending)").isFalse();
+    // Never-expiring waivers (missing value) must sort LAST under ascending order.
+    assertThat(field.getMissingValue()).as("never-expires sorts last").isEqualTo(Long.MAX_VALUE);
+  }
+
+  @Test
   public void search_nonGlobalUser_emptyContextSet_gets_matchNoDocsFilter() {
     // Simulate a non-global user (no ROOT/global membership) with an empty permitted set.
     // buildAllowedContextIdsFilter must return MatchNoDocsQuery so the request cannot match any
@@ -632,6 +657,11 @@ public class IqLocalSearchServiceTest
         .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS);
     assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.VIOLATION, "threat"))
         .isEqualTo(com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL);
+    // WAIVER threat + expiration sort keys back onto the waiver threat-level and expires-at twins.
+    assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_THREAT))
+        .isEqualTo(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL);
+    assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_EXPIRATION))
+        .isEqualTo(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS);
   }
 
   @Test
@@ -642,7 +672,8 @@ public class IqLocalSearchServiceTest
     for (FieldIdentifier f : List.of(
         FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS,
         FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL,
-        FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS))
+        FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS,
+        FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL))
     {
       SortField field = IqLocalSearchService.buildSortField(f).getSort()[0];
       // Numeric fields use SortedNumericSortField (reads the SortedNumericDocValues twin); its
@@ -654,6 +685,19 @@ public class IqLocalSearchServiceTest
       assertThat(field.getReverse()).as("reverse for %s", f).isTrue();
       assertThat(field.getField()).isEqualTo(f.label);
     }
+  }
+
+  @Test
+  public void buildSortField_waiverExpiration_sortsAscendingLongMissingLast() {
+    // Expiration is the one numeric field that sorts ASCENDING (soonest first); a never-expiring
+    // waiver carries no value and must sort LAST (Long.MAX_VALUE missing sentinel).
+    SortField field =
+        IqLocalSearchService.buildSortField(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS).getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(field.getReverse()).as("expiration ascending").isFalse();
+    assertThat(field.getMissingValue()).as("never-expires last").isEqualTo(Long.MAX_VALUE);
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label);
   }
 
   @Test

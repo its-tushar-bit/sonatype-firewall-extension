@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -101,6 +102,14 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAI
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_WAIVED_BY;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_TYPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_SCOPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REQUESTER_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REVIEWER_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REVIEW_TIME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REJECTION_REASON;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.NOTE_TO_REVIEWER;
 
 public class DocumentBuilder
 {
@@ -223,6 +232,22 @@ public class DocumentBuilder
   private Optional<Field> policyWaiverWaivedBy = Optional.empty();
 
   private Optional<Field> policyWaiverAuto = Optional.empty();
+
+  private Optional<Field> policyWaiverPolicyType = Optional.empty();
+
+  private Optional<Field> policyWaiverScope = Optional.empty();
+
+  private Optional<Field> policyWaiverRequestStatus = Optional.empty();
+
+  private Optional<Field> requesterName = Optional.empty();
+
+  private Optional<Field> reviewerName = Optional.empty();
+
+  private Optional<Field> reviewTime = Optional.empty();
+
+  private Optional<Field> rejectionReason = Optional.empty();
+
+  private Optional<Field> noteToReviewer = Optional.empty();
 
   private Optional<Field[]> applicationCategoryNames = Optional.empty();
 
@@ -645,8 +670,94 @@ public class DocumentBuilder
    */
   public DocumentBuilder setPolicyWaiverExpiresAtEpochMs(final Long epochMs) {
     if (epochMs != null) {
-      this.policyWaiverExpiresAtEpochMs =
-          Optional.of(new Field[]{new LongPoint(POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, epochMs)});
+      // LongPoint keeps the range-query semantics for the active-vs-expired filter unchanged; the
+      // appended StoredField lets LuceneIndexingContext read the numeric value and emit the ASCENDING
+      // expiration sort doc-values twin (a LongPoint alone is not stored/retrievable).
+      this.policyWaiverExpiresAtEpochMs = Optional.of(new Field[]{
+        new LongPoint(POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, epochMs),
+        new StoredField(POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, epochMs)});
+    }
+    return this;
+  }
+
+  /**
+   * Denormalized policy threat category, written as a keyword-style {@link StringField} on both
+   * POLICY_WAIVER and POLICY_WAIVER_REQUEST docs so the policyType facet/filter resolves without a
+   * per-row policy load. A null category (unresolvable policy) writes nothing; the read side maps a
+   * missing value to OTHER.
+   */
+  public DocumentBuilder setPolicyWaiverPolicyType(final PolicyThreatCategory policyThreatCategory) {
+    if (policyThreatCategory != null) {
+      this.policyWaiverPolicyType =
+          Optional.of(new StringField(POLICY_WAIVER_POLICY_TYPE.label, policyThreatCategory.getName(), Store.YES));
+    }
+    return this;
+  }
+
+  /**
+   * Facet/filter scope granularity ({@code application}/{@code organization}/{@code component}) as a
+   * keyword {@link StringField}. Independent of {@link #setPolicyWaiverScopeOwnerType} (RBAC/href
+   * owner type): a component-targeting waiver reports {@code component} here while keeping its
+   * app/org owner type. A null value writes nothing.
+   */
+  public DocumentBuilder setPolicyWaiverScope(final String scope) {
+    if (scope != null) {
+      this.policyWaiverScope = Optional.of(new StringField(POLICY_WAIVER_SCOPE.label, scope, Store.YES));
+    }
+    return this;
+  }
+
+  // ---- Policy waiver REQUEST setters -------------------------------------------------------
+
+  /**
+   * Request status discriminator ({@code requested}/{@code approved}/{@code rejected}) as an
+   * exact-match keyword {@link StringField}. The waiverStates filter selects requested/rejected
+   * requests by this value; approved requests are indexed but never selected.
+   *
+   * <p>
+   * Stored lowercased: the Lucene search analyzer ({@code LowerCaseKeywordAnalyzer}) lowercases
+   * query terms and the OpenSearch keyword mapping applies a {@code lowercase} normalizer, so the
+   * indexed term must be lowercase for exact-match to hit on both backends.
+   */
+  public DocumentBuilder setPolicyWaiverRequestStatus(final String status) {
+    if (status != null) {
+      this.policyWaiverRequestStatus = Optional.of(
+          new StringField(POLICY_WAIVER_REQUEST_STATUS.label, status.toLowerCase(Locale.ROOT), Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setRequesterName(final String requesterName) {
+    if (requesterName != null) {
+      this.requesterName = Optional.of(new TextField(REQUESTER_NAME.label, requesterName, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setReviewerName(final String reviewerName) {
+    if (reviewerName != null) {
+      this.reviewerName = Optional.of(new TextField(REVIEWER_NAME.label, reviewerName, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setReviewTime(final String iso8601) {
+    if (iso8601 != null) {
+      this.reviewTime = Optional.of(new StringField(REVIEW_TIME.label, iso8601, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setRejectionReason(final String rejectionReason) {
+    if (rejectionReason != null) {
+      this.rejectionReason = Optional.of(new TextField(REJECTION_REASON.label, rejectionReason, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setNoteToReviewer(final String noteToReviewer) {
+    if (noteToReviewer != null) {
+      this.noteToReviewer = Optional.of(new TextField(NOTE_TO_REVIEWER.label, noteToReviewer, Store.YES));
     }
     return this;
   }
@@ -804,6 +915,14 @@ public class DocumentBuilder
     policyWaiverThreatLevel.ifPresent(this::setFields);
     policyWaiverWaivedBy.ifPresent(this::setFields);
     policyWaiverAuto.ifPresent(this::setFields);
+    policyWaiverPolicyType.ifPresent(this::setFields);
+    policyWaiverScope.ifPresent(this::setFields);
+    policyWaiverRequestStatus.ifPresent(this::setFields);
+    requesterName.ifPresent(this::setFields);
+    reviewerName.ifPresent(this::setFields);
+    reviewTime.ifPresent(this::setFields);
+    rejectionReason.ifPresent(this::setFields);
+    noteToReviewer.ifPresent(this::setFields);
     applicationCategoryNames.ifPresent(this::setFields);
     applicationLastEvaluationTimeEpochMs.ifPresent(this::setFields);
     applicationStageSeverityCounts.ifPresent(this::setFields);

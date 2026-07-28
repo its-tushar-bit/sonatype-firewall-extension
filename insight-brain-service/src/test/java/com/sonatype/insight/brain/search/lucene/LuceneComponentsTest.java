@@ -197,6 +197,16 @@ public class LuceneComponentsTest
   }
 
   @Test
+  public void testNewAnalyzerForSearch_RejectionReason() {
+    testNewAnalyzerForSearch_MultiTokenField(FieldIdentifier.REJECTION_REASON.label);
+  }
+
+  @Test
+  public void testNewAnalyzerForSearch_NoteToReviewer() {
+    testNewAnalyzerForSearch_MultiTokenField(FieldIdentifier.NOTE_TO_REVIEWER.label);
+  }
+
+  @Test
   public void testNewQueryParser_DefaultField() {
     assertThat(luceneComponents.newQueryParser().apply("value"))
         .isEqualTo(new TermQuery(new Term(FieldIdentifier.VULNERABILITY_ID.label, "value")));

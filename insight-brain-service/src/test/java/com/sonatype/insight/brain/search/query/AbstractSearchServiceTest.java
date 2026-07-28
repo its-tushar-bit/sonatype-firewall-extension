@@ -564,8 +564,10 @@ public abstract class AbstractSearchServiceTest
     expectedItemTypes.remove("SBOM_METADATA");
     expectedItemTypes.remove("POLICY_VIOLATION");
     expectedItemTypes.remove("LEGAL_VIOLATION");
-    // Default test data creates no policy waivers, so POLICY_WAIVER docs are not indexed here.
+    // Default test data creates no policy waivers or waiver requests, so neither POLICY_WAIVER nor
+    // POLICY_WAIVER_REQUEST docs are indexed here.
     expectedItemTypes.remove("POLICY_WAIVER");
+    expectedItemTypes.remove("POLICY_WAIVER_REQUEST");
     assertThat(actualItemTypes).containsExactlyInAnyOrderElementsOf(expectedItemTypes);
 
     StreamingOutput stream =

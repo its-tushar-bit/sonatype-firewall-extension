@@ -114,18 +114,26 @@ public class GlobalSearchSortAllowlistTest
     assertThat(GlobalSearchSortAllowlist.isAllowed(Tab.APPLICATION, "lastEvaluationTime")).isTrue();
   }
 
-  // ---- Waiver tab: relevance + created (newest first) ---------------------------------------
+  // ---- Waiver tab: relevance + created (newest first) + threat + expiration -----------------
 
   @Test
-  public void waiverTab_acceptsRelevanceAndCreated_rejectsOthers() {
+  public void waiverTab_acceptsRelevanceCreatedThreatExpiration_rejectsOthers() {
     Tab tab = Tab.WAIVER;
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "relevance")).isTrue();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, GlobalSearchSortAllowlist.WAIVER_CREATED)).isTrue();
+    assertThat(GlobalSearchSortAllowlist.isAllowed(tab, GlobalSearchSortAllowlist.WAIVER_THREAT)).isTrue();
+    assertThat(GlobalSearchSortAllowlist.isAllowed(tab, GlobalSearchSortAllowlist.WAIVER_EXPIRATION)).isTrue();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "name"))
         .as("WAIVER must not allow name (no waiver-name sortable field)")
         .isFalse();
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> GlobalSearchSortAllowlist.requireAllowed(tab, "name"));
+  }
+
+  @Test
+  public void waiverThreatAndExpirationKeys_haveExpectedStableNames() {
+    assertThat(GlobalSearchSortAllowlist.WAIVER_THREAT).isEqualTo("threat");
+    assertThat(GlobalSearchSortAllowlist.WAIVER_EXPIRATION).isEqualTo("expiration");
   }
 
   // ---- Per-entity default sort --------------------------------------------------------------

@@ -471,6 +471,43 @@ public class HybridSearchIndexClient
     }
   }
 
+  @Override
+  public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.countDistinctGroupedByBands(
+          metricQuery, groupField, distinctField, groupValues, bandField, bands);
+    }
+    catch (Exception e) {
+      log.warn("Failed to count distinct grouped bands from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      Map<String, Map<String, Long>> result = secondaryClient.countDistinctGroupedByBands(
+          metricQuery, groupField, distinctField, groupValues, bandField, bands);
+      log.debug("Grouped distinct band count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to count distinct grouped bands from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Grouped distinct band count failed on both primary and secondary clients. Primary error: " +
+              String.valueOf(primaryException.getMessage()) + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
   /**
    * Falls back to the secondary only on infrastructure failure, never on client errors. Fallback is
    * refused once {@code searchAfter} is non-empty since cursor tuples are backend-specific.

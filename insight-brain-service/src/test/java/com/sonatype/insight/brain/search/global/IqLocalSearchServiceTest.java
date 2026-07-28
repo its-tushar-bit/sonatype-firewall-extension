@@ -596,6 +596,53 @@ public class IqLocalSearchServiceTest
   }
 
   @Test
+  public void sortFor_vulnerabilityCvssKey_buildsDescendingFloatSortOnSeverityTwin() {
+    Sort sort = IqLocalSearchService.sortFor(Tab.VULNERABILITY, "cvss");
+    assertThat(sort).isNotNull();
+    SortField field = sort.getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.VULNERABILITY_SEVERITY.label);
+    // FLOAT (not LONG): the twin is float-sortable-int encoded, so it must be compared as a float.
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.FLOAT);
+    assertThat(field.getReverse()).isTrue();
+  }
+
+  @Test
+  public void sortFor_componentPolicyThreatLevelKey_buildsDescendingLongSortOnMaxThreatTwin() {
+    Sort sort = IqLocalSearchService.sortFor(Tab.COMPONENT, "policyThreatLevel");
+    assertThat(sort).isNotNull();
+    SortField field = sort.getSort()[0];
+    assertThat(field).isInstanceOf(SortedNumericSortField.class);
+    assertThat(field.getField()).isEqualTo(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(field.getReverse()).isTrue();
+  }
+
+  @Test
+  public void sortableFieldMap_mapsNewComponentAndVulnerabilitySortKeys() {
+    assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.COMPONENT, "policyThreatLevel"))
+        .isEqualTo(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL);
+    assertThat(IqLocalSearchService.sortableIndexFieldFor(Tab.VULNERABILITY, "cvss"))
+        .isEqualTo(FieldIdentifier.VULNERABILITY_SEVERITY);
+  }
+
+  @Test
+  public void allowlistAndSortableMap_parity_everyNonRelevanceKeyHasABackingField() {
+    // Drift guard: every allowlisted non-relevance key must resolve to a sortable index field, or
+    // sortFor logs an invariant-violation and silently falls back to relevance.
+    for (Tab tab : Tab.values()) {
+      for (String key : GlobalSearchSortAllowlist.allowedFor(tab)) {
+        if (GlobalSearchSortAllowlist.RELEVANCE.equals(key)) {
+          continue;
+        }
+        assertThat(IqLocalSearchService.sortableIndexFieldFor(tab, key))
+            .as("allowlisted key %s for tab %s must have a SORTABLE_FIELD_BY_KEY entry", key, tab)
+            .isNotNull();
+      }
+    }
+  }
+
+  @Test
   public void sortFor_waiverThreatKey_buildsDescendingLongSortOnThreatLevel() {
     Sort sort = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_THREAT);
     assertThat(sort).isNotNull();

@@ -35,8 +35,11 @@ import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.SortedNumericDocValuesField;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.index.DirectoryReader;
@@ -74,6 +77,14 @@ public class IqLocalSearchServiceLuceneTest
 {
   @Mock
   private SearchIndexClient searchIndexClient;
+
+  private static final long DAY_MS = 24L * 60 * 60 * 1000;
+
+  // Single clock reference for the whole test: both the seeded first-seen timestamps and the
+  // first-seen window boundaries (start = NOW_MS - windowDays) derive from this one value, so no
+  // wall-clock is read at query time. Do not compose window queries via firstSeenWindowChip (which
+  // reads Instant.now()) in these tests or the two sides could skew on a slow run.
+  private static final long NOW_MS = System.currentTimeMillis();
 
   private Directory directory;
 
@@ -115,6 +126,20 @@ public class IqLocalSearchServiceLuceneTest
       writer.addDocument(mavenComponentDoc("org.springframework", "spring-core", "6.1.0"));
       writer.addDocument(vulnDoc("CVE-2021-44228", "log4j-core", "Remote code execution in Log4j2"));
       writer.addDocument(vulnDoc("CVE-2017-7525", "jackson-databind", "Deserialization gadget chain"));
+      // First-seen fixtures for the local "first seen (within ...)" window. LongPoint mirrors the
+      // production DocumentBuilder.setVulnerabilityFirstSeenEpochMs; CVE-NONE omits the field (a
+      // non-violating vuln). MULTI carries the MIN open time (~200d) as the resolved first-seen.
+      writer.addDocument(vulnDocWithFirstSeen("CVE-RECENT", "firstseen-fixture", NOW_MS - 10L * DAY_MS));
+      writer.addDocument(vulnDocWithFirstSeen("CVE-OLD", "firstseen-fixture", NOW_MS - 200L * DAY_MS));
+      writer.addDocument(vulnDocWithFirstSeen("CVE-MULTI", "firstseen-fixture", NOW_MS - 200L * DAY_MS));
+      writer.addDocument(vulnDoc("CVE-NONE", "firstseen-fixture", "informational, no policy violation"));
+      // Component max-policy-threat-level fixtures for the Components tab policyThreatLevel range
+      // filter (componentMaxPolicyThreatLevel:[lo TO hi]). IntPoint mirrors production
+      // DocumentBuilder.setComponentMaxPolicyThreatLevel. The IN-RANGE doc must be returned and the
+      // BELOW-RANGE doc excluded; without a PointsConfig for this field the Lucene backend cannot
+      // parse the IntPoint range and silently returns zero.
+      writer.addDocument(componentDocWithMaxPolicyThreatLevel("threat-fixture-high", 9));
+      writer.addDocument(componentDocWithMaxPolicyThreatLevel("threat-fixture-low", 3));
       writer.commit();
     }
     reader = DirectoryReader.open(directory);
@@ -219,6 +244,46 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   @Test
+  public void vulnerabilitiesTab_firstSeenWindow30d_narrowsToRecentAndExcludesNoFirstSeen() {
+    // The local window filter compiles to vulnerabilityFirstSeenEpochMs:[now-30d TO *]. On the real
+    // Lucene index this must return only the vuln first-seen 10 days ago; the 200-day-old vulns and
+    // the non-violating vuln with no first-seen field are excluded. This is the Lucene leg of the
+    // dual-backend guard (the recurring bug is a Lucene-only zero/mismatch).
+    long start = NOW_MS - 30L * DAY_MS;
+    SearchInputs inputs = new SearchInputs(
+        "vulnerabilityFirstSeenEpochMs:[" + start + " TO *]", Tab.VULNERABILITY,
+        Set.of(ItemType.SECURITY_VULNERABILITY), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.rows()).extracting(r -> r.row().vulnerabilityId)
+        .containsExactlyInAnyOrder("CVE-RECENT");
+  }
+
+  @Test
+  public void vulnerabilitiesTab_firstSeenWindow1y_includesOldAndMinButNotNoFirstSeen() {
+    long start = NOW_MS - 365L * DAY_MS;
+    SearchInputs inputs = new SearchInputs(
+        "vulnerabilityFirstSeenEpochMs:[" + start + " TO *]", Tab.VULNERABILITY,
+        Set.of(ItemType.SECURITY_VULNERABILITY), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    // v_recent (10d), v_old (200d), v_multi (MIN 200d) qualify; the non-violating CVE-NONE does not.
+    assertThat(response.rows()).extracting(r -> r.row().vulnerabilityId)
+        .containsExactlyInAnyOrder("CVE-RECENT", "CVE-OLD", "CVE-MULTI");
+  }
+
+  @Test
+  public void vulnerabilitiesTab_firstSeenStoredValue_readBackOnRow() {
+    // The stored first-seen epoch-ms round-trips onto the row (SearchResultItemDTO parse) so the
+    // catalog mapper can emit it; a LongPoint-only field would read back null.
+    long start = NOW_MS - 30L * DAY_MS;
+    SearchInputs inputs = new SearchInputs(
+        "vulnerabilityFirstSeenEpochMs:[" + start + " TO *]", Tab.VULNERABILITY,
+        Set.of(ItemType.SECURITY_VULNERABILITY), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.rows()).hasSize(1);
+    assertThat(response.rows().get(0).row().vulnerabilityFirstSeenEpochMs).isEqualTo(NOW_MS - 10L * DAY_MS);
+  }
+
+  @Test
   public void componentsTab_naturalPurlWithoutDefaultQualifier_retrievesExactComponent() {
     // The reviewer's case: a pasted natural purl (no ?type=jar) must retrieve exactly the matching
     // aopalliance@1.0 component out of several components, so the row reaches the best-match
@@ -281,20 +346,49 @@ public class IqLocalSearchServiceLuceneTest
     SearchInputs inputs = new SearchInputs("", Tab.COMPONENT,
         Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
     IqLocalSearchResponse response = service.search(inputs);
-    // 8 components in the fixture, all NON_VULNERABLE_COMPONENT.
-    assertThat(response.total()).isEqualTo(8L);
+    // 10 components in the fixture, all NON_VULNERABLE_COMPONENT.
+    assertThat(response.total()).isEqualTo(10L);
+  }
+
+  @Test
+  public void componentsTab_policyThreatLevelRange_returnsInRangeComponent() {
+    // The Components tab policyThreatLevel range chip compiles to
+    // componentMaxPolicyThreatLevel:[8 TO 10]. On the real Lucene index this must return the
+    // component whose max policy threat level is 9. Without a PointsConfig entry for this field the
+    // range fragment cannot be parsed as an IntPoint range and the Lucene backend silently returns
+    // zero (the recurring dual-backend, Lucene-only defect this guards against).
+    SearchInputs inputs = new SearchInputs(
+        "componentMaxPolicyThreatLevel:[8 TO 10]", Tab.COMPONENT,
+        Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.rows()).extracting(r -> r.row().componentName)
+        .containsExactly("threat-fixture-high");
+  }
+
+  @Test
+  public void componentsTab_policyThreatLevelRange_excludesBelowRangeComponent() {
+    // Negative boundary: the below-range component (max threat 3) must NOT match [8 TO 10]; only
+    // the in-range component (9) is returned. Proves the IntPoint range bound is honoured rather
+    // than the query failing open to match-all.
+    SearchInputs inputs = new SearchInputs(
+        "componentMaxPolicyThreatLevel:[8 TO 10]", Tab.COMPONENT,
+        Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
+    IqLocalSearchResponse response = service.search(inputs);
+    assertThat(response.rows()).extracting(r -> r.row().componentName)
+        .doesNotContain("threat-fixture-low");
+    assertThat(response.total()).isEqualTo(1L);
   }
 
   @Test
   public void componentsTab_itemTypeComponentFilter_matchesComponentDocs() {
     // The user-facing itemType:COMPONENT token must resolve to the index discriminator
-    // non_vulnerable_component and match every component document (5 in the fixture) with no
+    // non_vulnerable_component and match every component document (10 in the fixture) with no
     // spurious warning — proving the alias mapping and the dropped enum-value gate work end to end.
     SearchInputs inputs = new SearchInputs("itemType:COMPONENT", Tab.COMPONENT,
         Set.of(ItemType.NON_VULNERABLE_COMPONENT), 25, "relevance", null);
     IqLocalSearchResponse response = service.search(inputs);
     assertThat(response.warnings()).isEmpty();
-    assertThat(response.total()).isEqualTo(8L);
+    assertThat(response.total()).isEqualTo(10L);
     // Stored value is the original (unanalyzed) ItemType name; matching happens on the
     // lowercased analyzed token non_vulnerable_component.
     assertThat(response.rows())
@@ -731,6 +825,9 @@ public class IqLocalSearchServiceLuceneTest
       dto.organizationName = doc.get(FieldIdentifier.ORGANIZATION_NAME.label);
       dto.itemType = doc.get(FieldIdentifier.ITEM_TYPE.label);
       dto.componentName = doc.get(FieldIdentifier.COMPONENT_NAME.label);
+      dto.vulnerabilityId = doc.get(FieldIdentifier.VULNERABILITY_ID.label);
+      String firstSeen = doc.get(FieldIdentifier.VULNERABILITY_FIRST_SEEN_EPOCH_MS.label);
+      dto.vulnerabilityFirstSeenEpochMs = firstSeen == null ? null : Long.valueOf(firstSeen);
       rows.add(dto);
     }
     long total = topDocs.totalHits.value;
@@ -807,6 +904,17 @@ public class IqLocalSearchServiceLuceneTest
     fields.put(FieldIdentifier.ITEM_TYPE.label, ItemType.NON_VULNERABLE_COMPONENT.name());
     fields.put(FieldIdentifier.COMPONENT_NAME.label, componentName);
     return docOf(fields);
+  }
+
+  private static Document componentDocWithMaxPolicyThreatLevel(final String componentName, final int threatLevel) {
+    Map<String, String> fields = new HashMap<>();
+    fields.put(FieldIdentifier.ITEM_TYPE.label, ItemType.NON_VULNERABLE_COMPONENT.name());
+    fields.put(FieldIdentifier.COMPONENT_NAME.label, componentName);
+    Document doc = docOf(fields);
+    // Mirror DocumentBuilder.setComponentMaxPolicyThreatLevel: IntPoint (range-queryable) + StoredField.
+    doc.add(new IntPoint(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StoredField(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label, threatLevel));
+    return doc;
   }
 
   /** A Maven component carrying the coordinate fields a pasted purl is decomposed against. */
@@ -901,6 +1009,22 @@ public class IqLocalSearchServiceLuceneTest
     fields.put(FieldIdentifier.COMPONENT_NAME.label, componentName);
     fields.put(FieldIdentifier.VULNERABILITY_DESCRIPTION.label, description);
     return docOf(fields);
+  }
+
+  private static Document vulnDocWithFirstSeen(
+      final String vulnId,
+      final String componentName,
+      final long firstSeenEpochMs)
+  {
+    Map<String, String> fields = new HashMap<>();
+    fields.put(FieldIdentifier.ITEM_TYPE.label, ItemType.SECURITY_VULNERABILITY.name());
+    fields.put(FieldIdentifier.VULNERABILITY_ID.label, vulnId);
+    fields.put(FieldIdentifier.COMPONENT_NAME.label, componentName);
+    Document doc = docOf(fields);
+    // Mirror DocumentBuilder.setVulnerabilityFirstSeenEpochMs: LongPoint (range-queryable) + StoredField.
+    doc.add(new LongPoint(FieldIdentifier.VULNERABILITY_FIRST_SEEN_EPOCH_MS.label, firstSeenEpochMs));
+    doc.add(new StoredField(FieldIdentifier.VULNERABILITY_FIRST_SEEN_EPOCH_MS.label, firstSeenEpochMs));
+    return doc;
   }
 
   /** Builds an analyzed Document. Matches LuceneComponents.newAnalyzerForSearch() wiring. */

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search.catalog;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -48,11 +49,14 @@ import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
+import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_ACTIVE;
 
 @Named
 @Singleton
@@ -86,6 +90,34 @@ public class CatalogService
   private static final String FIELD_COMPONENT_HASH = "componentHash";
 
   private static final String FIELD_VULNERABILITY_ID = "vulnerabilityId";
+
+  /** Threat-level field on POLICY_VIOLATION docs, bucketed into severity bands for the C1 counts. */
+  private static final String FIELD_POLICY_VIOLATION_THREAT_LEVEL = "policyViolationThreatLevel";
+
+  /** Distinct-entity key for the C1 per-severity counts (dedups a violation across per-stage docs). */
+  private static final String FIELD_POLICY_VIOLATION_ID = "policyViolationId";
+
+  /**
+   * Maps a {@link com.sonatype.insight.brain.utils.ThreatLevel} severity band ({@code low}/
+   * {@code moderate}/{@code severe}/{@code critical}) to the Components-leg per-severity row field the
+   * prototype card renders ({@code latest_critical_count}/{@code latest_high_count}/
+   * {@code latest_medium_count}/{@code latest_low_count}). severe&rarr;high and moderate&rarr;medium
+   * follow the prototype's mapping (components/page.tsx). Ordered for stable iteration.
+   */
+  private static final Map<String, String> SEVERITY_BAND_TO_ROW_FIELD;
+
+  static {
+    Map<String, String> bandToRowField = new LinkedHashMap<>();
+    bandToRowField.put("critical", "latest_critical_count");
+    bandToRowField.put("severe", "latest_high_count");
+    bandToRowField.put("moderate", "latest_medium_count");
+    bandToRowField.put("low", "latest_low_count");
+    SEVERITY_BAND_TO_ROW_FIELD = Collections.unmodifiableMap(bandToRowField);
+  }
+
+  /** Item-type clause selecting POLICY_VIOLATION docs (source of the C1 per-severity counts). */
+  private static final String POLICY_VIOLATION_ITEM_TYPE_QUERY =
+      "itemType:" + ItemType.POLICY_VIOLATION.searchFieldName();
 
   /** Row key + facet name for the CVSS severity-band facet on the local Vulnerabilities leg. */
   static final String SEVERITY_FACET_KEY = "severity";
@@ -456,6 +488,13 @@ public class CatalogService
     // row list in place.
     enrichLocalCounts(entityType, rows);
 
+    // C1: per-severity active-policy-violation counts on each component row, page-bounded. Query-time
+    // (component docs carry no severity field) via one grouped distinct-count per severity band over
+    // the POLICY_VIOLATION docs of the page's component hashes.
+    if (entityType == CatalogEntityType.COMPONENT) {
+      enrichComponentSeverityCounts(rows);
+    }
+
     // Pin the next-page cursor to the backend that actually served this page, so a cross-backend
     // switch on the follow-up request is rejected as stale rather than silently mis-paginated.
     final GlobalSearchCursor next = iqLocalSearchService.mintNextCursor(
@@ -691,7 +730,7 @@ public class CatalogService
         }
         // countDistinctGroupedBy keys its result map by the lowercased group value (keyword fields
         // carry a lowercase normalizer), so look up with the lowercased key on both backends.
-        final long affectedApps = affectedAppsByHash.getOrDefault(String.valueOf(hash).toLowerCase(Locale.ROOT), 0L);
+        final long affectedApps = affectedAppsByHash.getOrDefault(groupLookupKey(hash), 0L);
         rows.set(i, row.toBuilder().field("affectedApps", affectedApps).build());
       }
     }
@@ -710,15 +749,66 @@ public class CatalogService
         if (vulnId == null) {
           continue;
         }
-        // countDistinctGroupedBy keys its result map by the lowercased group value (keyword fields
-        // carry a lowercase normalizer), so look up with the lowercased key on both backends.
-        final String key = String.valueOf(vulnId).toLowerCase(Locale.ROOT);
+        final String key = groupLookupKey(vulnId);
         rows.set(i, row.toBuilder()
             .field("affectedApps", affectedAppsByVuln.getOrDefault(key, 0L))
             .field("affectedComponents", affectedComponentsByVuln.getOrDefault(key, 0L))
             .build());
       }
     }
+  }
+
+  /**
+   * Adds the C1 per-severity active-policy-violation counts to each component row, in place. For the
+   * page's component hashes, counts distinct active policy violations grouped by component hash within
+   * each threat-level severity band, in one RBAC-scoped grouped index read per band (a small constant,
+   * not one query per row). Active-only (waiverStatus=Active) so a waived violation is not counted as
+   * an active threat, matching the evaluation-card semantics. Distinct policyViolationId dedups a
+   * violation re-indexed across per-(app, stage) docs. A component with no active violation is absent
+   * from the result and reads zero for every band. The counts are global-reach (item type + RBAC only,
+   * no caller filter clauses), like the affected-app count, so they report the component's true threat
+   * across the readable estate rather than a filter-rescoped subset.
+   *
+   * <p>
+   * {@code rows} must be a mutable list: like {@link #enrichLocalCounts} this replaces each row in
+   * place via {@code rows.set(i, ...)}. Callers pass the {@code new ArrayList<>()} built above; an
+   * unmodifiable list would throw {@link UnsupportedOperationException}.
+   */
+  private void enrichComponentSeverityCounts(final List<CatalogRow> rows) {
+    if (rows.isEmpty()) {
+      return;
+    }
+    final Set<String> hashes = groupValues(rows, CatalogRowMapper.LOCAL_FIELD_COMPONENT_HASH);
+    if (hashes.isEmpty()) {
+      return;
+    }
+    final String baseQuery = POLICY_VIOLATION_ITEM_TYPE_QUERY + " AND "
+        + FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":\""
+        + POLICY_VIOLATION_WAIVER_STATUS_ACTIVE + "\"";
+    final Map<String, Map<String, Long>> countsByHash = searchIndexClient.countDistinctGroupedByBands(
+        baseQuery, FIELD_COMPONENT_HASH, FIELD_POLICY_VIOLATION_ID, hashes,
+        FIELD_POLICY_VIOLATION_THREAT_LEVEL, ThreatLevel.searchAggregationBands());
+    for (int i = 0; i < rows.size(); i++) {
+      final CatalogRow row = rows.get(i);
+      final Object hash = row.getFields().get(CatalogRowMapper.LOCAL_FIELD_COMPONENT_HASH);
+      if (hash == null) {
+        continue;
+      }
+      final Map<String, Long> bands = countsByHash.getOrDefault(groupLookupKey(hash), Map.of());
+      final CatalogRow.Builder builder = row.toBuilder();
+      // Emit all four counts (zero when absent) so the row always carries the full breakdown.
+      SEVERITY_BAND_TO_ROW_FIELD.forEach((band, rowField) -> builder.field(rowField, bands.getOrDefault(band, 0L)));
+      rows.set(i, builder.build());
+    }
+  }
+
+  /**
+   * Key for looking up a grouped-count result by group value. {@code countDistinctGroupedBy(Bands)}
+   * keys its result map by the lowercased group value (keyword fields carry a lowercase normalizer),
+   * so callers must look up with the lowercased key on both backends.
+   */
+  private static String groupLookupKey(final Object groupValue) {
+    return String.valueOf(groupValue).toLowerCase(Locale.ROOT);
   }
 
   /** Distinct non-null values of {@code rowField} across the page, in row order. */

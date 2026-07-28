@@ -208,6 +208,67 @@ public class LuceneSearchIndexClientAggregateTest
   }
 
   @Test
+  public void testCountDistinctGroupedByBands_PerComponentPerSeverityCounts() throws Exception {
+    // Two components. compA has a critical (10) + a severe (5) violation; compB has a low (1) violation.
+    // Grouped by componentHash, bucketed into the ThreatLevel severity bands, counting distinct
+    // policyViolationId, the per-component per-band counts must be: compA {critical:1, severe:1},
+    // compB {low:1}. This backs the Components leg per-severity badge (C1).
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation = newAppReport(app.getId(), Stage.ID_BUILD, "groupedBandsReport",
+        "/IndexSearchingTest/policyViolationReport");
+    Policy pCrit = tempEntity.newPolicy(org.getId(), "Security - Critical");
+    Policy pSev = tempEntity.newPolicy(org.getId(), "Security - Severe");
+    Policy pLow = tempEntity.newPolicy(org.getId(), "Quality - Low");
+    tempEntity.newPolicyViolation(evaluation, pCrit, 10, PolicyThreatCategory.SECURITY,
+        "com.a", "a", "1.0", "hashA00000000000000");
+    tempEntity.newPolicyViolation(evaluation, pSev, 5, PolicyThreatCategory.SECURITY,
+        "com.a", "a", "1.0", "hashA00000000000000");
+    tempEntity.newPolicyViolation(evaluation, pLow, 1, PolicyThreatCategory.QUALITY,
+        "com.b", "b", "1.0", "hashB00000000000000");
+
+    luceneSearchIndexClient.populateIndex();
+
+    Map<String, Map<String, Long>> byHash = luceneSearchIndexClient.countDistinctGroupedByBands(
+        "itemType:" + ItemType.POLICY_VIOLATION.searchFieldName(),
+        FieldIdentifier.COMPONENT_HASH.label,
+        FieldIdentifier.POLICY_VIOLATION_ID.label,
+        java.util.Set.of("hashA00000000000000", "hashB00000000000000"),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    // Result keyed by lowercased group value (keyword lowercase normalizer).
+    assertThat(byHash.get("hasha00000000000000")).containsEntry("critical", 1L).containsEntry("severe", 1L);
+    assertThat(byHash.get("hasha00000000000000")).doesNotContainKey("low");
+    assertThat(byHash.get("hashb00000000000000")).containsEntry("low", 1L);
+    assertThat(byHash.get("hashb00000000000000")).doesNotContainKey("critical");
+  }
+
+  @Test
+  public void testCountDistinctGroupedByBands_FailsClosed_UserWithNoReadContextsGetsEmpty() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation = newAppReport(app.getId(), Stage.ID_BUILD, "groupedBandsFailClosed",
+        "/IndexSearchingTest/policyViolationReport");
+    Policy pCrit = tempEntity.newPolicy(org.getId(), "Security - Critical");
+    tempEntity.newPolicyViolation(evaluation, pCrit, 10, PolicyThreatCategory.SECURITY,
+        "com.a", "a", "1.0", "hashA00000000000000");
+    luceneSearchIndexClient.populateIndex();
+
+    actAsUser("user-with-no-permissions");
+
+    Map<String, Map<String, Long>> byHash = luceneSearchIndexClient.countDistinctGroupedByBands(
+        "itemType:" + ItemType.POLICY_VIOLATION.searchFieldName(),
+        FieldIdentifier.COMPONENT_HASH.label,
+        FieldIdentifier.POLICY_VIOLATION_ID.label,
+        java.util.Set.of("hashA00000000000000"),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    assertThat(byHash).isEmpty();
+  }
+
+  @Test
   public void testCountDistinct_VulnerableComponentWithMultipleCves_CountsComponentOnce() throws Exception {
     // A vulnerable component is indexed as one SECURITY_VULNERABILITY doc per CVE.
     // The componentsMetricReport has 3 vulnerable components (compA has 2 CVEs => 4 SV docs total). A naive

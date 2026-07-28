@@ -1126,6 +1126,96 @@ public class OpenSearchSearchIndexClient
     }
   }
 
+  @Override
+  public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands)
+  {
+    checkFieldNames(new HashSet<>(List.of(groupField, distinctField, bandField)));
+    validateRangeBounds(bands);
+    if (groupValues == null || groupValues.isEmpty() || bands == null || bands.isEmpty()) {
+      return Map.of();
+    }
+    try {
+      String initialQuery = createInitialQuery(metricQuery, true);
+      Set<String> fieldNames = getFieldNames(initialQuery);
+      checkFieldNames(fieldNames);
+
+      String groupLabel = resolveCompositeKeyFieldLabel(groupField);
+      String distinctLabel = resolveCompositeKeyFieldLabel(distinctField);
+
+      // Group values arrive verbatim from _source (mixed case); the grouped keyword field carries a
+      // lowercase normalizer, so match/key on the lowercased value (same as countDistinctGroupedBy).
+      Set<String> requested = new HashSet<>();
+      for (String groupValue : groupValues) {
+        requested.add(groupValue.toLowerCase(Locale.ROOT));
+      }
+      List<String> includeTerms = new ArrayList<>(requested);
+
+      // Half-open [from, to): our int bands are inclusive-upper, so add 1 (long arithmetic guards the
+      // Integer.MAX_VALUE overflow), matching aggregateCountByField. Programmatic ranges, not a
+      // string-interpolated band clause.
+      List<AggregationRange> aggregationRanges = new ArrayList<>();
+      bands.forEach((label, bounds) -> aggregationRanges.add(AggregationRange.of(r -> r
+          .key(label)
+          .from(String.valueOf(bounds[0]))
+          .to(String.valueOf((long) bounds[1] + 1)))));
+
+      SearchRequest searchRequest = new SearchRequest.Builder()
+          .index(indexConfigProvider.getIndexConfig().getIndexName())
+          .size(0)
+          .query(buildMetricQuery(initialQuery))
+          .aggregations("bands", a -> a
+              .range(r -> r.field(bandField).ranges(aggregationRanges))
+              .aggregations("groups", g -> g
+                  .terms(t -> t.field(groupLabel)
+                      .size(includeTerms.size())
+                      .include(ti -> ti.terms(includeTerms)))
+                  .aggregations("distinct", sub -> sub
+                      .cardinality(c -> c.field(distinctLabel).precisionThreshold(40_000)))))
+          .build();
+
+      SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
+      Aggregate bandsAgg = searchResponse.aggregations() == null
+          ? null
+          : searchResponse.aggregations().get("bands");
+      Map<String, Map<String, Long>> byGroup = new LinkedHashMap<>();
+      if (bandsAgg == null || !bandsAgg.isRange()) {
+        return byGroup;
+      }
+      for (RangeBucket bandBucket : bandsAgg.range().buckets().array()) {
+        String bandLabel = bandBucket.key();
+        if (bandLabel == null) {
+          continue;
+        }
+        Aggregate groupsAgg = bandBucket.aggregations().get("groups");
+        if (groupsAgg == null || !groupsAgg.isSterms()) {
+          continue;
+        }
+        for (StringTermsBucket groupBucket : groupsAgg.sterms().buckets().array()) {
+          String group = groupBucket.key();
+          if (!requested.contains(group)) {
+            continue;
+          }
+          Aggregate distinct = groupBucket.aggregations().get("distinct");
+          long value = distinct != null && distinct.isCardinality() ? distinct.cardinality().value() : 0L;
+          if (value > 0) {
+            byGroup.computeIfAbsent(group, k -> new LinkedHashMap<>()).put(bandLabel, value);
+          }
+        }
+      }
+      return byGroup;
+    }
+    catch (Exception e) {
+      throwMetricSearchException(e);
+      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    }
+  }
+
   /**
    * Builds an inline painless script that concatenates the {@code compositeKeyFields} doc values into a single
    * string key (NUL-separated), used as the source for a {@code cardinality} aggregation to count distinct

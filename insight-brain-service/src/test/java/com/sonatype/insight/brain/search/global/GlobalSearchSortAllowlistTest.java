@@ -19,7 +19,7 @@ public class GlobalSearchSortAllowlistTest
 
   @Test
   public void components_acceptsIqLocalKeys() {
-    for (String key : new String[]{"relevance", "name"}) {
+    for (String key : new String[]{"relevance", "name", "policyThreatLevel"}) {
       assertThat(GlobalSearchSortAllowlist.isAllowed(Tab.COMPONENT, key))
           .as("Components must allow %s", key)
           .isTrue();
@@ -46,7 +46,8 @@ public class GlobalSearchSortAllowlistTest
 
   @Test
   public void vulnerabilities_acceptsIqLocalKeys() {
-    for (String key : new String[]{"relevance", "name"}) {
+    // cvss is now backed by the vulnerabilitySeverity float sort twin (added with the numeric machinery).
+    for (String key : new String[]{"relevance", "name", "cvss"}) {
       assertThat(GlobalSearchSortAllowlist.isAllowed(Tab.VULNERABILITY, key))
           .as("Vulnerabilities must allow %s", key)
           .isTrue();
@@ -54,13 +55,14 @@ public class GlobalSearchSortAllowlistTest
   }
 
   @Test
-  public void vulnerabilities_rejectsSeverityUntilNumericSortMachineryLands() {
-    // severity is held out of the allowlist: vulnerabilitySeverity is a numeric FloatPoint with no
-    // sorted-numeric twin and sortFor builds only a STRING SortField, so a severity sort would sort
-    // lexicographically or fail on the missing doc-values once field sort is enabled.
-    assertThat(GlobalSearchSortAllowlist.isAllowed(Tab.VULNERABILITY, "severity")).isFalse();
-    assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> GlobalSearchSortAllowlist.requireAllowed(Tab.VULNERABILITY, "severity"));
+  public void vulnerabilities_rejectsUnbackedSortKeys() {
+    // "severity" is not the allowlisted spelling (the key is "cvss"); "published" has no local backing
+    // field (local vuln docs carry no published date), so both are rejected.
+    for (String key : new String[]{"severity", "published"}) {
+      assertThat(GlobalSearchSortAllowlist.isAllowed(Tab.VULNERABILITY, key)).isFalse();
+      assertThatExceptionOfType(IllegalArgumentException.class)
+          .isThrownBy(() -> GlobalSearchSortAllowlist.requireAllowed(Tab.VULNERABILITY, key));
+    }
   }
 
   @Test

@@ -161,6 +161,10 @@ public class IndexMapping
     // date-detect, keyword vs text). Self-heals on the next full reindex, which every new field
     // requires to populate on existing indices.
     propertyMappings.put(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label, createProperty("long"));
+    // Epoch-millis of the vulnerability's first IQ detection (earliest triggering violation open time)
+    // on SECURITY_VULNERABILITY docs, backing the local "first seen (within ...)" window range filter
+    // and display; a numeric long, not date-detected. Absent for non-triggering vulns.
+    propertyMappings.put(FieldIdentifier.VULNERABILITY_FIRST_SEEN_EPOCH_MS.label, createProperty("long"));
     // Multi-valued "stage:severity:count" tokens; keyword so each entry is matched/faceted whole.
     propertyMappings.put(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label, createProperty("keyword"));
     // Denormalized violation aggregates for the Applications filter/sort rail. Integer max threat level
@@ -175,6 +179,15 @@ public class IndexMapping
     // Denormalized permission-filter field. Case-sensitive keyword (no normalizer) so opaque
     // context IDs are matched byte-for-byte. Multi-valued (set per document by DocumentBuilder).
     propertyMappings.put(FieldIdentifier.ALLOWED_CONTEXT_IDS.label, createProperty("keyword_case_sensitive"));
+
+    // Component violation denormalization on NON_VULNERABLE_COMPONENT docs (Components leg
+    // policyTypes/violationStates/policyThreatLevel filters + sort). Explicit mappings apply to a
+    // freshly created index; a full reindex populates them on existing indices. Multi-valued keyword
+    // for the type/state sets; integer for the range/sort max-threat (float sort of CVSS uses the
+    // native float VULNERABILITY_SEVERITY mapping, so no separate twin is needed on OpenSearch).
+    propertyMappings.put(FieldIdentifier.COMPONENT_VIOLATION_POLICY_TYPE.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_VIOLATION_STATE.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label, createProperty("integer"));
 
     // Case-sensitive so the hash sorts identically to the Lucene doc-values order.
     propertyMappings.put(FieldIdentifier.DOCUMENT_KEY.label, createProperty("keyword_case_sensitive"));

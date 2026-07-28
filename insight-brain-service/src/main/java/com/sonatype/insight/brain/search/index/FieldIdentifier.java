@@ -141,6 +141,45 @@ public enum FieldIdentifier
    */
   APPLICATION_STAGE_SEVERITY_COUNT("applicationStageSeverityCount"),
 
+  // Component violation denormalization — written on ItemType.NON_VULNERABLE_COMPONENT docs so the
+  // Components leg can be filtered/sorted by the policy violations on that (app, stage) component.
+  // NON_VULNERABLE_COMPONENT docs otherwise carry no violation data; the values come from the same
+  // getUnfixedByApplicationIdAndStageId pass that builds the POLICY_VIOLATION docs (no extra query).
+  /**
+   * Multi-valued keyword: the distinct policy threat categories of the component's unfixed policy
+   * violations, lower-cased ({@code security}/{@code license}/{@code quality}/{@code other}). A union,
+   * so a component with a security and a license violation carries both. Absent when the component has
+   * no policy violation on this (app, stage) doc.
+   */
+  COMPONENT_VIOLATION_POLICY_TYPE("componentViolationPolicyType"),
+
+  /**
+   * Multi-valued keyword: the distinct API violation states of the component's unfixed policy
+   * violations, lower-cased ({@code open}/{@code waived}/{@code legacy}). Derived from the same
+   * waiver-status classification as {@code policyViolationWaiverStatus} (Active&nbsp;&rarr;&nbsp;open,
+   * pure-legacy&nbsp;&rarr;&nbsp;legacy, Waived/AutoWaived&nbsp;&rarr;&nbsp;waived). Legacy is a
+   * distinct grandfathered-in state. Absent when the component has no policy violation.
+   */
+  COMPONENT_VIOLATION_STATE("componentViolationState"),
+
+  /**
+   * The maximum policy threat level (0&ndash;10) across the component's unfixed policy violations on
+   * this (app, stage) doc. Range-queryable {@link org.apache.lucene.document.IntPoint} + numeric sort
+   * doc-values + stored display value. Absent when the component has no policy violation.
+   */
+  COMPONENT_MAX_POLICY_THREAT_LEVEL("componentMaxPolicyThreatLevel"),
+
+  // Local vulnerability first-seen denormalization — written on ItemType.SECURITY_VULNERABILITY docs.
+  /**
+   * Epoch-millis of when this IQ first detected the vulnerability, resolved from the earliest
+   * {@code open_time} across the policy violations triggered by this vuln refId on this (app, stage)
+   * doc. Display-backing {@link org.apache.lucene.document.LongPoint} (range-queryable for the
+   * "first seen (within ...)" window filter) + stored display value; no sort doc-values twin (the
+   * local Vulnerabilities tab has no first-seen sort). Absent when the vuln triggers no policy
+   * violation (informational / non-triggering) so no first-detection time exists.
+   */
+  VULNERABILITY_FIRST_SEEN_EPOCH_MS("vulnerabilityFirstSeenEpochMs"),
+
   /**
    * Max raw policy threat level (0-10) across the application's active (unfixed, unwaived, non-legacy)
    * violations. Range-queryable {@link org.apache.lucene.document.IntPoint} + numeric sort doc-values +

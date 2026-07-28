@@ -47,7 +47,10 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_VIOLATION_POLICY_TYPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_VIOLATION_STATE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.ITEM_TYPE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.PARENT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.PARENT_ORGANIZATION_NAME;
@@ -80,6 +83,7 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.NOTE_TO_RE
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.REPORT_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.SBOM_SPECIFICATION;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_DESCRIPTION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_FIRST_SEEN_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_SEVERITY;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_STATUS;
@@ -210,6 +214,14 @@ public final class FieldMap
 
   private static final Set<String> THREAT_CATEGORIES = Set.of("security", "license", "quality", "other");
 
+  // Denormalized on NON_VULNERABLE_COMPONENT docs (Components leg violation filters/sort). Values are
+  // lower-cased at index time to match the keyword lowercase normalizer.
+  private static final Set<ItemType> COMPONENT_VIOLATION_TYPES = EnumSet.of(NON_VULNERABLE_COMPONENT);
+
+  // Canonical indexed componentViolationState vocabulary (open/waived/legacy — see
+  // DocumentBuilderHelper.COMPONENT_VIOLATION_STATE_*). Legacy is a distinct grandfathered-in state.
+  private static final Set<String> COMPONENT_VIOLATION_STATES = Set.of("open", "waived", "legacy");
+
   // Precomputed violation-state set values written on APPLICATION docs (lowercased), distinct from the
   // violation-doc waiver-status vocabulary: here the app's states are already resolved to open/waived/legacy.
   private static final Set<String> APPLICATION_VIOLATION_STATES = Set.of("open", "waived", "legacy");
@@ -339,6 +351,16 @@ public final class FieldMap
     m.put("componentLabelDescription",
         FieldEntry.text(COMPONENT_LABEL_DESCRIPTION.label, COMPONENT_BEARING_TYPES));
 
+    // Component violation denormalization (NON_VULNERABLE_COMPONENT docs only), backing the
+    // Components leg policyTypes / violationStates / policyThreatLevel filters + policyThreatLevel
+    // sort. Values are the same lower-cased vocabularies as their POLICY_VIOLATION counterparts.
+    m.put("componentViolationPolicyType",
+        FieldEntry.keyword(COMPONENT_VIOLATION_POLICY_TYPE.label, COMPONENT_VIOLATION_TYPES, THREAT_CATEGORIES));
+    m.put("componentViolationState",
+        FieldEntry.keyword(COMPONENT_VIOLATION_STATE.label, COMPONENT_VIOLATION_TYPES, COMPONENT_VIOLATION_STATES));
+    m.put("componentMaxPolicyThreatLevel",
+        FieldEntry.numericInt(COMPONENT_MAX_POLICY_THREAT_LEVEL.label, COMPONENT_VIOLATION_TYPES));
+
     // License
     m.put("componentEffectiveLicenseId",
         FieldEntry.keyword(COMPONENT_EFFECTIVE_LICENSE_ID.label, LICENSE_TYPES));
@@ -420,6 +442,8 @@ public final class FieldMap
         FieldEntry.keyword(VULNERABILITY_STATUS.label, VULNERABILITY_TYPES, VULNERABILITY_STATUSES));
     m.put("vulnerabilitySeverity",
         FieldEntry.numericFloat(VULNERABILITY_SEVERITY.label, VULNERABILITY_TYPES));
+    m.put("vulnerabilityFirstSeenEpochMs",
+        FieldEntry.numericLong(VULNERABILITY_FIRST_SEEN_EPOCH_MS.label, VULNERABILITY_TYPES));
     m.put("policyEvaluationStage",
         FieldEntry.keyword(POLICY_EVALUATION_STAGE.label, APP_VIOLATION_AND_VULN_TYPES, EVALUATION_STAGES));
     m.put("reportId", FieldEntry.keyword(REPORT_ID.label, REPORT_CARRYING_TYPES));

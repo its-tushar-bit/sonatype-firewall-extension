@@ -187,6 +187,24 @@ public class IndexMappingTest
   }
 
   @Test
+  public void componentViolationDenormFields_areMappedWithExpectedTypes() {
+    Map<String, Property> mappings = new IndexMapping().getMappings();
+
+    Stream.of(FieldIdentifier.COMPONENT_VIOLATION_POLICY_TYPE, FieldIdentifier.COMPONENT_VIOLATION_STATE)
+        .forEach(field -> {
+          Property property = mappings.get(field.label);
+          assertThat(property).as("mapping for %s", field.label).isNotNull();
+          assertThat(property.isKeyword()).as("%s is keyword", field.label).isTrue();
+        });
+
+    Property maxThreat = mappings.get(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label);
+    assertThat(maxThreat).as("mapping for %s", FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label)
+        .isNotNull();
+    // Integer so the policyThreatLevel range filter / sort works numerically (not date-detected).
+    assertThat(maxThreat.isInteger()).isTrue();
+  }
+
+  @Test
   public void applicationViolationAggregateFields_areMappedWithExpectedTypes() {
     Map<String, Property> mappings = new IndexMapping().getMappings();
 

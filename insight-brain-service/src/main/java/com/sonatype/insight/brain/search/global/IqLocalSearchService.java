@@ -57,6 +57,7 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.ITEM_TYPE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_EVALUATION_STAGE;
@@ -66,6 +67,7 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAI
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_SEVERITY;
 import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION_CATEGORY;
 import static com.sonatype.insight.brain.search.index.ItemType.COMPONENT_LABEL;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY;
@@ -455,6 +457,16 @@ public class IqLocalSearchService
    * ordering is identical.
    */
   static Sort buildSortField(final FieldIdentifier indexField) {
+    if (FLOAT_SORT_FIELDS.contains(indexField)) {
+      // CVSS severity: the doc-values twin is a float encoded via NumericUtils.floatToSortableInt
+      // (LuceneIndexingContext.addFloatNumericSortDocValues), so sort as FLOAT (highest first) rather
+      // than LONG (which would compare the raw sortable-int bits, not the score). OpenSearch sorts on
+      // its native float mapping. A doc with no CVSS score sorts last under the reversed comparator.
+      SortedNumericSortField sortField =
+          new SortedNumericSortField(indexField.label, SortField.Type.FLOAT, true);
+      sortField.setMissingValue(Float.NEGATIVE_INFINITY);
+      return new Sort(sortField);
+    }
     if (NUMERIC_DESC_SORT_FIELDS.contains(indexField)) {
       SortedNumericSortField sortField =
           new SortedNumericSortField(indexField.label, SortField.Type.LONG, true);
@@ -498,7 +510,9 @@ public class IqLocalSearchService
       APPLICATION_MAX_POLICY_THREAT_LEVEL,
       POLICY_VIOLATION_THREAT_LEVEL,
       POLICY_WAIVER_CREATED_AT_EPOCH_MS,
-      POLICY_WAIVER_THREAT_LEVEL);
+      POLICY_WAIVER_THREAT_LEVEL,
+      // Component max-threat sort (int doc-values twin); highest first.
+      COMPONENT_MAX_POLICY_THREAT_LEVEL);
 
   /**
    * Sortable index fields backed by a numeric doc-values twin, sorted ASCENDING (soonest/lowest
@@ -509,6 +523,14 @@ public class IqLocalSearchService
   private static final Set<FieldIdentifier> NUMERIC_ASC_SORT_FIELDS = Set.of(
       POLICY_WAIVER_EXPIRES_AT_EPOCH_MS,
       APPLICATION_VIOLATION_STATE_SORT_ORDINAL);
+
+  /**
+   * Sortable index fields backed by a <em>float</em> doc-values twin (encoded via
+   * {@code NumericUtils.floatToSortableInt}), sorted descending (highest CVSS first). Distinct from
+   * {@link #NUMERIC_DESC_SORT_FIELDS} because a float score must be compared as a float, not as the raw
+   * long twin, to order values within an integer part correctly (7.5 before 7.1).
+   */
+  private static final Set<FieldIdentifier> FLOAT_SORT_FIELDS = Set.of(VULNERABILITY_SEVERITY);
 
   /**
    * Resolve the IQ-local index field backing an allowlisted (tab, sortKey), independent of
@@ -538,11 +560,19 @@ public class IqLocalSearchService
     m.put(VIOLATION, Map.of(
         "name", POLICY_VIOLATION_POLICY_NAME,
         "threat", POLICY_VIOLATION_THREAT_LEVEL));
-    m.put(COMPONENT, Map.of("name", COMPONENT_NAME));
-    // No "severity" entry: VULNERABILITY_SEVERITY is a numeric FloatPoint with no sorted-numeric twin,
-    // and sortFor builds only a STRING SortField, so a severity sort is held out of the allowlist
-    // until numeric field-sort machinery lands (kept aligned with GlobalSearchSortAllowlist).
-    m.put(VULNERABILITY, Map.of("name", VULNERABILITY_ID));
+    // Component My-tab sorts. "name" -> component display name (keyword twin). "policyThreatLevel" ->
+    // the denormalized max policy threat level on NON_VULNERABLE_COMPONENT docs (int numeric twin,
+    // highest first). The prototype's other component sorts (trending/downloads/latest_release/dts)
+    // are Catalog/federation attributes with no local doc field and are handled by the federation leg.
+    m.put(COMPONENT, Map.of(
+        "name", COMPONENT_NAME,
+        "policyThreatLevel", COMPONENT_MAX_POLICY_THREAT_LEVEL));
+    // Vulnerability My-tab sorts. "name" -> vulnerability id (keyword twin). "cvss" -> the CVSS
+    // severity score, sorted on the float doc-values twin (highest first). The "published" sort has no
+    // local backing field (local vuln docs carry no published date — see V2 gap), so it is not listed.
+    m.put(VULNERABILITY, Map.of(
+        "name", VULNERABILITY_ID,
+        "cvss", VULNERABILITY_SEVERITY));
     // WAIVER default "created" (newest first) sorts on the created-at epoch-millis numeric twin;
     // "threat" (highest first) on the threat-level numeric twin; "expiration" (soonest first,
     // never-expires last) ASCENDING on the expires-at epoch-millis twin.

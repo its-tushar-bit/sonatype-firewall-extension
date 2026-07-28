@@ -21,6 +21,7 @@ import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.NumericUtils;
 
 public class LuceneIndexingContext
     extends IndexingContext
@@ -70,6 +71,26 @@ public class LuceneIndexingContext
     }
   }
 
+  /**
+   * Numeric sort doc-values twin for a {@code float} score field (e.g. CVSS
+   * {@code vulnerabilitySeverity}). The stored value is a float, so {@code longValue()} would
+   * truncate (7.5&nbsp;&rarr;&nbsp;7) and destroy the ordering within an integer band; instead the
+   * float is encoded via {@link NumericUtils#floatToSortableInt(float)} (order-preserving int bits)
+   * and widened to long. A matching {@link org.apache.lucene.search.SortedNumericSortField} of
+   * {@code Type.FLOAT} decodes it, so the sort is by true CVSS score. No-op when the field is absent
+   * (unscored vuln).
+   */
+  private static void addFloatNumericSortDocValues(final Document document, final String fieldLabel) {
+    for (IndexableField field : document.getFields(fieldLabel)) {
+      Number numeric = field.numericValue();
+      if (numeric != null) {
+        document.add(new SortedNumericDocValuesField(
+            fieldLabel, NumericUtils.floatToSortableInt(numeric.floatValue())));
+        return;
+      }
+    }
+  }
+
   @Override
   public void addDocuments(final List<Document> documents) throws IOException {
     // Sort doc-values live only here, not in DocumentBuilder: a same-named field would serialize a
@@ -91,6 +112,10 @@ public class LuceneIndexingContext
       addSortDocValues(document, FieldIdentifier.POLICY_VIOLATION_POLICY_NAME.label);
       addNumericSortDocValues(document, FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label);
       addNumericSortDocValues(document, FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS.label);
+      // Component max-threat sort twin: set only on NON_VULNERABLE_COMPONENT docs (int, no truncation).
+      addNumericSortDocValues(document, FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label);
+      // CVSS severity sort twin: FloatPoint on SECURITY_VULNERABILITY docs, so encode float-sortable.
+      addFloatNumericSortDocValues(document, FieldIdentifier.VULNERABILITY_SEVERITY.label);
       final String itemType = document.get(FieldIdentifier.ITEM_TYPE.label);
       // Threat level is set only on POLICY_VIOLATION docs; skip the field scan on the other item types.
       if (ItemType.POLICY_VIOLATION.name().equals(itemType)) {

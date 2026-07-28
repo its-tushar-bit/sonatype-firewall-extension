@@ -29,6 +29,12 @@ public final class CatalogFilterSchema
           // no app/stage dimension, so CatalogRequestBuilder rejects them there.
           Map.entry("applications", Kind.TERMS),
           Map.entry("stages", Kind.TERMS),
+          // Local-source only (My Scan Data): these filter the my-scan estate by the policy violations
+          // denormalized on component docs (componentViolation* fields). The catalog (Guide/HDS) corpus
+          // has no policy-violation dimension, so CatalogRequestBuilder rejects them there.
+          Map.entry("policyTypes", Kind.TERMS),
+          Map.entry("violationStates", Kind.TERMS),
+          Map.entry("policyThreatLevel", Kind.RANGE),
           Map.entry("categories", Kind.TERMS),
           Map.entry("severities", Kind.TERMS),
           Map.entry("licenseFamilies", Kind.TERMS),
@@ -52,6 +58,11 @@ public final class CatalogFilterSchema
           Map.entry("cvss", Kind.RANGE),
           Map.entry("epss", Kind.RANGE),
           Map.entry("publishedWindow", Kind.SCALAR),
+          // Local-source only (My Scan Data): a relative window ([now-window, now]) on the vuln's
+          // first-seen (open_time) date. The catalog (Guide/HDS) corpus keeps publishedWindow on the
+          // Guide publish date; firstSeenWindow has no catalog equivalent, so CatalogRequestBuilder
+          // rejects it on the catalog source.
+          Map.entry("firstSeenWindow", Kind.SCALAR),
           Map.entry("malware", Kind.SCALAR),
           Map.entry("kev", Kind.SCALAR),
           Map.entry("patchAvailable", Kind.SCALAR)));

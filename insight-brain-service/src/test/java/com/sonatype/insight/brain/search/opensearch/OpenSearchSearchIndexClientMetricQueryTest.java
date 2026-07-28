@@ -660,6 +660,68 @@ public class OpenSearchSearchIndexClientMetricQueryTest
   }
 
   @Test
+  @SuppressWarnings("unchecked")
+  public void testCountDistinctGroupedByBands_NestsRangeThenTermsThenCardinality() throws Exception {
+    // C1 per-severity component counts: one request with a range agg over the threat-level bands, each
+    // band hosting a terms agg over the requested component hashes, each group hosting a cardinality
+    // sub-agg on policyViolationId (distinct violations). Assert the nested request shape (the live
+    // re-test asserts the counts vs a raw OpenSearch aggregation — the C1 landmine cross-check).
+    grantGlobalAccess();
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(Collections.emptyMap());
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    client.countDistinctGroupedByBands(
+        "itemType:" + ItemType.POLICY_VIOLATION.name(),
+        FieldIdentifier.COMPONENT_HASH.label,
+        FieldIdentifier.POLICY_VIOLATION_ID.label,
+        Set.of("hashA"),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    JsonNode root = toJsonTree(captor.getValue());
+    JsonNode aggs = root.has("aggregations") ? root.path("aggregations") : root.path("aggs");
+    JsonNode bands = aggs.path("bands");
+    assertThat(bands.path("range").path("field").asText())
+        .isEqualTo(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+    JsonNode bandSub = bands.has("aggregations") ? bands.path("aggregations") : bands.path("aggs");
+    JsonNode groups = bandSub.path("groups");
+    assertThat(groups.path("terms").path("field").asText()).isEqualTo(FieldIdentifier.COMPONENT_HASH.label);
+    JsonNode groupSub = groups.has("aggregations") ? groups.path("aggregations") : groups.path("aggs");
+    JsonNode cardinality = groupSub.path("distinct").path("cardinality");
+    assertThat(cardinality.isMissingNode()).isFalse();
+    assertThat(cardinality.path("field").asText()).isEqualTo(FieldIdentifier.POLICY_VIOLATION_ID.label);
+    assertThat(cardinality.path("precision_threshold").asInt()).isEqualTo(40_000);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testCountDistinctGroupedByBands_FailClosed_UsesMatchNone() throws Exception {
+    when(permissionService.getContextIdsForUserWithPermission(any(), eq(Permission.READ)))
+        .thenReturn(Collections.emptySet());
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(Collections.emptyMap());
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    client.countDistinctGroupedByBands(
+        "itemType:" + ItemType.POLICY_VIOLATION.name(),
+        FieldIdentifier.COMPONENT_HASH.label,
+        FieldIdentifier.POLICY_VIOLATION_ID.label,
+        Set.of("hashA"),
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        ThreatLevel.searchAggregationBands());
+
+    JsonNode root = toJsonTree(captor.getValue());
+    JsonNode filter = root.path("query").path("bool").path("filter");
+    assertThat(filter.isArray()).isTrue();
+    assertThat(filter.get(0).has("match_none")).isTrue();
+  }
+
+  @Test
   public void testAggregateCountByFloatField_FailClosed_UsesMatchNone() throws Exception {
     when(permissionService.getContextIdsForUserWithPermission(any(), eq(Permission.READ)))
         .thenReturn(Collections.emptySet());

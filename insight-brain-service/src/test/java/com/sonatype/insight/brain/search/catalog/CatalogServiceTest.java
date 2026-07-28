@@ -1068,6 +1068,58 @@ public class CatalogServiceTest
   }
 
   @Test
+  public void localSource_vulnerability_emitsFirstSeenIso_whenPresent() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2021-44228";
+    d.vulnerabilityFirstSeenEpochMs = 1_700_000_000_000L;
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, request("VULNERABILITY", Map.of()));
+
+    // ISO instant matching the All-tab's publishedAt date shape.
+    assertThat(response.rows().get(0).getFields())
+        .containsEntry("firstSeen", java.time.Instant.ofEpochMilli(1_700_000_000_000L).toString());
+  }
+
+  @Test
+  public void localSource_vulnerability_firstSeenAbsent_whenNoViolationOpenTime() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2021-44228";
+    d.vulnerabilityFirstSeenEpochMs = null;
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, request("VULNERABILITY", Map.of()));
+
+    // A non-violating vuln carries no first-seen time; the row omits the firstSeen field entirely
+    // (CatalogRow.field drops nulls), so the frontend renders a blank first-seen.
+    assertThat(response.rows().get(0).getFields()).doesNotContainKey("firstSeen");
+  }
+
+  @Test
+  public void firstSeenWindow_localOnly_rejectedOnCatalogSource() {
+    CatalogRequest catalogReq = new CatalogRequest(
+        "VULNERABILITY", "catalog", Map.of("firstSeenWindow", "30d"), 1, 25, null, null, false);
+    Throwable thrown =
+        catchThrowable(() -> service.search(CatalogEntityType.VULNERABILITY, SearchSource.CATALOG, catalogReq));
+    assertThat(thrown).isInstanceOf(BadRequestException.class);
+  }
+
+  @Test
+  public void firstSeenWindow_unknownToken_localSource_mapsTo400() {
+    CatalogRequest localReq = new CatalogRequest(
+        "VULNERABILITY", "local", Map.of("firstSeenWindow", "5w"), 1, 25, null, null, false);
+    Throwable thrown =
+        catchThrowable(() -> service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, localReq));
+    assertThat(thrown).isInstanceOf(BadRequestException.class);
+  }
+
+  @Test
   public void localSource_vulnerability_affectedCounts_areDistinctOverVulnerabilityId() {
     // One CVE on the page affecting 3 apps across 2 distinct components, computed in TWO grouped
     // reads (one per metric) for the whole page, item-type scoped (global reach) + RBAC.
@@ -1499,6 +1551,213 @@ public class CatalogServiceTest
         eq(FieldIdentifier.VULNERABILITY_SEVERITY.label),
         eq(CvssV3Severity.halfOpenScoreBands()),
         eq("vulnerabilityId"));
+  }
+
+  // ---- C1: Components leg per-severity active-violation counts (query-time, page-bounded) ----
+
+  @Test
+  public void localSource_component_perSeverityCounts_mapBandsToRowFields() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "hashA";
+    d.componentName = "commons-io";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    // Result keyed by lowercased group value (keyword lowercase normalizer). severe->high, moderate->medium.
+    // Note: int[] band-map values have identity equality, so eq(...searchAggregationBands()) would not
+    // match a freshly-built map; match the bands with anyMap() and assert the exact bands via the
+    // verify() below (the argument the service actually passes).
+    when(searchIndexClient.countDistinctGroupedByBands(
+        contains("itemType:policy_violation"), eq("componentHash"), eq("policyViolationId"),
+        eq(Set.of("hashA")), eq("policyViolationThreatLevel"), anyMap()))
+            .thenReturn(Map.of("hasha",
+                Map.of("critical", 4L, "severe", 2L, "moderate", 1L, "low", 3L)));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, request("COMPONENT", Map.of()));
+
+    assertThat(response.rows().get(0).getFields())
+        .containsEntry("latest_critical_count", 4L)
+        .containsEntry("latest_high_count", 2L)
+        .containsEntry("latest_medium_count", 1L)
+        .containsEntry("latest_low_count", 3L);
+    // Active-only: the base query pins waiverStatus=Active so waived violations aren't counted.
+    ArgumentCaptor<String> q = ArgumentCaptor.forClass(String.class);
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Map<String, int[]>> bandsCaptor = ArgumentCaptor.forClass(Map.class);
+    verify(searchIndexClient).countDistinctGroupedByBands(q.capture(), eq("componentHash"),
+        eq("policyViolationId"), anyCollection(), eq("policyViolationThreatLevel"), bandsCaptor.capture());
+    assertThat(q.getValue()).contains("policyViolationWaiverStatus:\"Active\"");
+    // The four ThreatLevel severity bands drive the counts (single source of truth).
+    assertThat(bandsCaptor.getValue().keySet()).containsExactlyInAnyOrderElementsOf(
+        com.sonatype.insight.brain.utils.ThreatLevel.searchAggregationBands().keySet());
+  }
+
+  @Test
+  public void localSource_component_perSeverityCounts_absentComponentReadsZero() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "noViolations";
+    d.componentName = "clean-lib";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    // A component with no active violation is absent from the grouped result -> all four counts zero.
+    when(searchIndexClient.countDistinctGroupedByBands(anyString(), eq("componentHash"), eq("policyViolationId"),
+        anyCollection(), eq("policyViolationThreatLevel"), anyMap()))
+            .thenReturn(Map.of());
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, request("COMPONENT", Map.of()));
+
+    assertThat(response.rows().get(0).getFields())
+        .containsEntry("latest_critical_count", 0L)
+        .containsEntry("latest_high_count", 0L)
+        .containsEntry("latest_medium_count", 0L)
+        .containsEntry("latest_low_count", 0L);
+  }
+
+  @Test
+  public void localSource_component_perSeverityCounts_emptyPage_noAggregation() {
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
+
+    service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, request("COMPONENT", Map.of()));
+
+    verify(searchIndexClient, never()).countDistinctGroupedByBands(
+        anyString(), anyString(), anyString(), anyCollection(), anyString(), anyMap());
+  }
+
+  @Test
+  public void localSource_vulnerability_noPerSeverityAggregation() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2021-1";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, request("VULNERABILITY", Map.of()));
+
+    verify(searchIndexClient, never()).countDistinctGroupedByBands(
+        anyString(), anyString(), anyString(), anyCollection(), anyString(), anyMap());
+  }
+
+  // ---- C2/C3/C4: Components leg violation filters (local-only + catalog-source rejection) ----
+
+  @Test
+  public void localSource_component_policyTypesFilter_compilesToDenormalizedField() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "h";
+    d.componentName = "c";
+    ArgumentCaptor<GlobalSearchRequest> captor = ArgumentCaptor.forClass(GlobalSearchRequest.class);
+    when(searchIndexClient.searchGlobal(captor.capture()))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "local", Map.of("policyTypes", List.of("Security")), 1, 25, null, null, false);
+    service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(captor.getValue().baseQuery().toString().toLowerCase()).contains("componentviolationpolicytype");
+  }
+
+  @Test
+  public void localSource_component_violationStatesFilter_compilesToDenormalizedField() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "h";
+    d.componentName = "c";
+    ArgumentCaptor<GlobalSearchRequest> captor = ArgumentCaptor.forClass(GlobalSearchRequest.class);
+    when(searchIndexClient.searchGlobal(captor.capture()))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "local", Map.of("violationStates", List.of("Open")), 1, 25, null, null, false);
+    service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(captor.getValue().baseQuery().toString().toLowerCase()).contains("componentviolationstate");
+  }
+
+  @Test
+  public void localSource_component_policyThreatLevelRange_compilesToIntRangeOnDenormalizedField() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "h";
+    d.componentName = "c";
+    ArgumentCaptor<GlobalSearchRequest> captor = ArgumentCaptor.forClass(GlobalSearchRequest.class);
+    when(searchIndexClient.searchGlobal(captor.capture()))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "local", Map.of("policyThreatLevel", List.of(8, 10)), 1, 25, null, null, false);
+    service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(captor.getValue().baseQuery().toString().toLowerCase()).contains("componentmaxpolicythreatlevel");
+  }
+
+  @Test
+  public void localSource_component_invertedPolicyThreatLevelRange_mapsTo400() {
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "local", Map.of("policyThreatLevel", List.of(10, 0)), 1, 25, null, null, false);
+    Throwable thrown = catchThrowable(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req));
+    assertThat(thrown).isInstanceOf(BadRequestException.class);
+    assertThat(thrown.getMessage()).doesNotContain("10").doesNotContain("policyThreatLevel");
+  }
+
+  @Test
+  public void localSource_component_nonFinitePolicyThreatLevelRange_mapsTo400() {
+    CatalogRequest nan = new CatalogRequest(
+        "COMPONENT", "local", Map.of("policyThreatLevel", List.of(Double.NaN, 10.0)), 1, 25, null, null, false);
+    Throwable thrownNan = catchThrowable(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, nan));
+    assertThat(thrownNan).isInstanceOf(BadRequestException.class);
+    assertThat(thrownNan.getMessage()).doesNotContain("policyThreatLevel");
+
+    CatalogRequest infinity = new CatalogRequest(
+        "COMPONENT", "local", Map.of("policyThreatLevel", List.of(0.0, Double.POSITIVE_INFINITY)), 1, 25, null, null,
+        false);
+    assertThat(catchThrowable(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, infinity)))
+        .isInstanceOf(BadRequestException.class);
+  }
+
+  @Test
+  public void localSource_component_openEndedPolicyThreatLevelRange_isAccepted() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "h";
+    d.componentName = "c";
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogRequest lowerOnly = new CatalogRequest(
+        "COMPONENT", "local", Map.of("policyThreatLevel", java.util.Arrays.asList(8, null)), 1, 25, null, null, false);
+    assertThat(service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, lowerOnly)).isNotNull();
+
+    CatalogRequest upperOnly = new CatalogRequest(
+        "COMPONENT", "local", Map.of("policyThreatLevel", java.util.Arrays.asList(null, 10)), 1, 25, null, null, false);
+    assertThat(service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, upperOnly)).isNotNull();
+  }
+
+  @Test
+  public void catalogSource_component_policyTypesFilter_rejectedWith400() {
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "catalog", Map.of("policyTypes", List.of("Security")), 1, 25, null, null, false);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req));
+  }
+
+  @Test
+  public void catalogSource_component_violationStatesFilter_rejectedWith400() {
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "catalog", Map.of("violationStates", List.of("Open")), 1, 25, null, null, false);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req));
+  }
+
+  @Test
+  public void catalogSource_component_policyThreatLevelFilter_rejectedWith400() {
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "catalog", Map.of("policyThreatLevel", List.of(0, 10)), 1, 25, null, null, false);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req));
   }
 
   private static List<String> manyValues(final int n) {

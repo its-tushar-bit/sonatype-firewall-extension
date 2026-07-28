@@ -24,7 +24,14 @@ public final class CatalogRequestBuilder
    * dimensions the public Guide/HDS corpus does not carry. Rejected on the catalog source rather
    * than silently dropped, so a mis-targeted filter is a clear 400 instead of a wrong result set.
    */
-  private static final Set<String> LOCAL_ONLY_FILTER_KEYS = Set.of("organizations", "applications", "stages");
+  private static final Set<String> LOCAL_ONLY_FILTER_KEYS = Set.of(
+      "organizations", "applications", "stages",
+      // Policy-violation dimensions denormalized on local component docs; the public Guide/HDS corpus
+      // has no policy-violation data, so these have no catalog equivalent and are rejected there.
+      "policyTypes", "violationStates", "policyThreatLevel",
+      // First-seen (open_time) is a local policy-violation-derived date; the catalog source uses
+      // publishedWindow on the Guide publish date instead, so this has no catalog equivalent.
+      "firstSeenWindow");
 
   /**
    * Upper bound on the number of values a single TERMS filter may carry. Each value becomes one OR

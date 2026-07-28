@@ -59,6 +59,9 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_FORMAT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_HASH;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_VIOLATION_POLICY_TYPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_VIOLATION_STATE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_COLOR;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_DESCRIPTION;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_ID;
@@ -77,6 +80,7 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_THR
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.REPORT_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.SBOM_SPECIFICATION;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_DESCRIPTION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_FIRST_SEEN_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_SEVERITY;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_STATUS;
@@ -259,6 +263,14 @@ public class DocumentBuilder
   private Optional<Field[]> applicationLastEvaluationTimeEpochMs = Optional.empty();
 
   private Optional<Field[]> applicationStageSeverityCounts = Optional.empty();
+
+  private Optional<Field[]> componentViolationPolicyTypes = Optional.empty();
+
+  private Optional<Field[]> componentViolationStates = Optional.empty();
+
+  private Optional<Field[]> componentMaxPolicyThreatLevel = Optional.empty();
+
+  private Optional<Field[]> vulnerabilityFirstSeenEpochMs = Optional.empty();
 
   private Optional<Field[]> applicationMaxPolicyThreatLevel = Optional.empty();
 
@@ -858,6 +870,22 @@ public class DocumentBuilder
   }
 
   /**
+   * Epoch-millis when this IQ first detected the vulnerability (earliest triggering policy-violation
+   * open time). A {@link LongPoint} (indexed, not stored) backs the "first seen (within ...)" window
+   * range filter; a {@link StoredField} keeps the display value. No sort doc-values twin: the local
+   * Vulnerabilities tab has no first-seen sort. Null (vuln triggers no policy violation) writes
+   * nothing, so the row shows a blank first-seen.
+   */
+  public DocumentBuilder setVulnerabilityFirstSeenEpochMs(final Long epochMs) {
+    if (epochMs != null) {
+      this.vulnerabilityFirstSeenEpochMs = Optional.of(new Field[]{
+        new LongPoint(VULNERABILITY_FIRST_SEEN_EPOCH_MS.label, epochMs),
+        new StoredField(VULNERABILITY_FIRST_SEEN_EPOCH_MS.label, epochMs)});
+    }
+    return this;
+  }
+
+  /**
    * Multi-valued per-stage x severity violation counts, each entry {@code "stage:severity:count"}.
    * A null/empty collection writes nothing (an app with no violations emits no entries), so the
    * evaluation-card pills read zero for every bucket rather than NPE-ing on a pre-reindex doc.
@@ -868,6 +896,51 @@ public class DocumentBuilder
           .filter(Objects::nonNull)
           .map(entry -> new StringField(APPLICATION_STAGE_SEVERITY_COUNT.label, entry, Store.YES))
           .toArray(Field[]::new));
+    }
+    return this;
+  }
+
+  /**
+   * Multi-valued keyword denormalizing the distinct threat categories of the component's unfixed
+   * policy violations (lower-cased). Exact-match {@link StringField} so the Components leg's
+   * policyTypes TERMS filter matches. Null/empty writes nothing (component with no violation).
+   */
+  public DocumentBuilder setComponentViolationPolicyTypes(final Collection<String> policyTypes) {
+    if (policyTypes != null && !policyTypes.isEmpty()) {
+      this.componentViolationPolicyTypes = Optional.of(policyTypes.stream()
+          .filter(Objects::nonNull)
+          .map(type -> new StringField(COMPONENT_VIOLATION_POLICY_TYPE.label, type, Store.YES))
+          .toArray(Field[]::new));
+    }
+    return this;
+  }
+
+  /**
+   * Multi-valued keyword denormalizing the distinct API violation states of the component's unfixed
+   * policy violations (lower-cased {@code open}/{@code waived}/{@code legacy}). Legacy is a distinct
+   * grandfathered-in state. Null/empty writes nothing.
+   */
+  public DocumentBuilder setComponentViolationStates(final Collection<String> states) {
+    if (states != null && !states.isEmpty()) {
+      this.componentViolationStates = Optional.of(states.stream()
+          .filter(Objects::nonNull)
+          .map(state -> new StringField(COMPONENT_VIOLATION_STATE.label, state, Store.YES))
+          .toArray(Field[]::new));
+    }
+    return this;
+  }
+
+  /**
+   * Max policy threat level (0&ndash;10) across the component's unfixed policy violations. An
+   * {@link IntPoint} backs the policyThreatLevel range filter; a {@link StoredField} keeps the
+   * display value. The numeric sort doc-values twin is added in
+   * {@link LuceneIndexingContext#addDocuments}, not here. Null (no violation) writes nothing.
+   */
+  public DocumentBuilder setComponentMaxPolicyThreatLevel(final Integer threatLevel) {
+    if (threatLevel != null) {
+      this.componentMaxPolicyThreatLevel = Optional.of(new Field[]{
+        new IntPoint(COMPONENT_MAX_POLICY_THREAT_LEVEL.label, threatLevel),
+        new StoredField(COMPONENT_MAX_POLICY_THREAT_LEVEL.label, threatLevel)});
     }
     return this;
   }
@@ -1011,6 +1084,10 @@ public class DocumentBuilder
     applicationCategoryNames.ifPresent(this::setFields);
     applicationLastEvaluationTimeEpochMs.ifPresent(this::setFields);
     applicationStageSeverityCounts.ifPresent(this::setFields);
+    componentViolationPolicyTypes.ifPresent(this::setFields);
+    componentViolationStates.ifPresent(this::setFields);
+    componentMaxPolicyThreatLevel.ifPresent(this::setFields);
+    vulnerabilityFirstSeenEpochMs.ifPresent(this::setFields);
     applicationMaxPolicyThreatLevel.ifPresent(this::setFields);
     applicationViolationStages.ifPresent(this::setFields);
     applicationViolationPolicyTypes.ifPresent(this::setFields);

@@ -797,6 +797,18 @@ public class IndexQueryEndpointTest
     }
 
     @Override
+    public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+        final String metricQuery,
+        final String groupField,
+        final String distinctField,
+        final java.util.Collection<String> groupValues,
+        final String bandField,
+        final Map<String, int[]> bands)
+    {
+      return java.util.Map.of();
+    }
+
+    @Override
     public com.sonatype.insight.brain.search.results.SearchResultDTO searchIndex(
         final String q,
         final int pageSize,

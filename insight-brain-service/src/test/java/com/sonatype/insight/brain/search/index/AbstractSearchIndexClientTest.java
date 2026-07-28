@@ -920,6 +920,18 @@ public class AbstractSearchIndexClientTest
     {
       return Map.of();
     }
+
+    @Override
+    public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+        String metricQuery,
+        String groupField,
+        String distinctField,
+        Collection<String> groupValues,
+        String bandField,
+        Map<String, int[]> bands)
+    {
+      return Map.of();
+    }
   }
 
   /**

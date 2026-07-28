@@ -78,12 +78,19 @@ public class LuceneComponents
         new PointsConfig(numberFormat, Integer.class));
     pointsConfigsByFieldName.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label,
         new PointsConfig(numberFormat, Integer.class));
+    // Int twin backing the Components tab policyThreatLevel range filter; without a PointsConfig the
+    // range fragment fails to parse as an IntPoint range and the Lucene backend returns zero results.
+    pointsConfigsByFieldName.put(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label,
+        new PointsConfig(numberFormat, Integer.class));
     pointsConfigsByFieldName.put(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label,
         new PointsConfig(numberFormat, Integer.class));
     pointsConfigsByFieldName.put(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label,
         new PointsConfig(numberFormat, Long.class));
     // Epoch-millis long backing the applications "latest evaluation" range filter/sort.
     pointsConfigsByFieldName.put(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label,
+        new PointsConfig(numberFormat, Long.class));
+    // Epoch-millis long backing the local vulnerabilities "first seen (within ...)" window range filter.
+    pointsConfigsByFieldName.put(FieldIdentifier.VULNERABILITY_FIRST_SEEN_EPOCH_MS.label,
         new PointsConfig(numberFormat, Long.class));
     // IntPoint backing the applications policyThreatLevel range filter/facet (max threat per app).
     pointsConfigsByFieldName.put(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label,

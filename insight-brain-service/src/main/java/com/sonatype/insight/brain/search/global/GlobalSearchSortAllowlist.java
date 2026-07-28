@@ -83,13 +83,14 @@ public final class GlobalSearchSortAllowlist
 
     m.put(ALL, ImmutableSet.of(RELEVANCE));
 
-    m.put(COMPONENT, ImmutableSet.of(RELEVANCE, "name"));
-    // A severity sort is intentionally NOT listed: vulnerabilitySeverity is a numeric FloatPoint CVSS
-    // field with no SortedNumericDocValues twin, and sortFor builds only a STRING SortField, so a
-    // severity key would sort lexicographically or fail on the missing doc-values when field sort is
-    // enabled. It can be added once sortFor selects a numeric SortField and the index emits the
-    // sorted-numeric twin for the field.
-    m.put(VULNERABILITY, ImmutableSet.of(RELEVANCE, "name"));
+    // Components My-tab: relevance, name, and policyThreatLevel (backed by the denormalized
+    // componentMaxPolicyThreatLevel int twin on component docs). The prototype's All-tab component
+    // sorts (trending/downloads/latest_release/dts) are Catalog/federation attributes with no local
+    // index field and are NOT listed here — they are a separate cross-service follow-up.
+    m.put(COMPONENT, ImmutableSet.of(RELEVANCE, "name", "policyThreatLevel"));
+    // Vulnerabilities My-tab: relevance, name, and cvss (backed by the vulnerabilitySeverity float
+    // sort twin). A published sort is NOT listed: local vuln docs carry no published date (V2 gap).
+    m.put(VULNERABILITY, ImmutableSet.of(RELEVANCE, "name", "cvss"));
     m.put(APPLICATION, ImmutableSet.of(
         RELEVANCE, "name", "policyEvaluationStage", "lastEvaluationTime", "policyThreatLevel", "violationState"));
 

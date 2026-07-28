@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -1963,6 +1965,279 @@ public class DocumentBuilderHelperTest
     // This should not throw an exception and should properly round the severity
     assertThat(documentBuilderHelper.buildDocument(organization, application, sbomMetadata, fileCoordinate,
         coordinateSecurity, parentOrgs)).isNotNull();
+  }
+
+  // ---- Component violation rollup (C2/C3/C4 denormalization) --------------------------------
+
+  @Test
+  public void componentViolationRollupByHash_unionsTypes_maxThreat_classifiesStates() {
+    PolicyViolation critSecurityOpen = violation("hashA", 10, PolicyThreatCategory.SECURITY, null, null);
+    PolicyViolation lowLicenseWaived = violation("hashA", 3, PolicyThreatCategory.LICENSE, new Date(), null);
+    PolicyViolation qualityAutoWaived = violation("hashB", 1, PolicyThreatCategory.QUALITY, null, "autoWaiverId");
+
+    Map<String, DocumentBuilderHelper.ComponentViolationRollup> rollup =
+        DocumentBuilderHelper.componentViolationRollupByHash(
+            List.of(critSecurityOpen, lowLicenseWaived, qualityAutoWaived));
+
+    // hashA: two violations -> union of types (security, license), max threat 10, states {open, waived}.
+    assertThat(rollup.get("hashA").policyTypes()).containsExactlyInAnyOrder("security", "license");
+    assertThat(rollup.get("hashA").maxThreatLevel()).isEqualTo(10);
+    assertThat(rollup.get("hashA").states()).containsExactlyInAnyOrder("open", "waived");
+    // hashB: auto-waived classifies as waived (not a separate legacy/auto state on the component field).
+    assertThat(rollup.get("hashB").policyTypes()).containsExactly("quality");
+    assertThat(rollup.get("hashB").states()).containsExactly("waived");
+    assertThat(rollup.get("hashB").maxThreatLevel()).isEqualTo(1);
+  }
+
+  @Test
+  public void componentViolationState_classifiesOpenLegacyWaivedDistinctly() {
+    // active -> open, pure-legacy -> legacy, manually waived -> waived, waived+legacy -> waived
+    // (waiver precedence in deriveWaiverStatus). Legacy is a distinct grandfathered-in state.
+    PolicyViolation open = violation("hashOpen", 5, PolicyThreatCategory.SECURITY, null, null, false);
+    PolicyViolation legacy = violation("hashLegacy", 5, PolicyThreatCategory.SECURITY, null, null, true);
+    PolicyViolation waived = violation("hashWaived", 5, PolicyThreatCategory.SECURITY, new Date(), null, false);
+    PolicyViolation waivedLegacy =
+        violation("hashWaivedLegacy", 5, PolicyThreatCategory.SECURITY, new Date(), null, true);
+
+    Map<String, DocumentBuilderHelper.ComponentViolationRollup> rollup =
+        DocumentBuilderHelper.componentViolationRollupByHash(List.of(open, legacy, waived, waivedLegacy));
+
+    assertThat(rollup.get("hashOpen").states()).containsExactly("open");
+    assertThat(rollup.get("hashLegacy").states()).containsExactly("legacy");
+    assertThat(rollup.get("hashWaived").states()).containsExactly("waived");
+    assertThat(rollup.get("hashWaivedLegacy").states()).containsExactly("waived");
+  }
+
+  @Test
+  public void componentViolationRollupByHash_emptyOrNullHash_areHandled() {
+    assertThat(DocumentBuilderHelper.componentViolationRollupByHash(List.of())).isEmpty();
+    // A violation with a null hash cannot be attributed to a component row and is skipped.
+    PolicyViolation noHash = violation(null, 10, PolicyThreatCategory.SECURITY, null, null);
+    assertThat(DocumentBuilderHelper.componentViolationRollupByHash(List.of(noHash))).isEmpty();
+  }
+
+  // ---- Vulnerability first-seen (open_time) join --------------------------------------------
+
+  /**
+   * A vuln whose refId is referenced by a single policy violation's constraint facts gets a
+   * first-seen equal to that violation's open time (= its evaluation time). The join is over real
+   * persisted violations + constraint-facts rows read back through the real DAO.
+   */
+  @Test
+  public void firstSeenEpochMsByVulnRefId_singleViolation_usesOpenTime() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    long openMs = 1_700_000_000_000L;
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-fs-1", new Date(openMs));
+    Policy policy = tempEntity.newPolicy(org.getId(), "vuln-policy", 9);
+    // reason == the vuln refId: the SecurityVulnerabilitySeverity condition seeds a
+    // TriggerReference(SECURITY_VULNERABILITY_REFID, reason) into the persisted constraint facts.
+    tempEntity.newPolicyViolation(
+        eval, policy, com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
+        "hashV", "CVE-2020-0001");
+
+    Map<String, Long> firstSeen = firstSeenEpochMsByVulnRefId(loadUnfixedViolations(app));
+
+    assertThat(firstSeen).containsEntry("CVE-2020-0001", openMs);
+  }
+
+  /**
+   * A vuln triggered by violations across two evaluations (stages/policies) takes the EARLIEST open
+   * time — the true first-seen — not the latest.
+   */
+  @Test
+  public void firstSeenEpochMsByVulnRefId_multipleViolations_usesMinOpenTime() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    long earlierMs = 1_600_000_000_000L;
+    long laterMs = 1_700_000_000_000L;
+    Policy policyBuild = tempEntity.newPolicy(org.getId(), "vuln-policy-build", 9);
+    Policy policyStage = tempEntity.newPolicy(org.getId(), "vuln-policy-stage", 9);
+    // Later violation first, earlier violation second: min must win regardless of insertion order.
+    PolicyEvaluation evalLater = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-fs-late", new Date(laterMs));
+    tempEntity.newPolicyViolation(
+        evalLater, policyBuild,
+        com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
+        "hashV", "CVE-2020-0002");
+    PolicyEvaluation evalEarlier = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.STAGE_RELEASE.getId(), "scan-fs-early", new Date(earlierMs));
+    tempEntity.newPolicyViolation(
+        evalEarlier, policyStage,
+        com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
+        "hashV", "CVE-2020-0002");
+
+    List<PolicyViolation> violations = new ArrayList<>(loadUnfixedViolations(app));
+    violations.addAll(loadUnfixedViolationsForStage(app, StageTypes.STAGE_RELEASE));
+    Map<String, Long> firstSeen = firstSeenEpochMsByVulnRefId(violations);
+
+    assertThat(firstSeen).containsEntry("CVE-2020-0002", earlierMs);
+  }
+
+  /**
+   * A violation whose constraint facts carry no SECURITY_VULNERABILITY_REFID trigger (a non-vuln
+   * policy condition) contributes no first-seen entry — the map is empty, so such a vuln row shows
+   * a blank first-seen and no time is fabricated.
+   */
+  @Test
+  public void firstSeenEpochMsByVulnRefId_nonVulnViolation_producesNoEntry() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-fs-nonvuln", new Date(), "commit-nonvuln");
+    // This newPolicyViolation overload seeds a ConditionFact WITHOUT a TriggerReference, so no vuln
+    // refId is associated — the join finds nothing to attribute an open time to.
+    tempEntity.newPolicyViolation(eval, tempEntity.newPolicy(org.getId(), "non-vuln", 5), 5,
+        PolicyThreatCategory.QUALITY, "g", "a", "1");
+
+    Map<String, Long> firstSeen = firstSeenEpochMsByVulnRefId(loadUnfixedViolations(app));
+
+    assertThat(firstSeen).isEmpty();
+  }
+
+  /**
+   * {@code loadConstraintNames} reads the same shared constraint-facts batch that the first-seen join
+   * uses; verify it still resolves the persisted constraint name by facts id (output preserved after
+   * the load-once refactor).
+   */
+  @Test
+  public void loadConstraintNames_fromSharedFacts_resolvesConstraintName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-cn-1", new Date());
+    tempEntity.newPolicyViolation(
+        eval, tempEntity.newPolicy(org.getId(), "cn-policy", 9),
+        com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
+        "hashCN", "CVE-2020-1000");
+
+    List<PolicyViolation> violations = loadUnfixedViolations(app);
+    List<PolicyViolationConstraintFacts> facts = loadConstraintFacts(violations);
+    Map<String, String> namesById = loadConstraintNames(facts);
+
+    // Every violation with a constraint-facts id whose facts row carries a name resolves to it.
+    String factsId = violations.get(0).getConstraintFactsId();
+    assertThat(namesById).containsKey(factsId);
+    assertThat(namesById.get(factsId)).isNotBlank();
+  }
+
+  /**
+   * The load-once refactor: {@code buildApplicationStageSVDocs} loads the constraint-facts batch a
+   * single time and shares it between the first-seen join and the constraint-name lookup. Spy the DAO
+   * and drive both consumers off one {@code loadConstraintFacts} call; {@code getByIds} must run once,
+   * not once per consumer.
+   */
+  @Test
+  public void loadConstraintFacts_sharedBetweenConsumers_getByIdsInvokedOnce() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-once-1", new Date());
+    tempEntity.newPolicyViolation(
+        eval, tempEntity.newPolicy(org.getId(), "once-policy", 9),
+        com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
+        "hashOnce", "CVE-2020-2000");
+    List<PolicyViolation> violations = loadUnfixedViolations(app);
+
+    PolicyViolationConstraintFactsDAO daoSpy = spy(policyViolationConstraintFactsDAO);
+    java.lang.reflect.Field field =
+        DocumentBuilderHelper.class.getDeclaredField("policyViolationConstraintFactsDAO");
+    field.setAccessible(true);
+    Object original = field.get(documentBuilderHelper);
+    field.set(documentBuilderHelper, daoSpy);
+    try {
+      List<PolicyViolationConstraintFacts> facts = loadConstraintFacts(violations);
+      Map<String, Long> firstSeen = firstSeenEpochMsByVulnRefId(violations, facts);
+      Map<String, String> names = loadConstraintNames(facts);
+
+      // Both consumers produced their output from the single shared batch...
+      assertThat(firstSeen).isNotEmpty();
+      assertThat(names).isNotEmpty();
+      // ...and the batch fetch ran exactly once, not once per consumer.
+      verify(daoSpy, times(1)).getByIds(any());
+    }
+    finally {
+      field.set(documentBuilderHelper, original);
+    }
+  }
+
+  private List<PolicyViolation> loadUnfixedViolations(final Application app) {
+    return loadUnfixedViolationsForStage(app, StageTypes.BUILD);
+  }
+
+  @Inject
+  private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+
+  private List<PolicyViolation> loadUnfixedViolationsForStage(final Application app, final StageType stage) {
+    return policyViolationDAO.getUnfixedByApplicationIdAndStageId(app.getId(), stage.getId());
+  }
+
+  /**
+   * Drives the production code path: load the constraint facts once, then feed the shared list into
+   * the first-seen join exactly as {@code buildApplicationStageSVDocs} does.
+   */
+  private Map<String, Long> firstSeenEpochMsByVulnRefId(final List<PolicyViolation> violations) throws Exception {
+    return firstSeenEpochMsByVulnRefId(violations, loadConstraintFacts(violations));
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Long> firstSeenEpochMsByVulnRefId(
+      final List<PolicyViolation> violations,
+      final List<PolicyViolationConstraintFacts> factsList) throws Exception
+  {
+    java.lang.reflect.Method method =
+        DocumentBuilderHelper.class.getDeclaredMethod("firstSeenEpochMsByVulnRefId", List.class, List.class);
+    method.setAccessible(true);
+    return (Map<String, Long>) method.invoke(documentBuilderHelper, violations, factsList);
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<PolicyViolationConstraintFacts> loadConstraintFacts(
+      final List<PolicyViolation> violations) throws Exception
+  {
+    java.lang.reflect.Method method =
+        DocumentBuilderHelper.class.getDeclaredMethod("loadConstraintFacts", List.class);
+    method.setAccessible(true);
+    return (List<PolicyViolationConstraintFacts>) method.invoke(documentBuilderHelper, violations);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, String> loadConstraintNames(
+      final List<PolicyViolationConstraintFacts> factsList) throws Exception
+  {
+    java.lang.reflect.Method method =
+        DocumentBuilderHelper.class.getDeclaredMethod("loadConstraintNames", List.class);
+    method.setAccessible(true);
+    return (Map<String, String>) method.invoke(documentBuilderHelper, factsList);
+  }
+
+  private static PolicyViolation violation(
+      final String hash,
+      final int threatLevel,
+      final PolicyThreatCategory category,
+      final Date waiveTime,
+      final String autoWaiverId)
+  {
+    return violation(hash, threatLevel, category, waiveTime, autoWaiverId, false);
+  }
+
+  private static PolicyViolation violation(
+      final String hash,
+      final int threatLevel,
+      final PolicyThreatCategory category,
+      final Date waiveTime,
+      final String autoWaiverId,
+      final boolean legacy)
+  {
+    PolicyViolation v = mock(PolicyViolation.class);
+    lenient().when(v.getHash()).thenReturn(hash);
+    lenient().when(v.getThreatLevel()).thenReturn(threatLevel);
+    lenient().when(v.getThreatCategory()).thenReturn(category);
+    lenient().when(v.getWaiveTime()).thenReturn(waiveTime);
+    lenient().when(v.getAutoPolicyWaiverId()).thenReturn(autoWaiverId);
+    lenient().when(v.isLegacyViolation()).thenReturn(legacy);
+    return v;
   }
 
   /**

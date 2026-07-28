@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -34,7 +35,9 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -132,6 +135,22 @@ public class DocumentBuilderHelper
   public static final String POLICY_VIOLATION_WAIVER_STATUS_AUTO_WAIVED = "AutoWaived";
 
   public static final String POLICY_VIOLATION_WAIVER_STATUS_LEGACY = "Legacy";
+
+  /**
+   * Canonical indexed {@code componentViolationState} values written onto
+   * {@code NON_VULNERABLE_COMPONENT} docs (the Components leg violationStates filter). Lower-cased so
+   * the exact-match keyword filter is case-stable. Derived from the same waiver-status classification
+   * as {@link #POLICY_VIOLATION_WAIVER_STATUS_ACTIVE} et al: Active&nbsp;&rarr;&nbsp;{@code open},
+   * pure-legacy (non-waived)&nbsp;&rarr;&nbsp;{@code legacy}, Waived/AutoWaived&nbsp;&rarr;&nbsp;{@code
+   * waived}. Legacy is a distinct grandfathered-in state: a pure-legacy violation is neither open nor
+   * waived. A violation that is both waived and legacy classifies as {@code waived}, since
+   * {@link #deriveWaiverStatus} resolves it to Waived (waiver precedence).
+   */
+  public static final String COMPONENT_VIOLATION_STATE_OPEN = "open";
+
+  public static final String COMPONENT_VIOLATION_STATE_WAIVED = "waived";
+
+  public static final String COMPONENT_VIOLATION_STATE_LEGACY = "legacy";
 
   private static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX_EVAL = "AdvancedSearch.createSearchIndex.eval";
 
@@ -1464,6 +1483,20 @@ public class DocumentBuilderHelper
               bomReportEntry.buf,
               dependenciesReportEntry.buf);
 
+      // Load the (app, stage) unfixed policy violations once, up front: they drive both the
+      // POLICY_VIOLATION docs below AND the per-component violation rollup denormalized onto each
+      // NON_VULNERABLE_COMPONENT doc (Components leg policyTypes/violationStates/policyThreatLevel
+      // filters + sort). No extra query — the same list is reused.
+      List<PolicyViolation> violations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(
+          application.getId(), stageType.getId());
+      Map<String, ComponentViolationRollup> violationRollupByHash = componentViolationRollupByHash(violations);
+      // Load the violations' constraint facts once (single batch getByIds): they feed BOTH the
+      // first-seen refId join below AND the POLICY_VIOLATION constraint-name lookup further down.
+      List<PolicyViolationConstraintFacts> constraintFacts = loadConstraintFacts(violations);
+      // First-seen (open_time) per vuln refId, joined from the same violations via their constraint
+      // facts' SECURITY_VULNERABILITY_REFID triggers; earliest open time wins across stages/policies.
+      Map<String, Long> firstSeenByVulnRefId = firstSeenEpochMsByVulnRefId(violations, constraintFacts);
+
       // Build security vulnerability documents (existing behavior)
       List<Document> securityVulnerabilityDocs = components.stream()
           .map(component -> CompletableFuture.supplyAsync(
@@ -1474,7 +1507,9 @@ public class DocumentBuilderHelper
                   application,
                   stageType,
                   scanId,
-                  component),
+                  component,
+                  violationRollupByHash,
+                  firstSeenByVulnRefId),
               getComponentExecutor()))
           .collect(Collectors.collectingAndThen(
               Collectors.toList(),
@@ -1487,9 +1522,7 @@ public class DocumentBuilderHelper
               }));
 
       // Build policy violation documents
-      List<PolicyViolation> violations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(
-          application.getId(), stageType.getId());
-      Map<String, String> constraintNameByFactsId = loadConstraintNames(violations);
+      Map<String, String> constraintNameByFactsId = loadConstraintNames(constraintFacts);
       List<Document> policyViolationDocs = buildPolicyViolationDocuments(
           indexingContext, organization, parentOrganizations, application, stageType, scanId, violations,
           constraintNameByFactsId);
@@ -1559,6 +1592,21 @@ public class DocumentBuilderHelper
       String reportId,
       Component component)
   {
+    return buildApplicationComponentVulnerabilityDocuments(indexingContext, organization, parentOrganizations,
+        application, stageType, reportId, component, Collections.emptyMap(), Collections.emptyMap());
+  }
+
+  public List<Document> buildApplicationComponentVulnerabilityDocuments(
+      IndexingContext indexingContext,
+      Organization organization,
+      Collection<Organization> parentOrganizations,
+      Application application,
+      StageType stageType,
+      String reportId,
+      Component component,
+      Map<String, ComponentViolationRollup> violationRollupByHash,
+      Map<String, Long> firstSeenByVulnRefId)
+  {
     if (parentOrganizations == null || organization == null || application == null || component == null) {
       return Collections.emptyList();
     }
@@ -1567,12 +1615,20 @@ public class DocumentBuilderHelper
           .stream()
           .map(
               vulnerability -> buildDocument(indexingContext, organization, application, stageType, reportId, component,
-                  vulnerability, parentOrganizations))
+                  vulnerability, parentOrganizations, firstSeenByVulnRefId))
           .toList();
     }
     else if (component.getComponentIdentifier() != null) {
+      // The violation rollup rides only the NON_VULNERABLE_COMPONENT doc: a component with any
+      // security vulnerability is emitted as SECURITY_VULNERABILITY docs above and never carries the
+      // componentViolation* fields, and the Components leg queries NON_VULNERABLE_COMPONENT only. So a
+      // vulnerable-and-violated component is a Vulnerabilities-tab row, not a Components-tab row, and
+      // the Components policyTypes/violationStates/policyThreatLevel filters intentionally do not
+      // reach it. This is the pre-existing tab partition (vulnerable components live on the
+      // Vulnerabilities tab), which the new filters simply inherit.
       return Collections.singletonList(
-          buildDocument(organization, parentOrganizations, application, stageType, reportId, component));
+          buildDocument(organization, parentOrganizations, application, stageType, reportId, component,
+              violationRollupByHash.get(component.getHash())));
     }
     else {
       return Collections.emptyList();
@@ -1587,10 +1643,22 @@ public class DocumentBuilderHelper
       String reportId,
       Component component)
   {
+    return buildDocument(organization, parentOrganizations, application, stageType, reportId, component, null);
+  }
+
+  public Document buildDocument(
+      Organization organization,
+      Collection<Organization> parentOrganizations,
+      Application application,
+      StageType stageType,
+      String reportId,
+      Component component,
+      ComponentViolationRollup violationRollup)
+  {
     if (parentOrganizations == null || organization == null || application == null || component == null) {
       return null;
     }
-    return new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT)
+    DocumentBuilder builder = new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT)
         .setOwner(application)
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
@@ -1602,8 +1670,14 @@ public class DocumentBuilderHelper
         .setComponentName(component.getDisplayNameFromIdentifier())
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
-        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()))
-        .build();
+        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()));
+    if (violationRollup != null && !violationRollup.isEmpty()) {
+      builder
+          .setComponentViolationPolicyTypes(violationRollup.policyTypes())
+          .setComponentViolationStates(violationRollup.states())
+          .setComponentMaxPolicyThreatLevel(violationRollup.maxThreatLevel());
+    }
+    return builder.build();
   }
 
   public Document buildDocument(
@@ -1616,12 +1690,27 @@ public class DocumentBuilderHelper
       SecurityVulnerability vulnerability,
       Collection<Organization> parentOrganizations)
   {
+    return buildDocument(indexingContext, organization, application, stageType, reportId, component, vulnerability,
+        parentOrganizations, Collections.emptyMap());
+  }
+
+  public Document buildDocument(
+      IndexingContext indexingContext,
+      Organization organization,
+      Application application,
+      StageType stageType,
+      String reportId,
+      Component component,
+      SecurityVulnerability vulnerability,
+      Collection<Organization> parentOrganizations,
+      Map<String, Long> firstSeenByVulnRefId)
+  {
     if (parentOrganizations == null || organization == null || application == null || component == null ||
         vulnerability == null)
     {
       return null;
     }
-    return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
+    DocumentBuilder builder = new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
         .setOwner(application)
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
@@ -1637,8 +1726,14 @@ public class DocumentBuilderHelper
         .setVulnerabilityDescription(getDescription(indexingContext.getVulnDescByVulnId(), vulnerability))
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
-        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()))
-        .build();
+        .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()));
+    // First-seen is set only when a policy violation triggered by this vuln refId supplies an
+    // open time; a non-triggering (informational) vuln has no entry, so the field stays unset.
+    Long firstSeenEpochMs = firstSeenByVulnRefId == null ? null : firstSeenByVulnRefId.get(vulnerability.getRefId());
+    if (firstSeenEpochMs != null) {
+      builder.setVulnerabilityFirstSeenEpochMs(firstSeenEpochMs);
+    }
+    return builder.build();
   }
 
   private String getDescription(
@@ -1706,27 +1801,123 @@ public class DocumentBuilderHelper
   }
 
   /**
-   * Loads constraint names for policy violations by constraint facts ID.
+   * Per-component denormalization of the (app, stage) unfixed policy violations, keyed by component
+   * hash. Powers the Components leg policyTypes / violationStates / policyThreatLevel filters and the
+   * policyThreatLevel sort without a per-row violation query at read time. Empty when a component has
+   * no policy violation. The values are idempotent under the per-(app, stage) doc multiplicity: the
+   * policy-type/state sets are unions and the threat level is a max, so a component's doc carries the
+   * same rollup regardless of how many violation rows produced it.
+   *
+   * @param policyTypes distinct lower-cased threat categories (security/license/quality/other).
+   * @param states distinct lower-cased API violation states ({@code open}/{@code waived}/{@code legacy}).
+   * @param maxThreatLevel maximum threat level (0&ndash;10) across the component's violations, or
+   *          {@code null} when none carry a threat level.
    */
-  private Map<String, String> loadConstraintNames(List<PolicyViolation> violations) {
+  public record ComponentViolationRollup(Set<String> policyTypes, Set<String> states, Integer maxThreatLevel)
+  {
+    public ComponentViolationRollup {
+      policyTypes = policyTypes == null
+          ? Collections.emptySet()
+          : Collections.unmodifiableSet(new LinkedHashSet<>(policyTypes));
+      states = states == null
+          ? Collections.emptySet()
+          : Collections.unmodifiableSet(new LinkedHashSet<>(states));
+    }
+
+    boolean isEmpty() {
+      return policyTypes.isEmpty() && states.isEmpty() && maxThreatLevel == null;
+    }
+  }
+
+  /**
+   * Rolls the (app, stage) unfixed policy violations up per component hash. One pass over the list —
+   * no per-component query. A violation with a null hash is skipped (cannot be attributed to a
+   * component row).
+   */
+  static Map<String, ComponentViolationRollup> componentViolationRollupByHash(final List<PolicyViolation> violations) {
     if (CollectionUtils.isEmpty(violations)) {
       return Collections.emptyMap();
     }
+    Map<String, Set<String>> typesByHash = new HashMap<>();
+    Map<String, Set<String>> statesByHash = new HashMap<>();
+    Map<String, Integer> maxThreatByHash = new HashMap<>();
+    for (PolicyViolation violation : violations) {
+      String hash = violation.getHash();
+      if (hash == null) {
+        continue;
+      }
+      // A null threat category contributes no policyType but still contributes a state and a threat
+      // level below. So a component whose violations all have null categories gets an indexed
+      // componentMaxPolicyThreatLevel (and componentViolationState) but no componentViolationPolicyType:
+      // a policyThreatLevel range or violationStates filter can match it, a policyTypes filter cannot.
+      if (violation.getThreatCategory() != null) {
+        typesByHash.computeIfAbsent(hash, h -> new LinkedHashSet<>())
+            .add(violation.getThreatCategory().getName().toLowerCase(Locale.ROOT));
+      }
+      statesByHash.computeIfAbsent(hash, h -> new LinkedHashSet<>())
+          .add(componentViolationState(deriveWaiverStatus(violation)));
+      maxThreatByHash.merge(hash, violation.getThreatLevel(), Math::max);
+    }
+    Map<String, ComponentViolationRollup> out = new HashMap<>();
+    Set<String> hashes = new LinkedHashSet<>();
+    hashes.addAll(typesByHash.keySet());
+    hashes.addAll(statesByHash.keySet());
+    hashes.addAll(maxThreatByHash.keySet());
+    for (String hash : hashes) {
+      out.put(hash, new ComponentViolationRollup(
+          typesByHash.getOrDefault(hash, Collections.emptySet()),
+          statesByHash.getOrDefault(hash, Collections.emptySet()),
+          maxThreatByHash.get(hash)));
+    }
+    return out;
+  }
 
+  /**
+   * Maps an indexed waiver status to the lower-cased component violation state
+   * (open/waived/legacy). Active&nbsp;&rarr;&nbsp;open, pure-legacy Legacy&nbsp;&rarr;&nbsp;legacy,
+   * everything else (Waived/AutoWaived)&nbsp;&rarr;&nbsp;waived. Legacy is a distinct grandfathered-in
+   * state, neither open nor waived. A waived+legacy violation never reaches the legacy branch here:
+   * {@link #deriveWaiverStatus} resolves it to Waived (waiver precedence), so it classifies as waived.
+   */
+  private static String componentViolationState(final String waiverStatus) {
+    if (POLICY_VIOLATION_WAIVER_STATUS_ACTIVE.equals(waiverStatus)) {
+      return COMPONENT_VIOLATION_STATE_OPEN;
+    }
+    if (POLICY_VIOLATION_WAIVER_STATUS_LEGACY.equals(waiverStatus)) {
+      return COMPONENT_VIOLATION_STATE_LEGACY;
+    }
+    return COMPONENT_VIOLATION_STATE_WAIVED;
+  }
+
+  /**
+   * Loads the constraint-facts rows for a violation batch in a single batch fetch. The result feeds
+   * both {@link #loadConstraintNames} and {@link #firstSeenEpochMsByVulnRefId}, so it is loaded once
+   * per (app, stage) reindex cycle and shared rather than fetched twice.
+   */
+  private List<PolicyViolationConstraintFacts> loadConstraintFacts(List<PolicyViolation> violations) {
+    if (CollectionUtils.isEmpty(violations)) {
+      return Collections.emptyList();
+    }
     Set<String> constraintFactsIds = new HashSet<>();
     for (PolicyViolation violation : violations) {
       if (violation.getConstraintFactsId() != null) {
         constraintFactsIds.add(violation.getConstraintFactsId());
       }
     }
-
     if (constraintFactsIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return policyViolationConstraintFactsDAO.getByIds(constraintFactsIds);
+  }
+
+  /**
+   * Loads constraint names by constraint facts ID from a pre-loaded constraint-facts batch.
+   */
+  private Map<String, String> loadConstraintNames(List<PolicyViolationConstraintFacts> factsList) {
+    if (CollectionUtils.isEmpty(factsList)) {
       return Collections.emptyMap();
     }
-
-    List<PolicyViolationConstraintFacts> factsList = policyViolationConstraintFactsDAO.getByIds(constraintFactsIds);
     Map<String, String> constraintNameByFactsId = new HashMap<>();
-
     for (PolicyViolationConstraintFacts facts : factsList) {
       String constraintName = extractFirstConstraintName(facts.getConstraintFactsJson());
       if (constraintName != null) {
@@ -1754,6 +1945,96 @@ public class DocumentBuilderHelper
       log.warn("Failed to parse constraint facts JSON: {}", e.getMessage());
     }
     return null;
+  }
+
+  /**
+   * Resolves the first-seen epoch-millis per vulnerability refId from the (app, stage) unfixed policy
+   * violations: a vuln-triggered violation references the vuln via a
+   * {@link com.sonatype.clm.dto.model.policy.TriggerReference.Type#SECURITY_VULNERABILITY_REFID}
+   * carried in its constraint facts, and the violation's {@code openTime} is when this IQ first
+   * detected it. A vuln can trigger violations on multiple stages/policies, so the earliest open time
+   * wins (true first-seen). Constraint facts are stored in a separate dedup table and are
+   * {@code @Transient} on the violation, so they are not on the violations passed in. A vuln with no
+   * triggering violation gets no entry (row shows a blank first-seen; never fabricated). The
+   * constraint-facts rows are pre-loaded once by {@link #loadConstraintFacts} and shared with
+   * {@link #loadConstraintNames}.
+   */
+  private Map<String, Long> firstSeenEpochMsByVulnRefId(
+      List<PolicyViolation> violations,
+      List<PolicyViolationConstraintFacts> factsList)
+  {
+    if (CollectionUtils.isEmpty(violations) || CollectionUtils.isEmpty(factsList)) {
+      return Collections.emptyMap();
+    }
+    Map<String, Set<String>> vulnRefIdsByFactsId = new HashMap<>();
+    for (PolicyViolationConstraintFacts facts : factsList) {
+      Set<String> refIds = extractVulnerabilityRefIds(facts.getConstraintFactsJson());
+      if (!refIds.isEmpty()) {
+        vulnRefIdsByFactsId.put(facts.getId(), refIds);
+      }
+    }
+    if (vulnRefIdsByFactsId.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Map<String, Long> firstSeenByRefId = new HashMap<>();
+    for (PolicyViolation violation : violations) {
+      Date openTime = violation.getOpenTime();
+      String factsId = violation.getConstraintFactsId();
+      if (openTime == null || factsId == null) {
+        continue;
+      }
+      Set<String> refIds = vulnRefIdsByFactsId.get(factsId);
+      if (refIds == null) {
+        continue;
+      }
+      long epochMs = openTime.getTime();
+      for (String refId : refIds) {
+        firstSeenByRefId.merge(refId, epochMs, Math::min);
+      }
+    }
+    return firstSeenByRefId;
+  }
+
+  /**
+   * Extracts the distinct {@code SECURITY_VULNERABILITY_REFID} trigger values from a constraint facts
+   * JSON blob. A violation's constraint facts may carry condition facts for several conditions; only
+   * the ones whose {@link com.sonatype.clm.dto.model.policy.TriggerReference} is of type
+   * {@code SECURITY_VULNERABILITY_REFID} identify the triggering vuln. Returns an empty set (never
+   * null) on missing/malformed JSON so a non-vuln violation contributes no first-seen.
+   */
+  private Set<String> extractVulnerabilityRefIds(String constraintFactsJson) {
+    if (constraintFactsJson == null || constraintFactsJson.isEmpty()) {
+      return Collections.emptySet();
+    }
+    Set<String> refIds = new HashSet<>();
+    try {
+      ConstraintFact[] facts =
+          com.sonatype.insight.json.store.JsonUtils.parse(constraintFactsJson, ConstraintFact[].class);
+      if (facts == null) {
+        return Collections.emptySet();
+      }
+      for (ConstraintFact fact : facts) {
+        if (fact == null || fact.getConditionFacts() == null) {
+          continue;
+        }
+        for (ConditionFact conditionFact : fact.getConditionFacts()) {
+          if (conditionFact == null) {
+            continue;
+          }
+          TriggerReference reference = conditionFact.getReference();
+          if (reference != null
+              && reference.getType() == TriggerReference.Type.SECURITY_VULNERABILITY_REFID
+              && reference.getValue() != null)
+          {
+            refIds.add(reference.getValue());
+          }
+        }
+      }
+    }
+    catch (Exception e) {
+      log.warn("Failed to parse constraint facts JSON for vulnerability first-seen: {}", e.getMessage());
+    }
+    return refIds;
   }
 
   /**

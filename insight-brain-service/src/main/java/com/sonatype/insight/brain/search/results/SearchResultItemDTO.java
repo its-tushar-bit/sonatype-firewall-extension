@@ -65,6 +65,9 @@ public class SearchResultItemDTO
 
   public String vulnerabilityStatus;
 
+  /** Epoch-millis when this IQ first detected the vulnerability; null when it triggered no policy violation. */
+  public Long vulnerabilityFirstSeenEpochMs;
+
   public String applicationCategoryId;
 
   public String applicationCategoryName;
@@ -197,6 +200,8 @@ public class SearchResultItemDTO
     vulnerabilityDescription = document.get(FieldIdentifier.VULNERABILITY_DESCRIPTION.label);
     vulnerabilitySeverity = parseFloatOrNull(document.get(FieldIdentifier.VULNERABILITY_SEVERITY.label));
     vulnerabilityStatus = document.get(FieldIdentifier.VULNERABILITY_STATUS.label);
+    vulnerabilityFirstSeenEpochMs =
+        parseLongOrNull(document.get(FieldIdentifier.VULNERABILITY_FIRST_SEEN_EPOCH_MS.label));
     applicationCategoryId = document.get(FieldIdentifier.APPLICATION_CATEGORY_ID.label);
     applicationCategoryName = document.get(FieldIdentifier.APPLICATION_CATEGORY_NAME.label);
     applicationCategoryNames = valuesOrNull(document.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label));

@@ -751,6 +751,47 @@ public class LuceneSearchIndexClient
     }
   }
 
+  @Override
+  public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues,
+      final String bandField,
+      final Map<String, int[]> bands)
+  {
+    checkFieldNames(new HashSet<>(List.of(groupField, distinctField, bandField)));
+    validateRangeBounds(bands);
+    if (groupValues == null || groupValues.isEmpty() || bands == null || bands.isEmpty()) {
+      return Map.of();
+    }
+    updateMaxQueryClauseCount();
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+      Query rbac = buildRbacFilterQuery();
+      Map<String, Map<String, Long>> byGroup = new LinkedHashMap<>();
+      for (Map.Entry<String, int[]> band : bands.entrySet()) {
+        int[] bounds = band.getValue();
+        // Programmatic int range (matching aggregateCountByField / the OpenSearch sibling), never a
+        // string-interpolated band clause fed back through the query parser.
+        Query bandFilter = IntPoint.newRangeQuery(bandField, bounds[0], bounds[1]);
+        Query query = buildRbacFilteredMetricQuery(metricQuery, bandFilter, rbac);
+        DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
+            indexSearcher.storedFields(), groupField, distinctField, groupValues);
+        indexSearcher.search(query, collector);
+        collector.groupCounts()
+            .forEach(
+                (group, count) -> byGroup.computeIfAbsent(group, g -> new LinkedHashMap<>()).put(band.getKey(), count));
+      }
+      return byGroup;
+    }
+    catch (Exception e) {
+      throw mapSearchException(e);
+    }
+  }
+
   private long countWithSearcher(
       final IndexSearcher indexSearcher,
       final String metricQuery,

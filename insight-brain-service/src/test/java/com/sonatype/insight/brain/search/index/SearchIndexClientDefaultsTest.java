@@ -110,6 +110,18 @@ public class SearchIndexClientDefaultsTest
     {
       return Map.of();
     }
+
+    @Override
+    public Map<String, Map<String, Long>> countDistinctGroupedByBands(
+        final String metricQuery,
+        final String groupField,
+        final String distinctField,
+        final Collection<String> groupValues,
+        final String bandField,
+        final Map<String, int[]> bands)
+    {
+      return Map.of();
+    }
   }
 
   private final SearchIndexClient client = new MinimalSearchIndexClient();

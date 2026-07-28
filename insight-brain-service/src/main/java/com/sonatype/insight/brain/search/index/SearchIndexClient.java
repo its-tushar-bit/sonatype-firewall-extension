@@ -168,6 +168,31 @@ public interface SearchIndexClient
       Collection<String> groupValues);
 
   /**
+   * RBAC-scoped, page-level distinct count split into numeric <em>bands</em>: for the documents matching
+   * {@code metricQuery}, counts distinct {@code distinctField} values grouped by {@code groupField}
+   * (restricted to {@code groupValues}) <em>within each</em> {@code [minInclusive, maxInclusive]} band of
+   * {@code bandField}. Returns a map from group value to a per-band count map (band label to distinct
+   * count); a (group, band) pair with no matching documents is absent (callers treat absence as zero).
+   * <p>
+   * This powers the Components leg per-severity policy-violation counts (critical/high/medium/low), where
+   * the group is the component hash, the distinct entity is the policy violation id (so the same violation
+   * re-indexed across per-(app, stage) docs counts once), and the bands are the {@link ItemType#POLICY_VIOLATION}
+   * threat-level severity bands. The whole page's four counts are computed in one index read per band
+   * (a small constant, not one query per row). Band ranges are built programmatically on both backends
+   * (an {@code IntPoint} range on Lucene, a range aggregation on OpenSearch), never string-interpolated
+   * into a re-parsed query. Fails
+   * closed identically to {@link #countDistinctGroupedBy(String, String, String, Collection)}: callers with
+   * no readable contexts get an empty map.
+   */
+  Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      String metricQuery,
+      String groupField,
+      String distinctField,
+      Collection<String> groupValues,
+      String bandField,
+      Map<String, int[]> bands);
+
+  /**
    * Permission-filters {@code baseQuery}: looks up the caller's READ contexts, builds the filter,
    * and wraps. Prefer this over calling the three steps below by hand.
    *

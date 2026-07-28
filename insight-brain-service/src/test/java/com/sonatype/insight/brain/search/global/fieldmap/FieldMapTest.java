@@ -312,6 +312,24 @@ public class FieldMapTest
   }
 
   @Test
+  public void componentViolationFields_areRegisteredOnComponentDocsOnly() {
+    FieldEntry policyType = map.lookup("componentViolationPolicyType").orElseThrow();
+    assertThat(policyType.kind()).isEqualTo(FieldKind.KEYWORD);
+    assertThat(policyType.label()).isEqualTo(FieldIdentifier.COMPONENT_VIOLATION_POLICY_TYPE.label);
+    assertThat(policyType.allowedTypes()).containsExactly(ItemType.NON_VULNERABLE_COMPONENT);
+
+    FieldEntry state = map.lookup("componentViolationState").orElseThrow();
+    assertThat(state.kind()).isEqualTo(FieldKind.KEYWORD);
+    assertThat(state.allowedTypes()).containsExactly(ItemType.NON_VULNERABLE_COMPONENT);
+
+    FieldEntry maxThreat = map.lookup("componentMaxPolicyThreatLevel").orElseThrow();
+    assertThat(maxThreat.kind()).isEqualTo(FieldKind.NUMERIC);
+    assertThat(maxThreat.numericType()).isEqualTo(Integer.class);
+    assertThat(maxThreat.label()).isEqualTo(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label);
+    assertThat(maxThreat.allowedTypes()).containsExactly(ItemType.NON_VULNERABLE_COMPONENT);
+  }
+
+  @Test
   public void numericFieldFactoryRejectsUnsupportedType() {
     org.assertj.core.api.Assertions
         .assertThatThrownBy(() -> new FieldEntry("x", FieldKind.NUMERIC, java.util.Set.of(), null, Double.class))

@@ -219,6 +219,22 @@ public class LuceneToOpenSearchQueryAdapterTest
   }
 
   @Test
+  public void longPointRangeQuery_vulnFirstSeen_translatesToRangeWithLongBounds() {
+    // vulnerabilityFirstSeenEpochMs backs the local "first seen (within ...)" window. This proves the
+    // window range compiles+translates identically on OpenSearch, guarding against a Lucene-only match
+    // where OpenSearch would misread the 8-byte epoch bounds. Half-open [lo TO *] is how the window
+    // filter renders (see CatalogLocalRequestBuilder.firstSeenWindowChip).
+    long lo = 1_700_000_000_000L;
+    Query range = LongPoint.newRangeQuery("vulnerabilityFirstSeenEpochMs", lo, Long.MAX_VALUE);
+    org.opensearch.client.opensearch._types.query_dsl.Query result =
+        LuceneToOpenSearchQueryAdapter.toOpenSearch(range);
+    assertThat(result._kind()).isEqualTo(Kind.Range);
+    assertThat(result.range().field()).isEqualTo("vulnerabilityFirstSeenEpochMs");
+    assertThat(result.range().gte().to(Long.class)).isEqualTo(lo);
+    assertThat(result.range().lte().to(Long.class)).isEqualTo(Long.MAX_VALUE);
+  }
+
+  @Test
   public void longPointRangeQuery_appLastEvaluation_translatesToRangeWithLongBounds() {
     // 8-byte LongPoint layout must be decoded with LongPoint.decodeDimension, not IntPoint's 4-byte.
     long lo = 1_700_000_000_000L;

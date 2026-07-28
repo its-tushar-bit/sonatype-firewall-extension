@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.search.catalog;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import jakarta.ws.rs.BadRequestException;
@@ -30,7 +33,13 @@ public final class CatalogLocalRequestBuilder
           // applicationName / policyEvaluationStage are denormalized on component docs (setOwner /
           // setPolicyEvaluationStage), so the my-scan estate can be filtered by app and stage.
           "applications", "applicationName",
-          "stages", "policyEvaluationStage"),
+          "stages", "policyEvaluationStage",
+          // Component violation denormalization (componentViolation* fields on NON_VULNERABLE_COMPONENT
+          // docs): a component with no policy violation carries none of these, so any of these filters
+          // narrows to components that have a matching violation.
+          "policyTypes", "componentViolationPolicyType",
+          "violationStates", "componentViolationState",
+          "policyThreatLevel", "componentMaxPolicyThreatLevel"),
       // SECURITY_VULNERABILITY docs carry org/app/stage, so the local vuln leg is filterable by all
       // three my-scan triage dimensions.
       CatalogEntityType.VULNERABILITY, Map.of(
@@ -89,6 +98,19 @@ public final class CatalogLocalRequestBuilder
       {
         throw new BadRequestException("a filter carries too many values");
       }
+      // firstSeenWindow is a computed local-only SCALAR (a relative window resolved to an epoch-millis
+      // range on vulnerabilityFirstSeenEpochMs), not a simple field mapping, so it is handled before
+      // the localFields lookup below. Resolved here (there is no HDS on the local source) into a
+      // [now-window, *] range clause, mirroring the catalog publishedWindow token semantics. A
+      // non-triggering vuln has no first-seen field, so the lower-bounded range excludes it (intended).
+      if (kind == Kind.SCALAR && "firstSeenWindow".equals(key)) {
+        final String chip = firstSeenWindowChip(String.valueOf(value));
+        if (chip != null) {
+          chips.add(chip);
+          fieldClauses.add(chip);
+        }
+        continue;
+      }
       final String field = localFields.get(key);
       if (field == null) {
         warnings.add(unavailableLocally(key));
@@ -96,6 +118,14 @@ public final class CatalogLocalRequestBuilder
       }
       if (kind == Kind.TERMS && value instanceof List<?> list) {
         final String chip = termsChip(field, list);
+        if (chip != null) {
+          chips.add(chip);
+          fieldClauses.add(chip);
+        }
+      }
+      else if (kind == Kind.RANGE && value instanceof List<?> range) {
+        // Shape (two-element numeric [min, max]) already validated by validateShapes above.
+        final String chip = rangeChip(field, range);
         if (chip != null) {
           chips.add(chip);
           fieldClauses.add(chip);
@@ -121,6 +151,70 @@ public final class CatalogLocalRequestBuilder
 
   private static String unavailableLocally(final String key) {
     return "filter '" + key + "' is not available on the local source and was ignored";
+  }
+
+  /**
+   * Inclusive numeric range clause {@code field:[min TO max]} for an int doc-values field (the local
+   * source's only RANGE filter today is policyThreatLevel -> componentMaxPolicyThreatLevel, an
+   * integer threat level 0-10). A null bound renders as the unbounded {@code *} sentinel. Bounds are
+   * rendered as whole numbers (intValue): the schema Kind is RANGE with numeric bounds, and the
+   * backing field is an IntPoint, so a fractional bound would be truncated by the compiler anyway.
+   * Returns null when both bounds are absent (nothing to constrain). An inverted range (numeric
+   * lo > numeric hi) is a 400: {@code [10 TO 0]} matches nothing, so reject it rather than run a
+   * silently-empty query (mirrors CatalogRequestBuilder.range's min<=max check on the catalog
+   * source). Open-ended bounds ({@code *}) are only compared when both bounds are numeric. Non-finite
+   * bounds (NaN / +-Infinity) are a 400: a NaN would pass the inversion check silently (every
+   * comparison with NaN is false) and then truncate to 0 in the emitted clause, so reject it up front
+   * for parity with the catalog path's Double.isFinite guard.
+   */
+  private static String rangeChip(final String field, final List<?> range) {
+    final Object lo = range.get(0);
+    final Object hi = range.get(1);
+    if (lo == null && hi == null) {
+      return null;
+    }
+    if ((lo instanceof Number loNum && !Double.isFinite(loNum.doubleValue()))
+        || (hi instanceof Number hiNum && !Double.isFinite(hiNum.doubleValue())))
+    {
+      // Static, input-free message: do not echo the bound values.
+      throw new BadRequestException("range filter bounds must be finite numbers");
+    }
+    if (lo instanceof Number loNum && hi instanceof Number hiNum
+        && loNum.doubleValue() > hiNum.doubleValue())
+    {
+      // Static, input-free message: do not echo the bound values.
+      throw new BadRequestException("range filter min must be <= max");
+    }
+    final String min = lo instanceof Number n ? String.valueOf(n.intValue()) : "*";
+    final String max = hi instanceof Number n ? String.valueOf(n.intValue()) : "*";
+    return field + ":[" + min + " TO " + max + "]";
+  }
+
+  /**
+   * Resolves a relative first-seen window token into a lower-bounded epoch-millis range clause
+   * {@code vulnerabilityFirstSeenEpochMs:[start TO *]}, where {@code start = now - window}. Token
+   * semantics mirror the catalog {@code publishedWindow} (30d/90d/1y/2y); {@code all}/{@code any}/
+   * blank means no window (returns null, nothing constrained). An unknown token is a 400 (static,
+   * input-free message), consistent with the other filters rejecting malformed input rather than
+   * running a silently-wrong query. A vuln with no first-seen field is not matched by the
+   * lower-bounded range, so non-triggering vulns are excluded by any window (intended: no
+   * first-detection date exists).
+   */
+  static String firstSeenWindowChip(final String token) {
+    final String normalized = token == null ? "" : token.strip().toLowerCase(Locale.ROOT);
+    final Duration window = switch (normalized) {
+      case "", "all", "any" -> null;
+      case "30d" -> Duration.ofDays(30);
+      case "90d" -> Duration.ofDays(90);
+      case "1y" -> Duration.ofDays(365);
+      case "2y" -> Duration.ofDays(730);
+      default -> throw new BadRequestException("filter 'firstSeenWindow' must be one of all|any|30d|90d|1y|2y");
+    };
+    if (window == null) {
+      return null;
+    }
+    final long start = Instant.now().minus(window).toEpochMilli();
+    return "vulnerabilityFirstSeenEpochMs:[" + start + " TO *]";
   }
 
   private static String termsChip(final String field, final List<?> list) {

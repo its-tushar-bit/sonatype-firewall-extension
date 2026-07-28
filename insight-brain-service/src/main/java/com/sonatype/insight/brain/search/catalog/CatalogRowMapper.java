@@ -179,8 +179,17 @@ public final class CatalogRowMapper
         // so these come from the dedup-winning doc; each facet's whole-corpus distinct count is complete.
         .field(LOCAL_FIELD_ORGANIZATION, d.organizationName)
         .field(LOCAL_FIELD_APPLICATION, d.applicationName)
+        // First seen = when this IQ first detected the vuln (earliest triggering policy-violation open
+        // time), emitted as an ISO instant to match the All-tab's "Published" (publishedAt) date shape.
+        // Blank when the vuln triggered no policy violation (no first-detection time exists).
+        .field("firstSeen", firstSeenIso(d.vulnerabilityFirstSeenEpochMs))
         .href(vulnerabilityHref(d.vulnerabilityId))
         .build();
+  }
+
+  /** ISO-8601 instant for the local vuln first-seen date column, or null when never detected via a violation. */
+  static String firstSeenIso(final Long epochMs) {
+    return epochMs == null ? null : java.time.Instant.ofEpochMilli(epochMs).toString();
   }
 
   /** Relative classic hash path for the Vulnerability Lookup detail route; the frontend adds the prefix. */

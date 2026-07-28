@@ -1622,6 +1622,15 @@ public abstract class AbstractSearchIndexClient
       String distinctField,
       Collection<String> groupValues);
 
+  @Override
+  public abstract Map<String, Map<String, Long>> countDistinctGroupedByBands(
+      String metricQuery,
+      String groupField,
+      String distinctField,
+      Collection<String> groupValues,
+      String bandField,
+      Map<String, int[]> bands);
+
   protected abstract void updateMaxQueryClauseCount() throws IOException;
 
   public static long capTotalHitsForGlobalSearch(final long total) {

@@ -11,6 +11,7 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -80,6 +81,7 @@ import org.opensearch.client.opensearch._types.Script;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.AggregationRange;
 import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
+import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch._types.ScoreSort;
 import org.opensearch.client.opensearch._types.SortOptions;
@@ -941,6 +943,81 @@ public class OpenSearchSearchIndexClient
   }
 
   @Override
+  public MetricAggregationResult aggregateCountByFloatField(
+      final String metricQuery,
+      final String bucketField,
+      final Map<String, float[]> ranges,
+      final String distinctField)
+  {
+    validateFloatRangeBounds(ranges);
+    if (distinctField != null) {
+      checkFieldNames(new HashSet<>(List.of(bucketField, distinctField)));
+    }
+    try {
+      String initialQuery = createInitialQuery(metricQuery, true);
+      Set<String> fieldNames = getFieldNames(initialQuery);
+      checkFieldNames(fieldNames);
+
+      List<AggregationRange> aggregationRanges = new ArrayList<>();
+      // Our contract is half-open [minInclusive, maxExclusive), which is exactly OpenSearch range-agg
+      // semantics: `from` is inclusive and `to` is exclusive. So — unlike the int overload, which adds
+      // 1 to convert an inclusive upper bound to OpenSearch's exclusive `to` — the float bounds pass
+      // through verbatim. This keeps a CVSS boundary value (e.g. 7.0) in exactly one band, identical to
+      // the Lucene sibling's FloatPoint.nextDown(upper) treatment.
+      ranges.forEach((label, bounds) -> aggregationRanges.add(AggregationRange.of(r -> r
+          .key(label)
+          .from(String.valueOf(bounds[0]))
+          .to(String.valueOf(bounds[1])))));
+
+      // distinctField != null: hang a cardinality sub-agg (HyperLogLog++) off each range bucket so a
+      // band's count is distinct distinctField values, not raw docs — the range-agg analogue of the
+      // terms+cardinality pattern in countDistinctGroupedBy. distinctField == null: plain per-band
+      // docCount (raw). The distinct field is a keyword field, so use its grouped/keyword label.
+      final String distinctLabel = distinctField == null ? null : resolveCompositeKeyFieldLabel(distinctField);
+      SearchRequest searchRequest = new SearchRequest.Builder()
+          .index(indexConfigProvider.getIndexConfig().getIndexName())
+          .size(0)
+          .trackTotalHits(new TrackHits.Builder().enabled(true).build())
+          .query(buildMetricQuery(initialQuery))
+          .aggregations("metricBuckets", a -> distinctLabel == null
+              ? a.range(r -> r.field(bucketField).ranges(aggregationRanges))
+              : a.range(r -> r.field(bucketField).ranges(aggregationRanges))
+                  .aggregations("distinct", sub -> sub
+                      .cardinality(c -> c.field(distinctLabel).precisionThreshold(40_000))))
+          .build();
+
+      SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
+      long total = Optional.ofNullable(searchResponse.hits().total()).map(TotalHits::value).orElse(0L);
+
+      Map<String, Long> buckets = new LinkedHashMap<>();
+      ranges.keySet().forEach(label -> buckets.put(label, 0L));
+      Map<String, Aggregate> aggs = searchResponse.aggregations();
+      Aggregate aggregate = aggs != null ? aggs.get("metricBuckets") : null;
+      if (aggregate != null && aggregate.isRange()) {
+        for (RangeBucket bucket : aggregate.range().buckets().array()) {
+          String key = bucket.key();
+          if (key != null) {
+            long value = bucket.docCount();
+            if (distinctLabel != null) {
+              Aggregate distinct = bucket.aggregations().get("distinct");
+              value = distinct != null && distinct.isCardinality() ? distinct.cardinality().value() : 0L;
+            }
+            buckets.put(key, value);
+          }
+        }
+      }
+
+      return new MetricAggregationResult(total, buckets);
+    }
+    catch (Exception e) {
+      throwMetricSearchException(e);
+      // See count(): never return null here — a null would NPE the caller on
+      // result.total/result.buckets. Fail closed by throwing instead.
+      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    }
+  }
+
+  @Override
   public long countDistinct(final String metricQuery, final List<String> compositeKeyFields) {
     validateCompositeKeyFields(compositeKeyFields);
     checkFieldNames(new HashSet<>(compositeKeyFields));
@@ -973,6 +1050,78 @@ public class OpenSearchSearchIndexClient
       throwMetricSearchException(e);
       // throwMetricSearchException always throws; this keeps the no-throw path structurally impossible so a
       // future change can't make countDistinct() silently return an unscoped 0 (fail-open RBAC footgun).
+      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    }
+  }
+
+  @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues)
+  {
+    checkFieldNames(new HashSet<>(List.of(groupField, distinctField)));
+    if (groupValues == null || groupValues.isEmpty()) {
+      return Map.of();
+    }
+    try {
+      String initialQuery = createInitialQuery(metricQuery, true);
+      Set<String> fieldNames = getFieldNames(initialQuery);
+      checkFieldNames(fieldNames);
+
+      String groupLabel = resolveCompositeKeyFieldLabel(groupField);
+      String distinctLabel = resolveCompositeKeyFieldLabel(distinctField);
+
+      // The grouped keyword fields carry a lowercase normalizer (see IndexMapping), so aggregation
+      // bucket keys are already lowercase while groupValues arrive verbatim from _source (mixed case,
+      // e.g. "CVE-2021-44228"). Match and key the result map on the lowercased value so callers can look
+      // up counts consistently; enrichLocalCounts lowercases the lookup key the same way.
+      Set<String> requested = new HashSet<>();
+      for (String groupValue : groupValues) {
+        requested.add(groupValue.toLowerCase(Locale.ROOT));
+      }
+      // Restrict the terms aggregation to exactly the requested group values. Without an include
+      // filter a plain terms agg returns only the global top-`size` buckets by doc count, so any
+      // requested value outside that window is silently dropped and reported as zero once the corpus
+      // holds more distinct group values than a page (e.g. affectedApps read 0 for most components).
+      List<String> includeTerms = new ArrayList<>(requested);
+
+      SearchRequest searchRequest = new SearchRequest.Builder()
+          .index(indexConfigProvider.getIndexConfig().getIndexName())
+          .size(0)
+          .query(buildMetricQuery(initialQuery))
+          .aggregations("groups", a -> a
+              .terms(t -> t.field(groupLabel)
+                  .size(includeTerms.size())
+                  .include(ti -> ti.terms(includeTerms)))
+              .aggregations("distinct", sub -> sub
+                  .cardinality(c -> c.field(distinctLabel).precisionThreshold(40_000))))
+          .build();
+
+      SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
+      Aggregate aggregate = searchResponse.aggregations() == null
+          ? null
+          : searchResponse.aggregations().get("groups");
+      if (aggregate == null || !aggregate.isSterms()) {
+        return Map.of();
+      }
+      Map<String, Long> counts = new LinkedHashMap<>();
+      for (StringTermsBucket bucket : aggregate.sterms().buckets().array()) {
+        String key = bucket.key();
+        if (!requested.contains(key)) {
+          continue;
+        }
+        Aggregate distinct = bucket.aggregations().get("distinct");
+        long value = distinct != null && distinct.isCardinality() ? distinct.cardinality().value() : 0L;
+        if (value > 0) {
+          counts.put(key, value);
+        }
+      }
+      return counts;
+    }
+    catch (Exception e) {
+      throwMetricSearchException(e);
       throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
     }
   }

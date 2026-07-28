@@ -1497,6 +1497,43 @@ public abstract class AbstractSearchIndexClient
       String bucketField,
       Map<String, int[]> ranges);
 
+  @Override
+  public abstract MetricAggregationResult aggregateCountByFloatField(
+      String metricQuery,
+      String bucketField,
+      Map<String, float[]> ranges,
+      String distinctField);
+
+  /**
+   * Validates the {@code aggregateCountByFloatField} range contract at the boundary: every bucket's
+   * bounds must be a non-null {@code float[2]} {@code [minInclusive, maxExclusive)} half-open pair with
+   * {@code minInclusive <= maxExclusive}. Rejects {@code NaN} bounds (an aggregation over {@code NaN}
+   * would silently match nothing). Mirrors {@link #validateRangeBounds(Map)} so both backends fail with
+   * an explicit, bucket-named {@link IllegalArgumentException} rather than an opaque downstream error.
+   */
+  protected static void validateFloatRangeBounds(final Map<String, float[]> ranges) {
+    if (ranges == null) {
+      throw new IllegalArgumentException("ranges must not be null");
+    }
+    for (Map.Entry<String, float[]> entry : ranges.entrySet()) {
+      float[] bounds = entry.getValue();
+      if (bounds == null || bounds.length < 2) {
+        throw new IllegalArgumentException(
+            "Range bounds for '" + entry.getKey() + "' must be a float[2] [minInclusive, maxExclusive); got: "
+                + Arrays.toString(bounds));
+      }
+      if (Float.isNaN(bounds[0]) || Float.isNaN(bounds[1])) {
+        throw new IllegalArgumentException(
+            "Range bounds for '" + entry.getKey() + "' must not be NaN; got: " + Arrays.toString(bounds));
+      }
+      if (bounds[0] > bounds[1]) {
+        throw new IllegalArgumentException(
+            "Range bounds for '" + entry.getKey() + "' must have minInclusive <= maxExclusive; got: "
+                + Arrays.toString(bounds));
+      }
+    }
+  }
+
   /**
    * Validates the {@code aggregateCountByField} range contract at the boundary: every bucket's
    * bounds must be a non-null {@code int[2]} ({@code [minInclusive, maxInclusive]}). Throws an
@@ -1543,6 +1580,13 @@ public abstract class AbstractSearchIndexClient
 
   @Override
   public abstract long countDistinct(String metricQuery, List<String> compositeKeyFields);
+
+  @Override
+  public abstract Map<String, Long> countDistinctGroupedBy(
+      String metricQuery,
+      String groupField,
+      String distinctField,
+      Collection<String> groupValues);
 
   protected abstract void updateMaxQueryClauseCount() throws IOException;
 

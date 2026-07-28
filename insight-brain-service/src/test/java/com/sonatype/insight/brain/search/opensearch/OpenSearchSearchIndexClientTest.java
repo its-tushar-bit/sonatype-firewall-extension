@@ -257,6 +257,33 @@ public class OpenSearchSearchIndexClientTest
         .withMessageContaining("Invalid searchAfter tuple");
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void countDistinctGroupedBy_restrictsTermsAggToRequestedValues() throws Exception {
+    // Regression guard: the terms aggregation must carry an include filter scoped to the requested
+    // (lowercased) group values. Without it a plain terms agg returns only the global top-`size`
+    // buckets by doc count, so any requested value outside that window is silently reported as zero
+    // once the corpus holds more distinct group values than a page (affectedApps read 0 for most
+    // components). The count itself is asserted end-to-end by the live catalog re-test.
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    when(response.aggregations()).thenReturn(null);
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+    client.countDistinctGroupedBy(
+        "itemType:security_vulnerability",
+        "vulnerabilityId",
+        "applicationId",
+        List.of("CVE-2021-44228", "CVE-2021-33813"));
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    var terms = captor.getValue().aggregations().get("groups").terms();
+    assertThat(terms.include()).isNotNull();
+    assertThat(terms.include().isTerms()).isTrue();
+    assertThat(terms.include().terms())
+        .containsExactlyInAnyOrder("cve-2021-44228", "cve-2021-33813");
+  }
+
   @SuppressWarnings("unchecked")
   private void stubSearchResponse(final List<Hit<Map>> hits, final long total) throws Exception {
     SearchResponse<Map> response = mock(SearchResponse.class);

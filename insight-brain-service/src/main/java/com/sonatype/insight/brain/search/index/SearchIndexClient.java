@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.search.index;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,6 +95,48 @@ public interface SearchIndexClient
   MetricAggregationResult aggregateCountByField(String metricQuery, String bucketField, Map<String, int[]> ranges);
 
   /**
+   * RBAC-scoped bucketed count over a <em>float</em> point field (the float sibling of
+   * {@link #aggregateCountByField(String, String, Map)}). {@code bucketField} is a numeric
+   * {@code FloatPoint} field (e.g. {@code vulnerabilitySeverity}, a CVSS score); {@code ranges} maps a
+   * bucket label to a {@code float[2]} {@code [minInclusive, maxExclusive)} half-open pair. The upper
+   * bound is <em>exclusive</em> (unlike the int overload, whose upper bound is inclusive) so adjacent
+   * CVSS bands cannot double-count a boundary value: a score of {@code 7.0} lands in {@code [7.0, 9.0)}
+   * (High) and never in {@code [4.0, 7.0)} (Medium). This is a raw document count per band (a document
+   * whose bucket value is in the range counts once per band); callers needing distinct-entity counts
+   * (e.g. distinct CVEs across per-app-per-stage docs) must use the
+   * {@link #aggregateCountByFloatField(String, String, Map, String) distinct-field overload}. Fails
+   * closed identically to {@link #count(String)}: callers with no readable contexts get all-zero
+   * buckets. The same programmatic RBAC filter is applied internally (never string-concatenated).
+   */
+  default MetricAggregationResult aggregateCountByFloatField(
+      String metricQuery,
+      String bucketField,
+      Map<String, float[]> ranges)
+  {
+    return aggregateCountByFloatField(metricQuery, bucketField, ranges, null);
+  }
+
+  /**
+   * Half-open float-band aggregation with an optional {@code distinctField}. When {@code distinctField}
+   * is {@code null} this is the raw per-document band count of
+   * {@link #aggregateCountByFloatField(String, String, Map)}. When {@code distinctField} is non-null each
+   * band's count is the number of <em>distinct</em> {@code distinctField} values among the documents whose
+   * {@code bucketField} value falls in that band — the float-band sibling of the {@code countDistinct}
+   * machinery. This powers the CVSS severity-band facet, where a single CVE recurs across many
+   * per-app-per-stage documents and must count once in its band, in a single aggregation pass instead of
+   * one {@code countDistinct} per band. The {@code total} on the result is the raw document total
+   * (unaffected by {@code distinctField}); only the per-band bucket counts become distinct counts. Bands
+   * are half-open {@code [minInclusive, maxExclusive)} on both backends, so a boundary value (e.g. CVSS
+   * {@code 7.0}) lands in exactly one band. Fails closed identically to {@link #count(String)}. The same
+   * programmatic RBAC filter is applied internally (never string-concatenated).
+   */
+  MetricAggregationResult aggregateCountByFloatField(
+      String metricQuery,
+      String bucketField,
+      Map<String, float[]> ranges,
+      String distinctField);
+
+  /**
    * RBAC-scoped count of <em>distinct</em> composite keys among the documents matching {@code metricQuery}.
    * The composite key is the tuple of values of {@code compositeKeyFields} (e.g.
    * {@code [applicationId, componentHash]}); documents sharing the same tuple count once. This powers the
@@ -108,6 +151,21 @@ public interface SearchIndexClient
    * approximation; {@link HybridSearchIndexClient} falls back to the exact Lucene count when OpenSearch fails.
    */
   long countDistinct(String metricQuery, List<String> compositeKeyFields);
+
+  /**
+   * RBAC-scoped, page-level distinct count: for the documents matching {@code metricQuery}, counts distinct
+   * {@code distinctField} values grouped by {@code groupField}, restricted to {@code groupValues}. Returns a
+   * map from group value to distinct count; a group with no matching documents (or only blank field values)
+   * is absent from the map (callers treat absence as zero). This lets a whole result page's affected-app /
+   * affected-component counts be computed in one index read instead of one distinct-count query per row.
+   * Fails closed identically to {@link #countDistinct(String, List)}: callers with no readable contexts get an
+   * empty map. The same programmatic RBAC filter is applied internally (never string-concatenated).
+   */
+  Map<String, Long> countDistinctGroupedBy(
+      String metricQuery,
+      String groupField,
+      String distinctField,
+      Collection<String> groupValues);
 
   /**
    * Permission-filters {@code baseQuery}: looks up the caller's READ contexts, builds the filter,

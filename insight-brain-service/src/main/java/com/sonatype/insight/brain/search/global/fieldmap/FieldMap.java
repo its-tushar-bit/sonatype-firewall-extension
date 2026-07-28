@@ -134,13 +134,6 @@ public final class FieldMap
   // QueryCompiler.compileField, so APPLICATION/VIOLATION/VULN queries are unaffected.
   private static final Set<ItemType> APP_ID_AND_WAIVER_TYPES = EnumSet.of(APPLICATION, POLICY_WAIVER);
 
-  // policyEvaluationStage resolves on APPLICATION, violation and vuln docs (not waivers).
-  private static final Set<ItemType> APP_VIOLATION_AND_VULN_TYPES = EnumSet.of(
-      APPLICATION,
-      POLICY_VIOLATION,
-      LEGAL_VIOLATION,
-      SECURITY_VULNERABILITY);
-
   // applicationCategoryName is query-resolvable on APPLICATION, POLICY_VIOLATION and LEGAL_VIOLATION
   // docs (the denormalized app categories, multi-valued). The single-valued APPLICATION_CATEGORY
   // entity doc carries its own category name but is intentionally NOT in this set, so a
@@ -151,16 +144,31 @@ public final class FieldMap
       POLICY_VIOLATION,
       LEGAL_VIOLATION);
 
-  // applicationName is set on APPLICATION, violation, SECURITY_VULNERABILITY (setOwner in each build
-  // path) and on app-scoped waiver docs. policyEvaluationStage is set on the policy-evaluation vuln
-  // path (buildApplicationStageSVDocs) but is absent on SBOM-sourced vuln docs. Widening these filters
-  // is purely additive — allowedTypes is consumed via .contains(entityType), so existing types are
-  // unaffected.
+  // policyEvaluationStage is indexed on APPLICATION, violation, SECURITY_VULNERABILITY, and
+  // NON_VULNERABLE_COMPONENT docs (setPolicyEvaluationStage in each build path — the component doc
+  // build path sets it per app-per-stage). It is set on the policy-evaluation vuln path
+  // (buildApplicationStageSVDocs) but is absent on SBOM-sourced vuln docs, which have no evaluation
+  // stage — so a vuln-scoped stage filter matches only the policy-evaluation vuln docs. Waivers carry
+  // no stage, so this set excludes POLICY_WAIVER. Widening these filters to the vuln and component
+  // types enables local vuln/component filtering by app/stage and is purely additive — allowedTypes
+  // is consumed via .contains(entityType), so existing types are unaffected.
+  private static final Set<ItemType> APP_VIOLATION_AND_VULN_TYPES = EnumSet.of(
+      APPLICATION,
+      POLICY_VIOLATION,
+      LEGAL_VIOLATION,
+      SECURITY_VULNERABILITY,
+      NON_VULNERABLE_COMPONENT);
+
+  // applicationName is indexed on APPLICATION, violation, SECURITY_VULNERABILITY and
+  // NON_VULNERABLE_COMPONENT docs (setOwner / component build path) and on app-scoped waiver docs
+  // (setOwner(Application)); org-scoped waivers carry no applicationName so they simply won't match.
+  // Union of the app/violation/vuln/component types with POLICY_WAIVER, purely additive.
   private static final Set<ItemType> APP_VIOLATION_VULN_AND_WAIVER_TYPES = EnumSet.of(
       APPLICATION,
       POLICY_VIOLATION,
       LEGAL_VIOLATION,
       SECURITY_VULNERABILITY,
+      NON_VULNERABLE_COMPONENT,
       POLICY_WAIVER);
 
   private static final Set<ItemType> REPORT_CARRYING_TYPES = EnumSet.of(
@@ -226,6 +234,7 @@ public final class FieldMap
 
     // Application. applicationName/applicationId include POLICY_WAIVER so app-scoped waivers can be
     // filtered by their owning application; org-scoped waivers (no applicationName/Id) simply won't match.
+    // applicationName also covers NON_VULNERABLE_COMPONENT so the catalog can filter components by app.
     m.put("applicationName", FieldEntry.keyword(APPLICATION_NAME.label, APP_VIOLATION_VULN_AND_WAIVER_TYPES));
     m.put("applicationId", FieldEntry.keyword(APPLICATION_ID.label, APP_ID_AND_WAIVER_TYPES));
     m.put("applicationPublicId", FieldEntry.keyword(APPLICATION_PUBLIC_ID.label, APP_TYPES));

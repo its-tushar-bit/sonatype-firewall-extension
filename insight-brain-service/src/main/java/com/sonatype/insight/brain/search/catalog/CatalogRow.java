@@ -73,6 +73,22 @@ public final class CatalogRow
     return new Builder();
   }
 
+  /**
+   * A builder seeded with this row's values, for producing an enriched copy (e.g. adding query-time
+   * aggregation fields). Copies the existing field map so the original row is untouched.
+   */
+  public Builder toBuilder() {
+    final Builder b = new Builder()
+        .entityType(entityType)
+        .source(source)
+        .id(id)
+        .title(title)
+        .subtitle(subtitle)
+        .href(href);
+    b.fields.putAll(fields);
+    return b;
+  }
+
   public static final class Builder
   {
     private String entityType;

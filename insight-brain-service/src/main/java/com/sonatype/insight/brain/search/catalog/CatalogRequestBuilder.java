@@ -20,6 +20,13 @@ import com.sonatype.insight.brain.search.catalog.CatalogFilterSchema.Kind;
 public final class CatalogRequestBuilder
 {
   /**
+   * Filter keys that only exist on the local (My Scan Data) source: they scope by org/app/stage,
+   * dimensions the public Guide/HDS corpus does not carry. Rejected on the catalog source rather
+   * than silently dropped, so a mis-targeted filter is a clear 400 instead of a wrong result set.
+   */
+  private static final Set<String> LOCAL_ONLY_FILTER_KEYS = Set.of("organizations", "applications", "stages");
+
+  /**
    * Upper bound on the number of values a single TERMS filter may carry. Each value becomes one OR
    * clause forwarded to the backend, so an unbounded list is a CPU/memory amplification vector
    * (thousands of ORs against HDS). 100 comfortably covers real ecosystem/severity/license pick-lists
@@ -44,11 +51,7 @@ public final class CatalogRequestBuilder
       final int limit)
   {
     validateKeys(CatalogEntityType.COMPONENT, filters);
-    // 'organizations' is a local (My Scan Data) filter; the public Guide/HDS corpus has no org
-    // dimension, so reject rather than silently drop it on the catalog source.
-    if (filters.containsKey("organizations")) {
-      throw new BadRequestException("filter 'organizations' is not supported for the catalog source");
-    }
+    rejectLocalOnlyFilters(filters);
     final RangePair cvss = range(filters, "cvss");
     final RangePair epss = range(filters, "epss");
     final RangePair versionScore = range(filters, "versionScore");
@@ -81,6 +84,7 @@ public final class CatalogRequestBuilder
       final int limit)
   {
     validateKeys(CatalogEntityType.VULNERABILITY, filters);
+    rejectLocalOnlyFilters(filters);
     final RangePair cvss = range(filters, "cvss");
     final RangePair epss = range(filters, "epss");
     return new GuideVulnerabilitySearchRequest(
@@ -101,6 +105,18 @@ public final class CatalogRequestBuilder
         scalarString(filters, "publishedWindow"),
         terms(filters, "affectedEcosystems"),
         null);
+  }
+
+  /**
+   * Reject any local-only filter on the catalog source. Static, input-free message per key so a
+   * client sees exactly which filter has no catalog equivalent.
+   */
+  private static void rejectLocalOnlyFilters(final Map<String, Object> filters) {
+    for (String key : LOCAL_ONLY_FILTER_KEYS) {
+      if (filters.containsKey(key)) {
+        throw new BadRequestException("filter '" + key + "' is not supported for the catalog source");
+      }
+    }
   }
 
   private static void validateKeys(final CatalogEntityType entityType, final Map<String, Object> filters) {

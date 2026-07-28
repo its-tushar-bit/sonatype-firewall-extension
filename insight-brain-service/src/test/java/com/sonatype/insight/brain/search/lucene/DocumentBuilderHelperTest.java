@@ -1033,6 +1033,57 @@ public class DocumentBuilderHelperTest
   }
 
   @Test
+  public void testBuildDocument_SbomVulnerability_UnscoredWritesNoSeverityField() {
+    // An unscored SBOM vulnerability (e.g. EPSS-only): severity stays at the primitive-double default
+    // 0.0 with no CVSS ratingMethod. Writing 0.0 would put it in the `none` CVSS band, conflating "no
+    // score" with a real 0.0 — so no vulnerabilitySeverity field must be written, keeping it out of all
+    // severity bands.
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    Collection<Organization> parentOrgs = new ArrayList<>();
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(application.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "filename");
+
+    ThirdPartyFileCoordinate fileCoord = new ThirdPartyFileCoordinate();
+    fileCoord.setHash("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    ThirdPartyCoordinateSecurity unscored = new ThirdPartyCoordinateSecurity();
+    unscored.setRefId("CVE-2020-UNSCORED");
+    unscored.setDescription("no cvss score");
+    // severity left at 0.0 default, ratingMethod left null => unscored
+
+    Document doc = documentBuilderHelper.buildDocument(
+        organization, application, sbomMetadata, fileCoord, unscored, parentOrgs);
+
+    assertThat(doc).isNotNull();
+    assertThat(doc.get(FieldIdentifier.VULNERABILITY_ID.label)).isEqualTo("CVE-2020-UNSCORED");
+    assertThat(doc.getFields(FieldIdentifier.VULNERABILITY_SEVERITY.label)).isEmpty();
+  }
+
+  @Test
+  public void testBuildDocument_SbomVulnerability_ScoredZeroWritesSeverityField() {
+    // A genuine CVSS 0.0 (None severity) always carries a ratingMethod, so it IS scored and must be
+    // indexed as 0.0 (landing in the `none` band) — distinct from the unscored default above.
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    Collection<Organization> parentOrgs = new ArrayList<>();
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(application.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "filename");
+
+    ThirdPartyFileCoordinate fileCoord = new ThirdPartyFileCoordinate();
+    fileCoord.setHash("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    ThirdPartyCoordinateSecurity scoredZero = new ThirdPartyCoordinateSecurity();
+    scoredZero.setRefId("CVE-2020-SCORED-ZERO");
+    scoredZero.setSeverity(0.0d);
+    scoredZero.setRatingMethod("CVSSv3");
+
+    Document doc = documentBuilderHelper.buildDocument(
+        organization, application, sbomMetadata, fileCoord, scoredZero, parentOrgs);
+
+    assertThat(doc).isNotNull();
+    assertThat(doc.getFields(FieldIdentifier.VULNERABILITY_SEVERITY.label)).isNotEmpty();
+  }
+
+  @Test
   public void testBuildDocument_ComponentWithVulnerability_NullWhenMissingData() {
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());

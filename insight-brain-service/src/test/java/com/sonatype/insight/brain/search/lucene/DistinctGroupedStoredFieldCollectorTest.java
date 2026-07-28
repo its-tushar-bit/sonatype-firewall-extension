@@ -60,6 +60,38 @@ public class DistinctGroupedStoredFieldCollectorTest
   }
 
   @Test
+  public void groupKeysMatchedAndReturnedLowercased_forMixedCaseVulnerabilityId() throws Exception {
+    // The vulnerabilityId keyword field carries a lowercase normalizer on OpenSearch, so this backend
+    // must key its returned map lowercased too — otherwise the two backends disagree and, on OpenSearch,
+    // the mixed-case requested value would never match the already-lowercased aggregation bucket key
+    // (every vuln row read affectedApps 0). Requested values arrive uppercase from _source; the count
+    // must still resolve and the map must come back keyed "cve-2021-44228".
+    try (Directory directory = new ByteBuffersDirectory();
+        Analyzer analyzer = new LowerCaseKeywordAnalyzer();
+        IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(analyzer)))
+    {
+      writer.addDocument(vulnDocument("CVE-2021-44228", "app-1"));
+      writer.addDocument(vulnDocument("CVE-2021-44228", "app-2"));
+      writer.addDocument(vulnDocument("CVE-2021-44228", "app-2"));
+      writer.addDocument(vulnDocument("CVE-2021-44228", "app-3"));
+      writer.commit();
+
+      try (DirectoryReader reader = DirectoryReader.open(writer)) {
+        IndexSearcher searcher = new IndexSearcher(reader);
+        DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
+            searcher.storedFields(),
+            FieldIdentifier.VULNERABILITY_ID.label,
+            FieldIdentifier.APPLICATION_ID.label,
+            List.of("CVE-2021-44228"));
+
+        searcher.search(new MatchAllDocsQuery(), collector);
+
+        assertThat(collector.groupCounts()).containsExactly(Map.entry("cve-2021-44228", 3L));
+      }
+    }
+  }
+
+  @Test
   public void omitsGroupsWithoutDistinctValuesAndSkipsBlankFields() throws Exception {
     try (Directory directory = new ByteBuffersDirectory();
         Analyzer analyzer = new LowerCaseKeywordAnalyzer();
@@ -90,6 +122,14 @@ public class DistinctGroupedStoredFieldCollectorTest
     document.add(new StringField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_VIOLATION.name(), YES));
     document.add(new StringField(FieldIdentifier.APPLICATION_ID.label, applicationId, YES));
     document.add(new StringField(FieldIdentifier.POLICY_EVALUATION_STAGE.label, stageId, YES));
+    return document;
+  }
+
+  private static Document vulnDocument(final String vulnerabilityId, final String applicationId) {
+    Document document = new Document();
+    document.add(new StringField(FieldIdentifier.ITEM_TYPE.label, ItemType.SECURITY_VULNERABILITY.name(), YES));
+    document.add(new StringField(FieldIdentifier.VULNERABILITY_ID.label, vulnerabilityId, YES));
+    document.add(new StringField(FieldIdentifier.APPLICATION_ID.label, applicationId, YES));
     return document;
   }
 }

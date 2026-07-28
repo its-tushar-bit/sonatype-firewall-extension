@@ -54,6 +54,16 @@ public class GlobalSearchSortAllowlistTest
   }
 
   @Test
+  public void vulnerabilities_rejectsSeverityUntilNumericSortMachineryLands() {
+    // severity is held out of the allowlist: vulnerabilitySeverity is a numeric FloatPoint with no
+    // sorted-numeric twin and sortFor builds only a STRING SortField, so a severity sort would sort
+    // lexicographically or fail on the missing doc-values once field sort is enabled.
+    assertThat(GlobalSearchSortAllowlist.isAllowed(Tab.VULNERABILITY, "severity")).isFalse();
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> GlobalSearchSortAllowlist.requireAllowed(Tab.VULNERABILITY, "severity"));
+  }
+
+  @Test
   public void vulnerabilities_rejectsGuideOnlyKeys() {
     for (String guideOnly : new String[]{"cvssSeverity", "publishedAt", "epss"}) {
       assertThat(GlobalSearchSortAllowlist.isAllowed(Tab.VULNERABILITY, guideOnly))

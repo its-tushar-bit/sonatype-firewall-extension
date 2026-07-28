@@ -16,6 +16,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -370,6 +371,44 @@ public class HybridSearchIndexClient
     }
   }
 
+  /**
+   * Attempts the primary client first, falling back to secondary when primary fails — same pattern
+   * as {@link #aggregateCountByField}.
+   */
+  @Override
+  public MetricAggregationResult aggregateCountByFloatField(
+      String metricQuery,
+      String bucketField,
+      Map<String, float[]> ranges,
+      String distinctField)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.aggregateCountByFloatField(metricQuery, bucketField, ranges, distinctField);
+    }
+    catch (Exception e) {
+      log.warn("Failed to aggregate float counts from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      MetricAggregationResult result =
+          secondaryClient.aggregateCountByFloatField(metricQuery, bucketField, ranges, distinctField);
+      log.debug("Float aggregate count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to aggregate float counts from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Float aggregate count failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
   @Override
   public long countDistinct(String metricQuery, List<String> compositeKeyFields) {
     Exception primaryException = null;
@@ -393,6 +432,40 @@ public class HybridSearchIndexClient
       }
       throw new SearchIndexException(
           "Distinct count failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues);
+    }
+    catch (Exception e) {
+      log.warn("Failed to count distinct grouped from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      Map<String, Long> result =
+          secondaryClient.countDistinctGroupedBy(metricQuery, groupField, distinctField, groupValues);
+      log.debug("Grouped distinct count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to count distinct grouped from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Grouped distinct count failed on both primary and secondary clients. Primary error: " +
               primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
           e);
     }

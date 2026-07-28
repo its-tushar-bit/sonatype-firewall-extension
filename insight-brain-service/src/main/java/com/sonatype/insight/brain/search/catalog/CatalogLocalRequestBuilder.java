@@ -26,8 +26,17 @@ public final class CatalogLocalRequestBuilder
           "ecosystems", "componentFormat",
           // organizationName is rewritten to parentOrganizationName by the index metric/query layer,
           // so a match on an org includes its descendants (same semantics as v1 classic search).
-          "organizations", "organizationName"),
-      CatalogEntityType.VULNERABILITY, Map.of());
+          "organizations", "organizationName",
+          // applicationName / policyEvaluationStage are denormalized on component docs (setOwner /
+          // setPolicyEvaluationStage), so the my-scan estate can be filtered by app and stage.
+          "applications", "applicationName",
+          "stages", "policyEvaluationStage"),
+      // SECURITY_VULNERABILITY docs carry org/app/stage, so the local vuln leg is filterable by all
+      // three my-scan triage dimensions.
+      CatalogEntityType.VULNERABILITY, Map.of(
+          "organizations", "organizationName",
+          "applications", "applicationName",
+          "stages", "policyEvaluationStage"));
 
   private CatalogLocalRequestBuilder() {
   }

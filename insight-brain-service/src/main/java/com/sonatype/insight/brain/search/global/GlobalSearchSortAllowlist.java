@@ -65,6 +65,11 @@ public final class GlobalSearchSortAllowlist
     m.put(ALL, ImmutableSet.of(RELEVANCE));
 
     m.put(COMPONENT, ImmutableSet.of(RELEVANCE, "name"));
+    // A severity sort is intentionally NOT listed: vulnerabilitySeverity is a numeric FloatPoint CVSS
+    // field with no SortedNumericDocValues twin, and sortFor builds only a STRING SortField, so a
+    // severity key would sort lexicographically or fail on the missing doc-values when field sort is
+    // enabled. It can be added once sortFor selects a numeric SortField and the index emits the
+    // sorted-numeric twin for the field.
     m.put(VULNERABILITY, ImmutableSet.of(RELEVANCE, "name"));
     m.put(APPLICATION, ImmutableSet.of(RELEVANCE, "name", "policyEvaluationStage", "lastEvaluationTime"));
 

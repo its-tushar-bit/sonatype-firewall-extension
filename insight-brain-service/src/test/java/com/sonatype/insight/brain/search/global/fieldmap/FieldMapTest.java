@@ -25,12 +25,13 @@ public class FieldMapTest
     assertThat(entry.get().label()).isEqualTo(FieldIdentifier.APPLICATION_NAME.label);
     assertThat(entry.get().kind()).isEqualTo(FieldKind.KEYWORD);
     // applicationName is indexed on violation docs (via the owning application), on
-    // SECURITY_VULNERABILITY docs (setOwner in the vuln build path), and on app-scoped waiver docs,
-    // so all those scopes must resolve it rather than compile to MatchNoDocsQuery.
+    // SECURITY_VULNERABILITY docs, on NON_VULNERABLE_COMPONENT docs (setOwner in each build path),
+    // and on app-scoped waiver docs, so all those scopes must resolve it rather than compile to
+    // MatchNoDocsQuery.
     assertThat(entry.get().allowedTypes())
         .containsExactlyInAnyOrder(
             ItemType.APPLICATION, ItemType.POLICY_VIOLATION, ItemType.LEGAL_VIOLATION,
-            ItemType.SECURITY_VULNERABILITY, ItemType.POLICY_WAIVER);
+            ItemType.SECURITY_VULNERABILITY, ItemType.NON_VULNERABLE_COMPONENT, ItemType.POLICY_WAIVER);
   }
 
   @Test
@@ -166,6 +167,19 @@ public class FieldMapTest
         .contains(ItemType.SECURITY_VULNERABILITY);
     assertThat(map.lookup("policyEvaluationStage").orElseThrow().allowedTypes())
         .contains(ItemType.SECURITY_VULNERABILITY);
+  }
+
+  @Test
+  public void appAndStageFieldsWidenedToComponents() {
+    // NON_VULNERABLE_COMPONENT docs carry applicationName + policyEvaluationStage (per app-per-stage
+    // in the component build path), so the local component leg can filter the my-scan estate by app
+    // and stage. Application-identity fields (applicationId) stay APPLICATION-only.
+    assertThat(map.lookup("applicationName").orElseThrow().allowedTypes())
+        .contains(ItemType.NON_VULNERABLE_COMPONENT);
+    assertThat(map.lookup("policyEvaluationStage").orElseThrow().allowedTypes())
+        .contains(ItemType.NON_VULNERABLE_COMPONENT);
+    assertThat(map.lookup("applicationId").orElseThrow().allowedTypes())
+        .doesNotContain(ItemType.NON_VULNERABLE_COMPONENT);
   }
 
   @Test

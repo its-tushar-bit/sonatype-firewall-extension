@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -515,6 +516,16 @@ public class AbstractSearchIndexClientPermissionFilterTest
     }
 
     @Override
+    public Map<String, Long> countDistinctGroupedBy(
+        String metricQuery,
+        String groupField,
+        String distinctField,
+        Collection<String> groupValues)
+    {
+      return Map.of();
+    }
+
+    @Override
     public long count(String metricQuery) {
       return 0;
     }
@@ -524,6 +535,16 @@ public class AbstractSearchIndexClientPermissionFilterTest
         String metricQuery,
         String bucketField,
         Map<String, int[]> ranges)
+    {
+      return null;
+    }
+
+    @Override
+    public MetricAggregationResult aggregateCountByFloatField(
+        String metricQuery,
+        String bucketField,
+        Map<String, float[]> ranges,
+        String distinctField)
     {
       return null;
     }

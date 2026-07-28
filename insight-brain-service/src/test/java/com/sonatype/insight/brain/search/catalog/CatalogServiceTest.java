@@ -9,11 +9,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,8 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.sonatype.guide.api.dto.ApiSearchResponse;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.guide.api.dto.ComponentDocument;
 import com.sonatype.guide.api.dto.VulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
@@ -42,7 +51,9 @@ import com.sonatype.insight.brain.search.global.IqLocalSearchService;
 import com.sonatype.insight.brain.search.global.SearchSource;
 import com.sonatype.insight.brain.search.global.StaleCursorException;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -51,8 +62,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-
-import java.util.stream.Collectors;
 
 import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.util.BytesRef;
@@ -94,6 +103,12 @@ public class CatalogServiceTest
     when(searchIndexClient.buildPermittedQuery(any())).thenCallRealMethod();
     when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
+    // Severity-band facet default: empty-band result so vulnerability-facet tests that don't
+    // exercise band counts don't NPE on a null MetricAggregationResult. Lenient: not every test
+    // reaches the facet path.
+    org.mockito.Mockito.lenient()
+        .when(searchIndexClient.aggregateCountByFloatField(anyString(), anyString(), anyMap(), any()))
+        .thenReturn(new MetricAggregationResult(0L, Map.of()));
 
     searchApiClient = mock(SearchApiClient.class);
     productLicense = mock(ProductLicense.class);
@@ -400,7 +415,7 @@ public class CatalogServiceTest
     SearchResultItemDTO d = new SearchResultItemDTO();
     d.itemType = "NON_VULNERABLE_COMPONENT";
     d.componentName = "react";
-    d.componentIdentifier = new com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2();
+    d.componentIdentifier = new ApiComponentIdentifierDTOV2();
     d.componentIdentifier.setFormat("npm");
     when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
@@ -467,7 +482,7 @@ public class CatalogServiceTest
       SearchResultItemDTO d = new SearchResultItemDTO();
       d.itemType = "NON_VULNERABLE_COMPONENT";
       d.componentName = "comp-" + i;
-      d.componentIdentifier = new com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2();
+      d.componentIdentifier = new ApiComponentIdentifierDTOV2();
       d.componentIdentifier.setFormat("fmt-" + i);
       d.organizationName = "org-" + i;
       page.add(d);
@@ -489,7 +504,7 @@ public class CatalogServiceTest
     SearchResultItemDTO d = new SearchResultItemDTO();
     d.itemType = "NON_VULNERABLE_COMPONENT";
     d.componentName = "react";
-    d.componentIdentifier = new com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2();
+    d.componentIdentifier = new ApiComponentIdentifierDTOV2();
     d.componentIdentifier.setFormat("npm");
     when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
@@ -691,7 +706,7 @@ public class CatalogServiceTest
     SearchResultItemDTO d = new SearchResultItemDTO();
     d.itemType = "NON_VULNERABLE_COMPONENT";
     d.componentName = "react";
-    d.componentIdentifier = new com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2();
+    d.componentIdentifier = new ApiComponentIdentifierDTOV2();
     d.componentIdentifier.setFormat("npm");
     when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
@@ -723,7 +738,7 @@ public class CatalogServiceTest
     SearchResultItemDTO d = new SearchResultItemDTO();
     d.itemType = "NON_VULNERABLE_COMPONENT";
     d.componentName = "react";
-    d.componentIdentifier = new com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2();
+    d.componentIdentifier = new ApiComponentIdentifierDTOV2();
     d.componentIdentifier.setFormat("npm");
     when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
         .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
@@ -890,11 +905,611 @@ public class CatalogServiceTest
     verify(searchIndexClient, never()).searchGlobal(any());
   }
 
+  @Test
+  public void localSource_component_idIsComponentHash_notName() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "abc123hash";
+    d.componentName = "log4j-core";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, request("COMPONENT", Map.of()));
+
+    // The stable, component-centric id is the hash; the display name is the title.
+    assertThat(response.rows().get(0).getId()).isEqualTo("abc123hash");
+    assertThat(response.rows().get(0).getTitle()).isEqualTo("log4j-core");
+    assertThat(response.rows().get(0).getFields()).containsEntry("componentHash", "abc123hash");
+  }
+
+  @Test
+  public void localSource_component_enrichesVersionAndCoordinatePurl() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "hash1";
+    d.componentName = "react";
+    d.componentIdentifier = new ApiComponentIdentifierDTOV2();
+    d.componentIdentifier.setFormat("npm");
+    d.componentIdentifier.setCoordinates(Map.of("packageId", "react", "version", "18.0.0"));
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, request("COMPONENT", Map.of()));
+
+    assertThat(response.rows().get(0).getFields()).containsEntry("version", "18.0.0");
+    assertThat(response.rows().get(0).getFields()).containsEntry("coordinates", "pkg:npm/react@18.0.0");
+    assertThat(response.rows().get(0).getFields()).containsEntry("ecosystem", "npm");
+  }
+
+  @Test
+  public void localSource_component_malformedCoordinate_dropsPurl_keepsRow() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "hash1";
+    d.componentName = "no-format";
+    d.componentIdentifier = new ApiComponentIdentifierDTOV2();
+    // No format => cannot build a purl; the row must still be returned on its hash id.
+    d.componentIdentifier.setCoordinates(Map.of("version", "1.0"));
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, request("COMPONENT", Map.of()));
+
+    assertThat(response.rows()).hasSize(1);
+    assertThat(response.rows().get(0).getFields()).doesNotContainKey("coordinates");
+  }
+
+  @Test
+  public void localSource_component_affectedApps_isDistinctAppCountOverComponentHash() {
+    // A single component on the page used by 2 applications: affectedApps must be 2 (distinct app
+    // count grouped by the row's componentHash), computed in ONE grouped read scoped to the component
+    // item type + RBAC (no caller filter clauses — global reach).
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "hashA";
+    d.componentName = "commons-io";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    // The client keys its grouped-count map by the lowercased group value (keyword fields carry a
+    // lowercase normalizer); enrichLocalCounts looks up with the lowercased row value to match.
+    when(searchIndexClient.countDistinctGroupedBy(
+        contains("itemType:non_vulnerable_component"), eq("componentHash"), eq("applicationId"), eq(Set.of("hashA"))))
+            .thenReturn(Map.of("hasha", 2L));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, request("COMPONENT", Map.of()));
+
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedApps", 2L);
+    // Exactly one grouped read for the whole page (item-type scoped, RBAC applied in the client).
+    verify(searchIndexClient)
+        .countDistinctGroupedBy(anyString(), eq("componentHash"), eq("applicationId"), anyCollection());
+  }
+
+  @Test
+  public void localSource_component_affectedApps_globalReach_ignoresActiveFilters() {
+    // affectedApps is global reach: an applications:[X] filter must NOT re-scope the count query
+    // (it would collapse to 1 and mislead). The grouped read carries item type only, no app clause.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "hashA";
+    d.componentName = "commons-io";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.countDistinctGroupedBy(anyString(), eq("componentHash"), eq("applicationId"),
+        anyCollection()))
+            .thenReturn(Map.of("hasha", 5L));
+
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "local", Map.of("applications", List.of("My App")), 1, 25, null, null, false);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedApps", 5L);
+    ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
+    verify(searchIndexClient)
+        .countDistinctGroupedBy(queryCaptor.capture(), eq("componentHash"), eq("applicationId"), anyCollection());
+    assertThat(queryCaptor.getValue().toLowerCase()).doesNotContain("applicationname");
+  }
+
+  @Test
+  public void localSource_component_applicationsAndStagesFilters_compileToLocalFields() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "hashA";
+    d.componentName = "commons-io";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "local",
+        Map.of("applications", List.of("My App"), "stages", List.of("build")),
+        1, 25, null, null, false);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    // Both filters are honoured locally (not dropped as warnings) and compile onto the index fields.
+    assertThat(response.warnings()).noneMatch(w -> w.contains("applications"));
+    assertThat(response.warnings()).noneMatch(w -> w.contains("stages"));
+    ArgumentCaptor<GlobalSearchRequest> captor = ArgumentCaptor.forClass(GlobalSearchRequest.class);
+    verify(searchIndexClient).searchGlobal(captor.capture());
+    String q = captor.getValue().baseQuery().toString().toLowerCase();
+    assertThat(q).contains("applicationname");
+    assertThat(q).contains("policyevaluationstage");
+  }
+
+  @Test
+  public void catalogSource_applicationsFilter_mapsTo400() {
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "catalog", Map.of("applications", List.of("My App")), 1, 25, null, null, false);
+    Throwable thrown = catchThrowable(() -> service.search(CatalogEntityType.COMPONENT, SearchSource.CATALOG, req));
+    assertThat(thrown).isInstanceOf(BadRequestException.class);
+    verify(searchApiClient, never()).searchComponents(any());
+  }
+
+  @Test
+  public void localSource_vulnerability_enrichesSeverityAndHref() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2021-44228";
+    d.vulnerabilitySeverity = 10.0f;
+    d.componentIdentifier = new ApiComponentIdentifierDTOV2();
+    d.componentIdentifier.setFormat("maven");
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, request("VULNERABILITY", Map.of()));
+
+    assertThat(response.rows().get(0).getFields()).containsEntry("severity", 10.0f);
+    assertThat(response.rows().get(0).getFields()).containsEntry("ecosystem", "maven");
+    // NOUX-safe relative classic route; the frontend prefixes the context-path.
+    assertThat(response.rows().get(0).getHref()).isEqualTo("#/vulnerabilities/CVE-2021-44228");
+  }
+
+  @Test
+  public void localSource_vulnerability_affectedCounts_areDistinctOverVulnerabilityId() {
+    // One CVE on the page affecting 3 apps across 2 distinct components, computed in TWO grouped
+    // reads (one per metric) for the whole page, item-type scoped (global reach) + RBAC.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2020-0001";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    // The client keys its grouped-count map by the lowercased group value (keyword fields carry a
+    // lowercase normalizer); enrichLocalCounts looks up with the lowercased row value to match.
+    when(searchIndexClient.countDistinctGroupedBy(
+        contains("itemType:security_vulnerability"), eq("vulnerabilityId"), eq("applicationId"),
+        eq(Set.of("CVE-2020-0001")))).thenReturn(Map.of("cve-2020-0001", 3L));
+    when(searchIndexClient.countDistinctGroupedBy(
+        contains("itemType:security_vulnerability"), eq("vulnerabilityId"), eq("componentHash"),
+        eq(Set.of("CVE-2020-0001")))).thenReturn(Map.of("cve-2020-0001", 2L));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, request("VULNERABILITY", Map.of()));
+
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedApps", 3L);
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedComponents", 2L);
+    verify(searchIndexClient)
+        .countDistinctGroupedBy(anyString(), eq("vulnerabilityId"), eq("applicationId"), anyCollection());
+    verify(searchIndexClient)
+        .countDistinctGroupedBy(anyString(), eq("vulnerabilityId"), eq("componentHash"), anyCollection());
+  }
+
+  @Test
+  public void localSource_vulnerability_affectedCounts_uppercaseCveId_matchLowercasedGroupedKey() {
+    // Regression: the vulnerabilityId keyword field carries a lowercase normalizer, so the grouped-count
+    // client keys its result map by the lowercased CVE ("cve-2021-44228") while the row value from _source
+    // is uppercase ("CVE-2021-44228"). enrichLocalCounts must lowercase the lookup so the count resolves;
+    // before the fix the case-sensitive lookup missed the bucket and every vuln row read affectedApps 0.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2021-44228";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.countDistinctGroupedBy(anyString(), eq("vulnerabilityId"), eq("applicationId"),
+        anyCollection())).thenReturn(Map.of("cve-2021-44228", 3L));
+    when(searchIndexClient.countDistinctGroupedBy(anyString(), eq("vulnerabilityId"), eq("componentHash"),
+        anyCollection())).thenReturn(Map.of("cve-2021-44228", 2L));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, request("VULNERABILITY", Map.of()));
+
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedApps", 3L);
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedComponents", 2L);
+  }
+
+  @Test
+  public void localSource_component_affectedApps_uppercaseHash_matchLowercasedGroupedKey() {
+    // The latent COMPONENT counterpart: componentHash is normally lowercase hex (why the bug hid on
+    // components), but the same lowercase normalizer applies. A mixed-case hash row must still resolve
+    // its count against the lowercased grouped-map key.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "AbCdEf01";
+    d.componentName = "commons-io";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.countDistinctGroupedBy(anyString(), eq("componentHash"), eq("applicationId"),
+        anyCollection())).thenReturn(Map.of("abcdef01", 4L));
+
+    CatalogResponse response =
+        service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, request("COMPONENT", Map.of()));
+
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedApps", 4L);
+  }
+
+  @Test
+  public void localSource_vulnerability_affectedCounts_multiRowPage_singlePairOfGroupedReads() {
+    // A full multi-row page still issues exactly two grouped reads total (not two per row), and each
+    // row picks up its own count from the returned group map. A vuln absent from the map reads 0.
+    List<SearchResultItemDTO> docs = new ArrayList<>();
+    for (int i = 0; i < 80; i++) {
+      SearchResultItemDTO d = new SearchResultItemDTO();
+      d.itemType = "SECURITY_VULNERABILITY";
+      d.vulnerabilityId = "CVE-" + i;
+      docs.add(d);
+    }
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(docs, docs.size(), List.of()));
+    when(searchIndexClient.countDistinctGroupedBy(anyString(), eq("vulnerabilityId"), eq("applicationId"),
+        anyCollection()))
+            .thenReturn(Map.of("cve-0", 4L));
+    when(searchIndexClient.countDistinctGroupedBy(anyString(), eq("vulnerabilityId"), eq("componentHash"),
+        anyCollection()))
+            .thenReturn(Map.of("cve-0", 2L));
+
+    CatalogResponse response = service.search(
+        CatalogEntityType.VULNERABILITY, SearchSource.LOCAL,
+        new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 100, null, null, false));
+
+    assertThat(response.rows()).hasSize(80);
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedApps", 4L);
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedComponents", 2L);
+    // A vuln not present in the grouped result maps reads zero, never truncated/missing.
+    assertThat(response.rows().get(1).getFields()).containsEntry("affectedApps", 0L);
+    assertThat(response.rows().get(1).getFields()).containsEntry("affectedComponents", 0L);
+    // Exactly two grouped reads for the whole page regardless of the 80 rows.
+    verify(searchIndexClient, times(1))
+        .countDistinctGroupedBy(anyString(), eq("vulnerabilityId"), eq("applicationId"), anyCollection());
+    verify(searchIndexClient, times(1))
+        .countDistinctGroupedBy(anyString(), eq("vulnerabilityId"), eq("componentHash"), anyCollection());
+    verify(searchIndexClient, never()).countDistinct(anyString(), anyList());
+  }
+
+  @Test
+  public void localSource_vulnerability_orgAppStageFilters_compileToLocalFields() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2020-0002";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogRequest req = new CatalogRequest(
+        "VULNERABILITY", "local",
+        Map.of("organizations", List.of("Acme"), "applications", List.of("My App"), "stages", List.of("build")),
+        1, 25, null, null, false);
+    CatalogResponse response = service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req);
+
+    // The filters are honoured locally (not dropped as unavailable-locally warnings) and compile
+    // onto the index fields. A stages filter on vulns does add the SBOM-exclusion warning (finding 5),
+    // asserted separately below.
+    assertThat(response.warnings()).noneMatch(w -> w.contains("not available on the local source"));
+    ArgumentCaptor<GlobalSearchRequest> captor = ArgumentCaptor.forClass(GlobalSearchRequest.class);
+    verify(searchIndexClient).searchGlobal(captor.capture());
+    String q = captor.getValue().baseQuery().toString().toLowerCase();
+    assertThat(q).contains("parentorganizationname");
+    assertThat(q).contains("applicationname");
+    assertThat(q).contains("policyevaluationstage");
+  }
+
+  @Test
+  public void localSource_vulnerability_stagesFilter_addsSbomExclusionWarning() {
+    // SBOM-sourced vulns carry no policyEvaluationStage, so a stages filter silently excludes them;
+    // the response must surface that as a warning rather than dropping them without a signal.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2020-0009";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogRequest req = new CatalogRequest(
+        "VULNERABILITY", "local", Map.of("stages", List.of("build")), 1, 25, null, null, false);
+    CatalogResponse response = service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req);
+
+    assertThat(response.warnings()).contains(CatalogService.CatalogWarnings.STAGES_EXCLUDE_SBOM_VULNS);
+  }
+
+  @Test
+  public void localSource_component_stagesFilter_doesNotAddSbomExclusionWarning() {
+    // The SBOM-exclusion warning is vuln-specific; a component stages filter must not add it.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentHash = "hashA";
+    d.componentName = "commons-io";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+
+    CatalogRequest req = new CatalogRequest(
+        "COMPONENT", "local", Map.of("stages", List.of("build")), 1, 25, null, null, false);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(response.warnings()).doesNotContain(CatalogService.CatalogWarnings.STAGES_EXCLUDE_SBOM_VULNS);
+  }
+
+  @Test
+  public void localSource_vulnerability_ecosystemsFacet_countsDistinctCves() {
+    // Vuln docs are per-app-per-stage, so a facet bucket must count DISTINCT vulnerabilityId (not raw
+    // doc occurrences) to avoid inflating a CVE spanning multiple apps/stages (finding 4).
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2020-0003";
+    d.componentIdentifier = new ApiComponentIdentifierDTOV2();
+    d.componentIdentifier.setFormat("maven");
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.countDistinct(contains("componentFormat:\"maven\""), eq(List.of("vulnerabilityId"))))
+        .thenReturn(9L);
+
+    CatalogRequest req = new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsKey("ecosystem");
+    assertThat(response.facets().get("ecosystem"))
+        .anyMatch(b -> b.value().equals("maven") && b.count() == 9L);
+    // Distinct-CVE bucket count, scoped to the vuln item type (whole-corpus, RBAC-scoped, not page).
+    // atLeastOnce: the severity-band facet also issues item-type-scoped distinct-CVE counts.
+    verify(searchIndexClient, atLeastOnce())
+        .countDistinct(contains("itemType:security_vulnerability"), eq(List.of("vulnerabilityId")));
+  }
+
+  @Test
+  public void localSource_component_appsFacet_countsDistinctComponentsPerApp() {
+    // A component recurs once per (app, stage), so the apps facet bucket must count DISTINCT
+    // componentHash (distinct components in that app), not raw per-stage docs.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentName = "react";
+    d.componentHash = "hash-react";
+    d.applicationName = "Acme Prod";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.countDistinct(contains("applicationName:\"Acme Prod\""), eq(List.of("componentHash"))))
+        .thenReturn(12L);
+
+    CatalogRequest req = new CatalogRequest("COMPONENT", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsKey("application");
+    assertThat(response.facets().get("application"))
+        .anyMatch(b -> b.value().equals("Acme Prod") && b.count() == 12L);
+    // Distinct-component bucket count, scoped to the component item type (whole-corpus, RBAC, not page).
+    verify(searchIndexClient)
+        .countDistinct(contains("itemType:non_vulnerable_component"), eq(List.of("componentHash")));
+  }
+
+  @Test
+  public void localSource_component_hasNoSeveritiesFacet() {
+    // Component docs carry no threat/severity field (a deferred data gap), so a severities facet is
+    // omitted rather than fabricated. Only ecosystem/organization/application facets are present.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "NON_VULNERABLE_COMPONENT";
+    d.componentName = "react";
+    d.componentHash = "hash-react";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    when(searchIndexClient.countDistinct(anyString(), anyList())).thenReturn(1L);
+
+    CatalogRequest req = new CatalogRequest("COMPONENT", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsOnlyKeys("ecosystem", "organization", "application");
+    assertThat(response.facets()).doesNotContainKeys("severities", "severity");
+  }
+
+  @Test
+  public void localSource_vulnerability_orgsFacet_countsDistinctCves() {
+    // Vuln docs are per-app-per-stage, so the orgs facet bucket must count DISTINCT vulnerabilityId
+    // (distinct CVEs in that org), not raw docs. organizationName is hierarchy-rewritten by the metric
+    // layer to parentOrganizationName.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2020-0100";
+    d.organizationName = "Acme";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.countDistinct(contains("organizationName:\"Acme\""), eq(List.of("vulnerabilityId"))))
+        .thenReturn(5L);
+
+    CatalogRequest req = new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsKey("organization");
+    assertThat(response.facets().get("organization"))
+        .anyMatch(b -> b.value().equals("Acme") && b.count() == 5L);
+    // atLeastOnce: the severity-band facet also issues item-type-scoped distinct-CVE counts.
+    verify(searchIndexClient, atLeastOnce())
+        .countDistinct(contains("itemType:security_vulnerability"), eq(List.of("vulnerabilityId")));
+  }
+
+  @Test
+  public void localSource_vulnerability_appsFacet_countsDistinctCves() {
+    // apps facet bucket counts DISTINCT vulnerabilityId (distinct CVEs affecting that app), not raw docs.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2020-0101";
+    d.applicationName = "Acme Prod";
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.countDistinct(contains("applicationName:\"Acme Prod\""), eq(List.of("vulnerabilityId"))))
+        .thenReturn(8L);
+
+    CatalogRequest req = new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsKey("application");
+    assertThat(response.facets().get("application"))
+        .anyMatch(b -> b.value().equals("Acme Prod") && b.count() == 8L);
+  }
+
+  @Test
+  public void localSource_vulnerability_hasSeverityBandFacet_withFiveCvssBands() {
+    // vulnerabilitySeverity is a FloatPoint CVSS score; the float-range aggregation primitive now bands
+    // it, so the local Vulnerabilities leg exposes a "severity" facet with the five fixed CVSS bands
+    // alongside the status/ecosystem/organization/application facets.
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2020-0102";
+    d.vulnerabilitySeverity = 5.0f;
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    when(searchIndexClient.countDistinct(anyString(), anyList())).thenReturn(1L);
+    when(searchIndexClient.aggregateCountByFloatField(anyString(), anyString(), anyMap(), anyString()))
+        .thenReturn(new MetricAggregationResult(1L, Map.of()));
+
+    CatalogRequest req = new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsKey("severity");
+    assertThat(response.facets().get("severity"))
+        .extracting(CatalogResponse.CatalogFacetBucket::value)
+        .containsExactly("none", "low", "medium", "high", "critical");
+  }
+
+  @Test
+  public void localSource_vulnerability_severitySort_isRejected() {
+    // severity is held OUT of the allowlist until numeric field-sort machinery lands (finding 3):
+    // vulnerabilitySeverity is a numeric FloatPoint with no sorted-numeric twin, so an unknown-sort
+    // 400 is the correct, safe behavior rather than a latent lexicographic/failed sort.
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
+    CatalogRequest req = new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 25, "severity", null, false);
+    Throwable thrown = catchThrowable(() -> service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req));
+    assertThat(thrown).isInstanceOf(BadRequestException.class);
+  }
+
+  @Test
+  public void localSource_unknownSort_mapsTo400() {
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(), 0, List.of()));
+    CatalogRequest req = new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 25, "bogusSort", null, false);
+    Throwable thrown = catchThrowable(() -> service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req));
+    assertThat(thrown).isInstanceOf(BadRequestException.class);
+  }
+
+  @Test
+  public void localSource_component_affectedApps_fullPage_singleGroupedRead() {
+    // A full page issues exactly ONE grouped read (not one distinct-count per row): the old per-row
+    // fan-out blew the query budget and opened a reader per row (findings 1 + 2).
+    List<SearchResultItemDTO> page = new ArrayList<>();
+    for (int i = 0; i < 100; i++) {
+      SearchResultItemDTO d = new SearchResultItemDTO();
+      d.itemType = "NON_VULNERABLE_COMPONENT";
+      d.componentHash = "hash-" + i;
+      d.componentName = "comp-" + i;
+      page.add(d);
+    }
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.copyOf(page), page.size(), List.of()));
+    when(searchIndexClient.countDistinctGroupedBy(anyString(), eq("componentHash"), eq("applicationId"),
+        anyCollection()))
+            .thenReturn(Map.of("hash-0", 7L));
+
+    CatalogRequest req = new CatalogRequest("COMPONENT", "local", Map.of(), 1, 100, null, null, false);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(response.rows()).hasSize(100);
+    assertThat(response.rows().get(0).getFields()).containsEntry("affectedApps", 7L);
+    // Every other row reads zero (absent from the grouped map), never omitted/truncated.
+    assertThat(response.rows().get(1).getFields()).containsEntry("affectedApps", 0L);
+    verify(searchIndexClient, times(1))
+        .countDistinctGroupedBy(anyString(), eq("componentHash"), eq("applicationId"), anyCollection());
+    verify(searchIndexClient, never()).countDistinct(anyString(), anyList());
+  }
+
+  @Test
+  public void localSource_vulnerability_severityFacet_hasFiveCvssBands_withDistinctCveCounts() {
+    // A multi-app CVE set: the same CVE recurs across per-app-per-stage docs, so the band count must be
+    // distinct vulnerabilityId (not raw docs) — mirroring the orgs/apps vuln facets. Two rows on the page
+    // seed nothing for severity (bands are fixed), so the buckets come purely from the per-band
+    // countDistinct over the half-open CVSS range on vulnerabilitySeverity.
+    SearchResultItemDTO high = new SearchResultItemDTO();
+    high.itemType = "SECURITY_VULNERABILITY";
+    high.vulnerabilityId = "CVE-2021-44228";
+    high.vulnerabilitySeverity = 7.5f;
+    SearchResultItemDTO crit = new SearchResultItemDTO();
+    crit.itemType = "SECURITY_VULNERABILITY";
+    crit.vulnerabilityId = "CVE-2022-0001";
+    crit.vulnerabilitySeverity = 9.8f;
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(high, crit), 2, List.of()));
+
+    // Distinct-CVE counts per band, computed in a single float-band aggregation pass over
+    // vulnerabilitySeverity with distinctField=vulnerabilityId (single source of truth for the bands:
+    // CvssV3Severity.halfOpenScoreBands()). These are the exact same per-band numbers the previous
+    // per-band countDistinct loop produced — the refactor to one aggregation pass must not change them.
+    java.util.Map<String, Long> bandCounts = new java.util.LinkedHashMap<>();
+    bandCounts.put("none", 1L);
+    bandCounts.put("low", 4L);
+    bandCounts.put("medium", 6L);
+    bandCounts.put("high", 3L);
+    bandCounts.put("critical", 2L);
+    when(searchIndexClient.aggregateCountByFloatField(
+        contains("itemType:security_vulnerability"),
+        eq(FieldIdentifier.VULNERABILITY_SEVERITY.label),
+        eq(CvssV3Severity.halfOpenScoreBands()),
+        eq("vulnerabilityId")))
+            .thenReturn(new MetricAggregationResult(16L, bandCounts));
+
+    CatalogRequest req = new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsKey(CatalogService.SEVERITY_FACET_KEY);
+    List<CatalogResponse.CatalogFacetBucket> severity =
+        response.facets().get(CatalogService.SEVERITY_FACET_KEY);
+    assertThat(severity).extracting(CatalogResponse.CatalogFacetBucket::value)
+        .containsExactly("none", "low", "medium", "high", "critical");
+    assertThat(severity).extracting(CatalogResponse.CatalogFacetBucket::count)
+        .containsExactly(1L, 4L, 6L, 3L, 2L);
+  }
+
+  @Test
+  public void localSource_vulnerability_severityFacet_isRbacScopedItemTypeCount() {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "SECURITY_VULNERABILITY";
+    d.vulnerabilityId = "CVE-2020-0001";
+    d.vulnerabilitySeverity = 5.0f;
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(d), 1, List.of()));
+    when(searchIndexClient.countDistinct(anyString(), anyList())).thenReturn(1L);
+    when(searchIndexClient.aggregateCountByFloatField(anyString(), anyString(), anyMap(), anyString()))
+        .thenReturn(new MetricAggregationResult(1L, Map.of()));
+
+    CatalogRequest req = new CatalogRequest("VULNERABILITY", "local", Map.of(), 1, 25, null, null, true);
+    service.search(CatalogEntityType.VULNERABILITY, SearchSource.LOCAL, req);
+
+    // The severity-band facet is a single item-type-scoped distinct-CVE aggregation pass (RBAC applied
+    // inside the client, fail-closed), bucketing vulnerabilitySeverity by the half-open CVSS bands with
+    // distinctField=vulnerabilityId — not a raw doc count and not scoped to the page. The half-open bands
+    // (single source of truth CvssV3Severity.halfOpenScoreBands()) put a 7.0 in High, never Medium.
+    verify(searchIndexClient).aggregateCountByFloatField(
+        contains("itemType:security_vulnerability"),
+        eq(FieldIdentifier.VULNERABILITY_SEVERITY.label),
+        eq(CvssV3Severity.halfOpenScoreBands()),
+        eq("vulnerabilityId"));
+  }
+
   private static List<String> manyValues(final int n) {
-    return java.util.stream.IntStream.range(0, n).mapToObj(i -> "v" + i).collect(Collectors.toList());
+    return IntStream.range(0, n).mapToObj(i -> "v" + i).collect(Collectors.toList());
   }
 
   private static CatalogRequest request(final Map<String, Object> filters) {
     return new CatalogRequest("COMPONENT", "catalog", filters, 1, 25, null, null, false);
+  }
+
+  private static CatalogRequest request(final String entityType, final Map<String, Object> filters) {
+    return new CatalogRequest(entityType, "local", filters, 1, 25, null, null, false);
   }
 }

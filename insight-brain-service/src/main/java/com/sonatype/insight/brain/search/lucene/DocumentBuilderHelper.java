@@ -1784,15 +1784,32 @@ public class DocumentBuilderHelper
         .setOrganizationName(organization.getName())
         .setComponentHash(thirdPartyFileCoord.getHash())
         .setVulnerabilityId(thirdPartyCoordinateSecurity.getRefId())
-        .setVulnerabilitySeverity(
-            BigDecimal.valueOf(thirdPartyCoordinateSecurity.getSeverity())
-                .setScale(2, RoundingMode.HALF_EVEN)
-                .floatValue())
+        .setVulnerabilitySeverity(sbomCvssSeverity(thirdPartyCoordinateSecurity))
         .setVulnerabilityDescription(thirdPartyCoordinateSecurity.getDescription())
         .setParentOrganizationNames(parentOrganizations)
         .setParentOrganizationIds(parentOrganizations)
         .setAllowedContextIds(computeAllowedContextIds(parentOrganizations, application.getId()))
         .build();
+  }
+
+  /**
+   * Resolves the CVSS severity to index for an SBOM vulnerability, or {@code null} when the vulnerability
+   * carries no CVSS score. {@code ThirdPartyCoordinateSecurity.severity} is a primitive {@code double}
+   * defaulting to {@code 0.0}; an EPSS-only (or otherwise unscored) SBOM vulnerability is still recorded
+   * but leaves that default in place and sets no {@code ratingMethod}. Writing {@code 0.0} would put such
+   * vulns in the {@code none} CVSS band, conflating "no score" with a real score of {@code 0.0}; returning
+   * {@code null} instead omits the {@code vulnerabilitySeverity} field so they sit in no band. A genuine
+   * CVSS {@code 0.0} always comes with a {@code ratingMethod}, so it is preserved.
+   */
+  private static Float sbomCvssSeverity(final ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity) {
+    if (thirdPartyCoordinateSecurity.getSeverity() == 0.0d
+        && thirdPartyCoordinateSecurity.getRatingMethod() == null)
+    {
+      return null;
+    }
+    return BigDecimal.valueOf(thirdPartyCoordinateSecurity.getSeverity())
+        .setScale(2, RoundingMode.HALF_EVEN)
+        .floatValue();
   }
 
   private ComponentIdentifier tryConvert(ThirdPartyFileCoordinate thirdPartyFileCoordinate) {

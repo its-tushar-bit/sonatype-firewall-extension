@@ -11,6 +11,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -34,9 +36,14 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.search.ConversionHelper;
+
 import jakarta.inject.Inject;
+import org.apache.lucene.document.Document;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -51,6 +58,15 @@ public class LuceneSearchIndexClientAggregateTest
 {
   @Inject
   private LuceneSearchIndexClient luceneSearchIndexClient;
+
+  @Inject
+  private LuceneIndexWriterOwner indexWriterOwner;
+
+  @Inject
+  private OwnerDAO ownerDAO;
+
+  @Inject
+  private ConversionHelper conversionHelper;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -372,6 +388,222 @@ public class LuceneSearchIndexClientAggregateTest
             "itemType:" + ItemType.POLICY_VIOLATION.searchFieldName(),
             FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
             Map.of("inverted", new int[]{10, 8})))
+        .withMessageContaining("inverted");
+  }
+
+  /**
+   * Writes SECURITY_VULNERABILITY docs with exact FloatPoint {@code vulnerabilitySeverity} scores
+   * through the client's own writer. This pins the CVSS value precisely (a value the report pipeline
+   * would round), so the band-boundary assertions test the exact float-range aggregation arithmetic.
+   * Documents are added via {@link LuceneIndexingContext#addDocuments} (which contributes the same
+   * sort doc-values the production path does) and {@code runWithWriter} commits + refreshes the NRT
+   * searcher. The default global test user reads every doc (no RBAC filter), so no context ids are set.
+   */
+  private void indexVulnDocsWithSeverities(final float... severities) throws Exception {
+    // populateIndex() creates the index/writer so runWithWriter can open it; add our docs on top.
+    luceneSearchIndexClient.populateIndex();
+    final List<Document> docs = new ArrayList<>();
+    for (int i = 0; i < severities.length; i++) {
+      docs.add(new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
+          .setVulnerabilityId("CVE-BOUNDARY-" + i)
+          .setVulnerabilitySeverity(severities[i])
+          .build());
+    }
+    indexWriterOwner
+        .runWithWriter(writer -> new LuceneIndexingContext(ownerDAO, writer, conversionHelper).addDocuments(docs));
+  }
+
+  /**
+   * Writes one SECURITY_VULNERABILITY doc per (vulnerabilityId, severity) pair. A CVE that recurs across
+   * several docs (e.g. per-app-per-stage) is the exact shape the distinct-per-band facet must count once.
+   */
+  private void indexVulnDocs(final String[] vulnIds, final float[] severities) throws Exception {
+    luceneSearchIndexClient.populateIndex();
+    final List<Document> docs = new ArrayList<>();
+    for (int i = 0; i < vulnIds.length; i++) {
+      docs.add(new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
+          .setVulnerabilityId(vulnIds[i])
+          .setVulnerabilitySeverity(severities[i])
+          .build());
+    }
+    indexWriterOwner
+        .runWithWriter(writer -> new LuceneIndexingContext(ownerDAO, writer, conversionHelper).addDocuments(docs));
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_DistinctField_CountsEachCveOncePerBand() throws Exception {
+    // CVE-A recurs across 3 docs all scored High, CVE-B once High, CVE-C twice Critical. The distinct-per-band
+    // count must be distinct CVEs (high=2, critical=1), not raw docs (high=4, critical=2). total stays raw.
+    indexVulnDocs(
+        new String[]{"CVE-A", "CVE-A", "CVE-A", "CVE-B", "CVE-C", "CVE-C"},
+        new float[]{7.5f, 7.5f, 8.0f, 8.9f, 9.5f, 9.5f});
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands(),
+        FieldIdentifier.VULNERABILITY_ID.label);
+
+    assertThat(result.total).isEqualTo(6); // raw docs, unaffected by distinctField
+    assertThat(result.buckets).containsEntry("none", 0L);
+    assertThat(result.buckets).containsEntry("low", 0L);
+    assertThat(result.buckets).containsEntry("medium", 0L);
+    assertThat(result.buckets).containsEntry("high", 2L); // distinct CVE-A, CVE-B (not 4 docs)
+    assertThat(result.buckets).containsEntry("critical", 1L); // distinct CVE-C (not 2 docs)
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_DistinctField_MatchesPerBandCountDistinctLoop() throws Exception {
+    // The distinct-per-band aggregation pass must produce the exact same per-band numbers as the old loop
+    // of one countDistinct(query AND half-open-band-clause, [vulnerabilityId]) per band it replaced.
+    final String[] cves = {"CVE-1", "CVE-1", "CVE-2", "CVE-3", "CVE-3", "CVE-4", "CVE-5"};
+    final float[] scores = {0.0f, 0.0f, 2.0f, 5.0f, 5.0f, 7.5f, 9.9f};
+    indexVulnDocs(cves, scores);
+    final String svType = "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName();
+    final String severity = FieldIdentifier.VULNERABILITY_SEVERITY.label;
+    final List<String> byCve = List.of(FieldIdentifier.VULNERABILITY_ID.label);
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByFloatField(
+        svType, severity, CvssV3Severity.halfOpenScoreBands(), FieldIdentifier.VULNERABILITY_ID.label);
+
+    // Old per-band countDistinct loop, band by band, must equal the single-pass aggregation buckets.
+    assertThat(result.buckets.get("none"))
+        .isEqualTo(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[0.0 TO 0.0]", byCve));
+    assertThat(result.buckets.get("low"))
+        .isEqualTo(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[0.1 TO 4.0}", byCve));
+    assertThat(result.buckets.get("medium"))
+        .isEqualTo(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[4.0 TO 7.0}", byCve));
+    assertThat(result.buckets.get("high"))
+        .isEqualTo(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[7.0 TO 9.0}", byCve));
+    assertThat(result.buckets.get("critical"))
+        .isEqualTo(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[9.0 TO 10.0]", byCve));
+    // Concretely: none=1 (CVE-1), low=1 (CVE-2), medium=1 (CVE-3), high=1 (CVE-4), critical=1 (CVE-5).
+    assertThat(result.buckets.values().stream().mapToLong(Long::longValue).sum()).isEqualTo(5);
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_CvssBandBoundariesLandInExactlyOneBand() throws Exception {
+    // One score at every band boundary (and interior). Half-open bands must place each in exactly one
+    // band: 0.0->none, 0.1/3.9->low, 4.0/6.9->medium, 7.0/8.9->high, 9.0/10.0->critical.
+    indexVulnDocsWithSeverities(0.0f, 0.1f, 3.9f, 4.0f, 6.9f, 7.0f, 8.9f, 9.0f, 10.0f);
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.total).isEqualTo(9);
+    assertThat(result.buckets).containsEntry("none", 1L); // 0.0
+    assertThat(result.buckets).containsEntry("low", 2L); // 0.1, 3.9
+    assertThat(result.buckets).containsEntry("medium", 2L); // 4.0, 6.9
+    assertThat(result.buckets).containsEntry("high", 2L); // 7.0, 8.9
+    assertThat(result.buckets).containsEntry("critical", 2L); // 9.0, 10.0
+    // No double-counting: every doc lands in exactly one band, so the bands sum to the total.
+    assertThat(result.buckets.values().stream().mapToLong(Long::longValue).sum()).isEqualTo(result.total);
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_BoundaryValueSevenIsHighNotMedium() throws Exception {
+    // The canonical footgun: a CVSS 7.0 must be High, never Medium (Medium is [4.0, 7.0), High is [7.0, 9.0)).
+    indexVulnDocsWithSeverities(7.0f);
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.buckets).containsEntry("high", 1L);
+    assertThat(result.buckets).containsEntry("medium", 0L);
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_ZeroIsNoneAndTenIsCritical() throws Exception {
+    indexVulnDocsWithSeverities(0.0f, 10.0f);
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.buckets).containsEntry("none", 1L);
+    assertThat(result.buckets).containsEntry("critical", 1L);
+    assertThat(result.buckets).containsEntry("low", 0L);
+  }
+
+  @Test
+  public void testCountDistinct_HalfOpenSeverityBandClause_BoundarySevenIsHighNotMedium() throws Exception {
+    // The catalog severity facet counts distinct CVEs per band using a Lucene range STRING clause built
+    // from CvssV3Severity.halfOpenScoreBands() (the same source of truth the float-range primitive uses).
+    // This proves the string path — parsed by StandardQueryParser — honors the exclusive-upper } bracket
+    // identically to the primitive's programmatic FloatPoint.newRangeQuery(lo, nextDown(hi)): a boundary
+    // 7.0 lands in High [7.0 TO 9.0} and never in Medium [4.0 TO 7.0}.
+    indexVulnDocsWithSeverities(7.0f);
+    final String svType = "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName();
+    final String severity = FieldIdentifier.VULNERABILITY_SEVERITY.label;
+    final List<String> byCve = List.of(FieldIdentifier.VULNERABILITY_ID.label);
+
+    assertThat(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[7.0 TO 9.0}", byCve))
+        .isEqualTo(1);
+    assertThat(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[4.0 TO 7.0}", byCve))
+        .isZero();
+  }
+
+  @Test
+  public void testCountDistinct_HalfOpenSeverityBandClauses_EveryBoundaryLandsInExactlyOneBand() throws Exception {
+    // Mirror the float-primitive boundary test through the facet's countDistinct string clauses: 0.0->none,
+    // 0.1/3.9->low, 4.0/6.9->medium, 7.0/8.9->high, 9.0/10.0->critical, each CVE distinct. None (single
+    // point 0.0) and Critical (inclusive top 10.0) close inclusive ]; the others close exclusive }.
+    indexVulnDocsWithSeverities(0.0f, 0.1f, 3.9f, 4.0f, 6.9f, 7.0f, 8.9f, 9.0f, 10.0f);
+    final String svType = "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName();
+    final String severity = FieldIdentifier.VULNERABILITY_SEVERITY.label;
+    final List<String> byCve = List.of(FieldIdentifier.VULNERABILITY_ID.label);
+
+    assertThat(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[0.0 TO 0.0]", byCve))
+        .isEqualTo(1); // 0.0
+    assertThat(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[0.1 TO 4.0}", byCve))
+        .isEqualTo(2); // 0.1, 3.9
+    assertThat(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[4.0 TO 7.0}", byCve))
+        .isEqualTo(2); // 4.0, 6.9
+    assertThat(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[7.0 TO 9.0}", byCve))
+        .isEqualTo(2); // 7.0, 8.9
+    assertThat(luceneSearchIndexClient.countDistinct(svType + " AND " + severity + ":[9.0 TO 10.0]", byCve))
+        .isEqualTo(2); // 9.0, 10.0
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_FailsClosed_UserWithNoReadContextsCountsZero() throws Exception {
+    indexVulnDocsWithSeverities(2.0f, 5.0f, 9.5f);
+
+    actAsUser("user-with-no-permissions");
+
+    MetricAggregationResult result = luceneSearchIndexClient.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.total).isZero();
+    assertThat(result.buckets.values()).containsOnly(0L);
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_rejectsMalformedRangeBounds() {
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> luceneSearchIndexClient.aggregateCountByFloatField(
+            "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+            FieldIdentifier.VULNERABILITY_SEVERITY.label,
+            Map.of("high", new float[]{7.0f})))
+        .withMessageContaining("high");
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_rejectsInvertedRangeBounds() {
+    Map<String, float[]> inverted = new LinkedHashMap<>();
+    inverted.put("inverted", new float[]{9.0f, 4.0f});
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> luceneSearchIndexClient.aggregateCountByFloatField(
+            "itemType:" + ItemType.SECURITY_VULNERABILITY.searchFieldName(),
+            FieldIdentifier.VULNERABILITY_SEVERITY.label,
+            inverted))
         .withMessageContaining("inverted");
   }
 }

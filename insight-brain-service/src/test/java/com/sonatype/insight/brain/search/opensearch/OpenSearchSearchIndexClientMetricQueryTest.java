@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -72,6 +73,7 @@ import org.opensearch.client.opensearch.core.search.TotalHits;
 import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.aggregations.Buckets;
+import org.opensearch.client.opensearch._types.aggregations.CardinalityAggregate;
 import org.opensearch.client.opensearch._types.aggregations.RangeAggregate;
 import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
 
@@ -456,6 +458,231 @@ public class OpenSearchSearchIndexClientMetricQueryTest
 
     // Composite-key cardinality must not be a plain single-field aggregation (would under/over-count pairs).
     assertThat(cardinality.path("field").isMissingNode()).isTrue();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAggregateCountByFloatField_BuildsRangeAggregationWithHalfOpenBounds() throws Exception {
+    grantGlobalAccess();
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    HitsMetadata<Map> hits = mock(HitsMetadata.class);
+    when(response.hits()).thenReturn(hits);
+    when(hits.total()).thenReturn(null);
+    when(response.aggregations()).thenReturn(Collections.emptyMap());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    MetricAggregationResult result = client.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands());
+
+    // No aggregation buckets in the mocked response => total 0 and every band defaults to 0.
+    assertThat(result.total).isZero();
+    assertThat(result.buckets.keySet())
+        .containsExactlyElementsOf(CvssV3Severity.halfOpenScoreBands().keySet());
+    assertThat(result.buckets.values()).containsOnly(0L);
+
+    JsonNode root = toJsonTree(captor.getValue());
+    JsonNode aggs = root.has("aggregations") ? root.path("aggregations") : root.path("aggs");
+    JsonNode range = aggs.path("metricBuckets").path("range");
+    assertThat(range.path("field").asText()).isEqualTo(FieldIdentifier.VULNERABILITY_SEVERITY.label);
+
+    // High band is [7.0, 9.0): from is the inclusive lower, to is the EXCLUSIVE upper passed verbatim
+    // (no +1 unlike the int overload) — OpenSearch range-agg `to` is already exclusive, so a 7.0 lands
+    // in High and a 9.0 does not (it starts Critical). This is the boundary parity check vs Lucene.
+    JsonNode high = null;
+    JsonNode medium = null;
+    for (JsonNode candidate : range.path("ranges")) {
+      if ("high".equals(candidate.path("key").asText())) {
+        high = candidate;
+      }
+      if ("medium".equals(candidate.path("key").asText())) {
+        medium = candidate;
+      }
+    }
+    assertThat(high).isNotNull();
+    assertThat((float) high.path("from").asDouble()).isEqualTo(7.0f);
+    assertThat((float) high.path("to").asDouble()).isEqualTo(9.0f);
+    assertThat(medium).isNotNull();
+    assertThat((float) medium.path("from").asDouble()).isEqualTo(4.0f);
+    // Medium's exclusive upper equals High's inclusive lower: a 7.0 cannot fall in both.
+    assertThat((float) medium.path("to").asDouble()).isEqualTo(7.0f);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAggregateCountByFloatField_AllBandsFromResponse() throws Exception {
+    grantGlobalAccess();
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    HitsMetadata<Map> hits = mock(HitsMetadata.class);
+    when(response.hits()).thenReturn(hits);
+    when(hits.total()).thenReturn(TotalHits.of(t -> t.value(9).relation(TotalHitsRelation.Eq)));
+
+    RangeBucket noneBucket = mock(RangeBucket.class);
+    when(noneBucket.key()).thenReturn("none");
+    when(noneBucket.docCount()).thenReturn(1L);
+    RangeBucket lowBucket = mock(RangeBucket.class);
+    when(lowBucket.key()).thenReturn("low");
+    when(lowBucket.docCount()).thenReturn(2L);
+    RangeBucket mediumBucket = mock(RangeBucket.class);
+    when(mediumBucket.key()).thenReturn("medium");
+    when(mediumBucket.docCount()).thenReturn(2L);
+    RangeBucket highBucket = mock(RangeBucket.class);
+    when(highBucket.key()).thenReturn("high");
+    when(highBucket.docCount()).thenReturn(2L);
+    RangeBucket criticalBucket = mock(RangeBucket.class);
+    when(criticalBucket.key()).thenReturn("critical");
+    when(criticalBucket.docCount()).thenReturn(2L);
+
+    Buckets<RangeBucket> rangeBuckets = mock(Buckets.class);
+    when(rangeBuckets.array())
+        .thenReturn(List.of(noneBucket, lowBucket, mediumBucket, highBucket, criticalBucket));
+
+    RangeAggregate rangeAggregate = mock(RangeAggregate.class);
+    when(rangeAggregate.buckets()).thenReturn(rangeBuckets);
+
+    Aggregate aggregate = mock(Aggregate.class);
+    when(aggregate.isRange()).thenReturn(true);
+    when(aggregate.range()).thenReturn(rangeAggregate);
+
+    when(response.aggregations()).thenReturn(Map.of("metricBuckets", aggregate));
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    MetricAggregationResult result = client.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands());
+
+    assertThat(result.total).isEqualTo(9);
+    assertThat(result.buckets.keySet())
+        .containsExactlyElementsOf(CvssV3Severity.halfOpenScoreBands().keySet());
+    assertThat(result.buckets).containsEntry("none", 1L);
+    assertThat(result.buckets).containsEntry("low", 2L);
+    assertThat(result.buckets).containsEntry("medium", 2L);
+    assertThat(result.buckets).containsEntry("high", 2L);
+    assertThat(result.buckets).containsEntry("critical", 2L);
+    assertThat(result.buckets.values().stream().mapToLong(Long::longValue).sum()).isEqualTo(result.total);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAggregateCountByFloatField_DistinctField_AddsCardinalitySubAggPerBand() throws Exception {
+    // With distinctField set, each float range bucket must host a `cardinality` sub-agg on the distinct
+    // field (the range-agg analogue of countDistinctGroupedBy's terms+cardinality), so a band counts
+    // distinct CVEs, not raw docs. Assert the request shape (the live re-test asserts the counts).
+    grantGlobalAccess();
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    HitsMetadata<Map> hits = mock(HitsMetadata.class);
+    when(response.hits()).thenReturn(hits);
+    when(hits.total()).thenReturn(null);
+    when(response.aggregations()).thenReturn(Collections.emptyMap());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    client.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands(),
+        FieldIdentifier.VULNERABILITY_ID.label);
+
+    JsonNode root = toJsonTree(captor.getValue());
+    JsonNode aggs = root.has("aggregations") ? root.path("aggregations") : root.path("aggs");
+    JsonNode metricBuckets = aggs.path("metricBuckets");
+    assertThat(metricBuckets.path("range").path("field").asText())
+        .isEqualTo(FieldIdentifier.VULNERABILITY_SEVERITY.label);
+    JsonNode subAggs = metricBuckets.has("aggregations")
+        ? metricBuckets.path("aggregations")
+        : metricBuckets.path("aggs");
+    JsonNode cardinality = subAggs.path("distinct").path("cardinality");
+    assertThat(cardinality.isMissingNode()).isFalse();
+    assertThat(cardinality.path("precision_threshold").asInt()).isEqualTo(40_000);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAggregateCountByFloatField_DistinctField_ReadsCardinalityPerBand() throws Exception {
+    // The per-band value is read from each range bucket's `distinct` cardinality sub-agg, not docCount.
+    grantGlobalAccess();
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    HitsMetadata<Map> hits = mock(HitsMetadata.class);
+    when(response.hits()).thenReturn(hits);
+    when(hits.total()).thenReturn(TotalHits.of(t -> t.value(6).relation(TotalHitsRelation.Eq)));
+
+    RangeBucket highBucket = mock(RangeBucket.class);
+    when(highBucket.key()).thenReturn("high");
+    when(highBucket.docCount()).thenReturn(4L); // raw docs; must be ignored in favor of distinct
+    CardinalityAggregate highCard = mock(CardinalityAggregate.class);
+    when(highCard.value()).thenReturn(2L);
+    Aggregate highDistinct = mock(Aggregate.class);
+    when(highDistinct.isCardinality()).thenReturn(true);
+    when(highDistinct.cardinality()).thenReturn(highCard);
+    when(highBucket.aggregations()).thenReturn(Map.of("distinct", highDistinct));
+
+    RangeBucket criticalBucket = mock(RangeBucket.class);
+    when(criticalBucket.key()).thenReturn("critical");
+    when(criticalBucket.docCount()).thenReturn(2L);
+    CardinalityAggregate critCard = mock(CardinalityAggregate.class);
+    when(critCard.value()).thenReturn(1L);
+    Aggregate critDistinct = mock(Aggregate.class);
+    when(critDistinct.isCardinality()).thenReturn(true);
+    when(critDistinct.cardinality()).thenReturn(critCard);
+    when(criticalBucket.aggregations()).thenReturn(Map.of("distinct", critDistinct));
+
+    Buckets<RangeBucket> rangeBuckets = mock(Buckets.class);
+    when(rangeBuckets.array()).thenReturn(List.of(highBucket, criticalBucket));
+    RangeAggregate rangeAggregate = mock(RangeAggregate.class);
+    when(rangeAggregate.buckets()).thenReturn(rangeBuckets);
+    Aggregate aggregate = mock(Aggregate.class);
+    when(aggregate.isRange()).thenReturn(true);
+    when(aggregate.range()).thenReturn(rangeAggregate);
+    when(response.aggregations()).thenReturn(Map.of("metricBuckets", aggregate));
+
+    when(openSearchClient.search(any(SearchRequest.class), eq(Map.class))).thenReturn(response);
+
+    MetricAggregationResult result = client.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands(),
+        FieldIdentifier.VULNERABILITY_ID.label);
+
+    assertThat(result.total).isEqualTo(6); // raw doc total, unaffected by distinctField
+    assertThat(result.buckets).containsEntry("high", 2L); // distinct CVEs, not the 4 raw docs
+    assertThat(result.buckets).containsEntry("critical", 1L);
+  }
+
+  @Test
+  public void testAggregateCountByFloatField_FailClosed_UsesMatchNone() throws Exception {
+    when(permissionService.getContextIdsForUserWithPermission(any(), eq(Permission.READ)))
+        .thenReturn(Collections.emptySet());
+
+    SearchResponse<Map> response = mock(SearchResponse.class);
+    @SuppressWarnings("unchecked")
+    HitsMetadata<Map> hits = mock(HitsMetadata.class);
+    when(response.hits()).thenReturn(hits);
+    when(hits.total()).thenReturn(null);
+    when(response.aggregations()).thenReturn(Collections.emptyMap());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    when(openSearchClient.search(captor.capture(), eq(Map.class))).thenReturn(response);
+
+    client.aggregateCountByFloatField(
+        "itemType:" + ItemType.SECURITY_VULNERABILITY.name(),
+        FieldIdentifier.VULNERABILITY_SEVERITY.label,
+        CvssV3Severity.halfOpenScoreBands());
+
+    JsonNode root = toJsonTree(captor.getValue());
+    JsonNode filter = root.path("query").path("bool").path("filter");
+    assertThat(filter.isArray()).isTrue();
+    assertThat(filter.get(0).has("match_none")).isTrue();
   }
 
   private static Map<String, List<String>> collectTerms(JsonNode shouldArray) {

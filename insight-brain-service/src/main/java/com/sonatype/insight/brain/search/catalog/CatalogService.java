@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.catalog.CatalogLocalRequestBuilder.LocalQuery;
 import com.sonatype.insight.brain.search.catalog.CatalogResponse.CatalogFacetBucket;
 import com.sonatype.insight.brain.search.global.GlobalSearchCursor;
+import com.sonatype.insight.brain.search.global.GlobalSearchSortAllowlist;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService.IqLocalRow;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService.IqLocalSearchResponse;
@@ -40,9 +42,12 @@ import com.sonatype.insight.brain.search.global.SearchSource;
 import com.sonatype.insight.brain.search.global.Tab;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
+import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.StringUtils;
@@ -72,6 +77,19 @@ public class CatalogService
    */
   static final int DEFAULT_CATALOG_PAGE_SIZE = 50;
 
+  // Raw stored-field labels used as composite keys for the distinct-count aggregations. These are
+  // Lucene field labels (validated against FieldIdentifier in the client), not the FieldMap query
+  // field names; applicationId is stored on component and vuln docs even though the FieldMap only
+  // exposes it as a filter on APPLICATION docs.
+  private static final String FIELD_APPLICATION_ID = "applicationId";
+
+  private static final String FIELD_COMPONENT_HASH = "componentHash";
+
+  private static final String FIELD_VULNERABILITY_ID = "vulnerabilityId";
+
+  /** Row key + facet name for the CVSS severity-band facet on the local Vulnerabilities leg. */
+  static final String SEVERITY_FACET_KEY = "severity";
+
   /**
    * Local facet spec: each entry maps a catalog row-field (whose page values seed the bucket list)
    * to the IQ-local index field the whole-corpus count queries. Kept ordered so the returned facet
@@ -79,16 +97,39 @@ public class CatalogService
    */
   private static final Map<CatalogEntityType, List<LocalFacet>> LOCAL_FACET_FIELDS = Map.of(
       CatalogEntityType.COMPONENT,
-      // Only fields a NON_VULNERABLE_COMPONENT doc actually carries: componentFormat and
-      // organizationName. Effective-license / license-threat-group live on LEGAL_VIOLATION docs, never
-      // on component docs, so a licenseThreatGroup facet here would always be empty in production.
+      // Fields a NON_VULNERABLE_COMPONENT doc carries: componentFormat, organizationName, applicationName.
+      // Effective-license / license-threat-group live on LEGAL_VIOLATION docs, never on component docs,
+      // so a licenseThreatGroup facet here would always be empty in production. There is NO severities
+      // facet: component docs carry no threat/severity field (a known deferred data gap), so it is
+      // omitted rather than fabricated from an absent field.
       List.of(
-          new LocalFacet(CatalogRowMapper.LOCAL_FIELD_ECOSYSTEM, "componentFormat"),
+          LocalFacet.value(CatalogRowMapper.LOCAL_FIELD_ECOSYSTEM, "componentFormat"),
           // organizationName is rewritten to parentOrganizationName by the metric layer, so the count
           // includes the org and its descendants (consistent with the organizations filter clause).
-          new LocalFacet(CatalogRowMapper.LOCAL_FIELD_ORGANIZATION, "organizationName")),
+          LocalFacet.value(CatalogRowMapper.LOCAL_FIELD_ORGANIZATION, "organizationName"),
+          // applicationName is queryable on component docs (PR-A widening). A component recurs once per
+          // (app, stage), so the bucket count is distinct componentHash — the number of distinct
+          // components in that app, not raw per-stage docs. Bucketed by name (applicationId is not a
+          // queryable filter on component docs).
+          LocalFacet.distinct(
+              CatalogRowMapper.LOCAL_FIELD_APPLICATION, "applicationName", FIELD_COMPONENT_HASH)),
       CatalogEntityType.VULNERABILITY,
-      List.of(new LocalFacet(CatalogRowMapper.LOCAL_FIELD_STATUS, "vulnerabilityStatus")));
+      // vulnerabilityStatus (triage status) and componentFormat (affected ecosystems) are term-valued
+      // on SECURITY_VULNERABILITY docs, but those docs are per-(app, stage), so a raw count() over a
+      // bucket over-counts a CVE once per (app, stage). Every VULNERABILITY facet therefore declares an
+      // explicit distinctKey=vulnerabilityId so the bucket count is distinct CVEs (consistent with the
+      // orgs/apps affected-CVE counts). organizationName + applicationName are queryable on vuln docs
+      // (PR-A widening). The severity-BAND facet ("severity") is NOT a page-value facet in this list: its
+      // buckets are the five fixed CVSS bands, not values discovered from the page, so it is computed
+      // separately in localFacets() via distinct-CVE counting over half-open float ranges on
+      // vulnerabilitySeverity (see severityBandFacet()).
+      List.of(
+          LocalFacet.distinct(CatalogRowMapper.LOCAL_FIELD_STATUS, "vulnerabilityStatus", FIELD_VULNERABILITY_ID),
+          LocalFacet.distinct(CatalogRowMapper.LOCAL_FIELD_ECOSYSTEM, "componentFormat", FIELD_VULNERABILITY_ID),
+          LocalFacet.distinct(
+              CatalogRowMapper.LOCAL_FIELD_ORGANIZATION, "organizationName", FIELD_VULNERABILITY_ID),
+          LocalFacet.distinct(
+              CatalogRowMapper.LOCAL_FIELD_APPLICATION, "applicationName", FIELD_VULNERABILITY_ID)));
 
   /**
    * Cap on distinct values counted per facet field. Facet values come from the current page's rows,
@@ -98,12 +139,29 @@ public class CatalogService
   static final int MAX_FACET_BUCKETS_PER_FIELD = 20;
 
   /**
-   * Overall ceiling on whole-corpus facet {@code count()} calls issued per request across all facet
-   * fields. Each bucket count is one RBAC-scoped index query; bounding total fan-out keeps a single
-   * {@code includeFacets} request from firing dozens of counts under load (p95 &lt; 300ms target).
-   * Once the budget is exhausted the remaining buckets are omitted and a truncation warning is added.
+   * Overall ceiling on whole-corpus facet {@code count()} calls issued per request across the
+   * per-value facet fields (orgs/apps). Each bucket count is one RBAC-scoped index query; bounding
+   * total fan-out keeps a single {@code includeFacets} request from firing dozens of counts under
+   * load (p95 &lt; 300ms target). Once the budget is exhausted the remaining buckets are omitted and
+   * a truncation warning is added.
+   * <p>
+   * This bounds the whole per-request aggregation fan-out to a small constant: at most this many
+   * per-value facet counts, plus ONE aggregation pass for the CVSS severity-band facet (a single
+   * {@link SearchIndexClient#aggregateCountByFloatField} call over all bands, not one count per
+   * band), plus the small fixed number of grouped distinct-count reads in {@link #enrichLocalCounts}
+   * (one for components, two for vulns). So the realistic ceiling is roughly {@code 40 + 1 + 2}
+   * aggregation queries per request.
    */
   static final int MAX_FACET_COUNT_QUERIES = 40;
+
+  /**
+   * Affected-app / affected-component counts for the whole page are computed with ONE grouped
+   * distinct-count index read for components (distinct applicationId grouped by componentHash) and
+   * TWO for vulns (distinct applicationId and distinct componentHash, each grouped by
+   * vulnerabilityId), regardless of page size. This bounds the aggregation fan-out to a small
+   * constant per request rather than one distinct-count query per row (which blew the budget on a
+   * full page and opened one fresh reader per row). Each read is RBAC-scoped and fails closed.
+   */
 
   private final IqLocalSearchService iqLocalSearchService;
 
@@ -130,8 +188,28 @@ public class CatalogService
     this.tenantUtil = tenantUtil;
   }
 
-  private record LocalFacet(String rowField, String indexField)
+  /**
+   * One local facet.
+   *
+   * @param rowField page row field whose distinct values seed the bucket list.
+   * @param indexField raw IQ index field the whole-corpus count queries (a FieldIdentifier label,
+   *          not the FieldMap token). {@code organizationName} is rewritten to
+   *          {@code parentOrganizationName} by the metric layer so the count spans the org hierarchy.
+   * @param distinctKey when non-null, the bucket count is a {@code countDistinct} over this composite
+   *          key rather than a raw document {@code count}. Required whenever the docs behind a bucket
+   *          are per-app-per-stage on the counted dimension (e.g. an apps facet over component docs,
+   *          where a component recurs once per (app, stage) — distinct componentHash yields the number
+   *          of distinct components, not raw docs). Null means a plain document count.
+   */
+  private record LocalFacet(String rowField, String indexField, String distinctKey)
   {
+    static LocalFacet value(final String rowField, final String indexField) {
+      return new LocalFacet(rowField, indexField, null);
+    }
+
+    static LocalFacet distinct(final String rowField, final String indexField, final String distinctKey) {
+      return new LocalFacet(rowField, indexField, distinctKey);
+    }
   }
 
   public CatalogResponse search(
@@ -372,6 +450,12 @@ public class CatalogService
     }
     logDroppedRows(entityType, dropped);
 
+    // Query-time affected-app / affected-component aggregations: these cannot be a stored field
+    // because component/vuln docs are per-app-per-stage (no single global doc). One grouped,
+    // RBAC-scoped (fail-closed) index read per metric covers the whole page. Enrichment mutates the
+    // row list in place.
+    enrichLocalCounts(entityType, rows);
+
     // Pin the next-page cursor to the backend that actually served this page, so a cross-backend
     // switch on the follow-up request is rejected as stale rather than silently mis-paginated.
     final GlobalSearchCursor next = iqLocalSearchService.mintNextCursor(
@@ -379,6 +463,15 @@ public class CatalogService
 
     final List<String> warnings = new ArrayList<>(result.warnings());
     warnings.addAll(local.warnings());
+    if (!GlobalSearchSortAllowlist.RELEVANCE.equals(sortKey) && !IqLocalSearchService.isFieldSortEnabled()) {
+      warnings.add("sort is relevance-only until field sort is enabled");
+    }
+    // SBOM-sourced vulnerability docs carry no policyEvaluationStage, so a stages filter cannot
+    // scope them and silently excludes every one. Surface that as a warning (mirrors the catalog
+    // filter-rejection warnings) rather than dropping them without a signal.
+    if (entityType == CatalogEntityType.VULNERABILITY && hasStagesFilter(request.getFilters())) {
+      warnings.add(CatalogWarnings.STAGES_EXCLUDE_SBOM_VULNS);
+    }
 
     // Facet VALUES come from the returned page, but each bucket COUNT is a whole-corpus,
     // RBAC-scoped count over the same active filters + item type (not page-only).
@@ -505,10 +598,26 @@ public class CatalogService
           break;
         }
         final String query = baseQuery + " AND " + facet.indexField() + ":" + quote(value);
-        buckets.add(new CatalogFacetBucket(value, searchIndexClient.count(query)));
+        buckets.add(new CatalogFacetBucket(value, facetBucketCount(facet, query)));
         budget--;
       }
       out.put(facet.rowField(), buckets);
+    }
+    // The severity-band facet is not seeded from page values: its buckets are the five fixed CVSS bands.
+    // It is computed in a SINGLE aggregation pass (one aggregateCountByFloatField call over all bands,
+    // not one distinct-CVE count per band), so it costs one query against the per-request budget and
+    // cannot blow the p95 target under concurrency.
+    if (entityType == CatalogEntityType.VULNERABILITY && !truncated) {
+      if (budget >= 1) {
+        // Filter-scoped: baseQuery carries the caller's active org/app/stage clauses, so these
+        // per-band distinct-CVE counts reflect the filtered corpus — consistent with the other
+        // localFacets here, and unlike enrichLocalCounts (global-reach via itemTypeQuery).
+        out.put(SEVERITY_FACET_KEY, severityBandFacet(baseQuery));
+        budget--;
+      }
+      else {
+        truncated = true;
+      }
     }
     if (truncated) {
       warnings.add(CatalogWarnings.FACET_COUNTS_TRUNCATED);
@@ -517,23 +626,165 @@ public class CatalogService
   }
 
   /**
+   * CVSS severity-band facet for the local Vulnerabilities leg: five fixed bands
+   * ({@code none}/{@code low}/{@code medium}/{@code high}/{@code critical}) with distinct-CVE counts.
+   * Each band count is the number of distinct {@code vulnerabilityId} values whose
+   * {@code vulnerabilitySeverity} falls in that band's CVSS range, so a CVE that recurs across
+   * per-app-per-stage docs counts once in its band (consistent with the orgs/apps vuln facets), not once
+   * per doc. RBAC-scoped and fail-closed.
+   * <p>
+   * Computed in a <em>single</em> aggregation pass via
+   * {@link SearchIndexClient#aggregateCountByFloatField(String, String, Map, String)} with
+   * {@code distinctField = vulnerabilityId} and {@code ranges = }{@link CvssV3Severity#halfOpenScoreBands()},
+   * rather than one {@code countDistinct} query per band. The band boundaries come from that single source
+   * of truth, half-open {@code [minInclusive, maxExclusive)}, so a boundary value lands in exactly one band:
+   * {@code 4.0} is Medium (not Low), {@code 7.0} is High (not Medium), {@code 9.0} is Critical (not High).
+   * {@code none} is the single point {@code 0.0}; {@code critical}'s upper is the inclusive top of the scale
+   * ({@code 10.0}). The bounds are passed to the primitive as programmatic {@code float[]} ranges (never
+   * string-interpolated into a re-parsed query), so no boundary-rendering footgun exists.
+   */
+  private List<CatalogFacetBucket> severityBandFacet(final String baseQuery) {
+    final Map<String, float[]> bands = CvssV3Severity.halfOpenScoreBands();
+    final MetricAggregationResult result = searchIndexClient.aggregateCountByFloatField(
+        baseQuery, FieldIdentifier.VULNERABILITY_SEVERITY.label, bands, FIELD_VULNERABILITY_ID);
+    final List<CatalogFacetBucket> buckets = new ArrayList<>(bands.size());
+    for (String band : bands.keySet()) {
+      buckets.add(new CatalogFacetBucket(band, result.buckets.getOrDefault(band, 0L)));
+    }
+    return buckets;
+  }
+
+  /**
+   * Adds query-time aggregation counts to the local rows in place, using a single grouped
+   * distinct-count read per metric for the whole page. Components get {@code affectedApps} (distinct
+   * applicationId grouped by componentHash); vulns get {@code affectedApps} (distinct applicationId)
+   * and {@code affectedComponents} (distinct componentHash), each grouped by vulnerabilityId. A group
+   * with no matching documents is absent from the result map and treated as zero.
+   * <p>
+   * These are <em>global-reach</em> counts: the base query carries only the item type (and the RBAC
+   * filter applied inside the client, fail-closed) and deliberately DROPS the caller's active
+   * app/stage/org filter clauses. "Affected apps" therefore reports the item's true reach across the
+   * readable estate, not a count re-scoped to whatever the caller is currently filtering by (which
+   * would collapse to 1 under an {@code applications:[X]} filter and read as misleading).
+   */
+  private void enrichLocalCounts(
+      final CatalogEntityType entityType,
+      final List<CatalogRow> rows)
+  {
+    if (rows.isEmpty()) {
+      return;
+    }
+    // Global-reach base: item type + RBAC only, no caller filter clauses (see method javadoc).
+    final String baseQuery = itemTypeQuery(entityType);
+    if (entityType == CatalogEntityType.COMPONENT) {
+      final Set<String> hashes = groupValues(rows, CatalogRowMapper.LOCAL_FIELD_COMPONENT_HASH);
+      if (hashes.isEmpty()) {
+        return;
+      }
+      final Map<String, Long> affectedAppsByHash = searchIndexClient.countDistinctGroupedBy(
+          baseQuery, FIELD_COMPONENT_HASH, FIELD_APPLICATION_ID, hashes);
+      for (int i = 0; i < rows.size(); i++) {
+        final CatalogRow row = rows.get(i);
+        final Object hash = row.getFields().get(CatalogRowMapper.LOCAL_FIELD_COMPONENT_HASH);
+        if (hash == null) {
+          continue;
+        }
+        // countDistinctGroupedBy keys its result map by the lowercased group value (keyword fields
+        // carry a lowercase normalizer), so look up with the lowercased key on both backends.
+        final long affectedApps = affectedAppsByHash.getOrDefault(String.valueOf(hash).toLowerCase(Locale.ROOT), 0L);
+        rows.set(i, row.toBuilder().field("affectedApps", affectedApps).build());
+      }
+    }
+    else {
+      final Set<String> vulnIds = groupValues(rows, CatalogRowMapper.LOCAL_FIELD_REFERENCE);
+      if (vulnIds.isEmpty()) {
+        return;
+      }
+      final Map<String, Long> affectedAppsByVuln = searchIndexClient.countDistinctGroupedBy(
+          baseQuery, FIELD_VULNERABILITY_ID, FIELD_APPLICATION_ID, vulnIds);
+      final Map<String, Long> affectedComponentsByVuln = searchIndexClient.countDistinctGroupedBy(
+          baseQuery, FIELD_VULNERABILITY_ID, FIELD_COMPONENT_HASH, vulnIds);
+      for (int i = 0; i < rows.size(); i++) {
+        final CatalogRow row = rows.get(i);
+        final Object vulnId = row.getFields().get(CatalogRowMapper.LOCAL_FIELD_REFERENCE);
+        if (vulnId == null) {
+          continue;
+        }
+        // countDistinctGroupedBy keys its result map by the lowercased group value (keyword fields
+        // carry a lowercase normalizer), so look up with the lowercased key on both backends.
+        final String key = String.valueOf(vulnId).toLowerCase(Locale.ROOT);
+        rows.set(i, row.toBuilder()
+            .field("affectedApps", affectedAppsByVuln.getOrDefault(key, 0L))
+            .field("affectedComponents", affectedComponentsByVuln.getOrDefault(key, 0L))
+            .build());
+      }
+    }
+  }
+
+  /** Distinct non-null values of {@code rowField} across the page, in row order. */
+  private static Set<String> groupValues(final List<CatalogRow> rows, final String rowField) {
+    final Set<String> values = new LinkedHashSet<>();
+    for (CatalogRow row : rows) {
+      final Object value = row.getFields().get(rowField);
+      if (value != null) {
+        values.add(String.valueOf(value));
+      }
+    }
+    return values;
+  }
+
+  /**
+   * Facet bucket count, RBAC-scoped and fail-closed. When the facet declares a
+   * {@link LocalFacet#distinctKey()} the count is a {@code countDistinct} over that key, so a bucket
+   * whose docs are per-app-per-stage reports the number of distinct entities (e.g. distinct CVEs for a
+   * vuln facet, distinct components for a component apps facet) rather than raw docs. Every VULNERABILITY
+   * facet declares distinctKey=vulnerabilityId, so distinct-CVE counting is driven purely by the facet
+   * spec rather than a per-entity-type fallthrough. When no distinct key is declared a plain document
+   * count is used.
+   */
+  private long facetBucketCount(final LocalFacet facet, final String query) {
+    if (facet.distinctKey() != null) {
+      return searchIndexClient.countDistinct(query, List.of(facet.distinctKey()));
+    }
+    return searchIndexClient.count(query);
+  }
+
+  /**
    * RBAC-scoped facet-count base: {@code itemType:<localType> AND <structured filter clauses>}. The
    * RBAC filter is applied inside {@link SearchIndexClient#count(String)} (fail-closed), so a caller
    * with no readable contexts counts 0 rather than an unscoped total.
    */
   private static String baseMetricQuery(final CatalogEntityType entityType, final LocalQuery local) {
-    final StringBuilder q = new StringBuilder();
+    final StringBuilder q = new StringBuilder(itemTypeQuery(entityType));
+    for (String clause : local.fieldClauses()) {
+      q.append(" AND ").append(clause);
+    }
+    return q.toString();
+  }
+
+  /**
+   * Item-type-only metric query ({@code itemType:<localType>}), without any caller filter clauses.
+   * The RBAC filter is applied inside the client (fail-closed). Used as the global-reach base for the
+   * affected-app/component counts so they report the item's reach across the whole readable estate
+   * rather than a filter-scoped subset.
+   */
+  private static String itemTypeQuery(final CatalogEntityType entityType) {
     final Set<ItemType> types = entityType.localItemTypes();
     // The catalog entity types each map to a single local item type; join defensively if that changes.
     final List<String> typeClauses = new ArrayList<>(types.size());
     for (ItemType type : types) {
       typeClauses.add("itemType:" + type.searchFieldName());
     }
-    q.append(typeClauses.size() == 1 ? typeClauses.get(0) : "(" + String.join(" OR ", typeClauses) + ")");
-    for (String clause : local.fieldClauses()) {
-      q.append(" AND ").append(clause);
+    return typeClauses.size() == 1 ? typeClauses.get(0) : "(" + String.join(" OR ", typeClauses) + ")";
+  }
+
+  /** True when the caller applied a non-empty {@code stages} terms filter. */
+  private static boolean hasStagesFilter(final Map<String, Object> filters) {
+    if (filters == null) {
+      return false;
     }
-    return q.toString();
+    final Object stages = filters.get("stages");
+    return stages instanceof List<?> list && !list.isEmpty();
   }
 
   private static String quote(final String value) {
@@ -553,6 +804,9 @@ public class CatalogService
 
     public static final String FACET_COUNTS_TRUNCATED =
         "some facet counts were omitted to stay within the per-request query budget";
+
+    public static final String STAGES_EXCLUDE_SBOM_VULNS =
+        "the stages filter excludes SBOM-sourced vulnerabilities, which are not scoped to a policy evaluation stage";
 
     private CatalogWarnings() {
     }

@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.utils;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 
 public enum CvssV3Severity
@@ -39,6 +44,41 @@ public enum CvssV3Severity
 
   public String getDisplayName() {
     return displayName;
+  }
+
+  /**
+   * Half-open {@code [minInclusive, maxExclusive)} CVSS-score bands keyed by lowercase display name
+   * ({@code none}, {@code low}, {@code medium}, {@code high}, {@code critical}), in ascending order.
+   * These are the boundaries the search float-range aggregation primitive
+   * ({@code SearchIndexClient.aggregateCountByFloatField}) and the catalog severity facet both consume,
+   * so a single source of truth defines where each boundary value lands.
+   * <p>
+   * The declared inclusive display ranges (e.g. {@code LOW = 0.1..3.9}, {@code HIGH = 7.0..8.9}) leave
+   * gaps between the printed upper bound and the next band's lower bound. CVSS v3 base scores are always
+   * quantized to one decimal place so no real score falls in a gap, but a half-open convention makes the
+   * bands mathematically contiguous and unambiguous for any float: the exclusive upper bound of one band
+   * equals the inclusive lower bound of the next, so a boundary score belongs to exactly one band —
+   * {@code 4.0} is Medium (not Low), {@code 7.0} is High (not Medium), {@code 9.0} is Critical (not High).
+   * {@code NONE} is exactly {@code 0.0}: {@code [0.0, Math.nextUp(0.0))}. {@code CRITICAL}'s upper bound is
+   * {@code Math.nextUp(10.0)} so a maximum score of {@code 10.0} is included.
+   */
+  private static final Map<String, float[]> HALF_OPEN_SCORE_BANDS;
+
+  static {
+    Map<String, float[]> bands = new LinkedHashMap<>();
+    bands.put(NONE.name().toLowerCase(Locale.ROOT),
+        new float[]{NONE.startScoreRange, Math.nextUp(NONE.startScoreRange)});
+    bands.put(LOW.name().toLowerCase(Locale.ROOT), new float[]{LOW.startScoreRange, MEDIUM.startScoreRange});
+    bands.put(MEDIUM.name().toLowerCase(Locale.ROOT), new float[]{MEDIUM.startScoreRange, HIGH.startScoreRange});
+    bands.put(HIGH.name().toLowerCase(Locale.ROOT), new float[]{HIGH.startScoreRange, CRITICAL.startScoreRange});
+    bands.put(
+        CRITICAL.name().toLowerCase(Locale.ROOT),
+        new float[]{CRITICAL.startScoreRange, Math.nextUp(CRITICAL.endScoreRange)});
+    HALF_OPEN_SCORE_BANDS = Collections.unmodifiableMap(bands);
+  }
+
+  public static Map<String, float[]> halfOpenScoreBands() {
+    return HALF_OPEN_SCORE_BANDS;
   }
 
   public static Severity resolveRatingSeverity(float severityScore) {

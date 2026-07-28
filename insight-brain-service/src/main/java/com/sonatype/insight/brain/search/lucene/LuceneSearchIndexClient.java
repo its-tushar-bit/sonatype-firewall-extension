@@ -13,6 +13,7 @@ import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,6 +61,7 @@ import com.sonatype.insight.error.exception.ConflictException;
 
 import jakarta.inject.Inject;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.CheckIndex.CheckIndexException;
 import org.apache.lucene.index.CorruptIndexException;
@@ -663,6 +665,48 @@ public class LuceneSearchIndexClient
   }
 
   @Override
+  public MetricAggregationResult aggregateCountByFloatField(
+      final String metricQuery,
+      final String bucketField,
+      final Map<String, float[]> ranges,
+      final String distinctField)
+  {
+    validateFloatRangeBounds(ranges);
+    if (distinctField != null) {
+      checkFieldNames(new HashSet<>(List.of(bucketField, distinctField)));
+    }
+    updateMaxQueryClauseCount();
+
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+      // RBAC is identical across total + bucket counts — resolve once per request.
+      Query rbac = buildRbacFilterQuery();
+      long total = countWithSearcher(indexSearcher, metricQuery, null, rbac);
+      Map<String, Long> buckets = new LinkedHashMap<>();
+      for (Map.Entry<String, float[]> entry : ranges.entrySet()) {
+        float[] bounds = entry.getValue();
+        // Half-open [minInclusive, maxExclusive): step the upper bound down to the previous
+        // representable float so FloatPoint's inclusive newRangeQuery excludes it (the same
+        // nextDown trick QueryCompiler uses for exclusive float range bounds). This keeps a CVSS
+        // boundary value (e.g. 7.0) in exactly one band across both backends. Build the range
+        // programmatically (not by concatenating bounds into a re-parsed query string) — the same
+        // string-interpolation footgun this client deliberately avoids for the RBAC filter.
+        Query bandFilter = FloatPoint.newRangeQuery(bucketField, bounds[0], FloatPoint.nextDown(bounds[1]));
+        long count = distinctField == null
+            ? countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac)
+            : countDistinctWithSearcher(indexSearcher, metricQuery, List.of(distinctField), bandFilter, rbac);
+        buckets.put(entry.getKey(), count);
+      }
+      return new MetricAggregationResult(total, buckets);
+    }
+    catch (Exception e) {
+      throw mapSearchException(e);
+    }
+  }
+
+  @Override
   public long countDistinct(final String metricQuery, final List<String> compositeKeyFields) {
     validateCompositeKeyFields(compositeKeyFields);
     checkFieldNames(new HashSet<>(compositeKeyFields));
@@ -673,7 +717,34 @@ public class LuceneSearchIndexClient
     {
       IndexSearcher indexSearcher = new IndexSearcher(indexReader);
       Query rbac = buildRbacFilterQuery();
-      return countDistinctWithSearcher(indexSearcher, metricQuery, compositeKeyFields, rbac);
+      return countDistinctWithSearcher(indexSearcher, metricQuery, compositeKeyFields, null, rbac);
+    }
+    catch (Exception e) {
+      throw mapSearchException(e);
+    }
+  }
+
+  @Override
+  public Map<String, Long> countDistinctGroupedBy(
+      final String metricQuery,
+      final String groupField,
+      final String distinctField,
+      final Collection<String> groupValues)
+  {
+    checkFieldNames(new HashSet<>(List.of(groupField, distinctField)));
+    if (groupValues == null || groupValues.isEmpty()) {
+      return Map.of();
+    }
+    updateMaxQueryClauseCount();
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+      Query query = buildRbacFilteredMetricQuery(metricQuery, null, buildRbacFilterQuery());
+      DistinctGroupedStoredFieldCollector collector = new DistinctGroupedStoredFieldCollector(
+          indexSearcher.storedFields(), groupField, distinctField, groupValues);
+      indexSearcher.search(query, collector);
+      return collector.groupCounts();
     }
     catch (Exception e) {
       throw mapSearchException(e);
@@ -724,7 +795,8 @@ public class LuceneSearchIndexClient
   }
 
   /**
-   * Counts distinct composite keys among the RBAC-filtered documents matching {@code metricQuery}. The matching
+   * Counts distinct composite keys among the RBAC-filtered documents matching {@code metricQuery} (further
+   * narrowed by {@code extraFilter}, e.g. a per-band float-range clause, when non-null). The matching
    * documents are visited via a {@link SimpleCollector}; for each, the stored values of {@code compositeKeyFields}
    * are joined into a single key accumulated in a {@link HashSet}, and the set size is returned. Reuses the same
    * programmatic RBAC FILTER (and {@link MatchNoDocsQuery} fail-closed behavior) as {@link #countWithSearcher}.
@@ -737,9 +809,10 @@ public class LuceneSearchIndexClient
       final IndexSearcher indexSearcher,
       final String metricQuery,
       final List<String> compositeKeyFields,
+      final Query extraFilter,
       final Query rbac) throws Exception
   {
-    Query query = buildRbacFilteredMetricQuery(metricQuery, null, rbac);
+    Query query = buildRbacFilteredMetricQuery(metricQuery, extraFilter, rbac);
     Set<String> fieldsToLoad = new HashSet<>(compositeKeyFields);
     StoredFields storedFields = indexSearcher.storedFields();
     Set<String> distinctKeys = new HashSet<>();

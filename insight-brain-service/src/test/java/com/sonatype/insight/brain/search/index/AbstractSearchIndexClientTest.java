@@ -11,6 +11,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -895,8 +896,28 @@ public class AbstractSearchIndexClientTest
     }
 
     @Override
+    public MetricAggregationResult aggregateCountByFloatField(
+        String metricQuery,
+        String bucketField,
+        Map<String, float[]> ranges,
+        String distinctField)
+    {
+      return new MetricAggregationResult(0L, Map.of());
+    }
+
+    @Override
     public long countDistinct(String metricQuery, List<String> compositeKeyFields) {
       return 0L;
+    }
+
+    @Override
+    public Map<String, Long> countDistinctGroupedBy(
+        String metricQuery,
+        String groupField,
+        String distinctField,
+        Collection<String> groupValues)
+    {
+      return Map.of();
     }
   }
 

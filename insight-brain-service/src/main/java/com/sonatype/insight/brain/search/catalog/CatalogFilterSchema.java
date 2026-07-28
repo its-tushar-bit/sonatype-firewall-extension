@@ -24,6 +24,11 @@ public final class CatalogFilterSchema
           // Local-source only (My Scan Data). The catalog source rejects it in CatalogRequestBuilder;
           // organizationName is not part of the public Guide/HDS corpus.
           Map.entry("organizations", Kind.TERMS),
+          // applications / stages are local-source only: they filter the my-scan estate by the app
+          // and evaluation stage denormalized on component docs. The catalog (Guide/HDS) corpus has
+          // no app/stage dimension, so CatalogRequestBuilder rejects them there.
+          Map.entry("applications", Kind.TERMS),
+          Map.entry("stages", Kind.TERMS),
           Map.entry("categories", Kind.TERMS),
           Map.entry("severities", Kind.TERMS),
           Map.entry("licenseFamilies", Kind.TERMS),
@@ -37,6 +42,11 @@ public final class CatalogFilterSchema
       CatalogEntityType.VULNERABILITY, Map.ofEntries(
           Map.entry("query", Kind.TEXT),
           Map.entry("severities", Kind.TERMS),
+          // Local-source only (My Scan Data) triage dimensions. Guide/HDS vulns are not scoped to an
+          // org/app/stage, so CatalogRequestBuilder rejects these on the catalog source.
+          Map.entry("organizations", Kind.TERMS),
+          Map.entry("applications", Kind.TERMS),
+          Map.entry("stages", Kind.TERMS),
           Map.entry("cwes", Kind.TERMS),
           Map.entry("affectedEcosystems", Kind.TERMS),
           Map.entry("cvss", Kind.RANGE),

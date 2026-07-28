@@ -478,6 +478,9 @@ public class IqLocalSearchService
         "name", POLICY_VIOLATION_POLICY_NAME,
         "threat", POLICY_VIOLATION_THREAT_LEVEL));
     m.put(COMPONENT, Map.of("name", COMPONENT_NAME));
+    // No "severity" entry: VULNERABILITY_SEVERITY is a numeric FloatPoint with no sorted-numeric twin,
+    // and sortFor builds only a STRING SortField, so a severity sort is held out of the allowlist
+    // until numeric field-sort machinery lands (kept aligned with GlobalSearchSortAllowlist).
     m.put(VULNERABILITY, Map.of("name", VULNERABILITY_ID));
     // WAIVER default "created" (newest first) sorts on the created-at epoch-millis numeric twin.
     m.put(WAIVER, Map.of(GlobalSearchSortAllowlist.WAIVER_CREATED, POLICY_WAIVER_CREATED_AT_EPOCH_MS));

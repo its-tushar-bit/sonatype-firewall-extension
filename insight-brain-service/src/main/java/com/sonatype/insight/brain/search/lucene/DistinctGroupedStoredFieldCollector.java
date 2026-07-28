@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,6 +23,10 @@ import org.apache.lucene.search.SimpleCollector;
 /**
  * Interim Lucene collector: one stored-field pass that counts distinct {@code distinctField}
  * values grouped by {@code groupField}, restricted to the supplied group keys.
+ * <p>
+ * Group keys are compared and returned lowercased so this backend matches the OpenSearch backend,
+ * whose keyword fields carry a lowercase normalizer (see IndexMapping). Callers look up the
+ * resulting map with a lowercased key.
  * <p>
  * Callers should monitor {@link #matchedDocuments()} (Lucene session warns above a soft
  * threshold). That counter includes only docs with non-blank fields whose group value is in the
@@ -54,7 +59,7 @@ public final class DistinctGroupedStoredFieldCollector
     this.distinctValuesByGroup = new LinkedHashMap<>();
     for (String groupValue : groupValues) {
       if (StringUtils.isNotBlank(groupValue)) {
-        distinctValuesByGroup.put(groupValue, new LinkedHashSet<>());
+        distinctValuesByGroup.put(groupValue.toLowerCase(Locale.ROOT), new LinkedHashSet<>());
       }
     }
   }
@@ -72,7 +77,7 @@ public final class DistinctGroupedStoredFieldCollector
     if (StringUtils.isBlank(groupValue) || StringUtils.isBlank(distinctValue)) {
       return;
     }
-    Set<String> distinctValues = distinctValuesByGroup.get(groupValue);
+    Set<String> distinctValues = distinctValuesByGroup.get(groupValue.toLowerCase(Locale.ROOT));
     if (distinctValues == null) {
       return;
     }

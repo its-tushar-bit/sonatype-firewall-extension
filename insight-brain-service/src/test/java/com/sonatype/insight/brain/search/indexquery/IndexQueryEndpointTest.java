@@ -655,6 +655,26 @@ public class IndexQueryEndpointTest
     }
 
     @Override
+    public com.sonatype.insight.brain.search.index.MetricAggregationResult aggregateCountByFloatField(
+        final String metricQuery,
+        final String bucketField,
+        final Map<String, float[]> ranges,
+        final String distinctField)
+    {
+      return null;
+    }
+
+    @Override
+    public Map<String, Long> countDistinctGroupedBy(
+        final String metricQuery,
+        final String groupField,
+        final String distinctField,
+        final java.util.Collection<String> groupValues)
+    {
+      return java.util.Map.of();
+    }
+
+    @Override
     public com.sonatype.insight.brain.search.results.SearchResultDTO searchIndex(
         final String q,
         final int pageSize,

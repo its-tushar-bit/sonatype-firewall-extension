@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -86,8 +87,28 @@ public class SearchIndexClientDefaultsTest
     }
 
     @Override
+    public MetricAggregationResult aggregateCountByFloatField(
+        final String metricQuery,
+        final String bucketField,
+        final Map<String, float[]> ranges,
+        final String distinctField)
+    {
+      return null;
+    }
+
+    @Override
     public long countDistinct(final String metricQuery, final List<String> compositeKeyFields) {
       return 0L;
+    }
+
+    @Override
+    public Map<String, Long> countDistinctGroupedBy(
+        final String metricQuery,
+        final String groupField,
+        final String distinctField,
+        final Collection<String> groupValues)
+    {
+      return Map.of();
     }
   }
 

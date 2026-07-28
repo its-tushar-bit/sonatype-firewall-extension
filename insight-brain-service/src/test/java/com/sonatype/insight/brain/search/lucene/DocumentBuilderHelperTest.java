@@ -1711,4 +1711,47 @@ public class DocumentBuilderHelperTest
     assertThat(documentBuilderHelper.buildDocument(organization, application, sbomMetadata, fileCoordinate,
         coordinateSecurity, parentOrgs)).isNotNull();
   }
+
+  @Test
+  public void deriveWaiverStatus_active_returnsActive() {
+    PolicyViolation violation = new PolicyViolation();
+    assertThat(DocumentBuilderHelper.deriveWaiverStatus(violation))
+        .isEqualTo(DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_ACTIVE);
+  }
+
+  @Test
+  public void deriveWaiverStatus_manuallyWaived_returnsWaived() {
+    PolicyViolation violation = new PolicyViolation();
+    violation.setWaiveTime(new Date());
+    assertThat(DocumentBuilderHelper.deriveWaiverStatus(violation))
+        .isEqualTo(DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_WAIVED);
+  }
+
+  @Test
+  public void deriveWaiverStatus_legacyOnly_returnsLegacy() {
+    PolicyViolation violation = new PolicyViolation();
+    violation.setLegacyViolationTime(new Date());
+    assertThat(DocumentBuilderHelper.deriveWaiverStatus(violation))
+        .isEqualTo(DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_LEGACY);
+  }
+
+  @Test
+  public void deriveWaiverStatus_waivedAndLegacy_waiverWins() {
+    // Single-valued field: waiver precedence over legacy. A waived+legacy violation indexes as Waived
+    // and surfaces under WAIVED, not LEGACY (documented divergence from the SQL multi-membership path).
+    PolicyViolation violation = new PolicyViolation();
+    violation.setWaiveTime(new Date());
+    violation.setLegacyViolationTime(new Date());
+    assertThat(DocumentBuilderHelper.deriveWaiverStatus(violation))
+        .isEqualTo(DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_WAIVED);
+  }
+
+  @Test
+  public void deriveWaiverStatus_autoWaivedAndLegacy_autoWaiverWins() {
+    PolicyViolation violation = new PolicyViolation();
+    violation.setAutoPolicyWaiverId("auto-waiver-1");
+    violation.setLegacyViolationTime(new Date());
+    assertThat(DocumentBuilderHelper.deriveWaiverStatus(violation))
+        .isEqualTo(DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_AUTO_WAIVED);
+  }
 }

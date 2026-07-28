@@ -176,21 +176,69 @@ final class ViolationsListIndexQueryBuilder
     if (filter == null || filter.getPolicyViolationStates().isEmpty()) {
       return null;
     }
-    boolean wantsOpen = filter.getPolicyViolationStates().contains(PolicyViolationState.OPEN);
-    boolean wantsWaived = filter.getPolicyViolationStates().contains(PolicyViolationState.WAIVED);
-    // LEGACY_VIOLATION is not indexed and is rejected by ViolationsListRequestValidator, so the set is
-    // a non-empty subset of {OPEN, WAIVED}. Selecting both (or neither) means "no state narrowing".
-    if (wantsOpen == wantsWaived) {
+    Set<PolicyViolationState> states = filter.getPolicyViolationStates();
+    boolean wantsOpen = states.contains(PolicyViolationState.OPEN);
+    boolean wantsWaived = states.contains(PolicyViolationState.WAIVED);
+    boolean wantsLegacy = states.contains(PolicyViolationState.LEGACY_VIOLATION);
+    // Selecting all three states is the whole indexed domain, so no state narrowing is needed. (The
+    // filter's set can only contain OPEN/WAIVED/LEGACY_VIOLATION.)
+    if (wantsOpen && wantsWaived && wantsLegacy) {
       return null;
     }
-    String waivedClause = FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":("
+    // Each selected state contributes a positive clause; OPEN is the complement of the excluded set so
+    // the state FILTER agrees with the OPEN facet count (ViolationsListFacetsBuilder.countStates) and
+    // the row-state derivation (ViolationWaiverStatus.toState): a violation with an absent/unknown
+    // waiver status is OPEN on all three paths, and OPEN excludes Legacy on all three (or Legacy would
+    // leak into OPEN). The excluded set is the shared ViolationWaiverStatus.openExclusionStatuses().
+    List<String> stateClauses = new ArrayList<>();
+    boolean orCombined = numberOfSelectedStates(wantsOpen, wantsWaived, wantsLegacy) > 1;
+    if (wantsOpen) {
+      stateClauses.add(openClause(orCombined));
+    }
+    if (wantsWaived) {
+      stateClauses.add(waivedClause());
+    }
+    if (wantsLegacy) {
+      stateClauses.add(legacyClause());
+    }
+    if (stateClauses.size() == 1) {
+      return stateClauses.get(0);
+    }
+    return "(" + String.join(" OR ", stateClauses) + ")";
+  }
+
+  private static int numberOfSelectedStates(final boolean open, final boolean waived, final boolean legacy) {
+    return (open ? 1 : 0) + (waived ? 1 : 0) + (legacy ? 1 : 0);
+  }
+
+  /**
+   * The OPEN state clause: the complement of the excluded set
+   * ({@link ViolationWaiverStatus#openExclusionStatuses()}). Shared with
+   * {@link ViolationsListFacetsBuilder} so filter, facet count and row-state derivation cannot drift.
+   * <p>
+   * A bare {@code NOT (...)} is a pure-negative query with no positive anchor. It resolves correctly
+   * only when AND-combined with a positive clause (the {@code itemType} base clause, or the OPEN facet's
+   * {@code violationQuery}). When OR-combined with another state clause it must carry its own anchor, or
+   * Lucene parses the OR into a BooleanQuery whose only positive term is the sibling SHOULD, yielding
+   * zero hits ({@code [OPEN, WAIVED]}/{@code [OPEN, LEGACY]} returned empty). {@code anchored=true}
+   * prepends {@code *:*} so the negation stands alone inside an OR.
+   */
+  static String openClause(final boolean anchored) {
+    String negation =
+        "NOT (" + FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":("
+            + ViolationWaiverStatus.openExclusionStatuses() + "))";
+    return anchored ? "(*:* AND " + negation + ")" : negation;
+  }
+
+  /** The WAIVED state clause ({@code :(Waived AutoWaived)}). Shared with {@link ViolationsListFacetsBuilder}. */
+  static String waivedClause() {
+    return FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":("
         + ViolationWaiverStatus.WAIVED + " " + ViolationWaiverStatus.AUTO_WAIVED + ")";
-    // OPEN is expressed as "not waived" so the state FILTER agrees with the OPEN facet count
-    // (ViolationsListFacetsBuilder.countStates) and the row-state derivation
-    // (ViolationWaiverStatus.toState): a violation with an absent/unknown waiver status is OPEN on all
-    // three paths. Using ":(Active)" here would exclude such rows from the filter while the facet
-    // still counted them, which is the asymmetry flagged in review.
-    return wantsWaived ? waivedClause : "NOT (" + waivedClause + ")";
+  }
+
+  /** The LEGACY state clause ({@code :(Legacy)}). Shared with {@link ViolationsListFacetsBuilder}. */
+  static String legacyClause() {
+    return waiverStatusClause(ViolationWaiverStatus.LEGACY);
   }
 
   /**

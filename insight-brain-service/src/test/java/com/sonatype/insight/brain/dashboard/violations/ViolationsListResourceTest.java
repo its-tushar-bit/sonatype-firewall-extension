@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard.violations;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -550,13 +551,156 @@ public class ViolationsListResourceTest
   }
 
   @Test
-  public void listViolations_legacyStateFilter_returns400() throws Exception {
+  public void listViolations_legacyStateFilter_returnsPureLegacyOnly() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
-    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
-    request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION);
+    Organization org = tempEntity.newOrganization("LegacyStateTribe");
+    Application app = tempEntity.newApplication("Legacy State App", "legacy-state-app", org.getId());
+    seedLegacyMixViolations(org, app, "legstate");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
 
-    assertResponseStatus(400, post(request));
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION);
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    // Only the pure-legacy violation reads as LEGACY_VIOLATION. The waived+legacy violation indexes as
+    // Waived by precedence and is NOT returned here (documented divergence from the SQL path).
+    assertThat(body.violations).hasSize(1);
+    assertThat(body.violations.get(0).state).isEqualTo(PolicyViolationState.LEGACY_VIOLATION.name());
+  }
+
+  @Test
+  public void listViolations_openStateFilter_excludesLegacy() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("LegacyOpenTribe");
+    Application app = tempEntity.newApplication("Legacy Open App", "legacy-open-app", org.getId());
+    seedLegacyMixViolations(org, app, "legopen");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.OPEN);
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    // OPEN excludes Legacy (and Waived/AutoWaived): only the plain open violation is returned.
+    assertThat(body.violations).hasSize(1);
+    assertThat(body.violations.get(0).state).isEqualTo(PolicyViolationState.OPEN.name());
+  }
+
+  @Test
+  public void listViolations_facetStateCounts_splitOpenWaivedLegacy() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("LegacyFacetTribe");
+    Application app = tempEntity.newApplication("Legacy Facet App", "legacy-facet-app", org.getId());
+    seedLegacyMixViolations(org, app, "legfacet");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListFacetsDTO facets = post(scopedRequest(org)).getBody(ViolationsListResponseDTO.class).facets;
+
+    // Seed: 1 open, 1 plain-waived, 1 pure-legacy, 1 waived+legacy (indexes Waived). So WAIVED=2,
+    // LEGACY=1, OPEN=1. OPEN must exclude the legacy rows.
+    assertThat(facets.states)
+        .containsEntry(PolicyViolationState.OPEN.name(), 1L)
+        .containsEntry(PolicyViolationState.WAIVED.name(), 2L)
+        .containsEntry(PolicyViolationState.LEGACY_VIOLATION.name(), 1L);
+  }
+
+  // --- Multi-select state filters against a real index -----------------------------------------
+  // These assert the returned row SETS (not just the generated query string) for OR-combined state
+  // selections. Selecting OPEN together with exactly one other state is the case where the OPEN clause
+  // must carry its own positive anchor inside the OR; a bare NOT there parses to a BooleanQuery with no
+  // positive anchor and returns zero rows, which a query-string-only assertion cannot catch.
+
+  @Test
+  public void listViolations_openAndWaivedStateFilter_returnsOpenAndWaivedRows() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("LegacyOpenWaivedTribe");
+    Application app = tempEntity.newApplication("Legacy Open Waived App", "legacy-openwaived-app", org.getId());
+    seedLegacyMixViolations(org, app, "legopw");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.policyViolationStates =
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN, PolicyViolationState.WAIVED);
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    // Seed: 1 open, 1 plain-waived, 1 pure-legacy, 1 waived+legacy (indexes Waived). OPEN+WAIVED must
+    // return the open row plus both waived rows (3), and must NOT drop to zero (the anchored-OPEN fix).
+    assertThat(body.violations).extracting(row -> row.state)
+        .containsExactlyInAnyOrder(
+            PolicyViolationState.OPEN.name(),
+            PolicyViolationState.WAIVED.name(),
+            PolicyViolationState.WAIVED.name());
+  }
+
+  @Test
+  public void listViolations_openAndLegacyStateFilter_returnsOpenAndPureLegacyRows() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("LegacyOpenLegacyTribe");
+    Application app = tempEntity.newApplication("Legacy Open Legacy App", "legacy-openlegacy-app", org.getId());
+    seedLegacyMixViolations(org, app, "legopl");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.policyViolationStates =
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN, PolicyViolationState.LEGACY_VIOLATION);
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    // OPEN+LEGACY must return the open row plus the pure-legacy row (2). The waived+legacy row indexes
+    // as Waived and is excluded. Must NOT drop to zero (the anchored-OPEN fix).
+    assertThat(body.violations).extracting(row -> row.state)
+        .containsExactlyInAnyOrder(
+            PolicyViolationState.OPEN.name(),
+            PolicyViolationState.LEGACY_VIOLATION.name());
+  }
+
+  @Test
+  public void listViolations_waivedAndLegacyStateFilter_returnsWaivedAndPureLegacyRows() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("LegacyWaivedLegacyTribe");
+    Application app = tempEntity.newApplication("Legacy Waived Legacy App", "legacy-wvdlegacy-app", org.getId());
+    seedLegacyMixViolations(org, app, "legwl");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.policyViolationStates =
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION);
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    // WAIVED+LEGACY (both positive clauses, no OPEN anchor needed): both waived rows plus the
+    // pure-legacy row (3). The open row is excluded.
+    assertThat(body.violations).extracting(row -> row.state)
+        .containsExactlyInAnyOrder(
+            PolicyViolationState.WAIVED.name(),
+            PolicyViolationState.WAIVED.name(),
+            PolicyViolationState.LEGACY_VIOLATION.name());
+  }
+
+  @Test
+  public void listViolations_allThreeStateFilter_returnsAllRows() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("LegacyAllStatesTribe");
+    Application app = tempEntity.newApplication("Legacy All States App", "legacy-allstates-app", org.getId());
+    seedLegacyMixViolations(org, app, "legall");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.policyViolationStates = new PolicyViolationStateFilter(
+        PolicyViolationState.OPEN, PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION);
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    // All three states is the whole indexed domain: all four seeded violations are returned.
+    assertThat(body.violations).extracting(row -> row.state)
+        .containsExactlyInAnyOrder(
+            PolicyViolationState.OPEN.name(),
+            PolicyViolationState.WAIVED.name(),
+            PolicyViolationState.WAIVED.name(),
+            PolicyViolationState.LEGACY_VIOLATION.name());
   }
 
   // --- RBAC ------------------------------------------------------------------------------------
@@ -712,6 +856,54 @@ public class ViolationsListResourceTest
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
       policyViolationDAO.update(tx, autoWaived);
+      tx.commit();
+    }
+  }
+
+  /**
+   * Seeds a build-stage report with four violations for {@code app}: one plain open, one plain
+   * manually-waived, one pure-legacy ({@code legacyViolationTime} set, no waiver), and one waived+legacy
+   * ({@code waiveTime} + {@code legacyViolationTime} both set). The waived+legacy row indexes as
+   * {@code Waived} by precedence, so it reads under WAIVED, not LEGACY.
+   */
+  private void seedLegacyMixViolations(
+      final Organization org,
+      final Application app,
+      final String hashPrefix) throws Exception
+  {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD,
+        "violations-legacy-" + hashPrefix);
+    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+        ReportTestUtils.zipReportDir(VIOLATION_REPORT_RESOURCE, tempDir), lookup(InsightWork.class));
+
+    Policy openPolicy = tempEntity.newPolicy(org.getId(), "Security - Critical " + hashPrefix);
+    Policy waivedPolicy = tempEntity.newPolicy(org.getId(), "Quality - Standards " + hashPrefix);
+    Policy legacyPolicy = tempEntity.newPolicy(org.getId(), "Legal - Copyleft " + hashPrefix);
+    Policy waivedLegacyPolicy = tempEntity.newPolicy(org.getId(), "Legal - Non-Standard " + hashPrefix);
+
+    tempEntity.newPolicyViolation(evaluation, openPolicy, 10, PolicyThreatCategory.SECURITY,
+        "org.apache.logging", "log4j-core", "2.14.0", hash(hashPrefix, "log4j"));
+
+    PolicyWaiver waiver = tempEntity.newWaiver(waivedPolicy.getId(), org.getId());
+    tempEntity.newWaivedPolicyViolation(evaluation, waivedPolicy, 3, PolicyThreatCategory.QUALITY,
+        ComponentIdentifier.createMavenCoordinates("net.busybox", "busybox", "1.33"),
+        hash(hashPrefix, "busybox"), waiver);
+
+    PolicyViolation legacy = tempEntity.newPolicyViolation(evaluation, legacyPolicy, 8,
+        PolicyThreatCategory.LICENSE, "com.lodash", "lodash", "4.17.15", hash(hashPrefix, "lodash"));
+    legacy.setLegacyViolationTime(new Date());
+
+    PolicyWaiver waiverForLegacy = tempEntity.newWaiver(waivedLegacyPolicy.getId(), org.getId());
+    PolicyViolation waivedLegacy = tempEntity.newWaivedPolicyViolation(evaluation, waivedLegacyPolicy, 6,
+        PolicyThreatCategory.LICENSE, ComponentIdentifier.createMavenCoordinates("org.openssl", "openssl", "3.0"),
+        hash(hashPrefix, "openssl"), waiverForLegacy);
+    waivedLegacy.setLegacyViolationTime(new Date());
+
+    PolicyViolationDAO policyViolationDAO = lookup(PolicyViolationDAO.class);
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      policyViolationDAO.update(tx, legacy);
+      policyViolationDAO.update(tx, waivedLegacy);
       tx.commit();
     }
   }

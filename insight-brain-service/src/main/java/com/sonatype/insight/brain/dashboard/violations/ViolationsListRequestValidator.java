@@ -9,8 +9,6 @@ import java.util.Set;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
-import com.sonatype.insight.brain.dashboard.PolicyViolationState;
-import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,16 +42,8 @@ final class ViolationsListRequestValidator
     if (request.ageInDays != null) {
       throw new BadRequestException("ageInDays filter is not yet supported on the violations list.");
     }
-    // waivedWithAutoWaiver is supported (CLM-42261): true = auto-waived only, false = manually waived
-    // only, null = no waiver-type narrowing. Wired through ViolationsListIndexQueryBuilder.
-    if (hasLegacyState(request.policyViolationStates)) {
-      throw new BadRequestException(
-          "Legacy violation state is not yet supported on the violations list.");
-    }
-  }
-
-  private static boolean hasLegacyState(final PolicyViolationStateFilter filter) {
-    return filter != null && filter.getPolicyViolationStates().contains(PolicyViolationState.LEGACY_VIOLATION);
+    // waivedWithAutoWaiver, and all three policyViolationStates (OPEN/WAIVED/LEGACY_VIOLATION), are
+    // supported and need no rejection here. State mapping lives in ViolationWaiverStatus.
   }
 
   private static void validateOrderBy(final String orderBy) {

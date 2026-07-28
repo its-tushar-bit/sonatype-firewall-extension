@@ -178,6 +178,7 @@ describe('violationsListApi', () => {
     it('maps enum-keyed states and categories to friendly labels, falling back to the raw id', () => {
       expect(violationStateLabel('OPEN')).toBe('Open');
       expect(violationStateLabel('WAIVED')).toBe('Waived');
+      expect(violationStateLabel('LEGACY_VIOLATION')).toBe('Legacy');
       expect(violationStateLabel('SOMETHING')).toBe('SOMETHING');
       expect(threatCategoryLabel('security')).toBe('Security');
       expect(threatCategoryLabel('license')).toBe('License');

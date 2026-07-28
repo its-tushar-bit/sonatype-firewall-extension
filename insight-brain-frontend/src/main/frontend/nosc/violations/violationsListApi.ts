@@ -129,12 +129,14 @@ export function buildViolationsListRequest(params: {
 }
 
 /**
- * Friendly labels for the enum-keyed violation-state facet (OPEN / WAIVED). Exported so the URL codec
- * can derive its accepted-token allow-list from these keys instead of duplicating the set.
+ * Friendly labels for the enum-keyed violation-state facet (OPEN / WAIVED / LEGACY_VIOLATION). Exported
+ * so the URL codec can derive its accepted-token allow-list from these keys instead of duplicating the
+ * set. Keys are the API enum names (LEGACY_VIOLATION), not the index-side status string ("Legacy").
  */
 export const STATE_LABELS: Readonly<Record<string, string>> = {
   OPEN: 'Open',
   WAIVED: 'Waived',
+  LEGACY_VIOLATION: 'Legacy',
 };
 
 /**

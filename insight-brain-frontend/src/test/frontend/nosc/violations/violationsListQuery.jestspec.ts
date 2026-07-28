@@ -52,6 +52,11 @@ describe('violationsListQuery (CLM-42260)', () => {
       expect([...parsed.filters.threatCategories]).toEqual(['security']);
     });
 
+    it('accepts the LEGACY_VIOLATION state token', () => {
+      const parsed = parseViolationsListParams({ state: 'OPEN,LEGACY_VIOLATION' });
+      expect([...parsed.filters.states].sort()).toEqual(['LEGACY_VIOLATION', 'OPEN']);
+    });
+
     it('parses the waiver-type token (case-insensitive) and defaults unknown tokens to ANY (CLM-42261)', () => {
       expect(parseViolationsListParams({ waiver: 'auto' }).filters.waiverType).toBe('AUTO');
       expect(parseViolationsListParams({ waiver: 'manual' }).filters.waiverType).toBe('MANUAL');

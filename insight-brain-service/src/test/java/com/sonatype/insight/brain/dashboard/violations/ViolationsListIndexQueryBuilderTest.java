@@ -132,10 +132,54 @@ public class ViolationsListIndexQueryBuilderTest
     ViolationsListRequestDTO request = new ViolationsListRequestDTO();
     request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.OPEN);
 
-    // OPEN is expressed as "not waived" so the filter agrees with the OPEN facet count and the row-state
-    // derivation — a violation with an absent/unknown waiver status is OPEN on all three paths.
+    // OPEN is expressed as the complement of the excluded set (Waived AutoWaived Legacy) so the filter
+    // agrees with the OPEN facet count and the row-state derivation — a violation with an absent/unknown
+    // waiver status is OPEN on all three paths, and Legacy is excluded from OPEN on all three.
     assertThat(newBuilder().buildViolationQuery(request))
-        .isEqualTo(BASE + " AND NOT (policyViolationWaiverStatus:(Waived AutoWaived))");
+        .isEqualTo(BASE + " AND NOT (policyViolationWaiverStatus:(Waived AutoWaived Legacy))");
+  }
+
+  @Test
+  public void buildViolationQuery_legacyState_matchesLegacyOnly() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION);
+
+    assertThat(newBuilder().buildViolationQuery(request))
+        .isEqualTo(BASE + " AND policyViolationWaiverStatus:(Legacy)");
+  }
+
+  @Test
+  public void buildViolationQuery_openAndLegacyStates_orsAnchoredOpenWithLegacy() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.policyViolationStates =
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN, PolicyViolationState.LEGACY_VIOLATION);
+
+    // OR-combined OPEN carries its own *:* positive anchor so the negation is not left as a
+    // pure-negative SHOULD (which would zero out the whole OR against a real index).
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(
+        BASE + " AND ((*:* AND NOT (policyViolationWaiverStatus:(Waived AutoWaived Legacy)))"
+            + " OR policyViolationWaiverStatus:(Legacy))");
+  }
+
+  @Test
+  public void buildViolationQuery_waivedAndLegacyStates_orsClauses() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.policyViolationStates =
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION);
+
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(
+        BASE + " AND (policyViolationWaiverStatus:(Waived AutoWaived)"
+            + " OR policyViolationWaiverStatus:(Legacy))");
+  }
+
+  @Test
+  public void buildViolationQuery_allThreeStates_omitsStateClause() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.policyViolationStates = new PolicyViolationStateFilter(
+        PolicyViolationState.OPEN, PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION);
+
+    // OPEN OR WAIVED OR LEGACY is the whole indexed domain, so no state clause is emitted.
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(BASE);
   }
 
   @Test
@@ -148,13 +192,17 @@ public class ViolationsListIndexQueryBuilderTest
   }
 
   @Test
-  public void buildViolationQuery_bothStates_omitsStateClause() {
+  public void buildViolationQuery_openAndWaivedStates_orsAnchoredOpenWithWaived() {
     ViolationsListRequestDTO request = new ViolationsListRequestDTO();
     request.policyViolationStates =
         new PolicyViolationStateFilter(PolicyViolationState.OPEN, PolicyViolationState.WAIVED);
 
-    // OPEN ("not waived") OR WAIVED ("waived") covers every violation, so no state clause is emitted.
-    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(BASE);
+    // OPEN (excludes Waived/AutoWaived/Legacy) OR WAIVED covers everything except the pure-legacy
+    // population, so a state clause IS emitted (unlike selecting all three states). OR-combined OPEN
+    // carries its own *:* positive anchor so the negation is not left as a pure-negative SHOULD.
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(
+        BASE + " AND ((*:* AND NOT (policyViolationWaiverStatus:(Waived AutoWaived Legacy)))"
+            + " OR policyViolationWaiverStatus:(Waived AutoWaived))");
   }
 
   @Test
@@ -192,8 +240,7 @@ public class ViolationsListIndexQueryBuilderTest
     // The waiver-excluded query (used to count the single-select waiver-type facet) drops only the
     // waiver-type clause; every other active filter — here the WAIVED state clause — is retained.
     assertThat(newBuilder().buildViolationQueryExcludingWaiverType(request))
-        .isEqualTo(BASE + " AND policyViolationWaiverStatus:(Waived AutoWaived)")
-        .doesNotContain(":(AutoWaived)");
+        .isEqualTo(BASE + " AND policyViolationWaiverStatus:(Waived AutoWaived)");
   }
 
   @Test
@@ -213,10 +260,10 @@ public class ViolationsListIndexQueryBuilderTest
     request.policyViolationStates = new PolicyViolationStateFilter(PolicyViolationState.OPEN);
     request.waivedWithAutoWaiver = Boolean.TRUE;
 
-    // OPEN ("not waived") AND auto-waived is intentionally contradictory — the index returns no rows,
-    // which is the correct result for that filter combination.
+    // OPEN ("not waived/legacy") AND auto-waived is intentionally contradictory — the index returns no
+    // rows, which is the correct result for that filter combination.
     assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(
-        BASE + " AND NOT (policyViolationWaiverStatus:(Waived AutoWaived))"
+        BASE + " AND NOT (policyViolationWaiverStatus:(Waived AutoWaived Legacy))"
             + " AND policyViolationWaiverStatus:(AutoWaived)");
   }
 
@@ -283,6 +330,6 @@ public class ViolationsListIndexQueryBuilderTest
     assertThat(query).contains("componentName:*log4j*");
     assertThat(query).contains("policyViolationThreatLevel:[7 TO 10]");
     assertThat(query).contains("policyViolationThreatCategory:(" + PolicyThreatCategory.SECURITY.getName() + ")");
-    assertThat(query).contains("NOT (policyViolationWaiverStatus:(Waived AutoWaived))");
+    assertThat(query).contains("NOT (policyViolationWaiverStatus:(Waived AutoWaived Legacy))");
   }
 }

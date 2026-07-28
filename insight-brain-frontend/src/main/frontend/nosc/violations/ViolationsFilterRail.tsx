@@ -105,8 +105,11 @@ export interface ViolationsFilterRailProps {
 
 type FacetEntry = { readonly id: string; readonly label: string; readonly count: number };
 
-/** Only OPEN and WAIVED are validator-safe; LEGACY_VIOLATION is excluded from the facet UI. */
-const SELECTABLE_VIOLATION_STATES = new Set(['OPEN', 'WAIVED']);
+/**
+ * Validator-safe, filterable violation states. LEGACY_VIOLATION filters the pure-legacy population
+ * (waived+legacy violations index as Waived by precedence and surface under WAIVED).
+ */
+const SELECTABLE_VIOLATION_STATES = new Set(['OPEN', 'WAIVED', 'LEGACY_VIOLATION']);
 
 /**
  * Build sorted facet entries and fold in any currently-selected id the (post-filter) facet map no
@@ -133,6 +136,7 @@ function CheckboxFilterSection({
   entries,
   selected,
   onToggle,
+  footnote,
 }: {
   readonly title: string;
   readonly testId: string;
@@ -140,6 +144,8 @@ function CheckboxFilterSection({
   readonly entries: ReadonlyArray<FacetEntry>;
   readonly selected: ReadonlySet<string>;
   readonly onToggle: (group: ViolationFilterSetGroup, id: string) => void;
+  /** Optional gray caption rendered under the options (e.g. a divergence caveat). */
+  readonly footnote?: string;
 }): JSX.Element | null {
   if (entries.length === 0) return null;
   return (
@@ -170,6 +176,11 @@ function CheckboxFilterSection({
           ))}
         </Flex>
       </ScrollArea>
+      {footnote && (
+        <Text size="1" color="gray" data-testid={`${testId}-footnote`}>
+          {footnote}
+        </Text>
+      )}
     </fieldset>
   );
 }
@@ -522,6 +533,11 @@ export default function ViolationsFilterRail({
               )}
               selected={selected.states}
               onToggle={onToggle}
+              footnote={
+                facets?.states && 'LEGACY_VIOLATION' in facets.states
+                  ? 'A waived legacy violation counts under Waived here, so this Legacy count can be lower than the classic view.'
+                  : undefined
+              }
             />
           )}
           {!hideWaiverTypeFilter && (

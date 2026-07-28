@@ -186,20 +186,46 @@ public class ViolationsListFacetsBuilderTest
   }
 
   @Test
-  public void buildFacets_openStateCountedAsNotWaived() {
+  public void buildFacets_openExcludesLegacyAndWaived_legacyCountedSeparately() {
     stubEmptyDiscovery();
-    // OPEN is counted as "NOT waived"; WAIVED via its own combined ":(Waived AutoWaived)" count. The
-    // "!NOT" guard keeps the WAIVED matcher from also matching the OPEN "AND NOT (...)" query.
+    // OPEN is the complement of the shared excluded set (Waived AutoWaived Legacy) — it MUST exclude
+    // Legacy or Legacy leaks into OPEN. WAIVED counts the combined ":(Waived AutoWaived)" clause;
+    // LEGACY counts its own ":(Legacy)" clause. The "!NOT" guard keeps the WAIVED/LEGACY matchers from
+    // also matching the OPEN "AND NOT (...)" query, and the WAIVED matcher's "Waived AutoWaived" body is
+    // distinct from the LEGACY ":(Legacy)" clause.
+    when(searchIndexClient.count(argThat(q -> q != null
+        && q.contains("AND NOT (policyViolationWaiverStatus:(Waived AutoWaived Legacy))"))))
+            .thenReturn(7L);
+    when(searchIndexClient.count(argThat(q -> q != null
+        && q.contains("policyViolationWaiverStatus:(Waived AutoWaived)") && !q.contains("NOT"))))
+            .thenReturn(3L);
+    when(searchIndexClient.count(argThat(q -> q != null
+        && q.contains("policyViolationWaiverStatus:(Legacy)") && !q.contains("NOT"))))
+            .thenReturn(2L);
+
+    ViolationsListFacetsDTO facets = builder().buildFacets(QUERY, 12);
+
+    assertThat(facets.states)
+        .containsEntry("OPEN", 7L)
+        .containsEntry("WAIVED", 3L)
+        .containsEntry("LEGACY_VIOLATION", 2L);
+  }
+
+  @Test
+  public void buildFacets_legacyCountOmittedWhenZero() {
+    stubEmptyDiscovery();
     when(searchIndexClient.count(argThat(q -> q != null && q.contains("AND NOT ")))).thenReturn(7L);
     when(searchIndexClient.count(argThat(q -> q != null
         && q.contains("policyViolationWaiverStatus:(Waived AutoWaived)") && !q.contains("NOT"))))
             .thenReturn(3L);
+    // Legacy count falls through to Mockito's 0L default, so the LEGACY key is omitted.
 
     ViolationsListFacetsDTO facets = builder().buildFacets(QUERY, 10);
 
     assertThat(facets.states)
         .containsEntry("OPEN", 7L)
-        .containsEntry("WAIVED", 3L);
+        .containsEntry("WAIVED", 3L)
+        .doesNotContainKey("LEGACY_VIOLATION");
   }
 
   @Test

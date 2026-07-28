@@ -129,6 +129,8 @@ public class DocumentBuilderHelper
 
   public static final String POLICY_VIOLATION_WAIVER_STATUS_AUTO_WAIVED = "AutoWaived";
 
+  public static final String POLICY_VIOLATION_WAIVER_STATUS_LEGACY = "Legacy";
+
   private static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX_EVAL = "AdvancedSearch.createSearchIndex.eval";
 
   private static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX_COMPONENT =
@@ -1589,14 +1591,23 @@ public class DocumentBuilderHelper
   }
 
   /**
-   * Derives the waiver status for a policy violation.
+   * Derives the single indexed waiver status for a policy violation. The field is single-valued, so a
+   * violation that is both waived and legacy can carry only one status; waiver wins (precedence
+   * AutoWaived &gt; Waived &gt; Legacy &gt; Active). A waived+legacy violation therefore indexes as Waived
+   * and appears under WAIVED (not LEGACY). This is a deliberate divergence from the SQL read path, where
+   * such a violation is a member of both states; the WAIVED facet is the primary triage signal, so a
+   * waived violation staying under WAIVED is the safer V1 behavior. Pure-legacy (non-waived) violations
+   * index as Legacy, matching SQL's OPEN-excludes-legacy semantics for the common case.
    */
-  private static String deriveWaiverStatus(PolicyViolation violation) {
+  static String deriveWaiverStatus(PolicyViolation violation) {
     if (violation.getAutoPolicyWaiverId() != null) {
       return POLICY_VIOLATION_WAIVER_STATUS_AUTO_WAIVED;
     }
     if (violation.getWaiveTime() != null) {
       return POLICY_VIOLATION_WAIVER_STATUS_WAIVED;
+    }
+    if (violation.isLegacyViolation()) {
+      return POLICY_VIOLATION_WAIVER_STATUS_LEGACY;
     }
     return POLICY_VIOLATION_WAIVER_STATUS_ACTIVE;
   }

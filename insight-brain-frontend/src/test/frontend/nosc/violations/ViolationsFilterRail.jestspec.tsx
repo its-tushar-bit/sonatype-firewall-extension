@@ -168,13 +168,29 @@ describe('ViolationsFilterRail', () => {
     ).toBeInTheDocument();
   });
 
-  it('omits LEGACY_VIOLATION from the state facet', () => {
+  it('renders LEGACY_VIOLATION as a selectable state facet', () => {
     renderRail({
       facets: { totalViolations: 3, states: { OPEN: 2, WAIVED: 1, LEGACY_VIOLATION: 5 } },
     });
     expect(screen.getByTestId('violations-filter-state-option-OPEN')).toBeInTheDocument();
     expect(screen.getByTestId('violations-filter-state-option-WAIVED')).toBeInTheDocument();
-    expect(screen.queryByTestId('violations-filter-state-option-LEGACY_VIOLATION')).not.toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-state-option-LEGACY_VIOLATION')).toBeInTheDocument();
+  });
+
+  it('surfaces the Legacy-vs-classic divergence note only when a Legacy facet is present', () => {
+    renderRail({
+      facets: { totalViolations: 3, states: { OPEN: 2, WAIVED: 1, LEGACY_VIOLATION: 5 } },
+    });
+    expect(screen.getByTestId('violations-filter-state-footnote')).toHaveTextContent(
+      /waived legacy violation counts under Waived/i,
+    );
+  });
+
+  it('omits the Legacy divergence note when there is no Legacy facet', () => {
+    renderRail({
+      facets: { totalViolations: 3, states: { OPEN: 2, WAIVED: 1 } },
+    });
+    expect(screen.queryByTestId('violations-filter-state-footnote')).not.toBeInTheDocument();
   });
 
   it('lifts a checkbox toggle to onToggle with the group and id', async () => {

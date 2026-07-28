@@ -355,14 +355,24 @@ final class ViolationsListFacetsBuilder
 
   private Map<String, Long> countStates(final String violationQuery, final ToLongFunction<String> counter) {
     Map<String, Long> counts = new LinkedHashMap<>();
-    String waivedClause = waivedClause();
-    long open = counter.applyAsLong(violationQuery + " AND NOT (" + waivedClause + ")");
+    // OPEN is the complement of the shared excluded set (Waived AutoWaived Legacy) so the facet count
+    // mirrors the state filter (ViolationsListIndexQueryBuilder.buildStateClause) and the row-state
+    // derivation (ViolationWaiverStatus.toState) exactly. OPEN must exclude Legacy or Legacy leaks in.
+    // The violationQuery is the positive anchor for the OPEN negation, so the non-anchored clause form
+    // is used here.
+    long open = counter.applyAsLong(violationQuery + " AND " + ViolationsListIndexQueryBuilder.openClause(false));
     if (open > 0) {
       counts.put(PolicyViolationState.OPEN.name(), open);
     }
-    long waived = counter.applyAsLong(violationQuery + " AND " + waivedClause);
+    long waived = counter.applyAsLong(violationQuery + " AND " + ViolationsListIndexQueryBuilder.waivedClause());
     if (waived > 0) {
       counts.put(PolicyViolationState.WAIVED.name(), waived);
+    }
+    // Legacy count is the pure-legacy population only (waived+legacy indexes as Waived by precedence and
+    // is counted under WAIVED above). Omitted when zero.
+    long legacy = counter.applyAsLong(violationQuery + " AND " + ViolationsListIndexQueryBuilder.legacyClause());
+    if (legacy > 0) {
+      counts.put(PolicyViolationState.LEGACY_VIOLATION.name(), legacy);
     }
     return counts.isEmpty() ? null : counts;
   }
@@ -670,8 +680,4 @@ final class ViolationsListFacetsBuilder
     return session.count(conversionHelper.stringToQuery(query));
   }
 
-  private static String waivedClause() {
-    return FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":("
-        + ViolationWaiverStatus.WAIVED + " " + ViolationWaiverStatus.AUTO_WAIVED + ")";
-  }
 }

@@ -93,7 +93,7 @@ public class GuideRecommendationsResourceTest
   @Test
   public void getRecommendations_propagatesNotFoundFromClient_withUpstreamMessage() throws Exception {
     RecommendationRequest request = new RecommendationRequest(PURL, null, null);
-    when(searchApiClient.getRecommendations(PURL))
+    when(searchApiClient.getRecommendations(PURL, null, null))
         .thenThrow(new GuideNotFoundException("Recommendations not found for PURL: " + PURL));
 
     assertThatThrownBy(() -> underTest.getRecommendations(request))
@@ -103,12 +103,84 @@ public class GuideRecommendationsResourceTest
   }
 
   @Test
+  public void getRecommendations_forwardsExtensionAndClassifier() throws Exception {
+    GuideRecommendationResult upstream = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        version("2.14.1"),
+        List.of(version("2.21.1")));
+    when(searchApiClient.getRecommendations(PURL, "war", "sources")).thenReturn(upstream);
+    when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of());
+
+    underTest.getRecommendations(new RecommendationRequest(PURL, "war", "sources"));
+
+    verify(searchApiClient).getRecommendations(PURL, "war", "sources");
+  }
+
+  // --- GUIDE-3174: normalization of extension/classifier at API boundary
+
+  @Test
+  public void getRecommendations_blankExtension_normalizedToNull() throws Exception {
+    GuideRecommendationResult upstream = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        version("2.14.1"),
+        List.of(version("2.21.1")));
+    when(searchApiClient.getRecommendations(PURL, null, null)).thenReturn(upstream);
+    when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of());
+
+    underTest.getRecommendations(new RecommendationRequest(PURL, "  ", null));
+
+    verify(searchApiClient).getRecommendations(PURL, null, null);
+  }
+
+  @Test
+  public void getRecommendations_emptyExtension_normalizedToNull() throws Exception {
+    GuideRecommendationResult upstream = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        version("2.14.1"),
+        List.of(version("2.21.1")));
+    when(searchApiClient.getRecommendations(PURL, null, null)).thenReturn(upstream);
+    when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of());
+
+    underTest.getRecommendations(new RecommendationRequest(PURL, "", null));
+
+    verify(searchApiClient).getRecommendations(PURL, null, null);
+  }
+
+  @Test
+  public void getRecommendations_whitespaceExtension_trimmed() throws Exception {
+    GuideRecommendationResult upstream = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        version("2.14.1"),
+        List.of(version("2.21.1")));
+    when(searchApiClient.getRecommendations(PURL, "jar", null)).thenReturn(upstream);
+    when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of());
+
+    underTest.getRecommendations(new RecommendationRequest(PURL, " jar ", null));
+
+    verify(searchApiClient).getRecommendations(PURL, "jar", null);
+  }
+
+  @Test
+  public void getRecommendations_extensionWithNullClassifier() throws Exception {
+    GuideRecommendationResult upstream = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        version("2.14.1"),
+        List.of(version("2.21.1")));
+    when(searchApiClient.getRecommendations(PURL, "war", null)).thenReturn(upstream);
+    when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of());
+
+    underTest.getRecommendations(new RecommendationRequest(PURL, "war", null));
+
+    verify(searchApiClient).getRecommendations(PURL, "war", null);
+  }
+
+  @Test
   public void getRecommendations_filtersOutNonCompliantCandidates() throws Exception {
     GuideRecommendationResult upstream = new GuideRecommendationResult(
         RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
         version("2.14.1"),
         List.of(version("2.21.0"), version("2.21.1")));
-    when(searchApiClient.getRecommendations(PURL)).thenReturn(upstream);
+    when(searchApiClient.getRecommendations(PURL, null, null)).thenReturn(upstream);
     GuidePolicyCompliance compliant = compliantOf();
     when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of(
         "pkg:maven/org.apache.logging.log4j/log4j-core@2.21.0?type=jar", nonCompliantOf(),
@@ -134,7 +206,7 @@ public class GuideRecommendationsResourceTest
         RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
         version("2.14.1"),
         List.of(version("2.21.1")));
-    when(searchApiClient.getRecommendations(PURL)).thenReturn(upstream);
+    when(searchApiClient.getRecommendations(PURL, null, null)).thenReturn(upstream);
     when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of(CANDIDATE_PURL, nonCompliantOf()));
 
     RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL, null, null));
@@ -149,7 +221,7 @@ public class GuideRecommendationsResourceTest
         RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
         version("2.14.1"),
         List.of(version("2.21.1")));
-    when(searchApiClient.getRecommendations(PURL)).thenReturn(upstream);
+    when(searchApiClient.getRecommendations(PURL, null, null)).thenReturn(upstream);
     when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of());
 
     RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL, null, null));
@@ -163,7 +235,7 @@ public class GuideRecommendationsResourceTest
     assertThat(v.policyCompliance().compliant()).isTrue();
     assertThat(v.policyCompliance().summary()).isNull();
     assertThat(result.outcome()).isEqualTo(RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS);
-    verify(searchApiClient).getRecommendations(PURL);
+    verify(searchApiClient).getRecommendations(PURL, null, null);
   }
 
   private static RecommendedVersionInfo version(String v) {

@@ -120,7 +120,8 @@ public class McpServletProvider
                     + "(without version) or when upgrading an existing component (with version). Dependencies can be "
                     + "referred to as packages, components or libraries. They can be transitive (brought in by other "
                     + "dependencies) or direct (explicitly added to the project).",
-                purl -> serializeOrNull(searchApiClient.getRecommendations(purl)), ToolType.RECOMMENDATIONS))
+                purl -> serializeOrNull(searchApiClient.getRecommendations(purl, null, null)),
+                ToolType.RECOMMENDATIONS))
         .build();
   }
 

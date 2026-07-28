@@ -72,7 +72,18 @@ public class GuideRecommendationsResource
     }
     GuidePolicyService.requireValidStage(stage);
     GuidePurlValidator.validate(request.purl());
-    GuideRecommendationResult upstream = searchApiClient.getRecommendations(request.purl());
+
+    // Normalize the artifact selector at the API boundary. The SearchApiClient also validates
+    // these fields (defense-in-depth for direct callers), but normalizing here produces cleaner
+    // wire output and keeps the contract clear for future callers.
+    String extension = request.extension() != null && !request.extension().isBlank()
+        ? request.extension().trim()
+        : null;
+    String classifier = request.classifier() != null && !request.classifier().isBlank()
+        ? request.classifier().trim()
+        : null;
+
+    GuideRecommendationResult upstream = searchApiClient.getRecommendations(request.purl(), extension, classifier);
     return guidePolicyService.filterRecommendations(upstream, request.purl(), ownerId, stage);
   }
 }

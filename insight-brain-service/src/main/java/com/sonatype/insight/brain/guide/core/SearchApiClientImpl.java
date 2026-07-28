@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.guide.core;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -94,11 +95,18 @@ public class SearchApiClientImpl
   @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
-  public GuideRecommendationResult getRecommendations(String purl) {
+  public GuideRecommendationResult getRecommendations(String purl, String extension, String classifier) {
     try {
+      Map<String, String> body = new HashMap<>();
+      body.put("purl", purlForUpstream(purl));
+      if (extension != null && !extension.isBlank()) {
+        body.put("extension", extension.trim());
+      }
+      if (classifier != null && !classifier.isBlank()) {
+        body.put("classifier", classifier.trim());
+      }
       return withLicenseRefreshOn402("rest/search/recommendations",
-          () -> hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations",
-              Map.of("purl", purlForUpstream(purl))));
+          () -> hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", body));
     }
     catch (NotFoundException e) {
       throw notFound(e, "No recommendations found for purl: " + purl);

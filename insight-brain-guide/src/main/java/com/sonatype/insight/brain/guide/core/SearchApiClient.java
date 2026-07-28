@@ -63,16 +63,30 @@ public interface SearchApiClient
   String getLatestComponentVersion(String purl);
 
   /**
-   * Get upgrade recommendations for a component by PURL.
+   * Get upgrade recommendations for a specific artifact of a component.
    *
+   * <p>
+   * The {@code extension} and {@code classifier} parameters identify which artifact of the
+   * component to target (e.g., Maven {@code sources} or {@code javadoc} artifacts). When both are
+   * {@code null} or blank, the existing component-level recommendation path runs unchanged.
+   *
+   * <p>
+   * Blank values (empty string or whitespace-only) are treated identically to {@code null} — the
+   * upstream request omits the field rather than sending empty strings.
+   *
+   * @param purl the component PURL (required)
+   * @param extension the artifact extension/file type (e.g., "war", "jar", "pom"); blank or null
+   *          for component-level recommendations
+   * @param classifier the artifact classifier (e.g., "sources", "javadoc"); blank or null for
+   *          component-level recommendations
    * @return the recommendation result; never {@code null}
    * @throws com.sonatype.insight.brain.guide.api.error.GuideNotFoundException if no
    *           recommendations exist for the given PURL. Implementations MUST throw rather than
-   *           return {@code null} so that callers don't need null guards — Guide resource methods
-   *           forward the result directly to JAX-RS, which would serialize {@code null} as a 200
-   *           OK with an empty body and silently break the 404 contract.
+   *           return {@code null} — Guide resource methods forward the result directly to JAX-RS,
+   *           which would serialize {@code null} as a 200 OK with an empty body and silently break
+   *           the 404 contract.
    */
-  GuideRecommendationResult getRecommendations(String purl);
+  GuideRecommendationResult getRecommendations(String purl, String extension, String classifier);
 
   /**
    * Search components with the given filters.

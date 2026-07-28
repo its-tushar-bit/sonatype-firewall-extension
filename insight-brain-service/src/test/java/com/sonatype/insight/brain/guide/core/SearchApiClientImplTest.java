@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.guide.core;
 
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 
@@ -300,7 +301,7 @@ public class SearchApiClientImplTest
   }
 
   @Test
-  public void testGetRecommendations_delegatesToHdsPost() {
+  public void testGetRecommendations_noSelector_sendsPurlOnly() {
     GuideRecommendationResult expected = new GuideRecommendationResult(
         Outcome.FOUND_RECOMMENDATIONS,
         new RecommendedVersionInfo("1.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 80, null, null),
@@ -308,10 +309,100 @@ public class SearchApiClientImplTest
     when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL)))
         .thenReturn(expected);
 
-    GuideRecommendationResult result = underTest.getRecommendations(PURL);
+    GuideRecommendationResult result = underTest.getRecommendations(PURL, null, null);
 
     assertThat(result).isSameAs(expected);
     verify(hdsClient).post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL));
+  }
+
+  @Test
+  public void testGetRecommendations_withExtension_sendsBothFields() {
+    GuideRecommendationResult expected = new GuideRecommendationResult(
+        Outcome.FOUND_RECOMMENDATIONS,
+        new RecommendedVersionInfo("1.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 80, null, null),
+        List.of());
+    Map<String, String> expectedBody = new LinkedHashMap<>();
+    expectedBody.put("purl", PURL);
+    expectedBody.put("extension", "war");
+    when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", expectedBody))
+        .thenReturn(expected);
+
+    GuideRecommendationResult result = underTest.getRecommendations(PURL, "war", null);
+
+    assertThat(result).isSameAs(expected);
+    verify(hdsClient).post(GuideRecommendationResult.class, "rest/search/recommendations", expectedBody);
+  }
+
+  @Test
+  public void testGetRecommendations_withClassifier_sendsBothFields() {
+    GuideRecommendationResult expected = new GuideRecommendationResult(
+        Outcome.FOUND_RECOMMENDATIONS,
+        new RecommendedVersionInfo("1.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 80, null, null),
+        List.of());
+    Map<String, String> expectedBody = new LinkedHashMap<>();
+    expectedBody.put("purl", PURL);
+    expectedBody.put("classifier", "sources");
+    when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", expectedBody))
+        .thenReturn(expected);
+
+    GuideRecommendationResult result = underTest.getRecommendations(PURL, null, "sources");
+
+    assertThat(result).isSameAs(expected);
+    verify(hdsClient).post(GuideRecommendationResult.class, "rest/search/recommendations", expectedBody);
+  }
+
+  @Test
+  public void testGetRecommendations_withExtensionAndClassifier_sendsAllFields() {
+    GuideRecommendationResult expected = new GuideRecommendationResult(
+        Outcome.FOUND_RECOMMENDATIONS,
+        new RecommendedVersionInfo("1.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 80, null, null),
+        List.of());
+    Map<String, String> expectedBody = new LinkedHashMap<>();
+    expectedBody.put("purl", PURL);
+    expectedBody.put("extension", "war");
+    expectedBody.put("classifier", "sources");
+    when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", expectedBody))
+        .thenReturn(expected);
+
+    GuideRecommendationResult result = underTest.getRecommendations(PURL, "war", "sources");
+
+    assertThat(result).isSameAs(expected);
+    verify(hdsClient).post(GuideRecommendationResult.class, "rest/search/recommendations", expectedBody);
+  }
+
+  @Test
+  public void testGetRecommendations_blankSelector_omittedFromBody() {
+    GuideRecommendationResult expected = new GuideRecommendationResult(
+        Outcome.FOUND_RECOMMENDATIONS,
+        new RecommendedVersionInfo("1.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 80, null, null),
+        List.of());
+    // Blank extension/classifier should be treated as null -> omitted from body
+    when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL)))
+        .thenReturn(expected);
+
+    GuideRecommendationResult result = underTest.getRecommendations(PURL, "  ", "");
+
+    assertThat(result).isSameAs(expected);
+    verify(hdsClient).post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL));
+  }
+
+  @Test
+  public void testGetRecommendations_whitespaceSelector_trimmed() {
+    GuideRecommendationResult expected = new GuideRecommendationResult(
+        Outcome.FOUND_RECOMMENDATIONS,
+        new RecommendedVersionInfo("1.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 80, null, null),
+        List.of());
+    Map<String, String> expectedBody = new LinkedHashMap<>();
+    expectedBody.put("purl", PURL);
+    expectedBody.put("extension", "war"); // trimmed
+    expectedBody.put("classifier", "sources"); // trimmed
+    when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", expectedBody))
+        .thenReturn(expected);
+
+    GuideRecommendationResult result = underTest.getRecommendations(PURL, " war ", " sources ");
+
+    assertThat(result).isSameAs(expected);
+    verify(hdsClient).post(GuideRecommendationResult.class, "rest/search/recommendations", expectedBody);
   }
 
   @Test
@@ -319,7 +410,7 @@ public class SearchApiClientImplTest
     when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL)))
         .thenThrow(new NotFoundException("Recommendations not found for PURL: " + PURL + " (no upgrade path)"));
 
-    assertThatThrownBy(() -> underTest.getRecommendations(PURL))
+    assertThatThrownBy(() -> underTest.getRecommendations(PURL, null, null))
         .isInstanceOf(GuideNotFoundException.class)
         .hasMessage("Recommendations not found for PURL: " + PURL + " (no upgrade path)");
   }
@@ -329,7 +420,7 @@ public class SearchApiClientImplTest
     when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL)))
         .thenThrow(new NotFoundException(""));
 
-    assertThatThrownBy(() -> underTest.getRecommendations(PURL))
+    assertThatThrownBy(() -> underTest.getRecommendations(PURL, null, null))
         .isInstanceOf(GuideNotFoundException.class)
         .hasMessage("No recommendations found for purl: " + PURL);
   }
@@ -342,7 +433,7 @@ public class SearchApiClientImplTest
     when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL)))
         .thenThrow(new NotFoundException("Not Found"));
 
-    assertThatThrownBy(() -> underTest.getRecommendations(PURL))
+    assertThatThrownBy(() -> underTest.getRecommendations(PURL, null, null))
         .isInstanceOf(GuideNotFoundException.class)
         .hasMessage("No recommendations found for purl: " + PURL);
   }
@@ -352,7 +443,7 @@ public class SearchApiClientImplTest
     when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL)))
         .thenThrow(new BadGatewayException("upstream unavailable"));
 
-    assertThatThrownBy(() -> underTest.getRecommendations(PURL))
+    assertThatThrownBy(() -> underTest.getRecommendations(PURL, null, null))
         .isInstanceOf(GuideApiException.class)
         .hasMessageContaining("Failed to retrieve recommendations");
   }
@@ -362,7 +453,7 @@ public class SearchApiClientImplTest
     when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL)))
         .thenThrow(new InternalServerErrorException("hds error"));
 
-    assertThatThrownBy(() -> underTest.getRecommendations(PURL))
+    assertThatThrownBy(() -> underTest.getRecommendations(PURL, null, null))
         .isInstanceOf(GuideApiException.class)
         .hasMessageContaining("Failed to retrieve recommendations");
   }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.guide;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.sonatype.guide.api.dto.RecommendationResponse;
 import com.sonatype.guide.api.request.RecommendationRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -15,6 +16,7 @@ import com.sonatype.insight.brain.guide.api.dto.GuideRecommendationResult;
 import com.sonatype.insight.brain.guide.api.dto.RecommendedVersionInfo;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.jaxrs.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
@@ -203,5 +205,31 @@ public class GuideRecommendationsResourceTest
 
     assertThat(response.getStatusCode()).isEqualTo(400);
     assertThat(response.getBodyText()).contains("not-a-stage");
+  }
+
+  // --- GUIDE-3174: artifact selector (extension/classifier) wire format -------------------------
+
+  @Test
+  public void extensionAndClassifier_forwardedToHds() throws Exception {
+    GuideRecommendationResult hdsResponse = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        new RecommendedVersionInfo("2.14.1", "0", Map.of(), Map.of(), Map.of(), List.of(), 85, 10.0, null),
+        List.of(new RecommendedVersionInfo("2.21.1", "0", Map.of(), Map.of(), Map.of(), List.of(), 99, null, null)));
+    hdsRespondWith(hdsResponse).atUri("/rest/search/recommendations");
+
+    HttpResponse response = restRequest()
+        .path(RECOMMENDATIONS_PATH)
+        .body(new RecommendationRequest("pkg:maven/org.apache.commons/commons-lang3@3.12.0", "jar", "sources"))
+        .post();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    // Verify HDS received the extension/classifier in the request body by parsing the JSON
+    String capturedBody = hdsMockServer.getCapturedRequestBody("/rest/search/recommendations");
+    Map<String, String> requestBody = JsonUtils.parse(capturedBody, new TypeReference<Map<String, String>>()
+    {
+    });
+    assertThat(requestBody.get("purl")).isEqualTo("pkg:maven/org.apache.commons/commons-lang3@3.12.0");
+    assertThat(requestBody.get("extension")).isEqualTo("jar");
+    assertThat(requestBody.get("classifier")).isEqualTo("sources");
   }
 }

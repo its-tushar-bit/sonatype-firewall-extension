@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.playwright.categories.MtiqTest;
 import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.SourceControlRegressionPage;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -44,6 +45,20 @@ public abstract class AbstractMtiqSourceControlEditorPlaywrightTest
   protected static final boolean COMMIT_STATUS_OFF = false;
 
   protected static final String PLAIN_TOKEN = "secret_key";
+
+  // Fieldset ids used by the inherit/override radio-based editor (App and Org subclasses).
+  // The Root editor uses NxToggle instead and defines its own TOGGLE_* ids.
+  protected static final String PROVIDER_FIELDSET = "editor-source-control-provider";
+
+  protected static final String CREDENTIALS_FIELDSET = "editor-source-control-token";
+
+  protected static final String BASE_BRANCH_FIELDSET = "source-control-default-branch";
+
+  protected static final String SSH_FIELDSET = "source-control-ssh";
+
+  // Deterministic MTIQ feature set: automation supported, PRs disabled (hides remediation/ssh/manual).
+  protected static final String[] MTIQ_SCM_FEATURES =
+      {"multi-tenant", "automation", "saas-lifecycle-scm-enabled", "notifications"};
 
   protected SourceControlDAO sourceControlDAO;
 
@@ -107,4 +122,24 @@ public abstract class AbstractMtiqSourceControlEditorPlaywrightTest
         OwnerSummaryPage.editApplicationUrl(appPublicId, SourceControlConfigurationPage.URL_FRAGMENT),
         SourceControlConfigurationPage.URL_FRAGMENT);
   }
+
+  /**
+   * Mocks the MTIQ SCM feature set, navigates to the owner-type-specific editor via
+   * {@link #navigateToEditor()}, and reloads so the mocked product-features response is applied.
+   * Subclasses provide the owner-type-specific navigation and the {@link SourceControlRegressionPage}
+   * used for mocking.
+   */
+  protected void navigateWithMockedFeatures() {
+    scm().mockProductFeatures(MTIQ_SCM_FEATURES);
+    navigateToEditor();
+    // Reload so the mocked /rest/product/features response is applied to the editor.
+    page.reload();
+    playwrightWaitUntilUrlContains(SourceControlConfigurationPage.URL_FRAGMENT);
+  }
+
+  /** Owner-type-specific navigation (App uses public id, Org/RootOrg use owner id). */
+  protected abstract void navigateToEditor();
+
+  /** The subclass-owned {@link SourceControlRegressionPage} used to mock product features. */
+  protected abstract SourceControlRegressionPage scm();
 }

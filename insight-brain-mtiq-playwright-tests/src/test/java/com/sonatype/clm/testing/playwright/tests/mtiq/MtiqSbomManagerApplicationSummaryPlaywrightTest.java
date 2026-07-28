@@ -1,0 +1,226 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.playwright.tests.mtiq;
+
+import java.nio.file.Path;
+import java.util.Calendar;
+import java.util.Date;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.testing.playwright.categories.MtiqTest;
+import com.sonatype.clm.testing.playwright.mtiq.AbstractMtiqUiTest;
+import com.sonatype.clm.testing.playwright.pages.MtiqSbomManagerApplicationSummaryPage;
+import com.sonatype.clm.testing.playwright.pages.MtiqSbomManagerApplicationSummaryPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.SbomManagerBomPage;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.file.SbomFormat;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
+
+@Category(MtiqTest.class)
+public class MtiqSbomManagerApplicationSummaryPlaywrightTest
+    extends AbstractMtiqUiTest
+{
+  private static final String TEST_APP_PUBLIC_ID = "test-application";
+
+  private static final String TEST_APP_NAME = "Test Application";
+
+  private static final String SIMPLE_BOM_XML = "simple-bom.xml";
+
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  private Organization organization;
+
+  private Application application;
+
+  private MtiqSbomManagerApplicationSummaryPage page;
+
+  private MtiqSbomManagerApplicationSummaryPageAssertions assertions;
+
+  @Before
+  public void setUp() throws Exception {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    playwrightRefreshOrOpen("/");
+    playwrightLogin();
+
+    thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
+    organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(TEST_APP_NAME, TEST_APP_PUBLIC_ID, organization.getId());
+
+    createSbomMetadata("test-version", true, new Date());
+
+    page = new MtiqSbomManagerApplicationSummaryPage();
+    assertions = new MtiqSbomManagerApplicationSummaryPageAssertions(page);
+  }
+
+  @Test
+  public void testSbomsTile_RenderSuccessful() {
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    assertions.shouldShowSbomsTileWithHeader();
+    assertions.shouldShowSbomsTableColumns();
+    assertThat(page.sbomsTableBodyRows()).hasCount(1);
+  }
+
+  @Test
+  public void testSbomsTile_RenderInvalidSbomIndicator() throws Exception {
+    createSbomMetadata("test-version-2", false, new Date(System.currentTimeMillis() + 1000));
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    // Newest-first sort: the invalid "test-version-2" row is first.
+    assertThat(page.sbomsTableBodyRows()).hasCount(2);
+    assertThat(page.invalidSbomIndicatorInRow(0)).isVisible();
+  }
+
+  @Test
+  public void testSbomsTile_DeleteSbomReport() {
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    page.sbomActionsDropdownFor("test-version").click();
+    page.sbomActionsMenuItem("Delete SBOM").click();
+    assertThat(page.deleteSbomModal()).isVisible();
+    page.deleteSbomModalPrimaryButton().click();
+    assertThat(page.deleteSbomModal()).isHidden();
+    assertions.shouldShowEmptyState();
+  }
+
+  @Test
+  public void testSbomsTile_BOMNavigation() {
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    page.bomNavigationLinkInRow(0).click();
+
+    SbomManagerBomPage bomPage = new SbomManagerBomPage();
+    assertThat(bomPage.container()).isVisible();
+    page.playwrightPage()
+        .waitForURL(url -> url.contains(application.getPublicId())
+            && url.contains("test-version"));
+  }
+
+  @Test
+  public void testSbomsTile_Pagination() throws Exception {
+    seedManySbomsForPagination();
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    assertThat(page.paginationButtons().nth(1)).isVisible();
+    // Default desc-by-import-date: original "test-version" (today) is newest. Exact match — the
+    // paginated seed rows ("test-version 0".."test-version 9") would satisfy containsText.
+    assertThat(page.sbomsTableBodyRowColumn(0, 0)).hasText("test-version");
+
+    page.paginationButtons().nth(1).click();
+    // Page 2: oldest row is the last-seeded pagination entry.
+    assertThat(page.sbomsTableBodyRowColumn(0, 0)).hasText("test-version 9");
+
+    page.paginationButtons().nth(0).click();
+    assertThat(page.sbomsTableBodyRowColumn(0, 0)).hasText("test-version");
+  }
+
+  @Test
+  public void testSbomsTile_ChangeToAnotherApplication() {
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
+    assertions.shouldShowApplicationTitle(TEST_APP_NAME);
+    assertThat(page.sbomsTableBodyRows()).hasCount(1);
+
+    Application newApp = tempEntity.newApplication("New Application", "new-application", organization.getId());
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(newApp.getPublicId()));
+    assertions.shouldShowApplicationTitle("New Application");
+    assertions.shouldShowEmptyState();
+  }
+
+  @Test
+  public void testSbomsTile_DownloadDropdownOptions() throws Exception {
+    createSbomMetadata("test-version-2", false, new Date(System.currentTimeMillis() + 1000));
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    page.sbomActionsDropdownFor("test-version").click();
+    assertThat(page.sbomActionsMenuItem("Export Original SBOM")).isEnabled();
+    assertThat(page.sbomActionsMenuItem("Additional Export Options")).isEnabled();
+    assertThat(page.sbomActionsMenuItem("Export PDF")).isVisible();
+    assertThat(page.sbomActionsMenuItem("Delete SBOM")).isEnabled();
+
+    page.sbomsTile().click();
+
+    page.sbomActionsDropdownFor("test-version-2").click();
+    assertThat(page.sbomActionsMenuItem("Export Original SBOM")).isEnabled();
+    assertThat(page.sbomActionsMenuItem("Additional Export Options")).isDisabled();
+    assertThat(page.sbomActionsMenuItem("Delete SBOM")).isEnabled();
+  }
+
+  @Test
+  public void testSbomsTile_sortByImportDate() throws Exception {
+    seedManySbomsForPagination();
+    playwrightRefreshOrOpen(MtiqSbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    // Default desc: original "test-version" (today) is newest. Exact match — the paginated seed
+    // rows ("test-version 0".."test-version 9") would satisfy containsText.
+    assertThat(page.sbomsTableBodyRowColumn(0, 0)).hasText("test-version");
+
+    page.sbomsTableColumnHeader(4).click();
+    // Asc: "test-version 9" (10 days ago) is oldest.
+    assertThat(page.sbomsTableBodyRowColumn(0, 0)).hasText("test-version 9");
+
+    page.sbomsTableColumnHeader(4).click();
+    assertThat(page.sbomsTableBodyRowColumn(0, 0)).hasText("test-version");
+  }
+
+  private ThirdPartySbomMetadata createSbomMetadata(
+      String sbomVersion,
+      boolean isValid,
+      Date createdAt) throws Exception
+  {
+    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(scannedFile);
+    InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    Path zippedBom = mockOriginalSbom(MtiqSbomManagerApplicationSummaryPlaywrightTest.class, SIMPLE_BOM_XML,
+        insightWork.getSbomDir(application.getId()).toPath());
+
+    ThirdPartySbomMetadata metadata = tempEntity.newThirdPartySbomMetadata(scannedFile.getId(), application.getId(),
+        sbomVersion, ThirdPartySbomMetadataStatus.ACTIVE, zippedBom.getFileName().toString(),
+        SbomSpecification.CYCLONEDX.name(), SbomFormat.XML.name(), "0.0", createdAt);
+    // Factory persists createdAt; update() only needed to persist the isValid flip.
+    metadata.setIsValid(isValid);
+    thirdPartySbomMetadataDAO.update(metadata);
+    return metadata;
+  }
+
+  private void seedManySbomsForPagination() throws Exception {
+    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
+    InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    Calendar calendar = Calendar.getInstance();
+    for (int i = 0; i < 10; i++) {
+      Path zippedBom = mockOriginalSbom(MtiqSbomManagerApplicationSummaryPlaywrightTest.class, SIMPLE_BOM_XML,
+          insightWork.getSbomDir(application.getId()).toPath());
+      calendar.add(Calendar.DAY_OF_MONTH, -1);
+      Date rowDate = calendar.getTime();
+      ThirdPartySbomMetadata meta = tempEntity.newThirdPartySbomMetadata(scannedFile.getId(), application.getId(),
+          "test-version " + i, ThirdPartySbomMetadataStatus.ACTIVE, zippedBom.getFileName().toString(),
+          SbomSpecification.CYCLONEDX.name(), SbomFormat.XML.name(), "0.0", rowDate);
+
+      ComponentIdentifier compId = ComponentIdentifier.createNpmCoordinates("p" + i, "v" + i);
+      PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(compId);
+      ThirdPartyFileCoordinate coord = tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(), "s" + i,
+          purl.getFormat(), purl.getName(), purl.getVersion(), "h" + i, purl.getPackageUrl());
+      tempEntity.newThirdPartyCoordinateSecurity(coord, "cve-" + i, meta.getId(), "d" + i, "l" + i,
+          CvssV3Severity.HIGH.getStartScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "f" + i);
+    }
+  }
+}

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useMemo, type ReactElement, type ReactNode } from 'react';
+import React, { useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
 import { Badge, Box, Button, Card, Flex, Heading, Link, Text } from '@radix-ui/themes';
 import { PageHeading } from '@sonatype/nexus-one-components';
 import { ActionIcons } from 'MainRoot/nosc/icons';
@@ -16,6 +16,7 @@ import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vu
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
 import { useWaiverDetail } from './useWaivers';
+import { WaiverSecurityDetailsTab } from './WaiverSecurityDetailsTab';
 import type { PolicyWaiverDetailDTO } from './waiverTypes';
 import {
   describeWaiverExpiry,
@@ -32,8 +33,12 @@ import {
  * constraint blurb, a Scope/Component/Expires meta strip, and one Waiver Details
  * card. Everything renders from that one payload; no estate fan-out.
  *
- * Mutations (extend, delete, approve/reject) and additional entity tabs stay
- * deferred — see CLM-42708 / CLM-43365.
+ * A Security Details tab (CLM-43365) appears when the waiver names a
+ * vulnerability, reading the existing `GET /api/v2/vulnerabilities/{refId}`.
+ *
+ * Mutations (extend, delete, approve/reject) and the Components /
+ * Organizations / Applications tabs stay deferred — they need a waiver-to-estate
+ * query that does not exist yet. See CLM-42708.
  */
 
 interface ParsedRoute {
@@ -82,13 +87,19 @@ function classicWaiverDetailHref(route: ParsedRoute): string {
   );
 }
 
-const WAIVER_TABS = [
-  {
-    value: 'overview',
-    label: 'Overview',
-    testId: 'preview-waiver-detail-tab-overview',
-  },
-] as const;
+const OVERVIEW_TAB = {
+  value: 'overview',
+  label: 'Overview',
+  testId: 'preview-waiver-detail-tab-overview',
+} as const;
+
+const SECURITY_TAB = {
+  value: 'security-details',
+  label: 'Security Details',
+  testId: 'preview-waiver-detail-tab-security',
+} as const;
+
+type WaiverTabId = typeof OVERVIEW_TAB.value | typeof SECURITY_TAB.value;
 
 /** Meta strip entry: a dimmed label followed by its value chip. */
 function MetaItem({
@@ -165,6 +176,31 @@ export default function WaiverDetailPage(): ReactElement {
 
   // Stabilize the empty fallback so the header memo does not recompute every render.
   const constraints = useMemo(() => waiver?.constraintFacts ?? [], [waiver?.constraintFacts]);
+
+  // Security Details only exists when the waiver names a vulnerability.
+  const hasSecurityTab = Boolean(waiver?.vulnerabilityId);
+  const tabs = useMemo(
+    () => (hasSecurityTab ? [OVERVIEW_TAB, SECURITY_TAB] : [OVERVIEW_TAB]),
+    [hasSecurityTab],
+  );
+  const [activeTab, setActiveTab] = useState<WaiverTabId>(OVERVIEW_TAB.value);
+  // Keep Security Details mounted after the first visit so tab switches do not
+  // re-fetch `GET /api/v2/vulnerabilities/{refId}`.
+  const [securityTabVisited, setSecurityTabVisited] = useState(false);
+
+  // Only reset after a settled load proves this waiver has no vulnerability —
+  // during a waiverId swap `waiver` is briefly null and must not bounce tabs.
+  useEffect(() => {
+    if (loading || !waiver) return;
+    if (!waiver.vulnerabilityId) {
+      setActiveTab(OVERVIEW_TAB.value);
+      setSecurityTabVisited(false);
+    }
+  }, [loading, waiver]);
+
+  useEffect(() => {
+    if (activeTab === SECURITY_TAB.value) setSecurityTabVisited(true);
+  }, [activeTab]);
 
   const context = useMemo(() => {
     if (!waiver?.vulnerabilityId) return null;
@@ -317,15 +353,30 @@ export default function WaiverDetailPage(): ReactElement {
       breadcrumb={breadcrumb}
       header={header}
       context={context}
-      tabs={WAIVER_TABS}
-      activeTab="overview"
-      // Single Overview tab today; wire when a second tab is added.
-      onTabChange={() => undefined}
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(next) => {
+        if (next === OVERVIEW_TAB.value || next === SECURITY_TAB.value) setActiveTab(next);
+      }}
       mainTestId="preview-waiver-detail-page"
       testIdPrefix="preview-waiver-detail"
     >
+      {waiver && securityTabVisited && waiver.vulnerabilityId && (
+        <Box
+          style={{ display: activeTab === SECURITY_TAB.value ? undefined : 'none' }}
+          aria-hidden={activeTab !== SECURITY_TAB.value}
+        >
+          <WaiverSecurityDetailsTab
+            waiver={waiver}
+            vulnerabilityId={waiver.vulnerabilityId}
+            ownerType={route.ownerType}
+            ownerId={route.ownerId}
+          />
+        </Box>
+      )}
+
       {/* Load/error chrome lives in the header slot (Application detail pattern). */}
-      {waiver && (
+      {waiver && activeTab === OVERVIEW_TAB.value && (
         <Box mt="4" data-testid="preview-waiver-detail-body">
           <Card style={{ maxWidth: 880 }}>
             <Flex direction="column" p="4">

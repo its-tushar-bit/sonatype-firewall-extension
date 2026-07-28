@@ -8,7 +8,7 @@
 /**
  * Parameterized pipeline for regional production deployments.
  *
- * This job is shared by the regional production deployments (us-1, us-2, eu-1, ap-1).
+ * This job is shared by the regional production deployments (us-1, us-2, eu-1, ap-1, fidelity).
  * Each regional Jenkins job configures the default values for CELL_WORKSPACES and
  * GLOBAL_WORKSPACE. Only IMAGE_TAG must be passed in at build time.
  *
@@ -22,6 +22,7 @@
  *   - deploy-to-prod-us-2
  *   - deploy-to-prod-eu-1
  *   - deploy-to-prod-ap-1
+ *   - deploy-to-prod-fidelity
  */
 
 pipeline {

@@ -190,7 +190,7 @@ pipeline {
     stage('Trigger Regional Prod Jobs') {
       steps {
         script {
-          // Trigger all four regional production jobs in parallel
+          // Trigger all five regional production jobs in parallel
           parallel([
             'us-1': {
               build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-us-1',
@@ -212,6 +212,12 @@ pipeline {
             },
             'ap-1': {
               build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-ap-1',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            },
+            'fidelity': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-fidelity',
                   parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
                   wait: false,
                   propagate: false

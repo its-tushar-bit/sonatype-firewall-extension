@@ -34,11 +34,12 @@ Jenkinsfile.main (main branch build)
 
   deploy-to-prod-mirror (MANUAL TRIGGER)
     │
-    └─► [on success, triggers all 4 in parallel:]
+    └─► [on success, triggers all 5 in parallel:]
           ├─► deploy-to-prod-us-1 (approval gate → deploy)
           ├─► deploy-to-prod-us-2 (approval gate → deploy)
           ├─► deploy-to-prod-eu-1 (approval gate → deploy)
-          └─► deploy-to-prod-ap-1 (approval gate → deploy)
+          ├─► deploy-to-prod-ap-1 (approval gate → deploy)
+          └─► deploy-to-prod-fidelity (approval gate → deploy)
 ```
 
 **Key transitions:**
@@ -184,8 +185,8 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Trigger** | **MANUAL ONLY** — an operator must run this from the Jenkins UI |
 | **Parameters** | `IMAGE_TAG` (required) — must be a specific immutable tag present in prod ECR |
 | **Timeout** | 30 minutes |
-| **What it does** | Validates the image has a `prod-internal-verified-*` tag (proving it passed prod-internal), deploys to the prod-mirror TFC cell workspace, tags the image as `production-mirror-latest` and `production-{yyyyMMdd-HHmm}`, then triggers all 4 regional production jobs in parallel. |
-| **Downstream** | `deploy-to-prod-us-1`, `deploy-to-prod-us-2`, `deploy-to-prod-eu-1`, `deploy-to-prod-ap-1` (parallel, non-blocking) |
+| **What it does** | Validates the image has a `prod-internal-verified-*` tag (proving it passed prod-internal), deploys to the prod-mirror TFC cell workspace, tags the image as `production-mirror-latest` and `production-{yyyyMMdd-HHmm}`, then triggers all 5 regional production jobs in parallel. |
+| **Downstream** | `deploy-to-prod-us-1`, `deploy-to-prod-us-2`, `deploy-to-prod-eu-1`, `deploy-to-prod-ap-1`, `deploy-to-prod-fidelity` (parallel, non-blocking) |
 | **Status** | Active |
 
 **Safety gate:** The job performs two validations:
@@ -202,12 +203,12 @@ Both checks must pass. The verified tag proves the image has been deployed and v
 - **Production tagging fails:** Deployment succeeded but tagging failed. The image is live on mirror but not tagged. Manually apply `production-mirror-latest` and the timestamped tag via AWS CLI.
 - **Regional job triggers fail:** Non-fatal to this job but regional deployments won't start. Re-trigger manually from this job or trigger regional jobs individually.
 
-### 9. deploy-to-prod-{region} (us-1, us-2, eu-1, ap-1)
+### 9. deploy-to-prod-{region} (us-1, us-2, eu-1, ap-1, fidelity)
 
 | | |
 |---|---|
-| **Path** | `insight/MTIQ/sca-cloud/deploy-to-prod-us-1` (and `us-2`, `eu-1`, `ap-1`) |
-| **Jenkinsfile** | All 4 jobs share `Jenkinsfile.deploy-to-prod-region` |
+| **Path** | `insight/MTIQ/sca-cloud/deploy-to-prod-us-1` (and `us-2`, `eu-1`, `ap-1`, `fidelity`) |
+| **Jenkinsfile** | All 5 jobs share `Jenkinsfile.deploy-to-prod-region` |
 | **Trigger** | Automatic from `deploy-to-prod-mirror` (parallel) |
 | **Parameters** | `IMAGE_TAG` (required), `REGION` (required — e.g., 'us-1'), `CELL_WORKSPACES` (required — comma-separated TFC workspace names), `GLOBAL_WORKSPACE` (defaults to 'sca_aws_prod_global') |
 | **Timeout** | 96 hours (allows time for approval), 30-minute timeout on deploy stage |
@@ -345,6 +346,15 @@ Workspace configuration is in the Jenkinsfile itself (`PROD_MIRROR_CELL_WORKSPAC
 | `IMAGE_TAG` | _(passed from deploy-to-prod-mirror)_ |
 | `REGION` | `ap-1` |
 | `CELL_WORKSPACES` | `sca_aws_prod_cell-prod-ap-1` |
+| `GLOBAL_WORKSPACE` | `sca_aws_prod_global` |
+
+### deploy-to-prod-fidelity
+
+| Parameter | Value |
+|-----------|-------|
+| `IMAGE_TAG` | _(passed from deploy-to-prod-mirror)_ |
+| `REGION` | `fidelity` |
+| `CELL_WORKSPACES` | `sca_aws_prod_cell-prod-fidelity` |
 | `GLOBAL_WORKSPACE` | `sca_aws_prod_global` |
 
 ---

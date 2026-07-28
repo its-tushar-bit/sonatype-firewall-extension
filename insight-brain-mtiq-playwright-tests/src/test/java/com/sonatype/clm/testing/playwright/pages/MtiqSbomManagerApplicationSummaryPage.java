@@ -24,7 +24,12 @@ public class MtiqSbomManagerApplicationSummaryPage
     return OwnerSummaryPage.sbomManagerAppUrl(applicationPublicId);
   }
 
-  /** NxTile renders as an unlabelled section; the anchoring id is the stable option. */
+  /** TODO(CLM-42839): remove once AbstractPlaywrightTest has a hard-open helper. */
+  public static String neutralDetourUrl() {
+    return SbomManagerDashboardPage.url();
+  }
+
+  /** NxTile renders as an unlabelled section; anchor by id since no ARIA role/name is exposed. */
   public Locator sbomsTile() {
     return locator(SBOMS_TILE);
   }
@@ -34,7 +39,8 @@ public class MtiqSbomManagerApplicationSummaryPage
   }
 
   public Locator sbomsTileImportButton() {
-    return sbomsTile().getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Import"));
+    return sbomsTile()
+        .getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Import").setExact(true));
   }
 
   public Locator applicationTitle() {
@@ -61,11 +67,10 @@ public class MtiqSbomManagerApplicationSummaryPage
     return sbomsTableBodyRows().nth(rowIndex).locator("td").nth(columnIndex);
   }
 
-  /** Numeric page-number buttons; excludes prev/next arrow-only buttons. */
+  /** Numeric page-number buttons; excludes prev/next arrow-only buttons via text-filter. */
   public Locator paginationButtons() {
-    return sbomsTile().locator(".nx-btn--pagination")
-        .filter(
-            new Locator.FilterOptions().setHasText(Pattern.compile("^\\d+$")));
+    return sbomsTile().getByRole(AriaRole.BUTTON)
+        .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^\\d+$")));
   }
 
   /** NxIconDropdown labels the toggle with {@code aria-label="<version>-options"}. */
@@ -73,11 +78,15 @@ public class MtiqSbomManagerApplicationSummaryPage
     return page.getByLabel(applicationVersion + "-options");
   }
 
-  /** NxIconDropdown items are a mix of buttons and links with no {@code role="menuitem"}; filter by visible text. */
+  /**
+   * NxIconDropdown items lack {@code role="menuitem"} and its container has no queryable role;
+   * anchor by RSC's {@code .nx-dropdown-menu} class and filter by visible text.
+   */
   public Locator sbomActionsMenuItem(String name) {
     return page.locator(".nx-dropdown-menu").getByText(name);
   }
 
+  /** NxModal doesn't expose a discoverable ARIA role in this RSC build; anchor by frontend id. */
   public Locator deleteSbomModal() {
     return locator("#delete-sbom-version-modal");
   }
@@ -98,5 +107,25 @@ public class MtiqSbomManagerApplicationSummaryPage
 
   public Locator emptyStateCell() {
     return sbomsTable().locator("tbody").getByText("No SBOMs found");
+  }
+
+  /** NxModal doesn't expose a discoverable ARIA role in this RSC build; anchor by frontend id. */
+  public Locator additionalExportOptionsModal() {
+    return locator("#sbom-additional-export-options-modal");
+  }
+
+  public Locator additionalExportSpecificationRadio(String label) {
+    return radioInFieldsetByLegend("SBOM Specification")
+        .getByText(label, new Locator.GetByTextOptions().setExact(true));
+  }
+
+  public Locator additionalExportFormatRadio(String label) {
+    return radioInFieldsetByLegend("SBOM Format")
+        .getByText(label, new Locator.GetByTextOptions().setExact(true));
+  }
+
+  private Locator radioInFieldsetByLegend(String legendText) {
+    return additionalExportOptionsModal()
+        .getByRole(AriaRole.GROUP, new Locator.GetByRoleOptions().setName(legendText));
   }
 }

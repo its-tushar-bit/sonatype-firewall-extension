@@ -27,12 +27,12 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 public class MtiqOrgsAndPoliciesSidebarPlaywrightTest
     extends AbstractMtiqUiTest
 {
-  // Matches the legacy MtiqOrgsAndPoliciesSidebarTest seeding: newRelatedOrganizationsAsMap(null, 2, 3, 3).
-  private static final int ROOT_CHILD_ORG_COUNT = 2;
+  // Minimal 1-child × depth-2 × 1-app tree — enough to reach the "Import Applications" option.
+  private static final int ROOT_CHILD_ORG_COUNT = 1;
 
-  private static final int TOTAL_DEPTH = 3;
+  private static final int TOTAL_DEPTH = 2;
 
-  private static final int LEAF_CHILD_ORG_COUNT = 3;
+  private static final int LEAF_CHILD_ORG_COUNT = 1;
 
   @Before
   public void seedTreeAndOpenRootOrgAsAdmin() {

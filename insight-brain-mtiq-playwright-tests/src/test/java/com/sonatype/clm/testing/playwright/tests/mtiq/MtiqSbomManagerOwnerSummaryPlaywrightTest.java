@@ -11,7 +11,6 @@ import com.sonatype.clm.testing.playwright.pages.OrgsAndPoliciesSidebarComponent
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.SbomManagerDashboardPage;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -33,17 +32,15 @@ public class MtiqSbomManagerOwnerSummaryPlaywrightTest
 
   private Organization childOrganization2;
 
-  private Application childApplication1;
-
-  private Application childApplication2;
-
   @Before
   public void seedOrgTreeAndLogin() {
-    parentOrganization = tempEntity.newOrganization("Ye Ole Organization");
-    childOrganization1 = tempEntity.newOrganization("1st Child organization", parentOrganization);
-    childOrganization2 = tempEntity.newOrganization("2nd Child organization", parentOrganization);
-    childApplication1 = tempEntity.newApplicationWithParent(childOrganization1);
-    childApplication2 = tempEntity.newApplicationWithParent(childOrganization2);
+    String suffix = tempEntity.uuid();
+    parentOrganization = tempEntity.newOrganization("Ye Ole Organization " + suffix);
+    childOrganization1 = tempEntity.newOrganization("1st Child organization " + suffix, parentOrganization);
+    childOrganization2 = tempEntity.newOrganization("2nd Child organization " + suffix, parentOrganization);
+    // Seed one app under each child so the sidebar renders them as expandable menu items.
+    tempEntity.newApplicationWithParent(childOrganization1);
+    tempEntity.newApplicationWithParent(childOrganization2);
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_FOUNDATION);
     playwrightRefreshOrOpen("/");
@@ -93,7 +90,6 @@ public class MtiqSbomManagerOwnerSummaryPlaywrightTest
 
     OrgsAndPoliciesSidebarComponent sidebar = new OrgsAndPoliciesSidebarComponent();
     assertThat(sidebar.container()).isVisible();
-    // SBOM Manager product context hides Repositories even with Firewall license.
     assertThat(sidebar.repositoriesGroup()).isHidden();
     assertThat(sidebar.repositoryManagersGroup()).isHidden();
   }
@@ -136,8 +132,11 @@ public class MtiqSbomManagerOwnerSummaryPlaywrightTest
 
   @Test
   public void testSbomManager_policyTable() {
-    tempEntity.newPolicy(parentOrganization.getId(), "Policy 1", 10);
-    tempEntity.newPolicy(parentOrganization.getId(), "Policy 2", 5);
+    String suffix = tempEntity.uuid();
+    String policy1Name = "Policy 1 " + suffix;
+    String policy2Name = "Policy 2 " + suffix;
+    tempEntity.newPolicy(parentOrganization.getId(), policy1Name, 10);
+    tempEntity.newPolicy(parentOrganization.getId(), policy2Name, 5);
 
     playwrightRefreshOrOpen(SbomManagerDashboardPage.url());
     clickSbomManagerOrganizationsFromSidebar();
@@ -151,12 +150,37 @@ public class MtiqSbomManagerOwnerSummaryPlaywrightTest
 
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     assertThat(ownerSummary.policiesTile()).isVisible();
-    assertThat(ownerSummary.policiesTileRowByName("Policy 1")).isVisible();
-    assertThat(ownerSummary.policiesTileRowByName("Policy 2")).isVisible();
+    assertThat(ownerSummary.policiesTileRowByName(policy1Name)).isVisible();
+    assertThat(ownerSummary.policiesTileRowByName(policy2Name)).isVisible();
+    assertThat(ownerSummary.policiesTile().locator("thead").getByText("Name")).isVisible();
+  }
+
+  @Test
+  public void testSbomManager_policyTable_showsInheritedRowsMarkedFromParent() {
+    tempEntity.newPolicy(parentOrganization.getId(), "Inherited SBOM Policy " + tempEntity.uuid(), 5);
+
+    playwrightRefreshOrOpen(SbomManagerDashboardPage.url());
+    clickSbomManagerOrganizationsFromSidebar();
+
+    // Expand parent first — child links render only after the parent's collapsible expands.
+    OrgsAndPoliciesSidebarComponent sidebar = new OrgsAndPoliciesSidebarComponent();
+    sidebar.organizationLinks()
+        .filter(new Locator.FilterOptions().setHasText(parentOrganization.getName()))
+        .first()
+        .click();
+    sidebar.organizationLinks()
+        .filter(new Locator.FilterOptions().setHasText(childOrganization1.getName()))
+        .first()
+        .click();
+
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    assertThat(ownerSummary.policiesTile()).isVisible();
+    assertThat(ownerSummary.policiesTileInheritedSectionFor(parentOrganization.getName())).isVisible();
   }
 
   private void clickSbomManagerOrganizationsFromSidebar() {
-    new SidebarComponent().sbomManagerOrganizationsButton().click();
+    SidebarComponent sidebar = new SidebarComponent();
+    sidebar.sbomManagerOrganizationsButton().click();
     page.waitForURL(url -> url.contains("/sbomManager/management/view"));
   }
 }

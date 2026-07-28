@@ -152,6 +152,15 @@ public class PrioritiesPage
   }
 
   /**
+   * The empty-state message cell rendered by {@code NxTable.Body emptyMessage}
+   * ({@code tbody .nx-cell--meta-info}) when the active component-name filter produces no matches.
+   * The text reads "No Results" (see {@code PrioritiesPageTable.jsx#getEmptyMessage}).
+   */
+  public Locator emptyStateMessage() {
+    return container().locator("tbody .nx-cell--meta-info");
+  }
+
+  /**
    * License lock screen scoped to {@link #pageMain()} — {@code LicenseLockScreen} REPLACES the
    * priorities table container, so {@link #container()} is not present when the alert renders
    * (see {@code prioritiesPage/PrioritiesPage.jsx} — the switch is at the {@code PageContents}

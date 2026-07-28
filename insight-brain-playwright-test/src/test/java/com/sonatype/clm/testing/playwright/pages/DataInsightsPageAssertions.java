@@ -26,5 +26,6 @@ public class DataInsightsPageAssertions
   public void shouldShowLicenseGateError() {
     assertThat(page.container()).isVisible();
     assertThat(page.enterpriseReportingLicenseErrorMessage()).isVisible();
+    assertThat(page.labsContainer()).isHidden();
   }
 }

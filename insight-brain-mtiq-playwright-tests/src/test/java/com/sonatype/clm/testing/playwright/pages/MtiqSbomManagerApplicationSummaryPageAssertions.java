@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import com.microsoft.playwright.assertions.LocatorAssertions;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 public class MtiqSbomManagerApplicationSummaryPageAssertions
@@ -16,13 +19,14 @@ public class MtiqSbomManagerApplicationSummaryPageAssertions
   }
 
   public void shouldShowSbomsTileWithHeader() {
-    assertThat(page.sbomsTile()).isVisible();
+    assertThat(page.sbomsTile()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
     assertThat(page.sbomsTileHeader()).containsText("SBOMs");
     assertThat(page.sbomsTileImportButton()).isVisible();
   }
 
   public void shouldShowSbomsTableColumns() {
-    assertThat(page.sbomsTableColumnHeaders()).hasCount(6);
+    assertThat(page.sbomsTableColumnHeaders()).hasCount(6,
+        new LocatorAssertions.HasCountOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
     assertThat(page.sbomsTableColumnHeader(0)).containsText("Versions");
     assertThat(page.sbomsTableColumnHeader(1)).containsText("Vulnerabilities");
     assertThat(page.sbomsTableColumnHeader(2)).containsText("Release Status");
@@ -36,6 +40,6 @@ public class MtiqSbomManagerApplicationSummaryPageAssertions
   }
 
   public void shouldShowEmptyState() {
-    assertThat(page.emptyStateCell()).isVisible();
+    assertThat(page.emptyStateCell()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
   }
 }

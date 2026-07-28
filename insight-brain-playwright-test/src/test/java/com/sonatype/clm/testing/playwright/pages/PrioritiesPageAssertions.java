@@ -67,11 +67,15 @@ public class PrioritiesPageAssertions
 
   public void shouldShowWaiveViolationsRecommendationOnRow(Locator row) {
     assertThat(row.getByText("Waive violations")).isVisible();
+    // NxTooltip portal mounts on hover — trigger it, then verify the nudge-auto-waiver text.
+    page.recommendationCell(row).hover();
+    assertThat(page.tooltip()).containsText("Ask an administrator to configure Automated Waivers");
   }
 
   public void shouldShowAtLeastOneDependencyIndicatorInTable() {
-    // Canned report yields multiple Direct-Dependency indicators; .first() avoids strict-mode collision.
+    // Canned report yields multiple Direct and Transitive indicators; .first() avoids strict-mode collision.
     assertThat(page.dependencyIndicatorByTitle("Direct Dependency").first()).isVisible();
+    assertThat(page.dependencyIndicatorByTitle("Transitive Dependency").first()).isVisible();
   }
 
   public void shouldShowLicenseLockScreen() {

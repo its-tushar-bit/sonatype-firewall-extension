@@ -12,8 +12,8 @@ import { AffectedComponentsTable, BodyText } from '@guide/ui-core';
 import { getVulnerabilityAffectedComponents, AFFECTED_COMPONENTS_SORT_FIELDS } from 'GuideRoot/api/vulnerabilitiesBackend';
 import type { AffectedComponentVersion } from '@guide/ui-core/types';
 
-const DEFAULT_PAGE_SIZE = 50;
-const MAX_PAGE_SIZE = 100;
+const DEFAULT_PAGE_SIZE = 25;
+const MAX_PAGE_SIZE = 25;
 
 interface ComponentsResponse {
   hits: AffectedComponentVersion[];

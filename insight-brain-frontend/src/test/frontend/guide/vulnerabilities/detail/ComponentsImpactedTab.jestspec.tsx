@@ -54,7 +54,7 @@ const mockResponse = {
   ],
   total: 2,
   offset: 0,
-  limit: 50,
+  limit: 25,
 };
 
 describe('ComponentsImpactedTab', () => {
@@ -86,7 +86,7 @@ describe('ComponentsImpactedTab', () => {
       hits: [],
       total: 0,
       offset: 0,
-      limit: 50,
+      limit: 25,
     });
 
     renderAtPath('/vulnerability/CVE-9999-9999/components-impacted');
@@ -152,7 +152,7 @@ describe('ComponentsImpactedTab', () => {
 
       expect(mockGetVulnerabilityAffectedComponents).toHaveBeenCalledWith(
         'CVE-2021-44228',
-        expect.objectContaining({ limit: 50 })
+        expect.objectContaining({ limit: 25 })
       );
     });
 
@@ -192,6 +192,19 @@ describe('ComponentsImpactedTab', () => {
       expect(mockGetVulnerabilityAffectedComponents).toHaveBeenCalledWith(
         'CVE-2021-44228',
         expect.objectContaining({ offset: 0 })
+      );
+    });
+
+    it('clamps a limit above the policy-enrichment cap to 25', async () => {
+      renderAtPath('/vulnerability/CVE-2021-44228/components-impacted?limit=50');
+
+      await waitFor(() => {
+        expect(mockGetVulnerabilityAffectedComponents).toHaveBeenCalled();
+      });
+
+      expect(mockGetVulnerabilityAffectedComponents).toHaveBeenCalledWith(
+        'CVE-2021-44228',
+        expect.objectContaining({ limit: 25 })
       );
     });
 

@@ -18,6 +18,7 @@ import {
 import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/SuccessMetricsReportListContainer';
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
 import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
+import WaivedComponentUpgradesConfiguration from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/WaivedComponentUpgradesConfiguration';
 import ProductLicenseContainer from 'MainRoot/configuration/license/ProductLicenseContainer';
 import GettingStartedContainer from 'MainRoot/configuration/gettingStarted/GettingStartedContainer';
 import UserManagementContainer from 'MainRoot/security/users/UserManagementContainer';
@@ -599,6 +600,18 @@ router.stateRegistry.register({
   data: {
     title: 'Success Metrics Configuration',
     isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'waivedComponentUpgradesConfiguration',
+  url: '/waivedComponentUpgradesConfiguration',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(WaivedComponentUpgradesConfiguration),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Waived Component Upgrades Configuration',
+    isDirty: ['waivedComponentUpgradesConfiguration', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

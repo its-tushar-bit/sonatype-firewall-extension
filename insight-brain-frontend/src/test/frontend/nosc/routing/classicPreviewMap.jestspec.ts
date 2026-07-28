@@ -86,6 +86,12 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
     });
 
+    it('keeps the Waived Component Upgrades Configuration admin path identical on both bundles (CLM-42468)', () => {
+      expect(toNexusOneEquivalent('/waivedComponentUpgradesConfiguration')).toBe(
+        '/waivedComponentUpgradesConfiguration',
+      );
+    });
+
     it('keeps the Product License admin path identical on both bundles (CLM-42466)', () => {
       expect(toNexusOneEquivalent('/productlicense')).toBe('/productlicense');
     });
@@ -192,6 +198,12 @@ describe('classicPreviewMap', () => {
 
     it('maps Success Metrics admin back to the same Classic path (CLM-42186)', () => {
       expect(toClassicEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
+    });
+
+    it('maps Waived Component Upgrades Configuration admin back to the same Classic path (CLM-42468)', () => {
+      expect(toClassicEquivalent('/waivedComponentUpgradesConfiguration')).toBe(
+        '/waivedComponentUpgradesConfiguration',
+      );
     });
 
     it('maps Product License admin back to the same Classic path (CLM-42466)', () => {
@@ -388,6 +400,7 @@ describe('classicPreviewMap', () => {
       ['/repositories/mgr-123/repo-456/components'],
       ['/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo'],
       ['/successMetricsConfiguration'],
+      ['/waivedComponentUpgradesConfiguration'],
       ['/productlicense'],
       ['/gettingStarted'],
       ['/users'],

@@ -416,6 +416,44 @@ describe('nexusOneClassicEmbedRoutes', () => {
     });
   });
 
+  describe('waivedComponentUpgradesConfiguration Classic-embed admin route (CLM-42468)', () => {
+    const state = () => router.stateRegistry.get('waivedComponentUpgradesConfiguration');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /waivedComponentUpgradesConfiguration', () => {
+      expect(state()?.url).toBe('/waivedComponentUpgradesConfiguration');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('wires the dirty guard through the exact state-path array the router selector reads', () => {
+      expect(state()?.data?.isDirty).toEqual(['waivedComponentUpgradesConfiguration', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      const rootState = rootReducer(undefined, { type: '@@INIT' });
+      const [slice, field] = state()?.data?.isDirty ?? [];
+      expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
+    });
+  });
+
   describe('productlicense Classic-embed admin route (CLM-42466)', () => {
     const state = () => router.stateRegistry.get('productlicense');
     const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;

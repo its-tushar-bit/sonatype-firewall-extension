@@ -25,6 +25,7 @@ beforeEach(() => {
 });
 
 beforeAll(installRadixJsdomShims);
+beforeEach(() => mockHref.mockClear());
 
 function renderInTheme(preloadedState: object) {
   return render(
@@ -108,5 +109,18 @@ describe('PreviewSystemPreferencesMenu', () => {
     expect(
       within(menu).queryByTestId('nexus-one-top-nav-settings-item-advanced-search')
     ).not.toBeInTheDocument();
+  });
+
+  it('Waived Components links to the unprefixed state even under a firewall-only license', async () => {
+    // firewallPrefix = 'firewall' in this state; the item must still target the NOUX state directly.
+    const user = userEvent.setup();
+    renderInTheme({
+      mainHeader: { permissions: { CONFIGURE_SYSTEM: true } },
+      productLicense: { license: { products: ['Sonatype Repository Firewall'] } },
+    });
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    await screen.findByRole('menu');
+    expect(mockHref).toHaveBeenCalledWith('waivedComponentUpgradesConfiguration');
+    expect(mockHref).not.toHaveBeenCalledWith('firewall.waivedComponentUpgradesConfiguration');
   });
 });

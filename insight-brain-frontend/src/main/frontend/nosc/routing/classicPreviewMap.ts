@@ -74,6 +74,7 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   // isSharedPath branch in toNexusOneEquivalent maps shared paths to
   // '/ui-settings', not the caller-supplied path.
   ['/successMetricsConfiguration', '/successMetricsConfiguration'],
+  ['/waivedComponentUpgradesConfiguration', '/waivedComponentUpgradesConfiguration'],
   ['/productlicense', '/productlicense'],
   ['/gettingStarted', '/gettingStarted'],
   // /users is handled by SUBTREE_MAPPINGS below so deep links (/users/_new_,

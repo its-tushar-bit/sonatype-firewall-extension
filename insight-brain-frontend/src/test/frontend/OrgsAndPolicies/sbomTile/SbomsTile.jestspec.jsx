@@ -278,7 +278,7 @@ describe('SbomsTile', () => {
       });
 
       it('downloads an SBOM', async () => {
-        const downloadSbomFileUrl = getDownloadSbomFileUrl(applicationId, 'app123', 'current', 'cyclonedx1.6');
+        const downloadSbomFileUrl = getDownloadSbomFileUrl(applicationId, 'app123', 'current', 'cyclonedx1.7');
         let resolveFn = null;
         axiosMock.onGet(downloadSbomFileUrl).reply(
           () =>
@@ -315,8 +315,9 @@ describe('SbomsTile', () => {
         expect(screen.getByText(/Additional Export Options/)).toBeVisible();
 
         expect(screen.getByText(/SBOM Specification/)).toBeVisible();
-        expect(screen.getByLabelText(/CycloneDX/)).toBeVisible();
-        expect(screen.getByLabelText(/CycloneDX/)).toBeChecked();
+        expect(screen.getByLabelText(/CycloneDX 1\.7/)).toBeVisible();
+        expect(screen.getByLabelText(/CycloneDX 1\.7/)).toBeChecked();
+        expect(screen.getByLabelText(/CycloneDX 1\.6/)).toBeVisible();
         expect(screen.getByLabelText(/SPDX 2\.3/)).toBeVisible();
         expect(screen.getByLabelText(/SPDX 3\.0/)).toBeVisible();
 

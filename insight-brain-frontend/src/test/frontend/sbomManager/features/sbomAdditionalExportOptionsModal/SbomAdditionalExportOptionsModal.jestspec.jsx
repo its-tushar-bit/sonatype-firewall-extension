@@ -45,8 +45,10 @@ describe('SbomAdditionalExportOptionsModal', () => {
     expect(screen.getByText(/Additional Export Options/)).toBeVisible();
 
     expect(screen.getByText(/SBOM Specification/)).toBeVisible();
-    expect(screen.getByLabelText(/CycloneDX/)).toBeVisible();
-    expect(screen.getByLabelText(/CycloneDX/)).toBeChecked();
+    expect(screen.getByLabelText('CycloneDX 1.7')).toBeVisible();
+    expect(screen.getByLabelText('CycloneDX 1.7')).toBeChecked();
+    expect(screen.getByLabelText('CycloneDX 1.6')).toBeVisible();
+    expect(screen.getByLabelText('CycloneDX 1.6')).not.toBeChecked();
     expect(screen.getByLabelText(/SPDX 2\.3/)).toBeVisible();
     expect(screen.getByLabelText(/SPDX 3\.0/)).toBeVisible();
 
@@ -65,7 +67,7 @@ describe('SbomAdditionalExportOptionsModal', () => {
       APPLICATION_INTERNAL_ID,
       SBOM_VERSION,
       'current',
-      'cyclonedx1.6'
+      'cyclonedx1.7'
     );
     axiosMock.onGet(downloadSbomFileUrl).reply(200, {});
 
@@ -131,7 +133,7 @@ describe('SbomAdditionalExportOptionsModal', () => {
       ['sbomExport'],
       {
         showModal: true,
-        sbomSpecification: EXPORT_SBOM_SPECIFICATION.spdx,
+        sbomSpecification: EXPORT_SBOM_SPECIFICATION.spdx23,
         sbomFileFormat: EXPORT_SBOM_FILE_FORMAT.xml,
         exportAndDownloadSbomSubmitMask: { ...exportAndDownloadSbomSubmitMaskInitialState },
       },
@@ -157,7 +159,7 @@ describe('SbomAdditionalExportOptionsModal', () => {
 
     expect(screen.getByLabelText(/XML \(not available for SPDX 3\.0\)/)).toBeDisabled();
 
-    const cycloneDxRadio = screen.getByLabelText(/CycloneDX/);
+    const cycloneDxRadio = screen.getByLabelText('CycloneDX 1.7');
     await user.click(cycloneDxRadio);
 
     const xmlRadio = screen.getByLabelText(/^XML$/);
@@ -170,7 +172,7 @@ describe('SbomAdditionalExportOptionsModal', () => {
       ['sbomExport'],
       {
         showModal: true,
-        sbomSpecification: EXPORT_SBOM_SPECIFICATION.spdx,
+        sbomSpecification: EXPORT_SBOM_SPECIFICATION.spdx23,
         sbomFileFormat: EXPORT_SBOM_FILE_FORMAT.xml,
       },
       initialState
@@ -186,7 +188,7 @@ describe('SbomAdditionalExportOptionsModal', () => {
     const user = userEvent.setup();
     renderComponent(initialState);
 
-    expect(screen.getByLabelText(/CycloneDX/)).toBeChecked();
+    expect(screen.getByLabelText('CycloneDX 1.7')).toBeChecked();
     expect(screen.getByLabelText(/JSON/)).toBeChecked();
 
     const spdxRadio = screen.getByLabelText(/SPDX 2\.3/);
@@ -195,7 +197,8 @@ describe('SbomAdditionalExportOptionsModal', () => {
     await user.click(spdxRadio);
 
     expect(spdxRadio).toBeChecked();
-    expect(screen.getByLabelText(/CycloneDX/)).not.toBeChecked();
+    expect(screen.getByLabelText('CycloneDX 1.7')).not.toBeChecked();
+    expect(screen.getByLabelText('CycloneDX 1.6')).not.toBeChecked();
 
     await user.click(xmlRadio);
 

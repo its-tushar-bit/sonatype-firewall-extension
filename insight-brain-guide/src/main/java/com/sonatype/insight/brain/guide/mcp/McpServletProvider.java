@@ -27,7 +27,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import io.modelcontextprotocol.common.McpTransportContext;
-import io.modelcontextprotocol.json.schema.JsonSchemaValidator;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpStatelessServerFeatures;
 import io.modelcontextprotocol.server.transport.HttpServletStatelessServerTransport;
@@ -92,7 +91,6 @@ public class McpServletProvider
     McpServer.sync(transport)
         .serverInfo("iq-mcp", "1.0.0")
         .capabilities(McpSchema.ServerCapabilities.builder().tools(true).build())
-        .jsonSchemaValidator(noOpJsonSchemaValidator())
         // Run tool callbacks on the servlet request thread so the Shiro Subject
         // (and other request-scoped ThreadLocals like MDC and tenant context)
         // remain bound when downstream services like ApiComponentEvaluationServiceV2
@@ -371,23 +369,5 @@ public class McpServletProvider
         .content(List.of(new TextContent(message)))
         .isError(true)
         .build();
-  }
-
-  /**
-   * Returns a no-op JSON schema validator that skips all validation.
-   *
-   * <p>
-   * This is required to work around a dependency conflict between the MCP Java SDK and
-   * cyclonedx-core-java. The MCP SDK's default {@code DefaultJsonSchemaValidator} (from
-   * mcp-json-jackson2) requires json-schema-validator 2.x, but cyclonedx-core-java 12.1.0
-   * requires json-schema-validator 1.5.9. These versions are binary-incompatible.
-   *
-   * <p>
-   * <b>TODO: Remove this workaround</b> when cyclonedx-core-java 13.0.0 is released, which
-   * upgrades to json-schema-validator 2.x.
-   */
-  private static JsonSchemaValidator noOpJsonSchemaValidator() {
-    return (Map<String, Object> schema, Object structuredContent) -> JsonSchemaValidator.ValidationResponse.asValid(
-        structuredContent != null ? structuredContent.toString() : null);
   }
 }

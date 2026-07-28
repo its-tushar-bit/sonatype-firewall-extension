@@ -1,0 +1,37 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "serialNumber": "urn:uuid:11111111-2222-3333-4444-555555555555",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-07-02T20:00:00Z",
+    "component": {
+      "type": "application",
+      "bom-ref": "acme-app-1.0",
+      "name": "Acme App",
+      "version": "1.0.0"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-web@5.0.4.RELEASE",
+      "group": "org.springframework",
+      "name": "spring-web",
+      "version": "5.0.4.RELEASE",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+            "licensing": {
+              "expiration": "2030-01-01T00:00:00Z",
+              "lastRenewal": "2026-01-01T00:00:00Z"
+            }
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-web@5.0.4.RELEASE?type=jar"
+    }
+  ]
+}

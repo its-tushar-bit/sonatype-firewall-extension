@@ -726,4 +726,76 @@ describe('BillOfMaterials Page', () => {
       expect(exportRequest).toBeDefined();
     });
   });
+
+  it('exports a CycloneDX source SBOM with the cyclonedx1.7 specification', async () => {
+    const cycloneDxMetadata = {
+      ...getSbomMetadataResponsePayload,
+      specification: 'CycloneDx',
+      specVersion: '1.6',
+      fileFormat: 'json',
+    };
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+    axiosMock
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
+    axiosMock.onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, cycloneDxMetadata);
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+    const expectedUrl = getDownloadSbomFileUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION, 'current', 'cyclonedx1.7');
+    axiosMock.onGet(expectedUrl).reply(200, new Blob(['test']));
+
+    const user = userEvent.setup();
+    renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const exportButton = screen.getByRole('button', { name: 'Export SBOM' });
+    await user.click(exportButton);
+
+    await waitFor(() => {
+      const getRequests = axiosMock.history.get;
+      const exportRequest = getRequests.find((req) => req.url === expectedUrl);
+      expect(exportRequest).toBeDefined();
+    });
+  });
+
+  it('exports an SPDX 2.x source SBOM with the spdx2.3 specification', async () => {
+    const spdx23Metadata = {
+      ...getSbomMetadataResponsePayload,
+      specification: 'SPDX',
+      specVersion: '2.3',
+      fileFormat: 'json',
+    };
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+    axiosMock
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
+    axiosMock.onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, spdx23Metadata);
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+    const expectedUrl = getDownloadSbomFileUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION, 'current', 'spdx2.3');
+    axiosMock.onGet(expectedUrl).reply(200, new Blob(['test']));
+
+    const user = userEvent.setup();
+    renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const exportButton = screen.getByRole('button', { name: 'Export SBOM' });
+    await user.click(exportButton);
+
+    await waitFor(() => {
+      const getRequests = axiosMock.history.get;
+      const exportRequest = getRequests.find((req) => req.url === expectedUrl);
+      expect(exportRequest).toBeDefined();
+    });
+  });
 });

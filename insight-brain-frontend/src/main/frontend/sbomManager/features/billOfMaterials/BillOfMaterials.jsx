@@ -146,10 +146,13 @@ export default function BillOfMaterials() {
   const getDefaultExportSpecification = () => {
     if (!sbomMetadata.specification) return undefined;
     const spec = toLower(sbomMetadata.specification);
-    if (spec === 'spdx' && sbomMetadata.specVersion === '3.0') {
-      return EXPORT_SBOM_SPECIFICATION.spdx30;
+    if (spec === 'cyclonedx') {
+      return EXPORT_SBOM_SPECIFICATION.cyclonedx17;
     }
-    return EXPORT_SBOM_SPECIFICATION[spec];
+    if (spec === 'spdx') {
+      return sbomMetadata.specVersion === '3.0' ? EXPORT_SBOM_SPECIFICATION.spdx30 : EXPORT_SBOM_SPECIFICATION.spdx23;
+    }
+    return undefined;
   };
 
   const downloadLatestSbomFile = () =>

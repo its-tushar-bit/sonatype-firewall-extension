@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
+import com.sonatype.insight.brain.sbom.utils.SbomValidationMessageTranslator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -169,9 +170,11 @@ public class ApiThirdPartyScanService
       }
     }
     catch (SbomValidationException | UnsupportedSbomException e) {
-      StringBuilder message = new StringBuilder(e.getMessage());
+      StringBuilder message = new StringBuilder(
+          StringUtils.defaultString(SbomValidationMessageTranslator.translate(e.getMessage())));
       for (Throwable suppressedEx : e.getSuppressed()) {
-        message.append("\n - ").append(suppressedEx.getMessage());
+        message.append("\n - ")
+            .append(StringUtils.defaultString(SbomValidationMessageTranslator.translate(suppressedEx.getMessage())));
       }
       throw new NotAcceptableException(message.toString());
     }

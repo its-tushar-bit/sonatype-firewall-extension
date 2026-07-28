@@ -36,6 +36,10 @@ export interface ViolationsPageProps {
   readonly onWaiverTypeChange: (waiverType: ViolationWaiverType) => void;
   readonly onThreatRangeChange: (range: ViolationThreatRange) => void;
   readonly onResetFilters: () => void;
+  readonly organizationFacetSearch?: string;
+  readonly onOrganizationFacetSearchChange?: (query: string) => void;
+  readonly applicationFacetSearch?: string;
+  readonly onApplicationFacetSearchChange?: (query: string) => void;
   readonly loading?: boolean;
   readonly error?: string | null;
   readonly onRetry?: () => void;
@@ -110,6 +114,10 @@ export default function ViolationsPage({
   onWaiverTypeChange,
   onThreatRangeChange,
   onResetFilters,
+  organizationFacetSearch,
+  onOrganizationFacetSearchChange,
+  applicationFacetSearch,
+  onApplicationFacetSearchChange,
   loading = false,
   error = null,
   onRetry,
@@ -154,6 +162,10 @@ export default function ViolationsPage({
     onWaiverTypeChange,
     onThreatRangeChange,
     onReset: onResetFilters,
+    organizationFacetSearch,
+    onOrganizationFacetSearchChange,
+    applicationFacetSearch,
+    onApplicationFacetSearchChange,
     hideStateFilter,
     hideWaiverTypeFilter,
     threatCategorySectionTitle,

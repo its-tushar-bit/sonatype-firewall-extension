@@ -19,6 +19,10 @@ export interface UseViolationsListParams {
   readonly search?: string;
   readonly includeFacets?: boolean;
   readonly filters?: ViolationsFilterState;
+  /** Debounced Organizations facet search (server-side name match; not URL-persisted). */
+  readonly organizationFacetSearch?: string;
+  /** Debounced Applications facet search (server-side name match; not URL-persisted). */
+  readonly applicationFacetSearch?: string;
   /** When false, defers the list POST until route state is hydrated from the URL (default true). */
   readonly enabled?: boolean;
 }
@@ -43,12 +47,23 @@ export function useViolationsList(
     search,
     includeFacets = true,
     filters,
+    organizationFacetSearch,
+    applicationFacetSearch,
     enabled = true,
   } = params;
 
   const body = useMemo(
-    () => buildViolationsListRequest({ page, pageSize, search, includeFacets, filters }),
-    [page, pageSize, search, includeFacets, filters],
+    () =>
+      buildViolationsListRequest({
+        page,
+        pageSize,
+        search,
+        includeFacets,
+        filters,
+        organizationFacetSearch,
+        applicationFacetSearch,
+      }),
+    [page, pageSize, search, includeFacets, filters, organizationFacetSearch, applicationFacetSearch],
   );
 
   return useTile<ViolationsListResponse>(getViolationsListUrl(), undefined, {

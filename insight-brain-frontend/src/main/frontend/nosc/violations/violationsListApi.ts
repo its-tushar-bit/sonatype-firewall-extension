@@ -91,8 +91,12 @@ export function buildViolationsListRequest(params: {
   readonly search?: string;
   readonly includeFacets?: boolean;
   readonly filters?: ViolationsFilterState;
+  readonly organizationFacetSearch?: string;
+  readonly applicationFacetSearch?: string;
 }): ViolationsListRequest {
   const search = params.search?.trim();
+  const organizationFacetSearch = params.organizationFacetSearch?.trim();
+  const applicationFacetSearch = params.applicationFacetSearch?.trim();
   const filters = params.filters;
 
   const states = filters ? toSortedArray(filters.states) : undefined;
@@ -119,6 +123,8 @@ export function buildViolationsListRequest(params: {
     ...(organizationIds ? { organizationIds } : {}),
     ...(applicationIds ? { applicationIds } : {}),
     ...(waivedWithAutoWaiver !== undefined ? { waivedWithAutoWaiver } : {}),
+    ...(organizationFacetSearch ? { organizationFacetSearch } : {}),
+    ...(applicationFacetSearch ? { applicationFacetSearch } : {}),
   };
 }
 
@@ -206,9 +212,9 @@ export function stageLabel(id: string): string {
  * <p>
  * Page rows seed the maps first; non-empty server {@code organizationNames}/{@code applicationNames}
  * overlay and win for shared keys — same merge order as Applications {@code mergeLabelMap}. Off-page
- * facet keys therefore stay friendly from the facets payload (CLM-42757).
- * Ids still without a name fall back to the raw id (and for applications, {@code applicationPublicId}
- * from a page row when present). Stage facets use {@link stageLabel} instead.
+ * facet keys (including server-side facet-search matches, CLM-42912) stay friendly from the facets
+ * payload. Ids still without a name fall back to the raw id (and for applications,
+ * {@code applicationPublicId} from a page row when present). Stage facets use {@link stageLabel}.
  */
 export function deriveViolationFacetLabels(
   rows: ReadonlyArray<ViolationRow>,

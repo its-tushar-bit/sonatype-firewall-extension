@@ -172,7 +172,7 @@ public class ViolationsListServiceSessionTest
         .thenReturn(new IndexPageResult(List.of(violationDoc("pv-1")), List.of(), false));
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = 2;
-    when(facetsBuilder.buildFacets(session, QUERY, QUERY, 2L)).thenReturn(facets);
+    when(facetsBuilder.buildFacets(session, QUERY, QUERY, 2L, null, null)).thenReturn(facets);
     when(indexQueryBuilder.buildViolationQueryExcludingWaiverType(any())).thenReturn(QUERY);
 
     ViolationsListRequestDTO request = request(0, 50);
@@ -180,7 +180,7 @@ public class ViolationsListServiceSessionTest
     ViolationsListResponseDTO response = service().listViolations(request);
 
     assertThat(response.facets).isSameAs(facets);
-    verify(facetsBuilder).buildFacets(session, QUERY, QUERY, 2L);
+    verify(facetsBuilder).buildFacets(session, QUERY, QUERY, 2L, null, null);
   }
 
   @Test

@@ -77,11 +77,13 @@ export type ViolationsListFacets = {
   /**
    * Friendly org display names keyed by the same internal ids as {@link organizations}.
    * Emitted by {@code ViolationsListFacetsDTO} (CLM-42757); absent maps fall back to page-row names.
+   * Also populated for server-side facet-search matches (CLM-42912).
    */
   readonly organizationNames?: Readonly<Record<string, string>>;
   /**
    * Friendly app display names keyed by the same internal ids as {@link applications}.
    * Emitted by {@code ViolationsListFacetsDTO} (CLM-42757); absent maps fall back to page-row names.
+   * Also populated for server-side facet-search matches (CLM-42912).
    */
   readonly applicationNames?: Readonly<Record<string, string>>;
 };
@@ -129,6 +131,13 @@ export type ViolationsListRequest = {
   readonly organizationIds?: ReadonlyArray<string>;
   readonly applicationIds?: ReadonlyArray<string>;
   readonly waivedWithAutoWaiver?: boolean;
+  /**
+   * Optional org-name substring for the Organizations facet map. When set, the server replaces the
+   * uncapped top-N org facets with name-matched owners that still have scoped violation counts.
+   */
+  readonly organizationFacetSearch?: string;
+  /** Optional application-name substring for the Applications facet map (same replace semantics). */
+  readonly applicationFacetSearch?: string;
 };
 
 /** Inclusive policy-threat-level domain for the range slider (matches the backend 0–10 clamp). */

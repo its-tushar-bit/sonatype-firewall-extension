@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
@@ -33,6 +33,7 @@ describe('ViolationsList', () => {
 
   afterEach(() => {
     axiosMock.restore();
+    jest.useRealTimers();
   });
 
   const renderList = () => renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations');
@@ -450,6 +451,63 @@ describe('ViolationsList', () => {
         });
         expect(hydrated).toBeDefined();
       });
+    });
+  });
+
+  describe('organization facet search debounce (CLM-42912)', () => {
+    it('collapses rapid typing into a single trailing organizationFacetSearch POST', async () => {
+      jest.useFakeTimers();
+      user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      renderList();
+      await screen.findByTestId('violation-card-grid');
+      const postsBefore = axiosMock.history.post.length;
+
+      await user.type(screen.getByTestId('violations-filter-organizations-search'), 'zeta');
+      expect(
+        axiosMock.history.post.slice(postsBefore).some((request) => {
+          const body = JSON.parse(String(request.data));
+          return body.organizationFacetSearch === 'zeta';
+        }),
+      ).toBe(false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        const withSearch = axiosMock.history.post.find((request) => {
+          const body = JSON.parse(String(request.data));
+          return body.organizationFacetSearch === 'zeta';
+        });
+        expect(withSearch).toBeDefined();
+      });
+      const searchPosts = axiosMock.history.post.filter((request) => {
+        const body = JSON.parse(String(request.data));
+        return body.organizationFacetSearch === 'zeta';
+      });
+      expect(searchPosts).toHaveLength(1);
+    });
+
+    it('cancels a pending debounce on unmount so a stale term never lands', async () => {
+      jest.useFakeTimers();
+      user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      const { unmount } = renderList();
+      await screen.findByTestId('violation-card-grid');
+      const postsBefore = axiosMock.history.post.length;
+
+      await user.type(screen.getByTestId('violations-filter-organizations-search'), 'stale');
+      unmount();
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      const stalePosts = axiosMock.history.post.slice(postsBefore).filter((request) => {
+        const body = JSON.parse(String(request.data));
+        return body.organizationFacetSearch === 'stale';
+      });
+      expect(stalePosts).toHaveLength(0);
     });
   });
 });

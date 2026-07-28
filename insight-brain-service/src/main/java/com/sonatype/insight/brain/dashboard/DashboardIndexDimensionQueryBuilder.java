@@ -6,7 +6,11 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import jakarta.inject.Inject;
@@ -65,6 +69,52 @@ public class DashboardIndexDimensionQueryBuilder
           "Organization filter expands to too many organizations (max " + maxClauseCount + ").");
     }
     return "organizationId:(" + String.join(" ", sortedCopy(expandedOrgIds)) + ")";
+  }
+
+  /**
+   * Builds a Lucene organization filter clause per input id using a single descendant-expansion
+   * query. Root organization ids and blank ids are omitted from the result (same skip semantics as
+   * a {@code null} return from {@link #buildOrganizationFilterClause} for those keys).
+   * <p>
+   * Unlike {@link #buildOrganizationFilterClause} (used for deliberate org filter selection), this
+   * method soft-skips any org whose expanded descendant set exceeds
+   * {@code maxAdvancedSearchClauseCount}: the id is omitted from the returned map rather than
+   * throwing. Callers (facet search / facet discovery) treat a missing clause as "skip this org" so
+   * one oversized hierarchy cannot 400 the whole list request.
+   */
+  public Map<String, String> buildOrganizationFilterClausesById(final Collection<String> organizationIds) {
+    if (organizationIds == null || organizationIds.isEmpty()) {
+      return Map.of();
+    }
+    Set<String> toExpand = new LinkedHashSet<>();
+    for (String organizationId : organizationIds) {
+      if (StringUtils.isBlank(organizationId)
+          || Organization.ROOT_ORGANIZATION_ID.equals(organizationId))
+      {
+        continue;
+      }
+      toExpand.add(organizationId);
+    }
+    if (toExpand.isEmpty()) {
+      return Map.of();
+    }
+    Map<String, Set<String>> expandedByAncestor =
+        organizationDAO.getChildOrganizationIdsGroupedByAncestor(toExpand);
+    int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
+    Map<String, String> clauses = new LinkedHashMap<>(toExpand.size());
+    for (String organizationId : toExpand) {
+      Set<String> expandedOrgIds = expandedByAncestor.getOrDefault(organizationId, Set.of());
+      if (expandedOrgIds.isEmpty()) {
+        clauses.put(organizationId, "organizationId:(" + NO_MATCH_ORGANIZATION_FILTER_ID + ")");
+        continue;
+      }
+      if (expandedOrgIds.size() > maxClauseCount) {
+        // Soft-skip: facet paths must not abort the list because one named org is too wide.
+        continue;
+      }
+      clauses.put(organizationId, "organizationId:(" + String.join(" ", sortedCopy(expandedOrgIds)) + ")");
+    }
+    return clauses;
   }
 
   /** Metrics-style application clause (sorted ids, no escaping or size cap). */

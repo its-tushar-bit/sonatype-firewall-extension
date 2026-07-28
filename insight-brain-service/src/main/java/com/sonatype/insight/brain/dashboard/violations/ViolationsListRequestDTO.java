@@ -78,4 +78,21 @@ public class ViolationsListRequestDTO
 
   /** When true (default), response includes {@link ViolationsListFacetsDTO}. */
   public Boolean includeFacets;
+
+  /**
+   * Optional case-insensitive substring match against organization names for the Organizations
+   * facet map. When non-blank, {@link ViolationsListFacetsDTO#organizations} (and matching
+   * {@link ViolationsListFacetsDTO#organizationNames}) is replaced with name-matched owners that
+   * have a positive violation count under the active list filters (capped at the same size as the
+   * uncapped top-N facet map). Does not narrow list rows — only the Organizations facet map.
+   * Blank/null keeps top-by-count organization facets. Max length matches {@code search}.
+   */
+  public String organizationFacetSearch;
+
+  /**
+   * Optional case-insensitive substring match against application names for the Applications
+   * facet map. Same replace semantics as {@link #organizationFacetSearch} (does not narrow list
+   * rows).
+   */
+  public String applicationFacetSearch;
 }

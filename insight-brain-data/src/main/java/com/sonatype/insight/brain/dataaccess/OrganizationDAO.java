@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -605,6 +607,64 @@ public class OrganizationDAO
         .from(ORGANIZATION_ANCESTOR)
         .where(ORGANIZATION_ANCESTOR.ANCESTOR_ID.in(ownerIds))
         .fetch(ORGANIZATION_ANCESTOR.ORGANIZATION_ID));
+  }
+
+  /**
+   * Returns descendant organization ids grouped by ancestor id (including each ancestor itself via
+   * the depth-0 self row). Ancestors with no {@code organization_ancestor} rows are omitted.
+   * <p>
+   * Facet callers pass at most name-search / discovery candidate caps (tens–low hundreds), but this
+   * method still chunks via {@link #getListWithSqlInClause} so an unbounded caller cannot exceed
+   * DB IN-clause limits.
+   */
+  public Map<String, Set<String>> getChildOrganizationIdsGroupedByAncestor(Collection<String> ancestorIds) {
+    if (ancestorIds == null || ancestorIds.isEmpty()) {
+      return Map.of();
+    }
+    List<org.jooq.Record2<String, String>> rows = getListWithSqlInClause(ancestorIds, chunk -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .select(ORGANIZATION_ANCESTOR.ANCESTOR_ID, ORGANIZATION_ANCESTOR.ORGANIZATION_ID)
+            .from(ORGANIZATION_ANCESTOR)
+            .where(ORGANIZATION_ANCESTOR.ANCESTOR_ID.in(chunk))
+            .fetch();
+      }
+    });
+    return groupChildOrganizationIdsByAncestor(rows);
+  }
+
+  public Map<String, Set<String>> getChildOrganizationIdsGroupedByAncestor(
+      TransactionContext tx,
+      Collection<String> ancestorIds)
+  {
+    if (ancestorIds == null || ancestorIds.isEmpty()) {
+      return Map.of();
+    }
+    List<org.jooq.Record2<String, String>> rows = getListWithSqlInClause(ancestorIds, chunk -> tx.dsl()
+        .select(ORGANIZATION_ANCESTOR.ANCESTOR_ID, ORGANIZATION_ANCESTOR.ORGANIZATION_ID)
+        .from(ORGANIZATION_ANCESTOR)
+        .where(ORGANIZATION_ANCESTOR.ANCESTOR_ID.in(chunk))
+        .fetch());
+    return groupChildOrganizationIdsByAncestor(rows);
+  }
+
+  private static Map<String, Set<String>> groupChildOrganizationIdsByAncestor(
+      final List<org.jooq.Record2<String, String>> rows)
+  {
+    Map<String, Set<String>> result = new HashMap<>();
+    for (org.jooq.Record2<String, String> row : rows) {
+      String ancestorId = row.value1();
+      String organizationId = row.value2();
+      if (ancestorId == null || organizationId == null) {
+        continue;
+      }
+      result.computeIfAbsent(ancestorId, ignored -> new HashSet<>()).add(organizationId);
+    }
+    Map<String, Set<String>> immutable = new HashMap<>(result.size());
+    for (Map.Entry<String, Set<String>> entry : result.entrySet()) {
+      immutable.put(entry.getKey(), Set.copyOf(entry.getValue()));
+    }
+    return immutable;
   }
 
   private void insertOrganizationAncestors(TransactionContext tx, Organization org) {

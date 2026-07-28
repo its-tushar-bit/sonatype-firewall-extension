@@ -44,6 +44,34 @@ describe('violationsListApi', () => {
       expect(buildViolationsListRequest({ page: 1, search: '  log4j  ' }).search).toBe('log4j');
     });
 
+    it('pins organizationFacetSearch / applicationFacetSearch wire field names as literals', () => {
+      // Backend ViolationsListRequestDTO field names — pin without importing a shared constant so FE/BE
+      // drift fails this test rather than silently omitting the maps.
+      const request = buildViolationsListRequest({
+        page: 0,
+        organizationFacetSearch: 'zeta',
+        applicationFacetSearch: 'billing',
+      }) as Record<string, unknown>;
+      expect(request).toHaveProperty('organizationFacetSearch', 'zeta');
+      expect(request).toHaveProperty('applicationFacetSearch', 'billing');
+    });
+
+    it('includes trimmed organization/application facet search fields', () => {
+      expect(
+        buildViolationsListRequest({
+          page: 0,
+          organizationFacetSearch: '  zeta  ',
+          applicationFacetSearch: '   ',
+        }),
+      ).toMatchObject({ organizationFacetSearch: 'zeta' });
+      expect(
+        buildViolationsListRequest({
+          page: 0,
+          applicationFacetSearch: ' billing ',
+        }).applicationFacetSearch,
+      ).toBe('billing');
+    });
+
     it('omits all filter fields when the selection is empty (default range, no groups)', () => {
       const request = buildViolationsListRequest({ page: 0, filters: filterState() });
       expect(request.policyViolationStates).toBeUndefined();

@@ -109,6 +109,8 @@ public class ViolationsListService
 
     validatePagination(page, pageSize);
     validateSearch(search);
+    validateSearch(request == null ? null : request.organizationFacetSearch, "Organization facet search");
+    validateSearch(request == null ? null : request.applicationFacetSearch, "Application facet search");
     requestValidator.validate(request);
 
     String orderBy = request == null || StringUtils.isBlank(request.orderBy)
@@ -146,8 +148,12 @@ public class ViolationsListService
       // The waiver-type facet is single-select, so it is counted against the query minus its own clause
       // (identical to `query` when no waiver-type filter is active) — see ViolationsListFacetsBuilder.
       String waiverFacetQuery = indexQueryBuilder.buildViolationQueryExcludingWaiverType(request);
-      response.facets =
-          facetsBuilder.buildFacets(query, waiverFacetQuery, searchResult.totalNumberOfHits);
+      response.facets = facetsBuilder.buildFacets(
+          query,
+          waiverFacetQuery,
+          searchResult.totalNumberOfHits,
+          request == null ? null : request.organizationFacetSearch,
+          request == null ? null : request.applicationFacetSearch);
     }
     return response;
   }
@@ -200,7 +206,13 @@ public class ViolationsListService
       if (includeFacets) {
         // Same failure mode as the legacy path: facet errors propagate (no silent page-without-facets).
         String waiverFacetQuery = indexQueryBuilder.buildViolationQueryExcludingWaiverType(request);
-        response.facets = facetsBuilder.buildFacets(session, query, waiverFacetQuery, total);
+        response.facets = facetsBuilder.buildFacets(
+            session,
+            query,
+            waiverFacetQuery,
+            total,
+            request == null ? null : request.organizationFacetSearch,
+            request == null ? null : request.applicationFacetSearch);
       }
       return response;
     }
@@ -281,9 +293,13 @@ public class ViolationsListService
   }
 
   private static void validateSearch(final String search) {
+    validateSearch(search, "Search query");
+  }
+
+  private static void validateSearch(final String search, final String fieldLabel) {
     if (search != null && search.length() > MAX_SEARCH_LENGTH) {
       throw new BadRequestException(
-          "Search query exceeds maximum length of " + MAX_SEARCH_LENGTH + " characters.");
+          fieldLabel + " exceeds maximum length of " + MAX_SEARCH_LENGTH + " characters.");
     }
   }
 }

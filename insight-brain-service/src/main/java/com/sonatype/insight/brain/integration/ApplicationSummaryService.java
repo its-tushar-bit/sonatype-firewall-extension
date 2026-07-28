@@ -119,8 +119,12 @@ public class ApplicationSummaryService
     }
   }
 
+  /**
+   * Returns applications the caller has {@link Permission#READ} on. When {@code applicationPublicIds}
+   * is non-empty, only those apps are fetched before {@code @AuthzFilter} runs (Martha facet search).
+   */
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsForRead(String organizationId, Set<String> applicationPublicIds) {
+  public List<Application> getApplicationsForRead(String organizationId, Set<String> applicationPublicIds) {
     return getApplications(organizationId, applicationPublicIds);
   }
 

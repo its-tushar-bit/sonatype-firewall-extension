@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Theme } from '@radix-ui/themes';
@@ -75,6 +75,10 @@ function baseRailProps(
     onWaiverTypeChange: jest.fn(),
     onThreatRangeChange: jest.fn(),
     onReset: jest.fn(),
+    organizationFacetSearch: '',
+    onOrganizationFacetSearchChange: jest.fn(),
+    applicationFacetSearch: '',
+    onApplicationFacetSearchChange: jest.fn(),
     ...overrides,
   };
 }
@@ -88,6 +92,23 @@ function renderRail(overrides: Partial<React.ComponentProps<typeof ViolationsFil
   );
   return props;
 }
+
+
+function ControlledOrgSearchRail(
+  overrides: Partial<React.ComponentProps<typeof ViolationsFilterRail>> = {},
+): JSX.Element {
+  const [organizationFacetSearch, setOrganizationFacetSearch] = useState(
+    overrides.organizationFacetSearch ?? '',
+  );
+  return (
+    <ViolationsFilterRail
+      {...baseRailProps(overrides)}
+      organizationFacetSearch={organizationFacetSearch}
+      onOrganizationFacetSearchChange={setOrganizationFacetSearch}
+    />
+  );
+}
+
 
 function withStates(...states: string[]): ViolationsFilterState {
   return { ...createDefaultViolationsFilterState(), states: new Set(states) };
@@ -330,15 +351,92 @@ describe('ViolationsFilterRail', () => {
     expect(screen.getByTestId('violations-filter-organizations-server-capped')).toHaveTextContent(
       `Showing top ${FACET_SERVER_CAP} organizations by violation count`,
     );
+    expect(screen.getByTestId('violations-filter-organizations-server-capped')).toHaveTextContent(
+      'Type to search by name beyond this list',
+    );
+  });
+
+  it('hides the top-N note while an organization facet search is active', () => {
+    const { organizations, labels } = makeManyOrgs(FACET_SERVER_CAP);
+    renderRail({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+      organizationFacetSearch: 'zeta',
+    });
+    expect(screen.queryByTestId('violations-filter-organizations-server-capped')).not.toBeInTheDocument();
+  });
+
+  it('renders exactly the server-capped search match set (15) with friendly names', () => {
+    // Server display-caps name search at FACET_SERVER_CAP; FE must render that payload without crashing.
+    const { organizations, labels } = makeManyOrgs(FACET_SERVER_CAP);
+    renderRail({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+      organizationFacetSearch: 'Organization',
+    });
+    const orgGroup = screen.getByTestId('violations-filter-organizations');
+    expect(within(orgGroup).getAllByRole('checkbox')).toHaveLength(FACET_SERVER_CAP);
+    expect(within(orgGroup).getByText('Organization 00')).toBeInTheDocument();
+    expect(within(orgGroup).queryByTestId('violations-filter-organizations-option-org-15')).not.toBeInTheDocument();
+  });
+
+  it('shows a keep-typing hint when search results hit the server display cap', () => {
+    const { organizations, labels } = makeManyOrgs(FACET_SERVER_CAP);
+    renderRail({
+      facets: { ...FACETS, organizations },
+      labels: { ...LABELS, organizations: labels },
+      organizationFacetSearch: 'Organization',
+    });
+    expect(screen.getByTestId('violations-filter-organizations-search-capped')).toHaveTextContent(
+      `Showing first ${FACET_SERVER_CAP} matches. Keep typing to narrow.`,
+    );
+    expect(screen.queryByTestId('violations-filter-organizations-server-capped')).not.toBeInTheDocument();
+  });
+
+  it('keeps whitespace-stripped client matches aligned with server NameHelper.normalize', () => {
+    // Server would return "Zeta Finance" for "zetafinance"; client filter must not hide it.
+    renderRail({
+      facets: {
+        ...FACETS,
+        organizations: { 'org-zeta': 9 },
+        organizationNames: { 'org-zeta': 'Zeta Finance' },
+      },
+      labels: { ...LABELS, organizations: { 'org-zeta': 'Zeta Finance' } },
+      organizationFacetSearch: 'zetafinance',
+    });
+    expect(screen.getByTestId('violations-filter-organizations-option-org-zeta')).toBeInTheDocument();
+    expect(screen.getByText('Zeta Finance')).toBeInTheDocument();
+    expect(screen.queryByTestId('violations-filter-organizations-empty')).not.toBeInTheDocument();
+  });
+
+  it('keeps the org rail stable when soft-skip omits an oversized hierarchy from search facets', () => {
+    // Soft-skip: oversized org trees are omitted server-side; remaining matches still render.
+    renderRail({
+      facets: {
+        ...FACETS,
+        organizations: { 'org-ok': 4 },
+        organizationNames: { 'org-ok': 'Ok Org' },
+      },
+      labels: { ...LABELS, organizations: { 'org-ok': 'Ok Org' } },
+      organizationFacetSearch: 'org',
+    });
+    expect(screen.getByTestId('violations-filter-organizations-search')).toHaveValue('org');
+    expect(screen.getByTestId('violations-filter-organizations-option-org-ok')).toBeInTheDocument();
+    expect(screen.getByText('Ok Org')).toBeInTheDocument();
+    expect(screen.queryByTestId('violations-filter-organizations-empty')).not.toBeInTheDocument();
   });
 
   it('keeps See more expanded after clearing a search query', async () => {
     // Intentional: expanded survives search-clear so the user is not forced to re-open See more.
     const { organizations, labels } = makeManyOrgs();
-    renderRail({
-      facets: { ...FACETS, organizations },
-      labels: { ...LABELS, organizations: labels },
-    });
+    render(
+      <Theme>
+        <ControlledOrgSearchRail
+          facets={{ ...FACETS, organizations }}
+          labels={{ ...LABELS, organizations: labels }}
+        />
+      </Theme>,
+    );
     await user.click(screen.getByTestId('violations-filter-organizations-see-more'));
     const search = screen.getByTestId('violations-filter-organizations-search');
     await user.type(search, 'Organization 11');
@@ -352,7 +450,11 @@ describe('ViolationsFilterRail', () => {
   });
 
   it('filters the searchable organization list by the sidebar search box', async () => {
-    renderRail();
+    render(
+      <Theme>
+        <ControlledOrgSearchRail />
+      </Theme>,
+    );
     const orgGroup = screen.getByTestId('violations-filter-organizations');
     // Mock orgs: org-java (Java-team), org-platform (Platform). Search "plat" keeps only Platform.
     await user.type(screen.getByTestId('violations-filter-organizations-search'), 'plat');
@@ -364,22 +466,30 @@ describe('ViolationsFilterRail', () => {
 
   it('shows all search matches without collapse when searching a long organization list', async () => {
     const { organizations, labels } = makeManyOrgs();
-    renderRail({
-      facets: { ...FACETS, organizations },
-      labels: { ...LABELS, organizations: labels },
-    });
+    render(
+      <Theme>
+        <ControlledOrgSearchRail
+          facets={{ ...FACETS, organizations }}
+          labels={{ ...LABELS, organizations: labels }}
+        />
+      </Theme>,
+    );
     await user.type(screen.getByTestId('violations-filter-organizations-search'), 'Organization 11');
     expect(screen.getByTestId('violations-filter-organizations-option-org-11')).toBeInTheDocument();
     expect(screen.queryByTestId('violations-filter-organizations-see-more')).not.toBeInTheDocument();
   });
 
   it('keeps a selected organization visible when the search query does not match its label', async () => {
-    renderRail({
-      selected: {
-        ...createDefaultViolationsFilterState(),
-        organizationIds: new Set(['org-java']),
-      },
-    });
+    render(
+      <Theme>
+        <ControlledOrgSearchRail
+          selected={{
+            ...createDefaultViolationsFilterState(),
+            organizationIds: new Set(['org-java']),
+          }}
+        />
+      </Theme>,
+    );
     const orgGroup = screen.getByTestId('violations-filter-organizations');
     await user.type(screen.getByTestId('violations-filter-organizations-search'), 'plat');
     expect(within(orgGroup).getByTestId('violations-filter-organizations-option-org-java')).toBeChecked();
@@ -387,39 +497,64 @@ describe('ViolationsFilterRail', () => {
   });
 
   it('shows a "No matches" message when a sidebar search excludes every unselected option', async () => {
-    renderRail();
+    render(
+      <Theme>
+        <ControlledOrgSearchRail />
+      </Theme>,
+    );
     await user.type(screen.getByTestId('violations-filter-organizations-search'), 'zzz-none');
     expect(screen.getByTestId('violations-filter-organizations-empty')).toBeInTheDocument();
   });
 
-  it('clears a stale sidebar search when the group selection is reset', async () => {
-    const baseProps = baseRailProps();
-    const { rerender } = render(
-      <Theme>
+  it('keeps org search mounted with No matches when server returns zero name matches', () => {
+    renderRail({
+      facets: { ...FACETS, organizations: undefined },
+      organizationFacetSearch: 'zzz-none',
+    });
+    expect(screen.getByTestId('violations-filter-organizations-search')).toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-organizations-empty')).toBeInTheDocument();
+  });
+
+  it('lifts organization facet search text to onOrganizationFacetSearchChange', async () => {
+    const onOrganizationFacetSearchChange = jest.fn();
+    function Harness(): JSX.Element {
+      const [organizationFacetSearch, setOrganizationFacetSearch] = useState('');
+      return (
         <ViolationsFilterRail
-          {...baseProps}
-          selected={{ ...createDefaultViolationsFilterState(), organizationIds: new Set(['org-platform']) }}
+          {...baseRailProps()}
+          organizationFacetSearch={organizationFacetSearch}
+          onOrganizationFacetSearchChange={(next) => {
+            onOrganizationFacetSearchChange(next);
+            setOrganizationFacetSearch(next);
+          }}
         />
+      );
+    }
+    render(
+      <Theme>
+        <Harness />
       </Theme>,
     );
-    const search = screen.getByTestId('violations-filter-organizations-search');
-    await user.type(search, 'plat');
-    expect(search).toHaveValue('plat');
-    expect(
-      screen.queryByTestId('violations-filter-organizations-option-org-java'),
-    ).not.toBeInTheDocument();
+    await user.type(screen.getByTestId('violations-filter-organizations-search'), 'zeta');
+    expect(onOrganizationFacetSearchChange.mock.calls.at(-1)?.[0]).toBe('zeta');
+  });
 
-    // Simulate "Reset filters": the parent clears this group's selection.
+  it('reflects a parent-cleared organizationFacetSearch after Reset', () => {
+    // Parent owns clear-on-reset (rail mounts twice — desktop + drawer — so it cannot own that effect).
+    const baseProps = baseRailProps({ organizationFacetSearch: 'plat' });
+    const { rerender } = render(
+      <Theme>
+        <ViolationsFilterRail {...baseProps} />
+      </Theme>,
+    );
+    expect(screen.getByTestId('violations-filter-organizations-search')).toHaveValue('plat');
     rerender(
       <Theme>
-        <ViolationsFilterRail {...baseProps} selected={createDefaultViolationsFilterState()} />
+        <ViolationsFilterRail {...baseProps} organizationFacetSearch="" />
       </Theme>,
     );
     expect(screen.getByTestId('violations-filter-organizations-search')).toHaveValue('');
-    // Full list is back — the previously excluded org reappears.
-    expect(
-      screen.getByTestId('violations-filter-organizations-option-org-java'),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('violations-filter-organizations-option-org-java')).toBeInTheDocument();
   });
 
   it('renders the threat-level range value from the selection', () => {

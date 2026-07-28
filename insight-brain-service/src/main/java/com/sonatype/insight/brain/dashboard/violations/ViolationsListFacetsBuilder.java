@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -20,6 +21,8 @@ import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
 import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.integration.ApplicationSummaryService;
+import com.sonatype.insight.brain.integration.OrganizationSummaryService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -50,12 +53,16 @@ import org.apache.lucene.search.Query;
  * {@link IndexReadSession#termsAggregation} against the shared session; small-vocabulary facets use
  * {@link IndexReadSession#count}. Legacy path keeps discovery + capped {@code SearchIndexClient.count}.
  * <p>
- * Session org/app buckets are exact {@code organizationId}/{@code applicationId} terms on the indexed
- * document (no parent→descendant rollup). The legacy path expands each discovered org via
- * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClause}, so parent buckets can
- * include child-org violations. Session path prefers exact ownership for stable, non-overlapping
- * facet keys; list filtering still uses the dimension query builder (with descendant expansion) when
- * the user selects an organization.
+ * Session <em>default</em> org/app buckets are exact {@code organizationId}/{@code applicationId} terms
+ * on the indexed document (no parent→descendant rollup). Session <em>name-search</em> org counts use
+ * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClausesById} (descendant-inclusive)
+ * so the count matches what selecting that org as a list filter will return — a searched parent can
+ * therefore show a larger count than its default exact-term row.
+ * <p>
+ * The legacy default path also expands discovered orgs via
+ * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClausesById}. Oversized descendant
+ * expansions are soft-skipped (omitted from the rail) rather than 400'ing the list — intentional for
+ * both top-by-count discovery and passive facet search.
  */
 @Named
 @Singleton
@@ -80,6 +87,20 @@ final class ViolationsListFacetsBuilder
   static final int MAX_APPLICATION_FACETS =
       Integer.getInteger("nexusOne.violations.facets.maxApplicationCountQueries", 15);
 
+  /**
+   * Max name-search candidates fetched before the {@code count > 0} gate. Larger than the display cap
+   * so alphabetically-early zero-count owners do not hide later owners that have violations.
+   */
+  static final int MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES =
+      Integer.getInteger(
+          "nexusOne.violations.facets.maxOrganizationNameSearchCandidates",
+          MAX_ORGANIZATION_FACETS * 10);
+
+  static final int MAX_APPLICATION_FACET_SEARCH_CANDIDATES =
+      Integer.getInteger(
+          "nexusOne.violations.facets.maxApplicationNameSearchCandidates",
+          MAX_APPLICATION_FACETS * 10);
+
   /** Waiver-type facet keys (CLM-42261); mirrored by the frontend radio labels. */
   static final String WAIVER_TYPE_AUTO = "AUTO";
 
@@ -97,6 +118,10 @@ final class ViolationsListFacetsBuilder
 
   private final ApplicationDAO applicationDAO;
 
+  private final OrganizationSummaryService organizationSummaryService;
+
+  private final ApplicationSummaryService applicationSummaryService;
+
   @Inject
   ViolationsListFacetsBuilder(
       final SearchIndexClient searchIndexClient,
@@ -104,7 +129,9 @@ final class ViolationsListFacetsBuilder
       final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder,
       final ConversionHelper conversionHelper,
       final OrganizationDAO organizationDAO,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO,
+      final OrganizationSummaryService organizationSummaryService,
+      final ApplicationSummaryService applicationSummaryService)
   {
     this.searchIndexClient = searchIndexClient;
     this.stageTypeService = stageTypeService;
@@ -112,6 +139,8 @@ final class ViolationsListFacetsBuilder
     this.conversionHelper = conversionHelper;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
+    this.organizationSummaryService = organizationSummaryService;
+    this.applicationSummaryService = applicationSummaryService;
   }
 
   /**
@@ -119,7 +148,7 @@ final class ViolationsListFacetsBuilder
    * counted against the same query as every other facet.
    */
   ViolationsListFacetsDTO buildFacets(final String violationQuery, final long totalViolations) {
-    return buildFacets(violationQuery, violationQuery, totalViolations);
+    return buildFacets(violationQuery, violationQuery, totalViolations, null, null);
   }
 
   /**
@@ -138,6 +167,23 @@ final class ViolationsListFacetsBuilder
       final String waiverFacetQuery,
       final long totalViolations)
   {
+    return buildFacets(violationQuery, waiverFacetQuery, totalViolations, null, null);
+  }
+
+  /**
+   * Legacy-path facets with optional org/app name search (CLM-42912).
+   * <p>
+   * When {@code organizationFacetSearch} / {@code applicationFacetSearch} is non-blank, that owner
+   * facet map is replaced with DAO name-substring matches that still have a positive count under
+   * {@code violationQuery} (same cap as the uncapped top-N map). Blank keeps top-by-count discovery.
+   */
+  ViolationsListFacetsDTO buildFacets(
+      final String violationQuery,
+      final String waiverFacetQuery,
+      final long totalViolations,
+      final String organizationFacetSearch,
+      final String applicationFacetSearch)
+  {
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = totalViolations;
     if (totalViolations == 0) {
@@ -150,9 +196,24 @@ final class ViolationsListFacetsBuilder
     facets.threatCategories = countThreatCategories(violationQuery, counter);
     facets.stages = countLicensedStages(violationQuery, counter);
 
-    LinkedHashMap<String, SearchResultItemDTO> discovered = discoverViolationItems(violationQuery);
-    if (!discovered.isEmpty()) {
+    boolean organizationSearch = StringUtils.isNotBlank(organizationFacetSearch);
+    boolean applicationSearch = StringUtils.isNotBlank(applicationFacetSearch);
+    LinkedHashMap<String, SearchResultItemDTO> discovered =
+        organizationSearch && applicationSearch
+            ? new LinkedHashMap<>()
+            : discoverViolationItems(violationQuery);
+    if (organizationSearch) {
+      applyOrganizationFacetSearch(
+          facets, countOrganizationsMatchingName(violationQuery, organizationFacetSearch, counter));
+    }
+    else if (!discovered.isEmpty()) {
       facets.organizations = countOrganizations(violationQuery, discovered);
+    }
+    if (applicationSearch) {
+      applyApplicationFacetSearch(
+          facets, countApplicationsMatchingName(violationQuery, applicationFacetSearch, counter));
+    }
+    else if (!discovered.isEmpty()) {
       facets.applications = countApplications(violationQuery, discovered);
     }
     attachOwnerLabels(facets, discovered);
@@ -170,6 +231,21 @@ final class ViolationsListFacetsBuilder
       final String waiverFacetQuery,
       final long totalViolations)
   {
+    return buildFacets(session, violationQuery, waiverFacetQuery, totalViolations, null, null);
+  }
+
+  /**
+   * Session-path facets with optional org/app name search (CLM-42912). Search counts use the same
+   * dimension filter clauses as list filtering so selected owners match the counts shown.
+   */
+  ViolationsListFacetsDTO buildFacets(
+      final IndexReadSession session,
+      final String violationQuery,
+      final String waiverFacetQuery,
+      final long totalViolations,
+      final String organizationFacetSearch,
+      final String applicationFacetSearch)
+  {
     ViolationsListFacetsDTO facets = new ViolationsListFacetsDTO();
     facets.totalViolations = totalViolations;
     if (totalViolations == 0) {
@@ -183,8 +259,20 @@ final class ViolationsListFacetsBuilder
     facets.waiverTypes = countWaiverTypes(waiverFacetQuery, counter);
     facets.threatCategories = countThreatCategories(violationQuery, counter);
     facets.stages = countLicensedStages(violationQuery, counter);
-    facets.organizations = countOrganizations(session, sessionViolationQuery);
-    facets.applications = countApplications(session, sessionViolationQuery);
+    if (StringUtils.isNotBlank(organizationFacetSearch)) {
+      applyOrganizationFacetSearch(
+          facets, countOrganizationsMatchingName(violationQuery, organizationFacetSearch, counter));
+    }
+    else {
+      facets.organizations = countOrganizations(session, sessionViolationQuery);
+    }
+    if (StringUtils.isNotBlank(applicationFacetSearch)) {
+      applyApplicationFacetSearch(
+          facets, countApplicationsMatchingName(violationQuery, applicationFacetSearch, counter));
+    }
+    else {
+      facets.applications = countApplications(session, sessionViolationQuery);
+    }
     attachOwnerLabels(facets);
     return facets;
   }
@@ -196,8 +284,8 @@ final class ViolationsListFacetsBuilder
 
   /**
    * Resolve friendly org/app display names for facet keys so the Martha rail never has to show raw
-   * internal ids. Prefers names already present on discovery hits (legacy path), then fills gaps with
-   * a batched DAO lookup for the facet key set.
+   * internal ids. Prefers names already seeded on the facets DTO (facet-search path), then discovery
+   * hits (legacy path), then fills gaps with a batched DAO lookup for the facet key set.
    */
   private void attachOwnerLabels(
       final ViolationsListFacetsDTO facets,
@@ -205,6 +293,12 @@ final class ViolationsListFacetsBuilder
   {
     Map<String, String> organizationNames = new LinkedHashMap<>();
     Map<String, String> applicationNames = new LinkedHashMap<>();
+    if (facets.organizationNames != null) {
+      organizationNames.putAll(facets.organizationNames);
+    }
+    if (facets.applicationNames != null) {
+      applicationNames.putAll(facets.applicationNames);
+    }
 
     if (discovered != null) {
       for (SearchResultItemDTO item : discovered.values()) {
@@ -341,6 +435,154 @@ final class ViolationsListFacetsBuilder
     return items;
   }
 
+  private static void applyOrganizationFacetSearch(
+      final ViolationsListFacetsDTO facets,
+      final OwnerFacetSearchResult result)
+  {
+    if (result == null) {
+      facets.organizations = null;
+      return;
+    }
+    facets.organizations = result.counts;
+    facets.organizationNames = result.names;
+  }
+
+  private static void applyApplicationFacetSearch(
+      final ViolationsListFacetsDTO facets,
+      final OwnerFacetSearchResult result)
+  {
+    if (result == null) {
+      facets.applications = null;
+      return;
+    }
+    facets.applications = result.counts;
+    facets.applicationNames = result.names;
+  }
+
+  /**
+   * Name-matched organization facet keys (estate-scale findability).
+   * <p>
+   * Pipeline: over-fetch name matches (up to {@link #MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES}) →
+   * intersect with {@link OrganizationSummaryService#getOrganizationsForRead(Set)} (id-scoped) so
+   * parent orgs the caller cannot see are never emitted even when a visible child has violations →
+   * batch descendant clauses → count against the RBAC-scoped {@code violationQuery} → keep the first
+   * {@link #MAX_ORGANIZATION_FACETS} positive-count owners.
+   * <p>
+   * Oversized org hierarchies are soft-skipped by
+   * {@link DashboardIndexDimensionQueryBuilder#buildOrganizationFilterClausesById}.
+   */
+  private OwnerFacetSearchResult countOrganizationsMatchingName(
+      final String violationQuery,
+      final String organizationFacetSearch,
+      final ToLongFunction<String> counter)
+  {
+    List<Organization> candidates =
+        organizationDAO.searchByNameSubstring(organizationFacetSearch, MAX_ORGANIZATION_FACET_SEARCH_CANDIDATES);
+    if (candidates.isEmpty()) {
+      return null;
+    }
+    Set<String> candidateIds = new LinkedHashSet<>();
+    for (Organization organization : candidates) {
+      if (organization != null && StringUtils.isNotBlank(organization.getId())) {
+        candidateIds.add(organization.getId());
+      }
+    }
+    // Id-scoped READ gate: fetch only name-match candidates (not the whole tenant) before AuthzFilter.
+    Set<String> readableOrgIds = organizationSummaryService.getOrganizationsForRead(candidateIds)
+        .stream()
+        .map(Organization::getId)
+        .collect(Collectors.toSet());
+    List<Organization> matches = candidates.stream()
+        .filter(org -> org != null && StringUtils.isNotBlank(org.getId()) && readableOrgIds.contains(org.getId()))
+        .toList();
+    if (matches.isEmpty()) {
+      return null;
+    }
+    Set<String> matchedIds = new LinkedHashSet<>();
+    for (Organization organization : matches) {
+      matchedIds.add(organization.getId());
+    }
+    // One descendant-expansion query for all matches (avoids N+1 getAllChildOrganizationIds).
+    Map<String, String> orgClauses = dimensionQueryBuilder.buildOrganizationFilterClausesById(matchedIds);
+    Map<String, Long> counts = new LinkedHashMap<>();
+    Map<String, String> names = new LinkedHashMap<>();
+    for (Organization organization : matches) {
+      if (counts.size() >= MAX_ORGANIZATION_FACETS) {
+        break;
+      }
+      String orgClause = orgClauses.get(organization.getId());
+      if (orgClause == null) {
+        // Missing clause: root/blank skip, or soft-skipped oversized descendant expansion.
+        continue;
+      }
+      long count = counter.applyAsLong(violationQuery + " AND " + orgClause);
+      if (count > 0) {
+        counts.put(organization.getId(), count);
+        if (StringUtils.isNotBlank(organization.getName())) {
+          names.put(organization.getId(), organization.getName());
+        }
+      }
+    }
+    return counts.isEmpty() ? null : new OwnerFacetSearchResult(counts, names);
+  }
+
+  /**
+   * Name-matched application facet keys. Over-fetches candidates, intersects with
+   * {@link ApplicationSummaryService#getApplicationsForRead}, then keeps the first
+   * {@link #MAX_APPLICATION_FACETS} positive-count apps.
+   */
+  private OwnerFacetSearchResult countApplicationsMatchingName(
+      final String violationQuery,
+      final String applicationFacetSearch,
+      final ToLongFunction<String> counter)
+  {
+    List<Application> candidates =
+        applicationDAO.searchByNameSubstring(applicationFacetSearch, MAX_APPLICATION_FACET_SEARCH_CANDIDATES);
+    if (candidates.isEmpty()) {
+      return null;
+    }
+    Set<String> hitPublicIds = candidates.stream()
+        .filter(app -> app != null && StringUtils.isNotBlank(app.getPublicId()))
+        .map(Application::getPublicId)
+        .collect(Collectors.toSet());
+    if (hitPublicIds.isEmpty()) {
+      return null;
+    }
+    Set<String> readableAppIds = applicationSummaryService.getApplicationsForRead(null, hitPublicIds)
+        .stream()
+        .map(Application::getId)
+        .collect(Collectors.toSet());
+    Map<String, Long> counts = new LinkedHashMap<>();
+    Map<String, String> names = new LinkedHashMap<>();
+    for (Application application : candidates) {
+      if (counts.size() >= MAX_APPLICATION_FACETS) {
+        break;
+      }
+      if (application == null || StringUtils.isBlank(application.getId())
+          || !readableAppIds.contains(application.getId()))
+      {
+        continue;
+      }
+      String appClause =
+          dimensionQueryBuilder.buildEscapedApplicationFilterClause(Set.of(application.getId()));
+      if (appClause == null) {
+        continue;
+      }
+      long count = counter.applyAsLong(violationQuery + " AND " + appClause);
+      if (count > 0) {
+        counts.put(application.getId(), count);
+        if (StringUtils.isNotBlank(application.getName())) {
+          names.put(application.getId(), application.getName());
+        }
+      }
+    }
+    return counts.isEmpty() ? null : new OwnerFacetSearchResult(counts, names);
+  }
+
+  private record OwnerFacetSearchResult(Map<String, Long> counts, Map<String, String> names)
+  {
+  }
+
   private Map<String, Long> countOrganizations(
       final String violationQuery,
       final LinkedHashMap<String, SearchResultItemDTO> discovered)
@@ -355,13 +597,14 @@ final class ViolationsListFacetsBuilder
       return null;
     }
 
+    Map<String, String> orgClauses = dimensionQueryBuilder.buildOrganizationFilterClausesById(organizationIds);
     Map<String, Long> counts = new LinkedHashMap<>();
     int queries = 0;
     for (String organizationId : organizationIds) {
       if (queries >= MAX_ORGANIZATION_FACETS) {
         break;
       }
-      String orgClause = dimensionQueryBuilder.buildOrganizationFilterClause(Set.of(organizationId));
+      String orgClause = orgClauses.get(organizationId);
       if (orgClause == null) {
         continue;
       }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -44,9 +45,36 @@ public class OrganizationSummaryService
     if (goal == Goal.EVALUATE_APPLICATION) {
       return getOrganizationsForEvaluateApplication();
     }
-    return getApplicationsForRead();
+    return getOrganizationsForRead();
   }
 
+  /**
+   * Returns organizations the caller has {@link Permission#READ} on.
+   */
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
+  public List<Organization> getOrganizationsForRead() {
+    return getOrganizations();
+  }
+
+  /**
+   * Returns organizations the caller has {@link Permission#READ} on among {@code organizationIds}.
+   * <p>
+   * Prefer this over {@link #getOrganizationsForRead()} when the candidate set is already known
+   * (Martha Violations facet name-search): fetches only those ids before {@code @AuthzFilter} runs,
+   * avoiding a full-tenant load on every search settle.
+   */
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
+  public List<Organization> getOrganizationsForRead(Set<String> organizationIds) {
+    if (organizationIds == null || organizationIds.isEmpty()) {
+      return List.of();
+    }
+    return organizationDAO.getByIds(organizationIds)
+        .stream()
+        .filter(org -> org != null && !Organization.ROOT_ORGANIZATION_ID.equals(org.getId()))
+        .collect(Collectors.toList());
+  }
+
+  /** Legacy name for {@link #getOrganizationsForRead()}. */
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   protected List<Organization> getApplicationsForRead() {
     return getOrganizations();

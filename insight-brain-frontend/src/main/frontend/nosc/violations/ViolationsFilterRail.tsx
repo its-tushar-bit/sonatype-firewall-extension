@@ -42,10 +42,16 @@ export const FACET_COLLAPSE_LIMIT = 8;
 
 /**
  * Matches {@code ViolationsListFacetsBuilder.MAX_ORGANIZATION_FACETS} /
- * {@code MAX_APPLICATION_FACETS} (default 15). When the facet map reaches this size the list is
- * likely truncated server-side — surface that so estate-scale users are not left guessing.
+ * {@code MAX_APPLICATION_FACETS} (default 15). When the uncapped top-by-count facet map reaches this
+ * size, surface a note so estate-scale users know the list is truncated — and that typing in the
+ * search box runs server-side name search beyond that top-N set (CLM-42912).
  */
 export const FACET_SERVER_CAP = 15;
+
+/** Align with server {@code NameHelper.normalize}: case-insensitive, whitespace-stripped. */
+export function normalizeFacetSearchText(value: string): string {
+  return value.replace(/\s+/g, '').toLowerCase();
+}
 
 export interface ViolationsFilterRailProps {
   readonly facets?: ViolationsListFacets;
@@ -68,6 +74,12 @@ export interface ViolationsFilterRailProps {
   readonly onThreatRangeChange: (range: ViolationThreatRange) => void;
   /** Reset every group to its default (all cleared, threat range [0, 10]). */
   readonly onReset: () => void;
+  /** Controlled Organizations facet search text (debounced server-side by the list container). */
+  readonly organizationFacetSearch?: string;
+  readonly onOrganizationFacetSearchChange?: (query: string) => void;
+  /** Controlled Applications facet search text (debounced server-side by the list container). */
+  readonly applicationFacetSearch?: string;
+  readonly onApplicationFacetSearchChange?: (query: string) => void;
   /**
    * Disambiguates data-testids/input ids when the rail is rendered twice (desktop rail + mobile
    * drawer). Defaults to the desktop instance.
@@ -183,6 +195,8 @@ function SearchableFilterSection({
   selected,
   filtersActive,
   onToggle,
+  query,
+  onQueryChange,
 }: {
   readonly title: string;
   readonly testId: string;
@@ -192,38 +206,45 @@ function SearchableFilterSection({
   /** True when any Violations filter is active (not only this group's selection). */
   readonly filtersActive: boolean;
   readonly onToggle: (group: ViolationFilterSetGroup, id: string) => void;
+  /** Controlled search text; parent debounces and sends organizationFacetSearch / applicationFacetSearch. */
+  readonly query: string;
+  readonly onQueryChange: (query: string) => void;
 }): JSX.Element | null {
-  const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
-  const selectionEmpty = selected.size === 0;
-  // Intentional (differs from Applications keeping mid-search text): when this group's selection
-  // empties, drop local search so Reset / uncheck-last cannot leave a filtered-empty facet list.
-  useEffect(() => {
-    if (selectionEmpty) setQuery('');
-  }, [selectionEmpty]);
   // Collapse See more whenever the whole rail returns to the default filter state. Depends on
-  // filtersActive (not this group's selectionEmpty) so Reset still collapses when Orgs/Apps were
-  // expanded with zero items selected in that group.
+  // filtersActive (not this group's selection) so Reset still collapses when Orgs/Apps were
+  // expanded with zero items selected in that group. Facet search text is owned by the list
+  // container (cleared on Reset / last-owner deselect) — not here — because this rail mounts twice
+  // (desktop + mobile drawer).
   useEffect(() => {
     if (!filtersActive) setExpanded(false);
   }, [filtersActive]);
-  if (entries.length === 0) return null;
+  // Keep the section mounted while the user is typing so a zero-result server response does not
+  // unmount the search box (and drop their query). Hide only when there is nothing to show and no query.
+  if (entries.length === 0 && !query.trim()) return null;
 
-  const trimmed = query.trim().toLowerCase();
-  const filtered = trimmed
+  // Server already narrows by name when query is set (CLM-42912); still keep selected owners visible
+  // and apply a light client filter so typing feels immediate before the debounced refetch lands.
+  // Match server NameHelper.normalize (whitespace-stripped, case-insensitive) so "zetafinance"
+  // still shows "Zeta Finance" after the debounced refetch lands.
+  const normalizedQuery = normalizeFacetSearchText(query);
+  const filtered = normalizedQuery
     ? entries.filter(
-        (entry) => entry.label.toLowerCase().includes(trimmed) || selected.has(entry.id),
+        (entry) =>
+          normalizeFacetSearchText(entry.label).includes(normalizedQuery) || selected.has(entry.id),
       )
     : entries;
 
-  const searching = trimmed.length > 0;
+  const searching = normalizedQuery.length > 0;
   // Intentional: clearing search keeps `expanded` so the user is not forced to re-click See more.
   const visible = searching || expanded
     ? filtered
     : collapseFacetEntries(filtered, selected, FACET_COLLAPSE_LIMIT);
   const canToggleCollapse = !searching && filtered.length > FACET_COLLAPSE_LIMIT;
-  // Server returns at most FACET_SERVER_CAP org/app buckets; search only filters that set.
-  const serverCapped = entries.length >= FACET_SERVER_CAP;
+  // Uncapped top-N map is capped at FACET_SERVER_CAP. When searching, the map is name-match results
+  // (also capped) — do not show the top-by-count affordance over search results.
+  const showTopByCountNote = !searching && entries.length >= FACET_SERVER_CAP;
+  const showSearchCapNote = searching && entries.length >= FACET_SERVER_CAP;
 
   return (
     <fieldset className="nosc-violations-filter-group" data-testid={testId}>
@@ -233,7 +254,7 @@ function SearchableFilterSection({
         placeholder="Search..."
         aria-label={`Search ${title.toLowerCase()}`}
         value={query}
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) => onQueryChange(event.target.value)}
         data-testid={`${testId}-search`}
         mb="2"
       >
@@ -272,10 +293,15 @@ function SearchableFilterSection({
               ))}
             </Flex>
           </ScrollArea>
-          {serverCapped && (
+          {showTopByCountNote && (
             <Text size="1" color="gray" data-testid={`${testId}-server-capped`}>
-              Showing top {FACET_SERVER_CAP} {title.toLowerCase()} by violation count. Narrow other
-              filters to surface more; search only filters this list.
+              Showing top {FACET_SERVER_CAP} {title.toLowerCase()} by violation count. Type to search
+              by name beyond this list, or narrow other filters.
+            </Text>
+          )}
+          {showSearchCapNote && (
+            <Text size="1" color="gray" data-testid={`${testId}-search-capped`}>
+              Showing first {FACET_SERVER_CAP} matches. Keep typing to narrow.
             </Text>
           )}
           {canToggleCollapse && (
@@ -452,6 +478,10 @@ export default function ViolationsFilterRail({
   onWaiverTypeChange,
   onThreatRangeChange,
   onReset,
+  organizationFacetSearch = '',
+  onOrganizationFacetSearchChange,
+  applicationFacetSearch = '',
+  onApplicationFacetSearchChange,
   idPrefix = 'violations-filter',
   hideStateFilter = false,
   hideWaiverTypeFilter = false,
@@ -531,6 +561,8 @@ export default function ViolationsFilterRail({
             selected={selected.organizationIds}
             filtersActive={filtersActive}
             onToggle={onToggle}
+            query={organizationFacetSearch}
+            onQueryChange={onOrganizationFacetSearchChange ?? (() => undefined)}
           />
           <SearchableFilterSection
             title="Applications"
@@ -540,6 +572,8 @@ export default function ViolationsFilterRail({
             selected={selected.applicationIds}
             filtersActive={filtersActive}
             onToggle={onToggle}
+            query={applicationFacetSearch}
+            onQueryChange={onApplicationFacetSearchChange ?? (() => undefined)}
           />
         </Flex>
       </aside>

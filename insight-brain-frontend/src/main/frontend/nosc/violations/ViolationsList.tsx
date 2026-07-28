@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ViolationsPage from 'MainRoot/nosc/violations/ViolationsPage';
 import { useViolationsList } from 'MainRoot/nosc/violations/useViolationsList';
 import {
@@ -36,7 +36,7 @@ const EMPTY_ROWS: ReadonlyArray<ViolationRow> = [];
 
 /**
  * Preview Violations list page (CLM-42257 layout + CLM-42254 API wire + CLM-42258 filters +
- * CLM-42260 search/URL state/CSV).
+ * CLM-42260 search/URL state/CSV + CLM-42912 server-side facet search).
  *
  * Martha V1: filter rail + violation cards inside the Nexus One Preview shell, fed by
  * POST /rest/dashboard/violations/list. Search + sidebar filters + page persist in the hash query so
@@ -62,11 +62,48 @@ export default function ViolationsList(): JSX.Element {
     filtersEqual: violationsFiltersEqual,
   });
 
+  // Facet-rail org/app name search — not URL-persisted; debounced before the list POST (CLM-42912).
+  const [organizationFacetSearch, setOrganizationFacetSearch] = useState('');
+  const [applicationFacetSearch, setApplicationFacetSearch] = useState('');
+  const [debouncedOrganizationFacetSearch, setDebouncedOrganizationFacetSearch] = useState('');
+  const [debouncedApplicationFacetSearch, setDebouncedApplicationFacetSearch] = useState('');
+
+  useEffect(() => {
+    const handle = window.setTimeout(
+      () => setDebouncedOrganizationFacetSearch(organizationFacetSearch.trim()),
+      300,
+    );
+    return () => window.clearTimeout(handle);
+  }, [organizationFacetSearch]);
+
+  useEffect(() => {
+    const handle = window.setTimeout(
+      () => setDebouncedApplicationFacetSearch(applicationFacetSearch.trim()),
+      300,
+    );
+    return () => window.clearTimeout(handle);
+  }, [applicationFacetSearch]);
+
+  // Facet search changes the owner facet maps; reset to page 1 so includeFacets stays true and the
+  // rail refreshes (clearing search restores top-by-count facets on page 1). Skip the mount pass so
+  // a deep-linked page > 1 is not clobbered before hydration.
+  const skipFacetSearchPageReset = useRef(true);
+  useEffect(() => {
+    if (skipFacetSearchPageReset.current) {
+      skipFacetSearchPageReset.current = false;
+      return;
+    }
+    setPage(1);
+  }, [debouncedOrganizationFacetSearch, debouncedApplicationFacetSearch, setPage]);
+
   // Facets are scope-invariant across pages, so we normally aggregate them only on page 1 and reuse the
   // cache while paging. But a deep link can land directly on page 2+ with an empty cache, so also request
   // facets whenever none are cached yet — otherwise the filter rail would render count-less.
   const [cachedFacets, setCachedFacets] = useState<ViolationsListFacets | undefined>(undefined);
-  const includeFacets = page === 1 || cachedFacets === undefined;
+  const facetSearchActive =
+    Boolean(debouncedOrganizationFacetSearch) || Boolean(debouncedApplicationFacetSearch);
+  // Facet search must always request facets (page 2+ normally reuses the cache).
+  const includeFacets = page === 1 || cachedFacets === undefined || facetSearchActive;
 
   const { status, data, error, retry } = useViolationsList({
     page: page - 1,
@@ -74,6 +111,8 @@ export default function ViolationsList(): JSX.Element {
     search,
     includeFacets,
     filters,
+    organizationFacetSearch: debouncedOrganizationFacetSearch || undefined,
+    applicationFacetSearch: debouncedApplicationFacetSearch || undefined,
     enabled: fetchEnabled,
   });
 
@@ -95,6 +134,8 @@ export default function ViolationsList(): JSX.Element {
   }, [data, page, setPage, requestUrlWrite]);
 
   const toggleFilter = useCallback((group: ViolationFilterSetGroup, id: string) => {
+    const selected = filters[group];
+    const removingLast = selected.has(id) && selected.size === 1;
     setFilters((prev) => {
       const next = new Set(prev[group]);
       if (next.has(id)) {
@@ -104,9 +145,19 @@ export default function ViolationsList(): JSX.Element {
       }
       return { ...prev, [group]: next };
     });
+    // Clear facet search outside the updater (pure) and eagerly clear debounce so page-1
+    // refetch does not carry a stale search term.
+    if (removingLast && group === 'organizationIds') {
+      setOrganizationFacetSearch('');
+      setDebouncedOrganizationFacetSearch('');
+    }
+    if (removingLast && group === 'applicationIds') {
+      setApplicationFacetSearch('');
+      setDebouncedApplicationFacetSearch('');
+    }
     setPage(1);
     requestUrlWrite();
-  }, [setFilters, setPage, requestUrlWrite]);
+  }, [filters, setFilters, setPage, requestUrlWrite]);
 
   const changeThreatRange = useCallback((range: ViolationThreatRange) => {
     setFilters((prev) => ({ ...prev, threatRange: range }));
@@ -122,6 +173,10 @@ export default function ViolationsList(): JSX.Element {
 
   const resetFilters = useCallback(() => {
     setFilters(createDefaultViolationsFilterState());
+    setOrganizationFacetSearch('');
+    setDebouncedOrganizationFacetSearch('');
+    setApplicationFacetSearch('');
+    setDebouncedApplicationFacetSearch('');
     setPage(1);
     requestUrlWrite();
   }, [setFilters, setPage, requestUrlWrite]);
@@ -160,6 +215,10 @@ export default function ViolationsList(): JSX.Element {
       onWaiverTypeChange={changeWaiverType}
       onThreatRangeChange={changeThreatRange}
       onResetFilters={resetFilters}
+      organizationFacetSearch={organizationFacetSearch}
+      onOrganizationFacetSearchChange={setOrganizationFacetSearch}
+      applicationFacetSearch={applicationFacetSearch}
+      onApplicationFacetSearchChange={setApplicationFacetSearch}
       loading={loading}
       error={errorMessage}
       onRetry={retry}

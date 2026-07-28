@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -39,6 +42,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemedia
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.jooq.Record;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationTag.APPLICATION_TAG;
@@ -169,6 +173,38 @@ public class TagDAO
           .where(APPLICATION_TAG.APPLICATION_ID.in(applicationIds))
           .fetch()
           .map(this::toEntity);
+    }
+  }
+
+  /**
+   * Tags applied to each of the given applications, preserving the application-to-tag association
+   * (unlike {@link #getByApplicationIds(List)}, which returns a flat de-duplicated list across all
+   * apps). Returns a map keyed by application id; an application with no tags is absent from the map.
+   * The IN clause is auto-chunked over large id collections via {@link #getListWithSqlInClause}.
+   */
+  public Map<String, List<Tag>> getByApplicationIdsGrouped(Collection<String> applicationIds) {
+    if (applicationIds == null || applicationIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      List<Record> rows = getListWithSqlInClause(applicationIds,
+          ids -> tx.dsl()
+              .select(APPLICATION_TAG.APPLICATION_ID)
+              .select(TAG.fields())
+              .from(TAG)
+              .join(APPLICATION_TAG)
+              .on(APPLICATION_TAG.TAG_ID.eq(TAG.TAG_ID))
+              .where(APPLICATION_TAG.APPLICATION_ID.in(ids))
+              .fetch(),
+          getDataStore());
+      Map<String, List<Tag>> tagsByApplicationId = new LinkedHashMap<>();
+      for (Record row : rows) {
+        String applicationId = row.get(APPLICATION_TAG.APPLICATION_ID);
+        // TAG has no application_id column, so mapping the mixed record into Tag ignores the extra key column.
+        Tag tag = toEntity(row);
+        tagsByApplicationId.computeIfAbsent(applicationId, id -> new ArrayList<>()).add(tag);
+      }
+      return tagsByApplicationId;
     }
   }
 

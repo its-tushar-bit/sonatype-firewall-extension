@@ -52,7 +52,6 @@ public final class IndexQueryRowMapper
         .field("applicationPublicId", d.applicationPublicId)
         .field("applicationId", d.applicationId)
         .field("applicationCategories", d.applicationCategoryNames)
-        .field("policyEvaluationStage", d.policyEvaluationStage)
         .field("maxPolicyThreatLevel", d.policyThreatLevel)
         .field("lastEvaluationTimeEpochMs", d.applicationLastEvaluationTimeEpochMs)
         .field("stageSeverityBreakdown", breakdown == null ? null : breakdown.stages())

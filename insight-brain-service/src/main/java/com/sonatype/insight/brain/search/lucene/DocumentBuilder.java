@@ -278,7 +278,12 @@ public class DocumentBuilder
   }
 
   public DocumentBuilder setApplicationId(final String applicationId) {
-    this.applicationId = Optional.of(new TextField(APPLICATION_ID.label, applicationId, Store.YES));
+    // A null id (e.g. an app not yet assigned one on the incremental path) omits the field rather
+    // than tripping Lucene's non-null TextField contract; the rollup lookups keyed by id are also
+    // skipped upstream in that case (see DocumentBuilderHelper#buildDocument).
+    this.applicationId = applicationId == null
+        ? Optional.empty()
+        : Optional.of(new TextField(APPLICATION_ID.label, applicationId, Store.YES));
     return this;
   }
 

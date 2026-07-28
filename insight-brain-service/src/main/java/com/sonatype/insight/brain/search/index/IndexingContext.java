@@ -36,21 +36,32 @@ public abstract class IndexingContext
   private final Map<String, String> licenseNameById = new ConcurrentHashMap<>();
 
   /**
-   * Memoized {@code applicationId} -> its category (tag) names, so the tag lookup runs at most once
-   * per app per indexing run rather than once per stage and once per violation doc. Populated
-   * on-demand by {@link #getApplicationCategoryNames}.
+   * Memoized {@code applicationId} -> its category (tag) names, populated load-on-miss by
+   * {@link #getCategoryNamesByApp}. Apps with no categories are absent (so the caller omits the
+   * field), but {@link #categoryNamesLoadedApps} records the app ids already loaded so an app with
+   * no categories is not re-queried on every call.
    */
   private final Map<String, List<String>> categoryNamesByApplicationId = new ConcurrentHashMap<>();
 
+  /** App ids whose category-name load has already run (present here even when they had no categories). */
+  private final Set<String> categoryNamesLoadedApps = ConcurrentHashMap.newKeySet();
+
   /**
-   * Category (tag) names for an application, computed once per run via {@code loader} and cached.
-   * The loader must return a non-null (possibly empty) list.
+   * Per-app category (tag) names, cached load-on-miss via {@code loader}. On each call the app ids
+   * not yet loaded are collected and passed to {@code loader} as a single batch; the loader returns
+   * the {@code appId -> category names} map for the apps that have categories (absent = none). The
+   * full-reindex path pre-warms with all app ids (one chunked IN-clause query); the incremental
+   * per-app path loads each missing app on demand (still a batch DAO call over just the missing
+   * ids). Idempotent: an already-loaded app id is never re-queried, even when it has no categories.
+   * Returns only the subset for {@code applicationIds} (O(requested)), so a caller cannot
+   * accidentally iterate the whole accumulated cache; an app with no categories is absent.
    */
-  public List<String> getApplicationCategoryNames(
-      final String applicationId,
-      final Function<String, List<String>> loader)
+  public Map<String, List<String>> getCategoryNamesByApp(
+      final Set<String> applicationIds,
+      final Function<Set<String>, Map<String, List<String>>> loader)
   {
-    return categoryNamesByApplicationId.computeIfAbsent(applicationId, loader);
+    loadMissing(applicationIds, categoryNamesLoadedApps, loader, categoryNamesByApplicationId::putAll);
+    return subsetFor(applicationIds, categoryNamesByApplicationId);
   }
 
   /**
@@ -128,6 +139,9 @@ public abstract class IndexingContext
     if (CollectionUtils.isEmpty(requestedIds) || loadedIds.containsAll(requestedIds)) {
       return;
     }
+    // The loader (a DB batch query) runs under the lock to dedup concurrent loads of the same ids.
+    // Reindex builds an IndexingContext single-threaded per run (full-reindex warms once with all
+    // ids; the incremental path is one app at a time), so the lock is uncontended in practice.
     synchronized (loadedIds) {
       Set<String> missing = new HashSet<>(requestedIds);
       missing.removeAll(loadedIds);
@@ -204,6 +218,11 @@ public abstract class IndexingContext
    * The org's ancestor-org id chain ({@code org, parent, ..., root}), computed via
    * {@link OwnerDAO#walkHierarchy(Owner)} once per org and cached for the run. Callers apply their
    * own sentinel filtering; this returns the raw ids.
+   * <p>
+   * The {@code walkHierarchy} DB walk runs under the {@link ConcurrentHashMap#computeIfAbsent} bin
+   * lock, but that walk is a bounded hierarchy traversal (org depth) and reindex builds an
+   * IndexingContext single-threaded per run, so the lock is uncontended and its latency is not a
+   * concern in practice (mirrors {@code loadMissing}).
    */
   public List<String> getAncestorOrgIds(final Organization org) {
     if (org == null) {

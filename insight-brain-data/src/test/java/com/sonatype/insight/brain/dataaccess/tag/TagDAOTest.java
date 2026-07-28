@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
@@ -535,6 +536,58 @@ public class TagDAOTest
   @Test
   public void testGetByApplicationIds_Empty() {
     assertThat(dao.getByApplicationIds(Collections.emptyList())).isEmpty();
+  }
+
+  @Test
+  public void testGetByApplicationIdsGrouped() {
+    organization = tempEntity.newOrganization();
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    Tag tag3 = tempEntity.newTag(organization.getId());
+    Application app1 = tempEntity.newApplication(organization.getId());
+    Application app2 = tempEntity.newApplication(organization.getId());
+    Application app3 = tempEntity.newApplication(organization.getId());
+    tempEntity.newApplicationTag(app1.getId(), tag1.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag3.getId());
+    // app3 has no tags
+
+    Map<String, List<Tag>> grouped =
+        dao.getByApplicationIdsGrouped(Arrays.asList(app1.getId(), app2.getId(), app3.getId()));
+
+    // Association preserved per app; no cross-app bleed (app1's tag not attributed to app2 and vice versa).
+    assertThat(grouped.get(app1.getId())).extracting(Tag::getId).containsExactly(tag1.getId());
+    assertThat(grouped.get(app2.getId())).extracting(Tag::getId).containsExactlyInAnyOrder(tag2.getId(), tag3.getId());
+    // An app with no tags is absent from the map.
+    assertThat(grouped).doesNotContainKey(app3.getId());
+  }
+
+  @Test
+  public void testGetByApplicationIdsGrouped_ChunksAcrossThreshold() {
+    Tag tag = tempEntity.newTag(organization.getId());
+    List<String> appIds = new ArrayList<>();
+    for (int i = 0; i <= TagDAO.H2_IN_OPERATOR_THRESHOLD; i++) {
+      Application app = tempEntity.newApplication(organization.getId());
+      appIds.add(app.getId());
+      tempEntity.newApplicationTag(app.getId(), tag.getId());
+    }
+
+    Map<String, List<Tag>> grouped = dao.getByApplicationIdsGrouped(appIds);
+
+    assertThat(grouped).hasSize(appIds.size());
+    for (String appId : appIds) {
+      assertThat(grouped.get(appId)).extracting(Tag::getId).containsExactly(tag.getId());
+    }
+  }
+
+  @Test
+  public void testGetByApplicationIdsGrouped_Null() {
+    assertThat(dao.getByApplicationIdsGrouped(null)).isEmpty();
+  }
+
+  @Test
+  public void testGetByApplicationIdsGrouped_Empty() {
+    assertThat(dao.getByApplicationIdsGrouped(Collections.emptyList())).isEmpty();
   }
 
   @Test

@@ -443,8 +443,11 @@ public class DocumentBuilderHelper
         .map(Application::getId)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
+    // Pre-warm the per-app caches on indexingContext; return values are intentionally discarded
+    // (the per-app buildDocument calls below read the warmed caches).
     latestEvaluationEpochMsByApp(indexingContext, applicationIds);
     stageSeverityCountsByApp(indexingContext, applicationIds);
+    categoryNamesByApp(indexingContext, applicationIds);
     return applications.stream()
         .map(app -> buildDocument(indexingContext, app, parentOrgsByOrganization))
         .toList();
@@ -477,40 +480,77 @@ public class DocumentBuilderHelper
         .setOwner(org)
         .setAllowedContextIds(allowedContextIds);
 
-    List<String> categoryNames = applicationCategoryNames(indexingContext, application.getId());
-    if (!categoryNames.isEmpty()) {
-      builder.setApplicationCategoryNames(categoryNames);
-    }
+    // The category and rollup lookups are keyed by application id and warmed via Set.of(id), which
+    // rejects a null element. The batch path (buildApplicationDocs) filters null ids upstream, so
+    // mirror that here: an app with no id simply omits the category / rollup fields.
+    String applicationId = application.getId();
+    if (applicationId != null) {
+      List<String> categoryNames = applicationCategoryNames(indexingContext, applicationId);
+      if (!categoryNames.isEmpty()) {
+        builder.setApplicationCategoryNames(categoryNames);
+      }
 
-    // Both rollups are memoized on the IndexingContext: the full-reindex path warms them once for
-    // the whole app batch (buildApplicationDocs), and the single-app path warms them lazily for a
-    // one-element set. A get() miss means the app has no evaluation / no unfixed violations.
-    Long lastEvaluationEpochMs =
-        latestEvaluationEpochMsByApp(indexingContext, Set.of(application.getId())).get(application.getId());
-    if (lastEvaluationEpochMs != null) {
-      builder.setApplicationLastEvaluationTimeEpochMs(lastEvaluationEpochMs);
-    }
+      // Both rollups are memoized on the IndexingContext: the full-reindex path warms them once for
+      // the whole app batch (buildApplicationDocs), and the single-app path warms them lazily for a
+      // one-element set. A get() miss means the app has no evaluation / no unfixed violations.
+      Long lastEvaluationEpochMs =
+          latestEvaluationEpochMsByApp(indexingContext, Set.of(applicationId)).get(applicationId);
+      if (lastEvaluationEpochMs != null) {
+        builder.setApplicationLastEvaluationTimeEpochMs(lastEvaluationEpochMs);
+      }
 
-    List<String> stageSeverityCounts = stageSeverityCountsByApp(indexingContext, Set.of(application.getId()))
-        .getOrDefault(application.getId(), Collections.emptyList());
-    if (!stageSeverityCounts.isEmpty()) {
-      builder.setApplicationStageSeverityCounts(stageSeverityCounts);
+      List<String> stageSeverityCounts = stageSeverityCountsByApp(indexingContext, Set.of(applicationId))
+          .getOrDefault(applicationId, Collections.emptyList());
+      if (!stageSeverityCounts.isEmpty()) {
+        builder.setApplicationStageSeverityCounts(stageSeverityCounts);
+      }
     }
 
     return builder.build();
   }
 
   /**
-   * Category (tag) names for an application, resolved via {@link TagDAO#getByApplicationId}. Empty
-   * (not null) when the app has no categories so callers uniformly skip an absent field.
+   * Category (tag) names for an application, memoized on {@code indexingContext} and warmed once per
+   * run by a single chunked IN-clause {@link TagDAO#getByApplicationIdsGrouped} query (which
+   * preserves the app-to-tag association and auto-chunks large id sets). Empty (not null) when the
+   * app has no categories (or has no id) so callers uniformly skip an absent field. {@link Set#of}
+   * rejects a null element, so a null id short-circuits to empty here.
    */
   private List<String> applicationCategoryNames(final IndexingContext indexingContext, final String applicationId) {
-    return indexingContext.getApplicationCategoryNames(applicationId,
-        id -> tagDAO.getByApplicationId(id)
-            .stream()
-            .map(Tag::getName)
-            .filter(Objects::nonNull)
-            .toList());
+    if (applicationId == null) {
+      return Collections.emptyList();
+    }
+    return categoryNamesByApp(indexingContext, Set.of(applicationId))
+        .getOrDefault(applicationId, Collections.emptyList());
+  }
+
+  /**
+   * Per-app category (tag) names, memoized on {@code indexingContext} and warmed once per run by a
+   * single chunked IN-clause {@link TagDAO#getByApplicationIdsGrouped} query. An app with no
+   * categories is absent from the map (so the doc omits the field).
+   */
+  private Map<String, List<String>> categoryNamesByApp(
+      final IndexingContext indexingContext,
+      final Set<String> applicationIds)
+  {
+    return indexingContext.getCategoryNamesByApp(applicationIds, this::loadCategoryNamesByApp);
+  }
+
+  private Map<String, List<String>> loadCategoryNamesByApp(final Set<String> applicationIds) {
+    if (CollectionUtils.isEmpty(applicationIds)) {
+      return Collections.emptyMap();
+    }
+    Map<String, List<String>> namesByApp = new HashMap<>();
+    tagDAO.getByApplicationIdsGrouped(applicationIds).forEach((appId, tags) -> {
+      List<String> names = tags.stream()
+          .map(Tag::getName)
+          .filter(Objects::nonNull)
+          .toList();
+      if (!names.isEmpty()) {
+        namesByApp.put(appId, names);
+      }
+    });
+    return namesByApp;
   }
 
   /**

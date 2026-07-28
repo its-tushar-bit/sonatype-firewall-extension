@@ -33,8 +33,10 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -118,7 +120,7 @@ public class DocumentBuilderHelperTest
 
   /**
    * The two app rollups are memoized on the real IndexingContext; the mock has no cache, so run the
-   * loader inline against the (real or mocked) DAOs, mirroring {@link #stubCategoryLoaderPassthrough}.
+   * loader inline against the (real or mocked) DAOs, alongside the category-names loader passthrough.
    */
   @Before
   @SuppressWarnings("unchecked")
@@ -132,6 +134,15 @@ public class DocumentBuilderHelperTest
         });
     lenient()
         .when(indexingContextMock.getStageSeverityCountsByApp(anySet(), any()))
+        .thenAnswer(inv -> {
+          Set<String> ids = inv.getArgument(0);
+          Function<Set<String>, Map<String, List<String>>> loader = inv.getArgument(1);
+          return loader.apply(ids);
+        });
+    // Category names are memoized on the real IndexingContext; the mock has no cache, so route the
+    // loader inline (it now calls TagDAO.getByApplicationIdsGrouped) so H2-seeded tags are read back.
+    lenient()
+        .when(indexingContextMock.getCategoryNamesByApp(anySet(), any()))
         .thenAnswer(inv -> {
           Set<String> ids = inv.getArgument(0);
           Function<Set<String>, Map<String, List<String>>> loader = inv.getArgument(1);
@@ -253,8 +264,6 @@ public class DocumentBuilderHelperTest
     tempEntity.newApplicationTag(app.getId(), tag.getId());
 
     when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
-    // Real IndexingContext memoizes categories; the mock has no cache, so run the loader inline.
-    stubCategoryLoaderPassthrough(app.getId());
 
     long buildMs = 1_700_000_000_000L;
     long releaseMs = 1_800_000_000_000L;
@@ -284,13 +293,36 @@ public class DocumentBuilderHelperTest
     Application app = tempEntity.newApplicationWithParent(org);
 
     when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
-    stubCategoryLoaderPassthrough(app.getId());
     // No evaluations -> the batch load returns an empty list, so the doc omits the field.
     stubNoEvaluationsByDefault(app.getId());
 
     Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
 
     assertThat(doc).isNotNull();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label)).isEmpty();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label)).isEmpty();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+  }
+
+  @Test
+  public void testBuildApplicationDoc_nullId_doesNotThrowAndOmitsRollupFields() {
+    Organization org = tempEntity.newOrganization();
+    Application persistedApp = tempEntity.newApplicationWithParent(org);
+    // A category on the persisted app: if the null-id guard did not skip the id-keyed lookups the
+    // category (and Set.of(null)) would surface; with a null id all id-keyed fields must be omitted.
+    Tag tag = tempEntity.newTag(org.getId(), "Finance");
+    tempEntity.newApplicationTag(persistedApp.getId(), tag.getId());
+
+    // Same app but reporting a null id (the incremental single-app path used to call Set.of(null)).
+    Application app = spy(persistedApp);
+    when(app.getId()).thenReturn(null);
+
+    when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
+
+    assertThat(doc).isNotNull();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_ID.label)).isEmpty();
     assertThat(doc.getFields(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label)).isEmpty();
     assertThat(doc.getFields(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label)).isEmpty();
     assertThat(doc.getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
@@ -310,7 +342,6 @@ public class DocumentBuilderHelperTest
         PolicyThreatCategory.SECURITY, "g", "a", "1");
 
     when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
-    stubCategoryLoaderPassthrough(app.getId());
     stubNoEvaluationsByDefault(app.getId());
 
     Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
@@ -338,7 +369,6 @@ public class DocumentBuilderHelperTest
     tempEntity.updatePolicyViolation(waived);
 
     when(indexingContextMock.getOwner(app.getOrganizationId())).thenReturn(org);
-    stubCategoryLoaderPassthrough(app.getId());
     stubNoEvaluationsByDefault(app.getId());
 
     Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
@@ -346,14 +376,6 @@ public class DocumentBuilderHelperTest
     assertThat(doc).isNotNull();
     assertThat(doc.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
         .containsExactly("build:critical:1");
-  }
-
-  private void stubCategoryLoaderPassthrough(final String applicationId) {
-    when(indexingContextMock.getApplicationCategoryNames(eq(applicationId), any()))
-        .thenAnswer(inv -> {
-          Function<String, List<String>> loader = inv.getArgument(1);
-          return loader.apply(applicationId);
-        });
   }
 
   private void stubNoEvaluationsByDefault(final String applicationId) {
@@ -374,8 +396,6 @@ public class DocumentBuilderHelperTest
     Application appB = tempEntity.newApplicationWithParent(org);
 
     when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
-    stubCategoryLoaderPassthrough(appA.getId());
-    stubCategoryLoaderPassthrough(appB.getId());
 
     // appA evaluated at buildMsA, appB at buildMsB (distinct) — the batched evaluation query returns
     // both apps' rows in one list; grouping must map each app to its own max time.
@@ -421,6 +441,288 @@ public class DocumentBuilderHelperTest
         .containsExactlyInAnyOrder("build:critical:1");
     assertThat(docB.getValues(FieldIdentifier.APPLICATION_STAGE_SEVERITY_COUNT.label))
         .containsExactlyInAnyOrder("build:severe:1");
+  }
+
+  /**
+   * The batched category loader (warmed once per {@code buildApplicationDocs} run via
+   * {@code TagDAO.getByApplicationIdsGrouped}) must attribute each app only its own category names
+   * and must match what the single-app path produces — proving batching preserves semantics and
+   * does not bleed one app's category onto another.
+   */
+  @Test
+  public void testBuildApplicationDocs_batchedCategoryNames_noCrossAppBleed() {
+    Organization org = tempEntity.newOrganization();
+    Application appA = tempEntity.newApplicationWithParent(org);
+    Application appB = tempEntity.newApplicationWithParent(org);
+    Application appC = tempEntity.newApplicationWithParent(org);
+    Tag distributed = tempEntity.newTag(org.getId(), "Distributed");
+    Tag finance = tempEntity.newTag(org.getId(), "Finance");
+    tempEntity.newApplicationTag(appA.getId(), distributed.getId());
+    tempEntity.newApplicationTag(appB.getId(), finance.getId());
+    // appC has no category.
+
+    // Real IndexingContext so the genuine batch-memoized category loader runs against H2.
+    IndexingContext realContext = new IndexingContext(ownerDAO, conversionHelper)
+    {
+      @Override
+      public void deleteDocuments(final String query) {
+      }
+
+      @Override
+      public void addDocuments(final List<Document> documents) {
+      }
+    };
+    // No evaluations/violations so those fields are simply omitted; we only assert categories here.
+    lenient().when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(anySet(), anySet()))
+        .thenReturn(Collections.emptyList());
+
+    List<Document> docs =
+        documentBuilderHelper.buildApplicationDocs(realContext, List.of(appA, appB, appC));
+
+    Document docA = docs.stream()
+        .filter(d -> appA.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+    Document docB = docs.stream()
+        .filter(d -> appB.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+    Document docC = docs.stream()
+        .filter(d -> appC.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(docA.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label))
+        .containsExactly("Distributed");
+    assertThat(docB.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label))
+        .containsExactly("Finance");
+    // appC has no category, so the field is omitted entirely (no cross-app bleed from A or B).
+    assertThat(docC.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+  }
+
+  /**
+   * The batched category loader must produce the same category names for one app as the single-app
+   * (incremental) path — batching is a query-count optimization and must not change the field value.
+   */
+  @Test
+  public void testBuildApplicationDocs_batchedCategoryNames_matchPerAppPath() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    Tag tag = tempEntity.newTag(org.getId(), "Distributed");
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+
+    when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
+    lenient().when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(anySet(), anySet()))
+        .thenReturn(Collections.emptyList());
+
+    Document batchedDoc = documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(app))
+        .stream()
+        .filter(d -> app.getId().equals(d.get(FieldIdentifier.APPLICATION_ID.label)))
+        .findFirst()
+        .orElseThrow();
+    Document perAppDoc = documentBuilderHelper.buildDocument(indexingContextMock, app);
+
+    assertThat(batchedDoc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label))
+        .containsExactly(perAppDoc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label))
+        .containsExactly("Distributed");
+  }
+
+  /**
+   * {@code applicationCategoryNames} is the shared category-names helper reached from the
+   * POLICY_VIOLATION and LEGAL_VIOLATION paths with {@code application.getId()} passed straight
+   * through (no per-caller null guard). Its {@code Set.of(applicationId)} rejects a null element, so
+   * a null id must short-circuit to an empty list rather than throwing NullPointerException.
+   */
+  @Test
+  public void testApplicationCategoryNames_nullApplicationId_returnsEmpty() throws Exception {
+    java.lang.reflect.Method method = DocumentBuilderHelper.class.getDeclaredMethod(
+        "applicationCategoryNames", IndexingContext.class, String.class);
+    method.setAccessible(true);
+
+    @SuppressWarnings("unchecked")
+    List<String> result = (List<String>) method.invoke(documentBuilderHelper, indexingContextMock, null);
+
+    assertThat(result).isEmpty();
+    verify(indexingContextMock, never()).getCategoryNamesByApp(anySet(), any());
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<Document> buildPolicyViolationDocuments(
+      final IndexingContext indexingContext,
+      final Organization organization,
+      final Collection<Organization> parentOrganizations,
+      final Application application,
+      final List<PolicyViolation> violations) throws Exception
+  {
+    java.lang.reflect.Method method = DocumentBuilderHelper.class.getDeclaredMethod(
+        "buildPolicyViolationDocuments", IndexingContext.class, Organization.class, Collection.class,
+        Application.class, StageType.class, String.class, List.class, Map.class);
+    method.setAccessible(true);
+    return (List<Document>) method.invoke(documentBuilderHelper, indexingContext, organization,
+        parentOrganizations, application, StageTypes.BUILD, "scan-id", violations,
+        Collections.emptyMap());
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<Document> buildLegalViolationDocuments(
+      final IndexingContext indexingContext,
+      final Organization organization,
+      final Collection<Organization> parentOrganizations,
+      final Application application,
+      final Component component) throws Exception
+  {
+    java.lang.reflect.Method method = DocumentBuilderHelper.class.getDeclaredMethod(
+        "buildLegalViolationDocuments", IndexingContext.class, Organization.class, Collection.class,
+        Application.class, StageType.class, String.class, Component.class, Map.class);
+    method.setAccessible(true);
+    return (List<Document>) method.invoke(documentBuilderHelper, indexingContext, organization,
+        parentOrganizations, application, StageTypes.BUILD, "scan-id", component,
+        Collections.emptyMap());
+  }
+
+  /**
+   * PR-A denormalizes the application's category names onto POLICY_VIOLATION docs so a category
+   * filter matches violations of a tagged app. Build a real POLICY_VIOLATION doc for an app that
+   * has a category tag and assert the doc carries the category on the {@code APPLICATION_CATEGORY_NAME}
+   * field.
+   */
+  @Test
+  public void testBuildPolicyViolationDocument_carriesApplicationCategoryName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    Tag tag = tempEntity.newTag(org.getId(), "Finance");
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-pv-cat", new Date(), "commit-pv");
+    PolicyViolation violation = tempEntity.newPolicyViolation(
+        eval, tempEntity.newPolicy(org.getId(), "crit-policy", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    List<Document> docs = buildPolicyViolationDocuments(
+        indexingContextMock, org, List.of(org), app, List.of(violation));
+
+    Document doc = docs.stream()
+        .filter(d -> ItemType.POLICY_VIOLATION.name().equals(itemTypeOf(d)))
+        .findFirst()
+        .orElseThrow();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).containsExactly("Finance");
+  }
+
+  /**
+   * A POLICY_VIOLATION doc for an app with no category tags must omit the category field entirely.
+   */
+  @Test
+  public void testBuildPolicyViolationDocument_noCategory_omitsApplicationCategoryName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), "scan-pv-nocat", new Date(), "commit-pv-nocat");
+    PolicyViolation violation = tempEntity.newPolicyViolation(
+        eval, tempEntity.newPolicy(org.getId(), "crit-policy", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    List<Document> docs = buildPolicyViolationDocuments(
+        indexingContextMock, org, List.of(org), app, List.of(violation));
+
+    Document doc = docs.stream()
+        .filter(d -> ItemType.POLICY_VIOLATION.name().equals(itemTypeOf(d)))
+        .findFirst()
+        .orElseThrow();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+  }
+
+  /**
+   * PR-A also denormalizes the category names onto LEGAL_VIOLATION docs. Build a real
+   * LEGAL_VIOLATION doc for a tagged app and assert the category is present.
+   */
+  @Test
+  public void testBuildLegalViolationDocument_carriesApplicationCategoryName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+    Tag tag = tempEntity.newTag(org.getId(), "Finance");
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+
+    Component component = new Component(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1", null, "jar"));
+    component.addDeclaredLicenseId("license-id-1");
+
+    List<Document> docs =
+        buildLegalViolationDocuments(indexingContextMock, org, List.of(org), app, component);
+
+    Document doc = docs.stream()
+        .filter(d -> ItemType.LEGAL_VIOLATION.name().equals(itemTypeOf(d)))
+        .findFirst()
+        .orElseThrow();
+    assertThat(doc.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).containsExactly("Finance");
+  }
+
+  /**
+   * A LEGAL_VIOLATION doc for an app with no category tags must omit the category field entirely.
+   */
+  @Test
+  public void testBuildLegalViolationDocument_noCategory_omitsApplicationCategoryName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplicationWithParent(org);
+
+    Component component = new Component(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1", null, "jar"));
+    component.addDeclaredLicenseId("license-id-1");
+
+    List<Document> docs =
+        buildLegalViolationDocuments(indexingContextMock, org, List.of(org), app, component);
+
+    Document doc = docs.stream()
+        .filter(d -> ItemType.LEGAL_VIOLATION.name().equals(itemTypeOf(d)))
+        .findFirst()
+        .orElseThrow();
+    assertThat(doc.getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+  }
+
+  /**
+   * The shared {@code applicationCategoryNames} helper reached from the violation-doc builders is
+   * fed {@code application.getId()} with no per-caller null guard, so a null app id must not throw
+   * (the NPE guard short-circuits to no categories). Build both violation doc types for an app
+   * reporting a null id and assert no NPE and no category field.
+   */
+  @Test
+  public void testBuildViolationDocuments_nullApplicationId_noNpeAndNoCategory() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application persistedApp = tempEntity.newApplicationWithParent(org);
+    // A real category on the persisted app: were the null-id guard absent, Set.of(null) would throw.
+    Tag tag = tempEntity.newTag(org.getId(), "Finance");
+    tempEntity.newApplicationTag(persistedApp.getId(), tag.getId());
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        persistedApp.getId(), StageTypes.BUILD.getId(), "scan-null-id", new Date(), "commit-null");
+    PolicyViolation violation = tempEntity.newPolicyViolation(
+        eval, tempEntity.newPolicy(org.getId(), "crit-policy", 9), 9,
+        PolicyThreatCategory.SECURITY, "g", "a", "1");
+
+    Application app = spy(persistedApp);
+    when(app.getId()).thenReturn(null);
+
+    List<Document> policyDocs = buildPolicyViolationDocuments(
+        indexingContextMock, org, List.of(org), app, List.of(violation));
+    Document policyDoc = policyDocs.stream()
+        .filter(d -> ItemType.POLICY_VIOLATION.name().equals(itemTypeOf(d)))
+        .findFirst()
+        .orElseThrow();
+    assertThat(policyDoc.getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+
+    Component component = new Component(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1", null, "jar"));
+    component.addDeclaredLicenseId("license-id-1");
+    List<Document> legalDocs =
+        buildLegalViolationDocuments(indexingContextMock, org, List.of(org), app, component);
+    Document legalDoc = legalDocs.stream()
+        .filter(d -> ItemType.LEGAL_VIOLATION.name().equals(itemTypeOf(d)))
+        .findFirst()
+        .orElseThrow();
+    assertThat(legalDoc.getFields(FieldIdentifier.APPLICATION_CATEGORY_NAME.label)).isEmpty();
+
+    verify(indexingContextMock, never()).getCategoryNamesByApp(anySet(), any());
   }
 
   /**
@@ -524,7 +826,6 @@ public class DocumentBuilderHelperTest
     Application app = tempEntity.newApplicationWithParent(org);
 
     when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
-    stubCategoryLoaderPassthrough(app.getId());
 
     long evalMs = 1_700_000_000_000L;
     PolicyEvaluation latestEval = new PolicyEvaluation();

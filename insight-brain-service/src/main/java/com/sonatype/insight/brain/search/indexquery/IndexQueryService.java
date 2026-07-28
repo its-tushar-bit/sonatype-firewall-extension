@@ -551,14 +551,6 @@ public class IndexQueryService
   }
 
   /**
-   * RBAC-scoped facet-count base: {@code itemType:<type(s)> AND <structured filter clauses>}, with
-   * {@code excludedClauses} left out so a facet can count against a base that omits its own dimension
-   * (e.g. the fixed states/waiverType facets drop the user's waiver-status filter so each fixed count is
-   * whole-corpus rather than self-restricting). The RBAC filter is applied inside
-   * {@link SearchIndexClient#count(String)} (fail-closed), so a caller with no readable contexts counts
-   * 0 rather than an unscoped total.
-   */
-  /**
    * Facet-count base for the auto/manual facet, dropping the manual-only {@code policyWaiverAuto:"false"}
    * restriction (whether it came from the absent/null default OR an explicit {@code includeAutoWaivers:false})
    * so both true and false buckets count over the whole corpus -- the toggle facet tells the user what they
@@ -574,6 +566,14 @@ public class IndexQueryService
         queryType, compiled, autoRestriction == null ? List.of() : List.of(autoRestriction));
   }
 
+  /**
+   * RBAC-scoped facet-count base: {@code itemType:<type(s)> AND <structured filter clauses>}, with
+   * {@code excludedClauses} left out so a facet can count against a base that omits its own dimension
+   * (e.g. the fixed states/waiverType facets drop the user's waiver-status filter so each fixed count is
+   * whole-corpus rather than self-restricting). The RBAC filter is applied inside
+   * {@link SearchIndexClient#count(String)} (fail-closed), so a caller with no readable contexts counts
+   * 0 rather than an unscoped total.
+   */
   private static String baseMetricQuery(
       final IndexQueryType queryType,
       final CompiledQuery compiled,

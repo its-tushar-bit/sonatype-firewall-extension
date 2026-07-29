@@ -172,15 +172,17 @@ export default function PrioritiesPageRow({
     }
   };
 
+  // remediationType is only populated in bulk mode, so in non-bulk mode it is always null; the
+  // per-row fetch must gate on the bulk flag alone, never on remediationType.
   useEffect(() => {
-    if (!isDeveloperBulkRecommendationsEnabled && remediationType) {
+    if (!isDeveloperBulkRecommendationsEnabled) {
       doLoad();
     }
 
     return () => {
       remediationStatusPollingRef.current?.abort?.();
     };
-  }, [isDeveloperBulkRecommendationsEnabled, remediationType]);
+  }, [isDeveloperBulkRecommendationsEnabled]);
 
   const openCreatePRModal = () => {
     dispatch(

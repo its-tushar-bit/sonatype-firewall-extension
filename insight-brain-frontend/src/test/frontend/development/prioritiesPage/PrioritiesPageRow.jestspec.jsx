@@ -112,7 +112,7 @@ describe('PrioritiesPageRow', () => {
       stageId,
       dependencyType: dependencyTypeMap[mockData.dependencyType],
     };
-    renderComponent(preloadedState);
+    renderComponent(preloadedState, { ...mockData, remediationType: null, remediationVersion: null });
     expect(axiosMock.history.get.length).toBe(1);
     expect(axiosMock.history.get[0].url).toBe(getVersionGraphUrl(requestData));
   });
@@ -900,21 +900,15 @@ describe('PrioritiesPageRow', () => {
     });
   });
 
-  describe('version-scoring fetch gate on remediationType (CLM-40771)', () => {
-    it('does NOT fire version-scoring when remediationType is null and bulk flag is OFF', async () => {
-      axiosMock.reset();
-      renderComponent(bulkOffState, { ...mockData, remediationType: null, remediationVersion: null });
-
-      await waitFor(() => {
-        const versionScoringCalls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
-        expect(versionScoringCalls).toHaveLength(0);
-      });
-    });
-
-    it('DOES fire version-scoring when remediationType is actionable and bulk flag is OFF', async () => {
+  describe('non-bulk recommendation loading', () => {
+    // In non-bulk mode the priorities table payload never carries remediationType - the
+    // backend only populates it when developer-bulk-recommendations is enabled. The per-row
+    // version-scoring fetch must still fire, otherwise no upgrade recommendation is ever
+    // shown and every row collapses to "Waive violations" / "Investigate".
+    it('fires version-scoring in non-bulk mode even when remediationType is null', async () => {
       axiosMock.reset();
       axiosMock.onGet(/allVersions/).reply(200, {});
-      renderComponent(bulkOffState, { ...mockData, remediationType: 'next-non-failing', remediationVersion: '1.5' });
+      renderComponent(bulkOffState, { ...mockData, remediationType: null, remediationVersion: null });
 
       await waitFor(() => {
         const calls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
@@ -922,7 +916,7 @@ describe('PrioritiesPageRow', () => {
       });
     });
 
-    it('does NOT fire version-scoring when bulk flag is ON, regardless of remediationType', async () => {
+    it('does NOT fire version-scoring when the bulk flag is ON', async () => {
       axiosMock.reset();
       renderComponent(defaultPreloadedState, {
         ...mockData,
@@ -933,39 +927,6 @@ describe('PrioritiesPageRow', () => {
       await waitFor(() => {
         const calls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
         expect(calls).toHaveLength(0);
-      });
-    });
-
-    // Regression for the missing-dependency bug: the gate effect reads remediationType
-    // but the deps array originally only listed isDeveloperBulkRecommendationsEnabled.
-    // A row that mounted as non-actionable (null) and was later upgraded to actionable
-    // would never fire version-scoring because the effect's closure captured the stale
-    // null. With remediationType in the deps array, the upgrade triggers a re-run.
-    it('fires version-scoring after remediationType flips from null to actionable on re-render', async () => {
-      axiosMock.reset();
-      axiosMock.onGet(/allVersions/).reply(200, {});
-
-      const { rerender } = renderComponent(bulkOffState, {
-        ...mockData,
-        remediationType: null,
-        remediationVersion: null,
-      });
-
-      await waitFor(() => {
-        const initialCalls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
-        expect(initialCalls).toHaveLength(0);
-      });
-
-      rerender(
-        <PrioritiesPageRow
-          {...minimalProps}
-          component={{ ...mockData, remediationType: 'next-non-failing', remediationVersion: '1.5' }}
-        />
-      );
-
-      await waitFor(() => {
-        const calls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
-        expect(calls.length).toBeGreaterThanOrEqual(1);
       });
     });
   });

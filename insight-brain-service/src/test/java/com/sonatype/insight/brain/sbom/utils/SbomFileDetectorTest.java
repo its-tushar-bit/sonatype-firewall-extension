@@ -208,8 +208,8 @@ public class SbomFileDetectorTest
   @Test
   public void testGetSbomMetadata_SPDX_InvalidJson() throws Exception {
     List<String> expectedErrors =
-        List.of("Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found",
-            "Line: 1, Column: 2, Path: $, Error: required property 'name' not found");
+        List.of("Line: 1, Column: 2, Path: , Error: Missing required field \"dataLicense\".",
+            "Line: 1, Column: 2, Path: , Error: Missing required field \"name\".");
     SbomDetectionResult expected =
         createExpectedResult(true, false, true, "application/json", "Not a valid SPDX SBOM file.",
             expectedErrors, "2.3", "SPDX", "json", 6, 13,

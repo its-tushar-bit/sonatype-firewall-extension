@@ -213,7 +213,7 @@ public class SbomFileDetector
       log.debug("Error validating SPDX SBOM, file name: {}, scan type: {}", sbomResult.filename, "SBOM", e);
       sbomResult.isValid = false;
       sbomResult.isValidationErrorIgnorable = false;
-      sbomResult.errorMessage = e.getMessage();
+      sbomResult.errorMessage = SbomValidationMessageTranslator.translate(e.getMessage());
       sbomResult.validationErrors = getErrors(e);
     }
     catch (SbomProcessingException | InvalidSPDXAnalysisException e) {
@@ -263,7 +263,7 @@ public class SbomFileDetector
           sbomResult.filename, "SBOM", e);
       sbomResult.isValid = false;
       sbomResult.isValidationErrorIgnorable = false;
-      sbomResult.errorMessage = e.getMessage();
+      sbomResult.errorMessage = SbomValidationMessageTranslator.translate(e.getMessage());
       sbomResult.validationErrors = getErrors(e);
     }
     catch (SbomProcessingException e) {
@@ -293,7 +293,10 @@ public class SbomFileDetector
     if (validationExceptions.isEmpty()) {
       return null;
     }
-    return validationExceptions.stream().map(ValidationException::getMessage).toList();
+    return validationExceptions.stream()
+        .map(ValidationException::getMessage)
+        .map(SbomValidationMessageTranslator::translate)
+        .toList();
   }
 
   private void populateErrors(

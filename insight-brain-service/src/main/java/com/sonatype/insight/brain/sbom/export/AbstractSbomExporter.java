@@ -108,7 +108,9 @@ public abstract class AbstractSbomExporter
     Optional<Version> cycloneDxEnumVersion = SbomCycloneDxUtils.getVersionFromString(versionStr);
     if (cycloneDxEnumVersion.isPresent()) {
       if (exportParams.targetFormat.equals(SbomFormat.XML)) {
-        return BomGeneratorFactory.createXml(cycloneDxEnumVersion.get(), bom).toXmlString();
+        // Use a schema-ordered generator to work around a cyclonedx-core-java bug where the
+        // License @JsonPropertyOrder emits <licensing> before <url>/<text>, violating the XSD.
+        return new CycloneDxSchemaOrderedXmlGenerator(bom, cycloneDxEnumVersion.get()).toXmlString();
       }
       else if (exportParams.targetFormat.equals(SbomFormat.JSON)) {
         return BomGeneratorFactory.createJson(cycloneDxEnumVersion.get(), bom).toJsonString();

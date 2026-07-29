@@ -881,54 +881,6 @@
           <mainClass>com.sonatype.insight.brain.spring.InsightBrainSpringApplication</mainClass>
         </configuration>
       </plugin>
-      <!--
-        Note for the future Sonatype engineer who trips this enforcer rule: When adding the MCP tools to IQ there was a
-        transitive dependency `mcp-json-jackson2` -> `json-schema-validator:2.x`. However `cyclonedx-core-java` 12.x in
-        extensive use requires `json-schema-validator:1.x`. To resolve this created a `noOpJsonSchemaValidator` for the
-        MCP to avoid the collision. Once cyclonedx-core-java version 13.0.0+ lands on the classpath (via
-        insight-scanner) that means `json-schema-validator` 2.x is now supported across all dependencies and the
-        no-op JsonSchemaValidator workaround in McpServletProvider can be removed.
-        See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
-      -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>check-cyclonedx-json-schema-workaround</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <bannedDependencies>
-                  <excludes>
-                    <exclude>org.cyclonedx:cyclonedx-core-java:[13.0.0,)</exclude>
-                  </excludes>
-                  <message>
-cyclonedx-core-java 13.0.0+ detected! 
-
-Note for the future Sonatype engineer who trips this enforcer rule: When adding the MCP tools to IQ there was a
-transitive dependency `mcp-json-jackson2` -> `json-schema-validator:2.x`. However `cyclonedx-core-java` 12.x in
-extensive use requires `json-schema-validator:1.x`. To resolve this we created a `noOpJsonSchemaValidator` in
-McpServletProvider and excluded json-schema-validator from mcp-json-jackson2 in insight-brain-guide/pom.xml.
-Once cyclonedx-core-java 13.0.0+ lands on the classpath (via insight-scanner) that means
-`json-schema-validator` 2.x is now supported across all dependencies and the workaround can be removed.
-
-`cyclonedx-core-java` v13.+ supports json-schema-validator 2.x, so the MCP json-schema-validator workaround can be
-removed:
-  1. Remove the json-schema-validator exclusion from mcp-json-jackson2 in insight-brain-guide/pom.xml
-  2. Remove the noOpJsonSchemaValidator() method in McpServletProvider
-  3. Remove the .jsonSchemaValidator(...) call in McpServletProvider.initialize()
-  4. Remove this enforcer rule
-See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
-                  </message>
-                </bannedDependencies>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <!-- We run the tests using maven-failsafe-plugin because we want to use the artifact jar, not the classes. -->
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>

@@ -34,7 +34,8 @@ public class SbomExportParams
 
   public enum ExportSpecification
   {
-    DEFAULT("1.6", CYCLONEDX),
+    DEFAULT("1.7", CYCLONEDX),
+    CYCLONEDX_17("1.7", CYCLONEDX),
     CYCLONEDX_16("1.6", CYCLONEDX),
     CYCLONEDX_15("1.5", CYCLONEDX),
     SPDX_22("2.2", SPDX),
@@ -44,6 +45,7 @@ public class SbomExportParams
 
     private static final Map<String, ExportSpecification> SUPPORTED_EXPORT_SPECIFICATIONS =
         ImmutableMap.<String, ExportSpecification>builder()
+            .put("cyclonedx1.7", CYCLONEDX_17)
             .put("cyclonedx1.6", CYCLONEDX_16)
             .put("cyclonedx1.5", CYCLONEDX_15)
             .put("spdx2.2", SPDX_22)

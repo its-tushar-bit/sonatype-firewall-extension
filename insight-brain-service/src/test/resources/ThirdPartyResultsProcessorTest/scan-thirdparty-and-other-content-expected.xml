@@ -45,7 +45,7 @@
   <item contentType="SBOM" lastModified="1571789481391" path="test-bom.json" sha1="c963081e41394dfafc76">
     <content><![CDATA[{
   "bomFormat" : "CycloneDX",
-  "specVersion" : "1.6",
+  "specVersion" : "1.7",
   "version" : 1,
   "components" : [
     {

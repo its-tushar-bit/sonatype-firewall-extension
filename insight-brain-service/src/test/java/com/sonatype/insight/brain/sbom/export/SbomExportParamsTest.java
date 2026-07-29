@@ -18,6 +18,7 @@ public class SbomExportParamsTest
   public void testGetLatestVersionForSbomSpecification() {
     assertThat(ExportSpecification.values()).containsExactlyInAnyOrder(
         ExportSpecification.DEFAULT,
+        ExportSpecification.CYCLONEDX_17,
         ExportSpecification.CYCLONEDX_16,
         ExportSpecification.CYCLONEDX_15,
         ExportSpecification.SPDX_22,
@@ -28,7 +29,7 @@ public class SbomExportParamsTest
 
     result = ExportSpecification.getLatestVersionForSbomSpecification(SbomSpecification.CYCLONEDX);
     assertThat(result.getSpecification()).isEqualTo(SbomSpecification.CYCLONEDX);
-    assertThat(result.getVersion()).isEqualTo("1.6");
+    assertThat(result.getVersion()).isEqualTo("1.7");
 
     result = ExportSpecification.getLatestVersionForSbomSpecification(SbomSpecification.SPDX);
     assertThat(result.getSpecification()).isEqualTo(SbomSpecification.SPDX);

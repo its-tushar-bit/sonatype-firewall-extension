@@ -28,7 +28,7 @@
   <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-multiformat-bom.json">
     <content><![CDATA[{
   "bomFormat" : "CycloneDX",
-  "specVersion" : "1.6",
+  "specVersion" : "1.7",
   "version" : 1,
   "metadata" : {
     "timestamp" : "2021-12-03T12:18:22Z",

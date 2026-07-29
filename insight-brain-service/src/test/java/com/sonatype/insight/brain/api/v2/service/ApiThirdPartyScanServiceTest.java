@@ -101,8 +101,8 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_spdx_2_2_json_invalid() throws Exception {
     testScanComponentsWithFailure("invalid_spdx_2_2.json", SbomFormat.JSON,
-        "The sbom is not valid.\n - Line: 37, Column: 6, Path: $.packages[1], " +
-            "Error: required property 'copyrightText' not found");
+        "The sbom is not valid.\n - Line: 37, Column: 6, Path: /packages/1, " +
+            "Error: Missing required field \"copyrightText\".");
   }
 
   @Test
@@ -115,7 +115,7 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_spdx_2_3_json_invalid() throws Exception {
     testScanComponentsWithFailure("invalid_spdx_2_3.json", SbomFormat.JSON,
-        "The sbom is not valid.\n - Line: 1, Column: 2, Path: $, Error: required property 'name' not found");
+        "The sbom is not valid.\n - Line: 1, Column: 2, Path: , Error: Missing required field \"name\".");
   }
 
   @Test

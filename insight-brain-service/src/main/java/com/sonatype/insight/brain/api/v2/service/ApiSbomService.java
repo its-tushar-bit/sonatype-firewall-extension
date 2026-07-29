@@ -115,13 +115,13 @@ public class ApiSbomService
   public static final String STATE_PARAM = "state";
 
   private static final List<String> EXPORT_OPTIONS_SPDX3_SOURCE =
-      List.of("spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
+      List.of("spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7", "pdf");
 
   private static final List<String> EXPORT_OPTIONS_SPDX2_SOURCE =
-      List.of("spdx2.2", "spdx2.3", "spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
+      List.of("spdx2.2", "spdx2.3", "spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7", "pdf");
 
   private static final List<String> EXPORT_OPTIONS_CDX_SOURCE =
-      List.of("cyclonedx1.5", "cyclonedx1.6", "spdx2.2", "spdx2.3", "spdx3.0", "pdf");
+      List.of("cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7", "spdx2.2", "spdx2.3", "spdx3.0", "pdf");
 
   private final ThirdPartySbomMetadataDAO dao;
 

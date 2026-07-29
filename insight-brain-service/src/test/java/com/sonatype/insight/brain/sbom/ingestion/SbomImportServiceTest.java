@@ -784,8 +784,8 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
-        "Line: 11, Column: 6, Path: $.components[1], Error: required property 'type' not found",
-        "Line: 15, Column: 6, Path: $.components[2], Error: required property 'type' not found");
+        "Line: 11, Column: 6, Path: /components/1, Error: Missing required field \"type\".",
+        "Line: 15, Column: 6, Path: /components/2, Error: Missing required field \"type\".");
 
     assertTelemetryData("json", CYCLONEDX.toString(), "1.4", 2, false, false);
 
@@ -866,7 +866,8 @@ public class SbomImportServiceTest
     assertThat(sbomDetectionResultDTO).isNotNull();
     assertThat(sbomDetectionResultDTO.getIsValid()).isFalse();
     assertThat(sbomDetectionResultDTO.getIsValidationErrorIgnorable()).isFalse();
-    assertThat(sbomDetectionResultDTO.getErrorMessage()).isEqualTo("CycloneDX XML null version is not supported");
+    assertThat(sbomDetectionResultDTO.getErrorMessage()).isEqualTo(
+        "This SBOM's XML namespace isn't a recognized CycloneDX version. IQ supports CycloneDX 1.1 through 1.7.");
 
     assertExistingSbomFiles();
   }
@@ -907,10 +908,10 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary().specification).isEqualTo("SPDX");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
-        "Line: 13, Column: 6, Path: $.packages[1], Error: required property 'downloadLocation' not found",
-        "Line: 17, Column: 6, Path: $.packages[2], Error: required property 'downloadLocation' not found",
-        "Line: 1, Column: 2, Path: $, Error: required property 'creationInfo' not found",
-        "Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found");
+        "Line: 13, Column: 6, Path: /packages/1, Error: Missing required field \"downloadLocation\".",
+        "Line: 17, Column: 6, Path: /packages/2, Error: Missing required field \"downloadLocation\".",
+        "Line: 1, Column: 2, Path: , Error: Missing required field \"creationInfo\".",
+        "Line: 1, Column: 2, Path: , Error: Missing required field \"dataLicense\".");
 
     assertTelemetryData("json", SPDX.toString(), "2.3", 4, false, false);
 

@@ -448,6 +448,16 @@ public class ApiSbomServiceTest
             "The original CycloneDX SBOM was already in version 1.6");
   }
 
+  @Test
+  public void testGetSbomVersion_exportCycloneDx17ToLowerVersion() throws Exception {
+    testExportToLowerVersion(
+        SbomSpecification.CYCLONEDX,
+        "1.7",
+        "cyclonedx1.6",
+        "Unable to export lower SBOM specification version 1.6. " +
+            "The original CycloneDX SBOM was already in version 1.7");
+  }
+
   private void testExportToLowerVersion(
       SbomSpecification spec,
       String inputSpecVersion,
@@ -2035,20 +2045,20 @@ public class ApiSbomServiceTest
         .isThrownBy(() -> importInvalidSbom("cdx-invalid.json", false))
         .withMessage("""
             Not a valid CycloneDX SBOM file.
-            Line: 11, Column: 6, Path: $.components[1], Error: required property 'type' not found
-            Line: 15, Column: 6, Path: $.components[2], Error: required property 'type' not found
-            Line: 19, Column: 6, Path: $.components[3], Error: required property 'type' not found
-            Line: 23, Column: 6, Path: $.components[4], Error: required property 'type' not found
-            Line: 27, Column: 6, Path: $.components[5], Error: required property 'type' not found
-            Line: 31, Column: 6, Path: $.components[6], Error: required property 'type' not found
-            Line: 35, Column: 6, Path: $.components[7], Error: required property 'type' not found
-            Line: 39, Column: 6, Path: $.components[8], Error: required property 'type' not found
-            Line: 43, Column: 6, Path: $.components[9], Error: required property 'type' not found
-            Line: 47, Column: 6, Path: $.components[10], Error: required property 'type' not found
-            Line: 51, Column: 6, Path: $.components[11], Error: required property 'type' not found
-            Line: 55, Column: 6, Path: $.components[12], Error: required property 'type' not found
-            Line: 59, Column: 6, Path: $.components[13], Error: required property 'type' not found
-            Line: 63, Column: 6, Path: $.components[14], Error: required property 'type' not found""");
+            Line: 11, Column: 6, Path: /components/1, Error: Missing required field "type".
+            Line: 15, Column: 6, Path: /components/2, Error: Missing required field "type".
+            Line: 19, Column: 6, Path: /components/3, Error: Missing required field "type".
+            Line: 23, Column: 6, Path: /components/4, Error: Missing required field "type".
+            Line: 27, Column: 6, Path: /components/5, Error: Missing required field "type".
+            Line: 31, Column: 6, Path: /components/6, Error: Missing required field "type".
+            Line: 35, Column: 6, Path: /components/7, Error: Missing required field "type".
+            Line: 39, Column: 6, Path: /components/8, Error: Missing required field "type".
+            Line: 43, Column: 6, Path: /components/9, Error: Missing required field "type".
+            Line: 47, Column: 6, Path: /components/10, Error: Missing required field "type".
+            Line: 51, Column: 6, Path: /components/11, Error: Missing required field "type".
+            Line: 55, Column: 6, Path: /components/12, Error: Missing required field "type".
+            Line: 59, Column: 6, Path: /components/13, Error: Missing required field "type".
+            Line: 63, Column: 6, Path: /components/14, Error: Missing required field "type".""");
 
     assertExistingSbomFiles();
   }
@@ -2071,10 +2081,10 @@ public class ApiSbomServiceTest
         .isThrownBy(() -> importInvalidSbom("spdx-invalid.json", false))
         .withMessage("""
             Not a valid SPDX SBOM file.
-            Line: 15, Column: 4, Path: $.packages[1], Error: required property 'downloadLocation' not found
-            Line: 19, Column: 4, Path: $.packages[2], Error: required property 'downloadLocation' not found
-            Line: 1, Column: 2, Path: $, Error: required property 'creationInfo' not found
-            Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found""");
+            Line: 15, Column: 4, Path: /packages/1, Error: Missing required field "downloadLocation".
+            Line: 19, Column: 4, Path: /packages/2, Error: Missing required field "downloadLocation".
+            Line: 1, Column: 2, Path: , Error: Missing required field "creationInfo".
+            Line: 1, Column: 2, Path: , Error: Missing required field "dataLicense".""");
 
     assertExistingSbomFiles();
   }
@@ -2372,7 +2382,7 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(200);
     List<String> options = (List<String>) response.getEntity();
-    assertThat(options).containsExactly("spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
+    assertThat(options).containsExactly("spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7", "pdf");
   }
 
   @Test
@@ -2386,7 +2396,8 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(200);
     List<String> options = (List<String>) response.getEntity();
-    assertThat(options).containsExactly("spdx2.2", "spdx2.3", "spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
+    assertThat(options).containsExactly("spdx2.2", "spdx2.3", "spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7",
+        "pdf");
   }
 
   @Test
@@ -2399,7 +2410,8 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(200);
     List<String> options = (List<String>) response.getEntity();
-    assertThat(options).containsExactly("cyclonedx1.5", "cyclonedx1.6", "spdx2.2", "spdx2.3", "spdx3.0", "pdf");
+    assertThat(options).containsExactly("cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7", "spdx2.2", "spdx2.3", "spdx3.0",
+        "pdf");
   }
 
   @Test

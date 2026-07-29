@@ -440,6 +440,18 @@ public class SystemConfigurationProperty
 
   public static final String IQ_PROXY_ENABLED = "iqProxyEnabled";
 
+  /**
+   * Master flag for the Firewall Enterprise initiative. Gates all config-plane and data-plane surfaces
+   * introduced by that initiative. Off by default; explicit opt-in required.
+   */
+  public static final String IQ_FIREWALL_ENTERPRISE_ENABLED = "iqFirewallEnterpriseEnabled";
+
+  /**
+   * Sub-flag gated under {@link #IQ_FIREWALL_ENTERPRISE_ENABLED}. Gates the redirector UI surface
+   * (Virtual Repository Managers + proxy repositories) during beta; removed at beta exit.
+   */
+  public static final String IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED = "iqFirewallEnterpriseRedirectUiEnabled";
+
   public static final String SLO_VIOLATION_FEED_ENABLED = "sloViolationFeedEnabled";
 
   @Id

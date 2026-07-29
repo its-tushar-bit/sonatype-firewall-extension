@@ -536,6 +536,21 @@ public enum SystemConfigurationPropertyFeature
   IQ_PROXY_ENABLED(SystemConfigurationProperty.IQ_PROXY_ENABLED, false),
 
   /**
+   * Master flag for the Firewall Enterprise initiative. Both this flag and
+   * {@link #IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED} must be enabled for the Epic 3 redirector UI
+   * to respond; either flag off keeps pre-existing behaviour byte-identical.
+   */
+  IQ_FIREWALL_ENTERPRISE_ENABLED(SystemConfigurationProperty.IQ_FIREWALL_ENTERPRISE_ENABLED, false),
+
+  /**
+   * Sub-flag for the Epic 3 redirector UI surface (Virtual Repository Managers + proxy repositories).
+   * Gated under {@link #IQ_FIREWALL_ENTERPRISE_ENABLED}; both must be on for the surface to
+   * respond. Removed at beta exit (Story 3.Ω).
+   */
+  IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED(
+      SystemConfigurationProperty.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED, false),
+
+  /**
    * Gates the SCM webhook relay integration. Disabled by default. The {@code relayUrl}
    * config property defaults to the production CLM gateway (mirroring {@code hdsUrl}),
    * so flipping this flag on with no admin override targets the production relay.

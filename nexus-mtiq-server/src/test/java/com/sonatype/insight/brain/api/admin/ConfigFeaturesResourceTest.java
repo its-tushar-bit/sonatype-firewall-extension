@@ -157,6 +157,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.getId(),
         SystemConfigurationPropertyFeature.SCM_RELAY_INTEGRATION.getId(),
         SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.getId(),
         SystemConfigurationPropertyFeature.SLO_VIOLATION_FEED.getId(),
         SystemConfigurationPropertyFeature.GLOBAL_SEARCH.getId(),
         SystemConfigurationPropertyFeature.CATALOG_FEDERATION.getId(),

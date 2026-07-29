@@ -1523,6 +1523,8 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("guideUiEnabled", false);
     expectedFeatureConfigMap.put("consumptionReportingEnabled", false);
     expectedFeatureConfigMap.put("iqProxyEnabled", false);
+    expectedFeatureConfigMap.put("iqFirewallEnterpriseEnabled", false);
+    expectedFeatureConfigMap.put("iqFirewallEnterpriseRedirectUiEnabled", false);
     expectedFeatureConfigMap.put("scmRelayIntegration", false);
     expectedFeatureConfigMap.put("sloViolationFeedEnabled", false);
 

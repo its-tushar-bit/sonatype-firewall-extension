@@ -121,7 +121,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(78);
+    assertThat(featureConfigNode.size()).isEqualTo(80);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -205,6 +205,8 @@ public class FeaturePropertiesInfoTest
               "waiverRequestWorkflowEnabled": true,
               "consumptionReportingEnabled": false,
               "iqProxyEnabled": false,
+              "iqFirewallEnterpriseEnabled": false,
+              "iqFirewallEnterpriseRedirectUiEnabled": false,
               "sloViolationFeedEnabled": false
             }"""));
   }
@@ -220,7 +222,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(78);
+    assertThat(featureConfigNode.size()).isEqualTo(80);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -304,6 +306,8 @@ public class FeaturePropertiesInfoTest
               "waiverRequestWorkflowEnabled": true,
               "consumptionReportingEnabled": false,
               "iqProxyEnabled": false,
+              "iqFirewallEnterpriseEnabled": false,
+              "iqFirewallEnterpriseRedirectUiEnabled": false,
               "sloViolationFeedEnabled": false
             }"""));
   }
@@ -325,7 +329,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(68)
+        .hasSize(70)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

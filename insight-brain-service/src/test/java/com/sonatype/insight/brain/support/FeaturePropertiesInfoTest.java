@@ -30,7 +30,7 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(32);
+    assertThat(sysConfigNode.size()).isEqualTo(33);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
@@ -66,6 +66,8 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.EXIT_ON_FATAL_ERROR).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS).asBoolean()).isFalse();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.SOURCE_CONTROL_CLONE_DIRECTORY_ON_CLUSTER_STORAGE)
+        .asBoolean()).isFalse();
   }
 
   @Test
@@ -80,7 +82,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(32);
+    assertThat(sysConfigNode.size()).isEqualTo(33);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.support;
 
 import java.time.LocalTime;
 
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -42,9 +43,11 @@ public class SourceControlConfigurationInfoTest
     sourceControlConfiguration.setGpgSigningKey("test-gpg-key");
     sourceControlConfiguration.setGpgPassphrase("encrypted-passphrase");
 
-    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration);
+    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration, true);
 
     assertThat(configNode.get("cloneDirectory").asText()).isEqualTo("some-clone-directory");
+    assertThat(configNode.get(SystemConfigurationProperty.SOURCE_CONTROL_CLONE_DIRECTORY_ON_CLUSTER_STORAGE)
+        .asBoolean()).isTrue();
     assertThat(configNode.get("gitImplementation").asText()).isEqualTo(GitImplementation.NATIVE.toString());
     assertThat(configNode.get("gitExecutable").asText()).isEqualTo("/usr/bin/git");
     assertThat(configNode.get("prCommentPurgeWindow").asInt()).isEqualTo(1);
@@ -62,10 +65,12 @@ public class SourceControlConfigurationInfoTest
 
   @Test
   public void testGetSourceControlConfigurationInfo_DefaultValuesReturnedWhenConfigDoesNotExist() throws Exception {
-    JsonNode configNode = getSourceControlConfigurationInfo(null);
+    JsonNode configNode = getSourceControlConfigurationInfo(null, false);
     SourceControlConfiguration defaultConfig = new SourceControlConfiguration();
 
     assertThat(configNode.get("cloneDirectory").asText()).isEqualTo(defaultConfig.getCloneDirectory());
+    assertThat(configNode.get(SystemConfigurationProperty.SOURCE_CONTROL_CLONE_DIRECTORY_ON_CLUSTER_STORAGE)
+        .asBoolean()).isFalse();
     assertThat(configNode.get("defaultBranchMonitoringIntervalHours").asInt())
         .isEqualTo(defaultConfig.getDefaultBranchMonitoringIntervalHours());
     assertThat(configNode.get("pullRequestMonitoringIntervalSeconds").asInt())
@@ -90,7 +95,7 @@ public class SourceControlConfigurationInfoTest
     sourceControlConfiguration.setGpgSigningKey("test-key");
     sourceControlConfiguration.setGpgPassphrase("encrypted-value");
 
-    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration);
+    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration, false);
 
     assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("test-key");
     assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("****");
@@ -102,18 +107,20 @@ public class SourceControlConfigurationInfoTest
     sourceControlConfiguration.setGpgSigningKey("test-key");
     sourceControlConfiguration.setGpgPassphrase(null);
 
-    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration);
+    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration, false);
 
     assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("test-key");
     assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("null");
   }
 
   private JsonNode getSourceControlConfigurationInfo(
-      SourceControlConfiguration sourceControlConfiguration) throws Exception
+      SourceControlConfiguration sourceControlConfiguration,
+      boolean cloneDirectoryOnClusterStorage) throws Exception
   {
     Configuration configuration = mock(Configuration.class);
     when(configuration.getSourceControlConfigurationOrDefault()).thenReturn(
         sourceControlConfiguration == null ? new SourceControlConfiguration() : sourceControlConfiguration);
+    when(configuration.isSourceControlCloneDirectoryOnClusterStorage()).thenReturn(cloneDirectoryOnClusterStorage);
 
     return JsonUtils.parse(new SourceControlConfigurationInfo(configuration).getSourceControlConfigurationInfo());
   }

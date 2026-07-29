@@ -195,6 +195,8 @@ public class ConfigurationInfoTest
         .isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED).asText()).isEqualTo(
         "true");
+    assertThat(configNode.get(SystemConfigurationProperty.SOURCE_CONTROL_CLONE_DIRECTORY_ON_CLUSTER_STORAGE)
+        .asBoolean()).isFalse();
     assertThat(configNode.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
         .asText()).isEqualTo("48");
     assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED).asText()).isEqualTo(

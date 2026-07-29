@@ -180,6 +180,7 @@ public class Configuration
         SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX,
         SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
         SystemConfigurationProperty.SAAS_POLICY_MONITOR_POOL_SIZE,
+        SystemConfigurationProperty.SOURCE_CONTROL_CLONE_DIRECTORY_ON_CLUSTER_STORAGE,
         SystemConfigurationProperty.SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
         SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE,
         SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_POOL_SIZE,
@@ -652,6 +653,10 @@ public class Configuration
       sourceControlConfiguration = new SourceControlConfiguration();
     }
     return sourceControlConfiguration;
+  }
+
+  public boolean isSourceControlCloneDirectoryOnClusterStorage() {
+    return configCache.get(SystemConfigurationProperty.SOURCE_CONTROL_CLONE_DIRECTORY_ON_CLUSTER_STORAGE);
   }
 
   public boolean isALPObservedLicenseDetectionEnabled() {

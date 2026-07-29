@@ -108,6 +108,8 @@ public class ConfigurationInfo
     entries.put(SystemConfigurationProperty.ACCESS_ALLOWLIST, configuration.getAccessAllowlist());
     entries.put(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         configuration.isALPObservedLicenseDetectionEnabled());
+    entries.put(SystemConfigurationProperty.SOURCE_CONTROL_CLONE_DIRECTORY_ON_CLUSTER_STORAGE,
+        configuration.isSourceControlCloneDirectoryOnClusterStorage());
     entries.put(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
         configuration.getWaivedComponentUpgradeInspectionHour());
     entries.put(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,

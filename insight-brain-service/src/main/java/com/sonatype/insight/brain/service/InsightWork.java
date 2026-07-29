@@ -187,7 +187,10 @@ public class InsightWork
     SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     File file = new File(sourceControlConfiguration.getCloneDirectory());
     if (!file.isAbsolute()) {
-      file = new File(insightConfig.getSonatypeWork(), sourceControlConfiguration.getCloneDirectory());
+      File cloneDirectoryBase = configuration.isSourceControlCloneDirectoryOnClusterStorage()
+          ? insightConfig.getClusterDirectory()
+          : insightConfig.getSonatypeWork();
+      file = new File(cloneDirectoryBase, sourceControlConfiguration.getCloneDirectory());
     }
     return file;
   }

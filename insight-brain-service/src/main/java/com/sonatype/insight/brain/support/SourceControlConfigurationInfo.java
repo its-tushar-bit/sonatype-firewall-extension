@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.support;
 
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -33,6 +34,8 @@ public class SourceControlConfigurationInfo
 
     final SortedMap<String, Object> entries = new TreeMap<>();
     entries.put("cloneDirectory", sourceControlConfig.getCloneDirectory());
+    entries.put(SystemConfigurationProperty.SOURCE_CONTROL_CLONE_DIRECTORY_ON_CLUSTER_STORAGE,
+        configuration.isSourceControlCloneDirectoryOnClusterStorage());
     entries.put("gitImplementation", sourceControlConfig.getGitImplementation());
     entries.put("gitExecutable", sourceControlConfig.getGitExecutable());
     entries.put("prCommentPurgeWindow", sourceControlConfig.getPrCommentPurgeWindow());

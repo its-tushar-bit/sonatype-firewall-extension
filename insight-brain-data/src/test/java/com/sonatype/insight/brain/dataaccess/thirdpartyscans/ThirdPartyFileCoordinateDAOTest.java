@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
@@ -66,6 +67,8 @@ public class ThirdPartyFileCoordinateDAOTest
 
   private ThirdPartyFileDAO thirdPartyFileDAO;
 
+  private ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO;
+
   @Before
   @Override
   public void setup() {
@@ -75,6 +78,7 @@ public class ThirdPartyFileCoordinateDAOTest
     thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
     fileCoordinate = tempEntity.newThirdPartyFileCoordinate();
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
+    vexDAO = daoFactory.createThirdPartyVulnerabilityExploitabilityExchangeDAO();
   }
 
   @Test
@@ -194,6 +198,9 @@ public class ThirdPartyFileCoordinateDAOTest
         .newThirdPartyCoordinateSecurity(coord1, "r2", "d2", "l2", 1.2f, "2.2", "CVE", "v:2", "Low", "<dd>c2</>",
             "CVSSv2", "<dd>r2</dd>", "<dd>a2</dd>", "SBOM");
 
+    final ThirdPartyVulnerabilityExploitabilityExchange vex1 = tempEntity
+        .newThirdPartyVulnerabilityExploitabilityExchange(sec1, "r1", "state", "just", "resp", "detail");
+
     try (TransactionContext tx = thirdPartyFileCoordinateDAO.createTransactionContext()) {
       tx.begin();
       thirdPartyFileCoordinateDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
@@ -204,6 +211,14 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(thirdPartyFileCoordinateDAO.getById(coord2.getId())).isNull();
     assertThat(thirdPartyCoordinateSecurityDAO.getById(sec1.getId())).isNull();
     assertThat(thirdPartyCoordinateSecurityDAO.getById(sec2.getId())).isNull();
+    assertThat(vexDAO.getById(vex1.getId())).isNull();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testDeleteByThirdPartyFileId_postgres() {
+    testDeleteByThirdPartyFileId();
   }
 
   @Test
@@ -216,12 +231,22 @@ public class ThirdPartyFileCoordinateDAOTest
             "<dd>c1</>", "CVSSv3", "<dd>r1</dd>", "<dd>a1</dd>", "SBOM");
     final ThirdPartyCoordinateLicense lic =
         tempEntity.newThirdPartyCoordinateLicense(coordinate, "lic1", "name1", "url");
+    final ThirdPartyVulnerabilityExploitabilityExchange vex = tempEntity
+        .newThirdPartyVulnerabilityExploitabilityExchange(sec, "r1", "state", "just", "resp", "detail");
 
     thirdPartyFileCoordinateDAO.delete(coordinate);
 
     assertThat(thirdPartyFileCoordinateDAO.getById(coordinate.getId())).isNull();
     assertThat(thirdPartyCoordinateSecurityDAO.getById(sec.getId())).isNull();
     assertThat(thirdPartyCoordinateLicenseDAO.getById(lic.getId())).isNull();
+    assertThat(vexDAO.getById(vex.getId())).isNull();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testDelete_Cascade_postgres() {
+    testDelete_Cascade();
   }
 
   @Test
@@ -1847,5 +1872,128 @@ public class ThirdPartyFileCoordinateDAOTest
       assertThat(rootCause).hasMessageContaining("Value too long " +
           "for column \"\"\"cpe\"\" VARCHAR(" + MAX_CPE_LENGTH);
     }
+  }
+
+  @Test
+  public void testInsertBatch_generatesIdsAndDisplayNames() {
+    final ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyFileCoordinate a = new ThirdPartyFileCoordinate();
+    a.setThirdPartyFileId(thirdPartyFile.getId());
+    a.setHash("h-a");
+    a.setSource("SBOM");
+    a.setFormat("maven");
+    a.setName("group-a:artifact-a");
+    a.setVersion("1.0");
+    a.setPackageUrl("pkg:maven/group-a/artifact-a@1.0");
+    ThirdPartyFileCoordinate b = new ThirdPartyFileCoordinate();
+    b.setThirdPartyFileId(thirdPartyFile.getId());
+    b.setHash("h-b");
+    b.setSource("SBOM");
+    b.setFormat("maven");
+    b.setName("group-b:artifact-b");
+    b.setVersion("2.0");
+    b.setPackageUrl("pkg:maven/group-b/artifact-b@2.0");
+
+    try (TransactionContext tx = thirdPartyFileCoordinateDAO.createTransactionContext()) {
+      tx.begin();
+      thirdPartyFileCoordinateDAO.insertBatch(tx, List.of(a, b));
+      tx.commit();
+    }
+
+    assertThat(a.getId()).isNotNull();
+    assertThat(a.getDisplayName()).isNotBlank();
+    assertThat(b.getId()).isNotNull();
+    assertThat(b.getDisplayName()).isNotBlank();
+
+    ThirdPartyFileCoordinate retrievedA = thirdPartyFileCoordinateDAO.getById(a.getId());
+    ThirdPartyFileCoordinate retrievedB = thirdPartyFileCoordinateDAO.getById(b.getId());
+    assertThat(retrievedA).isNotNull();
+    assertThat(retrievedA.getHash()).isEqualTo("h-a");
+    assertThat(retrievedA.getDisplayName()).isEqualTo(a.getDisplayName());
+    assertThat(retrievedB).isNotNull();
+    assertThat(retrievedB.getHash()).isEqualTo("h-b");
+    assertThat(retrievedB.getDisplayName()).isEqualTo(b.getDisplayName());
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertBatch_generatesIdsAndDisplayNames_postgres() {
+    testInsertBatch_generatesIdsAndDisplayNames();
+  }
+
+  @Test
+  public void testInsertBatch_normalizesBlankOccurrencesAndFilenamesColumnsToNull() {
+    final ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyFileCoordinate empty = new ThirdPartyFileCoordinate();
+    empty.setThirdPartyFileId(thirdPartyFile.getId());
+    empty.setHash("h-empty");
+    empty.setSource("SBOM");
+    empty.setFormat("maven");
+    empty.setName("org.empty:mod");
+    empty.setVersion("1.0");
+    empty.setFilenames("");
+
+    ThirdPartyFileCoordinate whitespace = new ThirdPartyFileCoordinate();
+    whitespace.setThirdPartyFileId(thirdPartyFile.getId());
+    whitespace.setHash("h-ws");
+    whitespace.setSource("SBOM");
+    whitespace.setFormat("maven");
+    whitespace.setName("org.ws:mod");
+    whitespace.setVersion("1.0");
+    whitespace.setFilenames("\t ");
+    whitespace.setOccurrencesList(List.of(" "));
+
+    try (TransactionContext tx = thirdPartyFileCoordinateDAO.createTransactionContext()) {
+      tx.begin();
+      thirdPartyFileCoordinateDAO.insertBatch(tx, List.of(empty, whitespace));
+      tx.commit();
+
+      // Query raw columns to bypass the entity's read-side isBlank filter.
+      String emptyOccurrences = tx.dsl()
+          .select(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE.OCCURRENCES)
+          .from(com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE)
+          .where(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE.FILE_COORDINATE_ID
+                  .eq(empty.getId()))
+          .fetchOne(0, String.class);
+      String emptyFilenames = tx.dsl()
+          .select(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE.FILENAMES)
+          .from(com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE)
+          .where(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE.FILE_COORDINATE_ID
+                  .eq(empty.getId()))
+          .fetchOne(0, String.class);
+      String wsOccurrences = tx.dsl()
+          .select(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE.OCCURRENCES)
+          .from(com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE)
+          .where(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE.FILE_COORDINATE_ID
+                  .eq(whitespace.getId()))
+          .fetchOne(0, String.class);
+      String wsFilenames = tx.dsl()
+          .select(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE.FILENAMES)
+          .from(com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE)
+          .where(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE.FILE_COORDINATE_ID
+                  .eq(whitespace.getId()))
+          .fetchOne(0, String.class);
+
+      assertThat(emptyOccurrences).isNull();
+      assertThat(emptyFilenames).isNull();
+      assertThat(wsOccurrences).isNull();
+      assertThat(wsFilenames).isNull();
+    }
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertBatch_normalizesBlankOccurrencesAndFilenamesColumnsToNull_postgres() {
+    testInsertBatch_normalizesBlankOccurrencesAndFilenamesColumnsToNull();
   }
 }

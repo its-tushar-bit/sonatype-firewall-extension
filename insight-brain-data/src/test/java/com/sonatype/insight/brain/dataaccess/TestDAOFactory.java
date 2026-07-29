@@ -1210,18 +1210,12 @@ public class TestDAOFactory
 
   @Override
   public ThirdPartyCoordinateSecurityDAO createThirdPartyCoordinateSecurityDAO() {
-    ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO =
-        createThirdPartyVulnerabilityExploitabilityExchangeDAO();
-    return new ThirdPartyCoordinateSecurityDAO(dataStoreProvider.getThirdPartyScansDataStore(),
-        thirdPartyVulnerabilityExploitabilityExchangeDAO);
+    return new ThirdPartyCoordinateSecurityDAO(dataStoreProvider.getThirdPartyScansDataStore());
   }
 
   @Override
   public ThirdPartyFileCoordinateDAO createThirdPartyFileCoordinateDAO() {
-    ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = createThirdPartyCoordinateSecurityDAO();
-    ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = createThirdPartyCoordinateLicenseDAO();
-    return new ThirdPartyFileCoordinateDAO(dataStoreProvider.getThirdPartyScansDataStore(),
-        thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO);
+    return new ThirdPartyFileCoordinateDAO(dataStoreProvider.getThirdPartyScansDataStore());
   }
 
   @Override

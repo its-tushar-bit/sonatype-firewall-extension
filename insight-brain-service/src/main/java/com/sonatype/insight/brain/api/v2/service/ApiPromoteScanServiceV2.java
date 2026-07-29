@@ -152,17 +152,25 @@ public class ApiPromoteScanServiceV2
 
     AuditData.get()
         .continueAsync(executor,
-            new ScanPromotionTask(apiPromoteScanRequestDTOV2, application.getId(), statusId, userAgent));
+            new ScanPromotionTask(apiPromoteScanRequestDTOV2, application, statusId, userAgent));
 
     ApiApplicationEvaluationStatusDTOV2 result = new ApiApplicationEvaluationStatusDTOV2();
     result.statusUrl = getStatusUrl(applicationId, statusId);
     return result;
   }
 
+  /**
+   * Holds the {@link Application} fetched at request-submission time so the async run doesn't re-hit the DB. If the
+   * app is deleted or renamed while the task sits in the executor queue, {@code run()} works from the pre-change
+   * snapshot; downstream failures (missing scan file, evaluation errors) still surface through the {@code catch} in
+   * {@link #run()} as a polling failure.
+   */
   class ScanPromotionTask
       implements Runnable
   {
     private final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2;
+
+    private final Application application;
 
     private final String applicationId;
 
@@ -172,12 +180,13 @@ public class ApiPromoteScanServiceV2
 
     ScanPromotionTask(
         final ApiPromoteScanRequestDTOV2 apiPromoteScanRequestDTOV2,
-        final String applicationId,
+        final Application application,
         final String statusId,
         String userAgent)
     {
       this.apiPromoteScanRequestDTOV2 = apiPromoteScanRequestDTOV2;
-      this.applicationId = applicationId;
+      this.application = application;
+      this.applicationId = application.getId();
       this.statusId = statusId;
       this.userAgent = userAgent;
     }
@@ -187,7 +196,6 @@ public class ApiPromoteScanServiceV2
       ScanEntity tempScanEntity;
       final String targetStageId = apiPromoteScanRequestDTOV2.targetStageId;
       try {
-        final Application application = applicationDAO.getByIdNotNull(applicationId);
         log.debug("Promoting scan {} of app {} to stage {}. The status ID of the operation is {}.",
             apiPromoteScanRequestDTOV2.scanId != null
                 ? apiPromoteScanRequestDTOV2.scanId

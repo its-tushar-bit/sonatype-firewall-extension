@@ -32,8 +32,11 @@ import com.sonatype.insight.error.exception.InternalServerException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.SQLDialect;
+import org.jooq.UpdatableRecord;
 import org.jooq.impl.DSL;
 
+import static com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.CoordinateLicense.COORDINATE_LICENSE;
 import static com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.CoordinateSecurity.COORDINATE_SECURITY;
 import static com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.FileCoordinate.FILE_COORDINATE;
 import static com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.SbomMetadata.SBOM_METADATA;
@@ -50,69 +53,48 @@ import static com.sonatype.insight.brain.utils.CvssV3Severity.NONE;
 public class ThirdPartyFileCoordinateDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyFileCoordinate>
 {
-  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
-
-  private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
-
   @Inject
-  public ThirdPartyFileCoordinateDAO(
-      final ThirdPartyScansDataStore thirdPartyScansDataStore,
-      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
-      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO)
-  {
+  public ThirdPartyFileCoordinateDAO(final ThirdPartyScansDataStore thirdPartyScansDataStore) {
     super(thirdPartyScansDataStore);
-    this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
-    this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
   }
 
   @Override
-  public int insert(TransactionContext tx, ThirdPartyFileCoordinate entity) {
+  public int insert(TransactionContext tx, ThirdPartyFileCoordinate entity, boolean ignoreDuplicateKey) {
+    preInsert(entity);
+    return super.insert(tx, entity, ignoreDuplicateKey);
+  }
+
+  @Override
+  public int insertBatch(TransactionContext tx, List<ThirdPartyFileCoordinate> entities, boolean ignoreDuplicateKey) {
+    // Non-H2 batch path bypasses insert(), so run preInsert here; H2 falls back to per-row insert() where it runs.
+    if (tx.dsl().dialect() != SQLDialect.H2) {
+      entities.forEach(this::preInsert);
+    }
+    return super.insertBatch(tx, entities, ignoreDuplicateKey);
+  }
+
+  @Override
+  protected UpdatableRecord<?> fromEntity(UpdatableRecord<?> record, ThirdPartyFileCoordinate entity) {
+    record.from(entity);
+    // Blank -> NULL so column state matches getOccurrencesList()/getFilenamesList() read-side (both treat blank as
+    // empty).
+    if (StringUtils.isBlank(record.get(FILE_COORDINATE.OCCURRENCES))) {
+      record.set(FILE_COORDINATE.OCCURRENCES, (String) null);
+    }
+    if (StringUtils.isBlank(record.get(FILE_COORDINATE.FILENAMES))) {
+      record.set(FILE_COORDINATE.FILENAMES, (String) null);
+    }
+    return record;
+  }
+
+  private void preInsert(ThirdPartyFileCoordinate entity) {
     if (StringUtils.isBlank(entity.getDisplayName())) {
-      entity.setDisplayName(
-          FileCoordinateDisplayNameGenerator.generateDisplayName(entity.getPackageUrl(), entity.getFormat(),
-              entity.getName(), entity.getVersion()));
+      entity.setDisplayName(FileCoordinateDisplayNameGenerator.generateDisplayName(
+          entity.getPackageUrl(), entity.getFormat(), entity.getName(), entity.getVersion()));
     }
     if (entity.getId() == null) {
       entity.setId(UUID.randomUUID().toString());
     }
-    return tx.dsl()
-        .insertInto(FILE_COORDINATE)
-        .set(FILE_COORDINATE.FILE_COORDINATE_ID, entity.getId())
-        .set(FILE_COORDINATE.HASH, entity.getHash())
-        .set(FILE_COORDINATE.SOURCE, entity.getSource())
-        .set(FILE_COORDINATE.PACKAGE_URL, entity.getPackageUrl())
-        .set(FILE_COORDINATE.FORMAT, entity.getFormat())
-        .set(FILE_COORDINATE.NAME, entity.getName())
-        .set(FILE_COORDINATE.VERSION, entity.getVersion())
-        .set(FILE_COORDINATE.THIRD_PARTY_FILE_ID, entity.getThirdPartyFileId())
-        .set(FILE_COORDINATE.COMPONENT_REF, entity.getComponentRef())
-        .set(FILE_COORDINATE.CPE, entity.getCpe())
-        .set(FILE_COORDINATE.SWID, entity.getSwid())
-        .set(FILE_COORDINATE.IDENTIFICATION_SOURCES, entity.getIdentificationSources())
-        .set(FILE_COORDINATE.DEPENDENCY_TYPE, entity.getDependencyType())
-        .set(FILE_COORDINATE.MATCH_STATE_ID, entity.getMatchStateId())
-        .set(FILE_COORDINATE.OCCURRENCES, entity.getOccurrencesList() != null && !entity.getOccurrencesList().isEmpty()
-            ? String.join(",", entity.getOccurrencesList())
-            : null)
-        .set(FILE_COORDINATE.FILENAMES, entity.getFilenamesList() != null && !entity.getFilenamesList().isEmpty()
-            ? String.join(",", entity.getFilenamesList())
-            : null)
-        .set(FILE_COORDINATE.DISPLAY_NAME, entity.getDisplayName())
-        .execute();
-  }
-
-  @Override
-  public void delete(TransactionContext tx, ThirdPartyFileCoordinate fileCoordinate) {
-    // cascade delete coordinate security records
-    thirdPartyCoordinateSecurityDAO.deleteByFileCoordinateId(tx, fileCoordinate.getId());
-
-    // cascade delete coordinate license records
-    thirdPartyCoordinateLicenseDAO.deleteByFileCoordinateId(tx, fileCoordinate.getId());
-
-    tx.dsl()
-        .deleteFrom(FILE_COORDINATE)
-        .where(FILE_COORDINATE.FILE_COORDINATE_ID.eq(fileCoordinate.getId()))
-        .execute();
   }
 
   public ThirdPartyFileCoordinate getByComponentRef(String componentRef, String thirdPartyFileId) {
@@ -400,9 +382,63 @@ public class ThirdPartyFileCoordinateDAO
     }
   }
 
-  public void deleteByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
-    List<ThirdPartyFileCoordinate> coordinateFiles = getByThirdPartyFileId(tx, thirdPartyFileId);
-    coordinateFiles.forEach(entity -> delete(tx, entity));
+  @Override
+  public void delete(TransactionContext tx, ThirdPartyFileCoordinate entity) {
+    // Cascade in child-first order via bulk DELETE-by-subquery: N+1-free regardless of row counts.
+    tx.dsl()
+        .deleteFrom(VULNERABILITY_EXPLOITABILITY)
+        .where(VULNERABILITY_EXPLOITABILITY.COORDINATE_SECURITY_ID.in(
+            DSL.select(COORDINATE_SECURITY.COORDINATE_SECURITY_ID)
+                .from(COORDINATE_SECURITY)
+                .where(COORDINATE_SECURITY.FILE_COORDINATE_ID.eq(entity.getId()))))
+        .execute();
+    tx.dsl()
+        .deleteFrom(COORDINATE_SECURITY)
+        .where(COORDINATE_SECURITY.FILE_COORDINATE_ID.eq(entity.getId()))
+        .execute();
+    tx.dsl()
+        .deleteFrom(COORDINATE_LICENSE)
+        .where(COORDINATE_LICENSE.FILE_COORDINATE_ID.eq(entity.getId()))
+        .execute();
+    super.delete(tx, entity);
+  }
+
+  /**
+   * Cascades in child-first order so the FKs are never violated by the delete itself. Callers are not
+   * serialized: a concurrent insert against the same {@code third_party_file_id} between these statements
+   * can raise an FK violation that rolls back the transaction. Orphaned rows are impossible either way —
+   * the FKs remain in place. This window is no wider than the pre-existing fetch-then-delete-per-row
+   * implementation, which additionally worked from a stale SELECT snapshot.
+   */
+  public int deleteByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
+    // Bulk cascade via subquery on third_party_file_id — 4 statements total per SBOM regardless of size.
+    tx.dsl()
+        .deleteFrom(VULNERABILITY_EXPLOITABILITY)
+        .where(VULNERABILITY_EXPLOITABILITY.COORDINATE_SECURITY_ID.in(
+            DSL.select(COORDINATE_SECURITY.COORDINATE_SECURITY_ID)
+                .from(COORDINATE_SECURITY)
+                .join(FILE_COORDINATE)
+                .on(COORDINATE_SECURITY.FILE_COORDINATE_ID.eq(FILE_COORDINATE.FILE_COORDINATE_ID))
+                .where(FILE_COORDINATE.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))))
+        .execute();
+    tx.dsl()
+        .deleteFrom(COORDINATE_SECURITY)
+        .where(COORDINATE_SECURITY.FILE_COORDINATE_ID.in(
+            DSL.select(FILE_COORDINATE.FILE_COORDINATE_ID)
+                .from(FILE_COORDINATE)
+                .where(FILE_COORDINATE.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))))
+        .execute();
+    tx.dsl()
+        .deleteFrom(COORDINATE_LICENSE)
+        .where(COORDINATE_LICENSE.FILE_COORDINATE_ID.in(
+            DSL.select(FILE_COORDINATE.FILE_COORDINATE_ID)
+                .from(FILE_COORDINATE)
+                .where(FILE_COORDINATE.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))))
+        .execute();
+    return tx.dsl()
+        .deleteFrom(FILE_COORDINATE)
+        .where(FILE_COORDINATE.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))
+        .execute();
   }
 
   public BomPageSbomSummaryDTO getSbomVunerabilitySummaryForComponents(

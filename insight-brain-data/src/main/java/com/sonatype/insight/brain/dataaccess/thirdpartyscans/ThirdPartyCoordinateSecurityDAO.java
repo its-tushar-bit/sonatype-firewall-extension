@@ -5,11 +5,15 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
+import org.apache.commons.collections4.CollectionUtils;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
@@ -37,15 +41,9 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 public class ThirdPartyCoordinateSecurityDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartyCoordinateSecurity>
 {
-  private final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
-
   @Inject
-  public ThirdPartyCoordinateSecurityDAO(
-      final ThirdPartyScansDataStore thirdPartyScansDataStore,
-      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO)
-  {
+  public ThirdPartyCoordinateSecurityDAO(final ThirdPartyScansDataStore thirdPartyScansDataStore) {
     super(thirdPartyScansDataStore);
-    this.thirdPartyVulnerabilityExploitabilityExchangeDAO = thirdPartyVulnerabilityExploitabilityExchangeDAO;
   }
 
   public ThirdPartyCoordinateSecurity getByFileCoordinateIdAndRefId(String coordinateFileId, String refId) {
@@ -79,6 +77,59 @@ public class ThirdPartyCoordinateSecurityDAO
     return entity;
   }
 
+  /**
+   * Batch {@link #insertSafely}. Returns a list parallel to {@code entities}: each position is either the pre-existing
+   * DB row on {@code (file_coordinate_id, ref_id)} match or the newly-inserted entity. Ref-id match is
+   * case-insensitive.
+   */
+  public List<ThirdPartyCoordinateSecurity> insertSafelyBatch(
+      final TransactionContext tx,
+      final List<ThirdPartyCoordinateSecurity> entities)
+  {
+    if (CollectionUtils.isEmpty(entities)) {
+      return List.of();
+    }
+    Set<String> fileCoordinateIds = entities.stream()
+        .map(ThirdPartyCoordinateSecurity::getFileCoordinateId)
+        .filter(java.util.Objects::nonNull)
+        .collect(Collectors.toSet());
+    Map<String, ThirdPartyCoordinateSecurity> resolvedByKey = new HashMap<>();
+    if (!fileCoordinateIds.isEmpty()) {
+      List<ThirdPartyCoordinateSecurity> existingRows = getListWithSqlInClause(fileCoordinateIds,
+          partition -> tx.dsl()
+              .selectFrom(COORDINATE_SECURITY)
+              .where(COORDINATE_SECURITY.FILE_COORDINATE_ID.in(partition))
+              .fetchInto(ThirdPartyCoordinateSecurity.class));
+      for (ThirdPartyCoordinateSecurity e : existingRows) {
+        resolvedByKey.put(uniqueKey(e.getFileCoordinateId(), e.getRefId()), e);
+      }
+    }
+    List<ThirdPartyCoordinateSecurity> toInsert = new ArrayList<>();
+    List<ThirdPartyCoordinateSecurity> result = new ArrayList<>(entities.size());
+    for (ThirdPartyCoordinateSecurity entity : entities) {
+      String key = uniqueKey(entity.getFileCoordinateId(), entity.getRefId());
+      ThirdPartyCoordinateSecurity resolved = resolvedByKey.get(key);
+      if (resolved != null) {
+        result.add(resolved);
+      }
+      else {
+        toInsert.add(entity);
+        resolvedByKey.put(key, entity);
+        result.add(entity);
+      }
+    }
+    if (!toInsert.isEmpty()) {
+      insertBatch(tx, toInsert);
+    }
+    return result;
+  }
+
+  private static String uniqueKey(String fileCoordinateId, String refId) {
+    // '\0' separator is safe: fileCoordinateId is a UUID, refId is a CVE/ref identifier — neither contains a null byte.
+    return (fileCoordinateId == null ? "" : fileCoordinateId) + '\0'
+        + (refId == null ? "" : refId.toUpperCase());
+  }
+
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateIds(List<String> fileCoordinateIdList) {
     return getListWithSqlInClause(fileCoordinateIdList, inClauseValuesPartition -> {
       try (TransactionContext tx = createTransactionContext()) {
@@ -97,30 +148,38 @@ public class ThirdPartyCoordinateSecurityDAO
         .fetchInto(ThirdPartyCoordinateSecurity.class);
   }
 
-  public void deleteByFileCoordinateId(TransactionContext tx, String fileCoordinateId) {
-    List<ThirdPartyCoordinateSecurity> coordinateSecurityFiles = getByFileCoordinateId(tx, fileCoordinateId);
-    coordinateSecurityFiles.forEach(entity -> delete(tx, entity));
+  /**
+   * @return count of {@code coordinate_security} rows deleted; VEX rows removed via the app-level cascade are not
+   *         reflected in this count.
+   */
+  public int deleteByFileCoordinateId(TransactionContext tx, String fileCoordinateId) {
+    // Cascade to VEX first (bulk via subquery), then bulk-delete the coordinate_security rows.
+    tx.dsl()
+        .deleteFrom(VULNERABILITY_EXPLOITABILITY)
+        .where(VULNERABILITY_EXPLOITABILITY.COORDINATE_SECURITY_ID.in(
+            DSL.select(COORDINATE_SECURITY.COORDINATE_SECURITY_ID)
+                .from(COORDINATE_SECURITY)
+                .where(COORDINATE_SECURITY.FILE_COORDINATE_ID.eq(fileCoordinateId))))
+        .execute();
+    return tx.dsl()
+        .deleteFrom(COORDINATE_SECURITY)
+        .where(COORDINATE_SECURITY.FILE_COORDINATE_ID.eq(fileCoordinateId))
+        .execute();
+  }
+
+  @Override
+  public void delete(TransactionContext tx, ThirdPartyCoordinateSecurity entity) {
+    tx.dsl()
+        .deleteFrom(VULNERABILITY_EXPLOITABILITY)
+        .where(VULNERABILITY_EXPLOITABILITY.COORDINATE_SECURITY_ID.eq(entity.getId()))
+        .execute();
+    super.delete(tx, entity);
   }
 
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateId(final String fileCoordinateId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByFileCoordinateId(tx, fileCoordinateId);
     }
-  }
-
-  @Override
-  public void delete(TransactionContext tx, ThirdPartyCoordinateSecurity coordinateSecurity) {
-    // cascade delete vulnerability exploitability exchanges records
-    thirdPartyVulnerabilityExploitabilityExchangeDAO.deleteByCoordinateSecurityId(tx, coordinateSecurity.getId());
-
-    // delete this entity
-    tx.dsl()
-        .deleteFrom(COORDINATE_SECURITY)
-        .where(COORDINATE_SECURITY.COORDINATE_SECURITY_ID.eq(coordinateSecurity.getId()))
-        .execute();
-
-    // handle search index changes
-    super.delete(tx, coordinateSecurity);
   }
 
   public List<RecentVulnerabilitiesDTO> getRecentHighPriorityVulnerabilities(Set<String> applicationIds) {

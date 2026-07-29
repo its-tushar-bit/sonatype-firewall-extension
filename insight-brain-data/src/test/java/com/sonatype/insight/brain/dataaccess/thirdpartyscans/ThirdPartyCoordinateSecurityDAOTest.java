@@ -1162,4 +1162,84 @@ public class ThirdPartyCoordinateSecurityDAOTest
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate12,
         "r22", "d3", "l3", 8.2, "sd3", "f3");
   }
+
+  @Test
+  public void testInsertSafelyBatch_mixedNewAndExisting() {
+    ThirdPartyFileCoordinate coord = tempEntity.newThirdPartyFileCoordinate();
+
+    ThirdPartyCoordinateSecurity existing =
+        new ThirdPartyCoordinateSecurity(coord.getId(), "REF-EXISTING", "sbom-md", "existing desc",
+            "existing-link", 5.0f, null);
+    dao.insert(existing);
+
+    ThirdPartyCoordinateSecurity duplicateOfExisting =
+        new ThirdPartyCoordinateSecurity(coord.getId(), "REF-EXISTING", "sbom-md", "should-be-ignored",
+            "should-be-ignored", 9.9f, null);
+    ThirdPartyCoordinateSecurity newRow =
+        new ThirdPartyCoordinateSecurity(coord.getId(), "REF-NEW", "sbom-md", "new desc",
+            "new-link", 7.0f, null);
+    ThirdPartyCoordinateSecurity duplicateInInput =
+        new ThirdPartyCoordinateSecurity(coord.getId(), "REF-NEW", "sbom-md", "same-as-newRow",
+            "same-as-newRow", 7.0f, null);
+
+    List<ThirdPartyCoordinateSecurity> resolved;
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      resolved = dao.insertSafelyBatch(tx,
+          Arrays.asList(duplicateOfExisting, newRow, duplicateInInput));
+      tx.commit();
+    }
+
+    assertThat(resolved).hasSize(3);
+    assertThat(resolved.get(0).getId()).isEqualTo(existing.getId());
+    assertThat(resolved.get(0).getDescription()).isEqualTo("existing desc");
+    assertThat(resolved.get(1).getId()).isNotNull();
+    assertThat(resolved.get(1).getRefId()).isEqualTo("REF-NEW");
+    assertThat(resolved.get(2).getId()).isEqualTo(resolved.get(1).getId());
+
+    List<ThirdPartyCoordinateSecurity> stored = dao.getByFileCoordinateIds(List.of(coord.getId()));
+    assertThat(stored).hasSize(2);
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertSafelyBatch_mixedNewAndExisting_postgres() {
+    testInsertSafelyBatch_mixedNewAndExisting();
+  }
+
+  @Test
+  public void testInsertSafelyBatch_matchesExistingRefIdCaseInsensitively() {
+    ThirdPartyFileCoordinate coord = tempEntity.newThirdPartyFileCoordinate();
+
+    ThirdPartyCoordinateSecurity existing =
+        new ThirdPartyCoordinateSecurity(coord.getId(), "CVE-2024-1234", "sbom-md", "existing",
+            "existing-link", 5.0f, null);
+    dao.insert(existing);
+
+    ThirdPartyCoordinateSecurity mixedCase =
+        new ThirdPartyCoordinateSecurity(coord.getId(), "cve-2024-1234", "sbom-md", "should-be-ignored",
+            "should-be-ignored", 9.9f, null);
+
+    List<ThirdPartyCoordinateSecurity> resolved;
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      resolved = dao.insertSafelyBatch(tx, Arrays.asList(mixedCase));
+      tx.commit();
+    }
+
+    assertThat(resolved).hasSize(1);
+    assertThat(resolved.get(0).getId()).isEqualTo(existing.getId());
+    assertThat(resolved.get(0).getDescription()).isEqualTo("existing");
+
+    List<ThirdPartyCoordinateSecurity> stored = dao.getByFileCoordinateIds(List.of(coord.getId()));
+    assertThat(stored).hasSize(1);
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertSafelyBatch_matchesExistingRefIdCaseInsensitively_postgres() {
+    testInsertSafelyBatch_matchesExistingRefIdCaseInsensitively();
+  }
 }

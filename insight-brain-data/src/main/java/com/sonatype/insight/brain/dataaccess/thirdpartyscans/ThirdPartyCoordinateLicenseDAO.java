@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
@@ -18,6 +21,7 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
 
@@ -161,6 +165,48 @@ public class ThirdPartyCoordinateLicenseDAO
     }
     insert(tx, entity);
     return true;
+  }
+
+  /**
+   * Batch {@link #insertSafely}. Skips rows whose {@code (file_coordinate_id, license_id)} already exists
+   * (case-insensitive on license_id) and returns the number of rows inserted.
+   */
+  public int insertSafelyBatch(final TransactionContext tx, final List<ThirdPartyCoordinateLicense> entities) {
+    if (CollectionUtils.isEmpty(entities)) {
+      return 0;
+    }
+    Set<String> fileCoordinateIds = entities.stream()
+        .map(ThirdPartyCoordinateLicense::getFileCoordinateId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Map<String, Boolean> knownKeys = new HashMap<>();
+    if (!fileCoordinateIds.isEmpty()) {
+      List<ThirdPartyCoordinateLicense> existingRows = getListWithSqlInClause(fileCoordinateIds,
+          partition -> tx.dsl()
+              .selectFrom(COORDINATE_LICENSE)
+              .where(COORDINATE_LICENSE.FILE_COORDINATE_ID.in(partition))
+              .fetchInto(ThirdPartyCoordinateLicense.class));
+      for (ThirdPartyCoordinateLicense e : existingRows) {
+        knownKeys.put(uniqueKey(e.getFileCoordinateId(), e.getLicenseId()), Boolean.TRUE);
+      }
+    }
+    List<ThirdPartyCoordinateLicense> toInsert = new ArrayList<>();
+    for (ThirdPartyCoordinateLicense entity : entities) {
+      String key = uniqueKey(entity.getFileCoordinateId(), entity.getLicenseId());
+      if (knownKeys.putIfAbsent(key, Boolean.TRUE) == null) {
+        toInsert.add(entity);
+      }
+    }
+    if (toInsert.isEmpty()) {
+      return 0;
+    }
+    return insertBatch(tx, toInsert);
+  }
+
+  private static String uniqueKey(String fileCoordinateId, String licenseId) {
+    // '\0' separator is safe: fileCoordinateId is a UUID, licenseId is an SPDX-style identifier — no null bytes.
+    return (fileCoordinateId == null ? "" : fileCoordinateId) + '\0'
+        + (licenseId == null ? "" : licenseId.toUpperCase());
   }
 
   @Override

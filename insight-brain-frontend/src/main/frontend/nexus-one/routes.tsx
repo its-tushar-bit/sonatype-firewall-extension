@@ -30,6 +30,7 @@ import UserAddContainer from 'MainRoot/security/users/userConfiguration/UserAddC
 import UserEditContainer from 'MainRoot/security/users/userConfiguration/UserEditContainer';
 import UserActivityDetailsContainer from 'MainRoot/configuration/userActivityOverview/UserActivityDetailsContainer';
 import SystemNoticeConfigurationContainer from 'MainRoot/configuration/systemNoticeConfiguration/SystemNoticeConfigurationContainer';
+import UserTokensConfiguration from 'MainRoot/configuration/userTokensConfiguration/UserTokensConfiguration';
 import AuthorizedAdvancedSearchConfig from 'MainRoot/nexus-one/AuthorizedAdvancedSearchConfig';
 import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
@@ -826,6 +827,18 @@ router.stateRegistry.register({
   data: {
     title: 'Administrator Edit',
     isDirty: ['administratorsConfig', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'userTokensConfiguration',
+  url: '/userTokensConfiguration',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(UserTokensConfiguration),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'User Tokens Configuration',
+    isDirty: ['userTokensConfiguration', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

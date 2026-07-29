@@ -152,6 +152,10 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/administrators')).toBe('/administrators');
     });
 
+    it('keeps the User Tokens Configuration admin path identical on both bundles (CLM-42964)', () => {
+      expect(toNexusOneEquivalent('/userTokensConfiguration')).toBe('/userTokensConfiguration');
+    });
+
     it('keeps the Advanced Search admin path identical on both bundles (CLM-42963)', () => {
       expect(toNexusOneEquivalent('/advancedSearchConfig')).toBe('/advancedSearchConfig');
     });
@@ -282,6 +286,10 @@ describe('classicPreviewMap', () => {
 
     it('maps Administrators admin back to the same Classic path (CLM-42464)', () => {
       expect(toClassicEquivalent('/administrators')).toBe('/administrators');
+    });
+
+    it('maps User Tokens Configuration admin back to the same Classic path (CLM-42964)', () => {
+      expect(toClassicEquivalent('/userTokensConfiguration')).toBe('/userTokensConfiguration');
     });
 
     it('maps Advanced Search admin back to the same Classic path (CLM-42963)', () => {
@@ -459,6 +467,7 @@ describe('classicPreviewMap', () => {
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
       ['/administrators'],
+      ['/userTokensConfiguration'],
       ['/advancedSearchConfig'],
     ])('nexus-one %s -> classic -> nexus-one returns to a path that maps back', (previewPath) => {
       const classicEquivalent = toClassicEquivalent(previewPath);

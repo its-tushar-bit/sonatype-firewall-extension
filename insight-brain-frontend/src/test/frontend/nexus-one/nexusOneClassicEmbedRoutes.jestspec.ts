@@ -376,6 +376,7 @@ describe('nexusOneClassicEmbedRoutes', () => {
       '/systemNoticeConfiguration',
       ['systemNoticeConfiguration', 'viewState', 'isDirty'],
     ],
+    ['userTokensConfiguration', '/userTokensConfiguration', ['userTokensConfiguration', 'isDirty']],
     [
       'advancedSearchConfig',
       '/advancedSearchConfig',

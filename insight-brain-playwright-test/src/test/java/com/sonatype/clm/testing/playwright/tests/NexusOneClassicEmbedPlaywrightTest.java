@@ -47,6 +47,8 @@ import com.sonatype.clm.testing.playwright.pages.SystemNoticePage;
 import com.sonatype.clm.testing.playwright.pages.SystemNoticePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.pages.UserManagementPage;
+import com.sonatype.clm.testing.playwright.pages.UserTokenConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.UserTokenConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.clm.testing.playwright.utils.HdsStubs;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -1019,6 +1021,165 @@ public class NexusOneClassicEmbedPlaywrightTest
     page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
     SystemNoticePage noticePage = new SystemNoticePage();
     assertThat(noticePage.container()).isHidden();
+  }
+
+  /**
+   * CLM-42964: Classic User Tokens Configuration mounts natively at
+   * {@code /userTokensConfiguration} on the Nexus One bundle, rendering the
+   * Classic form as-is inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedUserTokensConfiguration_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    UserTokenConfigurationPage userTokensPage = new UserTokenConfigurationPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(userTokensPage.pageHeading()).isVisible();
+    assertThat(userTokensPage.tileHeading()).isVisible();
+  }
+
+  /**
+   * CLM-42964 dirty-guard cancel path: toggling expiration dirties the form;
+   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user
+   * on the config page with the toggle state preserved.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedUserTokensConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
+
+    UserTokenConfigurationPage userTokensPage = new UserTokenConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    userTokensPage.container().waitFor();
+    // Read the initial toggle state so we can verify the flip after clicking.
+    boolean wasChecked = userTokensPage.expirationToggleInput().isChecked();
+    // Toggle the expiration setting to make the form dirty.
+    // This is a client-only change and needs no server-side cleanup.
+    userTokensPage.expirationToggle().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(userTokensPage.container()).isVisible();
+    // Verify the dirty toggle state survived the cancel (state should be flipped).
+    if (wasChecked) {
+      assertThat(userTokensPage.expirationToggleInput()).not().isChecked();
+    }
+    else {
+      assertThat(userTokensPage.expirationToggleInput()).isChecked();
+    }
+  }
+
+  /**
+   * CLM-42964 dirty-guard continue path: Continue closes the modal and lets
+   * the transition proceed; the config page unmounts and the user lands on
+   * the target route.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedUserTokensConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
+
+    UserTokenConfigurationPage userTokensPage = new UserTokenConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    userTokensPage.container().waitFor();
+    // Toggle the expiration setting to make the form dirty.
+    userTokensPage.expirationToggle().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(userTokensPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42964 auth gate: a user without CONFIGURE_SYSTEM navigating to
+   * /userTokensConfiguration is redirected to the Nexus One violations
+   * dashboard before the admin form ever mounts. Covers the redirectTo
+   * function on the route.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedUserTokensConfiguration_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    UserTokenConfigurationPage userTokensPage = new UserTokenConfigurationPage();
+    assertThat(userTokensPage.container()).isHidden();
+  }
+
+  /**
+   * CLM-42964 save-through-shell: enabling expiration and saving persists
+   * the configuration; reloading the page shows the saved state.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedUserTokensConfiguration_savePersistsThroughShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
+
+    UserTokenConfigurationPage userTokensPage = new UserTokenConfigurationPage();
+    UserTokenConfigurationPageAssertions userTokensAssertions =
+        new UserTokenConfigurationPageAssertions(userTokensPage);
+
+    userTokensPage.container().waitFor();
+    boolean initialExpirationEnabled = userTokensPage.expirationToggleInput().isChecked();
+    String initialExpiryDays = userTokensPage.expiryDaysInput().inputValue();
+
+    try {
+      // Ensure expiration is enabled — only click if currently unchecked, so
+      // this test works regardless of the toggle's initial state.
+      if (!initialExpirationEnabled) {
+        userTokensPage.expirationToggle().click();
+      }
+      userTokensPage.expiryDaysInput().fill("45");
+      userTokensPage.updateButton().click();
+
+      waitForSubmitMask();
+
+      playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
+      userTokensPage.container().waitFor();
+      userTokensAssertions.shouldHaveExpirationToggleChecked();
+      assertThat(userTokensPage.expiryDaysInput()).hasValue("45");
+    }
+    finally {
+      playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/userTokensConfiguration"));
+      userTokensPage.container().waitFor();
+      boolean currentExpirationEnabled = userTokensPage.expirationToggleInput().isChecked();
+
+      // Restore days BEFORE toggling expiration off (toggling off disables the days input).
+      if (currentExpirationEnabled && !initialExpirationEnabled) {
+        userTokensPage.expiryDaysInput().fill(initialExpiryDays);
+      }
+      if (currentExpirationEnabled != initialExpirationEnabled) {
+        userTokensPage.expirationToggle().click();
+      }
+      // Restore days AFTER toggling expiration on (toggling on enables the days input).
+      if (initialExpirationEnabled) {
+        userTokensPage.expiryDaysInput().fill(initialExpiryDays);
+      }
+      userTokensPage.updateButton().click();
+      waitForSubmitMask();
+    }
   }
 
   // ===================================================================================

@@ -224,6 +224,37 @@ Both checks must pass. The verified tag proves the image has been deployed and v
 
 ---
 
+## Observe Agent Mirror
+
+The Observe agent runs as an ECS Fargate sidecar in every cell. To avoid Docker Hub's anonymous pull rate limit (`CannotPullContainerError 429`), the agent is hosted in a private per-account ECR repository (`sca-cloud/observe-agent`, `us-east-2`) and cells pull from their own account. This is **out-of-band** from the progressive image pipeline above — it has its own manual job and its own tags.
+
+### update-observe-agent
+
+| | |
+|---|---|
+| **Path** | `insight/MTIQ/sca-cloud/update-observe-agent` |
+| **Trigger** | **MANUAL ONLY** — an operator picks the version to mirror |
+| **Parameter** | `OBSERVE_AGENT_VERSION` — the upstream `observeinc/observe-agent` version (e.g., `2.17.0`) |
+| **Timeout** | 30 minutes |
+| **What it does** | Verifies the version exists upstream (via the Sonatype registry proxy), then copies the multi-arch image from Docker Hub into **dev, staging, and prod** ECR using `docker buildx imagetools create`, tagging each as `:<version>` (the pinned tag cells run) and `:latest` (an internal alias tracking the newest mirrored version, used by the drift check below). |
+| **Downstream** | None |
+
+**Rollback:** Re-run with an **older** `OBSERVE_AGENT_VERSION`. Only `:<version>` and `:latest` are written, so `:latest` moves back to the older version while the newer version tag is retained.
+
+**Why all three accounts:** each environment's cells pull the sidecar from their own account's ECR, and (unlike `mtiq-server`) there is no cross-account promote flow for the agent, so a single run mirrors to all three to keep them in lockstep.
+
+**Deliberately manual:** mirroring is never automatic. The `deploy-to-prod-mirror` version-drift check only *surfaces* that a newer upstream version exists — see below.
+
+**Failure modes:**
+- **Version not found upstream:** the job fails in `Verify Upstream Version Exists` with a message pointing at the Docker Hub tags page. Check the version string.
+- **ECR authentication failure:** check the IAM role trust policy and the Jenkins credential for the target account (see [ECR authentication failure](#ecr-authentication-failure)).
+
+### Version-drift check (in deploy-to-prod-mirror)
+
+The `deploy-to-prod-mirror` job ends with a best-effort check that compares the upstream `observeinc/observe-agent:latest` manifest digest on Docker Hub against the `:latest` digest in prod ECR. Cells run the pinned `:<version>`; ECR `:latest` is an internal alias tracking the most-recently-mirrored version, so this check surfaces when upstream has published a version newer than the one last mirrored. When a newer upstream version is detected, the build is marked **UNSTABLE** and `currentBuild.description` is set to an informational message linking to `update-observe-agent`. The check **never mirrors automatically** and **never fails or destabilizes the release on its own error** (Docker Hub unreachable, rate limited, etc. → logs a warning and continues). Acting on the notice — reviewing release notes and running `update-observe-agent` — is a deliberate manual decision.
+
+---
+
 ## Rollback
 
 ### Shared-dev / staging
@@ -368,8 +399,9 @@ Workspace configuration is in the Jenkinsfile itself (`PROD_MIRROR_CELL_WORKSPAC
 | `test-staging` | `mtiq-notices` | Failure only |
 | `push-to-prod` | `mtiq-notices` | Failure only |
 | `deploy-to-prod-internal` | `mtiq-notices` | Failure only |
-| `deploy-to-prod-mirror` | `mtiq-notices` | Planned (currently commented out) |
-| `deploy-to-prod-{region}` | `mtiq-notices` | Planned (currently commented out) |
+| `deploy-to-prod-mirror` | `mtiq-notices` | Always (success, unstable, or failure) |
+| `deploy-to-prod-{region}` | `mtiq-notices` | Always (success or failure) |
+| `update-observe-agent` | `mtiq-notices` | Always (success or failure) |
 
 ---
 

@@ -73,6 +73,11 @@ import groovy.transform.Field
 
 @Field final String ECR_REPOSITORY = 'sca-cloud/mtiq-server'
 
+// Observe agent mirror: the private ECR repository (same name in every account)
+// and the upstream Docker Hub source repository it is mirrored from.
+@Field final String OBSERVE_AGENT_ECR_REPOSITORY = 'sca-cloud/observe-agent'
+@Field final String OBSERVE_AGENT_DOCKERHUB_REPOSITORY = 'observeinc/observe-agent'
+
 String pushToEcrCached(String branchOverride = null) {
   if (!env.GIT_COMMIT) {
     error 'env.GIT_COMMIT is not set — ensure the workspace was checked out before calling pushToEcrCached()'
@@ -319,6 +324,156 @@ void promoteImage(Map sourceAccount, Map targetAccount, String repository, Strin
   }
 
   echo "Promoted ${sourceTag} to ${targetRegistry} with tags: ${[sourceTag] + additionalTags}"
+}
+
+/**
+ * Verifies that observe-agent:<version> exists upstream on Docker Hub, queried
+ * through the Sonatype registry proxy. Fails the build with an actionable
+ * message if the tag cannot be resolved, so a typo'd or non-existent version
+ * stops the job before any ECR write.
+ *
+ * @param version observe-agent version to check (e.g., '2.17.0')
+ */
+void verifyUpstreamObserveAgentExists(String version) {
+  withSonatypeDockerRegistry() {
+    // version is passed via withEnv (not interpolated into the shell) to prevent injection
+    withEnv(["SOURCE_IMAGE=${sonatypeDockerRegistryId()}/${OBSERVE_AGENT_DOCKERHUB_REPOSITORY}:${version}"]) {
+      def status = sh(script: 'docker buildx imagetools inspect "$SOURCE_IMAGE" > /dev/null 2>&1', returnStatus: true)
+      if (status != 0) {
+        error "observe-agent version '${version}' was not found upstream (${OBSERVE_AGENT_DOCKERHUB_REPOSITORY}:${version}). " +
+              'Check the version against the tags published at https://hub.docker.com/r/observeinc/observe-agent/tags.'
+      }
+    }
+  }
+  echo "Verified upstream ${OBSERVE_AGENT_DOCKERHUB_REPOSITORY}:${version} exists"
+}
+
+/**
+ * Mirrors a specific observe-agent version from Docker Hub (pulled through the
+ * Sonatype registry proxy) into the given account's ECR, tagging it as both
+ * :<version> and :latest.
+ *
+ * Uses `docker buildx imagetools create`, which copies the full multi-arch
+ * manifest list. Only the :<version> and :latest tags are written, so
+ * re-running with an OLDER version moves :latest back to it without removing
+ * any newer version tag — this is the rollback path.
+ *
+ * @param account Target ECR account configuration map
+ * @param version observe-agent version to mirror (e.g., '2.17.0')
+ * @param region AWS region
+ */
+void mirrorObserveAgentToEcr(Map account, String version, String region = ECR_REGION) {
+  final String targetRepo = "${account.id}.dkr.ecr.${region}.amazonaws.com/${OBSERVE_AGENT_ECR_REPOSITORY}"
+
+  echo "Mirroring ${OBSERVE_AGENT_DOCKERHUB_REPOSITORY}:${version} to ${targetRepo} (tags: ${version}, latest)"
+
+  withSonatypeDockerRegistry() {
+    // Authenticate Docker to the target ECR; the token persists in ~/.docker/config.json
+    // alongside the Sonatype proxy login, so imagetools can read source and write target.
+    authenticateToEcr(account, region)
+
+    withEnv(["SOURCE_IMAGE=${sonatypeDockerRegistryId()}/${OBSERVE_AGENT_DOCKERHUB_REPOSITORY}:${version}",
+             "TARGET_VERSION=${targetRepo}:${version}",
+             "TARGET_LATEST=${targetRepo}:latest"]) {
+      sh 'docker buildx imagetools create --tag "$TARGET_VERSION" --tag "$TARGET_LATEST" "$SOURCE_IMAGE"'
+    }
+  }
+
+  echo "Mirrored ${version} to ${targetRepo} with tags: [${version}, latest]"
+}
+
+/**
+ * Best-effort check for whether a newer observe-agent version is available
+ * upstream on Docker Hub than the :latest currently published in the given ECR
+ * account.
+ *
+ * Compares the upstream :latest manifest-list digest (read through the Sonatype
+ * registry proxy) against the :latest digest in ECR. When they differ, the
+ * upstream version string is resolved from the Docker Hub tags API by matching
+ * the digest.
+ *
+ * Intentionally non-fatal: any error (Docker Hub unreachable, rate limited, ECR
+ * read failure, parse error) is swallowed so callers can log a warning and
+ * continue without failing or destabilizing the build.
+ *
+ * @param account ECR account whose :latest is compared against upstream
+ * @param region AWS region
+ * @return a map [drift: boolean, version: String|null]; drift is false on any error
+ */
+Map observeAgentDriftInfo(Map account, String region = ECR_REGION) {
+  try {
+    String upstreamDigest = null
+    withSonatypeDockerRegistry() {
+      withEnv(["SOURCE_IMAGE=${sonatypeDockerRegistryId()}/${OBSERVE_AGENT_DOCKERHUB_REPOSITORY}:latest"]) {
+        upstreamDigest = sh(script: 'docker buildx imagetools inspect "$SOURCE_IMAGE" --format "{{.Manifest.Digest}}"',
+                            returnStdout: true).trim()
+      }
+    }
+    if (!upstreamDigest) {
+      echo 'WARNING: observe-agent drift check: could not read upstream :latest digest — skipping'
+      return [drift: false, version: null]
+    }
+
+    String ecrDigest = null
+    withAwsRole(credentialsId: account.credentialId, role: account.role,
+        roleAccount: account.id, region: region) {
+      withEnv(["REPOSITORY_ARG=${OBSERVE_AGENT_ECR_REPOSITORY}", "REGION_ARG=${region}"]) {
+        ecrDigest = sh(script: '''
+          aws ecr describe-images \
+            --repository-name "$REPOSITORY_ARG" \
+            --image-ids imageTag=latest \
+            --region "$REGION_ARG" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text
+        ''', returnStdout: true).trim()
+      }
+    }
+    if (!ecrDigest || ecrDigest == 'None') {
+      echo 'WARNING: observe-agent drift check: could not read ECR :latest digest — skipping'
+      return [drift: false, version: null]
+    }
+
+    if (upstreamDigest == ecrDigest) {
+      echo "observe-agent drift check: ECR :latest is in sync with upstream (${upstreamDigest})"
+      return [drift: false, version: null]
+    }
+
+    echo "observe-agent drift check: upstream :latest (${upstreamDigest}) differs from ECR :latest (${ecrDigest})"
+    return [drift: true, version: resolveObserveAgentVersionForDigest(upstreamDigest)]
+  } catch (Exception e) {
+    echo "WARNING: observe-agent drift check failed (non-fatal): ${e.message}"
+    return [drift: false, version: null]
+  }
+}
+
+/**
+ * Resolves the observe-agent version tag that points at the given manifest
+ * digest, using the Docker Hub tags API. Returns null if it cannot be resolved
+ * (the caller falls back to a generic message).
+ *
+ * @param digest manifest-list digest to match (e.g., 'sha256:...')
+ * @return the matching semver-style tag name, or null
+ */
+String resolveObserveAgentVersionForDigest(String digest) {
+  try {
+    // Pass the repo constant via withEnv (never interpolate into the shell body) to
+    // match the injection-safe pattern used by every other sh step in this file.
+    String response = null
+    withEnv(["REPO=${OBSERVE_AGENT_DOCKERHUB_REPOSITORY}"]) {
+      response = sh(
+          script: 'curl -sf "https://hub.docker.com/v2/repositories/$REPO/tags?page_size=100&ordering=last_updated"',
+          returnStdout: true).trim()
+    }
+    if (!response) {
+      return null
+    }
+    def json = readJSON text: response
+    def match = json.results.find { it.name != 'latest' && it.digest == digest && it.name ==~ /\d+\.\d+\.\d+.*/ }
+    return match?.name
+  } catch (Exception e) {
+    echo "WARNING: could not resolve observe-agent version from Docker Hub tags API: ${e.message}"
+    return null
+  }
 }
 
 return this

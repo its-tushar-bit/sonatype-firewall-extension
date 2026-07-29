@@ -226,6 +226,32 @@ pipeline {
         }
       }
     }
+
+    stage('Check Observe Agent Version Drift') {
+      steps {
+        script {
+          // Informational only: surface (but never auto-mirror) a newer upstream
+          // observe-agent version. Mirroring is deliberately manual via
+          // insight/MTIQ/sca-cloud/update-observe-agent. This check must never fail
+          // or destabilize the production release on its own error — observeAgentDriftInfo
+          // swallows Docker Hub/ECR errors and reports no drift in that case.
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          def info = ecr.observeAgentDriftInfo(ecr.PROD_ECR_ACCOUNT)
+          if (info.drift) {
+            def updateJobUrl = "${env.JENKINS_URL}job/insight/job/MTIQ/job/sca-cloud/job/update-observe-agent/"
+            def preamble = info.version ?
+                "ℹ New Observe agent version ${info.version} available upstream" :
+                'ℹ A newer Observe agent version is available upstream'
+            currentBuild.result = 'UNSTABLE'
+            currentBuild.description = "${preamble} — " +
+                "review release notes for breaking changes before deciding whether to mirror it via ${updateJobUrl}"
+            echo currentBuild.description
+          } else {
+            echo 'Observe agent ECR :latest is in sync with upstream (or the drift check was inconclusive).'
+          }
+        }
+      }
+    }
   }
 
   post {
@@ -234,6 +260,15 @@ pipeline {
         echo "deploy-to-prod-mirror: Production release initiated for ${params.IMAGE_TAG}"
         notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
                    message: "Production release initiated: ${params.IMAGE_TAG}")
+      }
+    }
+    unstable {
+      script {
+        // The release itself succeeded; the build is UNSTABLE for an informational
+        // reason (observe-agent drift or a non-fatal Jira fix-version update failure).
+        echo "deploy-to-prod-mirror: Production release initiated for ${params.IMAGE_TAG} (build UNSTABLE — see build description)"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Production release initiated (UNSTABLE): ${params.IMAGE_TAG}. ${currentBuild.description ?: 'See console log.'}")
       }
     }
     failure {

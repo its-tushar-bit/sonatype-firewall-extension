@@ -879,4 +879,37 @@ public class ApiFirewallResourceTest
     assertThat(result).isNotNull();
     assertThat(result.getApplicationSummaries()).isNotEmpty();
   }
+
+  @Test
+  public void testAddVirtualRepositoryManager_WhenIqProxyDisabled_Returns404() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.instanceId = "testInstanceId";
+    apiRepositoryManagerDTO.name = "testName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    HttpResponse response =
+        restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.VIRTUAL_MANAGERS_PATH)
+            .body(apiRepositoryManagerDTO)
+            .post();
+
+    assertResponseStatus(404, response);
+    assertThat(repositoryManagerDAO.getByInstanceId("testInstanceId")).isNull();
+  }
+
+  @Test
+  public void testAddRepository_WhenIqProxyDisabled_Returns404() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.publicId = "testPublicId";
+    apiRepositoryDTO.format = "npm";
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.ADD_REPOSITORY_PATH)
+        .parameter(repositoryManager.getId())
+        .body(apiRepositoryDTO)
+        .post();
+
+    assertResponseStatus(404, response);
+  }
 }

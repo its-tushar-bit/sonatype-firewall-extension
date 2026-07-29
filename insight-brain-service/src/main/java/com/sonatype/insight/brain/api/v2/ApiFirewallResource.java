@@ -59,9 +59,11 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.integration.ApplicationSummaryService;
 import com.sonatype.insight.brain.integration.Goal;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -511,6 +513,8 @@ public class ApiFirewallResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @Hidden
+  @HasFeature(SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED)
   @Operation(description = "Use this method to add a new repository to a virtual repository manager." +
       "\n" +
       "\n" +
@@ -777,6 +781,8 @@ public class ApiFirewallResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_REPOSITORY_MANAGER)
+  @Hidden
+  @HasFeature(SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED)
   @Operation(description = "Use this method to add a new repository manager." +
       "\n" +
       "\n" +

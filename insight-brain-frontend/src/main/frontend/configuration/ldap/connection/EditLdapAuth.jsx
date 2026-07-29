@@ -5,7 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxTextInput, NxFormGroup, NxErrorAlert } from '@sonatype/react-shared-components';
+import { NxTextInput, NxFormGroup, NxErrorAlert, NxFormSelect } from '@sonatype/react-shared-components';
 
 export const methods = ['NONE', 'SIMPLE', 'DIGESTMD5', 'CRAMMD5'];
 
@@ -20,8 +20,8 @@ export default function EditLdapAuth({
   setPassword,
   mustReenterPassword,
 }) {
-  const handleMethod = (e) => {
-    setMethod(e.target.value);
+  const handleMethod = (value) => {
+    setMethod(value);
   };
 
   const isNonDefaultMethod = authenticationMethod !== 'NONE';
@@ -32,13 +32,13 @@ export default function EditLdapAuth({
       </header>
       <div className="nx-form-row">
         <NxFormGroup label="Method" isRequired>
-          <select className="nx-form-select" id="method-selector" value={authenticationMethod} onChange={handleMethod}>
+          <NxFormSelect id="method-selector" value={authenticationMethod} onChange={handleMethod}>
             {methods.map((method) => (
               <option key={method} value={method}>
                 {method}
               </option>
             ))}
-          </select>
+          </NxFormSelect>
         </NxFormGroup>
         {isNonDefaultMethod && (
           <NxFormGroup label="SASL Realm">

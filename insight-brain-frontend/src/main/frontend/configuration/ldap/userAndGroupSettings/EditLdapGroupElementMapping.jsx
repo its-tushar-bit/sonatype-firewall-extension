@@ -5,7 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxTextInput, NxFormGroup, NxToggle } from '@sonatype/react-shared-components';
+import { NxTextInput, NxFormGroup, NxToggle, NxFormSelect } from '@sonatype/react-shared-components';
 
 export const groupTypes = ['NONE', 'STATIC', 'DYNAMIC'];
 
@@ -29,8 +29,8 @@ export default function EditLdapGroupElementMapping({
   setUserMemberOfGroupAttribute,
   setDynamicGroupSearch,
 }) {
-  const handleGroupType = (e) => {
-    setGroupMappingType(e.target.value);
+  const handleGroupType = (value) => {
+    setGroupMappingType(value);
   };
 
   const isStaticGroupType = groupMappingType === 'STATIC';
@@ -42,18 +42,13 @@ export default function EditLdapGroupElementMapping({
         <h3 className="nx-h3">Group Element Mapping</h3>
       </header>
       <NxFormGroup label="Group Type" isRequired>
-        <select
-          className="nx-form-select"
-          id="ldap-group-mapping-type"
-          value={groupMappingType}
-          onChange={handleGroupType}
-        >
+        <NxFormSelect id="ldap-group-mapping-type" value={groupMappingType} onChange={handleGroupType}>
           {groupTypes.map((type) => (
             <option key={type} value={type}>
               {type}
             </option>
           ))}
-        </select>
+        </NxFormSelect>
       </NxFormGroup>
       {isStaticGroupType && (
         <Fragment>

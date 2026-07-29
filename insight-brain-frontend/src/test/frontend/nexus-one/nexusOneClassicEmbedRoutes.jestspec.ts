@@ -37,6 +37,16 @@ import {
 import rootReducer from 'MainRoot/reduxConfig/reducers';
 import 'MainRoot/nexus-one/routes';
 
+// Walks the state.data.isDirty path array against the real rootReducer initial state
+// and asserts the terminal field is a boolean. Guards against slice-restructuring
+// silently breaking the dirty guard: a typo or moved field fails here rather than
+// silently disabling the unsaved-changes modal at runtime.
+function expectIsDirtyPathResolvesToBoolean(isDirtyPath: ReadonlyArray<string> | undefined) {
+  const rootState = rootReducer(undefined, { type: '@@INIT' });
+  const [slice, field] = isDirtyPath ?? [];
+  expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
+}
+
 describe('nexusOneClassicEmbedRoutes', () => {
   it('registers native Classic mounts / redirects for embedded slugs and Coming Soon stubs for the rest', () => {
     COMING_SOON_MODULE_ORDER.forEach((slug) => {
@@ -454,6 +464,44 @@ describe('nexusOneClassicEmbedRoutes', () => {
     });
   });
 
+  // State name is `ldap-list` (not `ldapServers`) so it matches the shell nav
+  // and Classic — gear menu → hrefFromStateName('ldap-list') resolves here.
+  describe('ldap-list Classic-embed admin route', () => {
+    const state = () => router.stateRegistry.get('ldap-list');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /ldap-servers', () => {
+      expect(state()?.url).toBe('/ldap-servers');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('wires the dirty guard through the exact state-path array the router selector reads', () => {
+      expect(state()?.data?.isDirty).toEqual(['ldapList', 'isDirty']);
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      expectIsDirtyPathResolvesToBoolean(state()?.data?.isDirty);
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
   describe('productlicense Classic-embed admin route (CLM-42466)', () => {
     const state = () => router.stateRegistry.get('productlicense');
     const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
@@ -470,6 +518,43 @@ describe('nexusOneClassicEmbedRoutes', () => {
 
     it('gates access via an async redirectTo function (not a static state string)', () => {
       expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // Create / edit sub-pages the LDAP list navigates to via stateGo(...).
+  describe.each<[string, string]>([
+    ['create-ldap', '/ldap/create'],
+    ['edit-ldap-connection', '/ldap/edit/{ldapId}'],
+    ['edit-ldap-usermapping', '/ldap/edit/{ldapId}/userMapping'],
+  ])('%s Classic-embed sub-route', (stateName, expectedUrl) => {
+    const state = () => router.stateRegistry.get(stateName);
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it(`is registered at ${expectedUrl}`, () => {
+      expect(state()?.url).toBe(expectedUrl);
+    });
+
+    it('carries the same ldapConfig dirty path so the shell dirty guard fires on nav', () => {
+      expect(state()?.data?.isDirty).toEqual(['ldapConfig', 'isDirty']);
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      expectIsDirtyPathResolvesToBoolean(state()?.data?.isDirty);
     });
 
     it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
@@ -519,6 +604,13 @@ describe('nexusOneClassicEmbedRoutes', () => {
 
       await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
     });
+  });
+
+  it('/ldap/edit/{ldapId}/userMapping resolves to edit-ldap-usermapping, not edit-ldap-connection', () => {
+    // The `{ldapId}` param is single-segment ([^/]+) so it cannot capture the `.../userMapping`
+    // suffix — that leaves only the longer /ldap/edit/{ldapId}/userMapping pattern as a match.
+    const match = router.urlService.match({ path: '/ldap/edit/some-ldap-id/userMapping' });
+    expect(match?.rule?.state?.name).toBe('edit-ldap-usermapping');
   });
 
   describe('users Classic-embed admin route (CLM-42465)', () => {
@@ -619,6 +711,10 @@ describe('nexusOneClassicEmbedRoutes', () => {
 
     it('carries the userConfiguration dirty path so the shell dirty guard fires on nav', () => {
       expect(state()?.data?.isDirty).toEqual(['userConfiguration', 'isDirty']);
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      expectIsDirtyPathResolvesToBoolean(state()?.data?.isDirty);
     });
 
     it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
@@ -739,9 +835,7 @@ describe('nexusOneClassicEmbedRoutes', () => {
     });
 
     it('isDirty path resolves to a boolean in rootReducer initial state', () => {
-      const rootState = rootReducer(undefined, { type: '@@INIT' });
-      const [slice, field] = state()?.data?.isDirty ?? [];
-      expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
+      expectIsDirtyPathResolvesToBoolean(state()?.data?.isDirty);
     });
   });
 });

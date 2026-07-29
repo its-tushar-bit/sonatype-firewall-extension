@@ -169,18 +169,24 @@ export default function withLdapHeader(WrappedComponent, { formId }) {
               onCancel={cancel}
               additionalFooterBtns={getAdditionalButtons()}
             >
+              <div className="nx-tile-header" style={{ gridTemplateRows: 'auto auto' }}>
+                <div className="nx-tile-header__title">
+                  <LdapServerNameForm serverName={serverName} setServerName={setServerName} />
+                </div>
+                <div className="nx-tile__actions" style={{ alignSelf: 'center' }}>
+                  <NxButton
+                    variant="tertiary"
+                    type="button"
+                    id="remove-server"
+                    className="iq-ldap-server-remove"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <NxFontAwesomeIcon icon={faTrashAlt} />
+                    <span>Remove Server</span>
+                  </NxButton>
+                </div>
+              </div>
               <div className="nx-tile-content">
-                <NxButton
-                  variant="tertiary"
-                  type="button"
-                  id="remove-server"
-                  className="iq-ldap-server-remove"
-                  onClick={() => setShowModal(true)}
-                >
-                  <NxFontAwesomeIcon icon={faTrashAlt} />
-                  <span>Remove Server</span>
-                </NxButton>
-                <LdapServerNameForm serverName={serverName} setServerName={setServerName} />
                 <LdapTabs id={ldapId} currentTab={currentTab} stateGo={stateGo} />
                 <WrappedComponent {...props} ldapId={ldapId} />
               </div>

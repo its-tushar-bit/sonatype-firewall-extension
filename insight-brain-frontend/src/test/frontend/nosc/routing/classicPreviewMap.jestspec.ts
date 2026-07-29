@@ -100,6 +100,18 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
     });
 
+    it('keeps the LDAP Servers admin path identical on both bundles (CLM-42467)', () => {
+      expect(toNexusOneEquivalent('/ldap-servers')).toBe('/ldap-servers');
+    });
+
+    it('keeps LDAP sub-paths identical on both bundles, preserving the tail (CLM-42467)', () => {
+      expect(toNexusOneEquivalent('/ldap/create')).toBe('/ldap/create');
+      expect(toNexusOneEquivalent('/ldap/edit/some-ldap-id')).toBe('/ldap/edit/some-ldap-id');
+      expect(toNexusOneEquivalent('/ldap/edit/some-ldap-id/userMapping')).toBe(
+        '/ldap/edit/some-ldap-id/userMapping',
+      );
+    });
+
     it('keeps the Waived Component Upgrades Configuration admin path identical on both bundles (CLM-42468)', () => {
       expect(toNexusOneEquivalent('/waivedComponentUpgradesConfiguration')).toBe(
         '/waivedComponentUpgradesConfiguration',
@@ -218,6 +230,18 @@ describe('classicPreviewMap', () => {
 
     it('maps Success Metrics admin back to the same Classic path (CLM-42186)', () => {
       expect(toClassicEquivalent('/successMetricsConfiguration')).toBe('/successMetricsConfiguration');
+    });
+
+    it('maps LDAP Servers admin back to the same Classic path (CLM-42467)', () => {
+      expect(toClassicEquivalent('/ldap-servers')).toBe('/ldap-servers');
+    });
+
+    it('preserves /ldap sub-paths when toggling to Classic (CLM-42467)', () => {
+      expect(toClassicEquivalent('/ldap/create')).toBe('/ldap/create');
+      expect(toClassicEquivalent('/ldap/edit/some-ldap-id')).toBe('/ldap/edit/some-ldap-id');
+      expect(toClassicEquivalent('/ldap/edit/some-ldap-id/userMapping')).toBe(
+        '/ldap/edit/some-ldap-id/userMapping',
+      );
     });
 
     it('maps Waived Component Upgrades Configuration admin back to the same Classic path (CLM-42468)', () => {
@@ -421,6 +445,10 @@ describe('classicPreviewMap', () => {
       ['/repositories/mgr-123/repo-456/components'],
       ['/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo'],
       ['/successMetricsConfiguration'],
+      ['/ldap-servers'],
+      ['/ldap/create'],
+      ['/ldap/edit/some-ldap-id'],
+      ['/ldap/edit/some-ldap-id/userMapping'],
       ['/waivedComponentUpgradesConfiguration'],
       ['/productlicense'],
       ['/gettingStarted'],

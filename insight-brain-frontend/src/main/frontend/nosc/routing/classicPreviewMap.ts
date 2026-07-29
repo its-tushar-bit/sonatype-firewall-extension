@@ -77,6 +77,11 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   // isSharedPath branch in toNexusOneEquivalent maps shared paths to
   // '/ui-settings', not the caller-supplied path.
   ['/successMetricsConfiguration', '/successMetricsConfiguration'],
+  // LDAP list is at /ldap-servers on both bundles; the create/edit sub-pages
+  // live under /ldap/* and are handled by SUBTREE_MAPPINGS below so deep links
+  // (/ldap/create, /ldap/edit/{id}, /ldap/edit/{id}/userMapping) preserve their
+  // tail on the toggle.
+  ['/ldap-servers', '/ldap-servers'],
   ['/waivedComponentUpgradesConfiguration', '/waivedComponentUpgradesConfiguration'],
   ['/productlicense', '/productlicense'],
   ['/gettingStarted', '/gettingStarted'],
@@ -149,6 +154,7 @@ function isNexusOnePath(path: string): boolean {
   if (path === '/ui-settings' || path.startsWith('/ui-settings/')) return true;
   if (path === '/repositories' || path.startsWith('/repositories/')) return true;
   if (path === '/users' || path.startsWith('/users/')) return true;
+  if (path === '/ldap' || path.startsWith('/ldap/')) return true;
   if (path.startsWith('/coming-soon/')) return true;
   return NEXUS_ONE_TO_CLASSIC.some(([nexus]) => path === nexus || path.startsWith(nexus + '/'));
 }
@@ -231,6 +237,10 @@ const SUBTREE_MAPPINGS: ReadonlyArray<{ readonly nexusOne: string; readonly clas
   // Users shares identical sub-path structure in both bundles (/users/_new_,
   // /users/{id}, /users/activity/{user}), so sub-paths round-trip 1-1.
   { nexusOne: '/users', classic: '/users' },
+  // LDAP create/edit pages share identical /ldap/* structure in both bundles
+  // (/ldap/create, /ldap/edit/{id}, /ldap/edit/{id}/userMapping), so sub-paths
+  // round-trip 1-1. The LDAP list itself sits at /ldap-servers (see above).
+  { nexusOne: '/ldap', classic: '/ldap' },
 ];
 
 /** Maps a Nexus One subtree path to its Classic equivalent, preserving the tail. */

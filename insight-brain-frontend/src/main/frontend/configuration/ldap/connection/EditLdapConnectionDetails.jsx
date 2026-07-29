@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxTextInput, NxFormGroup, NxToggle } from '@sonatype/react-shared-components';
+import { NxTextInput, NxFormGroup, NxToggle, NxFormSelect } from '@sonatype/react-shared-components';
 
 export const protocols = ['LDAP', 'LDAPS'];
 
@@ -22,8 +22,8 @@ export default function EditLdapConnectionDetails({
   setReferralIgnored,
   handleNumberInput,
 }) {
-  const handleProtocol = (e) => {
-    setProtocol(e.target.value);
+  const handleProtocol = (value) => {
+    setProtocol(value);
   };
   return (
     <section className="nx-tile-subsection">
@@ -32,13 +32,13 @@ export default function EditLdapConnectionDetails({
       </header>
       <div className="nx-form-row">
         <NxFormGroup label="Protocol" isRequired>
-          <select className="nx-form-select" id="protocol-selector" value={protocol} onChange={handleProtocol}>
+          <NxFormSelect id="protocol-selector" value={protocol} onChange={handleProtocol}>
             {protocols.map((protocol) => (
               <option key={protocol} value={protocol}>
                 {protocol}
               </option>
             ))}
-          </select>
+          </NxFormSelect>
         </NxFormGroup>
         <NxFormGroup label="Hostname" isRequired>
           <NxTextInput {...hostname} onChange={setHostname} validatable={true} id="hostname" aria-required={true} />

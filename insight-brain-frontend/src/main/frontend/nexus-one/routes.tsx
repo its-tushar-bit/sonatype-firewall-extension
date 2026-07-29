@@ -18,6 +18,10 @@ import {
 import SuccessMetricsReportListContainer from 'MainRoot/labs/successMetrics/SuccessMetricsReportListContainer';
 import SuccessMetricsReportContainer from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportContainer';
 import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
+import LdapListContainer from 'MainRoot/configuration/ldap/ldapServersList/LdapListContainer';
+import CreateLdapContainer from 'MainRoot/configuration/ldap/CreateLdapContainer';
+import EditLdapConnectionContainer from 'MainRoot/configuration/ldap/EditLdapConnectionContainer';
+import EditLdapUsermappingContainer from 'MainRoot/configuration/ldap/EditLdapUsermappingContainer';
 import WaivedComponentUpgradesConfiguration from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/WaivedComponentUpgradesConfiguration';
 import ProductLicenseContainer from 'MainRoot/configuration/license/ProductLicenseContainer';
 import GettingStartedContainer from 'MainRoot/configuration/gettingStarted/GettingStartedContainer';
@@ -600,6 +604,53 @@ router.stateRegistry.register({
   data: {
     title: 'Success Metrics Configuration',
     isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+// LDAP list + create/edit sub-pages the list navigates to via stateGo(...).
+// State name matches the Classic state + gear-menu `hrefFromStateName('ldap-list')`.
+// mountClassicComponent applies shell offsets on each — see successMetricsConfiguration above.
+router.stateRegistry.register({
+  name: 'ldap-list',
+  url: '/ldap-servers',
+  component: mountClassicComponent(LdapListContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'LDAP Servers',
+    isDirty: ['ldapList', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'create-ldap',
+  url: '/ldap/create',
+  component: mountClassicComponent(CreateLdapContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Create LDAP Configuration',
+    isDirty: ['ldapConfig', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'edit-ldap-connection',
+  url: '/ldap/edit/{ldapId}',
+  component: mountClassicComponent(EditLdapConnectionContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Edit LDAP Configuration',
+    isDirty: ['ldapConfig', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'edit-ldap-usermapping',
+  url: '/ldap/edit/{ldapId}/userMapping',
+  component: mountClassicComponent(EditLdapUsermappingContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Edit LDAP Configuration',
+    isDirty: ['ldapConfig', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

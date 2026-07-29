@@ -10,6 +10,7 @@ import SAMLConfigurationForm from './SAMLConfigurationForm';
 import { selectSAMLConfigurationSlice } from './samlConfigurationSelectors';
 import { actions } from './samlConfigurationSlice';
 import { getSamlMetadataUrl } from '../../util/CLMLocation';
+import './_samlConfiguration.scss';
 
 export default function SAMLConfigurationPage() {
   const dispatch = useDispatch();

@@ -4,11 +4,23 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+// Build-time constant injected by esbuild defineConfig
+declare const CLM_SERVER_VERSION: string;
+
 // CSS side-effect imports
 declare module '*.css';
 declare module '@radix-ui/themes/styles.css';
 
 // JS modules without TypeScript declarations
+declare module 'MainRoot/react/Footer/Footer' {
+  import React from 'react';
+  interface FooterProps {
+    clmServerVersion?: string;
+  }
+  const Footer: React.ComponentType<FooterProps>;
+  export default Footer;
+}
+
 declare module 'MainRoot/reduxConfig/store' {
   import { Store, UnknownAction, ThunkDispatch } from '@reduxjs/toolkit';
   interface AppStore extends Store<unknown, UnknownAction> {

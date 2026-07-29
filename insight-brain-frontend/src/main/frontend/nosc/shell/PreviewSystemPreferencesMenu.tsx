@@ -132,7 +132,7 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
   // mainHeader/MenuBar/SystemPreferencesMenu/SystemPreferencesMenu.jsx.
   // Keep these two lists in lock-step until the Classic menu is retired.
   // Exception: pages embedded in the NOUX shell (e.g. Administrators, Product
-  // License, Advanced Search, Waived Components, LDAP, User Tokens) intentionally omit `prefix` —
+  // License, Advanced Search, Waived Components, LDAP, User Tokens, SAML) intentionally omit `prefix` —
   // they target the in-shell NOUX state directly, which does not use the
   // firewall-prefix routing Classic requires.
   const items: ItemSpec[] = [
@@ -191,8 +191,8 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     },
     {
       label: 'SAML',
+      // No prefix: saml is embedded in NOUX, not a Classic firewall-prefixed state.
       stateName: 'saml',
-      prefix: firewallPrefix,
       showIf: CONFIGURE_SYSTEM && isSamlConfigurationEnabled,
       testId: 'nexus-one-top-nav-settings-item-saml',
     },

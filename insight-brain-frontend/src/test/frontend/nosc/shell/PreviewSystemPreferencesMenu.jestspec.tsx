@@ -13,9 +13,10 @@ import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 
 // The gear menu only needs a stable href() for visible items; isolate it from
 // the real ui-router instance so the test exercises gating, not routing.
-// Setup runs in beforeEach because setupJest.js clears all spies with
-// jest.restoreAllMocks() in its afterEach — otherwise the spy set at module
-// load survives only the first test.
+// mockHref is a jest.fn() spy so individual tests can assert on the exact state
+// name passed to href(). Setup runs in beforeEach because setupJest.js clears
+// all spies with jest.restoreAllMocks() in its afterEach — otherwise the spy
+// survives only the first test in the file.
 const mockHref = jest.fn(() => '#');
 beforeEach(() => {
   mockHref.mockClear();
@@ -63,6 +64,34 @@ describe('PreviewSystemPreferencesMenu', () => {
       within(menu).getByTestId('nexus-one-top-nav-settings-item-user-tokens')
     ).toBeInTheDocument();
     expect(within(menu).queryByText('No preferences available')).not.toBeInTheDocument();
+  });
+
+  // Regression guard (CLM-42956): the SAML item must use the plain 'saml'
+  // state name, never 'firewall.saml'. Reintroducing `prefix: firewallPrefix`
+  // on the entry would flip href() to the prefixed name and break the
+  // `.not.toHaveBeenCalledWith` assertion.
+  //
+  // selectIsSAMLEnabled reads state.productFeatures.productFeatures['saml-enabled']
+  // (double-nested), so preloadedState must match that shape or the item is
+  // hidden by its `showIf`.
+  it('calls href with plain "saml" state name, never the firewall-prefixed variant', async () => {
+    const user = userEvent.setup();
+
+    renderInTheme({
+      mainHeader: { permissions: { CONFIGURE_SYSTEM: true } },
+      productFeatures: {
+        productFeatures: { 'saml-enabled': true },
+      },
+    });
+
+    // Radix DropdownMenu only renders its Content (including the <a> tags
+    // whose href gets computed via mockHref) after the trigger is clicked.
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    const menu = await screen.findByRole('menu');
+    expect(within(menu).getByTestId('nexus-one-top-nav-settings-item-saml')).toBeInTheDocument();
+
+    expect(mockHref).toHaveBeenCalledWith('saml');
+    expect(mockHref).not.toHaveBeenCalledWith('firewall.saml');
   });
 
   it('calls href with plain "advancedSearchConfig" state, never firewall-prefixed - CLM-42963', async () => {

@@ -73,6 +73,7 @@ import { nexusOneViolationDetailStates } from 'MainRoot/nexus-one/nexusOneViolat
 import { nexusOneComponentDetailStates } from 'MainRoot/nexus-one/nexusOneComponentDetailStates';
 import { nexusOneVulnerabilityDetailStates } from 'MainRoot/nexus-one/nexusOneVulnerabilityDetailStates';
 import BaseUrlConfiguration from 'MainRoot/configuration/baseUrl/BaseUrlConfiguration';
+import SAMLConfigurationPage from 'MainRoot/configuration/saml/SAMLConfigurationPage';
 // NOTE: the three side-import route modules below call router.stateRegistry.register(...) at import
 // time with no stateRegistry.get() idempotency guard, so this module (and any test) must import each
 // exactly once. That holds today because they are only pulled into the single nexus-one bundle entry;
@@ -843,6 +844,18 @@ router.stateRegistry.register({
   data: {
     title: 'Administrator Edit',
     isDirty: ['administratorsConfig', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'saml',
+  url: '/saml',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(SAMLConfigurationPage),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'SAML Configuration',
+    isDirty: ['samlConfiguration', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

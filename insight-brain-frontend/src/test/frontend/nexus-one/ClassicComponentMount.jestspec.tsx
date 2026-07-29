@@ -16,6 +16,13 @@ jest.mock('MainRoot/nosc/shell/previewShellLayout', () => ({
   usePreviewShellOffsets: () => ({ top: 56, left: 72 }),
 }));
 
+jest.mock('MainRoot/react/Footer/Footer', () => ({
+  __esModule: true,
+  default: function MockFooter() {
+    return null;
+  },
+}));
+
 function TestPage(): JSX.Element {
   return <div>Classic page content</div>;
 }

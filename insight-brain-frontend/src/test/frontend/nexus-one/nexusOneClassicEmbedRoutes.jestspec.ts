@@ -376,6 +376,7 @@ describe('nexusOneClassicEmbedRoutes', () => {
       '/systemNoticeConfiguration',
       ['systemNoticeConfiguration', 'viewState', 'isDirty'],
     ],
+    ['saml', '/saml', ['samlConfiguration', 'isDirty']],
     ['userTokensConfiguration', '/userTokensConfiguration', ['userTokensConfiguration', 'isDirty']],
     [
       'advancedSearchConfig',

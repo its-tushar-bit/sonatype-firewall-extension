@@ -152,6 +152,10 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/administrators')).toBe('/administrators');
     });
 
+    it('keeps the SAML admin path identical on both bundles (CLM-42956)', () => {
+      expect(toNexusOneEquivalent('/saml')).toBe('/saml');
+    });
+
     it('keeps the User Tokens Configuration admin path identical on both bundles (CLM-42964)', () => {
       expect(toNexusOneEquivalent('/userTokensConfiguration')).toBe('/userTokensConfiguration');
     });
@@ -286,6 +290,10 @@ describe('classicPreviewMap', () => {
 
     it('maps Administrators admin back to the same Classic path (CLM-42464)', () => {
       expect(toClassicEquivalent('/administrators')).toBe('/administrators');
+    });
+
+    it('maps SAML admin back to the same Classic path (CLM-42956)', () => {
+      expect(toClassicEquivalent('/saml')).toBe('/saml');
     });
 
     it('maps User Tokens Configuration admin back to the same Classic path (CLM-42964)', () => {
@@ -467,6 +475,7 @@ describe('classicPreviewMap', () => {
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
       ['/administrators'],
+      ['/saml'],
       ['/userTokensConfiguration'],
       ['/advancedSearchConfig'],
     ])('nexus-one %s -> classic -> nexus-one returns to a path that maps back', (previewPath) => {

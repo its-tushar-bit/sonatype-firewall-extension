@@ -8,6 +8,7 @@ import { Theme } from '@radix-ui/themes';
 import { BRAND_ACCENT } from 'MainRoot/nosc/theme';
 import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
+import Footer from 'MainRoot/react/Footer/Footer';
 
 import '@radix-ui/themes/styles.css';
 
@@ -41,11 +42,14 @@ export function ClassicComponentMount({ children }: ClassicComponentMountProps):
         bottom: 0,
         width: 'auto',
         minWidth: 0,
-        overflowY: 'auto',
+        height: 'auto',
         backgroundColor: 'var(--nx-color-site-background)',
       }}
     >
-      {children}
+      <div className="nx-global-footer-2-container nx-viewport-sized">
+        {children}
+        <Footer clmServerVersion={CLM_SERVER_VERSION} />
+      </div>
     </Theme>
   );
 }

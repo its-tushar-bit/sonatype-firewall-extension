@@ -160,27 +160,6 @@ public class CycloneDxToCycloneDxExporterTest
     testExportingWebgoatAppWithInputFormatAndOutputFormat(SbomFormat.JSON, SbomFormat.JSON);
   }
 
-  /**
-   * End-to-end guard for the license element-ordering fix (see CycloneDxSchemaOrderedXmlGenerator):
-   * a component whose license carries both a url and a licensing block must export to CycloneDX 1.7
-   * XML that validates against the schema, so the exported file can be re-imported.
-   */
-  @Test
-  public void exportTest_licenseWithUrlAndLicensing_toXml_producesSchemaValidXml() throws Exception {
-    File testBomFile = prepareTestReportFile("license-url-licensing-1.7.json");
-    ThirdPartySbomMetadata sbomMetadata =
-        insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
-
-    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_17, SbomFormat.XML));
-    String exportedXml = exporter.export();
-
-    // The licensing block is preserved (no data loss) and the document validates against the 1.7 XSD.
-    assertThat(exportedXml).contains("<licensing>");
-    List<org.cyclonedx.exception.ParseException> errors = new org.cyclonedx.parsers.XmlParser()
-        .validate(exportedXml.getBytes(java.nio.charset.StandardCharsets.UTF_8), org.cyclonedx.Version.VERSION_17);
-    assertThat(errors).isEmpty();
-  }
-
   @Test
   public void exportTest_withLicenseOverrides_forLifecycleProduct() throws Exception {
     productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);

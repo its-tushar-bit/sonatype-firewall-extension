@@ -851,11 +851,8 @@ public class ApiCycloneDxServiceV2
             .forEach(licenses::addAll);
       }
       if (!licenses.isEmpty()) {
-        // cyclonedx-core-java 12.2+ normalizes Component.getLicenses() to null when the inner
-        // items list is null/empty, so populate the LicenseChoice fully before assigning.
-        LicenseChoice licenseChoice = new LicenseChoice();
-        licenseChoice.setLicenses(new ArrayList<>(licenses));
-        bomComponent.setLicenses(licenseChoice);
+        bomComponent.setLicenses(new LicenseChoice());
+        bomComponent.getLicenses().setLicenses(new ArrayList<>(licenses));
       }
     }
   }

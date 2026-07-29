@@ -928,7 +928,7 @@ public abstract class AbstractSearchServiceTest
 
       // Raise the max clause count back up, we should not get an error
       configurationService.setConfigurationInDatabaseNoAuthz(
-          Map.of(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 10));
+          Map.of(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 12));
       configurationService.applyConfigurationToClients(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
 
       SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 10, 0, false, null, null);

@@ -198,17 +198,6 @@ public class SbomRegressionTest
       {"cyclonedx", "1.6", "json", "spdx", "2.3", "json", ""},
       {"cyclonedx", "1.6", "json", "spdx", "3.0", "json", ""},
       {"cyclonedx", "1.6", "xml", "spdx", "3.0", "json", ""},
-      // CycloneDX 1.7 round-trip and SPDX bridges only (forward-only export per
-      // validateCycloneDxAllowedForwardSpecVersionsOnly)
-      {"cyclonedx", "1.7", "json", "cyclonedx", "1.7", "json", ""},
-      {"cyclonedx", "1.7", "json", "cyclonedx", "1.7", "xml", ""},
-      {"cyclonedx", "1.7", "json", "spdx", "2.3", "json", ""},
-      {"cyclonedx", "1.7", "json", "spdx", "3.0", "json", ""},
-      // 1.7 XML source: exercises the XML import/parse path for the new 1.7 fields
-      // (isExternal, versionRange, evidence.identity, license.licensing).
-      {"cyclonedx", "1.7", "xml", "cyclonedx", "1.7", "json", ""},
-      {"cyclonedx", "1.7", "xml", "cyclonedx", "1.7", "xml", ""},
-      {"cyclonedx", "1.7", "xml", "spdx", "2.3", "json", ""},
     };
     return Arrays.asList(data);
   }

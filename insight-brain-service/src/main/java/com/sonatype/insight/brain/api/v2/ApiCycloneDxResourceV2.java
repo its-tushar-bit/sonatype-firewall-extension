@@ -51,7 +51,7 @@ public class ApiCycloneDxResourceV2
   static final String GET_BY_STAGE_PATH = "{applicationId}/stages/{stageId}";
 
   static final String GET_BY_STAGE_PATH_WITH_VERSION =
-      "{cdxVersion: 1.1|1.2|1.3|1.4|1.5|1.6|1.7}/{applicationId}/stages/{stageId}";
+      "{cdxVersion: 1.1|1.2|1.3|1.4|1.5|1.6}/{applicationId}/stages/{stageId}";
 
   static final String GET_BY_REPORT_PATH = "{applicationId}/reports/{reportId}";
 
@@ -60,7 +60,7 @@ public class ApiCycloneDxResourceV2
    * {@link UserInterfaceLinksResource#linkToSbom(String, String)} as well.
    */
   static final String GET_BY_REPORT_PATH_WITH_VERSION =
-      "{cdxVersion: 1.1|1.2|1.3|1.4|1.5|1.6|1.7}/{applicationId}/reports/{reportId}";
+      "{cdxVersion: 1.1|1.2|1.3|1.4|1.5|1.6}/{applicationId}/reports/{reportId}";
 
   private final ApiCycloneDxServiceV2 apiCycloneDxService;
 
@@ -118,7 +118,7 @@ public class ApiCycloneDxResourceV2
               "Allowed values for stageId are 'develop', 'source', 'build', 'stage-release', 'release', and, " +
               "'operate'.") @PathParam("stageId") String stageId,
       @Parameter(
-          description = "Possible values are 1.1|1.2|1.3|1.4|1.5|1.6|1.7.") @PathParam("cdxVersion") String cycloneDxVersion,
+          description = "Possible values are 1.1|1.2|1.3|1.4|1.5|1.6.") @PathParam("cdxVersion") String cycloneDxVersion,
       @Context HttpHeaders headers)
   {
     String acceptType = determineAcceptableMediaType(headers);
@@ -172,7 +172,7 @@ public class ApiCycloneDxResourceV2
       @Parameter(description = "Enter the reportId to generate the SBOM for the application for a " +
           "specific scan report.") @PathParam("reportId") String reportId,
       @Parameter(
-          description = "Possible values are 1.1|1.2|1.3|1.4|1.5|1.6|1.7.") @PathParam("cdxVersion") String cycloneDxVersion,
+          description = "Possible values are 1.1|1.2|1.3|1.4|1.5|1.6.") @PathParam("cdxVersion") String cycloneDxVersion,
       @Context HttpHeaders headers)
   {
     String acceptType = determineAcceptableMediaType(headers);

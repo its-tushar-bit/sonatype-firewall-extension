@@ -438,25 +438,20 @@ public abstract class AbstractCycloneDxExporter
       Set<ResolvedLicenseDTO> resolvedLicenses,
       LicenseChoice bomLicenseChoice)
   {
-    // cyclonedx-core-java 12.2.0+ treats LicenseChoice.setLicenses(emptyList) as a no-op (items
-    // stays null) and returns null from getLicenses() when items is null. Use setItems(new
-    // ArrayList<>()) to force a truly empty backing list, and null-coalesce reads.
     boolean resetLicenseChoice = false;
     for (ResolvedLicenseDTO resolvedLicense : resolvedLicenses) {
       // in case we have overridden licenses for this component we should only export the overridden licenses
       // so need to reset/empty any existing collection once if there are
-      List<License> currentLicenses = bomLicenseChoice.getLicenses();
-      if (CollectionUtils.isEmpty(currentLicenses) ||
+      if (CollectionUtils.isEmpty(bomLicenseChoice.getLicenses()) ||
           (!resetLicenseChoice && resolvedLicense.overrideStatus() != null))
       {
         resetLicenseChoice = true;
-        bomLicenseChoice.setItems(new ArrayList<>());
-        currentLicenses = bomLicenseChoice.getLicenses();
+        bomLicenseChoice.setLicenses(new ArrayList<>());
       }
 
       // merge only if not overridden
-      if (resolvedLicense.overrideStatus() == null && currentLicenses != null) {
-        Optional<License> licenseFromBom = currentLicenses
+      if (resolvedLicense.overrideStatus() == null) {
+        Optional<License> licenseFromBom = bomLicenseChoice.getLicenses()
             .stream()
             .filter(it -> doLicensesMatch(resolvedLicense, it))
             .findFirst();
@@ -479,26 +474,24 @@ public abstract class AbstractCycloneDxExporter
   }
 
   private LicenseChoice getBomComponentLicenses(Component bomComponent) {
-    // cyclonedx-core-java 12.2.0+ normalizes empty license collections: Component.getLicenses()
-    // returns null when the LicenseChoice has no items, even after setLicenses() was called.
-    // Hold a local reference so callers can mutate the (possibly empty) LicenseChoice safely.
-    LicenseChoice licenseChoice = bomComponent.getLicenses();
-    if (licenseChoice == null) {
-      licenseChoice = new LicenseChoice();
+    if (bomComponent.getLicenses() == null) {
+      // Initialize proper empty data structures for holding licenses to avoid null exceptions
+      LicenseChoice licenseChoice = new LicenseChoice();
+      licenseChoice.setLicenses(Collections.emptyList());
       bomComponent.setLicenses(licenseChoice);
     }
-    else if (licenseChoice.getExpression() != null &&
-        StringUtils.isNotEmpty(licenseChoice.getExpression().getValue()))
+    else if (bomComponent.getLicenses().getExpression() != null &&
+        StringUtils.isNotEmpty(bomComponent.getLicenses().getExpression().getValue()))
     {
-      Expression bomComponentLicenseExpression = licenseChoice.getExpression();
-      licenseChoice.setItems(new ArrayList<>());
+      Expression bomComponentLicenseExpression = bomComponent.getLicenses().getExpression();
+      bomComponent.getLicenses().setLicenses(new ArrayList<>());
       String purl = bomComponent.getPurl() != null ? bomComponent.getPurl() : "";
-      List<License> parsed = parseLicenseChoiceExpression(bomComponentLicenseExpression.getValue(), purl);
-      for (License license : parsed) {
-        licenseChoice.addLicense(license);
-      }
+      bomComponent.getLicenses()
+          .getLicenses()
+          .addAll(
+              parseLicenseChoiceExpression(bomComponentLicenseExpression.getValue(), purl));
     }
-    return licenseChoice;
+    return bomComponent.getLicenses();
   }
 
   protected List<License> parseLicenseChoiceExpression(String expression, String purl) {

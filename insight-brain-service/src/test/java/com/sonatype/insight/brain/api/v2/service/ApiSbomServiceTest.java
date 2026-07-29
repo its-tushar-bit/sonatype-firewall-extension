@@ -448,16 +448,6 @@ public class ApiSbomServiceTest
             "The original CycloneDX SBOM was already in version 1.6");
   }
 
-  @Test
-  public void testGetSbomVersion_exportCycloneDx17ToLowerVersion() throws Exception {
-    testExportToLowerVersion(
-        SbomSpecification.CYCLONEDX,
-        "1.7",
-        "cyclonedx1.6",
-        "Unable to export lower SBOM specification version 1.6. " +
-            "The original CycloneDX SBOM was already in version 1.7");
-  }
-
   private void testExportToLowerVersion(
       SbomSpecification spec,
       String inputSpecVersion,
@@ -2382,7 +2372,7 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(200);
     List<String> options = (List<String>) response.getEntity();
-    assertThat(options).containsExactly("spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7", "pdf");
+    assertThat(options).containsExactly("spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
   }
 
   @Test
@@ -2396,8 +2386,7 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(200);
     List<String> options = (List<String>) response.getEntity();
-    assertThat(options).containsExactly("spdx2.2", "spdx2.3", "spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7",
-        "pdf");
+    assertThat(options).containsExactly("spdx2.2", "spdx2.3", "spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
   }
 
   @Test
@@ -2410,8 +2399,7 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(200);
     List<String> options = (List<String>) response.getEntity();
-    assertThat(options).containsExactly("cyclonedx1.5", "cyclonedx1.6", "cyclonedx1.7", "spdx2.2", "spdx2.3", "spdx3.0",
-        "pdf");
+    assertThat(options).containsExactly("cyclonedx1.5", "cyclonedx1.6", "spdx2.2", "spdx2.3", "spdx3.0", "pdf");
   }
 
   @Test

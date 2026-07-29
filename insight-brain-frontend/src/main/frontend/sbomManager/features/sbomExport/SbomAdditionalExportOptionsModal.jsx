@@ -50,14 +50,9 @@ export default function SbomAdditionalExportOptionsModal() {
           </NxModal.Header>
           <NxModal.Content tabIndex={0}>
             <NxFieldset label="SBOM Specification">
-              <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.cyclonedx17)}>
-                CycloneDX 1.7
-              </NxRadio>
-              <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.cyclonedx16)}>
-                CycloneDX 1.6
-              </NxRadio>
+              <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.cyclonedx)}>CycloneDX</NxRadio>
+              <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.spdx)}>SPDX 2.3</NxRadio>
               <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.spdx30)}>SPDX 3.0</NxRadio>
-              <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.spdx23)}>SPDX 2.3</NxRadio>
             </NxFieldset>
             <NxFieldset label="SBOM Format">
               <NxRadio {...createSbomFileFormatRadioHandler(EXPORT_SBOM_FILE_FORMAT.json)}>JSON</NxRadio>

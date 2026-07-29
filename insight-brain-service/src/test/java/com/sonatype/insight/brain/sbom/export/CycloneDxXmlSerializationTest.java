@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.brain.sbom.spdx.ParsedSpdxResult;
 import com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler;
-import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.Version;
@@ -1076,102 +1075,5 @@ public class CycloneDxXmlSerializationTest
     String xml = BomGeneratorFactory.createXml(Version.VERSION_16, bom).toXmlString();
     assertThat(xml).isNotEmpty();
     assertThat(xml).contains("<vulnerability");
-  }
-
-  /**
-   * Reproduces the round-trip failure via the real export path: parse a CycloneDX 1.7 JSON whose
-   * spring-web license carries both a {@code url} and a {@code licensing} block, then serialize to
-   * XML. The stock generator emits {@code <licensing>} before {@code <url>}, violating the 1.7 XSD
-   * (licenseType sequence is id/name, text, url, licensing, properties) so the file cannot be
-   * re-imported. {@link CycloneDxSchemaOrderedXmlGenerator} must emit schema-valid XML.
-   */
-  @Test
-  public void testParsedBomWithUrlAndLicensing_schemaOrderedGeneratorProducesValidXml() throws Exception {
-    Bom bom;
-    try (InputStream is = getClass().getResourceAsStream("/SbomRegressionTest/originals/cyclonedx_1.7.json")) {
-      bom = SbomCycloneDxUtils.parseContentStreamNoValidation(is);
-    }
-
-    // Stock generator reproduces the bug: the emitted XML fails validation against the 1.7 XSD
-    // because the license <licensing> element is serialized before <url>, so it cannot be re-imported.
-    String stockXml = BomGeneratorFactory.createXml(Version.VERSION_17, bom).toXmlString();
-    List<org.cyclonedx.exception.ParseException> stockErrors =
-        new org.cyclonedx.parsers.XmlParser().validate(stockXml.getBytes(StandardCharsets.UTF_8), Version.VERSION_17);
-    assertThat(stockErrors).isNotEmpty();
-
-    // Fixed generator: the license retains its <licensing> block and the document validates cleanly.
-    String fixedXml = new CycloneDxSchemaOrderedXmlGenerator(bom, Version.VERSION_17).toXmlString();
-    assertThat(fixedXml).contains("<licensing>");
-    List<org.cyclonedx.exception.ParseException> fixedErrors =
-        new org.cyclonedx.parsers.XmlParser().validate(fixedXml.getBytes(StandardCharsets.UTF_8), Version.VERSION_17);
-    assertThat(fixedErrors).isEmpty();
-  }
-
-  /**
-   * A license carrying {@code text} (attachment) plus a {@code licensing} block must also be
-   * reordered: the XSD requires {@code text} before {@code licensing}.
-   */
-  @Test
-  public void testLicenseWithTextAndLicensing_schemaOrderedGeneratorProducesValidXml() throws Exception {
-    Bom bom = new Bom();
-    Component comp = new Component();
-    comp.setType(Component.Type.LIBRARY);
-    comp.setName("lib-with-text-license");
-    comp.setVersion("1.0.0");
-    comp.setBomRef("comp-ref-1");
-    comp.setPurl("pkg:maven/org.example/lib-with-text-license@1.0.0");
-
-    org.cyclonedx.model.License license = new org.cyclonedx.model.License();
-    license.setName("Custom-EULA");
-    org.cyclonedx.model.AttachmentText text = new org.cyclonedx.model.AttachmentText();
-    text.setContentType("text/plain");
-    text.setText("Full custom license text.");
-    license.setLicenseText(text);
-    org.cyclonedx.model.Licensing licensing = new org.cyclonedx.model.Licensing();
-    licensing.setExpiration(new Date());
-    license.setLicensing(licensing);
-
-    LicenseChoice licenseChoice = new LicenseChoice();
-    licenseChoice.addLicense(license);
-    comp.setLicenses(licenseChoice);
-    bom.setComponents(Collections.singletonList(comp));
-
-    String fixedXml = new CycloneDxSchemaOrderedXmlGenerator(bom, Version.VERSION_17).toXmlString();
-    assertThat(fixedXml).contains("<licensing>");
-    assertThat(fixedXml).contains("Custom-EULA");
-    List<org.cyclonedx.exception.ParseException> errors =
-        new org.cyclonedx.parsers.XmlParser().validate(fixedXml.getBytes(StandardCharsets.UTF_8), Version.VERSION_17);
-    assertThat(errors).isEmpty();
-  }
-
-  /**
-   * Safety: for licenses that have no {@code licensing} block (the common case), the schema-ordered
-   * generator must leave output byte-for-byte identical to the stock generator (fast-path), and the
-   * output must validate.
-   */
-  @Test
-  public void testLicenseWithoutLicensing_outputUnchangedAndValid() throws Exception {
-    Bom bom = new Bom();
-    Component comp = new Component();
-    comp.setType(Component.Type.LIBRARY);
-    comp.setName("plain-lib");
-    comp.setVersion("1.0.0");
-    comp.setBomRef("comp-ref-1");
-    comp.setPurl("pkg:maven/org.example/plain-lib@1.0.0");
-
-    org.cyclonedx.model.License license = new org.cyclonedx.model.License();
-    license.setId("Apache-2.0");
-    license.setUrl("https://www.apache.org/licenses/LICENSE-2.0.txt");
-    LicenseChoice licenseChoice = new LicenseChoice();
-    licenseChoice.addLicense(license);
-    comp.setLicenses(licenseChoice);
-    bom.setComponents(Collections.singletonList(comp));
-
-    String stockXml = BomGeneratorFactory.createXml(Version.VERSION_17, bom).toXmlString();
-    String fixedXml = new CycloneDxSchemaOrderedXmlGenerator(bom, Version.VERSION_17).toXmlString();
-    assertThat(fixedXml).isEqualTo(stockXml);
-    List<org.cyclonedx.exception.ParseException> errors =
-        new org.cyclonedx.parsers.XmlParser().validate(fixedXml.getBytes(StandardCharsets.UTF_8), Version.VERSION_17);
-    assertThat(errors).isEmpty();
   }
 }

@@ -33,9 +33,8 @@ export const EXPORT_SBOM_FILE_FORMAT = Object.freeze({
 });
 
 export const EXPORT_SBOM_SPECIFICATION = Object.freeze({
-  cyclonedx17: 'cyclonedx1.7',
-  cyclonedx16: 'cyclonedx1.6',
-  spdx23: 'spdx2.3',
+  cyclonedx: 'cyclonedx1.6',
+  spdx: 'spdx2.3',
   spdx30: 'spdx3.0',
 });
 
@@ -48,7 +47,7 @@ export const sbomAdditionalExportOptionsModalInitialState = Object.freeze({
   showModal: false,
   applicationId: null,
   sbomVersion: null,
-  sbomSpecification: EXPORT_SBOM_SPECIFICATION.cyclonedx17,
+  sbomSpecification: EXPORT_SBOM_SPECIFICATION.cyclonedx,
   sbomFileFormat: EXPORT_SBOM_FILE_FORMAT.json,
 });
 

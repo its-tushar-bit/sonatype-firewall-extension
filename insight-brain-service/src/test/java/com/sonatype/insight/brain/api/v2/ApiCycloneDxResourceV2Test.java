@@ -428,7 +428,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetByReportId_With_Invalid_Version() throws Exception {
     HttpResponse response =
-        getHttpRequestByReportId("1.8/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_12,
+        getHttpRequestByReportId("1.7/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_12,
             MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(404);
   }
@@ -436,7 +436,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetLatest_With_Invalid_Version() throws Exception {
     HttpResponse response =
-        getHttpRequestLatest("1.8/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_12,
+        getHttpRequestLatest("1.7/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_12,
             MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(404);
   }

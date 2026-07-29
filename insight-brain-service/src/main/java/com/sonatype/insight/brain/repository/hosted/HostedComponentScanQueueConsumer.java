@@ -498,9 +498,8 @@ public class HostedComponentScanQueueConsumer
     //
     // Guarded on application != null because the application-id is a required attribute of this
     // telemetry event and is not available on the repository-upload fallback path above
-    // (the Repository-typed upload branch, which no longer needs a synthetic application).
-    // scanReceipt is guaranteed non-null after either upload branch (both throw on failure), but
-    // kept as a defensive guard against future refactors.
+    // (uploadForRepository). scanReceipt is guaranteed non-null after either upload branch (both
+    // throw on failure), but kept as a defensive guard against future refactors.
     if (application != null && scanReceipt != null) {
       int effectiveCount = readEffectiveComponentCount(repositoryId, outerComponentInfo.pathname(),
           componentInfos.size());
@@ -661,22 +660,14 @@ public class HostedComponentScanQueueConsumer
   /**
    * Persists the synthetic-application linkage and the HDS report files for an evaluated component.
    * <p>
-   * Extracted from {@link #executeJob} so the synchronous enforcement allow path
-   * ({@code HostedComponentEvaluationService.evaluateSynchronously}) can keep parity: stamp
-   * {@code scanId} on {@code repository_component}, persist the policy_evaluation row, and download
+   * Stamps {@code scanId} on {@code repository_component}, persists the policy_evaluation row, and downloads
    * the HDS report bundle so the report link is clickable in the UI.
-   * <p>
-   * Called by both paths (async queue consumer + sync enforcement) so a fix here applies to both.
-   * <p>
-   * Public so {@link #persistApplicationForSyncAllowPath} (same package) and
-   * {@code HostedComponentEvaluationService} (different package, sync allow path entry) can both
-   * delegate here. Not part of any external API contract.
    *
    * @param scanReceipt non-null receipt produced by a successful
    *          {@link com.sonatype.insight.brain.hds.ScanUploader} upload — the upload either returns
    *          a receipt or throws, so callers don't need to null-guard
    */
-  public void persistApplicationLinkedReportFiles(
+  private void persistApplicationLinkedReportFiles(
       final String repositoryId,
       final ScanEntity scanEntity,
       final ScanComponentInfo componentInfo,
@@ -697,78 +688,6 @@ public class HostedComponentScanQueueConsumer
       log.warn(
           "Could not get/create synthetic application for repositoryId={} pathname={}, report navigation will not be available",
           repositoryId, componentInfo.pathname());
-    }
-  }
-
-  /**
-   * Sync-enforcement entry point that mirrors the async queue consumer's application-linked persistence.
-   * <p>
-   * Called by {@code HostedComponentEvaluationService.evaluateSynchronously} after an allow verdict
-   * has been computed and {@code repository_component}/{@code repository_policy_violation} rows have
-   * been persisted by the evaluator. This step ensures a synthetic {@code application} row exists,
-   * re-uploads the scan via the application pipeline so HDS regenerates per-application report files,
-   * and stamps the {@code scanId} so the UI Report link becomes clickable.
-   * <p>
-   * <b>Note on the double HDS upload:</b> the sync enforcement path already uploaded the scan via
-   * {@code upload(scanEntity, repository, ...)} before the evaluation. This method performs a
-   * second upload via {@code upload(scanEntity, application, ...)} so HDS keys the report bundle to the synthetic
-   * application's id (not the repository id) — that's what makes the per-component Report link
-   * resolvable in the UI. The duplicate upload is acceptable because HDS de-dupes identical scan
-   * payloads; the marginal latency on the sync path is small compared to the initial upload + dual
-   * evaluation. Collapsing the two uploads would require restructuring the sync block-path
-   * semantics (block must NOT create an application row), so we keep them separate intentionally.
-   * <p>
-   * Failures here are logged but not rethrown — the enforcement verdict has already been returned
-   * to NXRM and must not be invalidated by an audit-only persistence hiccup.
-   * <p>
-   * <b>Archive-of-archives fan-out scope (CLM-40943):</b> this sync allow path takes a single
-   * {@link ScanComponentInfo} (the outer artifact) and does NOT walk inner archive entries. So
-   * for a {@code .zip} containing inner {@code .jar}s uploaded through the sync enforcement
-   * path, only the outer artifact is evaluated synchronously; inner-jar findings surface on the
-   * next async monitoring cycle (which DOES fan out — see {@link #executeJob}). Sync-side
-   * fan-out is intentionally deferred per the original CLM-40943 design (synchronous
-   * enforcement keeps a single allow/block verdict on the outer binary's hash); a follow-up
-   * ticket would be needed to make sync evaluation symmetric with the async path.
-   */
-  public void persistApplicationForSyncAllowPath(
-      final String repositoryId,
-      final ScanEntity scanEntity,
-      final ScanComponentInfo componentInfo,
-      final String stage)
-  {
-    if (componentInfo == null) {
-      return;
-    }
-    try {
-      com.sonatype.insight.brain.model.Application application = applicationForHostedComponentService
-          .getOrCreateApplication(repositoryId, componentInfo.pathname());
-      if (application == null) {
-        log.warn(
-            "Could not get/create synthetic application for repositoryId={} pathname={} (sync allow path), report navigation will not be available",
-            repositoryId, componentInfo.pathname());
-        return;
-      }
-      ScanReceipt scanReceipt = scanUploaderProvider.get()
-          .upload(scanEntity, application, stage, null, null, true);
-      log.debug("Re-uploaded scan via application pipeline (sync allow path), scanId={}, appPublicId={}",
-          scanReceipt.getScanId(), application.getPublicId());
-      persistApplicationLinkedReportFiles(repositoryId, scanEntity, componentInfo, application, scanReceipt, stage);
-
-      // CLM-41693 / CLM-42079: Emit APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry for the
-      // sync enforcement path so synchronous hosted scans appear alongside async-queue hosted
-      // scans in the telemetry stream with scan_trigger_type=HOSTED_REPOSITORY_SCANNING.
-      //
-      // Sync path evaluates only the outer artifact (see class javadoc "Archive-of-archives
-      // fan-out scope") — no inner drill-down. That matches an effective count of 1 by construction,
-      // and matches what the Hosted Repository UI shows for these blocked/allowed enforcements.
-      // No DB read needed here — the count is definitional.
-      sendHostedScanEvaluationTelemetry(
-          scanReceipt.getScanId(), application.getId(), stage, List.of(componentInfo), 1);
-    }
-    catch (Exception e) {
-      // componentInfo is guaranteed non-null by the early-return guard at the top of this method.
-      log.warn("Failed to persist application linkage for sync allow path repositoryId={} pathname={}: {}",
-          repositoryId, componentInfo.pathname(), e.getMessage(), e);
     }
   }
 

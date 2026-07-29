@@ -149,9 +149,6 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.repository.ReevaluateCascadeRequestCleaner", "ReevaluateCascadeRequestCleaner");
     insightJobClassNameToExpectedJobName.put(
-        "com.sonatype.insight.brain.repository.hosted.HostedDeploymentBlockCleanupTask",
-        "HostedDeploymentBlockCleanupTask");
-    insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.service.SystemConfigurationPropertyCacheInvalidationJob",
         "SystemConfigurationPropertyCacheInvalidation");
     insightJobClassNameToExpectedJobName.put(

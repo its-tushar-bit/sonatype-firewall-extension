@@ -232,8 +232,7 @@ public final class GuidePolicyComplianceMapper
   }
 
   /**
-   * Severity order: fail > warn > notify > none. Mirrors
-   * {@link com.sonatype.insight.brain.repository.hosted.HostedEvaluationResultMapper}'s order.
+   * Severity order: fail > warn > notify > none.
    */
   private static String compareActions(String left, String right) {
     return rank(right) > rank(left) ? right : left;

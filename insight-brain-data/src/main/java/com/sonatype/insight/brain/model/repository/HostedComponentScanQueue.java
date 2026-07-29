@@ -149,14 +149,6 @@ public class HostedComponentScanQueue
     this.retryCount = retryCount;
   }
 
-  public String getPurl() {
-    return purl;
-  }
-
-  public void setPurl(final String purl) {
-    this.purl = purl;
-  }
-
   public String getPolicyEvaluationStage() {
     return policyEvaluationStage;
   }

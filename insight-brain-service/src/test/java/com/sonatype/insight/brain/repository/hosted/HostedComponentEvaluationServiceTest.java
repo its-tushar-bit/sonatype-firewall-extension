@@ -72,7 +72,7 @@ public class HostedComponentEvaluationServiceTest
     receipt.setScanId("scan-eval-001");
     hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
 
-    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, null, scanFile);
+    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, scanFile);
 
     assertThat(jobId).isNotBlank();
 
@@ -99,7 +99,7 @@ public class HostedComponentEvaluationServiceTest
     receipt.setScanId("scan-eval-002");
     hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
 
-    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, null, scanFile);
+    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, scanFile);
 
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
       HostedComponentScanQueue row = queueDAO.getById(jobId);
@@ -115,7 +115,7 @@ public class HostedComponentEvaluationServiceTest
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     File scanFile = writeScanFile("scan-eval-3.xml.gz");
 
-    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, null, scanFile);
+    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, scanFile);
     assertThat(jobId).isNotBlank();
 
     assertThat(queueDAO.getById(jobId)).isNotNull();
@@ -131,7 +131,7 @@ public class HostedComponentEvaluationServiceTest
     receipt.setScanId("scan-eval-004");
     hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
 
-    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, null, scanFile);
+    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, scanFile);
 
     HostedComponentScanQueue row = queueDAO.getById(jobId);
     assertThat(row.getScanFileId()).isNotBlank();
@@ -145,7 +145,7 @@ public class HostedComponentEvaluationServiceTest
 
     File nonExistentFile = new File(tempDir.getRoot(), "does-not-exist.xml.gz");
 
-    assertThatThrownBy(() -> evaluationService.queueScan(repo.getId(), component.getId(), null, null, nonExistentFile))
+    assertThatThrownBy(() -> evaluationService.queueScan(repo.getId(), component.getId(), null, nonExistentFile))
         .isInstanceOf(IOException.class);
 
     assertThat(queueDAO.acquireNextPendingJobs(10)).isEmpty();
@@ -160,7 +160,7 @@ public class HostedComponentEvaluationServiceTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan-eval-006");
     hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-    String firstJobId = evaluationService.queueScan(repo.getId(), component.getId(), null, null, scanFile);
+    String firstJobId = evaluationService.queueScan(repo.getId(), component.getId(), null, scanFile);
     assertThat(firstJobId).isNotBlank();
 
     File scanDir = insightWork.getScanDir(repo.getId());
@@ -168,26 +168,12 @@ public class HostedComponentEvaluationServiceTest
       scanDir.setReadOnly();
       File scanFile2 = writeScanFile("scan-eval-6b.xml.gz");
 
-      assertThatThrownBy(() -> evaluationService.queueScan(repo.getId(), component.getId(), null, null, scanFile2))
+      assertThatThrownBy(() -> evaluationService.queueScan(repo.getId(), component.getId(), null, scanFile2))
           .isInstanceOf(IOException.class);
     }
     finally {
       scanDir.setWritable(true);
     }
-  }
-
-  @Test
-  public void queueScan_storesPurlOnQueueRow() throws Exception {
-    Repository repo = tempEntity.newRepository("repo-eval-purl");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
-    File scanFile = writeScanFile("scan-purl.xml.gz");
-
-    String purl = "pkg:maven/org.example/my-lib@2.0.0";
-    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), purl, null, scanFile);
-
-    HostedComponentScanQueue row = queueDAO.getById(jobId);
-    assertThat(row.getPurl()).isEqualTo(purl);
-    assertThat(row.getPolicyEvaluationStage()).isNull();
   }
 
   @Test
@@ -197,25 +183,9 @@ public class HostedComponentEvaluationServiceTest
     File scanFile = writeScanFile("scan-stage.xml.gz");
 
     String stage = "source";
-    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, stage, scanFile);
+    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), stage, scanFile);
 
     HostedComponentScanQueue row = queueDAO.getById(jobId);
-    assertThat(row.getPolicyEvaluationStage()).isEqualTo(stage);
-    assertThat(row.getPurl()).isNull();
-  }
-
-  @Test
-  public void queueScan_storesBothPurlAndStageOnQueueRow() throws Exception {
-    Repository repo = tempEntity.newRepository("repo-eval-both");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
-    File scanFile = writeScanFile("scan-both.xml.gz");
-
-    String purl = "pkg:maven/com.example/artifact@1.0.0";
-    String stage = "compliance";
-    String jobId = evaluationService.queueScan(repo.getId(), component.getId(), purl, stage, scanFile);
-
-    HostedComponentScanQueue row = queueDAO.getById(jobId);
-    assertThat(row.getPurl()).isEqualTo(purl);
     assertThat(row.getPolicyEvaluationStage()).isEqualTo(stage);
   }
 

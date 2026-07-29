@@ -687,7 +687,6 @@ public class HostedComponentScanQueueConsumerTest
         HostedComponentScanQueueDAO.Status.PENDING.name(),
         HostedComponentScanQueue.DEFAULT_PRIORITY,
         repoId);
-    job.setPurl(purl);
     job.setPolicyEvaluationStage(policyEvaluationStage);
     queueDAO.insert(job);
     return job;
@@ -726,7 +725,6 @@ public class HostedComponentScanQueueConsumerTest
         HostedComponentScanQueueDAO.Status.PENDING.name(),
         HostedComponentScanQueue.DEFAULT_PRIORITY,
         repo.getId());
-    job.setPurl(purl);
     job.setPolicyEvaluationStage(policyEvaluationStage);
     queueDAO.insert(job);
     return job;

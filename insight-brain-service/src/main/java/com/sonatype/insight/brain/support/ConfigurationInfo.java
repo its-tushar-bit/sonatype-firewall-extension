@@ -112,8 +112,6 @@ public class ConfigurationInfo
         configuration.getWaivedComponentUpgradeInspectionHour());
     entries.put(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
         configuration.getQuarantinedComponentReportExpirationTimeInHours());
-    entries.put(SystemConfigurationProperty.HOSTED_DEPLOYMENT_BLOCK_RETENTION_HOURS,
-        configuration.getHostedDeploymentBlockRetentionHours());
     entries.put(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, configuration.getSuccessMetricsStageId());
 
     List<String> frameAncestorsAllowList = configuration.getFrameAncestorsAllowList();

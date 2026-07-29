@@ -102,7 +102,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
-import com.sonatype.insight.brain.dataaccess.repository.HostedDeploymentBlockDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
@@ -340,8 +339,6 @@ public interface DAOFactory
   RepositoryMigrationDAO createRepositoryMigrationDAO();
 
   HostedComponentScanQueueDAO createHostedComponentScanQueueDAO();
-
-  HostedDeploymentBlockDAO createHostedDeploymentBlockDAO();
 
   ContinuousMonitoringQueueItemDAO createContinuousMonitoringQueueItemDAO();
 

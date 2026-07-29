@@ -10,7 +10,6 @@ import java.util.Date;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NotificationMenu;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
@@ -60,22 +59,12 @@ public class NotificationTest
     NotificationMenu notificationMenu = new NotificationMenu();
     notificationMenu.click();
 
-    notificationMenu.notificationListItem(0).age().shouldHave(text("Just now"));
-    notificationMenu.notificationListItem(0).summary().shouldHave(text("NEW: React2Shell Impact Report"));
-    notificationMenu.notificationListItem(1).age().shouldHave(text("10 minutes ago"));
-    notificationMenu.notificationListItem(1).summary().shouldHave(text("summary1"));
-    notificationMenu.notificationListItem(2).age().shouldHave(text("10 hours ago"));
-    notificationMenu.notificationListItem(2).summary().shouldHave(text("summary2"));
+    notificationMenu.notificationListItem(0).age().shouldHave(text("10 minutes ago"));
+    notificationMenu.notificationListItem(0).summary().shouldHave(text("summary1"));
+    notificationMenu.notificationListItem(1).age().shouldHave(text("10 hours ago"));
+    notificationMenu.notificationListItem(1).summary().shouldHave(text("summary2"));
 
-    // CLM-37984: React2Shell notification navigates to report page
     notificationMenu.notificationListItem(0).click();
-    waitUntilUrl(BaseUrl.resolvePageUrl("/reports/react2shell?cveId=CVE-2025-55182"));
-
-    // Navigate back to reports list
-    refreshOrOpen(ReportListPage.url());
-
-    notificationMenu.click();
-    notificationMenu.notificationListItem(1).click();
     notificationMenu.detailModal().shouldBe(visible);
     notificationMenu.detailHeader().shouldHave(text("summary1"));
     notificationMenu.detailBody().shouldHave(text("detail1"));
@@ -83,7 +72,7 @@ public class NotificationTest
     notificationMenu.detailModal().shouldNotBe(visible);
 
     notificationMenu.click();
-    notificationMenu.notificationListItem(2).click();
+    notificationMenu.notificationListItem(1).click();
     notificationMenu.detailModal().shouldBe(visible);
     notificationMenu.detailHeader().shouldHave(text("summary2"));
     notificationMenu.detailBody().shouldHave(text("detail2"));
@@ -95,7 +84,7 @@ public class NotificationTest
 
     // open the second notification again and click its link; ensure it opens in a new tab
     notificationMenu.click();
-    notificationMenu.notificationListItem(2).click();
+    notificationMenu.notificationListItem(1).click();
     notificationMenu.detailModal().shouldBe(visible);
     notificationMenu.detailLink().shouldBe(visible).click();
     Selenide.switchTo().window(1);

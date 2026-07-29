@@ -9,8 +9,5 @@
   "notification2Detail": "detail2",
   "notification2AgeText": "10 hours ago",
   "notification2AgeOffsetMs": 36000000,
-  "react2ShellSummary": "NEW: React2Shell Impact Report",
-  "react2ShellAgeText": "Just now",
-  "react2ShellUrlFragment": "/reports/react2shell",
   "postNotificationUrlFragment": "/reports/violations"
 }

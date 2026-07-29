@@ -57,22 +57,6 @@ public class HdsProductNotificationService
             ? productNotificationList.getProductNotifications()
             : Collections.emptyList());
 
-    // Add mock React2Shell notification for prototype
-    String react2ShellCveIds = "CVE-2025-55182";
-    String react2ShellUrl = "#/reports/react2shell?cveId=" + react2ShellCveIds;
-
-    ProductNotification react2ShellNotification = new ProductNotification();
-    react2ShellNotification.setId("react2shell-notification");
-    react2ShellNotification.setSummaryText("NEW: React2Shell Impact Report");
-    react2ShellNotification.setSummaryUrl(react2ShellUrl);
-    react2ShellNotification.setDetailHtml(
-        "<p>A new React2Shell Impact report is now available. This report provides detailed information about " +
-            "the React2Shell vulnerability affecting your applications.</p>" +
-            "<p><a href=\"" + react2ShellUrl + "\">View the React2Shell Impact Report</a></p>");
-    react2ShellNotification.setType(com.sonatype.clm.dto.model.notification.ProductNotificationType.DEFAULT);
-    react2ShellNotification.setDateCreated(System.currentTimeMillis());
-    productNotifications.add(0, react2ShellNotification);
-
     productNotifications.sort((o1, o2) -> Long.compare(o2.getDateCreated(), o1.getDateCreated()));
     deleteOldUserViewedProductNotification(productNotifications.stream()
         .map(ProductNotification::getId)

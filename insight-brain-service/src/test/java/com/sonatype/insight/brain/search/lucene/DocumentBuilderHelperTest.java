@@ -122,6 +122,9 @@ public class DocumentBuilderHelperTest
           ownerDAO.walkHierarchy(org).forEach(o -> ids.add(o.getId()));
           return ids;
         });
+    lenient()
+        .when(indexingContextMock.getLicenseNameById())
+        .thenReturn(new HashMap<>(Map.of("license-id-1", "")));
   }
 
   /**

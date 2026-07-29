@@ -101,6 +101,13 @@ public enum FieldIdentifier
   POLICY_WAIVER_WAIVED_BY("policyWaiverWaivedBy"),
   // Auto-vs-manual discriminator: "true" for AutoPolicyWaiver docs, "false" for PolicyWaiver docs.
   POLICY_WAIVER_AUTO("policyWaiverAuto"),
+  // Ana Waivers list alias of POLICY_WAIVER_AUTO (same true/false keyword values). Kept as a distinct
+  // field so the Ana {@code isAuto} TERMS filter and row projection stay stable if the left-nav
+  // discriminator label ever diverges.
+  POLICY_WAIVER_IS_AUTO("policyWaiverIsAuto"),
+  // Denormalized Active/Expired/Never keyword for the Ana {@code expiryStatus} TERMS filter.
+  // Complements POLICY_WAIVER_EXPIRES_AT_EPOCH_MS (query-time active-vs-expired range on left-nav).
+  POLICY_WAIVER_EXPIRY_STATUS("policyWaiverExpiryStatus"),
   // Denormalized policy threat category (SECURITY/LICENSE/QUALITY/OTHER), written on both POLICY_WAIVER
   // and POLICY_WAIVER_REQUEST docs so the policyType facet/filter resolves without a per-row policy load.
   // Namespaced (not POLICY_THREAT_CATEGORY) so the waiver policyType filter cannot collide with the

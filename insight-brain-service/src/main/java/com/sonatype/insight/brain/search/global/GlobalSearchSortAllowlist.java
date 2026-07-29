@@ -95,10 +95,18 @@ public final class GlobalSearchSortAllowlist
         RELEVANCE, "name", "policyEvaluationStage", "lastEvaluationTime", "policyThreatLevel", "violationState"));
 
     m.put(VIOLATION, ImmutableSet.of(RELEVANCE, "name", "threat"));
-    // WAIVER supports relevance + created (newest first, default), threat (highest first), and
-    // expiration (soonest first, never-expires last). All three non-relevance keys are backed by
-    // numeric epoch/level twins (see IqLocalSearchService.SORTABLE_FIELD_BY_KEY).
-    m.put(WAIVER, ImmutableSet.of(RELEVANCE, WAIVER_CREATED, WAIVER_OLDEST, WAIVER_THREAT, WAIVER_EXPIRATION));
+    // WAIVER: left-nav created/oldest/threat/expiration plus Ana Waivers list sort tokens
+    // (policyWaiverCreatedAt / threat level, with optional "-" descending prefix).
+    m.put(WAIVER, ImmutableSet.of(
+        RELEVANCE,
+        WAIVER_CREATED,
+        WAIVER_OLDEST,
+        WAIVER_THREAT,
+        WAIVER_EXPIRATION,
+        "policyWaiverCreatedAt",
+        "-policyWaiverCreatedAt",
+        "policyWaiverThreatLevel",
+        "-policyWaiverThreatLevel"));
 
     return Collections.unmodifiableMap(m);
   }

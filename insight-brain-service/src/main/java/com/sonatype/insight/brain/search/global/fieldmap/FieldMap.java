@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.sonatype.insight.brain.search.index.ItemType;
+import com.sonatype.insight.brain.search.index.PolicyWaiverExpiryStatuses;
 
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_COLOR;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION;
@@ -66,6 +67,8 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIO
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_AUTO;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_IS_AUTO;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_NAME;
@@ -136,8 +139,8 @@ public final class FieldMap
       LEGAL_VIOLATION,
       SBOM_METADATA,
       POLICY,
-      // Org-owned waivers carry parentOrganizationName/Id via DocumentBuilder.setOwner; app-owned
-      // waivers do not, so the organizations filter narrows org-scoped waivers only (as for POLICY).
+      // App- and org-scoped waivers both carry parentOrganizationName/Id (full ancestor chain via
+      // DocumentBuilderHelper.applyWaiverOwnerHierarchy), so the organizations filter matches both.
       POLICY_WAIVER,
       // Waiver requests share the same owner denormalization as waivers, so the org filter narrows
       // org-scoped requests only, same asymmetry.
@@ -413,6 +416,9 @@ public final class FieldMap
     m.put("policyWaiverWaivedBy", FieldEntry.keyword(POLICY_WAIVER_WAIVED_BY.label, WAIVER_ONLY_TYPES));
     // Auto-vs-manual discriminator, indexed as the keyword "true"/"false".
     m.put("policyWaiverAuto", FieldEntry.keyword(POLICY_WAIVER_AUTO.label, WAIVER_ONLY_TYPES, BOOLEAN_VALUES));
+    m.put("policyWaiverIsAuto", FieldEntry.keyword(POLICY_WAIVER_IS_AUTO.label, WAIVER_ONLY_TYPES, BOOLEAN_VALUES));
+    m.put("policyWaiverExpiryStatus",
+        FieldEntry.keyword(POLICY_WAIVER_EXPIRY_STATUS.label, WAIVER_TYPES, PolicyWaiverExpiryStatuses.ALL));
     // Range-queryable epoch-millis expiry (LongPoint) backing the active-vs-expired filter. A doc with
     // no expiry has no point value, so it never matches an expiry range and is treated as active.
     // Both waivers and requests carry an expiry epoch, so WAIVER_TYPES.

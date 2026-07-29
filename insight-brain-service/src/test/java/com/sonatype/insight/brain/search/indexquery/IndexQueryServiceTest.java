@@ -96,6 +96,41 @@ public class IndexQueryServiceTest
   }
 
   @Test
+  public void query_waiverEntityType_usesPolicyWaiverItemType() {
+    IndexQueryRequest req = request(Map.of("query", "security"));
+    service.query(IndexQueryType.WAIVER, req);
+
+    Query sent = capture();
+    assertThat(sent.toString()).contains("policy_waiver");
+  }
+
+  @Test
+  public void query_waiverUnknownFilterKey_rejectedWith400() {
+    IndexQueryRequest req = request(Map.of("bogusKey", "x"));
+    assertThatExceptionOfType(FilterValidationException.class)
+        .isThrownBy(() -> service.query(IndexQueryType.WAIVER, req));
+  }
+
+  @Test
+  public void query_waiverHappyPath_mapsRowFields() {
+    SearchResultItemDTO w = waiverDto("waiver-1", "Security Policy", "Acme Prod", "Acme");
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(w), 1, List.of()));
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of("query", "security"), 1, 25, null, null, false);
+    IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
+
+    assertThat(resp.entityType()).isEqualTo("WAIVER");
+    assertThat(resp.rows()).singleElement()
+        .satisfies(r -> {
+          assertThat(r.getId()).isEqualTo("waiver-1");
+          assertThat(r.getTitle()).isEqualTo("Security Policy");
+          assertThat(r.getFields()).containsEntry("isAuto", false);
+          assertThat(r.getHref()).isEqualTo("/preview/waivers/application/app-1/waiver-1");
+        });
+  }
+
+  @Test
   public void query_rangeFilter_compilesToRangeQuery() {
     IndexQueryRequest req = request(Map.of("policyThreatLevel", List.of(7, 10)));
     service.query(IndexQueryType.POLICY, req);
@@ -447,14 +482,13 @@ public class IndexQueryServiceTest
   }
 
   @Test
-  public void query_emptyWaiverStates_behavesLikeAbsent_appliesManualOnlyDefault() {
-    // An empty waiverStates:[] selects no state, so it must not suppress the manual-only committed
-    // default the way a populated request-scoped selection does.
+  public void query_emptyWaiverStates_behavesLikeAbsent_noManualOnlyDefault() {
+    // Classic includeAutoWaivers: absent/true → both kinds (no default clause). Empty
+    // waiverStates:[] selects no state, so it matches absent filters: no auto restriction.
     IndexQueryFilterCompiler.CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
         IndexQueryType.WAIVER, Map.of("waiverStates", List.of()));
-    assertThat(compiled.autoWaiverRestrictionClause())
-        .isEqualTo("(itemType:policy_waiver AND policyWaiverAuto:\"false\")");
-    assertThat(compiled.q()).contains("itemType:policy_waiver AND policyWaiverAuto:\"false\"");
+    assertThat(compiled.autoWaiverRestrictionClause()).isNull();
+    assertThat(compiled.q()).doesNotContain("policyWaiverAuto");
   }
 
   @Test
@@ -493,14 +527,13 @@ public class IndexQueryServiceTest
   }
 
   @Test
-  public void query_waiverDefault_manualOnlyClauseIsItemTypeScoped_notBareAutoFalse() {
-    // The absent-includeAutoWaivers default is item-type-scoped so it excludes committed auto waivers
-    // WITHOUT dropping POLICY_WAIVER_REQUEST docs via a field mismatch. The recorded restriction clause
-    // must be the scoped form, never a bare policyWaiverAuto:"false".
+  public void query_waiverDefault_absentIncludeAutoWaivers_includesBothKinds() {
+    // Absent includeAutoWaivers means Classic "include both" (no clause). Auto-only is Ana
+    // isAuto:["true"]; manual-only is an explicit includeAutoWaivers:false.
     IndexQueryFilterCompiler.CompiledQuery compiled =
         IndexQueryFilterCompiler.compileWithClauses(IndexQueryType.WAIVER, Map.of());
-    assertThat(compiled.autoWaiverRestrictionClause())
-        .isEqualTo("(itemType:policy_waiver AND policyWaiverAuto:\"false\")");
+    assertThat(compiled.autoWaiverRestrictionClause()).isNull();
+    assertThat(compiled.q()).doesNotContain("policyWaiverAuto");
   }
 
   @Test
@@ -749,6 +782,25 @@ public class IndexQueryServiceTest
     d.applicationName = name;
     d.organizationName = org;
     d.organizationId = org.toLowerCase(java.util.Locale.ROOT).replace(' ', '-');
+    return d;
+  }
+
+  private static SearchResultItemDTO waiverDto(
+      final String waiverId,
+      final String policyName,
+      final String appName,
+      final String org)
+  {
+    SearchResultItemDTO d = new SearchResultItemDTO();
+    d.itemType = "POLICY_WAIVER";
+    d.policyWaiverId = waiverId;
+    d.policyWaiverPolicyId = "policy-1";
+    d.policyWaiverPolicyName = policyName;
+    d.policyWaiverScopeOwnerType = "APPLICATION";
+    d.policyWaiverScopeOwnerId = "app-1";
+    d.policyWaiverIsAuto = false;
+    d.applicationName = appName;
+    d.organizationName = org;
     return d;
   }
 

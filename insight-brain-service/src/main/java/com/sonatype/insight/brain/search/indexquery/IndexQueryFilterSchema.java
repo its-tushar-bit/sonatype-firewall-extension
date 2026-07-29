@@ -22,12 +22,12 @@ public final class IndexQueryFilterSchema
      * The {@code includeAutoWaivers} include-toggle on WAIVER queries. Compiled specially against the
      * indexed {@code policyWaiverAuto} discriminator:
      * <ul>
-     * <li>{@code true} — include BOTH manual and auto waivers (no clause added);</li>
-     * <li>{@code false} OR absent — exclude auto waivers, i.e. add {@code policyWaiverAuto:"false"}
+     * <li>{@code true} OR absent — include BOTH manual and auto waivers (no clause added);</li>
+     * <li>{@code false} — exclude auto waivers, i.e. add {@code policyWaiverAuto:"false"}
      * so only manual waivers match.</li>
      * </ul>
-     * The default (absent) is manual-only, matching the request shape where {@code includeAutoWaivers:
-     * true} explicitly opts in to also seeing auto waivers.
+     * Classic include-toggle: absent means both. Auto-only uses the separate {@code isAuto} TERMS
+     * filter rather than overloading {@code includeAutoWaivers:true}.
      */
     AUTO_WAIVER_TOGGLE,
     /**
@@ -43,6 +43,23 @@ public final class IndexQueryFilterSchema
      * "active"/"expired" are accepted; any other value is a 400.
      */
     EXPIRY_STATUS,
+    /**
+     * The Ana {@code expiryStatus} TERMS filter over the denormalized
+     * {@code policyWaiverExpiryStatus} keyword. Values are validated against
+     * {@link com.sonatype.insight.brain.search.index.PolicyWaiverExpiryStatuses} (active/expired/never);
+     * unrecognized values are a 400. Distinct from {@link #EXPIRY_STATUS}, which is clock-relative.
+     * <p>
+     * Prefer {@link #EXPIRY_STATUS} ({@code expiry}) for Active/Expired toggles — that path treats
+     * never-expiring waivers as active. {@code expiryStatus:"active"} also includes {@code never}
+     * so an Active chip wired here does not hide permanent waivers; use {@code never}/{@code expired}
+     * for exact denormalized buckets.
+     */
+    EXPIRY_STATUS_TERMS,
+    /**
+     * Boolean string TERMS ({@code "true"}/{@code "false"} only). Used by Ana {@code isAuto};
+     * unrecognized values are a 400 (unlike plain {@link #TERMS}, which would silently match nothing).
+     */
+    BOOLEAN_TERMS,
     /**
      * The {@code waiverStates} multi-select on WAIVER queries, spanning both item types:
      * <ul>
@@ -122,16 +139,18 @@ public final class IndexQueryFilterSchema
             "policyThreatLevel", new FilterDef("policyThreatLevel", Kind.RANGE)),
         // policyThreatLevel resolves to POLICY_WAIVER_THREAT_LEVEL via the policyWaiverThreatLevel
         // FieldMap key. includeAutoWaivers filters on the indexed policyWaiverAuto discriminator:
-        // true -> both kinds; false/absent -> manual only (see Kind.AUTO_WAIVER_TOGGLE).
+        // true/absent -> both kinds; false -> manual only (Classic; see Kind.AUTO_WAIVER_TOGGLE).
+        // Ana Auto/Manual uses isAuto (BOOLEAN_TERMS) on policyWaiverIsAuto.
         // applications/applicationId narrow to app-scoped waivers only: org-scoped waivers carry no
-        // applicationName/Id (setOwner writes them only for an Application owner), the same owner
-        // asymmetry as organizations (which narrows org-scoped waivers only). policy filters on the
-        // waiver's policy NAME, mirroring how the other entity types filter by human-readable names.
-        // expiry is the active-vs-expired status toggle (see Kind.EXPIRY_STATUS), compiled against the
-        // policyWaiverExpiresAtEpochMs numeric point vs server-now with null-expiry treated as active.
+        // applicationName/Id. organizations matches both scopes — app- and org-scoped waivers both
+        // carry parentOrganizationName/Id (full ancestor chain).
+        // policy = policy NAME; policyIds = policy ID (Ana sidebar). `policies` is a deprecated alias
+        // of policyIds kept so older clients do not break.
+        // Prefer expiry (clock, Kind.EXPIRY_STATUS) for Active/Expired toggles — never-expiring docs
+        // count as active. expiryStatus is the denormalized active/expired/never keyword.
         // waiverStates spans both item types (see Kind.WAIVER_STATES). status filters requests by the
-        // policyWaiverRequestStatus discriminator; scope by the indexed scope owner type; policyTypes by
-        // the denormalized policyWaiverPolicyType. All three are OR-within / AND-across standard TERMS.
+        // policyWaiverRequestStatus discriminator; scope by the indexed scope; policyTypes by
+        // policyWaiverPolicyType. All three are OR-within / AND-across standard TERMS.
         IndexQueryType.WAIVER, Map.ofEntries(
             Map.entry("query", FREE_TEXT_QUERY),
             Map.entry("organizations", new FilterDef("organizationName", Kind.TERMS)),
@@ -144,8 +163,14 @@ public final class IndexQueryFilterSchema
             // WAIVER_STATES self-compiles its item-type/status clauses (see compileWaiverStates), so
             // it takes no index field — null like FREE_TEXT_QUERY.
             Map.entry("waiverStates", new FilterDef(null, Kind.WAIVER_STATES)),
+            Map.entry("policyIds", new FilterDef("policyWaiverPolicyId", Kind.TERMS)),
+            // Deprecated alias of policyIds (same index field).
+            Map.entry("policies", new FilterDef("policyWaiverPolicyId", Kind.TERMS)),
             Map.entry("policyThreatLevel", new FilterDef("policyWaiverThreatLevel", Kind.RANGE)),
             Map.entry("expiry", new FilterDef("policyWaiverExpiresAtEpochMs", Kind.EXPIRY_STATUS)),
-            Map.entry("includeAutoWaivers", new FilterDef("policyWaiverAuto", Kind.AUTO_WAIVER_TOGGLE))));
+            Map.entry("expiryStatus", new FilterDef("policyWaiverExpiryStatus", Kind.EXPIRY_STATUS_TERMS)),
+            // Classic: false → manual only; true/absent → both. Auto-only uses isAuto below.
+            Map.entry("includeAutoWaivers", new FilterDef("policyWaiverAuto", Kind.AUTO_WAIVER_TOGGLE)),
+            Map.entry("isAuto", new FilterDef("policyWaiverIsAuto", Kind.BOOLEAN_TERMS))));
   }
 }

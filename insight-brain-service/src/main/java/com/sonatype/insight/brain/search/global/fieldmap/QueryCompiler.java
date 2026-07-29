@@ -60,7 +60,10 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATI
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_EVALUATION_STAGE;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_NAME;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_CONSTRAINT_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_COMMENT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_POLICY_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_REASON;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_WAIVED_BY;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
 import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION;
 import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION_CATEGORY;
@@ -128,7 +131,14 @@ public final class QueryCompiler
 
     m.put(POLICY, List.of(POLICY_NAME.label));
 
-    m.put(POLICY_WAIVER, List.of(POLICY_WAIVER_POLICY_NAME.label, APPLICATION_NAME.label, APPLICATION_PUBLIC_ID.label));
+    m.put(POLICY_WAIVER, List.of(
+        POLICY_WAIVER_POLICY_NAME.label,
+        POLICY_WAIVER_REASON.label,
+        POLICY_WAIVER_COMMENT.label,
+        POLICY_WAIVER_WAIVED_BY.label,
+        APPLICATION_NAME.label,
+        APPLICATION_PUBLIC_ID.label,
+        ORGANIZATION_NAME.label));
 
     m.put(ORGANIZATION, List.of(ORGANIZATION_NAME.label));
 

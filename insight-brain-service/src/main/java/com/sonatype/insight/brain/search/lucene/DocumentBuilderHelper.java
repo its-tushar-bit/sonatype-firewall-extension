@@ -91,6 +91,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.search.index.IndexingContext;
 import com.sonatype.insight.brain.search.index.ItemType;
+import com.sonatype.insight.brain.search.index.PolicyWaiverExpiryStatuses;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -1077,9 +1078,13 @@ public class DocumentBuilderHelper
         .setPolicyWaiverScope(scopeFor(owner, isComponentTargeted(waiver)))
         .setPolicyWaiverWaivedBy(waiver.getCreatorName())
         .setPolicyWaiverAuto(false)
+        .setPolicyWaiverIsAuto(false)
+        .setPolicyWaiverExpiryStatus(computeExpiryStatus(waiver.getExpiryTime()))
         .setPolicyWaiverPolicyType(policyType)
-        .setOwner(owner)
         .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner));
+    applyWaiverOwnerHierarchy(builder, indexingContext, owner);
+    // Orphaned / null policy → no policyWaiverThreatLevel. Those docs are invisible to the
+    // policyThreatLevel range filter (no indexed numeric field to match).
     if (threatLevel != null) {
       builder.setPolicyWaiverThreatLevel(threatLevel);
     }
@@ -1234,7 +1239,7 @@ public class DocumentBuilderHelper
     // title is composed on the read side (IndexQueryRowMapper). Keeping it out of the indexed field
     // means the label is not text-searchable or matched by the policy filter, and its wording can
     // change without a reindex.
-    return new DocumentBuilder(ItemType.POLICY_WAIVER)
+    DocumentBuilder builder = new DocumentBuilder(ItemType.POLICY_WAIVER)
         .setPolicyWaiverId(waiver.getId())
         .setPolicyWaiverThreatLevel(waiver.getThreatLevel())
         .setPolicyWaiverWaivedBy(waiver.getCreatorName())
@@ -1245,9 +1250,86 @@ public class DocumentBuilderHelper
         // Auto-waivers apply to any component in scope, so they are owner-scoped, never component-targeted.
         .setPolicyWaiverScope(scopeFor(owner, false))
         .setPolicyWaiverAuto(true)
-        .setOwner(owner)
-        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner))
-        .build();
+        .setPolicyWaiverIsAuto(true)
+        .setPolicyWaiverExpiryStatus(PolicyWaiverExpiryStatuses.NEVER)
+        .setAllowedContextIds(computeAllowedContextIdsForOwner(indexingContext, owner));
+    applyWaiverOwnerHierarchy(builder, indexingContext, owner);
+    return builder.build();
+  }
+
+  /**
+   * Sets the polymorphic owner plus the full ancestor org chain on {@code parentOrganizationName/Id}
+   * so WAIVER org filters match apps/violations (immediate org alone is not enough under nested orgs).
+   * <p>
+   * For application-scoped waivers: {@code setOwner(application)} writes application fields, then
+   * organizationId/Name are set explicitly (not via {@code setOwner(Organization)}, which would also
+   * write a temporary singleton parent list). The ancestor setters below replace/establish the full
+   * parent chain used by the organizations filter.
+   */
+  private void applyWaiverOwnerHierarchy(
+      final DocumentBuilder builder,
+      final IndexingContext indexingContext,
+      final Owner owner)
+  {
+    builder.setOwner(owner);
+    Organization org = null;
+    if (owner instanceof Application application) {
+      Owner orgOwner = indexingContext.getOwner(application.getOrganizationId());
+      if (orgOwner instanceof Organization o) {
+        // Keep application fields from setOwner(app); only fill immediate org identity here.
+        builder.setOrganizationId(o.getId());
+        builder.setOrganizationName(o.getName());
+        org = o;
+      }
+    }
+    else if (owner instanceof Organization o) {
+      org = o;
+    }
+    if (org == null) {
+      return;
+    }
+    List<Organization> ancestors = resolveAncestorOrganizations(indexingContext, org);
+    if (!ancestors.isEmpty()) {
+      builder.setParentOrganizationNames(ancestors);
+      builder.setParentOrganizationIds(ancestors);
+    }
+  }
+
+  /**
+   * Resolves {@code org, parent, ..., root} via the per-run ancestor cache. Falls back to the
+   * immediate org when the chain is unavailable (e.g. unit-test mocks that stub only {@code getOwner}).
+   */
+  private List<Organization> resolveAncestorOrganizations(
+      final IndexingContext indexingContext,
+      final Organization org)
+  {
+    List<String> ancestorIds = indexingContext.getAncestorOrgIds(org);
+    if (ancestorIds == null || ancestorIds.isEmpty()) {
+      return List.of(org);
+    }
+    List<Organization> ancestors = new ArrayList<>();
+    for (String id : ancestorIds) {
+      Owner resolved = indexingContext.getOwner(id);
+      if (resolved instanceof Organization ancestor) {
+        ancestors.add(ancestor);
+      }
+    }
+    return ancestors.isEmpty() ? List.of(org) : ancestors;
+  }
+
+  /**
+   * Denormalized Active/Expired/Never for the Ana {@code expiryStatus} TERMS filter. A waiver that
+   * crosses its expiry instant stays Active in the index until the next reindex / incremental
+   * update for that waiver — same trade-off as other denormalized status fields.
+   */
+  private static String computeExpiryStatus(final Date expiryTime) {
+    if (expiryTime == null) {
+      return PolicyWaiverExpiryStatuses.NEVER;
+    }
+    Instant expiry = Instant.ofEpochMilli(expiryTime.getTime());
+    return expiry.isBefore(Instant.now())
+        ? PolicyWaiverExpiryStatuses.EXPIRED
+        : PolicyWaiverExpiryStatuses.ACTIVE;
   }
 
   // Waiver/request indexing rule: only app/org-owned waivers are indexed (null and repository-family

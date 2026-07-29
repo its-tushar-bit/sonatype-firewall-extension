@@ -125,6 +125,10 @@ public class GlobalSearchSortAllowlistTest
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, GlobalSearchSortAllowlist.WAIVER_CREATED)).isTrue();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, GlobalSearchSortAllowlist.WAIVER_THREAT)).isTrue();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, GlobalSearchSortAllowlist.WAIVER_EXPIRATION)).isTrue();
+    assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "policyWaiverCreatedAt")).isTrue();
+    assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "-policyWaiverCreatedAt")).isTrue();
+    assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "policyWaiverThreatLevel")).isTrue();
+    assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "-policyWaiverThreatLevel")).isTrue();
     assertThat(GlobalSearchSortAllowlist.isAllowed(tab, "name"))
         .as("WAIVER must not allow name (no waiver-name sortable field)")
         .isFalse();

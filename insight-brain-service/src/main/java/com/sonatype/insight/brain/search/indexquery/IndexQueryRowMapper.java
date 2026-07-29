@@ -140,9 +140,8 @@ public final class IndexQueryRowMapper
     if (id == null) {
       return null;
     }
-    // Auto/manual is read from the indexed policyWaiverAuto discriminator. Older pre-reindex docs may
-    // lack the field (null); treat those as manual until a full reindex populates it.
-    final boolean auto = Boolean.TRUE.equals(d.policyWaiverAuto);
+    // Centralized Ana/Classic auto resolution (Document ctor + hand-built DTOs).
+    final boolean auto = d.resolvedPolicyWaiverIsAuto();
     // Manual waivers keep their real policy name. Auto-waivers carry no indexed policy name; synthesize
     // the display title here so the label is never indexed (not text-searchable, not matched by the
     // policy filter) and can change without a reindex. A manual waiver whose policy cannot be resolved
@@ -160,6 +159,7 @@ public final class IndexQueryRowMapper
         .field("policyId", d.policyWaiverPolicyId)
         .field("policyType", waiverPolicyType(d.policyWaiverPolicyType))
         .field("reason", d.policyWaiverReason)
+        .field("comment", d.policyWaiverComment)
         .field("threatLevel", d.policyWaiverThreatLevel)
         .field("createdAt", d.policyWaiverCreatedAt)
         .field("expiresAt", d.policyWaiverExpiresAt)
@@ -169,9 +169,14 @@ public final class IndexQueryRowMapper
         // the RBAC/href owner type. Fall back to the lowercased owner type for pre-reindex docs.
         .field("scope", waiverScope(d))
         .field("waivedBy", d.policyWaiverWaivedBy)
+        // "auto" is the left-nav discriminator; "isAuto" is the Ana Waivers list field (same value).
         .field("auto", auto)
+        .field("isAuto", auto)
         .field("isRequested", isRequested)
-        .field("organizationName", d.organizationName);
+        .field("organizationName", d.organizationName)
+        .field("organizationId", d.organizationId)
+        .field("applicationName", d.applicationName)
+        .field("applicationId", d.applicationId);
     if (isRequested) {
       builder
           .field("status", waiverRequestStatus(d.policyWaiverRequestStatus))

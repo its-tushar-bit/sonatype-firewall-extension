@@ -131,6 +131,8 @@ public class SearchResultItemDTO
 
   public String policyWaiverReason;
 
+  public String policyWaiverComment;
+
   public String policyWaiverCreatedAt;
 
   public String policyWaiverExpiresAt;
@@ -144,6 +146,10 @@ public class SearchResultItemDTO
   public String policyWaiverWaivedBy;
 
   public Boolean policyWaiverAuto;
+
+  public Boolean policyWaiverIsAuto;
+
+  public String policyWaiverExpiryStatus;
 
   public String policyWaiverPolicyType;
 
@@ -162,6 +168,15 @@ public class SearchResultItemDTO
   public String noteToReviewer;
 
   public int resultIndex;
+
+  /**
+   * Auto-vs-manual for WAIVER rows. Prefers Ana {@link #policyWaiverIsAuto}; falls back to Classic
+   * {@link #policyWaiverAuto} when the Ana field is absent (pre-reindex docs or DTOs not built from a
+   * Lucene {@link Document}). Null/absent → not auto.
+   */
+  public boolean resolvedPolicyWaiverIsAuto() {
+    return Boolean.TRUE.equals(policyWaiverIsAuto != null ? policyWaiverIsAuto : policyWaiverAuto);
+  }
 
   public SearchResultItemDTO() {
   }
@@ -239,6 +254,7 @@ public class SearchResultItemDTO
     policyWaiverPolicyName = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label);
     policyWaiverPolicyId = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label);
     policyWaiverReason = document.get(FieldIdentifier.POLICY_WAIVER_REASON.label);
+    policyWaiverComment = document.get(FieldIdentifier.POLICY_WAIVER_COMMENT.label);
     policyWaiverCreatedAt = document.get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label);
     policyWaiverExpiresAt = document.get(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label);
     policyWaiverScopeOwnerId = document.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label);
@@ -249,6 +265,13 @@ public class SearchResultItemDTO
     policyWaiverWaivedBy = document.get(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label);
     String policyWaiverAutoString = document.get(FieldIdentifier.POLICY_WAIVER_AUTO.label);
     policyWaiverAuto = policyWaiverAutoString == null ? null : Boolean.valueOf(policyWaiverAutoString);
+    String policyWaiverIsAutoString = document.get(FieldIdentifier.POLICY_WAIVER_IS_AUTO.label);
+    policyWaiverIsAuto = policyWaiverIsAutoString == null ? null : Boolean.valueOf(policyWaiverIsAutoString);
+    // Prefer Ana isAuto when present; fall back to left-nav discriminator for pre-reindex docs.
+    if (policyWaiverIsAuto == null) {
+      policyWaiverIsAuto = policyWaiverAuto;
+    }
+    policyWaiverExpiryStatus = document.get(FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS.label);
     policyWaiverPolicyType = document.get(FieldIdentifier.POLICY_WAIVER_POLICY_TYPE.label);
     policyWaiverScope = document.get(FieldIdentifier.POLICY_WAIVER_SCOPE.label);
     policyWaiverRequestStatus = document.get(FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS.label);

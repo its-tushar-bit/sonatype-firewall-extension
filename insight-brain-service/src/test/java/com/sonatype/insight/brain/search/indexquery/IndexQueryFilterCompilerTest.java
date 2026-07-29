@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.search.indexquery;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Clock;
@@ -94,5 +93,77 @@ public class IndexQueryFilterCompilerTest
     assertThatExceptionOfType(FilterValidationException.class)
         .isThrownBy(() -> IndexQueryFilterCompiler.compileWithClauses(
             IndexQueryType.APPLICATION, Map.of("notARealFilter", List.of("x"))));
+  }
+
+  @Test
+  public void includeAutoWaiversFalse_compilesManualOnlyChip() {
+    CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("includeAutoWaivers", false));
+    assertThat(compiled.q()).contains("policyWaiverAuto:\"false\"");
+  }
+
+  @Test
+  public void includeAutoWaiversTrue_isNoOpIncludeBoth() {
+    CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("includeAutoWaivers", true));
+    assertThat(compiled.q()).doesNotContain("policyWaiverAuto");
+    assertThat(compiled.fieldClauses()).isEmpty();
+  }
+
+  @Test
+  public void includeAutoWaiversAbsent_includesBothKinds() {
+    CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of());
+    assertThat(compiled.q()).doesNotContain("policyWaiverAuto");
+  }
+
+  @Test
+  public void isAutoTrue_compilesAutoOnlyChip() {
+    CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("isAuto", List.of("true")));
+    assertThat(compiled.q()).isEqualTo("policyWaiverIsAuto:\"true\"");
+  }
+
+  @Test
+  public void isAutoInvalidValue_rejectedWith400() {
+    assertThatExceptionOfType(FilterValidationException.class)
+        .isThrownBy(() -> IndexQueryFilterCompiler.compileWithClauses(
+            IndexQueryType.WAIVER, Map.of("isAuto", List.of("banana"))))
+        .satisfies(e -> assertThat(e.getCode()).isEqualTo(FilterValidationException.Code.INVALID_FILTER));
+  }
+
+  @Test
+  public void expiryStatus_canonicalizesCaseInsensitiveValues() {
+    CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("expiryStatus", List.of("Active", "NEVER")));
+    // active expands to (active OR never); Never remains an exact never clause.
+    assertThat(compiled.q()).contains("policyWaiverExpiryStatus:\"active\"");
+    assertThat(compiled.q()).contains("policyWaiverExpiryStatus:\"never\"");
+  }
+
+  @Test
+  public void expiryStatusActive_includesNeverExpiring() {
+    CompiledQuery compiled = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("expiryStatus", List.of("active")));
+    assertThat(compiled.q()).isEqualTo(
+        "(policyWaiverExpiryStatus:\"active\" OR policyWaiverExpiryStatus:\"never\")");
+  }
+
+  @Test
+  public void expiryStatus_invalidValue_rejectedWith400() {
+    assertThatExceptionOfType(FilterValidationException.class)
+        .isThrownBy(() -> IndexQueryFilterCompiler.compileWithClauses(
+            IndexQueryType.WAIVER, Map.of("expiryStatus", List.of("InvalidStatus"))))
+        .satisfies(e -> assertThat(e.getCode()).isEqualTo(FilterValidationException.Code.INVALID_FILTER));
+  }
+
+  @Test
+  public void policyIds_andPoliciesAlias_compileToSameField() {
+    CompiledQuery byIds = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("policyIds", List.of("pol-1")));
+    CompiledQuery byAlias = IndexQueryFilterCompiler.compileWithClauses(
+        IndexQueryType.WAIVER, Map.of("policies", List.of("pol-1")));
+    assertThat(byIds.q()).isEqualTo("policyWaiverPolicyId:\"pol-1\"");
+    assertThat(byAlias.q()).isEqualTo("policyWaiverPolicyId:\"pol-1\"");
   }
 }

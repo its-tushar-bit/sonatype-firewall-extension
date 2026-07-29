@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
@@ -65,6 +66,10 @@ public class LuceneComponents
     // Waiver-request free-text fields tokenize the same way so fielded word-level search matches.
     fieldAnalyzers.put(FieldIdentifier.REJECTION_REASON.label, standardAnalyzer);
     fieldAnalyzers.put(FieldIdentifier.NOTE_TO_REVIEWER.label, standardAnalyzer);
+    // Keyword (no lowercasing) for the Ana expiryStatus field. Indexed values are already lowercase
+    // ({@code active}/{@code expired}/{@code never}); keeping KeywordAnalyzer matches the OpenSearch
+    // keyword mapping and avoids accidental analyzer drift if vocabulary casing ever changes.
+    fieldAnalyzers.put(FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS.label, new KeywordAnalyzer());
     return new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), fieldAnalyzers);
   }
 

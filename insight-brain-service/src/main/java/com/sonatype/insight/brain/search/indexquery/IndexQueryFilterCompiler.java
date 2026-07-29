@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.sonatype.insight.brain.search.global.FilterValidationException;
+import com.sonatype.insight.brain.search.index.PolicyWaiverExpiryStatuses;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryFilterSchema.FilterDef;
 
 /**
@@ -30,7 +31,7 @@ public final class IndexQueryFilterCompiler
    * same active structured filters as the page (the free-text {@code query} refinement is not reapplied there).
    * <p>
    * {@code autoWaiverRestrictionClause} is the manual-only {@code policyWaiverAuto:"false"} clause when
-   * the compiled query restricts to manual waivers -- whether from the absent/null default OR an explicit
+   * the compiled query restricts to manual waivers -- from an explicit
    * {@code includeAutoWaivers:false} -- and null otherwise. The auto/manual facet base drops it so its
    * true/false buckets count whole-corpus regardless of which path added the restriction.
    * <p>
@@ -63,17 +64,16 @@ public final class IndexQueryFilterCompiler
   {
     final Map<String, FilterDef> schema = IndexQueryFilterSchema.forQueryType(queryType);
     final List<String> chips = new ArrayList<>();
-    // The manual-only restriction clause, if the query restricts to manual waivers (explicit-false or
-    // the absent/null default). Captured separately (not folded into fieldClauses) so the auto/manual
-    // facet base can omit it and report whole-corpus true/false counts regardless of the toggle.
+    // The manual-only restriction clause, if the query restricts to manual waivers via an explicit
+    // false. Captured separately (not folded into fieldClauses) so the auto/manual facet base can
+    // omit it and report whole-corpus true/false counts regardless of the toggle.
     String autoWaiverRestrictionClause = null;
     final List<String> waiverStatusChips = new ArrayList<>();
     // Whether the request carries a filter that implies POLICY_WAIVER_REQUEST docs: an explicit
     // waiverStates selection (which fully owns the item-type + auto/manual scoping per state), or a
-    // status filter (policyWaiverRequestStatus, request-only). When either is present the manual-only
-    // default must NOT be layered on top — the default's policyWaiverAuto:"false" restriction targets
-    // POLICY_WAIVER docs, and AND'ing it would drop every request doc (requests have no auto field),
-    // zeroing out the requested/rejected/status views.
+    // status filter (policyWaiverRequestStatus, request-only). When either is present, drop an
+    // explicit includeAutoWaivers:false restriction so it is not AND'd with request-doc clauses
+    // (requests have no policyWaiverAuto field), which would zero requested/rejected/status views.
     boolean requestScopedFilterPresent = false;
     String freeText = "";
 
@@ -114,11 +114,10 @@ public final class IndexQueryFilterCompiler
           waiverStatusChips.add(chip);
         }
         case AUTO_WAIVER_TOGGLE -> {
-          // true -> include both kinds (no clause). explicit false -> exclude auto (manual committed
-          // waivers only). Item-type-scoped, (itemType:policy_waiver AND policyWaiverAuto:"false"),
-          // for the same reason as the absent/null default below: a bare policyWaiverAuto:"false"
-          // would drop every POLICY_WAIVER_REQUEST doc by field mismatch. Recorded so the auto/manual
-          // facet base can drop it and report whole-corpus true/false counts.
+          // Classic: true/absent → both kinds (no clause). false → manual only.
+          // Item-type-scoped, (itemType:policy_waiver AND policyWaiverAuto:"false"), so a bare
+          // policyWaiverAuto:"false" does not drop every POLICY_WAIVER_REQUEST doc by field mismatch.
+          // Recorded so the auto/manual facet base can drop it and report whole-corpus counts.
           if (!compileAutoWaiverInclude(key, value)) {
             final String clause = "(" + WAIVER_TYPE_CLAUSE + " AND " + def.field() + ":\"false\")";
             chips.add(clause);
@@ -126,11 +125,23 @@ public final class IndexQueryFilterCompiler
           }
         }
         case EXPIRY_STATUS -> chips.add(compileExpiry(key, def.field(), value, clock));
+        case EXPIRY_STATUS_TERMS -> {
+          String chip = compileExpiryStatusTerms(key, def.field(), value);
+          if (chip != null) {
+            chips.add(chip);
+          }
+        }
+        case BOOLEAN_TERMS -> {
+          String chip = compileBooleanTerms(key, def.field(), value);
+          if (chip != null) {
+            chips.add(chip);
+          }
+        }
         case WAIVER_STATES -> {
           String chip = compileWaiverStates(key, value);
           if (chip != null) {
-            // Set only when a state was actually selected: an empty waiverStates:[] then behaves like
-            // an absent filter (manual-only committed default), not like a request-scoped selection.
+            // Set only when a state was actually selected: an empty waiverStates:[] behaves like an
+            // absent filter (no request-scoped override), not like a populated state selection.
             requestScopedFilterPresent = true;
             chips.add(chip);
             // The status facet base subtracts the waiver-state clauses so each fixed status count is
@@ -143,36 +154,10 @@ public final class IndexQueryFilterCompiler
       }
     }
 
-    // Default when the includeAutoWaivers toggle is absent OR present-but-null: manual committed
-    // waivers only. Expressed as an ITEM-TYPE-SCOPED clause, (itemType:policy_waiver AND
-    // policyWaiverAuto:"false"), NOT a bare policyWaiverAuto:"false": the bare form silently drops
-    // every POLICY_WAIVER_REQUEST doc (which has no policyWaiverAuto field), so it would zero out any
-    // query that should include request docs. The item-type-scoped form keeps the same manual-only
-    // default over committed waivers while excluding requests by item type rather than by an
-    // accidental field mismatch. Skipped entirely when a waiverStates filter is present — waiverStates
-    // then fully owns the item-type + auto/manual scoping per state (existing = policy_waiver AND
-    // auto:false, excluded = policy_waiver AND auto:true, requested/rejected = policy_waiver_request
-    // AND status), so layering the default on top would drop the request states. Only WAIVER carries
-    // an AUTO_WAIVER_TOGGLE entry, so skip the schema scan entirely for other entity types.
-    if (queryType == IndexQueryType.WAIVER && !requestScopedFilterPresent) {
-      for (Map.Entry<String, FilterDef> e : schema.entrySet()) {
-        final String key = e.getKey();
-        final FilterDef def = e.getValue();
-        if (def.kind() == IndexQueryFilterSchema.Kind.AUTO_WAIVER_TOGGLE
-            && (!filters.containsKey(key) || filters.get(key) == null))
-        {
-          final String clause = "(" + WAIVER_TYPE_CLAUSE + " AND " + def.field() + ":\"false\")";
-          chips.add(clause);
-          autoWaiverRestrictionClause = clause;
-        }
-      }
-    }
-    // A request-scoped filter (waiverStates/status) fully owns the item-type + auto/manual scoping per
-    // state, so drop any manual-only auto restriction added by an explicit includeAutoWaivers:false in
-    // the loop above (the absent/null default is already skipped for that case). Otherwise
-    // (itemType:policy_waiver AND auto:false) would AND with the request-doc clause
-    // (itemType:policy_waiver_request AND ...) into an impossible condition that returns 0 rows,
-    // regardless of Map iteration order.
+    // Classic includeAutoWaivers: absent/true → both kinds (no default clause).
+    // false already added the manual-only clause above. Auto-only uses isAuto TERMS.
+    // A request-scoped filter (waiverStates/status) fully owns item-type + auto/manual scoping, so
+    // drop an explicit includeAutoWaivers:false restriction that would AND into an impossible query.
     if (queryType == IndexQueryType.WAIVER && requestScopedFilterPresent && autoWaiverRestrictionClause != null) {
       chips.remove(autoWaiverRestrictionClause);
       autoWaiverRestrictionClause = null;
@@ -277,6 +262,85 @@ public final class IndexQueryFilterCompiler
       throw badRequest("filter '" + key + "' must be a string");
     }
     return sanitizeBareText(s);
+  }
+
+  /**
+   * {@code expiryStatus} TERMS over the denormalized {@code policyWaiverExpiryStatus} keyword
+   * ({@code active}/{@code expired}/{@code never}). Client values are matched case-insensitively
+   * and rewritten to the lowercase canonical form (required because {@code QueryCompiler} lowercases
+   * keyword terms).
+   * <p>
+   * {@code active} expands to {@code (active OR never)} so an Active chip does not hide never-expiring
+   * waivers — matching {@code expiry:"active"} clock semantics. Prefer {@code expiry} for Active/Expired
+   * toggles; use {@code never}/{@code expired} here for exact denormalized buckets.
+   */
+  private static String compileExpiryStatusTerms(final String key, final String field, final Object value) {
+    if (!(value instanceof List<?> list)) {
+      throw badRequest("filter '" + key + "' must be an array");
+    }
+    final List<String> clauses = new ArrayList<>();
+    for (Object element : list) {
+      if (element == null) {
+        continue;
+      }
+      final String status = String.valueOf(element).strip();
+      if (status.isEmpty()) {
+        continue;
+      }
+      final String canonical = PolicyWaiverExpiryStatuses.ALL.stream()
+          .filter(s -> s.equalsIgnoreCase(status))
+          .findFirst()
+          .orElse(null);
+      if (canonical == null) {
+        throw badRequest("filter '" + key + "' values must be one of: active, expired, never");
+      }
+      if (PolicyWaiverExpiryStatuses.ACTIVE.equals(canonical)) {
+        // Not-expired: future-dated Active plus permanent Never (same intent as expiry:"active").
+        clauses.add("(" + field + ":\"" + PolicyWaiverExpiryStatuses.ACTIVE + "\" OR " + field + ":\""
+            + PolicyWaiverExpiryStatuses.NEVER + "\")");
+      }
+      else {
+        clauses.add(field + ":\"" + canonical + "\"");
+      }
+    }
+    if (clauses.isEmpty()) {
+      return null;
+    }
+    if (clauses.size() == 1) {
+      return clauses.get(0);
+    }
+    return "(" + String.join(" OR ", clauses) + ")";
+  }
+
+  /**
+   * Boolean string TERMS for Ana {@code isAuto}. Only {@code "true"}/{@code "false"} (any case);
+   * typos 400 instead of compiling to a term that matches nothing.
+   */
+  private static String compileBooleanTerms(final String key, final String field, final Object value) {
+    if (!(value instanceof List<?> list)) {
+      throw badRequest("filter '" + key + "' must be an array");
+    }
+    final List<String> clauses = new ArrayList<>();
+    for (Object element : list) {
+      if (element == null) {
+        continue;
+      }
+      final String raw = String.valueOf(element).strip().toLowerCase(Locale.ROOT);
+      if (raw.isEmpty()) {
+        continue;
+      }
+      if (!"true".equals(raw) && !"false".equals(raw)) {
+        throw badRequest("filter '" + key + "' values must be true or false");
+      }
+      clauses.add(field + ":\"" + raw + "\"");
+    }
+    if (clauses.isEmpty()) {
+      return null;
+    }
+    if (clauses.size() == 1) {
+      return clauses.get(0);
+    }
+    return "(" + String.join(" OR ", clauses) + ")";
   }
 
   private static String compileTerms(final String key, final String field, final Object value) {

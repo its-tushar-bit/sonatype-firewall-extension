@@ -50,7 +50,7 @@ public class IndexQueryRowMapperTest
   @Test
   public void waiver_autoWithNullPolicyName_usesSyntheticAutoTitle() {
     SearchResultItemDTO d = manualWaiver();
-    d.policyWaiverAuto = Boolean.TRUE;
+    d.policyWaiverIsAuto = Boolean.TRUE;
     d.policyWaiverPolicyName = null;
     d.policyWaiverThreatLevel = 10;
 
@@ -62,13 +62,28 @@ public class IndexQueryRowMapperTest
   @Test
   public void waiver_autoWithNullPolicyNameAndNullThreat_usesBareAutoTitle() {
     SearchResultItemDTO d = manualWaiver();
-    d.policyWaiverAuto = Boolean.TRUE;
+    d.policyWaiverIsAuto = Boolean.TRUE;
     d.policyWaiverPolicyName = null;
     d.policyWaiverThreatLevel = null;
 
     IndexQueryRow row = IndexQueryRowMapper.toRow(IndexQueryType.WAIVER, d);
 
     assertThat(row.getTitle()).isEqualTo("Auto-waiver");
+  }
+
+  @Test
+  public void waiver_legacyAutoOnlyField_fallsBackForSyntheticTitle() {
+    // Hand-built / pre-reindex DTO: only Classic policyWaiverAuto is set.
+    SearchResultItemDTO d = manualWaiver();
+    d.policyWaiverAuto = Boolean.TRUE;
+    d.policyWaiverIsAuto = null;
+    d.policyWaiverPolicyName = null;
+    d.policyWaiverThreatLevel = 10;
+
+    IndexQueryRow row = IndexQueryRowMapper.toRow(IndexQueryType.WAIVER, d);
+
+    assertThat(row.getTitle()).isEqualTo("Auto-waiver (threat >= 10)");
+    assertThat(row.getFields().get("isAuto")).isEqualTo(true);
   }
 
   @Test

@@ -33,6 +33,7 @@ import jakarta.ws.rs.core.Response;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
+import com.sonatype.insight.brain.search.index.PolicyWaiverExpiryStatuses;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LowerCaseKeywordAnalyzer;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -101,6 +102,8 @@ public class IndexQueryEndpointTest
     // TermInSetQuery permission clause matches the raw context id byte-for-byte. Index it the same
     // way here (plain KeywordAnalyzer), otherwise the default lowercasing would break the match.
     perField.put(FieldIdentifier.ALLOWED_CONTEXT_IDS.label, new KeywordAnalyzer());
+    // Ana expiryStatus vocabulary is case-sensitive Active/Expired/Never (OpenSearch keyword).
+    perField.put(FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS.label, new KeywordAnalyzer());
     PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new LowerCaseKeywordAnalyzer(), perField);
     try (IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(analyzer))) {
       writer.addDocument(appDoc("acme-prod", "Acme Prod", "Acme"));
@@ -353,7 +356,7 @@ public class IndexQueryEndpointTest
 
   @Test
   public void waiverQuery_returnsWaiverRowsWithExpectedFields() {
-    // includeAutoWaivers defaults to manual-only, so include it explicitly to see both kinds here.
+    // includeAutoWaivers Classic default is both kinds; still pass true explicitly for clarity.
     IndexQueryRequest req = new IndexQueryRequest(
         "WAIVER", Map.of("includeAutoWaivers", true), 1, 25, null, null, false);
     IndexQueryResponse response = resource.query(req);
@@ -427,13 +430,13 @@ public class IndexQueryEndpointTest
 
   @Test
   public void waiverQuery_policyThreatLevelRange_narrowsByThreat() {
-    // No includeAutoWaivers -> manual-only default, so the auto w-auto-1 (threat 10) is excluded too.
+    // Classic absent includeAutoWaivers includes both kinds; threat range [7,10] keeps high-threat
+    // manuals plus auto w-auto-1 (threat 10) and drops w-acme-2 (threat 4).
     IndexQueryRequest req = new IndexQueryRequest(
         "WAIVER", Map.of("policyThreatLevel", List.of(7, 10)), 1, 25, null, null, false);
     IndexQueryResponse response = resource.query(req);
-    // threat >= 7 AND manual: w-acme-1 (8), w-widget-1 (9); excludes w-acme-2 (4) and auto w-auto-1.
     assertThat(response.rows()).extracting(IndexQueryRow::getId)
-        .containsExactlyInAnyOrder("w-acme-1", "w-widget-1");
+        .containsExactlyInAnyOrder("w-acme-1", "w-widget-1", "w-auto-1");
   }
 
   @Test
@@ -456,30 +459,48 @@ public class IndexQueryEndpointTest
   }
 
   @Test
-  public void waiverQuery_includeAutoWaiversAbsent_defaultsToManualOnly() {
+  public void waiverQuery_includeAutoWaiversAbsent_includesBothKinds() {
+    // Classic: omitting includeAutoWaivers includes both manual and auto waivers.
     IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, false);
     IndexQueryResponse response = resource.query(req);
     assertThat(response.rows()).extracting(IndexQueryRow::getId)
-        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1");
-    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-auto-1");
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1", "w-auto-1");
   }
 
   @Test
-  public void waiverQuery_includeAutoWaiversExplicitNull_defaultsToManualOnly() {
-    // An explicit JSON null must behave exactly like omitting the key: manual only, not both kinds.
+  public void waiverQuery_includeAutoWaiversExplicitNull_includesBothKinds() {
+    // Classic: explicit JSON null behaves like omitting the key — both kinds.
     Map<String, Object> filters = new HashMap<>();
     filters.put("includeAutoWaivers", null);
     IndexQueryRequest req = new IndexQueryRequest("WAIVER", filters, 1, 25, null, null, false);
     IndexQueryResponse response = resource.query(req);
     assertThat(response.rows()).extracting(IndexQueryRow::getId)
-        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1");
-    assertThat(response.rows()).extracting(IndexQueryRow::getId).doesNotContain("w-auto-1");
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-widget-1", "w-acme-app-1", "w-auto-1");
   }
 
   @Test
   public void waiverQuery_includeAutoWaiversNonBoolean_mapsTo400() {
     assertMappedStatus(
         new IndexQueryRequest("WAIVER", Map.of("includeAutoWaivers", "yes"), 1, 25, null, null, false), 400);
+  }
+
+  @Test
+  public void waiverQuery_isAutoTrue_returnsAutoOnly() {
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("isAuto", List.of("true")), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId).containsExactly("w-auto-1");
+  }
+
+  @Test
+  public void waiverQuery_expiryStatusActive_includesNeverAndExcludesExpired() {
+    // active expands to active∪never so permanent waivers are not hidden (parity with expiry:"active").
+    IndexQueryRequest req = new IndexQueryRequest(
+        "WAIVER", Map.of("expiryStatus", List.of(PolicyWaiverExpiryStatuses.ACTIVE)), 1, 25, null, null, false);
+    IndexQueryResponse response = resource.query(req);
+    assertThat(response.rows()).extracting(IndexQueryRow::getId)
+        .containsExactlyInAnyOrder("w-acme-1", "w-acme-2", "w-acme-app-1", "w-auto-1")
+        .doesNotContain("w-widget-1");
   }
 
   @Test
@@ -572,7 +593,7 @@ public class IndexQueryEndpointTest
 
   @Test
   public void waiverQuery_facetsDefaultView_autoFacetIsWholeCorpus() {
-    // Default (manual-only) view: the auto/manual facet must still report BOTH true and false counts
+    // Classic both-kinds default view: the auto/manual facet still reports BOTH true and false counts
     // over the whole corpus (it tells the user what flipping the include toggle would show), so its
     // count base must NOT inherit the default policyWaiverAuto:"false" exclusion clause.
     when(searchIndexClient.count(contains("policyWaiverAuto:\"true\""))).thenReturn(4L);
@@ -590,7 +611,7 @@ public class IndexQueryEndpointTest
 
   @Test
   public void waiverQuery_facetsExplicitIncludeAutoWaiversFalse_autoFacetIsWholeCorpus() {
-    // Explicit includeAutoWaivers:false restricts rows to manual, exactly like the absent-key default.
+    // Explicit includeAutoWaivers:false restricts rows to manual only.
     // The auto/manual facet must still report BOTH buckets over the whole corpus: the explicit-false
     // restriction must be dropped from the facet base too, not only the default one.
     when(searchIndexClient.count(contains("policyWaiverAuto:\"true\""))).thenReturn(5L);
@@ -1085,9 +1106,18 @@ public class IndexQueryEndpointTest
     doc.add(new IntPoint(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
     doc.add(new StoredField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
     doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_AUTO.label, "false", Store.YES));
+    doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_IS_AUTO.label, "false", Store.YES));
     // Mirror production: a null expiry writes no epoch point, so the doc is never in the expired range.
     if (expiresAtEpochMs != null) {
       doc.add(new LongPoint(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT_EPOCH_MS.label, expiresAtEpochMs));
+      final String status = expiresAtEpochMs < Instant.now().toEpochMilli()
+          ? PolicyWaiverExpiryStatuses.EXPIRED
+          : PolicyWaiverExpiryStatuses.ACTIVE;
+      doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS.label, status, Store.YES));
+    }
+    else {
+      doc.add(new StringField(
+          FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS.label, PolicyWaiverExpiryStatuses.NEVER, Store.YES));
     }
     doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
     doc.add(new TextField(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, orgName, Store.YES));
@@ -1130,6 +1160,9 @@ public class IndexQueryEndpointTest
     doc.add(new IntPoint(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
     doc.add(new StoredField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
     doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_AUTO.label, "false", Store.YES));
+    doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_IS_AUTO.label, "false", Store.YES));
+    doc.add(new StringField(
+        FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS.label, PolicyWaiverExpiryStatuses.NEVER, Store.YES));
     doc.add(new TextField(FieldIdentifier.APPLICATION_NAME.label, appName, Store.YES));
     doc.add(new TextField(FieldIdentifier.APPLICATION_ID.label, appId, Store.YES));
     doc.add(new TextField(FieldIdentifier.ORGANIZATION_NAME.label, orgName, Store.YES));
@@ -1148,6 +1181,9 @@ public class IndexQueryEndpointTest
     doc.add(new IntPoint(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
     doc.add(new StoredField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
     doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_AUTO.label, "true", Store.YES));
+    doc.add(new StringField(FieldIdentifier.POLICY_WAIVER_IS_AUTO.label, "true", Store.YES));
+    doc.add(new StringField(
+        FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS.label, PolicyWaiverExpiryStatuses.NEVER, Store.YES));
     // Auto waivers still carry scope owner id/type (DocumentBuilderHelper sets both), so the
     // read-side waiverHref resolves to a valid detail link like the manual/app fixtures do.
     doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label, "ORGANIZATION", Store.YES));

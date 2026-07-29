@@ -98,6 +98,8 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.DOCUMENT_KEY;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_AUTO;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_IS_AUTO;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_COMMENT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_CREATED_AT;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS;
@@ -241,6 +243,10 @@ public class DocumentBuilder
   private Optional<Field> policyWaiverWaivedBy = Optional.empty();
 
   private Optional<Field> policyWaiverAuto = Optional.empty();
+
+  private Optional<Field> policyWaiverIsAuto = Optional.empty();
+
+  private Optional<Field> policyWaiverExpiryStatus = Optional.empty();
 
   private Optional<Field> policyWaiverPolicyType = Optional.empty();
 
@@ -828,6 +834,22 @@ public class DocumentBuilder
     return this;
   }
 
+  /** Ana Waivers list alias of {@link #setPolicyWaiverAuto}; same true/false keyword values. */
+  public DocumentBuilder setPolicyWaiverIsAuto(final boolean auto) {
+    this.policyWaiverIsAuto =
+        Optional.of(new StringField(POLICY_WAIVER_IS_AUTO.label, Boolean.toString(auto), Store.YES));
+    return this;
+  }
+
+  /** Denormalized active/expired/never keyword for the Ana {@code expiryStatus} TERMS filter. */
+  public DocumentBuilder setPolicyWaiverExpiryStatus(final String status) {
+    if (status != null) {
+      this.policyWaiverExpiryStatus =
+          Optional.of(new StringField(POLICY_WAIVER_EXPIRY_STATUS.label, status, Store.YES));
+    }
+    return this;
+  }
+
   public DocumentBuilder setPolicyWaiverWaivedBy(final String waivedBy) {
     if (waivedBy != null) {
       this.policyWaiverWaivedBy = Optional.of(new TextField(POLICY_WAIVER_WAIVED_BY.label, waivedBy, Store.YES));
@@ -1073,6 +1095,8 @@ public class DocumentBuilder
     policyWaiverThreatLevel.ifPresent(this::setFields);
     policyWaiverWaivedBy.ifPresent(this::setFields);
     policyWaiverAuto.ifPresent(this::setFields);
+    policyWaiverIsAuto.ifPresent(this::setFields);
+    policyWaiverExpiryStatus.ifPresent(this::setFields);
     policyWaiverPolicyType.ifPresent(this::setFields);
     policyWaiverScope.ifPresent(this::setFields);
     policyWaiverRequestStatus.ifPresent(this::setFields);

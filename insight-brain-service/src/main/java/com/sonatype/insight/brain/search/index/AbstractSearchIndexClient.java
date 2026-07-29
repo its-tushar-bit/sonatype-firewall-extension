@@ -994,9 +994,24 @@ public abstract class AbstractSearchIndexClient
   /**
    * Context IDs (org and/or app) on which the current user has READ; input to
    * {@link #buildAllowedContextIdsFilter(Set)}.
+   * <p>
+   * Routes through {@link #resolveReadableContextIdsForCurrentUser()} so global/unrestricted
+   * principals short-circuit via {@link ReadableContextAuthzCache} instead of enumerating every
+   * membership row (estate-scale admins can have tens of thousands of Owner mappings). Unrestricted
+   * access is signaled as {@link MembershipMapping#GLOBAL_CONTEXT_ID} so
+   * {@link #buildAllowedContextIdsLuceneFilter(Set)} applies no filter.
+   * <p>
+   * This short-circuit is intentional for <em>all</em> entity types that use this path (APPLICATION,
+   * VIOLATION, WAIVER, …), not WAIVER-only: the authz cache is the single source of truth.
+   * Production callers are gated behind {@code GLOBAL_SEARCH} ({@code IndexQueryResource},
+   * {@code GlobalSearchResource} → {@code IqLocalSearchService}).
    */
   public Set<String> getCurrentUserContextIdsWithReadPermission() {
-    return permissionService.getContextIdsForUserWithPermission(currentUser.getUserPrincipal(), Permission.READ);
+    final Optional<Map<String, OwnerType>> contexts = resolveReadableContextIdsForCurrentUser();
+    if (contexts.isEmpty()) {
+      return Set.of(MembershipMapping.GLOBAL_CONTEXT_ID);
+    }
+    return contexts.get().keySet();
   }
 
   /**

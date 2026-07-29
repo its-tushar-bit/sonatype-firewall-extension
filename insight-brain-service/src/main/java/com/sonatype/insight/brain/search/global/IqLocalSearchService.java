@@ -418,7 +418,9 @@ public class IqLocalSearchService
     if (!SORT_BY_FIELD_ENABLED) {
       return null;
     }
-    FieldIdentifier indexField = SORTABLE_FIELD_BY_KEY.getOrDefault(tab, Collections.emptyMap()).get(sortKey);
+    final boolean descendingPrefix = sortKey.startsWith("-");
+    final String bareKey = descendingPrefix ? sortKey.substring(1) : sortKey;
+    FieldIdentifier indexField = SORTABLE_FIELD_BY_KEY.getOrDefault(tab, Collections.emptyMap()).get(bareKey);
     if (indexField == null) {
       log.warn("Sort key '{}' is allowlisted for tab {} but has no IQ-local index field; "
           + "this is an invariant violation — falling back to relevance.", sortKey, tab);
@@ -426,8 +428,12 @@ public class IqLocalSearchService
     }
     // "oldest" reuses the created-at epoch twin (a NUMERIC_DESC field) but ASCENDING, so it cannot go
     // through the field-based dispatch in buildSortField; force ascending here (missing create time last).
-    if (GlobalSearchSortAllowlist.WAIVER_OLDEST.equals(sortKey)) {
+    if (GlobalSearchSortAllowlist.WAIVER_OLDEST.equals(bareKey)) {
       return ascendingNumericSort(indexField.label);
+    }
+    // Ana Waivers list keys honor an optional "-" descending prefix; without it they sort ascending.
+    if (ANA_DIRECTIONAL_SORT_KEYS.contains(bareKey)) {
+      return buildSortField(indexField, descendingPrefix);
     }
     return buildSortField(indexField);
   }
@@ -489,6 +495,28 @@ public class IqLocalSearchService
   }
 
   /**
+   * Directional overload for Ana sort keys that use an optional {@code -} descending prefix. Left-nav
+   * keys continue to use {@link #buildSortField(FieldIdentifier)} (field-default direction).
+   */
+  static Sort buildSortField(final FieldIdentifier indexField, final boolean reverse) {
+    if (FLOAT_SORT_FIELDS.contains(indexField)) {
+      SortedNumericSortField sortField =
+          new SortedNumericSortField(indexField.label, SortField.Type.FLOAT, reverse);
+      sortField.setMissingValue(reverse ? Float.NEGATIVE_INFINITY : Float.POSITIVE_INFINITY);
+      return new Sort(sortField);
+    }
+    if (NUMERIC_DESC_SORT_FIELDS.contains(indexField) || NUMERIC_ASC_SORT_FIELDS.contains(indexField)) {
+      SortedNumericSortField sortField =
+          new SortedNumericSortField(indexField.label, SortField.Type.LONG, reverse);
+      sortField.setMissingValue(reverse ? NUMERIC_MISSING_LAST : NUMERIC_ASC_MISSING_LAST);
+      return new Sort(sortField);
+    }
+    SortField sortField = new SortField(indexField.label, SortField.Type.STRING, reverse);
+    sortField.setMissingValue(reverse ? SortField.STRING_FIRST : SortField.STRING_LAST);
+    return new Sort(sortField);
+  }
+
+  /**
    * Ascending numeric sort over a doc-values twin (forward LONG); a doc with no value sorts LAST via
    * {@link #NUMERIC_ASC_MISSING_LAST}. Shared by the {@code NUMERIC_ASC_SORT_FIELDS} dispatch and the
    * {@code oldest} created-at special case (created-at lives in {@code NUMERIC_DESC_SORT_FIELDS}, so it
@@ -505,6 +533,11 @@ public class IqLocalSearchService
    * first). Every field not in {@link #NUMERIC_ASC_SORT_FIELDS} or this set sorts ascending as a
    * lower-cased keyword string.
    */
+  /** Ana Waivers list sort keys that honor an optional "-" descending prefix. */
+  private static final Set<String> ANA_DIRECTIONAL_SORT_KEYS = Set.of(
+      "policyWaiverCreatedAt",
+      "policyWaiverThreatLevel");
+
   private static final Set<FieldIdentifier> NUMERIC_DESC_SORT_FIELDS = Set.of(
       APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS,
       APPLICATION_MAX_POLICY_THREAT_LEVEL,
@@ -538,7 +571,11 @@ public class IqLocalSearchService
    * drift guard test to prove the allowlist and this map cannot diverge while the flag is off.
    */
   static FieldIdentifier sortableIndexFieldFor(final Tab tab, final String sortKey) {
-    return SORTABLE_FIELD_BY_KEY.getOrDefault(tab, Collections.emptyMap()).get(sortKey);
+    if (sortKey == null) {
+      return null;
+    }
+    final String bareKey = sortKey.startsWith("-") ? sortKey.substring(1) : sortKey;
+    return SORTABLE_FIELD_BY_KEY.getOrDefault(tab, Collections.emptyMap()).get(bareKey);
   }
 
   private static final Map<Tab, Map<String, FieldIdentifier>> SORTABLE_FIELD_BY_KEY = buildSortableFieldMap();
@@ -581,7 +618,10 @@ public class IqLocalSearchService
         // "oldest" reuses the created-at twin but sorts ascending (see sortFor).
         GlobalSearchSortAllowlist.WAIVER_OLDEST, POLICY_WAIVER_CREATED_AT_EPOCH_MS,
         GlobalSearchSortAllowlist.WAIVER_THREAT, POLICY_WAIVER_THREAT_LEVEL,
-        GlobalSearchSortAllowlist.WAIVER_EXPIRATION, POLICY_WAIVER_EXPIRES_AT_EPOCH_MS));
+        GlobalSearchSortAllowlist.WAIVER_EXPIRATION, POLICY_WAIVER_EXPIRES_AT_EPOCH_MS,
+        // Ana Waivers list sort tokens (direction via optional "-" prefix in sortFor).
+        "policyWaiverCreatedAt", POLICY_WAIVER_CREATED_AT_EPOCH_MS,
+        "policyWaiverThreatLevel", POLICY_WAIVER_THREAT_LEVEL));
     return Collections.unmodifiableMap(m);
   }
 

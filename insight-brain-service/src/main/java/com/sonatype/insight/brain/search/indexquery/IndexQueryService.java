@@ -80,11 +80,12 @@ public class IndexQueryService
       IndexQueryType.POLICY, List.of(
           Facet.value("policyTypes", "policyType", "policyThreatCategory"),
           Facet.value("organizations", "organizationName", "organizationName")),
-      // organizationName is the org owner display name surfaced on org-scoped waiver rows; the count
-      // resolves through the organizationName index field (rewritten to parentOrganizationName). auto is
-      // the auto-vs-manual discriminator counted over the whole corpus (see FacetMode.AUTO_WAIVER_TOGGLE).
-      // threatLevel is a numeric IntPoint, so it counts per discrete value via an exact-value range
-      // [v TO v] rather than a phrase-quoted term (which does not match a point field).
+      // organizationName is the immediate org display name on waiver rows (app- and org-scoped); the
+      // count resolves through the organizationName index field (rewritten to parentOrganizationName).
+      // auto is the auto-vs-manual discriminator counted over the whole corpus
+      // (see FacetMode.AUTO_WAIVER_TOGGLE). threatLevel is a numeric IntPoint, so it counts per
+      // discrete value via an exact-value range [v TO v] rather than a phrase-quoted term (which does
+      // not match a point field).
       // scope buckets by the indexed policyWaiverScope field: "application", "organization", or
       // "component" (when the waiver/request targets a specific component rather than all components in
       // the owner scope), so a page containing a component-targeted waiver surfaces a component bucket.
@@ -460,7 +461,7 @@ public class IndexQueryService
         case STATES -> fixedBuckets(fixedFacetBaseQuery, budget, truncated, stateClauses());
         case WAIVER_TYPES -> fixedBuckets(fixedFacetBaseQuery, budget, truncated, waiverTypeClauses());
         // The auto/manual toggle reports true/false counts over the whole corpus regardless of a
-        // manual-only view (from the default OR an explicit includeAutoWaivers:false), so it counts
+        // manual-only view (from an explicit includeAutoWaivers:false), so it counts
         // against a base that drops the policyWaiverAuto:"false" restriction. Otherwise the base would
         // carry it and the "true" bucket would always count 0.
         case AUTO_WAIVER_TOGGLE -> autoWaiverToggleBuckets(
@@ -684,7 +685,7 @@ public class IndexQueryService
 
   /**
    * Facet-count base for the auto/manual facet, dropping the manual-only {@code policyWaiverAuto:"false"}
-   * restriction (whether it came from the absent/null default OR an explicit {@code includeAutoWaivers:false})
+   * restriction (from an explicit {@code includeAutoWaivers:false})
    * so both true and false buckets count over the whole corpus -- the toggle facet tells the user what they
    * would see if they flipped the include toggle. An explicit {@code true} adds no restriction, so this is a
    * no-op difference in that case.

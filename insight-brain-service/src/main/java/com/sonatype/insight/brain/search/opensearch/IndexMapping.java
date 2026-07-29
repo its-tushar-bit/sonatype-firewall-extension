@@ -137,6 +137,8 @@ public class IndexMapping
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label, createProperty("keyword"));
     // Auto-vs-manual discriminator stored as the keyword string "true"/"false".
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_AUTO.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_IS_AUTO.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_WAIVER_EXPIRY_STATUS.label, createProperty("keyword"));
     // Denormalized policy threat category on POLICY_WAIVER + POLICY_WAIVER_REQUEST docs (keyword so the
     // policyType facet/filter matches whole). Same fresh-index-only caveat as the other waiver fields.
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_TYPE.label, createProperty("keyword"));

@@ -1578,6 +1578,7 @@ public class DocumentBuilderHelperTest
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label)).isEqualTo("ORGANIZATION");
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_WAIVED_BY.label)).isEqualTo(waiver.getCreatorName());
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label)).isNotBlank();
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_IS_AUTO.label)).isEqualTo("false");
     assertThat(doc.getField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label).numericValue().intValue())
         .isEqualTo(8);
   }
@@ -1654,11 +1655,60 @@ public class DocumentBuilderHelperTest
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_ID.label)).isEqualTo(organization.getId());
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_SCOPE_OWNER_TYPE.label)).isEqualTo("ORGANIZATION");
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_CREATED_AT.label)).isNotBlank();
+    assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_IS_AUTO.label)).isEqualTo("true");
     // Auto-waivers carry no policy id, reason, comment, or expiry.
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label)).isNull();
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_REASON.label)).isNull();
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_COMMENT.label)).isNull();
     assertThat(doc.get(FieldIdentifier.POLICY_WAIVER_EXPIRES_AT.label)).isNull();
+  }
+
+  @Test
+  public void testBuildDocument_PolicyWaiver_indexesFullParentOrganizationChain() {
+    Organization grandparent = tempEntity.newOrganization();
+    Organization parent = tempEntity.newOrganization(grandparent);
+    Organization child = tempEntity.newOrganization(parent);
+    Policy policy = tempEntity.newPolicy(child.getId(), "nested policy", 4);
+    PolicyWaiver waiver = tempEntity.newWaiver("hash-nested", policy.getId(), child.getId(), "comment");
+    when(indexingContextMock.getOwner(child.getId())).thenReturn(child);
+    when(indexingContextMock.getOwner(parent.getId())).thenReturn(parent);
+    when(indexingContextMock.getOwner(grandparent.getId())).thenReturn(grandparent);
+    when(indexingContextMock.getAncestorOrgIds(child))
+        .thenReturn(List.of(child.getId(), parent.getId(), grandparent.getId()));
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, waiver);
+
+    assertThat(stringValuesOf(doc, FieldIdentifier.PARENT_ORGANIZATION_NAME))
+        .containsExactlyInAnyOrder(child.getName(), parent.getName(), grandparent.getName());
+    assertThat(stringValuesOf(doc, FieldIdentifier.PARENT_ORGANIZATION_ID))
+        .containsExactlyInAnyOrder(child.getId(), parent.getId(), grandparent.getId());
+  }
+
+  @Test
+  public void testBuildDocument_appScopedPolicyWaiver_indexesAppOrgAndFullParentChain() {
+    Organization grandparent = tempEntity.newOrganization();
+    Organization parent = tempEntity.newOrganization(grandparent);
+    Organization child = tempEntity.newOrganization(parent);
+    Application application = tempEntity.newApplication(child.getId());
+    Policy policy = tempEntity.newPolicy(child.getId(), "app nested policy", 4);
+    PolicyWaiver waiver = tempEntity.newWaiver("hash-app-nested", policy.getId(), application.getId(), "comment");
+    when(indexingContextMock.getOwner(application.getId())).thenReturn(application);
+    when(indexingContextMock.getOwner(child.getId())).thenReturn(child);
+    when(indexingContextMock.getOwner(parent.getId())).thenReturn(parent);
+    when(indexingContextMock.getOwner(grandparent.getId())).thenReturn(grandparent);
+    when(indexingContextMock.getAncestorOrgIds(child))
+        .thenReturn(List.of(child.getId(), parent.getId(), grandparent.getId()));
+
+    Document doc = documentBuilderHelper.buildDocument(indexingContextMock, waiver);
+
+    assertThat(doc.get(FieldIdentifier.APPLICATION_ID.label)).isEqualTo(application.getId());
+    assertThat(doc.get(FieldIdentifier.APPLICATION_NAME.label)).isEqualTo(application.getName());
+    assertThat(doc.get(FieldIdentifier.ORGANIZATION_ID.label)).isEqualTo(child.getId());
+    assertThat(doc.get(FieldIdentifier.ORGANIZATION_NAME.label)).isEqualTo(child.getName());
+    assertThat(stringValuesOf(doc, FieldIdentifier.PARENT_ORGANIZATION_NAME))
+        .containsExactlyInAnyOrder(child.getName(), parent.getName(), grandparent.getName());
+    assertThat(stringValuesOf(doc, FieldIdentifier.PARENT_ORGANIZATION_ID))
+        .containsExactlyInAnyOrder(child.getId(), parent.getId(), grandparent.getId());
   }
 
   @Test

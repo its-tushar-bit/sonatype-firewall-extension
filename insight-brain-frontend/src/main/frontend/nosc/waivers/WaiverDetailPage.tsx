@@ -83,7 +83,7 @@ function classicWaiverDetailHref(route: ParsedRoute): string {
     return classicHref('/dashboard/waiverRequests');
   }
   return classicHref(
-    `/waiver/details/${encodeURIComponent(route.ownerType)}/${encodeURIComponent(route.ownerId)}/${encodeURIComponent(route.waiverId)}/waiver`,
+    `/waiver/${encodeURIComponent(route.ownerType)}/${encodeURIComponent(route.ownerId)}/${encodeURIComponent(route.waiverId)}`,
   );
 }
 

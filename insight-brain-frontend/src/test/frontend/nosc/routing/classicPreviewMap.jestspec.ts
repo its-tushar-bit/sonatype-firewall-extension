@@ -36,23 +36,37 @@ describe('classicPreviewMap', () => {
     });
 
     it('maps generic /dashboard/<tab> URLs to /dashboard', () => {
-      // Classic has /dashboard/violations, /dashboard/waivers, etc. They collapse
+      // Classic has /dashboard/violations, /dashboard/waiverRequests, etc. They collapse
       // to the single Preview Dashboard surface via the prefix-match in
       // CLASSIC_PREFIX_TO_NEXUS_ONE.
       //
-      // Exceptions with dedicated mappings: /dashboard/applications → /applications
-      // and /dashboard/components → /components (asserted in the next tests).
+      // Exceptions with dedicated mappings: /dashboard/applications → /applications,
+      // /dashboard/components → /components, and /dashboard/waivers → /dashboard/waivers
+      // (asserted in the next tests).
       expect(toNexusOneEquivalent('/dashboard/violations')).toBe('/dashboard');
-      expect(toNexusOneEquivalent('/dashboard/waivers')).toBe('/dashboard');
+      expect(toNexusOneEquivalent('/dashboard/reports')).toBe('/dashboard');
+    });
+
+    it('maps the Classic waivers dashboard to the Preview waivers tab', () => {
+      // /dashboard/waivers has its own Preview surface (nexusOneDashboard.waivers), so it
+      // must round-trip to /dashboard/waivers rather than collapsing to the dashboard root
+      // via the /dashboard/ catch-all. This is the toggle target for the app waivers
+      // "Manage in Classic" link (CLM-43501).
+      expect(toNexusOneEquivalent('/dashboard/waivers')).toBe('/dashboard/waivers');
     });
 
     it('maps Classic application list to /applications', () => {
-      // Classic has two app-list URLs that both round-trip to
-      // /applications: the Dashboard's Applications tab (canonical
-      // toggle target) and the Orgs & Policies management view (used by
+      // Classic has app-list URLs that round-trip to /applications: the Dashboard's Applications
+      // tab (canonical toggle target) and the Orgs & Policies management view (used by
       // search-result click-through with a publicId suffix).
       expect(toNexusOneEquivalent('/dashboard/applications')).toBe('/applications');
       expect(toNexusOneEquivalent('/management/view/application')).toBe('/applications');
+    });
+
+    it('maps the Classic source-control edit config to /applications (CLM-43501)', () => {
+      expect(toNexusOneEquivalent('/management/edit/application/apple-java1/source-control')).toBe(
+        '/applications',
+      );
     });
 
     it('maps Classic components dashboard tab to /components', () => {
@@ -165,6 +179,12 @@ describe('classicPreviewMap', () => {
   describe('toClassicEquivalent (Preview -> Classic)', () => {
     it('maps /dashboard back to Classic Dashboard root', () => {
       expect(toClassicEquivalent('/dashboard')).toBe('/dashboard/violations');
+    });
+
+    it('maps the native Waivers tab back to the Classic Waivers tab', () => {
+      // /dashboard/waivers is a native Nexus One tab (nexusOneDashboard.waivers); it must toggle
+      // to the Classic Waivers tab, not be swallowed by the /dashboard prefix into Violations.
+      expect(toClassicEquivalent('/dashboard/waivers')).toBe('/dashboard/waivers');
     });
 
     it('maps /applications back to /dashboard/applications', () => {
@@ -392,6 +412,7 @@ describe('classicPreviewMap', () => {
     // Important for "switch to Preview, change my mind, switch back" UX.
     it.each([
       ['/dashboard'],
+      ['/dashboard/waivers'],
       ['/applications'],
       ['/vulnerabilities'],
       ['/ui-settings'],

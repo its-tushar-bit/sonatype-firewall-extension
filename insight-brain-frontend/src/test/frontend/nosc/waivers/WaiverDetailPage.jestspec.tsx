@@ -87,13 +87,14 @@ describe('WaiverDetailPage', () => {
       'Approved in CHG-12345',
     );
 
-    // Classic escapes.
-    expect(screen.getByTestId('preview-waiver-detail-classic-link')).toHaveAttribute(
+    // Classic escapes. Must match the registered `waiver.details` route
+    // (`/waiver/{ownerType}/{ownerId}/{waiverId}`), not a spurious `details/`/`/waiver` shape.
+    const classicLink = screen.getByTestId('preview-waiver-detail-classic-link');
+    expect(classicLink).toHaveAttribute(
       'href',
-      expect.stringContaining(
-        `/waiver/details/${ROUTE.ownerType}/${ROUTE.ownerId}/${ROUTE.waiverId}/waiver`,
-      ),
+      expect.stringContaining(`/waiver/${ROUTE.ownerType}/${ROUTE.ownerId}/${ROUTE.waiverId}`),
     );
+    expect(classicLink.getAttribute('href')).not.toContain('/waiver/details/');
   });
 
   it('composes the Scope, Component and Expires meta strip from the v2 payload', async () => {

@@ -411,20 +411,20 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                       Manage Waivers
                     </Flex>
                   </ButtonLink>
-                  {appData?.id && (
-                    <ButtonLink
-                      href={classicHref(`/${appData.id}/source-control/management`)}
-                      size="2"
-                      variant="soft"
-                      color="gray"
-                      data-testid="nosc-app-detail-quick-action-source-control"
-                    >
-                      <Flex align="center" gap="2">
-                        <DomainIcons.SourceControl size={14} />
-                        Source Control
-                      </Flex>
-                    </ButtonLink>
-                  )}
+                  <ButtonLink
+                    href={classicHref(
+                      `/management/edit/application/${encodeURIComponent(publicId)}/source-control`,
+                    )}
+                    size="2"
+                    variant="soft"
+                    color="gray"
+                    data-testid="nosc-app-detail-quick-action-source-control"
+                  >
+                    <Flex align="center" gap="2">
+                      <DomainIcons.SourceControl size={14} />
+                      Source Control
+                    </Flex>
+                  </ButtonLink>
                   <ButtonLink
                     href={stateService.href(comingSoonStateName('reports'))}
                     size="2"

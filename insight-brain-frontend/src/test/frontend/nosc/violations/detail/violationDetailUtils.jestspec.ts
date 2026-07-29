@@ -52,9 +52,7 @@ describe('violationDetailUtils', () => {
   });
 
   it('builds Classic-bundle escape URLs for violation and vulnerability', () => {
-    expect(classicViolationHref('violation-123')).toContain(
-      '/sidebarView/violation/violation-123',
-    );
+    expect(classicViolationHref('violation-123')).toContain('/violation/violation-123');
     expect(classicViolationHref('violation-123')).toMatch(/\/assets\/index\.html#/);
     expect(classicVulnerabilityHref('CVE-2026-0001')).toContain('/vulnerabilities/CVE-2026-0001');
     expect(classicVulnerabilityHref('CVE-2026-0001')).toMatch(/\/assets\/index\.html#/);

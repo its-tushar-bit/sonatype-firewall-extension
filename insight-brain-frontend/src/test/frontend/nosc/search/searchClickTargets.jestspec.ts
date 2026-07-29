@@ -73,6 +73,18 @@ describe('clickHrefFor', () => {
     );
   });
 
+  it('Policy Violation → Classic violation-detail sidebar', () => {
+    expect(clickHrefFor(dto('POLICY_VIOLATION', { policyViolationId: 'pv-1' }))).toBe(
+      `${CLASSIC}#/violation/pv-1`,
+    );
+  });
+
+  it('Waiver → Classic violation-detail sidebar (shares the violation deep-link)', () => {
+    expect(clickHrefFor(dto('WAIVER', { policyViolationId: 'pv-1' }))).toBe(
+      `${CLASSIC}#/violation/pv-1`,
+    );
+  });
+
   it('Component → Nexus One home until native component detail ships', () => {
     expect(clickHrefFor(dto('NON_VULNERABLE_COMPONENT', { componentHash: 'abc123' }))).toBe('#/home');
   });

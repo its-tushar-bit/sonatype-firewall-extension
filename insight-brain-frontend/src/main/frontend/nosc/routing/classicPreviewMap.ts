@@ -60,6 +60,9 @@ const COMING_SOON_ENTRIES: ReadonlyArray<readonly [string, string]> = [
 ];
 
 const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
+  // Native Waivers tab (nexusOneDashboard.waivers at /dashboard/waivers) toggles to the Classic
+  // Waivers tab. Must precede /dashboard so it isn't swallowed by that prefix into Violations.
+  ['/dashboard/waivers', '/dashboard/waivers'],
   ['/dashboard', '/dashboard/violations'],
   ['/applications', '/dashboard/applications'],
   ['/components', '/dashboard/components'],
@@ -92,8 +95,10 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
 const CLASSIC_PREFIX_TO_NEXUS_ONE: ReadonlyArray<readonly [string, string]> = [
   ['/dashboard/applications', '/applications'],
   ['/dashboard/components', '/components'],
+  ['/dashboard/waivers', '/dashboard/waivers'],
   ['/dashboard/', '/dashboard'],
   ['/management/view/application', '/applications'],
+  ['/management/edit/application', '/applications'],
 ];
 
 function stripHashPrefix(path: string): string {

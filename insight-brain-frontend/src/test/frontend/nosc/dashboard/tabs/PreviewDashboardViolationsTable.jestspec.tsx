@@ -125,7 +125,7 @@ describe('PreviewDashboardViolationsTable', () => {
     renderWrapped(loadedState);
     expect(screen.getByTestId('nosc-dashboard-violations-row-detail-link')).toHaveAttribute(
       'href',
-      'http://localhost/assets/index.html#/sidebarView/violation/pv-1',
+      'http://localhost/assets/index.html#/violation/pv-1',
     );
   });
 });

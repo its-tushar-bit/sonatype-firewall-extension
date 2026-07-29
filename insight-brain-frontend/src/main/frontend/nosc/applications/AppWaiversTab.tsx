@@ -54,7 +54,7 @@ export function AppWaiversTab({
         </Text>
         <RadixLink
           size="2"
-          href={classicHref(`/management/view/application/${encodeURIComponent(publicId)}/waivers`)}
+          href={classicHref('/dashboard/waivers')}
           data-testid="nosc-app-detail-waivers-classic-link"
         >
           Manage in Classic →

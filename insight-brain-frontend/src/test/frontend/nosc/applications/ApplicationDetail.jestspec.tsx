@@ -270,6 +270,24 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     expect(screen.getByTestId('nosc-app-detail-quick-actions-card')).toBeInTheDocument();
   });
 
+  it('Source Control quick action links to the Classic source-control config for the application', async () => {
+    // publicId is user-supplied and lands in a Classic hash route, so a `/` (or other
+    // reserved char) must be percent-encoded or it breaks the destination.
+    const publicId = 'app/with/slashes';
+    axiosMock.onGet(getApplicationUrl(publicId)).reply(200, { ...APPLICATION_FIXTURE, publicId });
+
+    renderNexusOneApplicationDetail(publicId);
+
+    const quickActions = await screen.findByTestId('nosc-app-detail-quick-actions-card');
+    const sourceControl = within(quickActions).getByTestId(
+      'nosc-app-detail-quick-action-source-control',
+    );
+    expect(sourceControl).toHaveAttribute(
+      'href',
+      expect.stringContaining('/management/edit/application/app%2Fwith%2Fslashes/source-control'),
+    );
+  });
+
   it('Overview Policy Compliance card shows total + open + waived counts derived from policythreats.json', async () => {
     mockHappyPath(axiosMock);
     renderAppDetail();
@@ -516,12 +534,10 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     expect(await screen.findByText('Critical CVSS 9+')).toBeInTheDocument();
     // Backend was filtered to this application's internal id.
     expect(postedBody?.applicationIds).toEqual([INTERNAL_ID]);
-    // "Manage in Classic" link points at the application's waivers tab.
+    // "Manage in Classic" link opens Classic's waivers dashboard (there is no
+    // per-application waivers route in Classic).
     const classicLink = within(tab).getByTestId('nosc-app-detail-waivers-classic-link');
-    expect(classicLink).toHaveAttribute(
-      'href',
-      expect.stringContaining(`/management/view/application/${PUBLIC_ID}/waivers`),
-    );
+    expect(classicLink).toHaveAttribute('href', expect.stringContaining('/dashboard/waivers'));
     // Detail link uses the native /waivers/{type}/{id}/{wid} route.
     const detail = within(tab).getByTestId('nosc-app-detail-waivers-table-row-detail-link');
     expect(detail).toHaveAttribute(

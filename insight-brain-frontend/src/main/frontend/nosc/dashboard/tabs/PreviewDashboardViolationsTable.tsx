@@ -42,10 +42,10 @@ import {
  * parallel slice, no new HTTP endpoint. Filter rail changes still
  * propagate through the Classic dispatch chain.
  *
- * Click-through: each row navigates to the Classic violation-detail
- * sidebar via the shared `violationSidebarHref` helper — there is no
- * Preview-side violation detail page yet. This matches the Classic
- * row's behavior of dispatching `stateGo('sidebarView.violation', …)`
+ * Click-through: each row deliberately hands off to the Classic
+ * violation-detail sidebar via the shared `violationSidebarHref` helper
+ * rather than the native Nexus One `/violations/{id}` page. This matches
+ * the Classic row's behavior of dispatching `stateGo('sidebarView.violation', …)`
  * but via a plain `<Link href>` so the user stays in the Nexus One
  * shell until they explicitly click into Classic detail.
  *
@@ -57,8 +57,7 @@ import {
  * these are deferred (see PreviewViolationsTab doc + PR description).
  */
 
-function violationDetailHref(v: PreviewDashboardViolation): string {
-  // No Preview-side violation detail page yet; deep-link to Classic via the shared, context-path-aware helper.
+function classicViolationRowHref(v: PreviewDashboardViolation): string {
   return violationSidebarHref(v.policyViolationId);
 }
 
@@ -150,7 +149,7 @@ export default function PreviewDashboardViolationsTable(): JSX.Element {
               </Table.Cell>
               <Table.Cell>
                 <Link
-                  href={violationDetailHref(v)}
+                  href={classicViolationRowHref(v)}
                   underline="hover"
                   data-testid="nosc-dashboard-violations-row-detail-link"
                 >

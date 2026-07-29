@@ -402,11 +402,45 @@ public class ApplicationComponentDAO
       int page,
       int pageSize)
   {
+    return getComponentsRiskFiltered(
+        applicationIds,
+        stageTypes,
+        policyThreatCategoryFilter,
+        policyThreatLevelFilter == null ? null : List.of(policyThreatLevelFilter),
+        policyViolationStateFilter,
+        orderBy,
+        page,
+        pageSize,
+        null);
+  }
+
+  /**
+   * Threat levels may be a single contiguous range or several OR'd ranges (Martha multi-bucket
+   * selection). Multiple ranges are applied as {@code (BETWEEN … OR BETWEEN …)} so gap levels are
+   * not included in score aggregation.
+   * <p>
+   * When {@code componentHashes} is non-empty, only those hashes are aggregated — used by Martha
+   * page-card enrichment so SQL cost stays proportional to the visible page (≤100 hashes).
+   */
+  public List<ApplicationComponentRisk> getComponentsRiskFiltered(
+      Set<String> applicationIds,
+      Set<String> stageTypes,
+      Set<String> policyThreatCategoryFilter,
+      List<Entry<Integer, Integer>> policyThreatLevelRanges,
+      Set<String> policyViolationStateFilter,
+      String orderBy,
+      int page,
+      int pageSize,
+      Set<String> componentHashes)
+  {
     if (!isDatabasePostgresql()) {
       throw new UnsupportedOperationException("This operation is only supported for PostgreSQL databases");
     }
 
     if (applicationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    if (componentHashes != null && componentHashes.isEmpty()) {
       return Collections.emptyList();
     }
 
@@ -422,16 +456,29 @@ public class ApplicationComponentDAO
       if (!useTemporaryTable) {
         whereCondition = whereCondition.and(pv.APPLICATION_ID.in(applicationIds));
       }
+      if (componentHashes != null && !componentHashes.isEmpty()) {
+        whereCondition = whereCondition.and(pv.HASH.in(componentHashes));
+      }
       if (!stageTypes.isEmpty()) {
         whereCondition = whereCondition.and(pv.STAGE_TYPE_ID.in(stageTypes));
       }
       if (!policyThreatCategoryFilter.isEmpty()) {
         whereCondition = whereCondition.and(pv.THREAT_CATEGORY.in(policyThreatCategoryFilter));
       }
-      if (policyThreatLevelFilter != null) {
-        whereCondition = whereCondition.and(pv.THREAT_LEVEL.between(
-            policyThreatLevelFilter.getKey().shortValue(),
-            policyThreatLevelFilter.getValue().shortValue()));
+      if (policyThreatLevelRanges != null && !policyThreatLevelRanges.isEmpty()) {
+        Condition threatCondition = null;
+        for (Entry<Integer, Integer> range : policyThreatLevelRanges) {
+          if (range == null || range.getKey() == null || range.getValue() == null) {
+            continue;
+          }
+          Condition between = pv.THREAT_LEVEL.between(
+              clampThreatLevel(range.getKey()),
+              clampThreatLevel(range.getValue()));
+          threatCondition = threatCondition == null ? between : threatCondition.or(between);
+        }
+        if (threatCondition != null) {
+          whereCondition = whereCondition.and(threatCondition);
+        }
       }
       if (!policyViolationStateFilter.isEmpty()
           && !policyViolationStateFilter.containsAll(List.of("WAIVED", "LEGACY_VIOLATION", "OPEN")))
@@ -540,6 +587,14 @@ public class ApplicationComponentDAO
           r.get("scoreModerate", Integer.class),
           r.get("scoreLow", Integer.class)));
     }
+  }
+
+  /**
+   * Policy threat levels are 0–10. Callers may pass {@link Integer#MAX_VALUE} as an unbounded max;
+   * casting that to {@code short} wraps to {@code -1} and breaks {@code BETWEEN}.
+   */
+  public static short clampThreatLevel(final int level) {
+    return (short) Math.max(0, Math.min(level, 10));
   }
 
   private boolean requiresManualFilter(Collection<?> items) {

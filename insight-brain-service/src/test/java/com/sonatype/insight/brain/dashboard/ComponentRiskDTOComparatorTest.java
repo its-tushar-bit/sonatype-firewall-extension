@@ -168,6 +168,20 @@ public class ComponentRiskDTOComparatorTest
   }
 
   @Test
+  public void testCompare_Name_nullDerivedComponentName_doesNotNpe() {
+    assertComparison(
+        new ComponentRiskDTOComparator("NAME"),
+        1,
+        newDTO(null, "hash-a", 0, 0, 0, 0, 0, 0),
+        newDTO("Name", "hash-b", 0, 0, 0, 0, 0, 0));
+    assertComparison(
+        new ComponentRiskDTOComparator("NAME"),
+        -1,
+        newDTO("Name", "hash-a", 0, 0, 0, 0, 0, 0),
+        newDTO(null, "hash-b", 0, 0, 0, 0, 0, 0));
+  }
+
+  @Test
   public void testCompare_SameOrdersByHash_BothHashesNull() {
     assertComparison(new ComponentRiskDTOComparator("NAME"), 0, newDTO("Name", null /* hash */, 0, 0, 0, 0, 0, 0),
         newDTO("Name", null /* hash */, 0, 0, 0, 0, 0, 0));

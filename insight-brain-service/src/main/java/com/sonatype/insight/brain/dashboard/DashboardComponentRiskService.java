@@ -29,4 +29,19 @@ public interface DashboardComponentRiskService
       String orderBy,
       int page,
       int pageSize);
+
+  /**
+   * Page-scoped Classic component-risk cards for Martha list enrichment. Loads only the given
+   * {@code componentHashes} (visible index page). No paging/orderBy — caller merges onto index order
+   * then sorts within the page.
+   */
+  DashboardResultsDTO<ComponentRiskDTO> getComponentRiskCards(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      Set<String> componentHashes,
+      Set<String> stageIds,
+      Set<String> tagIds,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyViolationStateFilter policyViolationStateFilter);
 }

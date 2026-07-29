@@ -6,13 +6,14 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * Sorts the component risk DTOs based on the orderBy property.
  */
-class ComponentRiskDTOComparator
+public class ComponentRiskDTOComparator
     implements Comparator<ComponentRiskDTO>
 {
   private ComponentRiskOrderBy componentRiskOrderBy;
@@ -29,13 +30,14 @@ class ComponentRiskDTOComparator
       ComponentRiskDTO ob2 = componentRiskOrderBy.isOrderByAsc() ? o2 : o1;
 
       result = switch (componentRiskOrderBy.getComponentRiskOrderByEnum()) {
-        case CRITICAL_RISK -> ob1.scoreCritical - ob2.scoreCritical;
-        case MODERATE_RISK -> ob1.scoreModerate - ob2.scoreModerate;
-        case LOW_RISK -> ob1.scoreLow - ob2.scoreLow;
-        case NAME -> String.CASE_INSENSITIVE_ORDER.compare(ob1.derivedComponentName, ob2.derivedComponentName);
+        case CRITICAL_RISK -> Integer.compare(scoreOrZero(ob1.scoreCritical), scoreOrZero(ob2.scoreCritical));
+        case MODERATE_RISK -> Integer.compare(scoreOrZero(ob1.scoreModerate), scoreOrZero(ob2.scoreModerate));
+        case LOW_RISK -> Integer.compare(scoreOrZero(ob1.scoreLow), scoreOrZero(ob2.scoreLow));
+        case NAME -> Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+            .compare(ob1.derivedComponentName, ob2.derivedComponentName);
         case NUMBER_OF_AFFECTED_APPS -> Integer.compare(ob1.affectedApplications, ob2.affectedApplications);
-        case SEVERE_RISK -> ob1.scoreSevere - ob2.scoreSevere;
-        case TOTAL_RISK -> ob1.score - ob2.score;
+        case SEVERE_RISK -> Integer.compare(scoreOrZero(ob1.scoreSevere), scoreOrZero(ob2.scoreSevere));
+        case TOTAL_RISK -> Integer.compare(scoreOrZero(ob1.score), scoreOrZero(ob2.score));
         default -> throw new IllegalArgumentException(
             "unsupported order by " + componentRiskOrderBy.componentRiskOrderByEnum);
       };
@@ -61,6 +63,10 @@ class ComponentRiskDTOComparator
       }
       return hash1.compareTo(hash2);
     }
+  }
+
+  private static int scoreOrZero(final Integer score) {
+    return Objects.requireNonNullElse(score, 0);
   }
 
   private static class ComponentRiskOrderBy

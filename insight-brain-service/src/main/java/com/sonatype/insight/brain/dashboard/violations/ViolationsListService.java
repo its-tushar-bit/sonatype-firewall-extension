@@ -7,14 +7,20 @@ package com.sonatype.insight.brain.dashboard.violations;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -38,9 +44,9 @@ import org.apache.lucene.search.SortField;
 /**
  * Index-backed Martha V1 Violations list.
  * <p>
- * Rows are mapped directly from {@code POLICY_VIOLATION} search-index hits — there is no per-page SQL
- * enrichment pass (unlike the Applications list), because violation volume is much higher and every
- * card field the index carries is sufficient for V1.
+ * Rows are discovered from {@code POLICY_VIOLATION} search-index hits. Card identity fields come from
+ * the index; {@code firstOccurredTime} is enriched per page via {@link PolicyViolationDAO#getByIds}
+ * ({@code PolicyViolation.openTime}) — same hybrid pattern as the Applications list risk enrich.
  * <p>
  * Request defaults: {@code page=0}, {@code pageSize=50}, {@code includeFacets=true} when omitted.
  * <p>
@@ -84,6 +90,8 @@ public class ViolationsListService
 
   private final ConversionHelper conversionHelper;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   @Inject
   public ViolationsListService(
       final SearchIndexClient searchIndexClient,
@@ -91,7 +99,8 @@ public class ViolationsListService
       final ViolationsListRequestValidator requestValidator,
       final ViolationsListFacetsBuilder facetsBuilder,
       final IndexReadSessionFactory sessionFactory,
-      final ConversionHelper conversionHelper)
+      final ConversionHelper conversionHelper,
+      final PolicyViolationDAO policyViolationDAO)
   {
     this.searchIndexClient = searchIndexClient;
     this.indexQueryBuilder = indexQueryBuilder;
@@ -99,6 +108,7 @@ public class ViolationsListService
     this.facetsBuilder = facetsBuilder;
     this.sessionFactory = sessionFactory;
     this.conversionHelper = conversionHelper;
+    this.policyViolationDAO = policyViolationDAO;
   }
 
   public ViolationsListResponseDTO listViolations(final ViolationsListRequestDTO request) {
@@ -131,6 +141,7 @@ public class ViolationsListService
     for (SearchResultItemDTO item : pageItems.values()) {
       rows.add(toRow(item));
     }
+    enrichFirstOccurredTimes(rows);
     rows.sort(comparator(orderBy));
 
     ViolationsListResponseDTO response = new ViolationsListResponseDTO();
@@ -192,6 +203,7 @@ public class ViolationsListService
       for (SearchResultItemDTO item : pageItems.values()) {
         rows.add(toRow(item));
       }
+      enrichFirstOccurredTimes(rows);
       rows.sort(comparator(orderBy));
 
       ViolationsListResponseDTO response = new ViolationsListResponseDTO();
@@ -271,6 +283,43 @@ public class ViolationsListService
     row.waivedWithAutoWaiver = ViolationWaiverStatus.isAutoWaived(item.policyViolationWaiverStatus);
     row.constraintName = item.policyViolationConstraintName;
     return row;
+  }
+
+  /**
+   * Page-scoped SQL enrich: attach {@code PolicyViolation.openTime} as epoch millis. Missing ids or
+   * null open times leave {@link ViolationRowDTO#firstOccurredTime} unset (FE omits the line).
+   */
+  void enrichFirstOccurredTimes(final List<ViolationRowDTO> rows) {
+    if (rows == null || rows.isEmpty()) {
+      return;
+    }
+    Set<String> ids = new LinkedHashSet<>();
+    for (ViolationRowDTO row : rows) {
+      if (row != null && StringUtils.isNotBlank(row.policyViolationId)) {
+        ids.add(row.policyViolationId);
+      }
+    }
+    if (ids.isEmpty()) {
+      return;
+    }
+
+    Map<String, Long> openTimesById = new HashMap<>();
+    for (PolicyViolation violation : policyViolationDAO.getByIds(ids)) {
+      if (violation == null || StringUtils.isBlank(violation.getId()) || violation.getOpenTime() == null) {
+        continue;
+      }
+      openTimesById.put(violation.getId(), violation.getOpenTime().getTime());
+    }
+
+    for (ViolationRowDTO row : rows) {
+      if (row == null || StringUtils.isBlank(row.policyViolationId)) {
+        continue;
+      }
+      Long firstOccurredTime = openTimesById.get(row.policyViolationId);
+      if (firstOccurredTime != null) {
+        row.firstOccurredTime = firstOccurredTime;
+      }
+    }
   }
 
   private static String extractComponentVersion(final ApiComponentIdentifierDTOV2 componentIdentifier) {

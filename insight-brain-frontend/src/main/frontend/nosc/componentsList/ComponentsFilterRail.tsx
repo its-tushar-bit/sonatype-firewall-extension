@@ -146,7 +146,8 @@ function SearchableFilterSection({
 
 /**
  * Filter sidebar for the Martha V1 Components page (CLM-42214).
- * Ecosystems on both tabs; Organizations (friendly names) on My Scan Data only.
+ * Ecosystems on Catalog only (My Scan Data dashboard list has no ecosystem facets yet).
+ * Organizations (friendly names) on My Scan Data only.
  */
 export default function ComponentsFilterRail({
   tab,
@@ -156,6 +157,7 @@ export default function ComponentsFilterRail({
   onToggleFilter,
   onResetFilters,
 }: ComponentsFilterRailProps): JSX.Element {
+  const showEcosystems = tab === 'catalog';
   const showOrganizations = tab === 'myScanData';
 
   return (
@@ -176,14 +178,16 @@ export default function ComponentsFilterRail({
         </Flex>
 
         <Flex direction="column" gap="4">
-          <SearchableFilterSection
-            title="Ecosystems"
-            testId="components-filter-ecosystems"
-            group="ecosystems"
-            entries={facets.ecosystems}
-            selected={filters.ecosystems}
-            onToggle={onToggleFilter}
-          />
+          {showEcosystems && (
+            <SearchableFilterSection
+              title="Ecosystems"
+              testId="components-filter-ecosystems"
+              group="ecosystems"
+              entries={facets.ecosystems}
+              selected={filters.ecosystems}
+              onToggle={onToggleFilter}
+            />
+          )}
           {showOrganizations && (
             <SearchableFilterSection
               title="Organizations"

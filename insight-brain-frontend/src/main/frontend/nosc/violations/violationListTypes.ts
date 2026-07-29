@@ -18,7 +18,7 @@ export type ViolationComponentIdentifier = {
   readonly coordinates?: Record<string, string | undefined>;
 };
 
-/** A single violation card row — mirrors backend {@code ViolationRowDTO} (no SQL enrichment). */
+/** A single violation card row — mirrors backend {@code ViolationRowDTO}. */
 export type ViolationRow = {
   /** Native policy violation id — the drill-in / detail link id. */
   readonly policyViolationId: string;
@@ -54,9 +54,8 @@ export type ViolationRow = {
   readonly waivedWithAutoWaiver?: boolean;
   readonly constraintName?: string;
   /**
-   * Epoch millis the violation was first seen — powers the card's "first seen … ago" line. The list
-   * API does not index the violation timestamp yet, so this is undefined today; the card renders the
-   * relative time only once the backend returns it.
+   * Epoch millis the violation was first seen ({@code PolicyViolation.openTime} via page SQL enrich).
+   * When absent the card omits the "first seen" line.
    */
   readonly firstOccurredTime?: number;
 };

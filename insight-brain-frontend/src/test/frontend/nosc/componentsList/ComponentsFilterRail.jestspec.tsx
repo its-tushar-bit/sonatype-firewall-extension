@@ -55,11 +55,13 @@ describe('ComponentsFilterRail', () => {
     user = userEvent.setup();
   });
 
-  it('renders ecosystems and organizations on My Scan Data', () => {
+  // Ecosystem facets are Catalog-only: the My Scan Data dashboard list has no ecosystem
+  // buckets, so the rail hides the section even when entries are supplied.
+  it('renders organizations but not ecosystems on My Scan Data', () => {
     renderRail();
     expect(screen.getByTestId('components-filter-rail')).toBeInTheDocument();
-    expect(screen.getByTestId('components-filter-ecosystems')).toBeInTheDocument();
     expect(screen.getByTestId('components-filter-organizations')).toBeInTheDocument();
+    expect(screen.queryByTestId('components-filter-ecosystems')).not.toBeInTheDocument();
   });
 
   it('hides organizations on the Sonatype Catalog tab', () => {
@@ -94,8 +96,8 @@ describe('ComponentsFilterRail', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('lifts an ecosystem checkbox toggle to onToggleFilter', async () => {
-    const props = renderRail();
+  it('lifts an ecosystem checkbox toggle to onToggleFilter on the Sonatype Catalog tab', async () => {
+    const props = renderRail({ tab: 'catalog' });
     await user.click(screen.getByTestId('components-filter-ecosystems-option-maven'));
     expect(props.onToggleFilter).toHaveBeenCalledWith('ecosystems', 'maven');
   });

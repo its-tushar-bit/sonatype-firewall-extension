@@ -5,8 +5,10 @@
  */
 import React from 'react';
 import { Card, Flex, Link, Text } from '@radix-ui/themes';
+import { ApplicationSeverityBadge } from 'MainRoot/nosc/dashboard/tabs/ApplicationSeverityBadge';
 import { componentCardIdentity } from 'MainRoot/nosc/componentsList/componentCardIdentity';
 import { ComponentListRow } from 'MainRoot/nosc/componentsList/componentListTypes';
+import { applicationsLabel } from 'MainRoot/nosc/list/applicationsLabel';
 
 function isSafeInAppHref(href: string): boolean {
   // Reject protocol-relative //… and /\\… (browsers normalize \ → / → open redirect).
@@ -24,6 +26,19 @@ function componentCardHref(component: ComponentListRow): string | null {
   return null;
 }
 
+/**
+ * Show Applications-parity severity chrome when SQL enrich supplied any score field (including
+ * zeros). Catalog / unenriched stubs omit those fields and skip the badge row.
+ */
+function hasRiskMetrics(component: ComponentListRow): boolean {
+  return (
+    component.scoreCritical != null
+    || component.scoreSevere != null
+    || component.scoreModerate != null
+    || component.scoreLow != null
+  );
+}
+
 function ComponentCardBody({ component }: { readonly component: ComponentListRow }): JSX.Element {
   const { title, coordinate } = componentCardIdentity(component);
 
@@ -36,6 +51,21 @@ function ComponentCardBody({ component }: { readonly component: ComponentListRow
         <Text size="2" color="gray" data-testid="component-card-subtitle">
           {coordinate}
         </Text>
+      )}
+      {hasRiskMetrics(component) && (
+        <Flex align="center" gap="3" wrap="wrap">
+          <Flex gap="1" wrap="wrap" aria-label="Policy violations by severity">
+            <ApplicationSeverityBadge value={component.scoreCritical ?? 0} severity="critical" />
+            <ApplicationSeverityBadge value={component.scoreSevere ?? 0} severity="severe" />
+            <ApplicationSeverityBadge value={component.scoreModerate ?? 0} severity="moderate" />
+            <ApplicationSeverityBadge value={component.scoreLow ?? 0} severity="low" />
+          </Flex>
+          {component.affectedApplications != null && component.affectedApplications > 0 && (
+            <Text size="1" color="gray" data-testid="component-card-applications">
+              {applicationsLabel(component.affectedApplications)}
+            </Text>
+          )}
+        </Flex>
       )}
       <Flex gap="3" wrap="wrap">
         {component.ecosystem && (
@@ -85,7 +115,7 @@ export interface ComponentCardGridProps {
   readonly components: ReadonlyArray<ComponentListRow>;
 }
 
-/** Card grid for Martha V1 Components (CLM-42214 / CLM-43209) — catalog row fields. */
+/** Card grid for Martha V1 Components (CLM-42214 / CLM-43209 / CLM-43210). */
 export default function ComponentCardGrid({ components }: ComponentCardGridProps): JSX.Element {
   return (
     <Flex direction="column" gap="3" data-testid="component-card-grid">

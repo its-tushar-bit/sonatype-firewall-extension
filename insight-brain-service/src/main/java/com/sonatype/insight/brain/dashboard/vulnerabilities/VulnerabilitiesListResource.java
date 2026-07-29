@@ -9,8 +9,10 @@ import java.util.List;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -42,6 +44,9 @@ public class VulnerabilitiesListResource
 
   public static final String VULNERABILITIES_EXPORT_PATH = "vulnerabilities/export";
 
+  public static final String VULNERABILITIES_AFFECTED_APPLICATIONS_PATH =
+      "vulnerabilities/{vulnerabilityId}/applications";
+
   private final VulnerabilitiesListService service;
 
   private final VulnerabilitiesExportService exportService;
@@ -63,6 +68,20 @@ public class VulnerabilitiesListResource
   @Audited(AuditEvent.VIEW_NEXUS_ONE_VULNERABILITIES_LIST)
   public VulnerabilitiesListResponseDTO listVulnerabilities(final VulnerabilitiesListRequestDTO request) {
     return service.listVulnerabilities(request);
+  }
+
+  /**
+   * Distinct My Scan Data applications affected by {@code vulnerabilityId} for the Impact tab.
+   */
+  @GET
+  @Path(VULNERABILITIES_AFFECTED_APPLICATIONS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @ExceptionMetered(name = "getVulnerabilityAffectedApplicationsExceptionMeter")
+  @Audited(AuditEvent.VIEW_NEXUS_ONE_VULNERABILITIES_LIST)
+  public VulnerabilityAffectedApplicationsResponseDTO listAffectedApplications(
+      @PathParam("vulnerabilityId") final String vulnerabilityId)
+  {
+    return service.listAffectedApplications(vulnerabilityId);
   }
 
   /**

@@ -144,6 +144,15 @@ export function getApplicationsListUrl() {
   return uriTemplate`/rest/dashboard/applications/list`;
 }
 
+/**
+ * Nexus One Components portfolio list (Martha V1 / CLM-43210). POST with
+ * `{ page, pageSize, search?, includeFacets, organizationIds? }`; gated by PREVIEW_NEXUS_ONE_UI.
+ * My Scan Data uses this hybrid index+SQL path; Sonatype Catalog stays on {@link getSearchCatalogUrl}.
+ */
+export function getComponentsListUrl() {
+  return uriTemplate`/rest/dashboard/components/list`;
+}
+
 export function getNewestRisksExportUrl() {
   return uriTemplate`/rest/dashboard/export/newestRisks`;
 }
@@ -192,6 +201,14 @@ export function getIndexQueryUrl() {
  */
 export function getVulnerabilitiesListUrl() {
   return uriTemplate`/rest/dashboard/vulnerabilities/list`;
+}
+
+/**
+ * Distinct My Scan Data applications affected by a vulnerability (Impact tab).
+ * GET `/rest/dashboard/vulnerabilities/{vulnerabilityId}/applications`.
+ */
+export function getVulnerabilityAffectedApplicationsUrl(vulnerabilityId) {
+  return uriTemplate`/rest/dashboard/vulnerabilities/${vulnerabilityId}/applications`;
 }
 
 /**

@@ -3,14 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTile } from 'MainRoot/nosc/dashboard/useTile';
 import type { AsyncPageStateInfoProps } from 'MainRoot/nosc/components/AsyncPageState';
 import {
   COMPONENTS_LIST_PAGE_SIZE,
   ComponentsCatalogApiResponse,
+  ComponentsDashboardApiResponse,
   buildComponentsCatalogRequest,
+  buildComponentsDashboardRequest,
   mapComponentsCatalogResponse,
+  mapComponentsDashboardResponse,
 } from 'MainRoot/nosc/componentsList/componentsListApi';
 import {
   ComponentListRow,
@@ -29,7 +32,7 @@ import {
   DEFAULT_COMPONENTS_TAB,
 } from 'MainRoot/nosc/componentsList/componentsRoute';
 import type { ComponentsListQueryState } from 'MainRoot/nosc/componentsList/componentsListQuery';
-import { getSearchCatalogUrl } from 'MainRoot/util/CLMLocation';
+import { getComponentsListUrl, getSearchCatalogUrl } from 'MainRoot/util/CLMLocation';
 
 export type { ComponentsListQueryState };
 
@@ -80,9 +83,15 @@ export interface UseComponentsListOptions {
   readonly enabled?: boolean;
 }
 
+type MappedComponentsList = ReturnType<typeof mapComponentsCatalogResponse>;
+
+/** Matches ComponentsListDistinctPageFetcher.MAX_DISTINCT_PAGE on the dashboard list API. */
+export const COMPONENTS_DASHBOARD_MAX_PAGE = 200;
+
 /**
  * Martha V1 Components list data hook.
- * Fetches POST /rest/search/catalog with {@code entityType: COMPONENT} and source local|catalog.
+ * My Scan Data → POST /rest/dashboard/components/list (index + SQL risk enrich).
+ * Sonatype Catalog → POST /rest/search/catalog with {@code source: catalog}.
  */
 export function useComponentsList(
   options: UseComponentsListOptions = {},
@@ -99,78 +108,71 @@ export function useComponentsList(
   const [filters, setFilters] = useState<ComponentsListFilterState>(
     () => initialState?.filters ?? EMPTY_COMPONENTS_LIST_FILTERS,
   );
-  /** 1-based page → searchAfter cursor for local source paging. */
-  const [searchAfterByPage, setSearchAfterByPage] = useState<Readonly<Record<number, string>>>({});
-  const queryRef = useRef({ tab, search, filters });
-  queryRef.current = { tab, search, filters };
 
-  const clearCursors = useCallback(() => {
-    setSearchAfterByPage({});
-  }, []);
-
-  // Local source is cursor-only: deep links / bookmarks to page > 1 without a stored cursor
-  // cannot be honored — clamp to page 0 until the user walks forward from the first page.
-  const effectivePage =
-    tab === 'myScanData' && page > 0 && !searchAfterByPage[page + 1] ? 0 : page;
-
-  useEffect(() => {
-    if (effectivePage !== page) {
-      setPage(effectivePage);
-    }
-  }, [effectivePage, page]);
+  const isCatalog = tab === 'catalog';
+  const listUrl = isCatalog ? getSearchCatalogUrl() : getComponentsListUrl();
+  const requestPage = isCatalog ? page : Math.min(page, COMPONENTS_DASHBOARD_MAX_PAGE);
 
   const requestBody = useMemo(
     () =>
-      buildComponentsCatalogRequest({
-        tab,
-        page: effectivePage,
-        pageSize,
-        includeFacets,
-        search,
-        filters,
-        searchAfter: searchAfterByPage[effectivePage + 1],
-      }),
-    [tab, effectivePage, pageSize, includeFacets, search, filters, searchAfterByPage],
+      isCatalog
+        ? buildComponentsCatalogRequest({
+            tab,
+            page,
+            pageSize,
+            includeFacets,
+            search,
+            filters,
+          })
+        : buildComponentsDashboardRequest({
+            page: requestPage,
+            pageSize,
+            includeFacets,
+            search,
+            filters,
+          }),
+    [isCatalog, tab, page, requestPage, pageSize, includeFacets, search, filters],
   );
 
-  const { status, data, error, retry } = useTile<ComponentsCatalogApiResponse>(
-    getSearchCatalogUrl(),
-    undefined,
-    {
-      method: 'post',
-      body: requestBody,
-      mapErrorStatus: (statusCode) => (statusCode === 409 ? 'not-ready' : 'error'),
-      enabled,
-    },
-  );
+  const { status, data, error, retry } = useTile<
+    ComponentsCatalogApiResponse | ComponentsDashboardApiResponse
+  >(listUrl, undefined, {
+    method: 'post',
+    body: requestBody,
+    mapErrorStatus: (statusCode) => (statusCode === 409 ? 'not-ready' : 'error'),
+    enabled,
+  });
 
-  const mapped = useMemo(
-    () => (data ? mapComponentsCatalogResponse(data) : null),
-    [data],
-  );
+  const mapped = useMemo((): MappedComponentsList | null => {
+    if (!data) return null;
+    if (isCatalog) {
+      return mapComponentsCatalogResponse(data as ComponentsCatalogApiResponse);
+    }
+    return mapComponentsDashboardResponse(data as ComponentsDashboardApiResponse);
+  }, [data, isCatalog]);
 
-  useEffect(() => {
-    if (!mapped?.nextSearchAfter) return;
-    const nextPageOneBased = mapped.page + 2;
-    setSearchAfterByPage((current) => {
-      if (current[nextPageOneBased] === mapped.nextSearchAfter) return current;
-      return { ...current, [nextPageOneBased]: mapped.nextSearchAfter! };
-    });
-  }, [mapped?.nextSearchAfter, mapped?.page]);
-
-  // Prefer local page while a newer request is in flight. Trusting mapped.page from a stale
-  // response was snapping URL/pagination back after filter/search resets (Applications pattern).
   const resolvedPage = useMemo(() => {
-    if (!mapped) return page;
-    if (tab === 'catalog' && mapped.catalogAvailable) {
+    if (!mapped) {
+      return isCatalog ? page : Math.min(page, COMPONENTS_DASHBOARD_MAX_PAGE);
+    }
+    if (isCatalog && mapped.catalogAvailable) {
       const maxPage =
         mapped.total <= 0 ? 0 : Math.max(0, Math.ceil(mapped.total / mapped.pageSize) - 1);
       if (!mapped.hasNextPage && page > maxPage) {
         return maxPage;
       }
+      return page;
     }
-    return page;
-  }, [mapped, page, tab]);
+    // My Scan Data: clamp deep pages to the dashboard API estate-scale guard.
+    const maxPage = Math.min(
+      COMPONENTS_DASHBOARD_MAX_PAGE,
+      mapped.total <= 0 ? 0 : Math.max(0, Math.ceil(mapped.total / mapped.pageSize) - 1),
+    );
+    if (!mapped.hasNextPage && page > maxPage) {
+      return maxPage;
+    }
+    return Math.min(page, COMPONENTS_DASHBOARD_MAX_PAGE);
+  }, [mapped, page, isCatalog]);
 
   useEffect(() => {
     if (resolvedPage !== page) {
@@ -179,55 +181,51 @@ export function useComponentsList(
   }, [resolvedPage, page]);
 
   const goToPage = useCallback((nextPage: number) => {
-    setPage(Math.max(0, nextPage));
+    setPage(Math.max(0, Math.min(nextPage, COMPONENTS_DASHBOARD_MAX_PAGE)));
   }, []);
 
   const setTab = useCallback((nextTab: ComponentsTab) => {
     setTabState(nextTab);
-    // Organizations are local-only; drop them when switching to Catalog so active-filter state matches the rail.
     if (nextTab === 'catalog') {
+      // Organizations are My Scan Data–only; drop them when switching to Catalog.
       setFilters((current) =>
         current.organizations.size === 0
           ? current
           : { ...current, organizations: new Set<string>() },
       );
     }
+    else if (nextTab === 'myScanData') {
+      // Ecosystem facets are Catalog-only; drop silent selections on My Scan Data.
+      setFilters((current) =>
+        current.ecosystems.size === 0
+          ? current
+          : { ...current, ecosystems: new Set<string>() },
+      );
+    }
     setPage(0);
-    clearCursors();
-  }, [clearCursors]);
+  }, []);
 
   const submitSearch = useCallback((term: string) => {
     setSearch(term);
     setPage(0);
-    clearCursors();
-  }, [clearCursors]);
+  }, []);
 
   const toggleFilter = useCallback((group: ComponentsFilterSetGroup, id: string) => {
     setFilters((current) => toggleComponentsListFilterId(current, group, id));
     setPage(0);
-    clearCursors();
-  }, [clearCursors]);
+  }, []);
 
   const resetFilters = useCallback(() => {
     setFilters(EMPTY_COMPONENTS_LIST_FILTERS);
     setPage(0);
-    clearCursors();
-  }, [clearCursors]);
+  }, []);
 
   const syncQueryState = useCallback((state: ComponentsListQueryState) => {
-    const prev = queryRef.current;
-    const queryChanged =
-      prev.tab !== state.tab
-      || prev.search !== state.search
-      || !filtersEqual(prev.filters, state.filters);
-    if (queryChanged) {
-      clearCursors();
-    }
     setTabState((current) => (current === state.tab ? current : state.tab));
     setSearch((current) => (current === state.search ? current : state.search));
     setPage((current) => (current === state.page ? current : state.page));
     setFilters((current) => (filtersEqual(current, state.filters) ? current : state.filters));
-  }, [clearCursors]);
+  }, []);
 
   const info: AsyncPageStateInfoProps | null =
     status === 'not-ready'

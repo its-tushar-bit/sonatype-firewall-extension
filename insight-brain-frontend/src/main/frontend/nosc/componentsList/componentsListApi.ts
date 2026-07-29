@@ -209,3 +209,151 @@ export function mapComponentsCatalogResponse(response: ComponentsCatalogApiRespo
     warnings: response.warnings ?? [],
   };
 }
+
+/** Mirrors backend {@code ComponentRiskDTO} for My Scan Data hybrid list. */
+export type ApiComponentRiskRow = {
+  readonly hash?: string | null;
+  readonly scoreCritical?: number;
+  readonly scoreSevere?: number;
+  readonly scoreModerate?: number;
+  readonly scoreLow?: number;
+  readonly affectedApplications?: number;
+  readonly derivedComponentName?: string | null;
+  readonly filename?: string | null;
+  readonly displayName?: {
+    readonly name?: string | null;
+    readonly toString?: unknown;
+  } | null;
+};
+
+/** Mirrors backend {@code ComponentsListResponseDTO}. */
+export type ComponentsDashboardApiResponse = {
+  readonly components?: ReadonlyArray<ApiComponentRiskRow> | null;
+  readonly facets?: {
+    readonly totalComponents?: number;
+    readonly organizations?: Readonly<Record<string, number>> | null;
+    readonly applications?: Readonly<Record<string, number>> | null;
+    readonly stages?: Readonly<Record<string, number>> | null;
+    readonly organizationNames?: Readonly<Record<string, string>> | null;
+    readonly applicationNames?: Readonly<Record<string, string>> | null;
+  } | null;
+  readonly total?: number;
+  readonly page?: number;
+  readonly pageSize?: number;
+  readonly hasNextPage?: boolean;
+  readonly source?: string;
+};
+
+export type ComponentsDashboardRequest = {
+  readonly page: number;
+  readonly pageSize: number;
+  readonly includeFacets: boolean;
+  readonly search?: string;
+  readonly organizationIds?: ReadonlyArray<string>;
+};
+
+export function buildComponentsDashboardRequest(params: {
+  readonly page: number;
+  readonly pageSize?: number;
+  readonly search?: string;
+  readonly includeFacets?: boolean;
+  readonly filters?: ComponentsListFilterState;
+}): ComponentsDashboardRequest {
+  const organizationIds =
+    params.filters && params.filters.organizations.size > 0
+      ? Array.from(params.filters.organizations).sort()
+      : undefined;
+  return {
+    page: Math.max(0, params.page),
+    pageSize: params.pageSize ?? COMPONENTS_LIST_PAGE_SIZE,
+    includeFacets: params.includeFacets ?? true,
+    ...(params.search?.trim() ? { search: params.search.trim() } : {}),
+    ...(organizationIds ? { organizationIds } : {}),
+  };
+}
+
+function componentRiskDisplayName(row: ApiComponentRiskRow): string {
+  const derived = row.derivedComponentName?.trim();
+  if (derived) return derived;
+  const named = row.displayName?.name?.trim();
+  if (named) return named;
+  const filename = row.filename?.trim();
+  if (filename) return filename;
+  return row.hash?.trim() || 'Unknown component';
+}
+
+export function mapComponentRiskRow(row: ApiComponentRiskRow): ComponentListRow | null {
+  const id = row.hash?.trim();
+  if (!id) return null;
+  // Preserve numeric zeros from SQL enrich (Applications-parity badge chrome). Only omit fields when
+  // the API left them absent so catalog/stub rows do not invent risk chrome.
+  return {
+    id,
+    name: componentRiskDisplayName(row),
+    subtitle: id,
+    source: 'local',
+    ...(row.scoreCritical != null ? { scoreCritical: row.scoreCritical } : {}),
+    ...(row.scoreSevere != null ? { scoreSevere: row.scoreSevere } : {}),
+    ...(row.scoreModerate != null ? { scoreModerate: row.scoreModerate } : {}),
+    ...(row.scoreLow != null ? { scoreLow: row.scoreLow } : {}),
+    ...(row.affectedApplications != null ? { affectedApplications: row.affectedApplications } : {}),
+  };
+}
+
+function facetEntriesFromCountMap(
+  counts: Readonly<Record<string, number>> | null | undefined,
+  names?: Readonly<Record<string, string>> | null,
+): ReadonlyArray<ComponentsFilterFacetEntry> {
+  if (!counts) return [];
+  return Object.entries(counts)
+    .filter(([id, count]) => id.trim().length > 0 && typeof count === 'number')
+    .map(([id, count]) => {
+      const trimmed = id.trim();
+      return {
+        id: trimmed,
+        label: names?.[trimmed]?.trim() || trimmed,
+        count,
+      };
+    })
+    .sort((left, right) => left.label.localeCompare(right.label));
+}
+
+export function mapComponentsDashboardResponse(response: ComponentsDashboardApiResponse): {
+  readonly components: ReadonlyArray<ComponentListRow>;
+  readonly facets: ComponentsFilterFacetCounts;
+  readonly total: number;
+  readonly exactTotalEstimate: boolean;
+  readonly page: number;
+  readonly pageSize: number;
+  readonly hasNextPage: boolean;
+  readonly nextSearchAfter: string | null;
+  readonly catalogAvailable: boolean;
+  readonly source: 'local' | 'catalog';
+  readonly warnings: ReadonlyArray<string>;
+} {
+  const components = (response.components ?? [])
+    .map(mapComponentRiskRow)
+    .filter((row): row is ComponentListRow => row != null);
+  const pageSize = response.pageSize ?? COMPONENTS_LIST_PAGE_SIZE;
+  const page = typeof response.page === 'number' && response.page >= 0 ? response.page : 0;
+  const total = typeof response.total === 'number' ? response.total : components.length;
+  const facets = response.facets;
+  return {
+    components,
+    facets: {
+      totalComponents: typeof facets?.totalComponents === 'number' ? facets.totalComponents : total,
+      organizations: facetEntriesFromCountMap(facets?.organizations, facets?.organizationNames),
+      // My Scan Data dashboard list has no ecosystem facet buckets yet (Catalog keeps them).
+      ecosystems: [],
+    },
+    total,
+    exactTotalEstimate: true,
+    page,
+    pageSize,
+    hasNextPage: Boolean(response.hasNextPage),
+    nextSearchAfter: null,
+    catalogAvailable: true,
+    source: 'local',
+    warnings: [],
+  };
+}

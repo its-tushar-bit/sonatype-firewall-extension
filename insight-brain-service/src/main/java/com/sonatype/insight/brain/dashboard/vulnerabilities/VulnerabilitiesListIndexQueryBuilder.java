@@ -34,6 +34,15 @@ final class VulnerabilitiesListIndexQueryBuilder
   }
 
   /**
+   * Exact vulnerabilityId filter for Impact-on-portfolio affected-app collection.
+   */
+  String buildAffectedApplicationsQuery(final String vulnerabilityId) {
+    String safe = DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(vulnerabilityId.trim());
+    return FieldIdentifier.ITEM_TYPE.label + ":" + ItemType.SECURITY_VULNERABILITY.name()
+        + " AND " + FieldIdentifier.VULNERABILITY_ID.label + ":" + safe;
+  }
+
+  /**
    * @param includeSeverity when false, omits severity-band OR clauses (for severity facet counts)
    * @param includeCvss when false, omits min/max CVSS clamp
    * @param includeEcosystems when false, omits ecosystem OR clauses (for ecosystem facet discovery)

@@ -161,20 +161,38 @@ describe('ViolationCardGrid (CLM-42259)', () => {
     );
   });
 
-  it('renders "first seen … ago" when a first-seen timestamp is present, and omits it otherwise', () => {
+  it('renders absolute + relative first seen when a timestamp is present, and omits it otherwise', () => {
     renderGrid([OPEN_CRITICAL, WAIVED_MANUAL]);
     const withTime = screen.getByTestId('violation-card-first-seen');
-    expect(withTime).toHaveTextContent(/first seen .* ago/);
+    const absolute = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date(FIXED_FIRST_SEEN));
+    expect(withTime).toHaveTextContent(`first seen ${absolute} ·`);
+    expect(withTime).toHaveTextContent(/ago$/);
     // WAIVED_MANUAL has no firstOccurredTime, so only one card shows the line.
     expect(screen.getAllByTestId('violation-card-first-seen')).toHaveLength(1);
   });
 
-  it('renders "first seen just now" for a sub-minute timestamp', () => {
-    // Any sub-minute offset yields the same output, so this Date.now()-relative fixture is not
+  it('renders absolute + "just now" for a sub-minute timestamp', () => {
+    // Any sub-minute offset yields the same relative output, so this Date.now()-relative fixture is not
     // time-sensitive; it pins the formatTimeAgo "seconds ago" → "just now" contract the card depends on.
-    const justNow: ViolationRow = { ...OPEN_CRITICAL, firstOccurredTime: Date.now() - 5_000 };
+    const justNowMs = Date.now() - 5_000;
+    const justNow: ViolationRow = { ...OPEN_CRITICAL, firstOccurredTime: justNowMs };
     renderGrid([justNow]);
-    expect(screen.getByTestId('violation-card-first-seen')).toHaveTextContent('first seen just now');
+    const absolute = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date(justNowMs));
+    expect(screen.getByTestId('violation-card-first-seen')).toHaveTextContent(
+      `first seen ${absolute} · just now`,
+    );
   });
 
   it('links the whole card to the embedded detail route with an accessible label', () => {

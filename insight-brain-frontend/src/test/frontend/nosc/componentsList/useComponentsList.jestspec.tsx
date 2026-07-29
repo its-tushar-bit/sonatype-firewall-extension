@@ -10,7 +10,40 @@ import {
   useComponentsList,
 } from 'MainRoot/nosc/componentsList/useComponentsList';
 import { MOCK_COMPONENTS_CATALOG_RESPONSE } from 'TestRoot/nosc/componentsList/mockComponentsListData';
-import { getSearchCatalogUrl } from 'MainRoot/util/CLMLocation';
+import { getComponentsListUrl, getSearchCatalogUrl } from 'MainRoot/util/CLMLocation';
+
+const MOCK_DASHBOARD_RESPONSE = {
+  components: [
+    {
+      hash: 'abc123',
+      derivedComponentName: 'guava',
+      scoreCritical: 1,
+      scoreSevere: 0,
+      scoreModerate: 2,
+      scoreLow: 0,
+      affectedApplications: 3,
+    },
+    {
+      hash: 'def456',
+      derivedComponentName: 'commons-lang',
+      scoreCritical: 0,
+      scoreSevere: 1,
+      scoreModerate: 0,
+      scoreLow: 1,
+      affectedApplications: 1,
+    },
+  ],
+  total: 2,
+  page: 0,
+  pageSize: 50,
+  hasNextPage: false,
+  source: 'index',
+  facets: {
+    totalComponents: 2,
+    organizations: { 'org-1': 2 },
+    organizationNames: { 'org-1': 'Java Team' },
+  },
+};
 
 describe('useComponentsList', () => {
   let axiosMock: ReturnType<typeof axiosMockAdapter>;
@@ -23,8 +56,8 @@ describe('useComponentsList', () => {
     axiosMock.reset();
   });
 
-  it('resolves ready with mapped components and totals', async () => {
-    axiosMock.onPost(getSearchCatalogUrl()).reply(200, MOCK_COMPONENTS_CATALOG_RESPONSE);
+  it('resolves My Scan Data from the hybrid dashboard list with risk fields', async () => {
+    axiosMock.onPost(getComponentsListUrl()).reply(200, MOCK_DASHBOARD_RESPONSE);
 
     const { result } = renderHook(() => useComponentsList());
 
@@ -34,13 +67,15 @@ describe('useComponentsList', () => {
 
     expect(result.current.components).toHaveLength(2);
     expect(result.current.components[0].name).toBe('guava');
+    expect(result.current.components[0].scoreCritical).toBe(1);
+    expect(result.current.components[0].affectedApplications).toBe(3);
     expect(result.current.total).toBe(2);
     expect(result.current.error).toBeNull();
     expect(result.current.info).toBeNull();
   });
 
   it('maps HTTP 409 to an informational not-ready panel', async () => {
-    axiosMock.onPost(getSearchCatalogUrl()).reply(409, { message: 'index building' });
+    axiosMock.onPost(getComponentsListUrl()).reply(409, { message: 'index building' });
 
     const { result } = renderHook(() => useComponentsList());
 
@@ -53,7 +88,7 @@ describe('useComponentsList', () => {
   });
 
   it('maps HTTP 500 to an error state', async () => {
-    axiosMock.onPost(getSearchCatalogUrl()).reply(500, { message: 'Backend unavailable' });
+    axiosMock.onPost(getComponentsListUrl()).reply(500, { message: 'Backend unavailable' });
 
     const { result } = renderHook(() => useComponentsList());
 
@@ -63,34 +98,33 @@ describe('useComponentsList', () => {
     expect(result.current.info).toBeNull();
   });
 
-  it('posts catalog request with query and local org names', async () => {
-    axiosMock.onPost(getSearchCatalogUrl()).reply(200, MOCK_COMPONENTS_CATALOG_RESPONSE);
+  it('posts dashboard request with search and organization ids for My Scan Data', async () => {
+    axiosMock.onPost(getComponentsListUrl()).reply(200, MOCK_DASHBOARD_RESPONSE);
 
     const { result } = renderHook(() => useComponentsList());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     act(() => result.current.submitSearch('guava'));
-    act(() => result.current.toggleFilter('organizations', 'Java Team'));
+    act(() => result.current.toggleFilter('organizations', 'org-1'));
 
     await waitFor(() => {
       const lastRequest = axiosMock.history.post.at(-1);
+      expect(lastRequest?.url).toBe(getComponentsListUrl());
       const body = JSON.parse(String(lastRequest?.data));
       expect(body).toEqual(
         expect.objectContaining({
-          entityType: 'COMPONENT',
-          source: 'local',
-          page: 1,
-          filters: expect.objectContaining({
-            query: 'guava',
-            organizations: ['Java Team'],
-          }),
+          page: 0,
+          pageSize: 50,
+          search: 'guava',
+          organizationIds: ['org-1'],
         }),
       );
     });
   });
 
-  it('switches source to catalog and omits organizations', async () => {
+  it('switches to catalog URL and omits organizations', async () => {
+    axiosMock.onPost(getComponentsListUrl()).reply(200, MOCK_DASHBOARD_RESPONSE);
     axiosMock.onPost(getSearchCatalogUrl()).reply(200, {
       ...MOCK_COMPONENTS_CATALOG_RESPONSE,
       source: 'catalog',
@@ -106,6 +140,7 @@ describe('useComponentsList', () => {
 
     await waitFor(() => {
       const lastRequest = axiosMock.history.post.at(-1);
+      expect(lastRequest?.url).toBe(getSearchCatalogUrl());
       const body = JSON.parse(String(lastRequest?.data));
       expect(body.source).toBe('catalog');
       expect(body.filters).toEqual({ ecosystems: ['npm'] });
@@ -113,13 +148,13 @@ describe('useComponentsList', () => {
   });
 
   it('resetFilters clears active selections and resets page', async () => {
-    axiosMock.onPost(getSearchCatalogUrl()).reply(200, MOCK_COMPONENTS_CATALOG_RESPONSE);
+    axiosMock.onPost(getComponentsListUrl()).reply(200, MOCK_DASHBOARD_RESPONSE);
 
     const { result } = renderHook(() => useComponentsList());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => result.current.toggleFilter('ecosystems', 'maven'));
+    act(() => result.current.toggleFilter('organizations', 'org-1'));
     await waitFor(() => expect(result.current.hasActiveFilters).toBe(true));
 
     act(() => result.current.resetFilters());
@@ -127,7 +162,7 @@ describe('useComponentsList', () => {
     expect(result.current.page).toBe(0);
   });
 
-  it('keeps local page 0 while a stale response page is still in data after filter reset', async () => {
+  it('keeps local page 0 while a stale catalog response page is still in data after filter reset', async () => {
     axiosMock.onPost(getSearchCatalogUrl()).reply((config) => {
       const body = JSON.parse(String(config.data));
       if (body.page === 2) {
@@ -168,18 +203,21 @@ describe('useComponentsList', () => {
     await waitFor(() => expect(result.current.page).toBe(1));
 
     act(() => result.current.toggleFilter('ecosystems', 'npm'));
-    // Prefer local page immediately — do not snap back to mapped.page from the stale page-2 payload.
     expect(result.current.page).toBe(0);
   });
 
   it('clears organization filters when switching to the Catalog tab', async () => {
-    axiosMock.onPost(getSearchCatalogUrl()).reply(200, MOCK_COMPONENTS_CATALOG_RESPONSE);
+    axiosMock.onPost(getComponentsListUrl()).reply(200, MOCK_DASHBOARD_RESPONSE);
+    axiosMock.onPost(getSearchCatalogUrl()).reply(200, {
+      ...MOCK_COMPONENTS_CATALOG_RESPONSE,
+      source: 'catalog',
+    });
 
     const { result } = renderHook(() => useComponentsList());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => result.current.toggleFilter('organizations', 'Java Team'));
+    act(() => result.current.toggleFilter('organizations', 'org-1'));
     await waitFor(() => expect(result.current.hasActiveFilters).toBe(true));
 
     act(() => result.current.setTab('catalog'));

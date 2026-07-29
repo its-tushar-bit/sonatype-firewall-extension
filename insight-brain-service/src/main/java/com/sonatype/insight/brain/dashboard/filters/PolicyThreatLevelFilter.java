@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dashboard.filters;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -63,6 +65,14 @@ public class PolicyThreatLevelFilter
 
   public int getMaxPolicyThreatLevel() {
     return maxPolicyThreatLevel;
+  }
+
+  /**
+   * Threat ranges to apply as SQL {@code BETWEEN} predicates (OR'd when more than one).
+   * Subclasses that OR multiple buckets override this so loaders do not collapse to the envelope.
+   */
+  public List<Map.Entry<Integer, Integer>> sqlThreatLevelRanges() {
+    return List.of(Map.entry(minPolicyThreatLevel, maxPolicyThreatLevel));
   }
 
   private void initialize(Integer min, Integer max) {

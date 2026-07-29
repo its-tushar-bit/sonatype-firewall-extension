@@ -106,6 +106,44 @@ public class H2ComponentRiskService
     return result;
   }
 
+  @Override
+  public DashboardResultsDTO<ComponentRiskDTO> loadCards(
+      final List<Application> applications,
+      final Set<String> componentHashes,
+      final Set<String> stageIds,
+      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final PolicyThreatLevelFilter policyThreatLevelFilter,
+      final PolicyViolationStateFilter policyViolationStateFilter)
+  {
+    DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
+    if (applications.isEmpty() || componentHashes == null || componentHashes.isEmpty()) {
+      result.dashboardResults = List.of();
+      return result;
+    }
+
+    List<PolicyViolationDTO> violations = getPolicyViolations(applications, stageIds,
+        policyThreatCategoryFilter, policyThreatLevelFilter, policyViolationStateFilter);
+    Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
+    for (PolicyViolationDTO violation : violations) {
+      if (violation.hash == null || !componentHashes.contains(violation.hash)) {
+        continue;
+      }
+      ComponentViolationRollUp component = componentsByHash.get(violation.hash);
+      if (component == null) {
+        component = new ComponentViolationRollUp();
+        componentsByHash.put(violation.hash, component);
+      }
+      component.add(violation);
+    }
+
+    List<ComponentRiskDTO> dtos = new ArrayList<>(componentsByHash.size());
+    for (ComponentViolationRollUp component : componentsByHash.values()) {
+      dtos.add(component.toDTO());
+    }
+    result.dashboardResults = dtos;
+    return result;
+  }
+
   @VisibleForTesting
   List<PolicyViolationDTO> getPolicyViolations(
       Set<String> organizationIds,
@@ -185,6 +223,12 @@ public class H2ComponentRiskService
     public ComponentRiskDTO toDTO() {
       ComponentRiskDTO dto = new ComponentRiskDTO();
       dto.affectedApplications = applicationIds.size();
+      // Enriched rows always expose score fields (including zeros) for Applications-parity chrome.
+      dto.score = 0;
+      dto.scoreCritical = 0;
+      dto.scoreSevere = 0;
+      dto.scoreModerate = 0;
+      dto.scoreLow = 0;
       for (PolicyViolationDTO violation : violationsByAppPolicyAndConstraint.values()) {
         dto.hash = violation.hash;
         dto.score += violation.threatLevel;

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dashboard.violations;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
@@ -70,6 +71,9 @@ public class ViolationsListServiceSessionTest
   private ConversionHelper conversionHelper;
 
   @Mock
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Mock
   private IndexReadSession session;
 
   @Before
@@ -79,6 +83,7 @@ public class ViolationsListServiceSessionTest
     when(conversionHelper.stringToQuery(anyString())).thenReturn(SESSION_QUERY);
     when(indexQueryBuilder.buildViolationQuery(any())).thenReturn(QUERY);
     lenient().when(indexQueryBuilder.buildViolationQueryExcludingWaiverType(any())).thenReturn(QUERY);
+    lenient().when(policyViolationDAO.getByIds(any())).thenReturn(List.of());
   }
 
   @After
@@ -88,7 +93,13 @@ public class ViolationsListServiceSessionTest
 
   private ViolationsListService service() {
     return new ViolationsListService(
-        searchIndexClient, indexQueryBuilder, requestValidator, facetsBuilder, sessionFactory, conversionHelper);
+        searchIndexClient,
+        indexQueryBuilder,
+        requestValidator,
+        facetsBuilder,
+        sessionFactory,
+        conversionHelper,
+        policyViolationDAO);
   }
 
   private static ViolationsListRequestDTO request(final int page, final int pageSize) {

@@ -8,12 +8,45 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ComponentsList from 'MainRoot/nosc/componentsList/ComponentsList';
 import { NEXUS_ONE_COMPONENTS_STATE_NAME } from 'MainRoot/nosc/componentsList/componentsRoute';
-import { getSearchCatalogUrl } from 'MainRoot/util/CLMLocation';
+import { getComponentsListUrl, getSearchCatalogUrl } from 'MainRoot/util/CLMLocation';
 import router from 'MainRoot/router/routerInstance';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { MOCK_COMPONENTS_CATALOG_RESPONSE } from 'TestRoot/nosc/componentsList/mockComponentsListData';
 import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
 import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
+
+const MOCK_DASHBOARD_RESPONSE = {
+  components: [
+    {
+      hash: 'abc123',
+      derivedComponentName: 'guava',
+      scoreCritical: 1,
+      scoreSevere: 0,
+      scoreModerate: 2,
+      scoreLow: 0,
+      affectedApplications: 3,
+    },
+    {
+      hash: 'def456',
+      derivedComponentName: 'commons-lang',
+      scoreCritical: 0,
+      scoreSevere: 1,
+      scoreModerate: 0,
+      scoreLow: 1,
+      affectedApplications: 1,
+    },
+  ],
+  total: 2,
+  page: 0,
+  pageSize: 50,
+  hasNextPage: false,
+  source: 'index',
+  facets: {
+    totalComponents: 2,
+    organizations: { 'org-1': 2 },
+    organizationNames: { 'org-1': 'Java Team' },
+  },
+};
 
 describe('ComponentsList', () => {
   let axiosMock: ReturnType<typeof axiosMockAdapter>;
@@ -27,8 +60,8 @@ describe('ComponentsList', () => {
     axiosMock.reset();
   });
 
-  it('mounts the native Components page and loads catalog rows', async () => {
-    axiosMock.onPost(getSearchCatalogUrl()).reply(200, MOCK_COMPONENTS_CATALOG_RESPONSE);
+  it('mounts the native Components page and loads My Scan Data hybrid rows', async () => {
+    axiosMock.onPost(getComponentsListUrl()).reply(200, MOCK_DASHBOARD_RESPONSE);
 
     renderNexusOneRoute(<ComponentsList />, NEXUS_ONE_COMPONENTS_STATE_NAME);
 
@@ -44,30 +77,26 @@ describe('ComponentsList', () => {
   });
 
   it('hydrates list state from deep-linked route params on the first fetch', async () => {
-    axiosMock.onPost(getSearchCatalogUrl()).reply(200, MOCK_COMPONENTS_CATALOG_RESPONSE);
+    axiosMock.onPost(getComponentsListUrl()).reply(200, MOCK_DASHBOARD_RESPONSE);
 
     renderNexusOneRoute(<ComponentsList />, NEXUS_ONE_COMPONENTS_STATE_NAME, {
       q: 'guava',
+      // Route org values are friendly names (see componentsRoute); dashboard posts them as organizationIds.
       org: 'Java Team',
-      ecosystem: 'maven',
     });
 
     await waitFor(() => {
       const hydrated = axiosMock.history.post.find((request) => {
+        if (request.url !== getComponentsListUrl()) return false;
         const body = JSON.parse(String(request.data));
-        return (
-          body.entityType === 'COMPONENT'
-          && body.source === 'local'
-          && body.filters?.query === 'guava'
-          && body.filters?.organizations?.includes('Java Team')
-          && body.filters?.ecosystems?.includes('maven')
-        );
+        return body.search === 'guava' && body.organizationIds?.includes('Java Team');
       });
       expect(hydrated).toBeDefined();
     });
   });
 
   it('writes catalog source into the address bar when the Catalog tab is selected', async () => {
+    axiosMock.onPost(getComponentsListUrl()).reply(200, MOCK_DASHBOARD_RESPONSE);
     axiosMock.onPost(getSearchCatalogUrl()).reply(200, {
       ...MOCK_COMPONENTS_CATALOG_RESPONSE,
       source: 'catalog',

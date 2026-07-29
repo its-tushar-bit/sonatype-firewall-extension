@@ -35,6 +35,7 @@ describe('ComponentCardGrid', () => {
     expect(screen.getByTestId('component-card-ecosystem')).toHaveTextContent('maven');
     expect(screen.getByTestId('component-card-organization')).toHaveTextContent('Java Team');
     expect(screen.queryByTestId('component-card-link')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('component-card-applications')).not.toBeInTheDocument();
   });
 
   it('links when the catalog API provides a safe in-app href', () => {
@@ -94,5 +95,76 @@ describe('ComponentCardGrid', () => {
       </Theme>,
     );
     expect(screen.queryByTestId('component-card-link')).not.toBeInTheDocument();
+  });
+
+  it('renders risk severity badges and applications count for hybrid My Scan Data rows', () => {
+    render(
+      <Theme>
+        <ComponentCardGrid
+          components={[
+            {
+              id: 'abc123',
+              name: 'guava',
+              subtitle: 'abc123',
+              source: 'local',
+              scoreCritical: 2,
+              scoreSevere: 1,
+              scoreModerate: 0,
+              scoreLow: 4,
+              affectedApplications: 5,
+            },
+          ]}
+        />
+      </Theme>,
+    );
+
+    expect(screen.getByLabelText('2 critical violations')).toBeInTheDocument();
+    expect(screen.getByLabelText('1 severe violations')).toBeInTheDocument();
+    expect(screen.getByLabelText('0 moderate violations')).toBeInTheDocument();
+    expect(screen.getByLabelText('4 low violations')).toBeInTheDocument();
+    expect(screen.getByTestId('component-card-applications')).toHaveTextContent('5 Applications');
+  });
+
+  it('shows Applications-parity zero badges when SQL enrich supplied score fields', () => {
+    render(
+      <Theme>
+        <ComponentCardGrid
+          components={[
+            {
+              id: 'clean-hash',
+              name: 'clean',
+              source: 'local',
+              scoreCritical: 0,
+              scoreSevere: 0,
+              scoreModerate: 0,
+              scoreLow: 0,
+              affectedApplications: 0,
+            },
+          ]}
+        />
+      </Theme>,
+    );
+
+    expect(screen.getByLabelText('0 critical violations')).toBeInTheDocument();
+    expect(screen.queryByTestId('component-card-applications')).not.toBeInTheDocument();
+  });
+
+  it('omits risk chrome for catalog/stub rows without score fields', () => {
+    render(
+      <Theme>
+        <ComponentCardGrid
+          components={[
+            {
+              id: 'pkg:maven/com.example/lib@1.0.0',
+              name: 'lib',
+              subtitle: '1.0.0',
+              source: 'catalog',
+            },
+          ]}
+        />
+      </Theme>,
+    );
+
+    expect(screen.queryByLabelText(/violations$/)).not.toBeInTheDocument();
   });
 });

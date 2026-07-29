@@ -38,10 +38,23 @@ export function policyTypeSeverityLabel(row: ViolationRow): string | undefined {
   return row.policyName?.trim() || undefined;
 }
 
-/** Relative "first seen …" phrase; sub-minute timestamps read as "just now". */
+const ABSOLUTE_DATE_TIME = new Intl.DateTimeFormat(undefined, {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+});
+
+/**
+ * Absolute date/time plus relative age for triage (e.g. {@code Mar 12, 2026, 3:41 PM · 2 months ago}).
+ * Sub-minute relative age reads as {@code just now}.
+ */
 function formatFirstSeen(ms: number): string {
+  const absolute = ABSOLUTE_DATE_TIME.format(new Date(ms));
   const ago = formatTimeAgo(ms);
-  return ago === 'seconds ago' ? 'just now' : ago;
+  const relative = ago === 'seconds ago' ? 'just now' : ago;
+  return `${absolute} · ${relative}`;
 }
 
 /** Component name with an appended ` : version` when a version is known. */
@@ -100,8 +113,7 @@ function ViolationCard({
   const state = v.state ?? 'OPEN';
   const component = componentDisplay(v);
   const isWaived = state === 'WAIVED';
-  // The list API does not index the violation timestamp yet, so this is undefined today; the line is
-  // omitted when absent.
+  // Page SQL enrich maps PolicyViolation.openTime → firstOccurredTime; omit the line when absent.
   const firstSeen = v.firstOccurredTime != null ? formatFirstSeen(v.firstOccurredTime) : '';
   // Legal (hideStateBadges) shows LTG / license via policyName; Violations use Wave A chrome.
   const policyLabel = hideStateBadges

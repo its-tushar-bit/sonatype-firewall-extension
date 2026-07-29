@@ -11,7 +11,7 @@ export type ComponentsFilterFacetEntry = {
   readonly count: number;
 };
 
-/** Facet counts for the Components filter rail (from {@code POST /rest/search/catalog}). */
+/** Facet counts for the Components filter rail. */
 export type ComponentsFilterFacetCounts = {
   readonly totalComponents: number;
   readonly organizations: ReadonlyArray<ComponentsFilterFacetEntry>;
@@ -19,8 +19,8 @@ export type ComponentsFilterFacetCounts = {
 };
 
 /**
- * Catalog row mapped for the Martha Components card grid.
- * {@code id} is the catalog row id (component name / coordinate); risk scores are not on this API.
+ * Component card row for Martha Components.
+ * Catalog rows use coordinate identity; My Scan Data hybrid rows include SQL risk enrich.
  */
 export type ComponentListRow = {
   readonly id: string;
@@ -31,4 +31,9 @@ export type ComponentListRow = {
   readonly source: 'local' | 'catalog';
   /** Optional in-app detail href from the catalog API when present. */
   readonly href?: string;
+  readonly scoreCritical?: number;
+  readonly scoreSevere?: number;
+  readonly scoreModerate?: number;
+  readonly scoreLow?: number;
+  readonly affectedApplications?: number;
 };

@@ -21,10 +21,13 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -94,6 +97,67 @@ public class PostgresComponentRiskService
     return result;
   }
 
+  @Override
+  public DashboardResultsDTO<ComponentRiskDTO> loadCards(
+      final List<Application> applications,
+      final Set<String> componentHashes,
+      final Set<String> stageIds,
+      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final PolicyThreatLevelFilter policyThreatLevelFilter,
+      final PolicyViolationStateFilter policyViolationStateFilter)
+  {
+    DashboardResultsDTO<ComponentRiskDTO> result = new DashboardResultsDTO<>();
+    if (applications.isEmpty() || componentHashes == null || componentHashes.isEmpty()) {
+      result.dashboardResults = List.of();
+      return result;
+    }
+
+    Set<String> appIds = applications.stream().map(Application::getId).collect(Collectors.toSet());
+    Set<String> threatCategoryFilter = policyThreatCategoryFilter != null
+        ? policyThreatCategoryFilter.getPolicyThreatCategories().stream().map(Enum::name).collect(Collectors.toSet())
+        : Collections.emptySet();
+    List<Entry<Integer, Integer>> threatLevelRanges = policyThreatLevelFilter != null
+        ? policyThreatLevelFilter.sqlThreatLevelRanges()
+        : List.of(Map.entry(0, 10));
+    Set<String> violationStateFilter = policyViolationStateFilter != null
+        ? policyViolationStateFilter.getPolicyViolationStates().stream().map(Enum::name).collect(Collectors.toSet())
+        : Collections.emptySet();
+    Set<String> stageTypesFilter = dashboardUtils.getStageTypes(stageIds)
+        .stream()
+        .map(StageType::getId)
+        .collect(Collectors.toSet());
+
+    // No paging: hash filter bounds the result set. Collapse (hash,filename,format,coords) groups to one
+    // card per hash (highest total score wins) so Martha merge is 1:1 with componentHash.
+    List<ComponentRiskDTO> rows = applicationComponentDAO
+        .getComponentsRiskFiltered(
+            appIds,
+            stageTypesFilter,
+            threatCategoryFilter,
+            threatLevelRanges,
+            violationStateFilter,
+            "score DESC",
+            0,
+            Integer.MAX_VALUE,
+            componentHashes)
+        .stream()
+        .map(this::toDTO)
+        .toList();
+
+    Map<String, ComponentRiskDTO> byHash = new LinkedHashMap<>();
+    for (ComponentRiskDTO row : rows) {
+      if (row.hash == null) {
+        continue;
+      }
+      ComponentRiskDTO existing = byHash.get(row.hash);
+      if (existing == null || scoreOrZero(row.score) > scoreOrZero(existing.score)) {
+        byHash.put(row.hash, row);
+      }
+    }
+    result.dashboardResults = new ArrayList<>(byHash.values());
+    return result;
+  }
+
   private String getSortColumnAndDirection(String orderBy) {
     if (orderBy == null) {
       return "score DESC";
@@ -139,5 +203,9 @@ public class PostgresComponentRiskService
     dto.derivedComponentName = ComponentDisplayNameUtil.deriveComponentName(dto);
 
     return dto;
+  }
+
+  private static int scoreOrZero(final Integer score) {
+    return Objects.requireNonNullElse(score, 0);
   }
 }

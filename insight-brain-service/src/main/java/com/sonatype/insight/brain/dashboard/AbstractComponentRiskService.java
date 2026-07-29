@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -73,6 +74,44 @@ public abstract class AbstractComponentRiskService
     return result;
   }
 
+  @Override
+  public DashboardResultsDTO<ComponentRiskDTO> getComponentRiskCards(
+      final Set<String> organizationIds,
+      final Set<String> applicationIds,
+      final Set<String> componentHashes,
+      final Set<String> stageIds,
+      final Set<String> tagIds,
+      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final PolicyThreatLevelFilter policyThreatLevelFilter,
+      final PolicyViolationStateFilter policyViolationStateFilter)
+  {
+    dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
+
+    if (componentHashes == null || componentHashes.isEmpty()) {
+      DashboardResultsDTO<ComponentRiskDTO> empty = new DashboardResultsDTO<>();
+      empty.dashboardResults = List.of();
+      empty.hasNextPage = false;
+      return empty;
+    }
+
+    long start = System.currentTimeMillis();
+    List<Application> applications = getApplications(organizationIds, applicationIds, tagIds);
+    DashboardResultsDTO<ComponentRiskDTO> result = loadCards(
+        applications,
+        componentHashes,
+        stageIds,
+        policyThreatCategoryFilter,
+        policyThreatLevelFilter,
+        policyViolationStateFilter);
+    if (result.dashboardResults == null) {
+      result.dashboardResults = Collections.emptyList();
+    }
+    result.hasNextPage = false;
+    log.debug("getComponentRiskCards finished in {} ms (hashes={})",
+        System.currentTimeMillis() - start, componentHashes.size());
+    return result;
+  }
+
   abstract DashboardResultsDTO<ComponentRiskDTO> load(
       List<Application> applications,
       Set<String> stageIds,
@@ -82,6 +121,14 @@ public abstract class AbstractComponentRiskService
       String orderBy,
       int page,
       int pageSize);
+
+  abstract DashboardResultsDTO<ComponentRiskDTO> loadCards(
+      List<Application> applications,
+      Set<String> componentHashes,
+      Set<String> stageIds,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyViolationStateFilter policyViolationStateFilter);
 
   protected List<Application> getApplications(
       Set<String> organizationIds,

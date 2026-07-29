@@ -9,8 +9,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Test/preview fixture shaped like POST /rest/dashboard/violations/list. Used by jest specs and local
- * previews; not imported by production code paths. {@code firstOccurredTime} is a preview-only field
- * the real API does not return yet.
+ * previews; not imported by production code paths. {@code firstOccurredTime} mirrors the Wave B page
+ * SQL enrich ({@code PolicyViolation.openTime}).
  */
 export const MOCK_VIOLATIONS_LIST_RESPONSE: ViolationsListResponse = {
   violations: [

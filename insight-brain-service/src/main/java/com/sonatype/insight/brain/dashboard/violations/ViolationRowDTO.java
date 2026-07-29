@@ -11,12 +11,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
- * A single Nexus One violation card row, mapped directly from a {@code POLICY_VIOLATION} search
- * index hit (no SQL enrichment pass).
+ * A single Nexus One violation card row, mapped from a {@code POLICY_VIOLATION} search index hit
+ * with a page-scoped SQL enrich for {@link #firstOccurredTime} ({@code PolicyViolation.openTime}).
  * <p>
- * Fields the prototype {@code RealViolation} carries but that are not yet indexed on violation
- * documents — {@code dateFirstSeen}/{@code timestampFirstSeen}, {@code applicationCategory}, and the
- * CVE reference — are intentionally absent in V1. They arrive when the index gains those fields.
+ * Fields the prototype {@code RealViolation} carries but that are not yet available without reindex
+ * — {@code applicationCategory} and the CVE reference — remain intentionally absent.
  */
 @JsonInclude(Include.NON_NULL)
 public class ViolationRowDTO
@@ -64,4 +63,10 @@ public class ViolationRowDTO
   public boolean waivedWithAutoWaiver;
 
   public String constraintName;
+
+  /**
+   * Epoch millis when the violation was first opened ({@code PolicyViolation.openTime}), enriched
+   * per page from SQL. Omitted when unknown so the FE can skip the "first seen" line.
+   */
+  public Long firstOccurredTime;
 }

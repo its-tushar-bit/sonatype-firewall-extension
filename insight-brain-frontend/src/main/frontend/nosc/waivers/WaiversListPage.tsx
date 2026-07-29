@@ -3,88 +3,140 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { Box, Flex, Heading, Link, Text } from '@radix-ui/themes';
-import { DomainIcons } from 'MainRoot/nosc/icons';
-import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
-import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
-import { useWaiversList } from './useWaivers';
-import WaiversTable from './WaiversTable';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCurrentStateAndParams } from '@uirouter/react';
+import router from 'MainRoot/router/routerInstance';
+import WaiversAnaPage from 'MainRoot/nosc/waivers/WaiversAnaPage';
+import { useAnaWaiversList } from 'MainRoot/nosc/waivers/useAnaWaiversList';
+import {
+  buildWaiversListRouteParams,
+  parseWaiversListParams,
+} from 'MainRoot/nosc/waivers/waiversListQuery';
+
+import '@radix-ui/themes/styles.css';
+
+function routeStateKey(params: Record<string, unknown>): string {
+  return JSON.stringify(buildWaiversListRouteParams(parseWaiversListParams(params)));
+}
+
+/** Raw hash-query snapshot for the list URL fields (before parse/normalize). */
+function rawRouteParamsSnapshot(params: Record<string, unknown>): string {
+  const asOptionalString = (value: unknown): string | undefined =>
+    (typeof value === 'string' && value.length > 0 ? value : undefined);
+  return JSON.stringify({
+    q: asOptionalString(params.q),
+    sort: asOptionalString(params.sort),
+    page: asOptionalString(params.page),
+    threat: asOptionalString(params.threat),
+    expiry: asOptionalString(params.expiry),
+    auto: asOptionalString(params.auto),
+    org: asOptionalString(params.org),
+    app: asOptionalString(params.app),
+    policy: asOptionalString(params.policy),
+  });
+}
 
 /**
- * Native Nexus One Waivers list (CLM-39545 / CLM-39709).
+ * Ana Waivers list container (CLM-43204).
  *
- * Mounted at `/waivers`. Reads live from
- * POST /rest/dashboard/policy/policyWaivers?includeAutoWaivers=true with an
- * empty filter (up to 100 most recent waivers across the IQ instance, scoped by
- * the caller's effective permissions).
- *
- * TODO(CLM-39709): sort, filter sidebar, and multi-page pagination are
- * follow-ups; waiver creation stays in Classic (linked from each violation).
+ * Hard cutover away from the Classic {@code /rest/dashboard/policy/policyWaivers} list —
+ * this page now reads exclusively from {@code POST /rest/search/index-query} with
+ * {@code entityType: WAIVER}. Detail (WaiverDetailPage) still uses the v2 API. Toolbar
+ * search/sort and sidebar filters round-trip in the hash query for bookmarks/back-forward.
  */
-export default function WaiversListPage() {
-  const offsets = usePreviewShellOffsets();
-  const classicWaiverRequestsHref = bundleIndexUrl('classic', '/dashboard/waiverRequests');
-  const { loading, error, waivers, hasNextPage, refetch } = useWaiversList({
-    includeAutoWaivers: true,
-  });
+export default function WaiversListPage(): JSX.Element {
+  const { params } = useCurrentStateAndParams();
+  const parsed = useMemo(() => parseWaiversListParams(params), [params]);
+  const routeKey = useMemo(() => routeStateKey(params), [params]);
+  const lastWrittenRouteKey = useRef(routeKey);
+  const [fetchEnabled, setFetchEnabled] = useState(false);
+  const fetchGateOpened = useRef(false);
+  // Keep latest parse/params in refs so inbound sync can depend only on routeKey. Re-running
+  // syncQueryState on every params/parsed identity change (same URL) was stomping a local
+  // page advance back to the still-stale hash page=1 and aborting the page-2 index-query.
+  const parsedRef = useRef(parsed);
+  const paramsRef = useRef(params);
+  parsedRef.current = parsed;
+  paramsRef.current = params;
+
+  const {
+    waivers,
+    facets,
+    filters,
+    hasActiveFilters,
+    search,
+    orderBy,
+    loading,
+    error,
+    info,
+    retry,
+    total,
+    exactTotalEstimate,
+    page,
+    pageSize,
+    hasNextPage,
+    warnings,
+    setPage,
+    submitSearch,
+    changeOrderBy,
+    toggleFilter,
+    resetFilters,
+    syncQueryState,
+  } = useAnaWaiversList({ initialState: parsed, enabled: fetchEnabled });
+
+  useLayoutEffect(() => {
+    const currentParsed = parsedRef.current;
+    syncQueryState(currentParsed);
+    const cleanedParams = buildWaiversListRouteParams(currentParsed);
+    const cleanedKey = JSON.stringify(cleanedParams);
+    lastWrittenRouteKey.current = cleanedKey;
+    // Drop invalid/unrecognised tokens from the URL before the first fetch so the address
+    // bar stays canonical after a deep link (e.g. threat=Bogus or expiry=WhoKnows).
+    if (rawRouteParamsSnapshot(paramsRef.current) !== cleanedKey) {
+      router.stateService.go('nexusOneWaivers', cleanedParams, { notify: false, location: 'replace' });
+    }
+    if (!fetchGateOpened.current) {
+      fetchGateOpened.current = true;
+      setFetchEnabled(true);
+    }
+  }, [routeKey, syncQueryState]);
+
+  useEffect(() => {
+    const nextParams = buildWaiversListRouteParams({
+      search,
+      orderBy,
+      page,
+      filters,
+    });
+    const nextKey = JSON.stringify(nextParams);
+    if (nextKey === routeKey || nextKey === lastWrittenRouteKey.current) return;
+    lastWrittenRouteKey.current = nextKey;
+    router.stateService.go('nexusOneWaivers', nextParams, { notify: false, location: 'replace' });
+  }, [search, orderBy, page, filters, routeKey]);
 
   return (
-    // Radix Theme is provided once by NexusOneShellLayout; render content into a
-    // fixed, scrollable <main> region below the shell chrome.
-    <Box
-      asChild
-      p="6"
-      style={{
-        position: 'fixed',
-        ...offsets,
-        right: 0,
-        bottom: 0,
-        overflowY: 'auto',
-        backgroundColor: 'var(--gray-1)',
-      }}
-    >
-      <main data-testid="preview-waivers-page">
-        <Flex direction="column" gap="2" mb="5">
-          <Flex align="center" justify="between">
-            <Flex align="center" gap="3">
-              <DomainIcons.Waivers size={28} color="var(--accent-9)" />
-              <Heading size="6">Waivers</Heading>
-            </Flex>
-            <Flex align="center" gap="4">
-              {!loading && !error && (
-                <Text size="2" color="gray" data-testid="preview-waivers-count">
-                  {waivers.length}
-                  {hasNextPage ? '+' : ''} {waivers.length === 1 ? 'waiver' : 'waivers'} in scope
-                </Text>
-              )}
-              <Link size="2" href={classicWaiverRequestsHref} data-testid="preview-waivers-classic-link">
-                Open in Classic
-              </Link>
-            </Flex>
-          </Flex>
-          <Text size="2" color="gray">
-            Active policy-violation waivers across all applications and organizations you can see. Auto-generated
-            waivers are included.
-          </Text>
-        </Flex>
-
-        <WaiversTable
-          waivers={waivers}
-          loading={loading}
-          error={error}
-          onRetry={refetch}
-          testId="nosc-waivers-list-table"
-        />
-
-        {!loading && !error && hasNextPage && (
-          <Flex justify="center" mt="4">
-            <Text size="2" color="gray" data-testid="preview-waivers-truncated">
-              Showing first {waivers.length} waivers. Open in Classic for full pagination + filter sidebar.
-            </Text>
-          </Flex>
-        )}
-      </main>
-    </Box>
+    <WaiversAnaPage
+      waivers={waivers}
+      facets={facets}
+      filters={filters}
+      hasActiveFilters={hasActiveFilters}
+      onToggleFilter={toggleFilter}
+      onResetFilters={resetFilters}
+      loading={loading}
+      error={error}
+      info={info}
+      onRetry={retry}
+      searchValue={search}
+      onSearchSubmit={submitSearch}
+      orderBy={orderBy}
+      onOrderByChange={changeOrderBy}
+      totalCount={total}
+      exactTotalEstimate={exactTotalEstimate}
+      page={page}
+      pageSize={pageSize}
+      hasNextPage={hasNextPage}
+      onPageChange={setPage}
+      warnings={warnings}
+    />
   );
 }

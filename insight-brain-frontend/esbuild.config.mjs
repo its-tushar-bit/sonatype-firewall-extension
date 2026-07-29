@@ -307,7 +307,12 @@ async function buildAll() {
 
 // Dev server with proxy
 async function startDevServer() {
-  console.log('Starting dev server on port 8070…');
+  // FE_PORT / IQ_BACKEND allow running multiple frontends against different local IQ
+  // instances without patching this file. Defaults preserve the historical 8070 → 8072
+  // pairing so unset envs behave exactly like before.
+  const devFrontendPort = Number.parseInt(process.env.FE_PORT ?? '', 10) || 8070;
+  const backendTarget = process.env.IQ_BACKEND?.trim() || 'http://localhost:8072';
+  console.log(`Starting dev server on port ${devFrontendPort} → backend ${backendTarget}`);
 
   fs.mkdirSync(outDir, { recursive: true });
   await copyStaticFiles();
@@ -337,7 +342,6 @@ async function startDevServer() {
 
   // Thin proxy: API paths go to the backend, everything else to esbuild's serve.
   const proxyPaths = ['/rest', '/api', '/ui', '/policy-assets', '/saml'];
-  const backendTarget = 'http://localhost:8072';
 
   const server = createServer((req, res) => {
     // Redirect bare / to /assets/index.html (matches production behaviour).
@@ -366,8 +370,8 @@ async function startDevServer() {
     req.pipe(proxyReq);
   });
 
-  server.listen(8070, '0.0.0.0', () => {
-    console.log('Dev server listening on http://localhost:8070');
+  server.listen(devFrontendPort, '0.0.0.0', () => {
+    console.log(`Dev server listening on http://localhost:${devFrontendPort}`);
   });
 
   process.on('SIGINT', async () => {

@@ -7,6 +7,22 @@ import { formatDateUtcYYYYMMDD } from 'MainRoot/util/dateUtils';
 import { threatColorFor } from 'MainRoot/nosc/applications/applicationDetailUtils';
 import type { PolicyWaiverDTO, PolicyWaiverDetailDTO } from './waiverTypes';
 
+/**
+ * Map Ana / route owner-type tokens onto the lowercase path segments expected by
+ * {@code GET /api/v2/policyWaivers/{ownerType}/...}. Ana index-query emits enum-style
+ * values ({@code APPLICATION}); Classic list DTOs already use lowercase.
+ */
+const OWNER_TYPE_ALIASES: Record<string, string> = {
+  root_organization: 'organization',
+  all_repositories: 'repository_container',
+};
+
+export function normalizeWaiverOwnerTypeForApi(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+  return OWNER_TYPE_ALIASES[lower] ?? lower;
+}
+
 /** Calendar-day waiver dates in UTC so the rendered day is timezone-stable. */
 export function formatWaiverCalendarDate(value: string | number | undefined | null): string {
   return formatDateUtcYYYYMMDD(value ?? '');

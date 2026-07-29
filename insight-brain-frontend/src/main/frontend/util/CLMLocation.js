@@ -175,6 +175,18 @@ export function getSearchCatalogUrl() {
 }
 
 /**
+ * Ana IQ-index left-nav list POST endpoint (CLM-43203 / CLM-43204).
+ *
+ * Body: `{ entityType, filters?, page?, pageSize?, sort?, searchAfter?, includeFacets? }` where
+ * `entityType` is one of {APPLICATION, VIOLATION, POLICY, WAIVER}. Pagination is cursor-based:
+ * page 1 must omit `searchAfter`; page > 1 must carry a `searchAfter` cursor returned by the
+ * prior response. Gated by GLOBAL_SEARCH (404 when off) and requires read on at least one context.
+ */
+export function getIndexQueryUrl() {
+  return uriTemplate`/rest/search/index-query`;
+}
+
+/**
  * Nexus One Vulnerabilities card list (Martha V1, CLM-42216). POST with
  * `{ tab, page, pageSize, search?, includeFacets, orderBy }`; gated by PREVIEW_NEXUS_ONE_UI.
  */

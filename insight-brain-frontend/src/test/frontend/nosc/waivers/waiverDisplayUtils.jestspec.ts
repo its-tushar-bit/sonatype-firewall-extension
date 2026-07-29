@@ -10,11 +10,22 @@ import {
   formatWaiverComponentLabel,
   formatWaiverListExpiry,
   formatWaiverScopeLabel,
+  normalizeWaiverOwnerTypeForApi,
   waiverThreatColor,
 } from 'MainRoot/nosc/waivers/waiverDisplayUtils';
 import { formatDateUtcYYYYMMDD } from 'MainRoot/util/dateUtils';
 
 describe('waiverDisplayUtils', () => {
+  it('normalizeWaiverOwnerTypeForApi lowercases Ana enum tokens for the v2 path', () => {
+    expect(normalizeWaiverOwnerTypeForApi('APPLICATION')).toBe('application');
+    expect(normalizeWaiverOwnerTypeForApi('ORGANIZATION')).toBe('organization');
+    expect(normalizeWaiverOwnerTypeForApi('application')).toBe('application');
+    expect(normalizeWaiverOwnerTypeForApi('ROOT_ORGANIZATION')).toBe('organization');
+    expect(normalizeWaiverOwnerTypeForApi('ALL_REPOSITORIES')).toBe('repository_container');
+    expect(normalizeWaiverOwnerTypeForApi(null)).toBeNull();
+    expect(normalizeWaiverOwnerTypeForApi(undefined)).toBeNull();
+  });
+
   it('formatWaiverCalendarDate formats waiver dates as a UTC calendar day', () => {
     const value = '2026-05-01T10:00:00Z';
     expect(formatWaiverCalendarDate(value)).toBe(formatDateUtcYYYYMMDD(value));

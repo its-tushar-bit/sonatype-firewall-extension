@@ -23,6 +23,7 @@ import {
   formatWaiverCalendarDate,
   formatWaiverComponentLabel,
   formatWaiverScopeLabel,
+  normalizeWaiverOwnerTypeForApi,
 } from './waiverDisplayUtils';
 
 /**
@@ -45,21 +46,6 @@ interface ParsedRoute {
   ownerType: string | null;
   ownerId: string | null;
   waiverId: string | null;
-}
-
-const OWNER_TYPE_MAP: Record<string, string> = {
-  root_organization: 'organization',
-  all_repositories: 'repository_container',
-};
-
-/**
- * Owner type as the v2 path expects it. Lowercased first because list links can
- * carry the enum casing (`APPLICATION`) while the API path matches lowercase.
- */
-function normalizeOwnerType(rawOwnerType: string | undefined): string | null {
-  if (!rawOwnerType) return null;
-  const ownerType = rawOwnerType.toLowerCase();
-  return OWNER_TYPE_MAP[ownerType] ?? ownerType;
 }
 
 interface BackLinkTarget {
@@ -153,7 +139,7 @@ export default function WaiverDetailPage(): ReactElement {
 
   const route = useMemo<ParsedRoute>(
     () => ({
-      ownerType: normalizeOwnerType(
+      ownerType: normalizeWaiverOwnerTypeForApi(
         typeof params.ownerType === 'string' ? params.ownerType : undefined,
       ),
       ownerId: typeof params.ownerId === 'string' ? params.ownerId : null,

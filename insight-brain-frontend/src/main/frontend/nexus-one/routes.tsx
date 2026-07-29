@@ -230,9 +230,25 @@ nexusOneVulnerabilityDetailStates().forEach((state) => {
   router.stateRegistry.register(state);
 });
 
+// Ana IQ-index Waivers list (CLM-43204). Query params persist search + sort + sidebar
+// filters + page (1-based, cursor-backed past page 1) in the hash for bookmarks/back-forward.
+// Mark every query param dynamic so UI-Router updates params in place instead of remounting
+// the list — a remount wipes the in-memory searchAfter cursor cache and snaps Next back to page 1.
+const waiversListDynamicParams = {
+  q: { dynamic: true },
+  sort: { dynamic: true },
+  page: { dynamic: true },
+  threat: { dynamic: true },
+  expiry: { dynamic: true },
+  auto: { dynamic: true },
+  org: { dynamic: true },
+  app: { dynamic: true },
+  policy: { dynamic: true },
+};
 router.stateRegistry.register({
   name: 'nexusOneWaivers',
-  url: '/waivers',
+  url: '/waivers?q&sort&page&threat&expiry&auto&org&app&policy',
+  params: waiversListDynamicParams,
   component: PreviewWaiversList,
   data: {
     title: 'Nexus One — Waivers',

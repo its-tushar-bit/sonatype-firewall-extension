@@ -63,7 +63,7 @@ function NexusOneTestTheme({ children }: { children: React.ReactNode }): ReactEl
 const STATES: ReactStateDeclaration[] = [
   { name: 'nexusOneApplications', url: '/applications?q&sort&page&stage&org&app&threat' },
   ...nexusOneApplicationDetailStates(),
-  { name: 'nexusOneWaivers', url: '/waivers' },
+  { name: 'nexusOneWaivers', url: '/waivers?q&sort&page&threat&expiry&auto&org&app&policy' },
   { name: 'nexusOneWaiverDetail', url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from' },
   { name: NEXUS_ONE_VIOLATIONS_STATE_NAME, url: NEXUS_ONE_VIOLATIONS_URL },
   { name: NEXUS_ONE_COMPONENTS_STATE_NAME, url: NEXUS_ONE_COMPONENTS_URL },

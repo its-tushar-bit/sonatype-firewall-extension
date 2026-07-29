@@ -215,60 +215,78 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   @Test
   @Category(RegressionTest.class)
-  public void testEmbeddedLegal_rendersClassicLandingInsideNexusOneShell() {
+  public void testEmbeddedLegal_rendersNativeLegalListInsideNexusOneShell() {
     setFeatures(LicensedFeature.values());
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/legal"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-    LegalDashboardPage legalDashboard = new LegalDashboardPage();
-    LegalDashboardPageAssertions legalAssertions = new LegalDashboardPageAssertions(legalDashboard);
 
-    // The clean /legal entry redirects straight to the Applications tab rather than mounting a
-    // component of its own — see nexus-one/routes.tsx's NATIVE_CLASSIC_EMBED_REDIRECTS comment.
-    assertThat(page).hasURL(Pattern.compile(".*/legal/applicationsDashboard.*"));
+    // /legal is now the Nexus One native LEGAL_VIOLATION triage page (CLM-43207) — it mounts
+    // PreviewLegalList in-shell instead of redirecting to the Classic ALP dashboard. The Classic
+    // dashboard is still available at /legal/applicationsDashboard for tenants with ALP.
+    Pattern legalUrl = Pattern.compile(".*/nexus-one/index\\.html#/legal(?:\\?.*)?$");
+    page.waitForURL(legalUrl, new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
+    assertThat(page).hasURL(legalUrl);
 
     assertThat(embedPage.leftNav()).isVisible();
     assertThat(embedPage.leftNavLink("Legal")).isVisible();
+    assertThat(embedPage.leftNavLink("Legal")).hasAttribute("aria-current", "page");
+    // Native NOSC page — no Classic mount here.
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+    assertThat(page.getByTestId("preview-legal-page")).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedLegalApplicationsDashboard_rendersClassicAlpDashboardInShell() {
+    setFeatures(LicensedFeature.values());
+
+    // Direct-navigate to the Classic ALP dashboard, which remains embedded (via LegalDashboardMount)
+    // for tenants with Advanced Legal Pack. The clean /legal path now goes to the native Nexus One
+    // Legal list instead — that's covered by the sibling test above.
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/legal/applicationsDashboard"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    LegalDashboardPage legalDashboard = new LegalDashboardPage();
+    LegalDashboardPageAssertions legalAssertions = new LegalDashboardPageAssertions(legalDashboard);
+
+    assertThat(embedPage.leftNav()).isVisible();
     assertThat(embedPage.classicComponentMount()).isVisible();
     assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
-
     legalAssertions.shouldBeVisible();
 
-    // The PR's headline behavior: tab clicks must resolve in-shell rather than failing silently
-    // (the tab-switch states live in the nexus-one bundle's own router, not Classic's).
+    // Tab click resolves in-shell (state lives in the Nexus One bundle's own router, not Classic's).
     legalDashboard.componentsTab().click();
 
     assertThat(page).hasURL(Pattern.compile(".*/legal/componentsDashboard.*"));
     legalAssertions.shouldShowComponentsTabActive();
     assertThat(embedPage.classicComponentMount()).isVisible();
     assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
-    assertThat(embedPage.leftNavLink("Legal")).hasAttribute("aria-current", "page");
 
-    // The filter toggle's Redux state always flipped correctly, but the drawer it opens is a
-    // PortalDrawer targeting document.querySelector('.nx-page') — a class only Classic's own root
-    // App.jsx provided, not the Nexus One shell. Without it here, the drawer silently rendered null.
+    // PortalDrawer targets `.nx-page` which only Classic's own root App.jsx provided — regression
+    // guard ensures the Nexus One shell also provides it so the drawer isn't silently null.
     legalDashboard.openFilterDrawer();
     assertThat(legalDashboard.filterDrawer()).isVisible();
   }
 
   @Test
   @Category(RegressionTest.class)
-  public void testLegacyComingSoonLegalUrl_redirectsToApplicationsDashboard() {
+  public void testLegacyComingSoonLegalUrl_redirectsToNativeLegalList() {
     setFeatures(LicensedFeature.values());
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/coming-soon/legal"));
 
-    Pattern applicationsDashboardUrl = Pattern.compile(".*/legal/applicationsDashboard.*");
-    page.waitForURL(applicationsDashboardUrl,
-        new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
+    // Legacy /coming-soon/legal now redirects to the native /legal page (CLM-43207); previously it
+    // redirected to Classic's /legal/applicationsDashboard, but that ALP dashboard moved off the
+    // canonical Legal entry point.
+    Pattern legalUrl = Pattern.compile(".*/nexus-one/index\\.html#/legal(?:\\?.*)?$");
+    page.waitForURL(legalUrl, new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
-    LegalDashboardPageAssertions legalAssertions = new LegalDashboardPageAssertions(new LegalDashboardPage());
-
-    assertThat(page).hasURL(applicationsDashboardUrl);
-    assertThat(embedPage.classicComponentMount()).isVisible();
-    legalAssertions.shouldBeVisible();
+    assertThat(page).hasURL(legalUrl);
+    assertThat(embedPage.leftNavLink("Legal")).hasAttribute("aria-current", "page");
+    assertThat(page.getByTestId("preview-legal-page")).isVisible();
   }
 
   @Test
@@ -354,16 +372,33 @@ public class NexusOneClassicEmbedPlaywrightTest
 
   @Test
   @Category(RegressionTest.class)
-  public void testEmbeddedLegal_advancedLegalPackUnlicensed_hidesNavEntry() {
-    // AC #5 (CLM-42162): the Legal rail entry only shows for tenants entitled to it — gate is
-    // unchanged from Classic's own IqSidebarNav (isLicensed && isLegalEnabled).
-    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
+  public void testEmbeddedLegal_orgsAndAppsUnlicensed_hidesNavEntry() {
+    // CLM-43207 moved the Legal rail entry off the Advanced Legal Pack gate — the native
+    // Nexus One Legal V1 list is available without ALP, on the same Lifecycle gate as
+    // Applications / Violations. The rail entry now shows for isLicensed && isOrgsAndAppsEnabled
+    // tenants; stripping ORGS_AND_APPS hides it.
+    setMissingFeature(LicensedFeature.ORGS_AND_APPS);
 
     playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/home"));
 
     NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
     assertThat(embedPage.leftNav()).isVisible();
     assertThat(embedPage.leftNavLink("Legal")).not().isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedLegal_advancedLegalPackUnlicensed_stillShowsNavEntry() {
+    // Regression guard for CLM-43207: the Legal V1 list intentionally does NOT require
+    // Advanced Legal Pack. Stripping ADVANCED_LEGAL_PACK must leave the rail entry visible
+    // (the Classic ALP dashboard at /legal/applicationsDashboard still gates itself separately).
+    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/home"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.leftNavLink("Legal")).isVisible();
   }
 
   @Test

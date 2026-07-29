@@ -496,33 +496,6 @@
         </executions>
       </plugin>
       <plugin>
-        <!-- Stage the repo-root jvm.options (single source of truth for the JVM
-             add-opens / enable-native-access flags, shared with on-prem) into
-             target/ so the Docker build context can COPY it into the image. -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>stage-jvm-options-for-docker</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${maven.multiModuleProjectDirectory}</directory>
-                  <includes>
-                    <include>jvm.options</include>
-                  </includes>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>

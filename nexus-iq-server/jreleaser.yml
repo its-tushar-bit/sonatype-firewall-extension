@@ -101,8 +101,11 @@ assemble:
         mainClass: com.sonatype.insight.brain.spring.InsightBrainSpringApplication
         jvmOptions:
           # Runtime --add-opens flags read from jvm.options at the distribution root.
-          universal:
+          # Unix launcher sets APP_HOME ($VAR); Windows launcher sets BASEDIR (%VAR%) — split per shell.
+          unix:
             - '@$APP_HOME/jvm.options'
+          windows:
+            - '@%BASEDIR%\jvm.options'
       mainJar:
         path: 'nexus-iq-server/target/insight-brain-service-{{projectVersion}}-server.jar'
 

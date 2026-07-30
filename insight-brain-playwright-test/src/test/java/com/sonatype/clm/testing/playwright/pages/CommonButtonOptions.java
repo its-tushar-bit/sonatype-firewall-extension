@@ -31,6 +31,9 @@ public final class CommonButtonOptions
   public static final Locator.GetByRoleOptions DELETE_BUTTON_OPTS =
       new Locator.GetByRoleOptions().setName("Delete");
 
+  public static final Locator.GetByRoleOptions CONTINUE_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName("Continue");
+
   public static final Locator.GetByRoleOptions FILTER_BUTTON_OPTS =
       new Locator.GetByRoleOptions().setName("Filter");
 

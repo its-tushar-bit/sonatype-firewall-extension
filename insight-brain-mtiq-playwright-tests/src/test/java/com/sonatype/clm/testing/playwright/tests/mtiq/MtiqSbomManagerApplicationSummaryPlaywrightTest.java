@@ -46,7 +46,8 @@ public class MtiqSbomManagerApplicationSummaryPlaywrightTest
 {
   private static final String SIMPLE_BOM_XML = "simple-bom.xml";
 
-  private static final List<String> SBOM_SPEC_LABELS = List.of("CycloneDX", "SPDX 2.3", "SPDX 3.0");
+  private static final List<String> SBOM_SPEC_LABELS =
+      List.of("CycloneDX 1.7", "CycloneDX 1.6", "SPDX 2.3", "SPDX 3.0");
 
   private static final List<String> SBOM_FORMAT_LABELS = List.of("JSON", "XML");
 

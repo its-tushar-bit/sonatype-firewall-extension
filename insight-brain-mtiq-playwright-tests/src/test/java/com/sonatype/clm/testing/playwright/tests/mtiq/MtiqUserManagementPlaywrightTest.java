@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.playwright.pages.MtiqUserManagementPage;
 import com.sonatype.clm.testing.playwright.pages.MtiqUserManagementPageAssertions;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.security.User;
 
@@ -158,5 +159,68 @@ public class MtiqUserManagementPlaywrightTest
     playwrightLoginAdminAt(MtiqUserManagementPage.url());
     page.inviteUserButton().click();
     assertThat(page.inviteForm()).isVisible();
+  }
+
+  /** MTIQ user list is SsoUser-backed — seed via {@link #newSamlUser}, not internal-realm users. */
+  @Test
+  public void testMtiqUserManagement_listRendersSeededUsers() {
+    String suffix = tempEntity.uuid();
+    tempEntity.newSamlUser("alice-" + suffix, "Alice", "Anderson", "alice-" + suffix + "@example.com");
+    tempEntity.newSamlUser("bob-" + suffix, "Bob", "Brown", "bob-" + suffix + "@example.com");
+    tempEntity.newSamlUser("carol-" + suffix, "Carol", "Clark", "carol-" + suffix + "@example.com");
+
+    playwrightLoginAdminAt(MtiqUserManagementPage.url());
+    assertions.shouldShowPage();
+    assertions.shouldListUser("alice-" + suffix + " (Alice Anderson)");
+    assertions.shouldListUser("bob-" + suffix + " (Bob Brown)");
+    assertions.shouldListUser("carol-" + suffix + " (Carol Clark)");
+  }
+
+  /** UI slice; Auth0 side-effect is covered in insight-brain-api-regression-test. */
+  @Test
+  public void testMtiqUserManagement_deleteUserRow_persistsAfterReload() {
+    String suffix = tempEntity.uuid();
+    SamlUser target =
+        tempEntity.newSamlUser("target-" + suffix, "Target", "User", "target-" + suffix + "@example.com");
+    // Second seeded user acts as a post-reload anchor: shouldNotListUser's hasCount(0) would pass
+    // vacuously against an empty list while the users API is still in flight, so we assert this row
+    // is visible first to prove the list has actually rendered.
+    SamlUser anchor =
+        tempEntity.newSamlUser("anchor-" + suffix, "Anchor", "User", "anchor-" + suffix + "@example.com");
+
+    playwrightLoginAdminAt(MtiqUserManagementPage.url());
+    assertions.shouldListUser(target.getUsername());
+
+    page.deleteButtonFor(target.getUsername()).click();
+    assertThat(page.deleteUserModal()).isVisible();
+    page.deleteUserModalSubmit().click();
+    waitForSubmitMask();
+    assertThat(page.deleteUserModal()).not().isVisible();
+    assertions.shouldNotListUser(target.getUsername());
+
+    playwrightRefreshOrOpen(MtiqUserManagementPage.url());
+    assertions.shouldShowPage();
+    assertions.shouldListUser(anchor.getUsername());
+    assertions.shouldNotListUser(target.getUsername());
+  }
+
+  /** UI slice; Auth0 dispatch side-effect is covered in insight-brain-api-regression-test. */
+  @Test
+  public void testMtiqUserManagement_inviteFormValidInput_submitLandsOnListWithInvitedUser() {
+    String suffix = tempEntity.uuid();
+    String invitedUsername = "isaac-" + suffix + "@example.com";
+    openInviteForm();
+
+    page.inviteFirstNameInput().fill("Isaac");
+    page.inviteLastNameInput().fill("Asimov");
+    page.inviteEmailInput().fill(invitedUsername);
+    page.inviteEmailInput().blur();
+
+    assertThat(page.inviteSubmitButton()).isEnabled();
+    page.inviteSubmitButton().click();
+    waitForSubmitMask();
+
+    page.playwrightPage().waitForURL(url -> url.endsWith("#/users"));
+    assertions.shouldListUser(invitedUsername + " (Isaac Asimov)");
   }
 }

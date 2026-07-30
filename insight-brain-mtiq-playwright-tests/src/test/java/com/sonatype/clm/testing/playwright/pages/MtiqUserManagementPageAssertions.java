@@ -37,4 +37,13 @@ public class MtiqUserManagementPageAssertions
   public void shouldShowValidationErrorContaining(Locator input, String expectedFragment) {
     assertThat(page.validationErrorFor(input)).containsText(expectedFragment);
   }
+
+  public void shouldListUser(String usernameOrDisplayText) {
+    assertThat(page.userListItemFor(usernameOrDisplayText)).isVisible();
+  }
+
+  /** Callers must first anchor the list load; {@code hasCount(0)} passes on an unloaded list. */
+  public void shouldNotListUser(String usernameOrDisplayText) {
+    assertThat(page.userListItemFor(usernameOrDisplayText)).hasCount(0);
+  }
 }

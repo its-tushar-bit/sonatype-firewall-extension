@@ -234,8 +234,9 @@ public abstract class AbstractMtiqUiTest
       lenient().when(tokenHolder.getExpiresAt()).thenReturn(new Date(Long.MAX_VALUE));
       lenient().when(tokenRequest.execute()).thenReturn(tokenHolder);
       lenient().when(authApi.requestToken(anyString())).thenReturn(tokenRequest);
-      lenient().when(auth0ApiSupplier.getManagementApi(anyString(), anyString())).thenReturn(managementApi);
-      lenient().when(auth0ApiSupplier.getAuthApi(anyString(), anyString(), anyString())).thenReturn(authApi);
+      // any() not anyString(): test Auth0Config leaves clientId/clientSecret null.
+      lenient().when(auth0ApiSupplier.getManagementApi(any(), any())).thenReturn(managementApi);
+      lenient().when(auth0ApiSupplier.getAuthApi(any(), any(), any())).thenReturn(authApi);
     }
     catch (Exception e) {
       throw new IllegalStateException(e);

@@ -97,6 +97,8 @@ public class MtiqSbomPolicyEditorPlaywrightTest
   @Test
   public void testSbomPolicyEditor_appScopedUnderSbomOnly_rendersInReadOnlyMode() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    // Editor gates on the SBOM_MANAGER feature; without it the app renders the upsell page.
+    setFeatures(LicensedFeature.SBOM_MANAGER);
     Policy policy =
         tempEntity.newPolicy(application.getId(), "SBOM-only App Policy " + tempEntity.uuid(), THREAT_LEVEL);
 

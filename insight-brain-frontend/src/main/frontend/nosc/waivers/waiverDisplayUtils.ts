@@ -23,6 +23,16 @@ export function normalizeWaiverOwnerTypeForApi(raw: string | null | undefined): 
   return OWNER_TYPE_ALIASES[lower] ?? lower;
 }
 
+/**
+ * `?type` route param for the native Waiver Detail page. Auto-waivers live under a
+ * different API (`autoPolicyWaivers`, not `policyWaivers`) — the detail page reads
+ * this to fetch the right one. Shared by every waiver table that links into it
+ * (`WaiversTable`, `WaiversAnaTable`) so the contract stays in one place.
+ */
+export function waiverDetailTypeParam(isAutoWaiver: boolean | undefined): 'autoWaiver' | undefined {
+  return isAutoWaiver ? 'autoWaiver' : undefined;
+}
+
 /** Calendar-day waiver dates in UTC so the rendered day is timezone-stable. */
 export function formatWaiverCalendarDate(value: string | number | undefined | null): string {
   return formatDateUtcYYYYMMDD(value ?? '');

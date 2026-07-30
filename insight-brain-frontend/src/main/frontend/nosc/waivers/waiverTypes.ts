@@ -92,3 +92,27 @@ export type WaiversListResponse = {
   dashboardResults: ReadonlyArray<PolicyWaiverDTO>;
   hasNextPage: boolean;
 };
+
+/**
+ * Raw response shape of `GET /api/v2/autoPolicyWaivers/{ownerType}/{ownerId}/{autoPolicyWaiverId}`
+ * (`ApiAutoPolicyWaiverDTO` on the backend). Auto-waivers live in a separate
+ * table from manual waivers, so this has a materially different field set —
+ * no policy/constraint/vulnerability data, since an auto-waiver applies broadly
+ * rather than to one specific violation.
+ */
+export interface ApiAutoPolicyWaiverDTO {
+  autoPolicyWaiverId: string;
+  ownerId: string;
+  ownerType: string;
+  ownerName?: string | null;
+  publicId?: string | null;
+  // Backend field is `@JsonInclude(Include.NON_EMPTY)` on a primitive int, so
+  // Jackson omits it entirely when the value is 0 — must be optional here too.
+  threatLevel?: number;
+  reachability?: boolean | null;
+  pathForward?: boolean | null;
+  creatorId?: string | null;
+  creatorName?: string | null;
+  createTime?: string | null;
+  scopesOperatorAny?: boolean;
+}

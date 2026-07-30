@@ -38,7 +38,7 @@ export function createNexusOneApplicationDetailRouter(
   });
   router.stateRegistry.register({
     name: 'nexusOneWaiverDetail',
-    url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from',
+    url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from&type',
   });
   const tabId: TabId = tabFromSlug(tabSlug);
   const suffix = TAB_TO_URL[tabId];

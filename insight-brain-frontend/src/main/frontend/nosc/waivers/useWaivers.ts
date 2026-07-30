@@ -127,6 +127,7 @@ export function useWaiverDetail(
   ownerType: string | null,
   ownerId: string | null,
   waiverId: string | null,
+  isAutoWaiver = false,
 ): UseWaiverDetailResult {
   const dispatch = useDispatch();
   const detailState = useSelector(selectNoscWaiverDetailState);
@@ -139,8 +140,8 @@ export function useWaiverDetail(
   const refetch = useCallback(() => {
     if (missingIdentifier) return;
     dispatch(resetNoscWaiverDetail());
-    void dispatch(fetchNoscWaiverDetail({ ownerType, ownerId, waiverId }));
-  }, [dispatch, missingIdentifier, ownerType, ownerId, waiverId]);
+    void dispatch(fetchNoscWaiverDetail({ ownerType, ownerId, waiverId, isAutoWaiver }));
+  }, [dispatch, missingIdentifier, ownerType, ownerId, waiverId, isAutoWaiver]);
 
   useEffect(() => {
     refetch();

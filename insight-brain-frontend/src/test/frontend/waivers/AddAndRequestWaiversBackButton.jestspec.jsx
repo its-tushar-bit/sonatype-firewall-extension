@@ -95,6 +95,12 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
         stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL
       ) {
         href = 'componentDetailsHrefPrioritiesPageFromDashboard_LegalTab';
+      } else if (stateName === originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW) {
+        href = 'nexusOneViolationDetailOverviewHref';
+      } else if (stateName === originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY) {
+        href = 'nexusOneViolationDetailVulnerabilityHref';
+      } else if (stateName === originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_WAIVERS) {
+        href = 'nexusOneViolationDetailWaiversHref';
       }
       return href;
     });
@@ -701,6 +707,100 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
       const backBtnLink = screen.getByRole('link', { name: 'Back to Waiver Requests' });
       expect(backBtnLink).toBeInTheDocument();
       expect(backBtnLink).toHaveAttribute('href', 'dashboardWaiversRequestsHref');
+    });
+  });
+
+  describe('when originated from the Nexus One violation detail page', () => {
+    it(`renders a MenuBarBackButton with title 'Back to Violation Details'
+    and navigates to the Nexus One violation overview state (not the Classic sidebarView.violation state)
+    when prevStateName is nexusOneViolationDetail.overview`, () => {
+      renderComponent({
+        violationId: 'violationId',
+        prevStateName: originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW,
+        prevParams: {
+          type: 'type',
+          sidebarReference: 'sidebarReference',
+          sidebarId: 'sidebarId',
+          page: 'page',
+        },
+      });
+
+      expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW, {
+        id: 'violationId',
+        type: 'type',
+        sidebarReference: 'sidebarReference',
+        sidebarId: 'sidebarId',
+        page: 'page',
+      });
+      expect(hrefSpy).not.toHaveBeenCalledWith(
+        originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW,
+        expect.anything()
+      );
+
+      const backBtnLink = screen.getByRole('link', { name: 'Back to Violation Details' });
+      expect(backBtnLink).toBeInTheDocument();
+      expect(backBtnLink).toHaveAttribute('href', 'nexusOneViolationDetailOverviewHref');
+    });
+
+    it(`renders a MenuBarBackButton that navigates back to the vulnerability tab
+    when prevStateName is nexusOneViolationDetail.vulnerability`, () => {
+      renderComponent({
+        violationId: 'violationId',
+        prevStateName: originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY,
+        prevParams: {},
+      });
+
+      expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY, {
+        id: 'violationId',
+        type: undefined,
+        sidebarReference: undefined,
+        sidebarId: undefined,
+        page: undefined,
+      });
+
+      const backBtnLink = screen.getByRole('link', { name: 'Back to Violation Details' });
+      expect(backBtnLink).toHaveAttribute('href', 'nexusOneViolationDetailVulnerabilityHref');
+    });
+
+    it(`renders a MenuBarBackButton that navigates back to the waivers tab
+    when prevStateName is nexusOneViolationDetail.waivers`, () => {
+      renderComponent({
+        violationId: 'violationId',
+        prevStateName: originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_WAIVERS,
+        prevParams: {},
+      });
+
+      expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_WAIVERS, {
+        id: 'violationId',
+        type: undefined,
+        sidebarReference: undefined,
+        sidebarId: undefined,
+        page: undefined,
+      });
+
+      const backBtnLink = screen.getByRole('link', { name: 'Back to Violation Details' });
+      expect(backBtnLink).toHaveAttribute('href', 'nexusOneViolationDetailWaiversHref');
+    });
+
+    it(`normalizes the abstract nexusOneViolationDetail parent state to its overview child
+    (the abstract state itself cannot be navigated to)`, () => {
+      renderComponent({
+        violationId: 'violationId',
+        prevStateName: originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL,
+        prevParams: {},
+      });
+
+      expect(hrefSpy).toHaveBeenCalledWith(
+        originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW,
+        expect.objectContaining({ id: 'violationId' })
+      );
+      expect(hrefSpy).not.toHaveBeenCalledWith(
+        originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL,
+        expect.anything()
+      );
+
+      const backBtnLink = screen.getByRole('link', { name: 'Back to Violation Details' });
+      expect(backBtnLink).toHaveAttribute('href', 'nexusOneViolationDetailOverviewHref');
     });
   });
 });

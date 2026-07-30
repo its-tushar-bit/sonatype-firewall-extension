@@ -298,8 +298,10 @@ router.stateRegistry.register({
 router.stateRegistry.register({
   name: 'nexusOneWaiverDetail',
   // `?from` lets a caller (e.g. the Dashboard waivers tab) tell the detail page
-  // where its back-link should return to.
-  url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from',
+  // where its back-link should return to. `?type` carries the waiver kind
+  // (`autoWaiver` | unset) so the detail page fetches from the matching API —
+  // auto-waivers live under /api/v2/autoPolicyWaivers, not /api/v2/policyWaivers.
+  url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from&type',
   component: PreviewWaiverDetail,
   data: {
     title: 'Nexus One — Waiver Detail',

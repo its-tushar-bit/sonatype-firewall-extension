@@ -144,6 +144,22 @@ describe('WaiversListPage (Ana)', () => {
     expect(hrefs.some((href) => href.includes('/waivers/organization/org-root/waiver-auto-2'))).toBe(true);
   });
 
+  it('carries type=autoWaiver on the auto-waiver row so the detail page fetches the right API (CLM-43502)', async () => {
+    reply();
+    renderPage();
+    const links = await screen.findAllByTestId('waivers-ana-table-row-detail-link');
+    expect(links).toHaveLength(2);
+    const hrefs = links.map((el) => el.getAttribute('href') ?? '');
+    expect(
+      hrefs.some(
+        (href) => href.includes('/waivers/organization/org-root/waiver-auto-2') && href.includes('type=autoWaiver'),
+      ),
+    ).toBe(true);
+    expect(
+      hrefs.some((href) => href.includes('/waivers/application/app-internal-1/waiver-1') && !href.includes('type=')),
+    ).toBe(true);
+  });
+
   it('keeps page 2 after Next (URL sync must not stomp the cursor-backed advance)', async () => {
     let cursorSeenOnPageTwo: string | undefined;
     axiosMock.onPost(getIndexQueryUrl()).reply((config) => {

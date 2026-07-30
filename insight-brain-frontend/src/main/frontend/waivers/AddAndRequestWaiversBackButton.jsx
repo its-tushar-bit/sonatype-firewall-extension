@@ -26,6 +26,17 @@ const dashboardParamsExtractor = (props) => ({
   sidebarReference: props?.prevParams?.sidebarReference,
 });
 
+// Nexus One's violation detail state declares { id, type, sidebarReference, sidebarId, page }
+// as its query/path params (see nexusOneViolationDetailStates.ts), mirroring Classic's
+// sidebarView.violation contract but with an extra sidebarId param.
+const nexusOneViolationParamsExtractor = (props) => ({
+  id: props?.violationId,
+  type: props?.prevParams?.type,
+  sidebarReference: props?.prevParams?.sidebarReference,
+  sidebarId: props?.prevParams?.sidebarId,
+  page: props?.prevParams?.page,
+});
+
 const firewallParamsExtractor = (props) => ({
   violationId: props?.violationId,
   componentDisplayName: props?.prevParams?.componentDisplayName,
@@ -125,6 +136,17 @@ const NAVIGATION_RULES = {
       paramsExtractor: appReportParamsExtractor,
     }
   ),
+  ...setValueForMultipleKeys(
+    [
+      originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW,
+      originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY,
+      originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_WAIVERS,
+    ],
+    {
+      backButtonTitle: 'Back to Violation Details',
+      paramsExtractor: nexusOneViolationParamsExtractor,
+    }
+  ),
 };
 
 /**
@@ -135,6 +157,13 @@ const NAVIGATION_RULES = {
  */
 const getButtonHrefAndTitle = (uiRouterState, props, rules) => {
   let navigationId = props?.prevStateName;
+
+  // The abstract nexusOneViolationDetail parent state cannot be navigated to directly;
+  // normalize it to its overview child, matching waiverActions.js's Cancel/Save handling.
+  if (navigationId === originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL) {
+    navigationId = originNamesForAddRequestPages.NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW;
+  }
+
   let rule = rules?.[navigationId];
 
   if (!rule || (rule.requiredParams && someParamValuesAreNil(rule.paramsExtractor(props)))) {
@@ -166,7 +195,9 @@ AddAndRequestWaiversBackButton.propTypes = {
     scanId: PropTypes.string,
     hash: PropTypes.string,
     sidebarReference: PropTypes.string,
+    sidebarId: PropTypes.string,
     type: PropTypes.string,
+    page: PropTypes.string,
     repositoryPolicyId: PropTypes.string,
   }),
   isFirewall: PropTypes.bool,

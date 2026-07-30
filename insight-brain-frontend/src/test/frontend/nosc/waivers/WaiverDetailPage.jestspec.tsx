@@ -7,7 +7,7 @@ import React from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import WaiverDetailPage from 'MainRoot/nosc/waivers/WaiverDetailPage';
-import { getWaiverDetailsUrl } from 'MainRoot/util/CLMLocation';
+import { getWaiverDetailsUrl, getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import { formatDateUtcYYYYMMDD } from 'MainRoot/util/dateUtils';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
@@ -95,6 +95,8 @@ describe('WaiverDetailPage', () => {
       expect.stringContaining(`/waiver/${ROUTE.ownerType}/${ROUTE.ownerId}/${ROUTE.waiverId}`),
     );
     expect(classicLink.getAttribute('href')).not.toContain('/waiver/details/');
+    // Manual waivers must not carry the auto-waiver discriminator.
+    expect(classicLink).not.toHaveAttribute('href', expect.stringContaining('type=autoWaiver'));
   });
 
   it('composes the Scope, Component and Expires meta strip from the v2 payload', async () => {
@@ -187,19 +189,21 @@ describe('WaiverDetailPage', () => {
     expect(screen.queryByTestId('preview-waiver-detail-meta-expired-badge')).not.toBeInTheDocument();
   });
 
-  it('renders an Auto-waiver badge and Auto expiry in the meta strip and details card', async () => {
-    reply({
-      id: ROUTE.waiverId,
-      threatLevel: 5,
-      policyName: 'Managed auto-waiver',
+  it('renders an Auto-waiver badge and Auto expiry, fetched from the autoPolicyWaivers API', async () => {
+    // Auto-waivers live in a different table/API than manual waivers, so the
+    // route must carry `type=autoWaiver` for the page to fetch the right one
+    // (see the dedicated 404-reproduction test below for what happens without it).
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver(ROUTE.ownerType, ROUTE.ownerId, ROUTE.waiverId)).reply(200, {
+      autoPolicyWaiverId: ROUTE.waiverId,
       ownerId: ROUTE.ownerId,
       ownerType: ROUTE.ownerType,
-      scopeOwnerName: 'Apple - Java',
-      isAutoWaiver: true,
-      expiryTime: '2036-12-31T00:00:00Z',
+      ownerName: 'Apple - Java',
+      threatLevel: 5,
+      createTime: '2026-01-01T00:00:00Z',
+      creatorName: 'admin',
     });
 
-    renderDetail();
+    renderNexusOneRoute(<WaiverDetailPage />, 'nexusOneWaiverDetail', { ...ROUTE, type: 'autoWaiver' });
 
     await waitFor(() => {
       expect(screen.getByText('Auto-waiver')).toBeInTheDocument();
@@ -212,6 +216,52 @@ describe('WaiverDetailPage', () => {
     );
     expect(screen.queryByTestId('preview-waiver-detail-expired-badge')).not.toBeInTheDocument();
     expect(screen.queryByTestId('preview-waiver-detail-meta-expired-badge')).not.toBeInTheDocument();
+    // Never hit the manual-waiver endpoint — that's the 404 this fix avoids.
+    expect(
+      axiosMock.history.get.some(
+        (r) => r.url === getWaiverDetailsUrl(ROUTE.ownerType, ROUTE.ownerId, ROUTE.waiverId),
+      ),
+    ).toBe(false);
+    // Manage-in-Classic hand-off must carry the same discriminator, or Classic's
+    // WaiverDetailsContainer renders the manual sub-view and 404s all over again.
+    expect(screen.getByTestId('preview-waiver-detail-classic-link')).toHaveAttribute(
+      'href',
+      expect.stringContaining('?type=autoWaiver'),
+    );
+  });
+
+  it('loads a root-org auto-waiver from autoPolicyWaivers without 404ing (CLM-43502)', async () => {
+    // Reproduces the reported bug: opening a root-org auto-waiver used to always
+    // call /api/v2/policyWaivers/organization/{id}/{waiverId} (404, auto-waivers
+    // aren't in that table) regardless of the already-correct owner-type mapping.
+    const ownerId = 'ROOT_ORGANIZATION_ID';
+    const waiverId = 'auto-w-root';
+    axiosMock.onGet(getAutoWaiversConfigurationURLWaiver('organization', ownerId, waiverId)).reply(200, {
+      autoPolicyWaiverId: waiverId,
+      ownerId,
+      ownerType: 'organization',
+      ownerName: 'Root Organization',
+      threatLevel: 7,
+      createTime: '2026-01-01T00:00:00Z',
+      creatorName: 'admin',
+    });
+    axiosMock.onGet(getWaiverDetailsUrl('organization', ownerId, waiverId)).reply(404);
+
+    renderNexusOneRoute(<WaiverDetailPage />, 'nexusOneWaiverDetail', {
+      ownerType: 'root_organization',
+      ownerId,
+      waiverId,
+      type: 'autoWaiver',
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Auto-waiver')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('preview-waiver-detail-header-error')).not.toBeInTheDocument();
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).toBe(
+      getAutoWaiversConfigurationURLWaiver('organization', ownerId, waiverId),
+    );
   });
 
   it('falls back to an empty-state blockquote when there is no comment', async () => {

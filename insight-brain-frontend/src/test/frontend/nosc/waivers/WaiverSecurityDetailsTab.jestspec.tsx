@@ -239,6 +239,20 @@ describe('WaiverDetailPage Security Details tab', () => {
     expect(within(weakness).queryByRole('link')).not.toBeInTheDocument();
   });
 
+  it('renders a non-numeric CWE id as plain text even with a well-formed https uri (CLM-43502)', async () => {
+    replyWaiver();
+    axiosMock.onGet(VULN_URL).reply(200, {
+      identifier: CVE,
+      weakness: { cweIds: [{ id: 'noinfo', uri: 'https://cwe.mitre.org/data/definitions/noinfo.html' }] },
+    });
+
+    await openSecurityTab();
+
+    const weakness = screen.getByTestId('preview-waiver-security-weakness');
+    expect(weakness).toHaveTextContent('CWE-noinfo');
+    expect(within(weakness).queryByRole('link')).not.toBeInTheDocument();
+  });
+
   it('does not turn javascript: markdown links into anchors', async () => {
     replyWaiver();
     axiosMock.onGet(VULN_URL).reply(200, {

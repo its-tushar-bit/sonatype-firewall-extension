@@ -31,7 +31,7 @@ export function createNexusOneViolationDetailRouter(violationId: string): UIRout
   router.stateRegistry.register({ name: 'nexusOneViolations', url: '/violations' });
   router.stateRegistry.register({
     name: 'nexusOneWaiverDetail',
-    url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from',
+    url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from&type',
   });
   nexusOneViolationDetailStates().forEach((state) => router.stateRegistry.register(state));
   router.urlService.rules.initial({

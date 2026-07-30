@@ -10,12 +10,15 @@ import {
   getWaiversAndAutoWaiversUrl,
   getWaiversUrl,
   getWaiverDetailsUrl,
+  getAutoWaiversConfigurationURLWaiver,
 } from 'MainRoot/util/CLMLocation';
 import type {
+  ApiAutoPolicyWaiverDTO,
   PolicyWaiverDTO,
   PolicyWaiverDetailDTO,
   WaiversListResponse,
 } from './waiverTypes';
+import { adaptAutoPolicyWaiverToDetail } from './adaptAutoPolicyWaiverToDetail';
 
 export type NoscWaiversFetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -35,6 +38,10 @@ export function waiversListKey(request: WaiversListRequest): string {
   return `${request.applicationInternalId ?? '*'}|${pageSize}|${page}|${includeAutoWaivers}`;
 }
 
+// Does not fold in isAutoWaiver: manual and auto-waiver ids come from disjoint
+// backend tables (policy_waiver vs auto_policy_waiver), so a real collision
+// between the two kinds under the same ownerType|ownerId|waiverId is not
+// expected in practice.
 export function waiverDetailKey(
   ownerType: string | null,
   ownerId: string | null,
@@ -156,12 +163,28 @@ export interface FetchNoscWaiverDetailArgs {
   readonly ownerType: string;
   readonly ownerId: string;
   readonly waiverId: string;
+  /**
+   * Auto-waivers (e.g. root-org auto-generated waivers) live in a separate
+   * table/API from manual waivers. Fetching a manual waiver's endpoint for an
+   * auto-waiver id 404s, so the caller must say which endpoint to use.
+   */
+  readonly isAutoWaiver?: boolean;
 }
 
 export const fetchNoscWaiverDetail = createAsyncThunk(
   'noscWaivers/fetchDetail',
   async (args: FetchNoscWaiverDetailArgs, { signal, rejectWithValue }) => {
     try {
+      if (args.isAutoWaiver) {
+        const { data } = await axios.get<ApiAutoPolicyWaiverDTO>(
+          getAutoWaiversConfigurationURLWaiver(args.ownerType, args.ownerId, args.waiverId),
+          { signal },
+        );
+        return {
+          waiver: adaptAutoPolicyWaiverToDetail(data),
+          detailKey: waiverDetailKey(args.ownerType, args.ownerId, args.waiverId),
+        };
+      }
       const { data } = await axios.get<PolicyWaiverDetailDTO>(
         getWaiverDetailsUrl(args.ownerType, args.ownerId, args.waiverId),
         { signal },
@@ -175,6 +198,12 @@ export const fetchNoscWaiverDetail = createAsyncThunk(
     }
   },
   {
+    // Keys only on ownerType|ownerId|waiverId, not isAutoWaiver — relies on
+    // useWaiverDetail's refetch() dispatching resetNoscWaiverDetail() (status
+    // -> 'idle') immediately before this dispatch, so a same-triple refetch
+    // with a different isAutoWaiver is never dropped as a stale in-flight
+    // duplicate. A caller that dispatches this thunk directly without that
+    // reset first could see the second dispatch silently skipped.
     condition: (args, { getState }) => {
       const detail = (getState() as NoscWaiversRootState).noscWaivers.detail;
       const key = waiverDetailKey(args.ownerType, args.ownerId, args.waiverId);

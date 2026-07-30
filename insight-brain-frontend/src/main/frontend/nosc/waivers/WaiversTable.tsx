@@ -13,6 +13,7 @@ import {
   formatWaiverCalendarDate,
   formatWaiverComponentLabel,
   formatWaiverListExpiry,
+  waiverDetailTypeParam,
   waiverThreatColor,
 } from './waiverDisplayUtils';
 
@@ -70,6 +71,7 @@ export default function WaiversTable({
       ownerId: w.ownerId,
       waiverId: w.id,
       from: linkFrom,
+      type: waiverDetailTypeParam(w.isAutoWaiver),
     });
 
   if (loading || error) {

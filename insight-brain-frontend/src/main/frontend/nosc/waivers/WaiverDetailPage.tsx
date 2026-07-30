@@ -30,9 +30,11 @@ import {
  * Native Nexus One Waiver Detail page (CLM-40007 / CLM-42773 / CLM-43289).
  *
  * Mounted at `/waivers/{ownerType}/{ownerId}/{waiverId}`, reading a single
- * `GET /api/v2/policyWaivers/...`. The Overview shows threat + policy header,
- * constraint blurb, a Scope/Component/Expires meta strip, and one Waiver Details
- * card. Everything renders from that one payload; no estate fan-out.
+ * `GET /api/v2/policyWaivers/...` for manual waivers, or
+ * `GET /api/v2/autoPolicyWaivers/...` when `?type=autoWaiver` is set (CLM-43502).
+ * The Overview shows threat + policy header, constraint blurb, a
+ * Scope/Component/Expires meta strip, and one Waiver Details card. Everything
+ * renders from that one payload; no estate fan-out.
  *
  * A Security Details tab (CLM-43365) appears when the waiver names a
  * vulnerability, reading the existing `GET /api/v2/vulnerabilities/{refId}`.
@@ -46,6 +48,8 @@ interface ParsedRoute {
   ownerType: string | null;
   ownerId: string | null;
   waiverId: string | null;
+  /** True when the `?type=autoWaiver` query param says this id is an auto-waiver. */
+  isAutoWaiver: boolean;
 }
 
 interface BackLinkTarget {
@@ -68,9 +72,13 @@ function classicWaiverDetailHref(route: ParsedRoute): string {
   if (!route.ownerType || !route.ownerId || !route.waiverId) {
     return classicHref('/dashboard/waiverRequests');
   }
-  return classicHref(
-    `/waiver/${encodeURIComponent(route.ownerType)}/${encodeURIComponent(route.ownerId)}/${encodeURIComponent(route.waiverId)}`,
-  );
+  // Path matches the registered `waiver.details` route
+  // (`/waiver/{ownerType}/{ownerId}/{waiverId}`), not a spurious `details/`/`/waiver` shape.
+  const path = `/waiver/${encodeURIComponent(route.ownerType)}/${encodeURIComponent(route.ownerId)}/${encodeURIComponent(route.waiverId)}`;
+  // Classic's WaiverDetailsContainer branches on ?type=autoWaiver to render
+  // AutoWaiverDetails instead of WaiverDetails; without it an auto-waiver
+  // hand-off lands on the manual sub-view, which 404s on the manual endpoint.
+  return classicHref(route.isAutoWaiver ? `${path}?type=autoWaiver` : path);
 }
 
 const OVERVIEW_TAB = {
@@ -144,8 +152,9 @@ export default function WaiverDetailPage(): ReactElement {
       ),
       ownerId: typeof params.ownerId === 'string' ? params.ownerId : null,
       waiverId: typeof params.waiverId === 'string' ? params.waiverId : null,
+      isAutoWaiver: params.type === 'autoWaiver',
     }),
-    [params.ownerType, params.ownerId, params.waiverId],
+    [params.ownerType, params.ownerId, params.waiverId, params.type],
   );
   const backLink = useMemo<BackLinkTarget>(
     () =>
@@ -158,6 +167,7 @@ export default function WaiverDetailPage(): ReactElement {
     route.ownerType,
     route.ownerId,
     route.waiverId,
+    route.isAutoWaiver,
   );
 
   // Stabilize the empty fallback so the header memo does not recompute every render.

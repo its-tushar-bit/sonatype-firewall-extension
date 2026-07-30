@@ -7,7 +7,10 @@ import React from 'react';
 import { Badge, Flex, Link, Table, Text } from '@radix-ui/themes';
 import { useRouter } from '@uirouter/react';
 import type { AnaWaiverRow } from 'MainRoot/nosc/waivers/waiversListTypes';
-import { normalizeWaiverOwnerTypeForApi } from 'MainRoot/nosc/waivers/waiverDisplayUtils';
+import {
+  normalizeWaiverOwnerTypeForApi,
+  waiverDetailTypeParam,
+} from 'MainRoot/nosc/waivers/waiverDisplayUtils';
 import { formatDateUtcYYYYMMDD } from 'MainRoot/util/dateUtils';
 import { threatColorFor } from 'MainRoot/nosc/applications/applicationDetailUtils';
 
@@ -62,6 +65,7 @@ export default function WaiversAnaTable({
       ownerId: row.scopeOwnerId,
       waiverId: row.id,
       from: linkFrom,
+      type: waiverDetailTypeParam(row.isAuto),
     });
   };
 

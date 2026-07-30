@@ -16,8 +16,8 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
@@ -59,7 +59,7 @@ public class RequestPolicyWaiverEventService
 
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final TelemetryUtils telemetryUtils;
 
@@ -76,7 +76,7 @@ public class RequestPolicyWaiverEventService
       final CurrentUser currentUser,
       final PolicyViolationDAO policyViolationDAO,
       final PolicyWaiverReasonDAO policyWaiverReasonDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       final BaseUrl baseUrl,
@@ -86,7 +86,7 @@ public class RequestPolicyWaiverEventService
     this.currentUser = currentUser;
     this.policyViolationDAO = policyViolationDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.baseUrl = baseUrl;
@@ -181,9 +181,9 @@ public class RequestPolicyWaiverEventService
       final String ownerId,
       final String policyWaiverRequestId)
   {
-    RepositoryPolicyViolation repositoryPolicyViolation =
-        repositoryPolicyViolationDAO.getById(policyViolationId);
-    if (repositoryPolicyViolation == null) {
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        proxyRepositoryPolicyViolationDAO.getById(policyViolationId);
+    if (proxyRepositoryPolicyViolation == null) {
       log.warn("Could not find repository policy violation with ID {} — waiver request webhook event not posted.",
           policyViolationId);
       return;
@@ -194,10 +194,10 @@ public class RequestPolicyWaiverEventService
             UserInterfaceLinksHelper.getFirewallReviewWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId));
     String policyViolationLink =
         prependBaseUrl(UserInterfaceLinksHelper.getFirewallViolationDetailsUrl(
-            repositoryPolicyViolation.getRepositoryId(), policyViolationId));
+            proxyRepositoryPolicyViolation.getRepositoryId(), policyViolationId));
     String addWaiverLink =
         prependBaseUrl(UserInterfaceLinksHelper.getFirewallAddWaiverUrl(
-            repositoryPolicyViolation.getRepositoryId(), policyViolationId));
+            proxyRepositoryPolicyViolation.getRepositoryId(), policyViolationId));
     verifyMaxCommentLength(comment);
 
     Map<String, PolicyWaiverReason> policyWaiverReasonMap =
@@ -211,7 +211,7 @@ public class RequestPolicyWaiverEventService
     waiverRequestEvent.policyViolationLink = policyViolationLink;
     waiverRequestEvent.addWaiverLink = addWaiverLink;
     waiverRequestEvent.reviewWaiverRequestLink = reviewWaiverRequestLink;
-    waiverRequestEvent.ownerId = repositoryPolicyViolation.getOwnerId();
+    waiverRequestEvent.ownerId = proxyRepositoryPolicyViolation.getOwnerId();
     waiverRequestEvent.reasonId = reasonId;
     if (reasonId != null && policyWaiverReasonMap.containsKey(reasonId)) {
       waiverRequestEvent.reasonText = policyWaiverReasonMap.get(reasonId).getReasonText();

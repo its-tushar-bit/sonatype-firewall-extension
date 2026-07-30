@@ -110,7 +110,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ReportDataReader;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
-import com.sonatype.insight.brain.repository.RepositoryComponentResult;
+import com.sonatype.insight.brain.repository.ProxyRepositoryComponentResult;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -2804,8 +2804,8 @@ public class ComponentInfoServiceTest
       ComponentIdentifier componentIdentifier,
       String... mockVersions)
   {
-    List<RepositoryComponentResult> resultComponents = Stream.of(mockVersions)
-        .map(v -> new RepositoryComponentResult(componentIdentifier.createAlternativeVersion(v), "sha" + v))
+    List<ProxyRepositoryComponentResult> resultComponents = Stream.of(mockVersions)
+        .map(v -> new ProxyRepositoryComponentResult(componentIdentifier.createAlternativeVersion(v), "sha" + v))
         .collect(Collectors.toList());
     RepositoryAllVersionsResponse response = new RepositoryAllVersionsResponse(resultComponents);
     RepositorySourceResponseDTO mockSource = new RepositorySourceResponseDTO();

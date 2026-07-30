@@ -67,8 +67,8 @@ public class PolicyViolationLoggerFactory
         application, organization, currentUser);
   }
 
-  public RepositoryPolicyViolationLogger newLogger(Date logTimestamp, Repository repository) {
-    return new RepositoryPolicyViolationLogger(
+  public ProxyRepositoryPolicyViolationLogger newLogger(Date logTimestamp, Repository repository) {
+    return new ProxyRepositoryPolicyViolationLogger(
         productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), logTimestamp, repository,
         currentUser, repositoryManagerDAO);
   }

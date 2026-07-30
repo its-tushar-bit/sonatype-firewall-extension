@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class RepositoryPolicyViolationTest
+public class ProxyRepositoryPolicyViolationTest
 {
   private static final ComponentIdentifier MAVEN_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("groupId",
       "artifactId", "version");
@@ -34,10 +34,11 @@ public class RepositoryPolicyViolationTest
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
-    // Test construction of RepositoryPolicyViolation with constraint facts.
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
-        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
-        constraintFacts);
+    // Test construction of ProxyRepositoryPolicyViolation with constraint facts.
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(),
+            "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
+            constraintFacts);
     assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson)
         .doesNotContain("\n", "\r",
             "\\n", "\\r");
@@ -46,7 +47,7 @@ public class RepositoryPolicyViolationTest
 
   @Test
   public void testSetConstraintFacts_Null() {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation();
 
     assertThatThrownBy(() -> policyViolation.setConstraintFacts(null)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage("ConstraintFacts cannot be null or empty.");
@@ -54,7 +55,7 @@ public class RepositoryPolicyViolationTest
 
   @Test
   public void testSetConstraintFacts_Empty() {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation();
 
     assertThatThrownBy(() -> policyViolation.setConstraintFacts(Collections.emptyList()))
         .isInstanceOf(IllegalArgumentException.class)
@@ -65,7 +66,9 @@ public class RepositoryPolicyViolationTest
   public void testConstructor_ConstraintFacts_Null() {
     assertThatThrownBy(() -> {
       List<ConstraintFact> constraintFacts = null;
-      new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
+      new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /*
+                                                                                                          * threatLevel
+                                                                                                          */,
           PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
     }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFacts cannot be null or empty.");
   }
@@ -108,9 +111,10 @@ public class RepositoryPolicyViolationTest
   @Test
   public void testSetWaived() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
-        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
-        constraintFacts);
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(),
+            "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
+            constraintFacts);
     assertThat(policyViolation.isWaived()).isFalse();
 
     policyViolation.setWaived(true);
@@ -124,9 +128,10 @@ public class RepositoryPolicyViolationTest
   public void testSetPolicyWaiverDetails() {
     Date waiveTime = new Date();
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
-        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
-        constraintFacts);
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(),
+            "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
+            constraintFacts);
     assertThat(policyViolation.isWaived()).isFalse();
 
     policyViolation.setWaived(true);
@@ -146,9 +151,10 @@ public class RepositoryPolicyViolationTest
   public void testSetWaiveTime_IllegalStateException() {
     Date waiveTime = new Date();
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
-        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
-        constraintFacts);
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(),
+            "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
+            constraintFacts);
     policyViolation.setWaiveTime(waiveTime);
 
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> policyViolation.setWaiveTime(null))
@@ -159,8 +165,8 @@ public class RepositoryPolicyViolationTest
   public void testGetOpenTime() {
     Date time = new Date();
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    RepositoryPolicyViolation policyViolation =
-        new RepositoryPolicyViolation("repositoryId", "path", time, "policyId", "policyName", 5 /* threatLevel */,
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", time, "policyId", "policyName", 5 /* threatLevel */,
             PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
 
     assertThat(policyViolation.getTime()).isEqualTo(time);
@@ -170,8 +176,10 @@ public class RepositoryPolicyViolationTest
   @Test
   public void testGetStageTypeId() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    RepositoryPolicyViolation policyViolation =
-        new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /*
+                                                                                                            * threatLevel
+                                                                                                            */,
             PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
 
     assertThat(policyViolation.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
@@ -180,8 +188,10 @@ public class RepositoryPolicyViolationTest
   @Test
   public void testGetOwnerId() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    RepositoryPolicyViolation policyViolation =
-        new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /*
+                                                                                                            * threatLevel
+                                                                                                            */,
             PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
 
     assertThat(policyViolation.getOwnerId()).isEqualTo(policyViolation.getRepositoryId());
@@ -190,8 +200,10 @@ public class RepositoryPolicyViolationTest
   @Test
   public void testGetConstraintFacts() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    RepositoryPolicyViolation policyViolation =
-        new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /*
+                                                                                                            * threatLevel
+                                                                                                            */,
             PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
 
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
@@ -206,8 +218,10 @@ public class RepositoryPolicyViolationTest
   public void testGetConstraintFactsJson() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
-    RepositoryPolicyViolation policyViolation =
-        new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /*
+                                                                                                            * threatLevel
+                                                                                                            */,
             PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
 
     assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson);

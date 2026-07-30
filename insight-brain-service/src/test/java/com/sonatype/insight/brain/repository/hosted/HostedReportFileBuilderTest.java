@@ -12,8 +12,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import org.junit.Test;
 
@@ -23,15 +23,15 @@ public class HostedReportFileBuilderTest
 {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  private static RepositoryComponent component(String hash) {
-    RepositoryComponent c = new RepositoryComponent();
+  private static ProxyRepositoryComponent component(String hash) {
+    ProxyRepositoryComponent c = new ProxyRepositoryComponent();
     c.setHash(hash);
     c.setPathname("com/example/lib-1.0.jar");
     return c;
   }
 
-  private static RepositoryPolicyViolation violation(String policyId, String policyName, int threatLevel) {
-    RepositoryPolicyViolation v = new RepositoryPolicyViolation();
+  private static ProxyRepositoryPolicyViolation violation(String policyId, String policyName, int threatLevel) {
+    ProxyRepositoryPolicyViolation v = new ProxyRepositoryPolicyViolation();
     v.setId("vid-" + policyId);
     v.setPolicyId(policyId);
     v.setPolicyName(policyName);
@@ -42,10 +42,10 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void buildPolicyThreats_multipleViolations_groupUsesHighestThreatViolation() throws Exception {
-    RepositoryComponent comp = component("abc123");
-    RepositoryPolicyViolation low = violation("pol-low", "Low Policy", 3);
-    RepositoryPolicyViolation high = violation("pol-high", "High Policy", 10);
-    RepositoryPolicyViolation mid = violation("pol-mid", "Mid Policy", 7);
+    ProxyRepositoryComponent comp = component("abc123");
+    ProxyRepositoryPolicyViolation low = violation("pol-low", "Low Policy", 3);
+    ProxyRepositoryPolicyViolation high = violation("pol-high", "High Policy", 10);
+    ProxyRepositoryPolicyViolation mid = violation("pol-mid", "Mid Policy", 7);
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", comp, List.of(low, high, mid));
 
@@ -59,8 +59,8 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void buildPolicyThreats_singleViolation_groupUseThatViolation() throws Exception {
-    RepositoryComponent comp = component("abc123");
-    RepositoryPolicyViolation only = violation("pol-only", "Only Policy", 5);
+    ProxyRepositoryComponent comp = component("abc123");
+    ProxyRepositoryPolicyViolation only = violation("pol-only", "Only Policy", 5);
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", comp, List.of(only));
 
@@ -73,9 +73,9 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void buildPolicyThreats_allViolationsContainedInGroup() throws Exception {
-    RepositoryComponent comp = component("abc123");
-    RepositoryPolicyViolation v1 = violation("pol-a", "Policy A", 3);
-    RepositoryPolicyViolation v2 = violation("pol-b", "Policy B", 10);
+    ProxyRepositoryComponent comp = component("abc123");
+    ProxyRepositoryPolicyViolation v1 = violation("pol-a", "Policy A", 3);
+    ProxyRepositoryPolicyViolation v2 = violation("pol-b", "Policy B", 10);
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", comp, List.of(v1, v2));
 
@@ -89,7 +89,7 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void buildPolicyThreats_noViolations_emptyAaData() throws Exception {
-    RepositoryComponent comp = component("abc123");
+    ProxyRepositoryComponent comp = component("abc123");
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", comp, List.of());
 
@@ -106,18 +106,18 @@ public class HostedReportFileBuilderTest
   @Test
   public void buildPolicyThreats_violationsOnMultiplePathnames_oneGroupPerPathname() throws Exception {
     String outerPath = "com/example/bundle-1.0.zip";
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setHash("outer_hash_001");
     outerComp.setPathname(outerPath);
     ComponentIdentifier outerCi = ci("com.example", "bundle", "1.0", "zip");
     outerComp.setComponentIdentifier(outerCi);
 
-    RepositoryPolicyViolation outerV =
+    ProxyRepositoryPolicyViolation outerV =
         violationOn(outerPath, "outer_hash_001", outerCi, "pol-outer", "Outer Policy", 4);
-    RepositoryPolicyViolation log4jV = violationOn(outerPath + "!/log4j-core-2.14.1.jar",
+    ProxyRepositoryPolicyViolation log4jV = violationOn(outerPath + "!/log4j-core-2.14.1.jar",
         "inner_log4j_hash", ci("org.apache.logging.log4j", "log4j-core", "2.14.1", "jar"),
         "pol-cve", "Log4j CVE", 10);
-    RepositoryPolicyViolation cliV = violationOn(outerPath + "!/commons-cli-1.9.0.jar",
+    ProxyRepositoryPolicyViolation cliV = violationOn(outerPath + "!/commons-cli-1.9.0.jar",
         "inner_cli_hash_x", ci("commons-cli", "commons-cli", "1.9.0", "jar"),
         "pol-arch", "Architecture", 1);
 
@@ -159,17 +159,17 @@ public class HostedReportFileBuilderTest
   @Test
   public void buildPolicyThreats_duplicateHashes_dedupedToOneAaDataEntry() throws Exception {
     String outerPath = "com/example/bundle-1.0.zip";
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setHash("outer_hash_dup_01");
     outerComp.setPathname(outerPath);
 
     String sameHash = "spring_beans_hash";
-    RepositoryPolicyViolation outerV =
+    ProxyRepositoryPolicyViolation outerV =
         violationOn(outerPath, "outer_hash_dup_01", null, "pol-outer", "Outer Policy", 2);
-    RepositoryPolicyViolation copyA = violationOn(outerPath + "!/spring-beans-5.3.17.jar",
+    ProxyRepositoryPolicyViolation copyA = violationOn(outerPath + "!/spring-beans-5.3.17.jar",
         sameHash, ci("org.springframework", "spring-beans", "5.3.17", "jar"),
         "pol-spring-cve", "Security-Critical", 10);
-    RepositoryPolicyViolation copyB = violationOn(outerPath + "!/spring-beans-5.3.17 (1).jar",
+    ProxyRepositoryPolicyViolation copyB = violationOn(outerPath + "!/spring-beans-5.3.17 (1).jar",
         sameHash, ci("org.springframework", "spring-beans", "5.3.17", "jar"),
         "pol-spring-cve", "Security-Critical", 10);
 
@@ -199,13 +199,13 @@ public class HostedReportFileBuilderTest
   @Test
   public void buildPolicyThreats_twoNullHashGroupsOnDifferentPathnames_bothEmit() throws Exception {
     String outerPath = "com/example/bundle-1.0.zip";
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setPathname(outerPath);
     // No hash on outerComp either — the fallback to outerComp.getHash() is also null, so the
     // effective hash is null for every group.
 
-    RepositoryPolicyViolation v1 = violationOn(outerPath + "!/a.jar", null, null, "pol-a", "Policy A", 5);
-    RepositoryPolicyViolation v2 = violationOn(outerPath + "!/b.jar", null, null, "pol-b", "Policy B", 5);
+    ProxyRepositoryPolicyViolation v1 = violationOn(outerPath + "!/a.jar", null, null, "pol-a", "Policy A", 5);
+    ProxyRepositoryPolicyViolation v2 = violationOn(outerPath + "!/b.jar", null, null, "pol-b", "Policy B", 5);
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", outerComp, List.of(v1, v2));
 
@@ -226,15 +226,15 @@ public class HostedReportFileBuilderTest
   @Test
   public void buildPolicyThreats_dedupKeysOnTopViolationHash_notFirstViolationHash() throws Exception {
     String outerPath = "com/example/bundle-1.0.zip";
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setPathname(outerPath);
 
     // group A: first-encountered violation has hash "shared", but top-threat has hash "uniqueA"
-    RepositoryPolicyViolation aLow = violationOn(outerPath + "!/a.jar", "shared", null, "pol-a-low", "A-Low", 1);
-    RepositoryPolicyViolation aTop = violationOn(outerPath + "!/a.jar", "uniqueA", null, "pol-a-hi", "A-High", 9);
+    ProxyRepositoryPolicyViolation aLow = violationOn(outerPath + "!/a.jar", "shared", null, "pol-a-low", "A-Low", 1);
+    ProxyRepositoryPolicyViolation aTop = violationOn(outerPath + "!/a.jar", "uniqueA", null, "pol-a-hi", "A-High", 9);
 
     // group B: only one violation, hash "shared" (collides with aLow but not aTop)
-    RepositoryPolicyViolation bOnly = violationOn(outerPath + "!/b.jar", "shared", null, "pol-b", "B", 5);
+    ProxyRepositoryPolicyViolation bOnly = violationOn(outerPath + "!/b.jar", "shared", null, "pol-b", "B", 5);
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", outerComp, List.of(aLow, aTop, bOnly));
 
@@ -256,12 +256,12 @@ public class HostedReportFileBuilderTest
    */
   @Test
   public void buildPolicyThreats_sameThreatLevel_tieBreaksOnPolicyIdForDeterministicOrdering() throws Exception {
-    RepositoryComponent comp = component("abc123");
+    ProxyRepositoryComponent comp = component("abc123");
     // Two violations at the same threat=8 level. Insertion order is high-then-low policyId so
     // a tie-break that defaults to "first encountered" would pick policyId="zzz". The DAO
     // contract is policyId asc → "aaa" wins.
-    RepositoryPolicyViolation high1 = violation("zzz-policy", "Policy Z", 8);
-    RepositoryPolicyViolation high2 = violation("aaa-policy", "Policy A", 8);
+    ProxyRepositoryPolicyViolation high1 = violation("zzz-policy", "Policy Z", 8);
+    ProxyRepositoryPolicyViolation high2 = violation("aaa-policy", "Policy A", 8);
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", comp, List.of(high1, high2));
 
@@ -279,7 +279,7 @@ public class HostedReportFileBuilderTest
     // Expected: policyCounts[10]=1 (log4j), policyCounts[2]=1 (outer), policyCounts[1]=1 (cli).
     // policyComponentCount counts buckets with maxThreat>=2 = 2 (outer + log4j).
     String outer = "archive/archive/1/archive-1.zip";
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn(outer, "h0", null, "p0", "Component-Unknown", 2),
         violationOn(outer + "!/log4j-core.jar", "h1", null, "p1", "Security-Critical", 10),
         violationOn(outer + "!/commons-cli.jar", "h2", null, "p2", "Architecture-Quality", 1));
@@ -319,7 +319,7 @@ public class HostedReportFileBuilderTest
     String springBeansDup = outer + "!/spring-beans-5.3.17 (1).jar";
     // Outer + 5 distinct inner artifacts, but spring-beans appears twice with the SAME hash.
     // Expected: 6 unique components (1 outer + 5 unique inners), not 7.
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn(outer, "h_outer", null, "p0", "Component-Unknown", 2),
         violationOn(outer + "!/commons-text.jar", "h_commons", null, "p1", "Security-Severe", 5),
         violationOn(outer + "!/jackson.jar", "h_jackson", null, "p2", "Security-Critical", 9),
@@ -348,7 +348,7 @@ public class HostedReportFileBuilderTest
   public void patchDataJsonPolicyCounts_distinctHashesNotDedup() throws Exception {
     // Two inners with different hashes — must count as two components.
     String outer = "archive.zip";
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn(outer + "!/a.jar", "h_a", null, "p1", "Severe", 5),
         violationOn(outer + "!/b.jar", "h_b", null, "p2", "Severe", 5));
     String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
@@ -365,7 +365,7 @@ public class HostedReportFileBuilderTest
   public void patchDataJsonPolicyCounts_nullHashesFallBackToPathnameDedup() throws Exception {
     // Two distinct pathnames, both with null hash and no outer-fallback. They must still count
     // as two separate components (no false collapse to one).
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn("a.jar", null, null, "p1", "Severe", 5),
         violationOn("b.jar", null, null, "p2", "Severe", 5));
     String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
@@ -382,7 +382,7 @@ public class HostedReportFileBuilderTest
   public void patchDataJsonPolicyCounts_multipleViolationsSamePathname_takesMaxThreat() throws Exception {
     // Same outer pathname has both moderate and critical violations — max wins.
     String outer = "g/a-1.jar";
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn(outer, "h", null, "p1", "Moderate", 3),
         violationOn(outer, "h", null, "p2", "Critical", 9));
     String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
@@ -399,9 +399,9 @@ public class HostedReportFileBuilderTest
   @Test
   public void patchDataJsonPolicyCounts_waivedViolationsIgnored() throws Exception {
     String outer = "g/a-1.jar";
-    RepositoryPolicyViolation waived = violationOn(outer, "h", null, "p1", "Critical", 9);
+    ProxyRepositoryPolicyViolation waived = violationOn(outer, "h", null, "p1", "Critical", 9);
     waived.setWaived(true);
-    RepositoryPolicyViolation active = violationOn(outer, "h", null, "p2", "Moderate", 3);
+    ProxyRepositoryPolicyViolation active = violationOn(outer, "h", null, "p2", "Moderate", 3);
     String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
 
     byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(
@@ -436,7 +436,7 @@ public class HostedReportFileBuilderTest
   @Test
   public void patchDataJsonPolicyCounts_malformedJson_returnsOriginalUnchanged() {
     byte[] original = "not-json-at-all".getBytes();
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn("a.jar", "h", null, "p", "Critical", 9));
 
     byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(original, null, violations);
@@ -446,7 +446,7 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void patchDataJsonPolicyCounts_nullDataJson_returnsNullUnchanged() {
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn("a.jar", "h", null, "p", "Critical", 9));
 
     byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(null, null, violations);
@@ -462,7 +462,7 @@ public class HostedReportFileBuilderTest
     // Frontend defaults absent field to 0 -> "Affecting 0 components" even when violations exist.
     // The stamp must write the correct count so the header pill renders "Affecting 1".
     String pathname = "org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar";
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn(pathname, "h_log4j", null, "p1", "Security-Critical", 10),
         violationOn(pathname, "h_log4j", null, "p2", "Security-Severe", 6));
     // HDS-style data.json: no policyComponentCount key present.
@@ -487,7 +487,7 @@ public class HostedReportFileBuilderTest
     // Nested/bundled case: HDS already supplied policyComponentCount. We must NOT overwrite,
     // otherwise the intentional CLM-42119 removal (which preserved HDS's view for bundled
     // archives) regresses.
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn("a.jar", "h", null, "p", "Critical", 9));
     byte[] original = "{\"policyComponentCount\":4,\"policyCounts\":[0,0,0,0,0,0,0,0,0,1,0]}".getBytes();
 
@@ -514,7 +514,7 @@ public class HostedReportFileBuilderTest
   public void patchDataJsonPolicyComponentCountIfAbsent_waivedViolationsExcluded() throws Exception {
     // Waived violations do not contribute — mirrors patchDataJsonPolicyCounts semantics and
     // the aaData "activeViolations" that policythreats.json emits.
-    RepositoryPolicyViolation waived = violationOn("a.jar", "h", null, "p1", "Critical", 9);
+    ProxyRepositoryPolicyViolation waived = violationOn("a.jar", "h", null, "p1", "Critical", 9);
     waived.setWaived(true);
     String originalData = "{\"totalArtifactCount\":1}";
 
@@ -529,7 +529,7 @@ public class HostedReportFileBuilderTest
   public void patchDataJsonPolicyComponentCountIfAbsent_maxThreatBelowTwoNotCounted() throws Exception {
     // maxThreat >= 2 threshold matches ScanPolicyEvaluator.updateDataJson so hosted-repo and
     // application-evaluation paths compute the same value for the same violation set.
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn("a.jar", "h", null, "p", "Low", 1));
     String originalData = "{\"totalArtifactCount\":1}";
 
@@ -543,7 +543,7 @@ public class HostedReportFileBuilderTest
   @Test
   public void patchDataJsonPolicyComponentCountIfAbsent_malformedJson_returnsOriginalUnchanged() {
     byte[] original = "not-json".getBytes();
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn("a.jar", "h", null, "p", "Critical", 9));
 
     byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyComponentCountIfAbsent(
@@ -565,7 +565,7 @@ public class HostedReportFileBuilderTest
     // Two byte-identical inner jars — same dedup as policythreats.json → one component, not two.
     // Keeps the "Affecting N" pill in agreement with the aaData row count downstream.
     String outer = "archive.zip";
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         violationOn(outer + "!/spring.jar", "h_spring", null, "p1", "Critical", 9),
         violationOn(outer + "!/spring (1).jar", "h_spring", null, "p1", "Critical", 9));
     String originalData = "{\"totalArtifactCount\":2}";
@@ -586,7 +586,7 @@ public class HostedReportFileBuilderTest
     // these to a single 10; LC counts all three -> 30. Distinct constraintFactsId must each count.
     ComponentIdentifier log4j = ci("org.apache.logging.log4j", "log4j-core", "2.14.1", "jar");
     String p = "org/apache/logging/log4j/log4j-core-2.14.1.jar";
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         withCfid(violationOn(p, "h_log4j", log4j, "pol-crit", "Security-Critical", 10), "cve-A"),
         withCfid(violationOn(p, "h_log4j", log4j, "pol-crit", "Security-Critical", 10), "cve-B"),
         withCfid(violationOn(p, "h_log4j", log4j, "pol-crit", "Security-Critical", 10), "cve-C"));
@@ -600,7 +600,7 @@ public class HostedReportFileBuilderTest
   public void totalRisk_frameworkFanout_distinctInnerHashes_allCount() {
     ComponentIdentifier dll = ci("nuget", "Newtonsoft.Json.dll", "12.0.1", "dll");
     String outer = "newtonsoft.json.12.0.1.nupkg";
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         withCfid(violationOn(outer + "!/lib/net20/Newtonsoft.Json.dll", "h_net20", dll, "pol-sec", "Security-High", 9),
             "cve-1"),
         withCfid(violationOn(outer + "!/lib/net40/Newtonsoft.Json.dll", "h_net40", dll, "pol-sec", "Security-High", 9),
@@ -615,7 +615,7 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void totalRisk_distinctInners_allCount() {
-    List<RepositoryPolicyViolation> violations = List.of(
+    List<ProxyRepositoryPolicyViolation> violations = List.of(
         withCfid(violationOn("outer.gem!/rack", "rack_h", ci("rubygems", "rack", "2.0.6", "gem"), "p1", "P1", 6), "c1"),
         withCfid(violationOn("outer.gem!/nokogiri", "nok_h", ci("rubygems", "nokogiri", "1.8.2", "gem"), "p1", "P1", 8),
             "c2"),
@@ -629,8 +629,8 @@ public class HostedReportFileBuilderTest
   @Test
   public void totalRisk_waivedViolations_excluded() {
     ComponentIdentifier axios = ci("npm", "axios", "0.18.0", "tgz");
-    RepositoryPolicyViolation active = withCfid(violationOn("axios.tgz", "ha", axios, "p1", "P1", 7), "c1");
-    RepositoryPolicyViolation waived = withCfid(violationOn("axios.tgz", "hb", axios, "p2", "P2", 9), "c2");
+    ProxyRepositoryPolicyViolation active = withCfid(violationOn("axios.tgz", "ha", axios, "p1", "P1", 7), "c1");
+    ProxyRepositoryPolicyViolation waived = withCfid(violationOn("axios.tgz", "hb", axios, "p2", "P2", 9), "c2");
     waived.setWaived(true);
 
     assertThat(HostedReportFileBuilder.totalRisk(component("h"), List.of(active, waived))).isEqualTo(7);
@@ -639,9 +639,9 @@ public class HostedReportFileBuilderTest
   @Test
   public void totalRisk_nullHashAndConstraint_fallsBackToId_bothCount() {
     ComponentIdentifier axios = ci("npm", "axios", "0.18.0", "tgz");
-    RepositoryPolicyViolation v1 = violationOn("axios.tgz", null, axios, "p1", "P1", 5);
+    ProxyRepositoryPolicyViolation v1 = violationOn("axios.tgz", null, axios, "p1", "P1", 5);
     v1.setId("id1");
-    RepositoryPolicyViolation v2 = violationOn("axios.tgz", null, axios, "p1", "P1", 3);
+    ProxyRepositoryPolicyViolation v2 = violationOn("axios.tgz", null, axios, "p1", "P1", 3);
     v2.setId("id2");
 
     assertThat(HostedReportFileBuilder.totalRisk(component("h"), List.of(v1, v2))).isEqualTo(5 + 3);
@@ -656,15 +656,15 @@ public class HostedReportFileBuilderTest
   public void excludeOuter_npmSelfMirror_dropsRedundantOuter() {
     ComponentIdentifier axios = ci("npm", "axios", "0.18.0", "tgz");
     String outerPath = "axios-0.18.0.tgz";
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setPathname(outerPath);
     outerComp.setHash("file_sha1");
-    RepositoryPolicyViolation outer =
+    ProxyRepositoryPolicyViolation outer =
         withCfid(violationOn(outerPath, "file_sha1", axios, "pol-sec", "Security-High", 14), "cve-1");
-    RepositoryPolicyViolation innerMirror =
+    ProxyRepositoryPolicyViolation innerMirror =
         withCfid(violationOn(outerPath + "!/axios@0.18.0", "hds_hash", axios, "pol-sec", "Security-High", 14), "cve-1");
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         HostedReportFileBuilder.excludeOuterViolationsForFormat(outerComp, List.of(outer, innerMirror), "npm");
 
     assertThat(result).as("outer whose identity matches an inner is dropped").containsExactly(innerMirror);
@@ -676,16 +676,16 @@ public class HostedReportFileBuilderTest
     ComponentIdentifier pkg = ci("nuget", "System.Text.Encodings.Web", "4.5.0", "nupkg");
     ComponentIdentifier dll = ci("nuget", "System.Text.Encodings.Web.dll", "4.5.0", "dll");
     String outerPath = "system.text.encodings.web.4.5.0.nupkg";
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setPathname(outerPath);
-    RepositoryPolicyViolation outer =
+    ProxyRepositoryPolicyViolation outer =
         withCfid(violationOn(outerPath, "h_outer", pkg, "pol-sec", "Security-High", 9), "cve-1");
-    RepositoryPolicyViolation dllA =
+    ProxyRepositoryPolicyViolation dllA =
         withCfid(violationOn(outerPath + "!/lib/net20/x.dll", "h_dll_a", dll, "pol-sec", "Security-High", 9), "cve-1");
-    RepositoryPolicyViolation dllB =
+    ProxyRepositoryPolicyViolation dllB =
         withCfid(violationOn(outerPath + "!/lib/net40/x.dll", "h_dll_b", dll, "pol-sec", "Security-High", 9), "cve-1");
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         HostedReportFileBuilder.excludeOuterViolationsForFormat(outerComp, List.of(outer, dllA, dllB), "nuget");
 
     assertThat(result).as("nuget outer identity differs from inner DLLs, nothing dropped").hasSize(3);
@@ -694,22 +694,22 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void excludeOuter_go_containerWithTransitives_outerBecomesComponentUnknown2() {
-    RepositoryComponent goOuter = new RepositoryComponent();
+    ProxyRepositoryComponent goOuter = new ProxyRepositoryComponent();
     goOuter.setPathname("github.com/gin-gonic/gin/@v/v1.6.0.zip");
     goOuter.setHash("h_outer");
-    RepositoryPolicyViolation outer = withCfid(violationOn(
+    ProxyRepositoryPolicyViolation outer = withCfid(violationOn(
         "github.com/gin-gonic/gin/@v/v1.6.0.zip", "h_outer",
         ci("go", "github.com/gin-gonic/gin", "v1.6.0", "zip"), "pol-sec", "Security-High", 9), "cve-outer");
-    RepositoryPolicyViolation inner = withCfid(violationOn(
+    ProxyRepositoryPolicyViolation inner = withCfid(violationOn(
         "github.com/gin-gonic/gin/@v/v1.6.0.zip!/dependency:/gopkg.in/yaml.v2", "h_yaml",
         ci("go", "gopkg.in/yaml.v2", "v2.2.2", "zip"), "pol-sec", "Security-High", 8), "cve-yaml");
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         HostedReportFileBuilder.excludeOuterViolationsForFormat(goOuter, List.of(outer, inner), "go");
 
     assertThat(result).hasSize(2);
     assertThat(result).contains(inner);
-    RepositoryPolicyViolation unknown = result.stream()
+    ProxyRepositoryPolicyViolation unknown = result.stream()
         .filter(v -> "Component-Unknown".equals(v.getPolicyName()))
         .findFirst()
         .orElseThrow();
@@ -720,16 +720,16 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void excludeOuter_go_identifiedBareModule_collapsesToUnknown2() {
-    RepositoryComponent goOuter = new RepositoryComponent();
+    ProxyRepositoryComponent goOuter = new ProxyRepositoryComponent();
     goOuter.setPathname("github.com/valyala/fasthttp/@v/v1.2.0.zip");
-    RepositoryPolicyViolation sec = withCfid(violationOn(
+    ProxyRepositoryPolicyViolation sec = withCfid(violationOn(
         "github.com/valyala/fasthttp/@v/v1.2.0.zip", "h",
         ci("go", "github.com/valyala/fasthttp", "v1.2.0", "zip"), "pol-sec", "Security-High", 9), "c1");
-    RepositoryPolicyViolation arch = withCfid(violationOn(
+    ProxyRepositoryPolicyViolation arch = withCfid(violationOn(
         "github.com/valyala/fasthttp/@v/v1.2.0.zip", "h",
         ci("go", "github.com/valyala/fasthttp", "v1.2.0", "zip"), "pol-arch", "Architecture-Quality", 1), "c2");
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         HostedReportFileBuilder.excludeOuterViolationsForFormat(goOuter, List.of(sec, arch), "go");
 
     assertThat(result).hasSize(1);
@@ -739,9 +739,9 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void excludeOuter_go_stampsResolvedPolicyFields_evenWhenRenamedAndRethreated() {
-    RepositoryComponent goOuter = new RepositoryComponent();
+    ProxyRepositoryComponent goOuter = new ProxyRepositoryComponent();
     goOuter.setPathname("m/@v/v1.zip");
-    RepositoryPolicyViolation outer = withCfid(violationOn(
+    ProxyRepositoryPolicyViolation outer = withCfid(violationOn(
         "m/@v/v1.zip", "h", ci("go", "m", "v1", "zip"), "pol-sec", "Security-High", 9), "c1");
 
     // Resolved policy: tenant renamed Component-Unknown and set threat 8. The synthetic outer row
@@ -749,10 +749,10 @@ public class HostedReportFileBuilderTest
     Policy resolved = new Policy("resolved-cu-id", "Renamed-Unknown");
     resolved.setThreatLevel(8);
 
-    List<RepositoryPolicyViolation> result = HostedReportFileBuilder
+    List<ProxyRepositoryPolicyViolation> result = HostedReportFileBuilder
         .excludeOuterViolationsForFormat(goOuter, List.of(outer), "go", resolved);
 
-    RepositoryPolicyViolation outerRow = result.stream()
+    ProxyRepositoryPolicyViolation outerRow = result.stream()
         .filter(v -> "m/@v/v1.zip".equals(v.getPathname()))
         .findFirst()
         .orElseThrow();
@@ -764,29 +764,29 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void excludeOuter_go_nullResolvedPolicy_fallsBackToDefault() {
-    RepositoryComponent goOuter = new RepositoryComponent();
+    ProxyRepositoryComponent goOuter = new ProxyRepositoryComponent();
     goOuter.setPathname("m/@v/v1.zip");
-    RepositoryPolicyViolation outer = withCfid(violationOn(
+    ProxyRepositoryPolicyViolation outer = withCfid(violationOn(
         "m/@v/v1.zip", "h", ci("go", "m", "v1", "zip"), "pol-sec", "Security-High", 9), "c1");
 
-    List<RepositoryPolicyViolation> result = HostedReportFileBuilder
+    List<ProxyRepositoryPolicyViolation> result = HostedReportFileBuilder
         .excludeOuterViolationsForFormat(goOuter, List.of(outer), "go", null);
 
-    RepositoryPolicyViolation outerRow = result.get(0);
+    ProxyRepositoryPolicyViolation outerRow = result.get(0);
     assertThat(outerRow.getPolicyName()).isEqualTo("Component-Unknown");
     assertThat(outerRow.getThreatLevel()).isEqualTo(2);
   }
 
   @Test
   public void excludeOuter_maven_retainsOuter() {
-    RepositoryComponent mavenOuter = new RepositoryComponent();
+    ProxyRepositoryComponent mavenOuter = new ProxyRepositoryComponent();
     mavenOuter.setPathname("com/example/lib-1.0.jar");
     mavenOuter.setHash("h");
-    RepositoryPolicyViolation outer = withCfid(violationOn(
+    ProxyRepositoryPolicyViolation outer = withCfid(violationOn(
         "com/example/lib-1.0.jar", "h", ci("maven", "example", "lib", "jar"),
         "pol-sec", "Security-High", 9), "cve-1");
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         HostedReportFileBuilder.excludeOuterViolationsForFormat(mavenOuter, List.of(outer), "maven");
 
     assertThat(result).containsExactly(outer);
@@ -794,13 +794,13 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void excludeOuter_go_standalone_collapsesToUnknown2() {
-    RepositoryComponent goStandalone = new RepositoryComponent();
+    ProxyRepositoryComponent goStandalone = new ProxyRepositoryComponent();
     goStandalone.setPathname("gopkg.in/yaml.v2/@v/v2.2.2.zip");
-    RepositoryPolicyViolation outerOnly = withCfid(violationOn(
+    ProxyRepositoryPolicyViolation outerOnly = withCfid(violationOn(
         "gopkg.in/yaml.v2/@v/v2.2.2.zip", "h",
         ci("go", "gopkg.in/yaml.v2", "v2.2.2", "zip"), "p", "Security-Low", 3), "c1");
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         HostedReportFileBuilder.excludeOuterViolationsForFormat(goStandalone, List.of(outerOnly), "go");
 
     assertThat(result).hasSize(1);
@@ -810,27 +810,28 @@ public class HostedReportFileBuilderTest
 
   @Test
   public void excludeOuter_nullFormat_noMirror_noop() {
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setPathname("x.zip");
-    RepositoryPolicyViolation v = withCfid(violationOn("x.zip", "h", ci("go", "x", "1", "zip"), "p", "P", 5), "c");
+    ProxyRepositoryPolicyViolation v = withCfid(violationOn("x.zip", "h", ci("go", "x", "1", "zip"), "p", "P", 5), "c");
     assertThat(HostedReportFileBuilder.excludeOuterViolationsForFormat(outerComp, List.of(v), null))
         .containsExactly(v);
   }
 
   @Test
   public void excludeOuter_emptyViolations_returnsUnchanged() {
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setPathname("x.tgz");
-    List<RepositoryPolicyViolation> empty = List.of();
+    List<ProxyRepositoryPolicyViolation> empty = List.of();
     assertThat(HostedReportFileBuilder.excludeOuterViolationsForFormat(outerComp, empty, "npm"))
         .isSameAs(empty);
   }
 
   @Test
   public void excludeOuter_nullOuterPathname_returnsUnchanged() {
-    RepositoryComponent outerComp = new RepositoryComponent();
-    RepositoryPolicyViolation v = withCfid(violationOn("x.tgz", "h", ci("npm", "x", "1", "tgz"), "p", "P", 5), "c");
-    List<RepositoryPolicyViolation> in = List.of(v);
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
+    ProxyRepositoryPolicyViolation v =
+        withCfid(violationOn("x.tgz", "h", ci("npm", "x", "1", "tgz"), "p", "P", 5), "c");
+    List<ProxyRepositoryPolicyViolation> in = List.of(v);
     assertThat(HostedReportFileBuilder.excludeOuterViolationsForFormat(outerComp, in, "npm"))
         .isSameAs(in);
   }
@@ -842,15 +843,15 @@ public class HostedReportFileBuilderTest
   @Test
   public void excludeOuter_npm_outerWithNoIdentity_retained() {
     String outerPath = "pkg-1.0.0.tgz";
-    RepositoryComponent outerComp = new RepositoryComponent();
+    ProxyRepositoryComponent outerComp = new ProxyRepositoryComponent();
     outerComp.setPathname(outerPath);
-    RepositoryPolicyViolation outer =
+    ProxyRepositoryPolicyViolation outer =
         withCfid(violationOn(outerPath, "file_sha1", null, "pol-sec", "Security-High", 7), "cve-1");
-    RepositoryPolicyViolation inner =
+    ProxyRepositoryPolicyViolation inner =
         withCfid(violationOn(outerPath + "!/dep@1.0.0", "hds_hash", ci("npm", "dep", "1.0.0", "tgz"),
             "pol-sec", "Security-High", 9), "cve-2");
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         HostedReportFileBuilder.excludeOuterViolationsForFormat(outerComp, List.of(outer, inner), "npm");
 
     assertThat(result).as("outer with null identity is not dropped").containsExactly(outer, inner);
@@ -859,9 +860,9 @@ public class HostedReportFileBuilderTest
   @Test
   public void totalRisk_sameHashAndConstraint_collapsesToMaxThreat() {
     ComponentIdentifier axios = ci("npm", "axios", "0.18.0", "tgz");
-    RepositoryPolicyViolation outer =
+    ProxyRepositoryPolicyViolation outer =
         withCfid(violationOn("axios.tgz", "shared_hash", axios, "pol-sec", "Security-High", 14), "cve-1");
-    RepositoryPolicyViolation innerMirror =
+    ProxyRepositoryPolicyViolation innerMirror =
         withCfid(violationOn("axios.tgz!/axios@0.18.0", "shared_hash", axios, "pol-sec", "Security-High", 14),
             "cve-1");
 
@@ -875,7 +876,7 @@ public class HostedReportFileBuilderTest
     assertThat(HostedReportFileBuilder.totalRisk(component("h"), null)).isZero();
   }
 
-  private static RepositoryPolicyViolation withCfid(RepositoryPolicyViolation v, String constraintFactsId) {
+  private static ProxyRepositoryPolicyViolation withCfid(ProxyRepositoryPolicyViolation v, String constraintFactsId) {
     v.setConstraintFactsId(constraintFactsId);
     return v;
   }
@@ -1225,7 +1226,7 @@ public class HostedReportFileBuilderTest
     assertThat(HostedReportFileBuilder.zeroDataJsonPolicyCounts(empty)).isSameAs(empty);
   }
 
-  private static RepositoryPolicyViolation violationOn(
+  private static ProxyRepositoryPolicyViolation violationOn(
       String pathname,
       String hash,
       ComponentIdentifier ci,
@@ -1233,7 +1234,7 @@ public class HostedReportFileBuilderTest
       String policyName,
       int threatLevel)
   {
-    RepositoryPolicyViolation v = violation(policyId, policyName, threatLevel);
+    ProxyRepositoryPolicyViolation v = violation(policyId, policyName, threatLevel);
     v.setPathname(pathname);
     v.setHash(hash);
     v.setComponentIdentifier(ci);

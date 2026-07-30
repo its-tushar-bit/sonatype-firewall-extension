@@ -33,13 +33,13 @@ import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAcce
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.repository.ProxyRepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -73,9 +73,9 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponent_AnonymousEnabled() throws Exception {
     // setup
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     final String encodedToken = encodeToken(quarantinedComponentAccess);
 
     // when anonymous request
@@ -89,16 +89,16 @@ public class QuarantinedComponentResourceTest
     assertResponseStatus(200, response);
     QuarantinedComponentDto quarantinedComponentDto = response.getBody(QuarantinedComponentDto.class);
     assertThat(quarantinedComponentDto.success).isTrue();
-    assertThat(quarantinedComponentDto.repositoryComponentId).isEqualTo(repositoryComponent.getId());
+    assertThat(quarantinedComponentDto.repositoryComponentId).isEqualTo(proxyRepositoryComponent.getId());
   }
 
   @Test
   public void testGetQuarantinedComponent_AnonymousDisabled() throws Exception {
     // setup
     disableAnonymousAccess();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
     // when anonymous request
@@ -118,7 +118,7 @@ public class QuarantinedComponentResourceTest
     assertResponseStatus(200, response);
     QuarantinedComponentDto quarantinedComponentDto = response.getBody(QuarantinedComponentDto.class);
     assertThat(quarantinedComponentDto.success).isTrue();
-    assertThat(quarantinedComponentDto.repositoryComponentId).isEqualTo(repositoryComponent.getId());
+    assertThat(quarantinedComponentDto.repositoryComponentId).isEqualTo(proxyRepositoryComponent.getId());
   }
 
   @Test
@@ -207,9 +207,9 @@ public class QuarantinedComponentResourceTest
   public void testGetQuarantinedComponentVersionRemediation_AnonymousEnabled() throws Exception {
     // setup
     final Repository repository = tempEntity.newRepository("repo");
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     final String encodedToken = encodeToken(quarantinedComponentAccess);
 
     ComponentIdentifier componentIdentifier =
@@ -257,9 +257,9 @@ public class QuarantinedComponentResourceTest
     // setup
     disableAnonymousAccess();
     Repository repository = tempEntity.newRepository("repo");
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
@@ -324,14 +324,14 @@ public class QuarantinedComponentResourceTest
           + componentIdentifier.get(ComponentIdentifier.VERSION) + "."
           + componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION);
     }
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
+    final ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT, pathname, hash, componentIdentifier, date, date);
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 6,
-        repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
-        repositoryComponent.getComponentIdentifier(), date);
+        proxyRepositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
+        proxyRepositoryComponent.getComponentIdentifier(), date);
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId(), date);
     return encodeToken(quarantinedComponentAccess);
   }
 
@@ -339,7 +339,7 @@ public class QuarantinedComponentResourceTest
   public void testGetQuarantinedComponentPolicyViolations_AnonymousEnabled() throws Exception {
     // setup
     Date date = new Date();
-    final RepositoryComponent repositoryComponent =
+    final ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "path", date, null);
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     ConstraintFact constraintFact =
@@ -349,13 +349,13 @@ public class QuarantinedComponentResourceTest
     conditionFact.setTriggerJson("some trigger");
     constraintFact.addConditionFact(conditionFact);
     constraintFacts.add(constraintFact);
-    RepositoryPolicyViolation repositoryPolicyViolation =
-        tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(),
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, proxyRepositoryComponent.getPathname(),
             "hash", constraintFacts, false /* isWaived */, Action.ID_FAIL, "policyid", "policyname",
-            repositoryComponent.getComponentIdentifier(), date, null, null,
+            proxyRepositoryComponent.getComponentIdentifier(), date, null, null,
             null);
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     final String encodedToken = encodeToken(quarantinedComponentAccess);
 
     // when anonymous request
@@ -369,19 +369,19 @@ public class QuarantinedComponentResourceTest
     // then
     assertResponseStatus(200, response);
 
-    RepositoryPolicyViolationDTO[] repositoryPolicyViolationDTOs =
-        response.getBody(RepositoryPolicyViolationDTO[].class);
+    ProxyRepositoryPolicyViolationDTO[] repositoryPolicyViolationDTOs =
+        response.getBody(ProxyRepositoryPolicyViolationDTO[].class);
     assertThat(repositoryPolicyViolationDTOs).hasSize(1);
 
-    RepositoryPolicyViolationDTO policyViolationDTO = repositoryPolicyViolationDTOs[0];
-    assertThat(policyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
-    assertThat(policyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
-    assertThat(policyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
+    ProxyRepositoryPolicyViolationDTO policyViolationDTO = repositoryPolicyViolationDTOs[0];
+    assertThat(policyViolationDTO.policyViolationId).isEqualTo(proxyRepositoryPolicyViolation.getId());
+    assertThat(policyViolationDTO.policyId).isEqualTo(proxyRepositoryPolicyViolation.getPolicyId());
+    assertThat(policyViolationDTO.policyName).isEqualTo(proxyRepositoryPolicyViolation.getPolicyName());
     assertThat(policyViolationDTO.policyOwner.ownerId).isNull();
     assertThat(policyViolationDTO.policyOwner.ownerName).isNull();
     assertThat(policyViolationDTO.policyOwner.ownerType).isNull();
-    assertThat(policyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
-    assertThat(policyViolationDTO.policyThreatCategory).isEqualTo(repositoryPolicyViolation.getThreatCategory());
+    assertThat(policyViolationDTO.policyThreatLevel).isEqualTo(proxyRepositoryPolicyViolation.getThreatLevel());
+    assertThat(policyViolationDTO.policyThreatCategory).isEqualTo(proxyRepositoryPolicyViolation.getThreatCategory());
 
     assertThat(policyViolationDTO.constraints).hasSize(1);
     assertThat(policyViolationDTO.constraints.get(0).constraintId).isEqualTo(constraintFact.getConstraintId());
@@ -390,11 +390,12 @@ public class QuarantinedComponentResourceTest
         conditionFact.getReason());
     assertThat(policyViolationDTO.constraints.get(0).conditions.get(0).conditionSummary).isEqualTo(
         conditionFact.getSummary());
-    assertThat(policyViolationDTO.constraintFactsJson).isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(policyViolationDTO.constraintFactsJson)
+        .isEqualTo(proxyRepositoryPolicyViolation.getConstraintFactsJson());
 
-    assertThat(policyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
+    assertThat(policyViolationDTO.waived).isEqualTo(proxyRepositoryPolicyViolation.isWaived());
     assertThat(policyViolationDTO.policyActionTypeId).isEqualTo(Action.ID_FAIL);
-    assertThat(policyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
+    assertThat(policyViolationDTO.lastReported).isEqualTo(proxyRepositoryPolicyViolation.getTime());
   }
 
   @Test
@@ -402,7 +403,7 @@ public class QuarantinedComponentResourceTest
     // setup
     disableAnonymousAccess();
     Date date = new Date();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "path", date, null);
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     ConstraintFact constraintFact = new ConstraintFact(UUID.randomUUID().toString(), "constraintName", "and");
@@ -411,11 +412,13 @@ public class QuarantinedComponentResourceTest
     conditionFact.setTriggerJson("some trigger");
     constraintFact.addConditionFact(conditionFact);
     constraintFacts.add(constraintFact);
-    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
-        repositoryComponent.getPathname(), "hash", constraintFacts, false /* isWaived */, Action.ID_FAIL, "policyid",
-        "policyname", repositoryComponent.getComponentIdentifier(), date, null, null, null);
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
+            proxyRepositoryComponent.getPathname(), "hash", constraintFacts, false /* isWaived */, Action.ID_FAIL,
+            "policyid",
+            "policyname", proxyRepositoryComponent.getComponentIdentifier(), date, null, null, null);
     QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
     // when anonymous request
@@ -437,19 +440,19 @@ public class QuarantinedComponentResourceTest
 
     // then success
     assertResponseStatus(200, response);
-    RepositoryPolicyViolationDTO[] repositoryPolicyViolationDTOs =
-        response.getBody(RepositoryPolicyViolationDTO[].class);
+    ProxyRepositoryPolicyViolationDTO[] repositoryPolicyViolationDTOs =
+        response.getBody(ProxyRepositoryPolicyViolationDTO[].class);
     assertThat(repositoryPolicyViolationDTOs).hasSize(1);
 
-    RepositoryPolicyViolationDTO policyViolationDTO = repositoryPolicyViolationDTOs[0];
-    assertThat(policyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
-    assertThat(policyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
-    assertThat(policyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
+    ProxyRepositoryPolicyViolationDTO policyViolationDTO = repositoryPolicyViolationDTOs[0];
+    assertThat(policyViolationDTO.policyViolationId).isEqualTo(proxyRepositoryPolicyViolation.getId());
+    assertThat(policyViolationDTO.policyId).isEqualTo(proxyRepositoryPolicyViolation.getPolicyId());
+    assertThat(policyViolationDTO.policyName).isEqualTo(proxyRepositoryPolicyViolation.getPolicyName());
     assertThat(policyViolationDTO.policyOwner.ownerId).isNull();
     assertThat(policyViolationDTO.policyOwner.ownerName).isNull();
     assertThat(policyViolationDTO.policyOwner.ownerType).isNull();
-    assertThat(policyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
-    assertThat(policyViolationDTO.policyThreatCategory).isEqualTo(repositoryPolicyViolation.getThreatCategory());
+    assertThat(policyViolationDTO.policyThreatLevel).isEqualTo(proxyRepositoryPolicyViolation.getThreatLevel());
+    assertThat(policyViolationDTO.policyThreatCategory).isEqualTo(proxyRepositoryPolicyViolation.getThreatCategory());
 
     assertThat(policyViolationDTO.constraints).hasSize(1);
     assertThat(policyViolationDTO.constraints.get(0).constraintId).isEqualTo(constraintFact.getConstraintId());
@@ -458,11 +461,12 @@ public class QuarantinedComponentResourceTest
         .isEqualTo(conditionFact.getReason());
     assertThat(policyViolationDTO.constraints.get(0).conditions.get(0).conditionSummary)
         .isEqualTo(conditionFact.getSummary());
-    assertThat(policyViolationDTO.constraintFactsJson).isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(policyViolationDTO.constraintFactsJson)
+        .isEqualTo(proxyRepositoryPolicyViolation.getConstraintFactsJson());
 
-    assertThat(policyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
+    assertThat(policyViolationDTO.waived).isEqualTo(proxyRepositoryPolicyViolation.isWaived());
     assertThat(policyViolationDTO.policyActionTypeId).isEqualTo(Action.ID_FAIL);
-    assertThat(policyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
+    assertThat(policyViolationDTO.lastReported).isEqualTo(proxyRepositoryPolicyViolation.getTime());
   }
 
   @Test
@@ -470,7 +474,7 @@ public class QuarantinedComponentResourceTest
     // setup
     Date date = new Date();
     // Quarantined component
-    final RepositoryComponent repositoryComponent =
+    final ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
             "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.1.jar", "hash",
             ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.1", null /* classifier */,
@@ -496,7 +500,7 @@ public class QuarantinedComponentResourceTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", null /* classifier */, "jar"), date, null, null);
 
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     final String encodedToken = encodeToken(quarantinedComponentAccess);
 
     // when anonymous request
@@ -530,7 +534,7 @@ public class QuarantinedComponentResourceTest
     disableAnonymousAccess();
     Date date = new Date();
     // Quarantined component
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
             "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.1.jar", "hash", ComponentIdentifier
                 .createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.1", null /* classifier */, "jar"),
@@ -555,7 +559,7 @@ public class QuarantinedComponentResourceTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", null /* classifier */, "jar"), date, null, null);
 
     QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
     // when anonymous request
@@ -597,15 +601,15 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponentVersionDetails_AnonymousEnabled() throws Exception {
     // setup
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "testPathname", "testHash",
             ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), true /* quarantined */);
     QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
-    namedComponentDetails.setComponentIdentifier(repositoryComponent.getComponentIdentifier());
+    namedComponentDetails.setComponentIdentifier(proxyRepositoryComponent.getComponentIdentifier());
 
     hdsRespondWith(namedComponentDetails).atUri("/rest/ci/componentDetails");
 
@@ -624,8 +628,8 @@ public class QuarantinedComponentResourceTest
     ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     namedComponentDetails = objectMapper.readValue(response.getBodyStream(), NamedComponentDetails.class);
     assertThat(namedComponentDetails.getDisplayName().toString()).isEqualTo("g : a : v");
-    assertThat(namedComponentDetails.getHash()).isEqualTo(repositoryComponent.getHash());
-    assertThat(namedComponentDetails.getMatchState()).isEqualTo(repositoryComponent.getMatchStateId());
+    assertThat(namedComponentDetails.getHash()).isEqualTo(proxyRepositoryComponent.getHash());
+    assertThat(namedComponentDetails.getMatchState()).isEqualTo(proxyRepositoryComponent.getMatchStateId());
     assertThat(namedComponentDetails.getDeclaredLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(
@@ -643,7 +647,8 @@ public class QuarantinedComponentResourceTest
     assertThat(namedComponentDetails.getLicenseThreatGroupNames()).containsExactly("Sonatype Special Licenses");
     assertThat(namedComponentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     assertThat(namedComponentDetails.getIdentificationSourceComment()).isNull();
-    assertThat(namedComponentDetails.getComponentIdentifier()).isEqualTo(repositoryComponent.getComponentIdentifier());
+    assertThat(namedComponentDetails.getComponentIdentifier())
+        .isEqualTo(proxyRepositoryComponent.getComponentIdentifier());
     assertThat(namedComponentDetails.getComponentCategories()).extracting(ComponentCategory::getPath)
         .containsExactly("Other");
     assertThat(namedComponentDetails.getHygieneRating()).isNull();
@@ -656,15 +661,15 @@ public class QuarantinedComponentResourceTest
   public void testGetQuarantinedComponentVersionDetails_AnonymousDisabled() throws Exception {
     // setup
     disableAnonymousAccess();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "testPathname", "testHash",
             ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), true /* quarantined */);
     QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
-    namedComponentDetails.setComponentIdentifier(repositoryComponent.getComponentIdentifier());
+    namedComponentDetails.setComponentIdentifier(proxyRepositoryComponent.getComponentIdentifier());
 
     hdsRespondWith(namedComponentDetails).atUri("/rest/ci/componentDetails");
 
@@ -694,8 +699,8 @@ public class QuarantinedComponentResourceTest
     ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     namedComponentDetails = objectMapper.readValue(response.getBodyStream(), NamedComponentDetails.class);
     assertThat(namedComponentDetails.getDisplayName().toString()).isEqualTo("g : a : v");
-    assertThat(namedComponentDetails.getHash()).isEqualTo(repositoryComponent.getHash());
-    assertThat(namedComponentDetails.getMatchState()).isEqualTo(repositoryComponent.getMatchStateId());
+    assertThat(namedComponentDetails.getHash()).isEqualTo(proxyRepositoryComponent.getHash());
+    assertThat(namedComponentDetails.getMatchState()).isEqualTo(proxyRepositoryComponent.getMatchStateId());
     assertThat(namedComponentDetails.getDeclaredLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(
@@ -713,7 +718,8 @@ public class QuarantinedComponentResourceTest
     assertThat(namedComponentDetails.getLicenseThreatGroupNames()).containsExactly("Sonatype Special Licenses");
     assertThat(namedComponentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     assertThat(namedComponentDetails.getIdentificationSourceComment()).isNull();
-    assertThat(namedComponentDetails.getComponentIdentifier()).isEqualTo(repositoryComponent.getComponentIdentifier());
+    assertThat(namedComponentDetails.getComponentIdentifier())
+        .isEqualTo(proxyRepositoryComponent.getComponentIdentifier());
     assertThat(namedComponentDetails.getComponentCategories()).extracting(ComponentCategory::getPath)
         .containsExactly("Other");
     assertThat(namedComponentDetails.getHygieneRating()).isNull();

@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
@@ -48,7 +48,7 @@ public class HostedComponentScanQueueDAOTest
   public void testCRUD() {
     // Create repository and component first for FK constraint
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue queueEntry = new HostedComponentScanQueue();
     queueEntry.setComponentId(component.getId());
@@ -85,7 +85,7 @@ public class HostedComponentScanQueueDAOTest
   public void testGetByStatus() {
     // Create repository and component first for FK constraint
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     // Create queue entries with different statuses
     final HostedComponentScanQueue pending1 = new HostedComponentScanQueue();
@@ -122,7 +122,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testAcquireJob() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue queueEntry = new HostedComponentScanQueue();
     queueEntry.setComponentId(component.getId());
@@ -144,7 +144,7 @@ public class HostedComponentScanQueueDAOTest
   public void testCompleteJob() {
     // Create repository and component first for FK constraint
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue queueEntry = new HostedComponentScanQueue();
     queueEntry.setComponentId(component.getId());
@@ -169,7 +169,7 @@ public class HostedComponentScanQueueDAOTest
   public void testFailJob() {
     // Create repository and component first for FK constraint
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue queueEntry = new HostedComponentScanQueue();
     queueEntry.setComponentId(component.getId());
@@ -194,7 +194,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testInvalidStateTransition_CompletedToInProgress() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     // Insert a COMPLETED job — acquireNextPendingJobs must not pick it up
     final HostedComponentScanQueue queueEntry = new HostedComponentScanQueue();
@@ -215,7 +215,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testConcurrentJobAcquisition_ShouldNotReturnSameJob() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue queueEntry = new HostedComponentScanQueue();
     queueEntry.setComponentId(component.getId());
@@ -238,7 +238,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testAcquireNextPendingJobs_RespectsPriorityOrdering() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue lowPriority = new HostedComponentScanQueue();
     lowPriority.setComponentId(component.getId());
@@ -278,7 +278,7 @@ public class HostedComponentScanQueueDAOTest
   public void testDeleteCompletedJobs_WithExactDateBoundary() {
     // Create repository and component first for FK constraint
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     // Create completed jobs with specific acquired dates
     Instant oldDate = Instant.now().minusSeconds(7 * 24 * 60 * 60); // 7 days ago
@@ -319,7 +319,7 @@ public class HostedComponentScanQueueDAOTest
   public void testDeleteCompletedJobs_WithNullAcquiredAt() {
     // Create repository and component first for FK constraint
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     // Create a FAILED job that was never acquired (acquired_at is null)
     final HostedComponentScanQueue failedJob = new HostedComponentScanQueue();
@@ -357,7 +357,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testAcquireNextPendingJobs_AcquiresAndTransitionsToInProgress() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue job1 = new HostedComponentScanQueue();
     job1.setComponentId(component.getId());
@@ -397,7 +397,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testAcquireNextPendingJobs_RespectsLimit() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     for (int i = 0; i < 5; i++) {
       final HostedComponentScanQueue job = new HostedComponentScanQueue();
@@ -440,7 +440,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testAcquireNextPendingJobs_ReturnsEmptyForZeroLimit() {
     final Repository repo = tempEntity.newRepository("repo-limit-zero");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     insertJob(component, repo, "scan-z", HostedComponentScanQueueDAO.Status.PENDING, 5);
 
     assertThat(hostedComponentScanQueueDAO.acquireNextPendingJobs(0)).isEmpty();
@@ -449,7 +449,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testAcquireNextPendingJobs_ReturnsEmptyForNegativeLimit() {
     final Repository repo = tempEntity.newRepository("repo-limit-neg");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     insertJob(component, repo, "scan-n", HostedComponentScanQueueDAO.Status.PENDING, 5);
 
     assertThat(hostedComponentScanQueueDAO.acquireNextPendingJobs(-1)).isEmpty();
@@ -458,7 +458,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testAcquireNextPendingJobs_SkipsNonPendingJobs() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue inProgress = new HostedComponentScanQueue();
     inProgress.setComponentId(component.getId());
@@ -490,7 +490,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testUnacquireJobs_EmptySetIsNoOp() {
     final Repository repo = tempEntity.newRepository("repo-unacquire-empty");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     HostedComponentScanQueue job = insertJob(component, repo, "scan-ue",
         HostedComponentScanQueueDAO.Status.IN_PROGRESS, 5);
 
@@ -503,7 +503,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testUnacquireJobs_OnlyAffectsInProgressJobs() {
     final Repository repo = tempEntity.newRepository("repo-unacquire-selective");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     HostedComponentScanQueue inProgress = insertJob(component, repo, "scan-ip2",
         HostedComponentScanQueueDAO.Status.IN_PROGRESS, 5);
@@ -526,7 +526,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testUnacquireJobs_LargeSetExceedingInOperatorThreshold() {
     final Repository repo = tempEntity.newRepository("repo-unacquire-large");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     int count = AbstractSqlDAO.H2_IN_OPERATOR_THRESHOLD + 10;
     Set<String> ids = new HashSet<>();
@@ -549,7 +549,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testIncrementRetryCount_IncrementsFromZero() {
     final Repository repo = tempEntity.newRepository("repo-retry-inc");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     HostedComponentScanQueue job = insertJob(component, repo, "scan-retry",
         HostedComponentScanQueueDAO.Status.IN_PROGRESS, 5);
 
@@ -573,7 +573,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testFailJob_TruncatesErrorMessageExceeding2000Chars() {
     final Repository repo = tempEntity.newRepository("repo-fail-trunc");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     HostedComponentScanQueue job = insertJob(component, repo, "scan-fail-trunc",
         HostedComponentScanQueueDAO.Status.IN_PROGRESS, 5);
 
@@ -588,7 +588,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testFailJob_NullErrorMessageDoesNotThrow() {
     final Repository repo = tempEntity.newRepository("repo-fail-null");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     HostedComponentScanQueue job = insertJob(component, repo, "scan-fail-null",
         HostedComponentScanQueueDAO.Status.IN_PROGRESS, 5);
 
@@ -602,7 +602,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testUnacquireJobs_ResetsInProgressToPending() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue job = new HostedComponentScanQueue();
     job.setComponentId(component.getId());
@@ -623,7 +623,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testUnacquireJobs_DoesNotAffectNonInProgressJobs() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue completedJob = new HostedComponentScanQueue();
     completedJob.setComponentId(component.getId());
@@ -642,7 +642,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testResetInProgressToPending() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue inProgress1 = new HostedComponentScanQueue();
     inProgress1.setComponentId(component.getId());
@@ -689,7 +689,7 @@ public class HostedComponentScanQueueDAOTest
   }
 
   private HostedComponentScanQueue insertJob(
-      final RepositoryComponent component,
+      final ProxyRepositoryComponent component,
       final Repository repo,
       final String scanFileId,
       final HostedComponentScanQueueDAO.Status status,
@@ -711,7 +711,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testHasInProgressByComponentIds_ReturnsTrueWhenInProgressExists() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue inProgress = new HostedComponentScanQueue();
     inProgress.setComponentId(component.getId());
@@ -729,7 +729,7 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testHasInProgressByComponentIds_ReturnsFalseWhenOnlyPending() {
     final Repository repo = tempEntity.newRepository("repo-1");
-    final RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    final ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     final HostedComponentScanQueue pending = new HostedComponentScanQueue();
     pending.setComponentId(component.getId());
@@ -754,8 +754,8 @@ public class HostedComponentScanQueueDAOTest
   @Test
   public void testDeletePendingByComponentIds_BulkDeletesAcrossMultipleComponents() {
     final Repository repo = tempEntity.newRepository("repo-bulk");
-    final RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(), "path-bulk-1");
-    final RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo.getId(), "path-bulk-2");
+    final ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(), "path-bulk-1");
+    final ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repo.getId(), "path-bulk-2");
 
     final HostedComponentScanQueue pending1 = new HostedComponentScanQueue();
     pending1.setComponentId(component1.getId());

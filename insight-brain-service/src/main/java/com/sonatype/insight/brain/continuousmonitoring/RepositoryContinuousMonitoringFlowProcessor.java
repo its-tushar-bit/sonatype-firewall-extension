@@ -11,7 +11,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitorin
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * scan snapshot.
  * <p>
  * Note: This processor does NOT call {@code stampComponentId} on the
- * {@code repository_policy_violation} table. That method is specific to NXRM-hosted repositories
+ * {@code proxy_repository_policy_violation} table. That method is specific to NXRM-hosted repositories
  * where an external NXRM component ID needs to be stamped onto violations for correlation with the
  * NXRM database. For pure IQ Server hosted repositories (the use case here), the
  * {@code component_id} column is not used — violations are correlated by pathname and hash within
@@ -71,7 +71,7 @@ public class RepositoryContinuousMonitoringFlowProcessor
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
@@ -85,7 +85,7 @@ public class RepositoryContinuousMonitoringFlowProcessor
   public RepositoryContinuousMonitoringFlowProcessor(
       final ContinuousMonitoringHostedRepoItemDAO hostedRepoItemDAO,
       final RepositoryDAO repositoryDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final RepositoryPolicyEvaluator repositoryPolicyEvaluator,
       final ReportService reportService,
       final ApplicationForHostedRepositoryComponentService applicationForHostedRepositoryComponentService,
@@ -93,7 +93,7 @@ public class RepositoryContinuousMonitoringFlowProcessor
   {
     this.hostedRepoItemDAO = hostedRepoItemDAO;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.reportService = reportService;
     this.applicationForHostedRepositoryComponentService = applicationForHostedRepositoryComponentService;
@@ -179,8 +179,8 @@ public class RepositoryContinuousMonitoringFlowProcessor
       return;
     }
 
-    List<RepositoryComponent> components =
-        repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), componentHash);
+    List<ProxyRepositoryComponent> components =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), componentHash);
     if (components.isEmpty()) {
       log.info("Continuous monitoring (hosted_repo): no components for repository={} hash={}; dropping queueId={}.",
           repository.getId(), componentHash, queueId);
@@ -197,14 +197,14 @@ public class RepositoryContinuousMonitoringFlowProcessor
     }
 
     String stage = components.stream()
-        .map(RepositoryComponent::getLastEvaluationStage)
+        .map(ProxyRepositoryComponent::getLastEvaluationStage)
         .filter(s -> s != null)
         .findFirst()
         .orElse(ComplianceStageType.ID);
 
     RepositoryComponentEvaluationDataRequestList request =
         new RepositoryComponentEvaluationDataRequestList(RepositoryPolicyEvaluator.CONTINUOUS_MONITORING_CAUSE);
-    for (RepositoryComponent component : components) {
+    for (ProxyRepositoryComponent component : components) {
       if (component.getHash() != null && component.getPathname() != null) {
         request.components.add(new RepositoryComponentEvaluationDataRequest(
             repoFormat,
@@ -228,7 +228,7 @@ public class RepositoryContinuousMonitoringFlowProcessor
   /**
    * Post-evaluation Build Report refresh (CLM-42136). Runs after
    * {@link RepositoryPolicyEvaluator#evaluateForMonitoring} has refreshed the outer's
-   * {@code repository_policy_violation} rows. For each component in the batch, delegates to
+   * {@code proxy_repository_policy_violation} rows. For each component in the batch, delegates to
    * {@link ReportService#refreshHostedComponentAfterEvaluation} which mirrors nested-component
    * violations and regenerates the on-disk overlay files ({@code policythreats.json},
    * {@code bom.json}, {@code data.json}). Without this step the outer's report would carry
@@ -240,10 +240,10 @@ public class RepositoryContinuousMonitoringFlowProcessor
    */
   private void refreshHostedComponentOverlays(
       final Repository repository,
-      final List<RepositoryComponent> components,
+      final List<ProxyRepositoryComponent> components,
       final String stage)
   {
-    for (RepositoryComponent component : components) {
+    for (ProxyRepositoryComponent component : components) {
       String componentScanId = component.getScanId();
       String componentPathname = component.getPathname();
       if (componentScanId == null || componentPathname == null) {

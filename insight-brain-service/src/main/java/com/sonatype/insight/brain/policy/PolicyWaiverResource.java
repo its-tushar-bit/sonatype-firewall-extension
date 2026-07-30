@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.Owner;
@@ -67,7 +67,7 @@ public class PolicyWaiverResource
 
   private final OwnerDAO ownerDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final OwnerComponentDAO applicationComponentDAO;
 
@@ -84,7 +84,7 @@ public class PolicyWaiverResource
   @Inject
   public PolicyWaiverResource(
       final OwnerDAO ownerDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final OwnerComponentDAO applicationComponentDAO,
       final PolicyWaiverService policyWaiverService,
       final PolicyWaiverDAO policyWaiverDAO,
@@ -93,7 +93,7 @@ public class PolicyWaiverResource
       final IdUtils idUtils)
   {
     this.ownerDAO = ownerDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyWaiverService = policyWaiverService;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -107,14 +107,14 @@ public class PolicyWaiverResource
       String hash,
       BiFunction<String, String, List<T>> daoMethod)
   {
-    T repositoryComponent = daoMethod.apply(ownerId, hash).stream().findFirst().orElse(null);
-    return repositoryComponent != null ? repositoryComponent.getComponentIdentifier() : null;
+    T proxyRepositoryComponent = daoMethod.apply(ownerId, hash).stream().findFirst().orElse(null);
+    return proxyRepositoryComponent != null ? proxyRepositoryComponent.getComponentIdentifier() : null;
   }
 
   private ComponentIdentifier getComponentIdentifierFromOwnerAndHash(Owner owner, String hash) {
     if (owner.getType().equals(OwnerType.REPOSITORY)) {
       return getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,
-          repositoryComponentDAO::getByRepositoryIdAndHash);
+          proxyRepositoryComponentDAO::getByRepositoryIdAndHash);
     }
     else if (owner.getType().equals(OwnerType.APPLICATION)) {
       return getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,

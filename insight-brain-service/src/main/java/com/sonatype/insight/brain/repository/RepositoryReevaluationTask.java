@@ -17,9 +17,9 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ public class RepositoryReevaluationTask
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryReevaluationTask.class);
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final Repository repository;
 
@@ -49,14 +49,14 @@ public class RepositoryReevaluationTask
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
       ExecutorService executor,
       int maxRepositoryEvaluationRequestSize,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final ClusterLockManager clusterLockManager)
   {
     this.repository = repository;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.executor = executor;
     this.maxRepositoryEvaluationRequestSize = maxRepositoryEvaluationRequestSize;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.clusterLockManager = clusterLockManager;
   }
 
@@ -66,9 +66,9 @@ public class RepositoryReevaluationTask
       if (clusterLock.tryLock()) {
         log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId());
-        List<RepositoryComponent> repositoryComponentsList =
-            repositoryComponentDAO.getByRepositoryId(repository.getId());
-        Iterator<RepositoryComponent> repositoryComponents = repositoryComponentsList.iterator();
+        List<ProxyRepositoryComponent> repositoryComponentsList =
+            proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
+        Iterator<ProxyRepositoryComponent> repositoryComponents = repositoryComponentsList.iterator();
 
         AuditData.get()
             .setData("componentCount", repositoryComponentsList.size())
@@ -114,14 +114,14 @@ public class RepositoryReevaluationTask
   }
 
   private RepositoryComponentEvaluationDataRequestList createEvaluationRequest(
-      Iterator<RepositoryComponent> components)
+      Iterator<ProxyRepositoryComponent> components)
   {
     int limit = 0;
 
     RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList(
         RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     while (components.hasNext() && limit++ < maxRepositoryEvaluationRequestSize) {
-      RepositoryComponent component = components.next();
+      ProxyRepositoryComponent component = components.next();
       request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component
           .getPathname(), component.getHash()));
     }

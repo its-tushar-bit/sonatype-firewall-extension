@@ -43,8 +43,8 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
@@ -69,7 +69,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -92,7 +92,7 @@ import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -112,10 +112,10 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseReason;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.test.MailboxTestUtil;
 import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -156,10 +156,10 @@ public class RepositoryPolicyEvaluatorTest
   private RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   private PolicyDAO policyDAO;
@@ -207,7 +207,7 @@ public class RepositoryPolicyEvaluatorTest
   private HdsClient mockHdsClient;
 
   @Mock
-  private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+  private ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator;
 
   @Mock
   private CurrentUser currentUser;
@@ -309,9 +309,9 @@ public class RepositoryPolicyEvaluatorTest
       Repository repository,
       Date before,
       Date after,
-      List<RepositoryPolicyViolation> policyViolations) throws Exception
+      List<ProxyRepositoryPolicyViolation> policyViolations) throws Exception
   {
-    repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
+    proxyRepositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
@@ -375,8 +375,8 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
     final Date after1 = new Date();
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, policyViolations);
     policyViolationLoggerOutput.clear();
@@ -388,20 +388,20 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
     final Date after2 = new Date();
-    policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    policyViolations = proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(4);
-    List<RepositoryPolicyViolation> newPolicyViolations =
+    List<ProxyRepositoryPolicyViolation> newPolicyViolations =
         policyViolations.stream()
             .filter(policyViolation -> policyViolation.getPolicyId().equals(newPolicy.getId()))
             .collect(Collectors.toList());
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, newPolicyViolations);
     assertRepositoryComponent(repository, 2);
 
-    verify(repositoryComponentTelemetryCreator, times(4))
+    verify(proxyRepositoryComponentTelemetryCreator, times(4))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.AUDIT),
             eq(Collections.emptyList()), any());
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -434,13 +434,13 @@ public class RepositoryPolicyEvaluatorTest
     try {
       assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
       CreateRepositoryPolicyViolationsEvent event = handler.getEvent();
-      assertThat(event.repositoryPolicyViolations).hasSize(2);
-      assertThat(event.repositoryPolicyViolations)
-          .extracting(RepositoryPolicyViolation::getHash)
+      assertThat(event.proxyRepositoryPolicyViolations).hasSize(2);
+      assertThat(event.proxyRepositoryPolicyViolations)
+          .extracting(ProxyRepositoryPolicyViolation::getHash)
           .containsOnly("h0");
       // Check component has given security vulnerabilities
-      assertThat(event.repositoryPolicyViolations)
-          .flatExtracting(RepositoryPolicyViolation::getConstraintFacts)
+      assertThat(event.proxyRepositoryPolicyViolations)
+          .flatExtracting(ProxyRepositoryPolicyViolation::getConstraintFacts)
           .flatExtracting(ConstraintFact::getConditionFacts)
           .extracting(ConditionFact::getReference)
           .extracting(TriggerReference::getValue)
@@ -515,8 +515,8 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
     final Date after1 = new Date();
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(2);
 
     policyViolationLoggerOutput.clear();
@@ -528,15 +528,15 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
     Date after2 = new Date();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(0);
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(0);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, repository, before2, after2, policyViolations);
     assertRepositoryComponent(repository, 2);
 
-    verify(repositoryComponentTelemetryCreator, times(4))
+    verify(proxyRepositoryComponentTelemetryCreator, times(4))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.AUDIT),
             eq(Collections.emptyList()), any());
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -560,7 +560,7 @@ public class RepositoryPolicyEvaluatorTest
 
     repositoryPolicyEvaluator.evaluate(repository, requestList, false /* withQuarantine */,
         null /* clientUserAgent */);
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(3);
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(3);
 
     policyDAO.delete(policy1);
     policyDAO.delete(policy2);
@@ -568,7 +568,7 @@ public class RepositoryPolicyEvaluatorTest
 
     repositoryPolicyEvaluator.evaluate(repository, requestList, false /* withQuarantine */,
         null /* clientUserAgent */);
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).isEmpty();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).isEmpty();
   }
 
   @Test
@@ -600,13 +600,13 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
     final Date after1 = new Date();
     // ... yielding two active violations, both of which logged as new
-    List<RepositoryPolicyViolation> activeViolations =
-        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryPolicyViolation> activeViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, activeViolations);
     // ... and one logged as waived
-    List<RepositoryPolicyViolation> waivedViolations = activeViolations.stream()
-        .filter(RepositoryPolicyViolation::isWaived)
+    List<ProxyRepositoryPolicyViolation> waivedViolations = activeViolations.stream()
+        .filter(ProxyRepositoryPolicyViolation::isWaived)
         .collect(toList());
     assertThat(waivedViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before1, after1, waivedViolations);
@@ -621,11 +621,11 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
     final Date after2 = new Date();
     // ... yielding again two violations, none of which logged as new
-    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    activeViolations = proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, Collections.emptyList());
     // ... but one logged as unwaived
-    List<RepositoryPolicyViolation> unwaivedViolations = activeViolations.stream()
+    List<ProxyRepositoryPolicyViolation> unwaivedViolations = activeViolations.stream()
         .filter(violation -> policy2.getId().equals(violation.getPolicyId()))
         .collect(toList());
     assertThat(unwaivedViolations).hasSize(1);
@@ -666,17 +666,18 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     // ... yielding two active violations
-    List<RepositoryPolicyViolation> activeViolations =
-        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryPolicyViolation> activeViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // ... and one as waived
-    List<RepositoryPolicyViolation> waivedViolations =
-        activeViolations.stream().filter(RepositoryPolicyViolation::isWaived).collect(toList());
+    List<ProxyRepositoryPolicyViolation> waivedViolations =
+        activeViolations.stream().filter(ProxyRepositoryPolicyViolation::isWaived).collect(toList());
     assertThat(waivedViolations).hasSize(1);
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), waivedViolations.get(0).getPathname());
-    Date policy1ViolationWaiveTime = repositoryComponent.getTime();
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+            waivedViolations.get(0).getPathname());
+    Date policy1ViolationWaiveTime = proxyRepositoryComponent.getTime();
     assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver1, policy1ViolationWaiveTime);
 
     // waive the second policy
@@ -687,22 +688,22 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     // ... yielding again two violations
-    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    activeViolations = proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // ... and two ARE waived
     waivedViolations = activeViolations.stream()
-        .filter(RepositoryPolicyViolation::isWaived)
+        .filter(ProxyRepositoryPolicyViolation::isWaived)
         .collect(toList());
     assertThat(waivedViolations).hasSize(2);
 
-    RepositoryPolicyViolation waivedViolation1 = waivedViolations.stream()
+    ProxyRepositoryPolicyViolation waivedViolation1 = waivedViolations.stream()
         .filter(violation -> violation.getPolicyId().equals(policy1.getId()))
         .findFirst()
         .orElse(null);
     assertThat(waivedViolation1).isNotNull();
 
-    RepositoryPolicyViolation waivedViolation2 = waivedViolations.stream()
+    ProxyRepositoryPolicyViolation waivedViolation2 = waivedViolations.stream()
         .filter(violation -> violation.getPolicyId().equals(policy2.getId()))
         .findFirst()
         .orElse(null);
@@ -712,9 +713,9 @@ public class RepositoryPolicyEvaluatorTest
     assertViolationWaiverDetails(waivedViolation1, policyWaiver1, policy1ViolationWaiveTime);
 
     // second waived violation should use the most recent evaluation time
-    repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), waivedViolation2.getPathname());
-    Date policy2ViolationWaiveTime = repositoryComponent.getLastEvaluationTime();
+    proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), waivedViolation2.getPathname());
+    Date policy2ViolationWaiveTime = proxyRepositoryComponent.getLastEvaluationTime();
     assertViolationWaiverDetails(waivedViolation2, policyWaiver2, policy2ViolationWaiveTime);
 
     // remove the original waiver re-evaluate
@@ -723,11 +724,11 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
 
-    activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    activeViolations = proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
 
     // first violation is no longer waived
-    List<RepositoryPolicyViolation> unwaivedViolations =
+    List<ProxyRepositoryPolicyViolation> unwaivedViolations =
         activeViolations.stream()
             .filter(violation -> policy1.getId().equals(violation.getPolicyId()))
             .collect(toList());
@@ -761,21 +762,22 @@ public class RepositoryPolicyEvaluatorTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     // simulate an older record that does not have the policy waiver details, specifically no waive time
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        "path", "hash", componentIdentifier, new Date(System.currentTimeMillis() - 1000), null);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "path", "hash", componentIdentifier, new Date(System.currentTimeMillis() - 1000), null);
     ConstraintFact constraintFact =
         new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
 
-    Component c = new Component(repositoryComponent.getComponentIdentifier());
+    Component c = new Component(proxyRepositoryComponent.getComponentIdentifier());
     constraintFact.addConditionFact(ComponentPolicyEvaluator
         .createConditionFact(condition, new MatchFact(c,
             policy.getId(), constraint.getId(), Collections.emptyList() /* conditionTriggers */)));
 
-    RepositoryPolicyViolation existingPolicyViolation = tempEntity
-        .newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), policy.getThreatLevel(),
-            repositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, null,
-            policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier(),
-            repositoryComponent.getTime(), null, null, null);
+    ProxyRepositoryPolicyViolation existingPolicyViolation = tempEntity
+        .newRepositoryPolicyViolation(proxyRepositoryComponent.getRepositoryId(), policy.getThreatLevel(),
+            proxyRepositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, null,
+            policy.getId(), policy.getName(), proxyRepositoryComponent.getComponentIdentifier(),
+            proxyRepositoryComponent.getTime(), null, null, null);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -796,35 +798,36 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     // ... yielding one active/waived violation
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
-    repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    proxyRepositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
 
     assertThat(policyViolations).hasSize(1);
 
-    RepositoryPolicyViolation policyViolation = policyViolations.get(0);
+    ProxyRepositoryPolicyViolation policyViolation = policyViolations.get(0);
     assertThat(policyViolation.isWaived()).isTrue();
 
     // sanity check to ensure we are dealing with the same violation
-    PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff = PolicyViolationDigester
+    PolicyViolationDiff<ProxyRepositoryPolicyViolation> policyViolationDiff = PolicyViolationDigester
         .digestPolicyViolations(Collections.singletonList(existingPolicyViolation), policyViolations);
     assertThat(policyViolationDiff.getSame()).hasSize(1);
 
-    repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), policyViolation.getPathname());
+    proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), policyViolation.getPathname());
 
     // Another sanity check ensuring the original evaluation time is different than the last evaluation time
-    assertThat(repositoryComponent.getTime()).isNotEqualTo(repositoryComponent.getLastEvaluationTime());
+    assertThat(proxyRepositoryComponent.getTime()).isNotEqualTo(proxyRepositoryComponent.getLastEvaluationTime());
 
     // For older violations (violations that existed before adding waive time) we are ok to use the last evaluation time
-    assertViolationWaiverDetails(policyViolation, policyWaiver1, repositoryComponent.getLastEvaluationTime());
+    assertViolationWaiverDetails(policyViolation, policyWaiver1, proxyRepositoryComponent.getLastEvaluationTime());
   }
 
   @Test
   public void testEvaluate_IgnorableRepositoryComponent_DoesNotEvaluateOrPersist() {
     Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager().getId(), "my_repo", "maven2");
-    RepositoryComponent ignorableComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        "some/path/sha", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), false);
+    ProxyRepositoryComponent ignorableComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "some/path/sha", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), false);
     tempEntity.newPolicy(repository.getId(), "some_policy", 9, Action.ID_FAIL, Stage.ID_PROXY, null);
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
@@ -870,24 +873,25 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(resultList.componentEvalResults.get(1).quarantine).isTrue();
     assertThat(resultList.componentEvalResults.get(1).catalogDate).isAfterOrEqualTo(now);
 
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorableRequest.pathname))
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorableRequest.pathname))
         .isNull();
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), unignorableRequest.pathname))
-        .isNotNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId()))
-        .extracting(RepositoryPolicyViolation::getPathname)
+    assertThat(
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), unignorableRequest.pathname))
+            .isNotNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId()))
+        .extracting(ProxyRepositoryPolicyViolation::getPathname)
         .containsExactly(unignorableRequest.pathname);
 
-    verify(repositoryComponentTelemetryCreator, times(1))
+    verify(proxyRepositoryComponentTelemetryCreator, times(1))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.QUARANTINE),
             eq(Collections.emptyList()), any());
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   /**
    * Regression sentinel for CLM-40092 — the ignore-pattern branch must batch the per-component
-   * RepositoryComponent lookup into a single getByRepositoryIdAndPathnames call. This test
+   * ProxyRepositoryComponent lookup into a single getByRepositoryIdAndPathnames call. This test
    * exercises the batch path with N=4 matching components and asserts all are deleted while a
    * non-matching component persists.
    */
@@ -897,13 +901,13 @@ public class RepositoryPolicyEvaluatorTest
 
     // Four pre-existing RepositoryComponents whose pathnames end in "ignored" (matched by the pattern below)
     // plus one whose pathname does not match — the non-matching one stays, all four matching ones must go.
-    RepositoryComponent ignorable1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent ignorable1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "lib/foo/ignored", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), false);
-    RepositoryComponent ignorable2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent ignorable2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "lib/bar/ignored", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"), false);
-    RepositoryComponent ignorable3 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent ignorable3 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "lib/baz/ignored", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3", "c3", "e3"), false);
-    RepositoryComponent ignorable4 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent ignorable4 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "lib/qux/ignored", ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4", "c4", "e4"), false);
     tempEntity.newPolicy(repository.getId(), "some_policy", 9, Action.ID_FAIL, Stage.ID_PROXY, null);
 
@@ -945,16 +949,16 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, requestList, true /* withQuarantine */, null /* clientUserAgent */);
 
     // All four ignore-pattern-matching pre-existing components were deleted in this single evaluate call.
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable1.getPathname()))
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable1.getPathname()))
         .isNull();
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable2.getPathname()))
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable2.getPathname()))
         .isNull();
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable3.getPathname()))
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable3.getPathname()))
         .isNull();
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable4.getPathname()))
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorable4.getPathname()))
         .isNull();
     // The non-matching component persists.
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), normalRequest.pathname))
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), normalRequest.pathname))
         .isNotNull();
   }
 
@@ -991,18 +995,18 @@ public class RepositoryPolicyEvaluatorTest
 
     // Capture the violations list passed to sendRepositoryComponentTelemetry
     @SuppressWarnings("unchecked")
-    ArgumentCaptor<List<RepositoryPolicyViolation>> violationsCaptor = ArgumentCaptor.forClass(List.class);
-    verify(repositoryComponentTelemetryCreator)
-        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), violationsCaptor.capture(),
+    ArgumentCaptor<List<ProxyRepositoryPolicyViolation>> violationsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(proxyRepositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(ProxyRepositoryComponent.class), violationsCaptor.capture(),
             eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
             eq(RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()), any(Component.class));
 
-    List<RepositoryPolicyViolation> captured = violationsCaptor.getValue();
+    List<ProxyRepositoryPolicyViolation> captured = violationsCaptor.getValue();
     assertThat(captured)
-        .extracting(RepositoryPolicyViolation::getThreatLevel, RepositoryPolicyViolation::getPolicyId)
+        .extracting(ProxyRepositoryPolicyViolation::getThreatLevel, ProxyRepositoryPolicyViolation::getPolicyId)
         .containsExactly(tuple(9, policyHigh.getId()), tuple(5, policyLow.getId()));
 
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   /**
@@ -1027,10 +1031,10 @@ public class RepositoryPolicyEvaluatorTest
     tempEntity.newWaiver(policyWaived.getId(), repository.getId());
 
     // Create a pre-existing quarantined component
-    RepositoryComponent quarantinedComponent =
+    ProxyRepositoryComponent quarantinedComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "path/to/quarantined.jar", new Date());
     quarantinedComponent.setQuarantineTime(new Date());
-    repositoryComponentDAO.update(quarantinedComponent);
+    proxyRepositoryComponentDAO.update(quarantinedComponent);
 
     // Change the non-waived policy from FAIL to WARN so the component gets released
     // (WARN actions don't trigger quarantine, and the waived violation is ignored for quarantine)
@@ -1056,25 +1060,26 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, requestList, true /* withQuarantine */, null);
 
     // Verify component is no longer quarantined
-    RepositoryComponent updatedComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), quarantinedComponent.getPathname());
+    ProxyRepositoryComponent updatedComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+            quarantinedComponent.getPathname());
     assertThat(updatedComponent).isNotNull();
     assertThat(updatedComponent.isQuarantined()).isFalse();
     assertThat(updatedComponent.getUnquarantineTime()).isNotNull();
 
     // Verify telemetry calls in order
-    InOrder inOrder = inOrder(repositoryComponentTelemetryCreator);
+    InOrder inOrder = inOrder(proxyRepositoryComponentTelemetryCreator);
 
     // First call: RELEASE_QUARANTINE telemetry
     @SuppressWarnings("unchecked")
-    ArgumentCaptor<List<RepositoryPolicyViolation>> releaseViolationsCaptor = ArgumentCaptor.forClass(List.class);
-    inOrder.verify(repositoryComponentTelemetryCreator)
-        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), releaseViolationsCaptor.capture(),
+    ArgumentCaptor<List<ProxyRepositoryPolicyViolation>> releaseViolationsCaptor = ArgumentCaptor.forClass(List.class);
+    inOrder.verify(proxyRepositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(ProxyRepositoryComponent.class), releaseViolationsCaptor.capture(),
             eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
             eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE),
             any(ReleaseQuarantineType.class), any(String.class), eq(Collections.emptyList()));
 
-    List<RepositoryPolicyViolation> releaseViolations = releaseViolationsCaptor.getValue();
+    List<ProxyRepositoryPolicyViolation> releaseViolations = releaseViolationsCaptor.getValue();
 
     // RELEASE_QUARANTINE should have ONE violation (policyNotWaived), not the waived one:
     // The filter is: !isWaived()
@@ -1087,14 +1092,14 @@ public class RepositoryPolicyEvaluatorTest
 
     // Second call: AUDIT telemetry after transaction commits
     @SuppressWarnings("unchecked")
-    ArgumentCaptor<List<RepositoryPolicyViolation>> auditViolationsCaptor = ArgumentCaptor.forClass(List.class);
-    inOrder.verify(repositoryComponentTelemetryCreator)
-        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), auditViolationsCaptor.capture(),
+    ArgumentCaptor<List<ProxyRepositoryPolicyViolation>> auditViolationsCaptor = ArgumentCaptor.forClass(List.class);
+    inOrder.verify(proxyRepositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(ProxyRepositoryComponent.class), auditViolationsCaptor.capture(),
             eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
             eq(RepositoryComponentTelemetryEventType.AUDIT),
             eq(Collections.emptyList()), any(Component.class));
 
-    List<RepositoryPolicyViolation> auditViolations = auditViolationsCaptor.getValue();
+    List<ProxyRepositoryPolicyViolation> auditViolations = auditViolationsCaptor.getValue();
 
     // AUDIT uses only the active filter (includes waived), so it has BOTH violations.
     // This proves the two telemetry paths receive different filtered views of the same in-memory list.
@@ -1105,13 +1110,13 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(auditViolations.get(1).getThreatLevel()).isEqualTo(5);
     assertThat(auditViolations.get(1).getPolicyId()).isEqualTo(policyWaived.getId());
 
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   /**
    * Regression sentinel for CLM-42134 (CLM-40943 archive-of-archives). {@code
    * HostedComponentScanQueueConsumer.deleteInnerRepositoryComponentRows} deletes an inner pathname's
-   * {@code repository_component} row while its active violation stays active. A later {@code evaluate()}
+   * {@code proxy_repository_component} row while its active violation stays active. A later {@code evaluate()}
    * for that same pathname must update the existing violation in place, not duplicate it — the merged
    * DAO read this ticket introduces must still surface the violation even with no matching component row.
    */
@@ -1136,31 +1141,31 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
 
-    List<RepositoryPolicyViolation> violationsAfterFirstEvaluate =
-        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+    List<ProxyRepositoryPolicyViolation> violationsAfterFirstEvaluate =
+        proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
     assertThat(violationsAfterFirstEvaluate).hasSize(1);
     String originalViolationId = violationsAfterFirstEvaluate.get(0).getId();
 
-    // Simulate the CLM-40943 cleanup: delete the repository_component row, leave the violation active.
-    RepositoryComponent orphanedComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
+    // Simulate the CLM-40943 cleanup: delete the proxy_repository_component row, leave the violation active.
+    ProxyRepositoryComponent orphanedComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
     assertThat(orphanedComponent).isNotNull();
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.delete(tx, orphanedComponent);
+      proxyRepositoryComponentDAO.delete(tx, orphanedComponent);
       tx.commit();
     }
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname)).isNull();
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname)).isNull();
 
     // Re-evaluate the same pathname/hash — the orphan violation must be reused, not duplicated.
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
 
-    List<RepositoryPolicyViolation> violationsAfterSecondEvaluate =
-        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+    List<ProxyRepositoryPolicyViolation> violationsAfterSecondEvaluate =
+        proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
     assertThat(violationsAfterSecondEvaluate).hasSize(1);
     assertThat(violationsAfterSecondEvaluate.get(0).getId()).isEqualTo(originalViolationId);
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname)).isNotNull();
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname)).isNotNull();
   }
 
   @Test
@@ -1184,8 +1189,8 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
     final Date after1 = new Date();
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, policyViolations);
     policyViolationLoggerOutput.clear();
@@ -1208,17 +1213,17 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   private void assertViolationWaiverDetails(
-      RepositoryPolicyViolation repositoryPolicyViolation,
+      ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation,
       PolicyWaiver policyWaiver,
       Date waiveTime)
   {
-    assertThat(repositoryPolicyViolation.getPolicyWaiverId()).isEqualTo(policyWaiver.getId());
-    assertThat(repositoryPolicyViolation.getPolicyWaiverComment()).isEqualTo(policyWaiver.getComment());
-    assertThat(repositoryPolicyViolation.getWaiveTime()).isEqualTo(waiveTime);
+    assertThat(proxyRepositoryPolicyViolation.getPolicyWaiverId()).isEqualTo(policyWaiver.getId());
+    assertThat(proxyRepositoryPolicyViolation.getPolicyWaiverComment()).isEqualTo(policyWaiver.getComment());
+    assertThat(proxyRepositoryPolicyViolation.getWaiveTime()).isEqualTo(waiveTime);
   }
 
   private void assertRepositoryComponent(final Repository repository, int size) {
-    List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryComponent> components = proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(components).hasSize(size);
     AnalyzerFeatures analyzerFeatures = new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "client");
     assertThat(extractProperty("repositoryId").from(components)).containsOnly(repository.getId());
@@ -1278,7 +1283,8 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(resultList.componentEvalResults.get(1).quarantine).isFalse();
     assertThat(resultList.componentEvalResults.get(1).catalogDate).isAfterOrEqualTo(now);
 
-    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repo.getId());
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repo.getId());
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getPolicyId()).isEqualTo(policy.getId());
     assertThat(policyViolations.get(0).getComponentIdentifier())
@@ -1312,11 +1318,11 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true /* withQuarantine */,
         null /* clientUserAgent */);
 
-    verify(repositoryComponentTelemetryCreator, times(2))
+    verify(proxyRepositoryComponentTelemetryCreator, times(2))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.QUARANTINE),
             (List) MockitoHamcrest.argThat(hasSize(2)), any());
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -1344,11 +1350,11 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
         null /* clientUserAgent */);
 
-    verify(repositoryComponentTelemetryCreator, times(2))
+    verify(proxyRepositoryComponentTelemetryCreator, times(2))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.AUDIT),
             eq(Collections.emptyList()), any());
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -1358,17 +1364,17 @@ public class RepositoryPolicyEvaluatorTest
 
     Repository repository = tempEntity.newRepository();
 
-    RepositoryComponent component1 =
+    ProxyRepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "scipy-1.0.0.tar.gz", new Date());
-    RepositoryComponent component2 =
+    ProxyRepositoryComponent component2 =
         tempEntity.newRepositoryComponent(repository.getId(), "scipy-2.0.0.tar.gz", new Date());
 
     // State that a component has been un-quarantine
     component1.setQuarantineTime(new Date());
     component1.setUnquarantineTimeForManualRelease(new Date());
-    repositoryComponentDAO.update(component1);
+    proxyRepositoryComponentDAO.update(component1);
     component2.setQuarantineTime(new Date());
-    repositoryComponentDAO.update(component2);
+    proxyRepositoryComponentDAO.update(component2);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -1436,7 +1442,8 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true /* withQuarantine */,
         null /* clientUserAgent */);
     Date after1 = new Date();
-    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryComponent> repositoryComponents =
+        proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents).hasSize(1);
     assertThat(repositoryComponents.get(0).isQuarantined()).isEqualTo(true);
     assertThat(repositoryComponents.get(0).getQuarantineTime()).isBetween(before1, after1, true, true);
@@ -1446,7 +1453,7 @@ public class RepositoryPolicyEvaluatorTest
     Awaitility.await().until(() -> System.currentTimeMillis() > after1.getTime());
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true /* withQuarantine */,
         null /* clientUserAgent */);
-    repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    repositoryComponents = proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents).hasSize(1);
     assertThat(repositoryComponents.get(0).isQuarantined()).isEqualTo(true);
     assertThat(repositoryComponents.get(0).getQuarantineTime()).isBetween(before1, after1, true, true);
@@ -1459,7 +1466,7 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
     Date after2 = new Date();
 
-    repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    repositoryComponents = proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents).hasSize(1);
     assertThat(repositoryComponents.get(0).isQuarantined()).isEqualTo(false);
     assertThat(repositoryComponents.get(0).getQuarantineTime()).isBetween(before1, after1, true, true);
@@ -1473,10 +1480,11 @@ public class RepositoryPolicyEvaluatorTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1",
         "v1", "c1", "e1");
     Date createTime = new Date();
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), "path1", createTime, "h1",
-        componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        new ProxyRepositoryComponent(repository.getId(), "path1", createTime, "h1",
+            componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
 
-    repositoryComponentDAO.insert(repositoryComponent);
+    proxyRepositoryComponentDAO.insert(proxyRepositoryComponent);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -1498,11 +1506,12 @@ public class RepositoryPolicyEvaluatorTest
 
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true, null);
 
-    verify(repositoryComponentTelemetryCreator, times(1))
+    verify(proxyRepositoryComponentTelemetryCreator, times(1))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), any(), (List) MockitoHamcrest.argThat(hasSize(0)), any());
 
-    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryComponent> repositoryComponents =
+        proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
 
     assertThat(repositoryComponents).hasSize(1);
   }
@@ -1523,7 +1532,8 @@ public class RepositoryPolicyEvaluatorTest
 
     repositoryPolicyEvaluator.evaluate(repository, request, false, null, ComplianceStageType.ID);
 
-    RepositoryComponent component = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), "path1");
+    ProxyRepositoryComponent component =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), "path1");
     assertThat(component).isNotNull();
     assertThat(component.getLastEvaluationStage()).isEqualTo(ComplianceStageType.ID);
   }
@@ -1534,9 +1544,9 @@ public class RepositoryPolicyEvaluatorTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
     Date createTime = new Date();
-    RepositoryComponent existing = new RepositoryComponent(repository.getId(), "path1", createTime, "h1",
+    ProxyRepositoryComponent existing = new ProxyRepositoryComponent(repository.getId(), "path1", createTime, "h1",
         componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
-    repositoryComponentDAO.insert(existing);
+    proxyRepositoryComponentDAO.insert(existing);
 
     RepositoryComponentEvaluationDataRequestList request =
         new RepositoryComponentEvaluationDataRequestList(RepositoryPolicyEvaluator.CONTINUOUS_MONITORING_CAUSE);
@@ -1550,7 +1560,8 @@ public class RepositoryPolicyEvaluatorTest
 
     repositoryPolicyEvaluator.evaluateForMonitoring(repository, request, ProxyStageType.ID);
 
-    RepositoryComponent component = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), "path1");
+    ProxyRepositoryComponent component =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), "path1");
     assertThat(component).isNotNull();
     assertThat(component.getLastEvaluationStage()).isEqualTo(ProxyStageType.ID);
   }
@@ -1742,11 +1753,11 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
         null /* clientUserAgent */);
 
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
 
     assertThat(policyViolations).hasSize(1);
-    RepositoryPolicyViolation policyViolation = policyViolations.get(0);
+    ProxyRepositoryPolicyViolation policyViolation = policyViolations.get(0);
     assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
   }
 
@@ -1803,11 +1814,11 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
         null /* clientUserAgent */);
 
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
 
     assertThat(policyViolations).hasSize(1);
-    RepositoryPolicyViolation policyViolation = policyViolations.get(0);
+    ProxyRepositoryPolicyViolation policyViolation = policyViolations.get(0);
     assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
     assertThat(policyViolation.getActionTypeId()).isNull();
   }
@@ -1875,11 +1886,11 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
         null /* clientUserAgent */);
 
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
 
     assertThat(policyViolations).hasSize(1);
-    RepositoryPolicyViolation policyViolation = policyViolations.get(0);
+    ProxyRepositoryPolicyViolation policyViolation = policyViolations.get(0);
     assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
     assertThat(policyViolation.getActionTypeId()).isEqualTo(FailActionType.ID);
     assertNotifications(notificationsUser, 1, 5000);
@@ -1925,8 +1936,8 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
         null /* clientUserAgent */);
 
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(4);
 
     // Notification message should have been sent
@@ -1961,11 +1972,11 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     // Verify component was created with correct identifier parsed from pathname
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), mavenPathname);
-    assertThat(repositoryComponent).isNotNull();
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), mavenPathname);
+    assertThat(proxyRepositoryComponent).isNotNull();
 
-    ComponentIdentifier identifier = repositoryComponent.getComponentIdentifier();
+    ComponentIdentifier identifier = proxyRepositoryComponent.getComponentIdentifier();
     assertThat(identifier).isNotNull();
     assertThat(identifier.getFormat()).isEqualTo("maven");
 
@@ -2002,11 +2013,11 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     // Verify component was created with correct identifier
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), mavenPathname);
-    assertThat(repositoryComponent).isNotNull();
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), mavenPathname);
+    assertThat(proxyRepositoryComponent).isNotNull();
 
-    ComponentIdentifier identifier = repositoryComponent.getComponentIdentifier();
+    ComponentIdentifier identifier = proxyRepositoryComponent.getComponentIdentifier();
     assertThat(identifier).isNotNull();
     assertThat(identifier.getFormat()).isEqualTo("maven");
 
@@ -2043,11 +2054,11 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     // Verify component was created with correct identifier from packageUrl
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), packageUrl);
-    assertThat(repositoryComponent).isNotNull();
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), packageUrl);
+    assertThat(proxyRepositoryComponent).isNotNull();
 
-    ComponentIdentifier identifier = repositoryComponent.getComponentIdentifier();
+    ComponentIdentifier identifier = proxyRepositoryComponent.getComponentIdentifier();
     assertThat(identifier).isNotNull();
     assertThat(identifier.getFormat()).isEqualTo("maven");
 
@@ -2085,11 +2096,11 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     // Verify component was created with npm identifier
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), npmPathname);
-    assertThat(repositoryComponent).isNotNull();
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), npmPathname);
+    assertThat(proxyRepositoryComponent).isNotNull();
 
-    ComponentIdentifier identifier = repositoryComponent.getComponentIdentifier();
+    ComponentIdentifier identifier = proxyRepositoryComponent.getComponentIdentifier();
     assertThat(identifier).isNotNull();
     assertThat(identifier.getFormat()).isEqualTo("npm");
 
@@ -2104,10 +2115,10 @@ public class RepositoryPolicyEvaluatorTest
     Policy policy = tempEntity.newPolicy(repository.getId());
 
     // Create a component that was previously quarantined
-    RepositoryComponent quarantinedComponent =
+    ProxyRepositoryComponent quarantinedComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "testPath", new Date());
     quarantinedComponent.setQuarantineTime(new Date());
-    repositoryComponentDAO.update(quarantinedComponent);
+    proxyRepositoryComponentDAO.update(quarantinedComponent);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -2131,41 +2142,42 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluateForAutomaticRelease(repository, componentEvaluationDataRequestList);
 
     // Verify component is no longer quarantined
-    RepositoryComponent updatedComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), quarantinedComponent.getPathname());
+    ProxyRepositoryComponent updatedComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+            quarantinedComponent.getPathname());
     assertThat(updatedComponent).isNotNull();
     assertThat(updatedComponent.isQuarantined()).isFalse();
     assertThat(updatedComponent.getUnquarantineTime()).isNotNull();
 
     // Verify telemetry calls in order
-    InOrder inOrder = inOrder(repositoryComponentTelemetryCreator);
+    InOrder inOrder = inOrder(proxyRepositoryComponentTelemetryCreator);
 
     // First call: RELEASE_QUARANTINE telemetry with ReleaseReason.AUTO_RELEASED
-    inOrder.verify(repositoryComponentTelemetryCreator)
-        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), eq(Collections.emptyList()),
+    inOrder.verify(proxyRepositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(ProxyRepositoryComponent.class), eq(Collections.emptyList()),
             eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
             eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE),
             eq(ReleaseQuarantineType.AUTO), eq(ReleaseReason.AUTO_RELEASED.getDescription()),
             eq(Collections.emptyList()));
 
     // Second call: AUDIT telemetry after evaluation (component is no longer quarantined)
-    inOrder.verify(repositoryComponentTelemetryCreator)
-        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), eq(Collections.emptyList()),
+    inOrder.verify(proxyRepositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(ProxyRepositoryComponent.class), eq(Collections.emptyList()),
             eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
             eq(RepositoryComponentTelemetryEventType.AUDIT),
             eq(Collections.emptyList()), any(Component.class));
 
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
   public void testEvaluate_Adhoc_QuarantinedComponentReturnsTrue() {
     Repository repository = tempEntity.newRepository();
 
-    RepositoryComponent quarantinedComponent =
+    ProxyRepositoryComponent quarantinedComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "quarantined/path", new Date());
     quarantinedComponent.setQuarantineTime(new Date());
-    repositoryComponentDAO.update(quarantinedComponent);
+    proxyRepositoryComponentDAO.update(quarantinedComponent);
 
     RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
     request.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
@@ -2189,9 +2201,9 @@ public class RepositoryPolicyEvaluatorTest
   public void testEvaluate_Adhoc_NonQuarantinedComponentReturnsFalse() {
     Repository repository = tempEntity.newRepository();
 
-    RepositoryComponent nonQuarantinedComponent =
+    ProxyRepositoryComponent nonQuarantinedComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "normal/path", new Date());
-    repositoryComponentDAO.update(nonQuarantinedComponent);
+    proxyRepositoryComponentDAO.update(nonQuarantinedComponent);
 
     RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
     request.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
@@ -2290,7 +2302,7 @@ public class RepositoryPolicyEvaluatorTest
 
     // First evaluation — quarantines and posts an event.
     repositoryPolicyEvaluator.evaluate(repository, request, true /* withQuarantine */, null);
-    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isTrue();
 
     // Now register the handler and re-evaluate — should NOT post a second event since the component
     // is already quarantined and the gate is false→true only.
@@ -2329,7 +2341,7 @@ public class RepositoryPolicyEvaluatorTest
       repositoryPolicyEvaluator.evaluate(repository, request, true /* withQuarantine */, null);
 
       // Component IS quarantined but no webhook event is posted — no policy targets the webhook.
-      assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isTrue();
+      assertThat(proxyRepositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isTrue();
       assertThat(handler.getLatch().await(500, TimeUnit.MILLISECONDS)).isFalse();
     }
     finally {
@@ -2364,7 +2376,7 @@ public class RepositoryPolicyEvaluatorTest
       repositoryPolicyEvaluator.evaluate(repository, request, true /* withQuarantine */, null);
 
       // Component not quarantined; no webhook event.
-      assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isFalse();
+      assertThat(proxyRepositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isFalse();
       assertThat(handler.getLatch().await(500, TimeUnit.MILLISECONDS)).isFalse();
     }
     finally {

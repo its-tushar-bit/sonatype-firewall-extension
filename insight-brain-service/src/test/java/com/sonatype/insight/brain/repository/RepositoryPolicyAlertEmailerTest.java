@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -137,7 +137,7 @@ public class RepositoryPolicyAlertEmailerTest
     for (int i = 0; i < 10; i++) {
       Policy policy = new Policy("policyId" + i, "policyName" + i);
       policy.setThreatLevel(i);
-      RepositoryComponent component = new RepositoryComponent(repository.getId(), "pathname" + i, new Date(),
+      ProxyRepositoryComponent component = new ProxyRepositoryComponent(repository.getId(), "pathname" + i, new Date(),
           "hash" + i, ComponentIdentifier.createMavenCoordinates("g", "a", "" + i), MatchState.EXACT.getId(),
           IdentificationSource.SONATYPE.getId(), new Date());
 
@@ -170,9 +170,10 @@ public class RepositoryPolicyAlertEmailerTest
 
     Policy policy = new Policy("policyId", "policyName");
     policy.setThreatLevel(5);
-    RepositoryComponent component = new RepositoryComponent(repository.getId(), "pathname", new Date(), "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
-        IdentificationSource.SONATYPE.getId(), new Date());
+    ProxyRepositoryComponent component =
+        new ProxyRepositoryComponent(repository.getId(), "pathname", new Date(), "hash",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
+            IdentificationSource.SONATYPE.getId(), new Date());
 
     List<PolicyFact> policyFacts = new ArrayList<>();
     policyFacts.add(createPolicyFact(policy, component));
@@ -200,11 +201,11 @@ public class RepositoryPolicyAlertEmailerTest
     return policy;
   }
 
-  private PolicyNotification createPolicyNotification(Policy policy, RepositoryComponent component) {
+  private PolicyNotification createPolicyNotification(Policy policy, ProxyRepositoryComponent component) {
     return new PolicyNotification(createPolicyFact(policy, component), policy.getNotifications());
   }
 
-  private PolicyFact createPolicyFact(Policy policy, RepositoryComponent component) {
+  private PolicyFact createPolicyFact(Policy policy, ProxyRepositoryComponent component) {
     ConstraintFact constraintFact = new ConstraintFact("constraintId", "constraintName", "any");
     ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
     componentFact.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()));

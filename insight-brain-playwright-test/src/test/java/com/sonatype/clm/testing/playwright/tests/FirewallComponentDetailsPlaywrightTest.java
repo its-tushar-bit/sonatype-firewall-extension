@@ -29,12 +29,12 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -225,7 +225,7 @@ public class FirewallComponentDetailsPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testSecurityTab_policyViolationsTable_renders() {
-    RepositoryComponent component = seedComponentWithSecurityViolations();
+    ProxyRepositoryComponent component = seedComponentWithSecurityViolations();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
 
     FirewallComponentDetailsPage detailsPage = new FirewallComponentDetailsPage();
@@ -250,7 +250,7 @@ public class FirewallComponentDetailsPlaywrightTest
   @Test
   @Category(RegressionTest.class)
   public void testPolicyViolationsTab_rendersPoliciesViolatedByComponent() {
-    RepositoryComponent component = seedComponentWithSecurityViolations();
+    ProxyRepositoryComponent component = seedComponentWithSecurityViolations();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
 
     FirewallComponentDetailsPage detailsPage = new FirewallComponentDetailsPage();
@@ -263,7 +263,7 @@ public class FirewallComponentDetailsPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testSecurityTab_vulnerabilityDetailsPopover_opens() {
-    RepositoryComponent component = seedComponentWithSecurityViolationsAndVulnerabilityStubs();
+    ProxyRepositoryComponent component = seedComponentWithSecurityViolationsAndVulnerabilityStubs();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
 
     FirewallComponentDetailsPage detailsPage = new FirewallComponentDetailsPage();
@@ -276,11 +276,11 @@ public class FirewallComponentDetailsPlaywrightTest
     assertThat(detailsPage.vulnerabilityDetailsPopoverTitle()).containsText(HIGH_SEVERITY_CVE_ID);
   }
 
-  private RepositoryComponent seedComponentWithSecurityViolations() {
+  private ProxyRepositoryComponent seedComponentWithSecurityViolations() {
     Repository repository = newRepositoryForSecurityScenario();
     Policy securityHighPolicy = tempEntity.newPolicy();
     Policy securityLowPolicy = tempEntity.newPolicy();
-    RepositoryComponent component = newQuarantinedComponentForSecurityScenario(repository);
+    ProxyRepositoryComponent component = newQuarantinedComponentForSecurityScenario(repository);
 
     newSecurityViolation(component, securityHighPolicy, FailActionType.ID, HIGH_SEVERITY_POLICY_THREAT_LEVEL,
         HIGH_SEVERITY_POLICY_CONSTRAINT_NAME, HIGH_SEVERITY_POLICY_CONSTRAINT_REASON);
@@ -291,8 +291,8 @@ public class FirewallComponentDetailsPlaywrightTest
     return component;
   }
 
-  private RepositoryComponent seedComponentWithSecurityViolationsAndVulnerabilityStubs() {
-    RepositoryComponent component = seedComponentWithSecurityViolations();
+  private ProxyRepositoryComponent seedComponentWithSecurityViolationsAndVulnerabilityStubs() {
+    ProxyRepositoryComponent component = seedComponentWithSecurityViolations();
     stubComponentDetailsHds(component, /* withVulnerabilities */ true);
 
     // Vulnerability detail fixtures used when a vuln-row is clicked.
@@ -305,10 +305,10 @@ public class FirewallComponentDetailsPlaywrightTest
     return component;
   }
 
-  private RepositoryComponent seedComponentWithComponentInformationStubs() {
+  private ProxyRepositoryComponent seedComponentWithComponentInformationStubs() {
     Repository repository = newRepositoryForSecurityScenario();
     Policy quarantinePolicy = tempEntity.newPolicy();
-    RepositoryComponent component = newQuarantinedComponentForSecurityScenario(repository);
+    ProxyRepositoryComponent component = newQuarantinedComponentForSecurityScenario(repository);
     tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(), VIOLATION_COUNT,
         component.getPathname(), false, FailActionType.ID, quarantinePolicy.getId(),
         POLICY_NAME, component.getComponentIdentifier());
@@ -316,7 +316,7 @@ public class FirewallComponentDetailsPlaywrightTest
     return component;
   }
 
-  private void stubComponentDetailsHds(RepositoryComponent component, boolean withVulnerabilities) {
+  private void stubComponentDetailsHds(ProxyRepositoryComponent component, boolean withVulnerabilities) {
     if (withVulnerabilities) {
       FirewallComponentDetailsHdsStub.stubRepositoryComponentDetailsWithVulnerabilities(
           testCLMServer.getHdsServer(), component,
@@ -333,7 +333,7 @@ public class FirewallComponentDetailsPlaywrightTest
     return tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true, false);
   }
 
-  private RepositoryComponent newQuarantinedComponentForSecurityScenario(Repository repository) {
+  private ProxyRepositoryComponent newQuarantinedComponentForSecurityScenario(Repository repository) {
     ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
     Date evalTime = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
     return tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
@@ -343,8 +343,8 @@ public class FirewallComponentDetailsPlaywrightTest
         evalTime, evalTime);
   }
 
-  private RepositoryPolicyViolation newSecurityViolation(
-      RepositoryComponent component,
+  private ProxyRepositoryPolicyViolation newSecurityViolation(
+      ProxyRepositoryComponent component,
       Policy policy,
       String actionId,
       int threatLevel,
@@ -354,7 +354,7 @@ public class FirewallComponentDetailsPlaywrightTest
     ConstraintFact constraintFact = new ConstraintFact(uuid(), constraintName, LogicalOperator.AND.name());
     constraintFact.addConditionFact(new ConditionFact(MatchStateConditionType.ID, 0, "summary", constraintReason));
 
-    RepositoryPolicyViolation violation = new RepositoryPolicyViolation(component.getRepositoryId(),
+    ProxyRepositoryPolicyViolation violation = new ProxyRepositoryPolicyViolation(component.getRepositoryId(),
         component.getPathname(), new Date(), policy.getId(), policy.getName(), threatLevel,
         PolicyThreatCategory.SECURITY, component.getHash(), component.getComponentIdentifier(),
         List.of(constraintFact));

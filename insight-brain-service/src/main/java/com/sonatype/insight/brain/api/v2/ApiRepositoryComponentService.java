@@ -15,14 +15,14 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.repository.RepositoryComponentDeleteService;
+import com.sonatype.insight.brain.repository.ProxyRepositoryComponentDeleteService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -47,25 +47,25 @@ public class ApiRepositoryComponentService
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
 
-  private final RepositoryComponentDeleteService repositoryComponentDeleteService;
+  private final ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService;
 
   @Inject
   public ApiRepositoryComponentService(
       final RepositoryManagerDAO repositoryManagerDAO,
       final RepositoryDAO repositoryDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final HostedComponentScanQueueDAO hostedComponentScanQueueDAO,
-      final RepositoryComponentDeleteService repositoryComponentDeleteService)
+      final ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.hostedComponentScanQueueDAO = hostedComponentScanQueueDAO;
-    this.repositoryComponentDeleteService = repositoryComponentDeleteService;
+    this.proxyRepositoryComponentDeleteService = proxyRepositoryComponentDeleteService;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -86,12 +86,12 @@ public class ApiRepositoryComponentService
 
     // Validate all components upfront before deleting any, to avoid partial deletes on failure.
     // componentIds are the short NXRM-assigned IDs stored in the component_id column, not the
-    // internal repository_component_id PK — use getByNxrmComponentId for the lookup.
-    List<RepositoryComponent> components = uniqueComponentIds.stream()
+    // internal proxy_repository_component_id PK — use getByNxrmComponentId for the lookup.
+    List<ProxyRepositoryComponent> components = uniqueComponentIds.stream()
         .map(componentId -> {
-          RepositoryComponent component = repositoryComponentDAO.getByNxrmComponentId(componentId);
+          ProxyRepositoryComponent component = proxyRepositoryComponentDAO.getByNxrmComponentId(componentId);
           if (component == null) {
-            throw new NotFoundException("RepositoryComponent with ID " + componentId + " does not exist.");
+            throw new NotFoundException("ProxyRepositoryComponent with ID " + componentId + " does not exist.");
           }
           Repository repository = repositoryDAO.getByIdNotNull(component.getRepositoryId());
           if (!repositoryManager.getId().equals(repository.getRepositoryManagerId())) {
@@ -110,7 +110,7 @@ public class ApiRepositoryComponentService
         repositoryManagerInstanceId);
 
     List<String> nxrmAssetIds = components.stream()
-        .map(RepositoryComponent::getComponentId)
+        .map(ProxyRepositoryComponent::getComponentId)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
@@ -123,7 +123,7 @@ public class ApiRepositoryComponentService
         log.debug("Deleted {} pending scan queue entries for {} components", deleted, nxrmAssetIds.size());
       }
     }
-    components.forEach(repositoryComponentDeleteService::deleteComponent);
+    components.forEach(proxyRepositoryComponentDeleteService::deleteComponent);
 
     log.info("Deleted {} hosted repository components for RM {}", components.size(),
         repositoryManagerInstanceId);
@@ -162,7 +162,7 @@ public class ApiRepositoryComponentService
           repositoryManagerInstanceId, repository.getPublicId());
 
       // Purge the full PENDING backlog first; the per-component loop below misses not-yet-evaluated
-      // entries that have no repository_component row (CLM-42122).
+      // entries that have no proxy_repository_component row (CLM-42122).
       int purged = hostedComponentScanQueueDAO.deletePendingByRepositoryId(repository.getId());
       if (purged > 0) {
         log.info("Purged {} pending scan queue entries for hosted repository {}:{}", purged,
@@ -170,16 +170,16 @@ public class ApiRepositoryComponentService
       }
 
       int totalDeleted = 0;
-      List<RepositoryComponent> batch;
+      List<ProxyRepositoryComponent> batch;
       do {
         try (TransactionContext tx = hostedComponentScanQueueDAO.createTransactionContext()) {
           // Always fetch from offset 0 — prior batches have already been deleted from the table
-          batch = repositoryComponentDAO.getByRepositoryId(tx, repository.getId(), DELETE_BATCH_SIZE, 0);
+          batch = proxyRepositoryComponentDAO.getByRepositoryId(tx, repository.getId(), DELETE_BATCH_SIZE, 0);
           if (batch.isEmpty()) {
             break;
           }
           List<String> batchComponentIds = batch.stream()
-              .map(RepositoryComponent::getComponentId)
+              .map(ProxyRepositoryComponent::getComponentId)
               .filter(Objects::nonNull)
               .collect(Collectors.toList());
           tx.begin();
@@ -191,7 +191,7 @@ public class ApiRepositoryComponentService
                 repositoryManagerInstanceId, repository.getPublicId());
           }
         }
-        batch.forEach(repositoryComponentDeleteService::deleteComponent);
+        batch.forEach(proxyRepositoryComponentDeleteService::deleteComponent);
         totalDeleted += batch.size();
       }
       while (batch.size() == DELETE_BATCH_SIZE);

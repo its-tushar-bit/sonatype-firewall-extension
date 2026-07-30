@@ -57,7 +57,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.PolicyContainerWaiverData;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -71,7 +71,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
@@ -148,7 +148,7 @@ public class ApiPolicyWaiverService
 
   private final OwnerService ownerService;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
 
@@ -178,7 +178,7 @@ public class ApiPolicyWaiverService
       PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
       CurrentUser currentUser,
       OwnerService ownerService,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       PolicyViolationDAO policyViolationDAO,
       PolicyWaiverRequestDAO policyWaiverRequestDAO,
       OrganizationDAO organizationDAO,
@@ -198,7 +198,7 @@ public class ApiPolicyWaiverService
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
     this.currentUser = currentUser;
     this.ownerService = ownerService;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyWaiverRequestDAO = policyWaiverRequestDAO;
     this.organizationDAO = organizationDAO;
@@ -263,7 +263,7 @@ public class ApiPolicyWaiverService
   {
     AbstractPolicyViolation abstractPolicyViolation = policyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
     if (abstractPolicyViolation == null) {
-      abstractPolicyViolation = repositoryPolicyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
+      abstractPolicyViolation = proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
     }
 
     if (abstractPolicyViolation == null) {
@@ -338,7 +338,7 @@ public class ApiPolicyWaiverService
       try {
         AbstractPolicyViolation abstractPolicyViolation = policyViolationDAO.getByIdWithConstraintFacts(violationId);
         if (abstractPolicyViolation == null) {
-          abstractPolicyViolation = repositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
+          abstractPolicyViolation = proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
         }
 
         if (abstractPolicyViolation == null) {
@@ -425,7 +425,7 @@ public class ApiPolicyWaiverService
     // For repository policy violations, save the waiver under the repository (violation's owner), not the
     // synthetic application. The policy evaluator loads waivers by repository ID — saving under the synthetic
     // app ID would make the waiver invisible during re-evaluation.
-    String effectiveOwnerId = (abstractPolicyViolation instanceof RepositoryPolicyViolation
+    String effectiveOwnerId = (abstractPolicyViolation instanceof ProxyRepositoryPolicyViolation
         && OwnerType.APPLICATION.equals(ownerType))
             ? abstractPolicyViolation.getOwnerId()
             : ownerId;
@@ -783,10 +783,10 @@ public class ApiPolicyWaiverService
     // For repository policy violations, also check the synthetic application hierarchy.
     // The synthetic app is created per-component by ApplicationForHostedRepositoryComponentService
     // and is not in the repository owner hierarchy, but is a valid waiver target.
-    if (policyViolation instanceof RepositoryPolicyViolation) {
+    if (policyViolation instanceof ProxyRepositoryPolicyViolation) {
       Repository repository = repositoryDAO.getById(policyViolation.getOwnerId());
       if (repository != null) {
-        String pathname = ((RepositoryPolicyViolation) policyViolation).getPathname();
+        String pathname = ((ProxyRepositoryPolicyViolation) policyViolation).getPathname();
         String appPublicId = ApplicationForHostedRepositoryComponentService
             .generatePublicId(repository.getPublicId(), pathname);
         Application syntheticApp = applicationDAO.getByPublicId(appPublicId);
@@ -919,7 +919,7 @@ public class ApiPolicyWaiverService
   private AbstractPolicyViolation getAbstractPolicyViolation(final String violationId) {
     AbstractPolicyViolation policyViolation = policyViolationDAO.getByIdWithConstraintFacts(violationId);
     if (policyViolation == null) {
-      policyViolation = repositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
+      policyViolation = proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
       if (policyViolation == null) {
         throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
       }
@@ -1082,7 +1082,7 @@ public class ApiPolicyWaiverService
       try {
         // For repository policy violations coming from a synthetic-app owner, save under the repository
         // ID so the policy evaluator can find the waiver during re-evaluation (it loads by repository ID).
-        String effectiveOwnerId = (abstractPolicyViolation instanceof RepositoryPolicyViolation
+        String effectiveOwnerId = (abstractPolicyViolation instanceof ProxyRepositoryPolicyViolation
             && OwnerType.APPLICATION.equals(owner.getType()))
                 ? abstractPolicyViolation.getOwnerId()
                 : owner.getId();

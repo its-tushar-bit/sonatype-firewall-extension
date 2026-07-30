@@ -9,13 +9,13 @@ import java.util.Objects;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
-public class RepositoryComponentResult
+public class ProxyRepositoryComponentResult
 {
   private ComponentIdentifier identifier;
 
   private String sha1;
 
-  public RepositoryComponentResult(final ComponentIdentifier identifier, final String sha1) {
+  public ProxyRepositoryComponentResult(final ComponentIdentifier identifier, final String sha1) {
     this.identifier = identifier;
     this.sha1 = sha1;
   }
@@ -44,7 +44,7 @@ public class RepositoryComponentResult
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    RepositoryComponentResult that = (RepositoryComponentResult) o;
+    ProxyRepositoryComponentResult that = (ProxyRepositoryComponentResult) o;
     return Objects.equals(identifier, that.identifier) && Objects.equals(sha1, that.sha1);
   }
 

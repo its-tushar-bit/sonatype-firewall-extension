@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -47,7 +47,7 @@ public class ComponentsAutoReleasedMetricsConsolidatorTest
   private RepositoryDAO repositoryDAOTest;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAOTest;
+  private ProxyRepositoryComponentDAO repositoryComponentDAOTest;
 
   private final List<Date> testLastUpdateDates = new ArrayList<>();
 
@@ -255,7 +255,7 @@ public class ComponentsAutoReleasedMetricsConsolidatorTest
 
     hoursForDateInThePast.forEach(dateTime -> {
       Repository newRepo = tempEntity.newRepository();
-      RepositoryComponent newRepositoryComponent = tempEntity
+      ProxyRepositoryComponent newRepositoryComponent = tempEntity
           .newRepositoryComponent(
               newRepo.getId(), newRepo.getId() + "/" + dateTime.toString(),
               null, dateTime, true);

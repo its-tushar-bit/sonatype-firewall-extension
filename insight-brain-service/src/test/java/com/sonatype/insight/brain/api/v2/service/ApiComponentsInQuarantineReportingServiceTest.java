@@ -24,9 +24,9 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -75,9 +75,10 @@ public class ApiComponentsInQuarantineReportingServiceTest
   @Test
   public void testGetComponentsInQuarantine_ComponentInQuarantine_PolicyViolation_Fail() {
     Repository repository = tempEntity.newRepository("repositoryManager1", "repo1", "maven3");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
-    RepositoryPolicyViolation policyViolation = PolicyViolationTestHelper
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryPolicyViolation policyViolation = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
@@ -89,9 +90,9 @@ public class ApiComponentsInQuarantineReportingServiceTest
   @Test
   public void testGetComponentsInQuarantine_UnknownComponent() {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
         "testPathname", "testHash", null /* componentIdentifier */, new Date(), new Date());
-    RepositoryPolicyViolation policyViolation =
+    ProxyRepositoryPolicyViolation policyViolation =
         PolicyViolationTestHelper.createPolicyViolationFail(policy1, component, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
@@ -103,8 +104,9 @@ public class ApiComponentsInQuarantineReportingServiceTest
   @Test
   public void testGetComponentsInQuarantine_ComponentInQuarantine_PolicyViolation_Waived() {
     Repository repository = tempEntity.newRepository("repositoryManager1", "repo1", "maven3");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     PolicyViolationTestHelper.createPolicyViolationWaived(policy1, component, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
@@ -115,10 +117,11 @@ public class ApiComponentsInQuarantineReportingServiceTest
   @Test
   public void testGetComponentsInQuarantine_ComponentInQuarantine_PolicyViolation_WarnAndFailAndWaived() {
     Repository repository = tempEntity.newRepository("repositoryManager1", "repo1", "maven3");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     PolicyViolationTestHelper.createPolicyViolationWarn(policy1, component, tempEntity);
-    RepositoryPolicyViolation policyViolation = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component, tempEntity);
     PolicyViolationTestHelper.createPolicyViolationWaived(policy1, component, tempEntity);
 
@@ -145,8 +148,9 @@ public class ApiComponentsInQuarantineReportingServiceTest
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1", "hash1",
         ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), false);
     // component in quarantine
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname2",
-        "hash2", ComponentIdentifier.createMavenCoordinates("g", "a2", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname2",
+            "hash2", ComponentIdentifier.createMavenCoordinates("g", "a2", "v"), true);
     // component released from quarantine
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname3",
         "hash3", ComponentIdentifier.createMavenCoordinates("g", "a3", "v"), new Date(), new Date(), new Date());
@@ -159,31 +163,31 @@ public class ApiComponentsInQuarantineReportingServiceTest
   @Test
   public void testGetComponentsInQuarantine_MultipleRepositoriesWithMultipleComponentsWithMultiplePolicyViolations() {
     Repository repository1 = tempEntity.newRepository("repositoryManager1", "repo1", "maven3");
-    RepositoryComponent componentInQuarantine1 = tempEntity.newRepositoryComponent(repository1.getId(),
+    ProxyRepositoryComponent componentInQuarantine1 = tempEntity.newRepositoryComponent(repository1.getId(),
         MatchState.EXACT, "pathname1", "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
-    RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, componentInQuarantine1, tempEntity);
-    RepositoryPolicyViolation policyViolation2 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation2 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy2, componentInQuarantine1, tempEntity);
-    RepositoryComponent componentInQuarantine2 = tempEntity.newRepositoryComponent(repository1.getId(),
+    ProxyRepositoryComponent componentInQuarantine2 = tempEntity.newRepositoryComponent(repository1.getId(),
         MatchState.EXACT, "pathname2", "hash2", ComponentIdentifier.createMavenCoordinates("g", "a2", "v"), true);
-    RepositoryPolicyViolation policyViolation3 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation3 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, componentInQuarantine2, tempEntity);
-    RepositoryPolicyViolation policyViolation4 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation4 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy2, componentInQuarantine2, tempEntity);
 
     Repository repository2 = tempEntity.newRepository("repositoryManager2", "repo2", "maven2");
-    RepositoryComponent componentInQuarantine3 = tempEntity.newRepositoryComponent(repository2.getId(),
+    ProxyRepositoryComponent componentInQuarantine3 = tempEntity.newRepositoryComponent(repository2.getId(),
         MatchState.EXACT, "pathname3", "hash3", ComponentIdentifier.createMavenCoordinates("g", "a3", "v"), true);
-    RepositoryPolicyViolation policyViolation5 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation5 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, componentInQuarantine3, tempEntity);
-    RepositoryPolicyViolation policyViolation6 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation6 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy2, componentInQuarantine3, tempEntity);
-    RepositoryComponent componentInQuarantine4 = tempEntity.newRepositoryComponent(repository2.getId(),
+    ProxyRepositoryComponent componentInQuarantine4 = tempEntity.newRepositoryComponent(repository2.getId(),
         MatchState.EXACT, "pathname4", "hash4", ComponentIdentifier.createMavenCoordinates("g", "a4", "v"), true);
-    RepositoryPolicyViolation policyViolation7 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation7 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, componentInQuarantine4, tempEntity);
-    RepositoryPolicyViolation policyViolation8 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation8 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy2, componentInQuarantine4, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
@@ -219,7 +223,7 @@ public class ApiComponentsInQuarantineReportingServiceTest
   private void assertThereIsOnlyOneRepositoryAndOnlyOneComponent(
       ApiComponentsInQuarantineDTO componentsInQuarantineDTO,
       Repository expectedRepository,
-      RepositoryComponent expectedComponent)
+      ProxyRepositoryComponent expectedComponent)
   {
     assertThat(componentsInQuarantineDTO.componentsInQuarantine).hasSize(1);
 
@@ -241,8 +245,8 @@ public class ApiComponentsInQuarantineReportingServiceTest
   private void assertThereIsOnlyOneRepositoryAndOnlyOneComponentAndOnlyOnePolicyViolation(
       ApiComponentsInQuarantineDTO componentsInQuarantineDTO,
       Repository expectedRepository,
-      RepositoryComponent expectedComponent,
-      RepositoryPolicyViolation expectedPolicyViolation)
+      ProxyRepositoryComponent expectedComponent,
+      ProxyRepositoryPolicyViolation expectedPolicyViolation)
   {
     assertThat(componentsInQuarantineDTO.componentsInQuarantine).hasSize(1);
 
@@ -268,10 +272,10 @@ public class ApiComponentsInQuarantineReportingServiceTest
   private void assertOneRepositoryAndTwoComponentsAndTwoPolicyViolationsForEachComponent(
       ApiRepositoryComponentsInQuarantineDTO repositoryComponentsInQuarantineDTO,
       Repository expectedRepository,
-      RepositoryComponent firstExpectedComponent,
-      RepositoryComponent secondExpectedComponent,
-      List<RepositoryPolicyViolation> firstComponentExpectedPolicyViolations,
-      List<RepositoryPolicyViolation> secondComponentExpectedPolicyViolations)
+      ProxyRepositoryComponent firstExpectedComponent,
+      ProxyRepositoryComponent secondExpectedComponent,
+      List<ProxyRepositoryPolicyViolation> firstComponentExpectedPolicyViolations,
+      List<ProxyRepositoryPolicyViolation> secondComponentExpectedPolicyViolations)
   {
     assertApiRepositoryDTO(repositoryComponentsInQuarantineDTO.repository, expectedRepository);
 
@@ -308,7 +312,7 @@ public class ApiComponentsInQuarantineReportingServiceTest
 
   private void assertApiRepositoryComponentDTO(
       ApiRepositoryComponentDTO repositoryComponentDTO,
-      RepositoryComponent expectedComponent)
+      ProxyRepositoryComponent expectedComponent)
   {
     assertThat(repositoryComponentDTO).isNotNull();
 

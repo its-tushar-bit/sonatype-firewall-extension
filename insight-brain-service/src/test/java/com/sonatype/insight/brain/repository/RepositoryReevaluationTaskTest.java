@@ -26,8 +26,8 @@ import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
@@ -40,15 +40,15 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEventService;
 import jakarta.inject.Inject;
 import java.util.Collections;
@@ -77,10 +77,10 @@ public class RepositoryReevaluationTaskTest
   private Policy policy;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private PolicyDAO policyDAO;
@@ -92,7 +92,7 @@ public class RepositoryReevaluationTaskTest
   private FirewallIgnorePatternService firewallIgnorePatternService;
 
   @Inject
-  private RepositoryComponentDeleteService repositoryComponentDeleteService;
+  private ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService;
 
   @Inject
   private RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
@@ -101,7 +101,7 @@ public class RepositoryReevaluationTaskTest
   private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   @Inject
-  private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+  private ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator;
 
   @Inject
   private ClusterLockManager clusterLockManager;
@@ -124,9 +124,9 @@ public class RepositoryReevaluationTaskTest
   @Mock
   private AsyncEventBus mockEventBus;
 
-  private RepositoryComponent unknownComponent;
+  private ProxyRepositoryComponent unknownComponent;
 
-  private RepositoryComponent component;
+  private ProxyRepositoryComponent component;
 
   private final ComponentIdentifier claimedIdentifier =
       ComponentIdentifier.createMavenCoordinates("com", "claimed", "3.0");
@@ -149,7 +149,7 @@ public class RepositoryReevaluationTaskTest
     component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("org", "known", "1.0.0"));
     component.setQuarantineTime(new Date());
-    repositoryComponentDAO.update(component);
+    proxyRepositoryComponentDAO.update(component);
     unknownComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
 
     tempEntity.newRepositoryPolicyViolation(component, 1, true, "old", null);
@@ -166,12 +166,13 @@ public class RepositoryReevaluationTaskTest
         eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
 
     task = new RepositoryReevaluationTask(repository,
-        new RepositoryPolicyEvaluator(componentPolicyEvaluator, repositoryComponentDAO, repositoryPolicyViolationDAO,
+        new RepositoryPolicyEvaluator(componentPolicyEvaluator, proxyRepositoryComponentDAO,
+            proxyRepositoryPolicyViolationDAO,
             policyDAO, auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
-            componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
-            repositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService,
+            componentDetailsLoaderFactory, proxyRepositoryComponentDeleteService, repositoryPolicyAlertEmailer,
+            proxyRepositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService,
             repositoryPathnameParser, firewallPolicyAlertEventService),
-        spyExecutorService, 10, repositoryComponentDAO, clusterLockManager);
+        spyExecutorService, 10, proxyRepositoryComponentDAO, clusterLockManager);
     createHdsResponse();
   }
 
@@ -185,14 +186,15 @@ public class RepositoryReevaluationTaskTest
     verify(spyExecutorService).shutdown();
     spyExecutorService.awaitTermination(1, TimeUnit.MINUTES);
 
-    List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryComponent> components = proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(components).hasSize(2);
     assertHasComponent(components, component.getPathname(), MatchState.EXACT, IdentificationSource.MANUAL.getId(),
         claimedIdentifier, false /* quarantined */, timeBeforeReevaluation);
     assertHasComponent(components, unknownComponent.getPathname(), MatchState.EXACT,
         IdentificationSource.SONATYPE.getId(), newIdentifier, false /* quarantined */, timeBeforeReevaluation);
 
-    List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryPolicyViolation> violations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(violations).hasSize(2);
     assertHasViolation(violations, component.getPathname(), policy.getName(), policy.getThreatLevel(),
         claimedIdentifier, false);
@@ -201,14 +203,14 @@ public class RepositoryReevaluationTaskTest
   }
 
   private static void assertHasViolation(
-      List<RepositoryPolicyViolation> violations,
+      List<ProxyRepositoryPolicyViolation> violations,
       String pathname,
       String policyName,
       int threatLevel,
       ComponentIdentifier componentIdentifier,
       boolean waived)
   {
-    for (RepositoryPolicyViolation violation : violations) {
+    for (ProxyRepositoryPolicyViolation violation : violations) {
       if (violation.getPathname().equals(pathname) && violation.getPolicyName().equals(policyName)) {
         assertThat(violation.getThreatLevel()).isEqualTo(threatLevel);
         assertThat(violation.getComponentIdentifier()).isEqualTo(componentIdentifier);
@@ -220,7 +222,7 @@ public class RepositoryReevaluationTaskTest
   }
 
   private static void assertHasComponent(
-      List<RepositoryComponent> components,
+      List<ProxyRepositoryComponent> components,
       String pathname,
       MatchState matchState,
       String identificationSource,
@@ -228,7 +230,7 @@ public class RepositoryReevaluationTaskTest
       boolean quarantined,
       Date timeBeforeReevaluation)
   {
-    for (RepositoryComponent component : components) {
+    for (ProxyRepositoryComponent component : components) {
       if (component.getPathname().equals(pathname)) {
         assertThat(component.getMatchStateId()).isEqualTo(matchState.getId());
         assertThat(component.getIdentificationSourceId()).isEqualTo(identificationSource);

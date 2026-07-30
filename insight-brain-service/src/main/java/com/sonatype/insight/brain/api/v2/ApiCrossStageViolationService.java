@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO.StageEvaluationWindow;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -54,7 +54,7 @@ public class ApiCrossStageViolationService
 {
   private final PolicyViolationDAO policyViolationDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final RepositoryDAO repositoryDAO;
 
@@ -77,7 +77,7 @@ public class ApiCrossStageViolationService
   @Inject
   public ApiCrossStageViolationService(
       PolicyViolationDAO policyViolationDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       RepositoryDAO repositoryDAO,
       ApplicationDAO applicationDAO,
       ApplicationService applicationService,
@@ -87,7 +87,7 @@ public class ApiCrossStageViolationService
       OwnerDAO ownerDAO)
   {
     this.policyViolationDAO = policyViolationDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.repositoryDAO = repositoryDAO;
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
@@ -121,8 +121,8 @@ public class ApiCrossStageViolationService
     PolicyViolation constituentViolation = policyViolationDAO.getById(constituentId);
 
     if (constituentViolation == null) {
-      RepositoryPolicyViolation repoViolation =
-          repositoryPolicyViolationDAO.getByIdWithConstraintFacts(constituentId);
+      ProxyRepositoryPolicyViolation repoViolation =
+          proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(constituentId);
       if (repoViolation != null) {
         return createDtoFromRepositoryViolation(repoViolation);
       }
@@ -337,7 +337,7 @@ public class ApiCrossStageViolationService
   }
 
   private ApiCrossStageViolationDTOV2 createDtoFromRepositoryViolation(
-      final RepositoryPolicyViolation violation)
+      final ProxyRepositoryPolicyViolation violation)
   {
     Repository repository = repositoryDAO.getById(violation.getRepositoryId());
     String repoPublicId = repository != null ? repository.getPublicId() : null;

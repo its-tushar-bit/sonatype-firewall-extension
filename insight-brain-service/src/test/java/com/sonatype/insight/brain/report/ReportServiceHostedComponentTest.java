@@ -12,15 +12,15 @@ import java.util.TreeMap;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
 import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
@@ -59,7 +59,7 @@ import static org.mockito.Mockito.when;
 public class ReportServiceHostedComponentTest
 {
   @Mock
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
   private PolicyEvaluationDAO policyEvaluationDAO;
@@ -150,7 +150,7 @@ public class ReportServiceHostedComponentTest
   private com.sonatype.insight.brain.thirdparty.ThirdPartyDataService thirdPartyDataService;
 
   @Mock
-  private com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Mock
   private com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator repositoryPolicyEvaluator;
@@ -195,14 +195,14 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void isHostedRepositoryComponent_returnsTrueWhenComponentExists() {
-    when(repositoryComponentDAO.getByScanId("scan1")).thenReturn(newComponent("repo1", "lib.jar", "abc123"));
+    when(proxyRepositoryComponentDAO.getByScanId("scan1")).thenReturn(newComponent("repo1", "lib.jar", "abc123"));
 
     assertThat(reportService.isHostedRepositoryComponent("scan1")).isTrue();
   }
 
   @Test
   public void isHostedRepositoryComponent_returnsFalseWhenNotFound() {
-    when(repositoryComponentDAO.getByScanId("none")).thenReturn(null);
+    when(proxyRepositoryComponentDAO.getByScanId("none")).thenReturn(null);
 
     assertThat(reportService.isHostedRepositoryComponent("none")).isFalse();
   }
@@ -221,8 +221,8 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void build_policyThreats_withViolation_populatesGroup() throws Exception {
-    RepositoryComponent comp = newComponent("r", "lib.jar", "abc123");
-    RepositoryPolicyViolation v = newViolation("v1", "policy-1", "No Risky Libs", 8, false);
+    ProxyRepositoryComponent comp = newComponent("r", "lib.jar", "abc123");
+    ProxyRepositoryPolicyViolation v = newViolation("v1", "policy-1", "No Risky Libs", 8, false);
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", comp, List.of(v));
 
@@ -236,9 +236,9 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void build_policyThreats_waivedViolation_separatedCorrectly() throws Exception {
-    RepositoryComponent comp = newComponent("r", "lib.jar", "abc");
-    RepositoryPolicyViolation active = newViolation("v1", "p1", "A", 7, false);
-    RepositoryPolicyViolation waived = newViolation("v2", "p2", "B", 5, true);
+    ProxyRepositoryComponent comp = newComponent("r", "lib.jar", "abc");
+    ProxyRepositoryPolicyViolation active = newViolation("v1", "p1", "A", 7, false);
+    ProxyRepositoryPolicyViolation waived = newViolation("v2", "p2", "B", 5, true);
 
     byte[] result = HostedReportFileBuilder.build("policythreats.json", comp, List.of(active, waived));
 
@@ -257,7 +257,7 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void build_bom_withComponent_containsHashAndPathname() throws Exception {
-    RepositoryComponent comp = newComponent("r", "commons-text-1.9.jar", "def456");
+    ProxyRepositoryComponent comp = newComponent("r", "commons-text-1.9.jar", "def456");
     comp.setDisplayName("commons-text : 1.9");
 
     byte[] result = HostedReportFileBuilder.build("bom.json", comp, List.of());
@@ -278,7 +278,7 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void build_data_exactMatch_knownCountIsOne() throws Exception {
-    RepositoryComponent comp = newComponent("r", "lib.jar", "abc");
+    ProxyRepositoryComponent comp = newComponent("r", "lib.jar", "abc");
     comp.setMatchStateId("exact");
 
     String json = new String(HostedReportFileBuilder.build("data.json", comp, List.of()));
@@ -290,7 +290,7 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void build_data_unknownMatch_knownCountIsZero() throws Exception {
-    RepositoryComponent comp = newComponent("r", "lib.jar", "abc");
+    ProxyRepositoryComponent comp = newComponent("r", "lib.jar", "abc");
     comp.setMatchStateId("unknown");
 
     String json = new String(HostedReportFileBuilder.build("data.json", comp, List.of()));
@@ -364,19 +364,19 @@ public class ReportServiceHostedComponentTest
     when(evaluation.getScanTriggerType()).thenReturn(ScanTriggerType.REPOSITORY_MANAGER);
     when(policyEvaluationDAO.getLastByOwnerIdAndScanId("app-id", scanId)).thenReturn(evaluation);
 
-    RepositoryComponent comp = newComponent(repoId, outerPath, "file_sha1");
-    when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
+    ProxyRepositoryComponent comp = newComponent(repoId, outerPath, "file_sha1");
+    when(proxyRepositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
 
     Repository repository = new Repository();
     repository.setFormat("npm");
     when(repositoryDAO.getById(repoId)).thenReturn(repository);
 
     ComponentIdentifier axios = newNpmIdentifier("axios", "0.18.0");
-    RepositoryPolicyViolation outer =
+    ProxyRepositoryPolicyViolation outer =
         newInnerViolation(outerPath, "file_sha1", axios, "cve-1", 14);
-    RepositoryPolicyViolation innerMirror =
+    ProxyRepositoryPolicyViolation innerMirror =
         newInnerViolation(outerPath + "!/axios@0.18.0", "hds_hash", axios, "cve-1", 14);
-    when(repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repoId, outerPath))
+    when(proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repoId, outerPath))
         .thenReturn(List.of(outer, innerMirror));
 
     ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(pubId, scanId);
@@ -421,18 +421,18 @@ public class ReportServiceHostedComponentTest
     when(evaluation.getScanTriggerType()).thenReturn(ScanTriggerType.REPOSITORY_MANAGER);
     when(policyEvaluationDAO.getLastByOwnerIdAndScanId("app-id", scanId)).thenReturn(evaluation);
 
-    RepositoryComponent comp = newComponent(repoId, outerPath, "file_sha1");
-    when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
+    ProxyRepositoryComponent comp = newComponent(repoId, outerPath, "file_sha1");
+    when(proxyRepositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
 
     Repository repository = new Repository();
     repository.setFormat("npm");
     when(repositoryDAO.getById(repoId)).thenReturn(repository);
 
     ComponentIdentifier axios = newNpmIdentifier("axios", "0.18.0");
-    RepositoryPolicyViolation outer = newInnerViolation(outerPath, "file_sha1", axios, "cve-1", 14);
-    RepositoryPolicyViolation innerMirror =
+    ProxyRepositoryPolicyViolation outer = newInnerViolation(outerPath, "file_sha1", axios, "cve-1", 14);
+    ProxyRepositoryPolicyViolation innerMirror =
         newInnerViolation(outerPath + "!/axios@0.18.0", "hds_hash", axios, "cve-1", 14);
-    when(repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repoId, outerPath))
+    when(proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repoId, outerPath))
         .thenReturn(List.of(outer, innerMirror));
 
     reportService.getReportMetadataNoAuth(pubId, scanId);
@@ -457,14 +457,14 @@ public class ReportServiceHostedComponentTest
     return new ComponentIdentifier("npm", coords);
   }
 
-  private static RepositoryPolicyViolation newInnerViolation(
+  private static ProxyRepositoryPolicyViolation newInnerViolation(
       String pathname,
       String hash,
       ComponentIdentifier ci,
       String constraintFactsId,
       int threatLevel)
   {
-    RepositoryPolicyViolation v = newViolation("vid-" + pathname, "pol-sec", "Security-High", threatLevel, false);
+    ProxyRepositoryPolicyViolation v = newViolation("vid-" + pathname, "pol-sec", "Security-High", threatLevel, false);
     v.setPathname(pathname);
     v.setHash(hash);
     v.setComponentIdentifier(ci);
@@ -475,7 +475,7 @@ public class ReportServiceHostedComponentTest
   // ---- CLM-42080: reevaluateHostedComponent invokes the nested-violation mirror ----
   //
   // The bug: before this fix, reevaluateHostedComponent updated only the outer artifact's
-  // repository_policy_violation row via RepositoryPolicyEvaluator.evaluate. Any mirrored
+  // proxy_repository_policy_violation row via RepositoryPolicyEvaluator.evaluate. Any mirrored
   // inner-pathname rows (created on the initial-scan path by
   // HostedComponentScanQueueConsumer.mirrorNestedComponentViolationsFromApplicationEvaluation
   // when HDS couldn't identify the outer) stayed at whatever threat_level they carried at
@@ -488,7 +488,7 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void reevaluateHostedComponent_invokesMirrorAfterOuterEval() {
-    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash123");
+    ProxyRepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash123");
     Repository repository = new Repository();
     repository.setId("repo1");
     Application application = new Application();
@@ -496,7 +496,7 @@ public class ReportServiceHostedComponentTest
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     policyEvaluation.setStageTypeId("proxy");
 
-    when(repositoryComponentDAO.getByScanId("scan1")).thenReturn(component);
+    when(proxyRepositoryComponentDAO.getByScanId("scan1")).thenReturn(component);
     when(repositoryDAO.getById("repo1")).thenReturn(repository);
     when(policyEvaluationDAO.getLastByOwnerIdAndScanId("app1", "scan1"))
         .thenReturn(policyEvaluation);
@@ -527,13 +527,13 @@ public class ReportServiceHostedComponentTest
     // recorded — e.g. Re-Evaluate clicked on a scan whose policy_evaluation row hasn't landed
     // yet), reevaluateHostedComponent falls back to ComplianceStageType.ID. The mirror must
     // receive the same fallback so its ScanPolicyEvaluator.evaluate runs on the correct stage.
-    RepositoryComponent component = newComponent("repoX", "archive.tar", "hashX");
+    ProxyRepositoryComponent component = newComponent("repoX", "archive.tar", "hashX");
     Repository repository = new Repository();
     repository.setId("repoX");
     Application application = new Application();
     application.setId("appX");
 
-    when(repositoryComponentDAO.getByScanId("scanX")).thenReturn(component);
+    when(proxyRepositoryComponentDAO.getByScanId("scanX")).thenReturn(component);
     when(repositoryDAO.getById("repoX")).thenReturn(repository);
     when(policyEvaluationDAO.getLastByOwnerIdAndScanId("appX", "scanX")).thenReturn(null);
     when(applicationDAO.getByIdNotNull("appX")).thenReturn(application);
@@ -560,7 +560,7 @@ public class ReportServiceHostedComponentTest
     // defence-in-depth #2. Together they guarantee that a mirror failure never rolls back
     // the outer eval that has already persisted. The mirror is idempotent (delete-then-insert
     // inner rows), so the next re-eval retries.
-    RepositoryComponent component = newComponent("repoY", "archive.zip", "hashY");
+    ProxyRepositoryComponent component = newComponent("repoY", "archive.zip", "hashY");
     Repository repository = new Repository();
     repository.setId("repoY");
     Application application = new Application();
@@ -568,7 +568,7 @@ public class ReportServiceHostedComponentTest
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     policyEvaluation.setStageTypeId("proxy");
 
-    when(repositoryComponentDAO.getByScanId("scanY")).thenReturn(component);
+    when(proxyRepositoryComponentDAO.getByScanId("scanY")).thenReturn(component);
     when(repositoryDAO.getById("repoY")).thenReturn(repository);
     when(policyEvaluationDAO.getLastByOwnerIdAndScanId("appY", "scanY"))
         .thenReturn(policyEvaluation);
@@ -588,11 +588,11 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void reevaluateHostedComponent_applicationLookupFailure_atMirrorStep_skipsMirrorCleanly() {
-    RepositoryComponent component = newComponent("repoZ", "archive.zip", "hashZ");
+    ProxyRepositoryComponent component = newComponent("repoZ", "archive.zip", "hashZ");
     Repository repository = new Repository();
     repository.setId("repoZ");
 
-    when(repositoryComponentDAO.getByScanId("scanZ")).thenReturn(component);
+    when(proxyRepositoryComponentDAO.getByScanId("scanZ")).thenReturn(component);
     when(repositoryDAO.getById("repoZ")).thenReturn(repository);
     when(applicationDAO.getByIdNotNull("appZ"))
         .thenThrow(new com.sonatype.insight.error.exception.NotFoundException(
@@ -615,10 +615,10 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void reevaluateHostedComponent_throwsWhenComponentMissing_mirrorNotCalled() {
-    // Fail-fast guard: no repository_component row for this scanId → NotFoundException from
+    // Fail-fast guard: no proxy_repository_component row for this scanId → NotFoundException from
     // the existing null-check at ReportService. Mirror must NOT be invoked in that case
     // (the error surfaces to the caller before we get to the mirror).
-    when(repositoryComponentDAO.getByScanId("missing-scan")).thenReturn(null);
+    when(proxyRepositoryComponentDAO.getByScanId("missing-scan")).thenReturn(null);
 
     assertThatThrownBy(() -> reportService.reevaluateHostedComponent("app1", "missing-scan"))
         .isInstanceOf(com.sonatype.insight.error.exception.NotFoundException.class);
@@ -631,22 +631,22 @@ public class ReportServiceHostedComponentTest
 
   // ---- helpers ----
 
-  private static RepositoryComponent newComponent(String repositoryId, String pathname, String hash) {
-    RepositoryComponent c = new RepositoryComponent();
+  private static ProxyRepositoryComponent newComponent(String repositoryId, String pathname, String hash) {
+    ProxyRepositoryComponent c = new ProxyRepositoryComponent();
     c.setRepositoryId(repositoryId);
     c.setPathname(pathname);
     c.setHash(hash);
     return c;
   }
 
-  private static RepositoryPolicyViolation newViolation(
+  private static ProxyRepositoryPolicyViolation newViolation(
       String id,
       String policyId,
       String policyName,
       int threatLevel,
       boolean waived)
   {
-    RepositoryPolicyViolation v = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation v = new ProxyRepositoryPolicyViolation();
     v.setId(id);
     v.setPolicyId(policyId);
     v.setPolicyName(policyName);
@@ -655,7 +655,7 @@ public class ReportServiceHostedComponentTest
     return v;
   }
 
-  private static RepositoryPolicyViolation newViolationForRiskSum(
+  private static ProxyRepositoryPolicyViolation newViolationForRiskSum(
       String id,
       String pathname,
       String hash,
@@ -663,7 +663,7 @@ public class ReportServiceHostedComponentTest
       String policyId,
       int threatLevel)
   {
-    RepositoryPolicyViolation v = newViolation(id, policyId, "Policy-" + policyId, threatLevel, false);
+    ProxyRepositoryPolicyViolation v = newViolation(id, policyId, "Policy-" + policyId, threatLevel, false);
     v.setPathname(pathname);
     v.setHash(hash);
     v.setComponentIdentifier(ci);
@@ -804,9 +804,9 @@ public class ReportServiceHostedComponentTest
 
   // ---- reevaluateHostedComponent (CLM-41904, cluster-lock widened per iam-ast comment) ----
 
-  private RepositoryComponent stubReevaluatePlumbing(final String appId, final String scanId) {
-    RepositoryComponent comp = newComponent("repo-1", "com/example/lib.jar", "hash-abc");
-    when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
+  private ProxyRepositoryComponent stubReevaluatePlumbing(final String appId, final String scanId) {
+    ProxyRepositoryComponent comp = newComponent("repo-1", "com/example/lib.jar", "hash-abc");
+    when(proxyRepositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
     com.sonatype.insight.brain.model.repository.Repository repo =
         mock(com.sonatype.insight.brain.model.repository.Repository.class);
     when(repo.getId()).thenReturn("repo-1");
@@ -958,7 +958,7 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void refreshHostedComponentAfterEvaluation_persistFlagTrue_insertsPolicyEvaluationRow() {
-    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash123");
+    ProxyRepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash123");
     Repository repository = new Repository();
     repository.setId("repo1");
     Application application = new Application();
@@ -977,7 +977,7 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void refreshHostedComponentAfterEvaluation_persistFlagFalse_skipsExplicitPolicyEvaluationInsert() {
-    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash123");
+    ProxyRepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash123");
     Repository repository = new Repository();
     repository.setId("repo1");
     Application application = new Application();
@@ -1005,7 +1005,7 @@ public class ReportServiceHostedComponentTest
    */
   @Test
   public void refreshHostedComponentAfterEvaluation_mirrorFailureDoesNotBlockOverlaySave() {
-    RepositoryComponent component = newComponent("repoY", "archive.zip", "hashY");
+    ProxyRepositoryComponent component = newComponent("repoY", "archive.zip", "hashY");
     Repository repository = new Repository();
     repository.setId("repoY");
     Application application = new Application();
@@ -1033,12 +1033,12 @@ public class ReportServiceHostedComponentTest
    */
   @Test
   public void refreshHostedComponentAfterEvaluation_overlayCheckedException_wrappedAndPersistNotCalled() throws Exception {
-    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash");
+    ProxyRepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash");
     Repository repository = new Repository();
     repository.setId("repo1");
     Application application = new Application();
     application.setId("app-1");
-    when(repositoryComponentDAO.getByScanId("scan-1")).thenReturn(component);
+    when(proxyRepositoryComponentDAO.getByScanId("scan-1")).thenReturn(component);
     when(applicationDAO.getByIdNotNull("app-1")).thenReturn(application);
     // Force saveOverlayFiles to throw a checked Exception via lifecycleReportPersistenceService
     // (its saveReportFile declares throws IOException).
@@ -1060,12 +1060,12 @@ public class ReportServiceHostedComponentTest
    */
   @Test
   public void refreshHostedComponentAfterEvaluation_overlayRuntimeException_propagatesAsIs() throws Exception {
-    RepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash");
+    ProxyRepositoryComponent component = newComponent("repo1", "outer.zip", "outerhash");
     Repository repository = new Repository();
     repository.setId("repo1");
     Application application = new Application();
     application.setId("app-1");
-    when(repositoryComponentDAO.getByScanId("scan-1")).thenReturn(component);
+    when(proxyRepositoryComponentDAO.getByScanId("scan-1")).thenReturn(component);
     when(applicationDAO.getByIdNotNull("app-1")).thenReturn(application);
     IllegalStateException runtimeBoom = new IllegalStateException("disk full");
     doThrow(runtimeBoom)

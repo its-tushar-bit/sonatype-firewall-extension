@@ -36,7 +36,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -48,7 +48,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
@@ -58,7 +58,7 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -102,7 +102,7 @@ public class FirewallComponentDetailsPageTest
 
   private MultiLicenseDAO multiLicenseDAO;
 
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private PolicyDAO policyDAO;
 
@@ -141,7 +141,7 @@ public class FirewallComponentDetailsPageTest
   @Before
   public void before() {
     multiLicenseDAO = lookup(MultiLicenseDAO.class);
-    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
     policyDAO = lookup(PolicyDAO.class);
 
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
@@ -293,7 +293,7 @@ public class FirewallComponentDetailsPageTest
     return ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", version, "", "jar");
   }
 
-  private RepositoryComponent createRepositoryComponent(
+  private ProxyRepositoryComponent createRepositoryComponent(
       String hash,
       ComponentIdentifier componentIdentifier,
       Date lastEvaluationTime,
@@ -305,7 +305,7 @@ public class FirewallComponentDetailsPageTest
         componentIdentifier, lastEvaluationTime, quarantineTime);
   }
 
-  private RepositoryPolicyViolation createRepositoryPolicyViolation(
+  private ProxyRepositoryPolicyViolation createRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,
       String pathname,
@@ -322,8 +322,9 @@ public class FirewallComponentDetailsPageTest
       Date waiveTime,
       PolicyThreatCategory policyThreatCategory)
   {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
-        policyName, threatLevel, policyThreatCategory, hash, componentIdentifier, constraintFacts);
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation(repositoryId, pathname, time, policyId,
+            policyName, threatLevel, policyThreatCategory, hash, componentIdentifier, constraintFacts);
     policyViolation.setWaived(isWaived);
     policyViolation.setActionTypeId(actionId);
     policyViolation.setPolicyWaiverId(policyWaiverId);
@@ -333,32 +334,32 @@ public class FirewallComponentDetailsPageTest
     return policyViolation;
   }
 
-  private void policyViolationsTableSetup(RepositoryComponent repositoryComponent) {
-    ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
+  private void policyViolationsTableSetup(ProxyRepositoryComponent proxyRepositoryComponent) {
+    ComponentIdentifier componentIdentifier = proxyRepositoryComponent.getComponentIdentifier();
 
     // Security policies violations
     if (securityHighPolicy != null) {
       ConstraintFact securityConstraintFact = createConstraintFact("constraint1", "Security constraint", "summary",
           "security vulnerability severity >= 9.1");
-      createRepositoryPolicyViolation(repository.getId(), 10, repositoryComponent.getPathname(),
-          repositoryComponent.getHash(), Collections.singletonList(securityConstraintFact), false /* isWaived */,
+      createRepositoryPolicyViolation(repository.getId(), 10, proxyRepositoryComponent.getPathname(),
+          proxyRepositoryComponent.getHash(), Collections.singletonList(securityConstraintFact), false /* isWaived */,
           "fail", securityHighPolicy.getId(), securityHighPolicy.getName(), componentIdentifier, date,
           null /* policyWaiverId */, null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.SECURITY);
     }
     if (securityLowPolicy != null) {
       ConstraintFact securityLowConstraintFact = createConstraintFact("constraint2", "Security-low constraint",
           "summary", "security vulnerability severity >= 4.3");
-      PolicyWaiver policyWaiver = tempEntity.newWaiver(repositoryComponent.getHash(), securityLowPolicy.getId(),
+      PolicyWaiver policyWaiver = tempEntity.newWaiver(proxyRepositoryComponent.getHash(), securityLowPolicy.getId(),
           Organization.ROOT_ORGANIZATION_ID, Collections.singletonList(securityLowConstraintFact),
           "Test comment for waiver");
       // Creating similar waiver
-      tempEntity.newWaiver(repositoryComponent.getHash(), securityLowPolicy.getId(),
+      tempEntity.newWaiver(proxyRepositoryComponent.getHash(), securityLowPolicy.getId(),
           app.getId(), Collections.singletonList(securityLowConstraintFact),
-          PackageUrlIdentifier.toPackageUrl(repositoryComponent.getComponentIdentifier()),
+          PackageUrlIdentifier.toPackageUrl(proxyRepositoryComponent.getComponentIdentifier()),
           ComponentMatcherStrategyForWaiver.ALL_VERSIONS,
           "Test comment for waiver");
-      createRepositoryPolicyViolation(repository.getId(), 6, repositoryComponent.getPathname(),
-          repositoryComponent.getHash(), Collections.singletonList(securityLowConstraintFact), true /* isWaived */,
+      createRepositoryPolicyViolation(repository.getId(), 6, proxyRepositoryComponent.getPathname(),
+          proxyRepositoryComponent.getHash(), Collections.singletonList(securityLowConstraintFact), true /* isWaived */,
           "warn", securityLowPolicy.getId(), securityLowPolicy.getName(), componentIdentifier, date,
           policyWaiver.getId(), policyWaiver.getComment(), date, PolicyThreatCategory.SECURITY);
     }
@@ -367,8 +368,9 @@ public class FirewallComponentDetailsPageTest
     if (licensePolicy != null) {
       ConstraintFact licenseConstraintFact =
           createConstraintFact("constraint3", "LicensePolicy constraint", "summary", "Found license threat group");
-      createRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(),
-          repositoryComponent.getHash(), Collections.singletonList(licenseConstraintFact), true /* isWaived */, "warn",
+      createRepositoryPolicyViolation(repository.getId(), 5, proxyRepositoryComponent.getPathname(),
+          proxyRepositoryComponent.getHash(), Collections.singletonList(licenseConstraintFact), true /* isWaived */,
+          "warn",
           licensePolicy.getId(), licensePolicy.getName(), componentIdentifier, date, null /* policyWaiverId */,
           null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.LICENSE);
     }
@@ -376,8 +378,8 @@ public class FirewallComponentDetailsPageTest
     if (agePolicy != null) {
       ConstraintFact qualityPolicyAgeInDaysConstraintFact = createConstraintFact("constraint5",
           "QualityPolicyAgeInDays constraint", "summary", "Found component younger than 50 days");
-      createRepositoryPolicyViolation(repository.getId(), 4, repositoryComponent.getPathname(),
-          repositoryComponent.getHash(), Collections.singletonList(qualityPolicyAgeInDaysConstraintFact),
+      createRepositoryPolicyViolation(repository.getId(), 4, proxyRepositoryComponent.getPathname(),
+          proxyRepositoryComponent.getHash(), Collections.singletonList(qualityPolicyAgeInDaysConstraintFact),
           false /* isWaived */, "warn", agePolicy.getId(), agePolicy.getName(), componentIdentifier, date,
           null /* policyWaiverId */, null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.QUALITY);
     }
@@ -386,8 +388,8 @@ public class FirewallComponentDetailsPageTest
       // Quality policy violation
       ConstraintFact qualityRelativePopularityConstraintFact = createConstraintFact("constraint4",
           "QualityPolicyRelativePopularity constraint", "summary", "Low popularity");
-      createRepositoryPolicyViolation(repository.getId(), 2, repositoryComponent.getPathname(),
-          repositoryComponent.getHash(), Collections.singletonList(qualityRelativePopularityConstraintFact),
+      createRepositoryPolicyViolation(repository.getId(), 2, proxyRepositoryComponent.getPathname(),
+          proxyRepositoryComponent.getHash(), Collections.singletonList(qualityRelativePopularityConstraintFact),
           false /* isWaived */, "warn", popularityPolicy.getId(), popularityPolicy.getName(), componentIdentifier, date,
           null /* policyWaiverId */, null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.QUALITY);
     }
@@ -396,14 +398,15 @@ public class FirewallComponentDetailsPageTest
     if (coordinatesPolicy != null) {
       ConstraintFact coordinatesConstraintFact = createConstraintFact("constraint6", "CoordinatesPolicy constraint",
           "summary", "Coordinates were com.lingocoder");
-      createRepositoryPolicyViolation(repository.getId(), 1, repositoryComponent.getPathname(),
-          repositoryComponent.getHash(), Collections.singletonList(coordinatesConstraintFact), false /* isWaived */,
+      createRepositoryPolicyViolation(repository.getId(), 1, proxyRepositoryComponent.getPathname(),
+          proxyRepositoryComponent.getHash(), Collections.singletonList(coordinatesConstraintFact),
+          false /* isWaived */,
           "fail", coordinatesPolicy.getId(), coordinatesPolicy.getName(), componentIdentifier, date,
           null /* policyWaiverId */, null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.OTHER);
     }
   }
 
-  private RepositoryComponent setupBaseTestData(String mainComponentLicenseCondition) {
+  private ProxyRepositoryComponent setupBaseTestData(String mainComponentLicenseCondition) {
     ComponentDetails componentDetails1 =
         createComponentDetail("hash1", createComponentIdentifier("0.5.2"), mainComponentLicenseCondition);
     ComponentDetails componentDetails2 =
@@ -411,15 +414,15 @@ public class FirewallComponentDetailsPageTest
     componentDetailsArrayList.add(componentDetails1);
     componentDetailsArrayList.add(componentDetails2);
 
-    RepositoryComponent mainRepositoryComponent =
+    ProxyRepositoryComponent mainRepositoryComponent =
         createRepositoryComponent(componentDetails1.getHash(), componentDetails1.getComponentIdentifier(), date, date);
     createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), date, null);
 
     return mainRepositoryComponent;
   }
 
-  private RepositoryComponent setupAllTestData() {
-    RepositoryComponent mainRepositoryComponent = setupBaseTestData(singleLicense);
+  private ProxyRepositoryComponent setupAllTestData() {
+    ProxyRepositoryComponent mainRepositoryComponent = setupBaseTestData(singleLicense);
 
     riskRemediationSetup(componentDetailsArrayList);
     policyViolationsTableSetup(mainRepositoryComponent);
@@ -450,7 +453,7 @@ public class FirewallComponentDetailsPageTest
   @Test
   public void testTitle() {
     createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
+    ProxyRepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
     firewallComponentDetailsPage.title().should(exist).shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
@@ -459,7 +462,7 @@ public class FirewallComponentDetailsPageTest
   @Test
   public void testComponentOverviewTileFromFirewallDashboard() {
     createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
+    ProxyRepositoryComponent component = setupAllTestData();
     testComponentOverviewTile(FirewallComponentDetailsPage.defaultUrl(component));
   }
 
@@ -487,7 +490,7 @@ public class FirewallComponentDetailsPageTest
   @Test
   public void testComponentPolicyViolationsTileFromFirewallDashboard() {
     createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
+    ProxyRepositoryComponent component = setupAllTestData();
     testComponentPolicyViolationsTile(FirewallComponentDetailsPage.urlViolationsTab(component));
   }
 
@@ -567,7 +570,7 @@ public class FirewallComponentDetailsPageTest
   @Test
   public void testSecurityTabFromFirewallDashboard() {
     createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
+    ProxyRepositoryComponent component = setupAllTestData();
     String url = FirewallComponentDetailsPage.urlSecurityTab(component);
     testSecurityTabSecurityViolationsTable(url);
     testSecurityTabVulnerabilitiesTable(url);

@@ -13,16 +13,16 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 /**
- * Postgres flavor of {@link RepositoryComponentDAOTest}.
+ * Postgres flavor of {@link ProxyRepositoryComponentDAOTest}.
  *
  * <p>
  * Exists because the H2 and Postgres branches of
- * {@link RepositoryComponentDAO#getMonitoringEligiblePage} diverge: H2 uses a 3-pass
+ * {@link ProxyRepositoryComponentDAO#getMonitoringEligiblePage} diverge: H2 uses a 3-pass
  * GROUP-BY + self-JOIN dedup, while Postgres uses a {@code NOT EXISTS} anti-join driven by the
  * {@code repository_component_dedup_keyset_idx} composite index on
- * {@code (repository_id, hash, time DESC, repository_component_id DESC)} — one index, dual use
+ * {@code (repository_id, hash, time DESC, proxy_repository_component_id DESC)} — one index, dual use
  * (outer driver scan + inner anti-join probe). The cursor predicate
- * {@code (time, repository_component_id) < (cursor.time, cursor.id)} — expressed via jOOQ
+ * {@code (time, proxy_repository_component_id) < (cursor.time, cursor.id)} — expressed via jOOQ
  * {@code DSL.row(...).lessThan(DSL.row(...))} — must produce identical row order, dedup, and
  * no-skip-under-concurrent-insert behavior on both dialects (CLM-41005 acceptance criterion).
  *
@@ -36,8 +36,8 @@ import org.junit.experimental.categories.Category;
  */
 @PostgresTest
 @Category(PostgresTestCategory.class)
-public class RepositoryComponentDAOPostgresTest
-    extends RepositoryComponentDAOTest
+public class ProxyRepositoryComponentDAOPostgresTest
+    extends ProxyRepositoryComponentDAOTest
 {
   /**
    * Inherited from the parent test class but specific to the H2 dialect — it asserts

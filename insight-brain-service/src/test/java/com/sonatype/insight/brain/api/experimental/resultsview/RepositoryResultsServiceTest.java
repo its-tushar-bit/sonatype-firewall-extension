@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -1027,8 +1027,9 @@ public class RepositoryResultsServiceTest
   @Test
   public void testGetDetails_Repository_UnknownComponent_WithPolicyViolation() {
     repository = tempEntity.newRepository();
-    RepositoryComponent unknownComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
-        "testpathname", null /* componentIdentifier */, false);
+    ProxyRepositoryComponent unknownComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
+            "testpathname", null /* componentIdentifier */, false);
     tempEntity.newRepositoryPolicyViolation(unknownComponent, "testPolicyId");
 
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();

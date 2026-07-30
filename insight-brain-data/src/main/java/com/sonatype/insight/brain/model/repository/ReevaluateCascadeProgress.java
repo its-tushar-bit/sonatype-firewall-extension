@@ -35,8 +35,8 @@ public class ReevaluateCascadeProgress
   @Column(name = "repository_id", nullable = false)
   private String repositoryId;
 
-  @Column(name = "repository_component_id", nullable = false)
-  private String repositoryComponentId;
+  @Column(name = "proxy_repository_component_id", nullable = false)
+  private String proxyRepositoryComponentId;
 
   @Column(name = "quarantined")
   private Boolean quarantined;
@@ -52,12 +52,12 @@ public class ReevaluateCascadeProgress
   public ReevaluateCascadeProgress(
       String reevaluateCascadeRequestId,
       String repositoryId,
-      String repositoryComponentId,
+      String proxyRepositoryComponentId,
       ReevaluateCascadeProgressStatus status)
   {
     this.reevaluateCascadeRequestId = reevaluateCascadeRequestId;
     this.repositoryId = repositoryId;
-    this.repositoryComponentId = repositoryComponentId;
+    this.proxyRepositoryComponentId = proxyRepositoryComponentId;
     this.status = status;
   }
 
@@ -87,12 +87,12 @@ public class ReevaluateCascadeProgress
     this.repositoryId = repositoryId;
   }
 
-  public String getRepositoryComponentId() {
-    return repositoryComponentId;
+  public String getProxyRepositoryComponentId() {
+    return proxyRepositoryComponentId;
   }
 
-  public void setRepositoryComponentId(String repositoryComponentId) {
-    this.repositoryComponentId = repositoryComponentId;
+  public void setProxyRepositoryComponentId(String proxyRepositoryComponentId) {
+    this.proxyRepositoryComponentId = proxyRepositoryComponentId;
   }
 
   public Boolean isQuarantined() {

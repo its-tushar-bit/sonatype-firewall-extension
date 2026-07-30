@@ -16,12 +16,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationReq
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList.ApiRepositoryComponentEvaluationResult;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -32,10 +32,10 @@ public class ApiComponentDetailsAdapterTest
     extends AbstractComponentTest
 {
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private RepositoryManagerDAO repositoryManagerDAO;
@@ -47,16 +47,16 @@ public class ApiComponentDetailsAdapterTest
   public void convertToDTO_multipleComponents_returnsOrderedResultsWithMixedState() {
     Repository repository = tempEntity.newRepository();
 
-    RepositoryComponent componentA =
+    ProxyRepositoryComponent componentA =
         tempEntity.newRepositoryComponent(repository.getId(), "/a", null, null);
-    RepositoryPolicyViolation violationA =
+    ProxyRepositoryPolicyViolation violationA =
         tempEntity.newRepositoryPolicyViolation(componentA, 7, false, "Policy A", null);
 
     Date quarantineTimeB = new Date();
-    RepositoryComponent componentB =
+    ProxyRepositoryComponent componentB =
         tempEntity.newRepositoryComponent(repository.getId(), "/b", quarantineTimeB, null);
 
-    RepositoryComponent componentC =
+    ProxyRepositoryComponent componentC =
         tempEntity.newRepositoryComponent(repository.getId(), "/c", null, null);
 
     ApiRepositoryComponentEvaluationRequestList requestList =
@@ -119,9 +119,9 @@ public class ApiComponentDetailsAdapterTest
   public void convertToDTO_nullPathnameEntry_returnsEmptyResultRow() {
     Repository repository = tempEntity.newRepository();
 
-    RepositoryComponent componentX =
+    ProxyRepositoryComponent componentX =
         tempEntity.newRepositoryComponent(repository.getId(), "/x", null, null);
-    RepositoryComponent componentZ =
+    ProxyRepositoryComponent componentZ =
         tempEntity.newRepositoryComponent(repository.getId(), "/z", null, null);
 
     ApiRepositoryComponentEvaluationRequestList requestList =

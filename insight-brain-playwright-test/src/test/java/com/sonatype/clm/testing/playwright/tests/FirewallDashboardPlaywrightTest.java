@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -489,7 +489,7 @@ public class FirewallDashboardPlaywrightTest
         ComponentIdentifier.createMavenCoordinates("tabs-grp" + suffix, tabsQuarantineArtifactId,
             DATA.componentVersion());
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(
         repo.getId(), MatchState.EXACT, "tabs-path" + suffix, uuid.substring(0, 8), identifier, now, now);
     tempEntity.newRepositoryPolicyViolation(
         component.getRepositoryId(), DATA.violationThreatLevel(), component.getPathname(), false,
@@ -544,14 +544,14 @@ public class FirewallDashboardPlaywrightTest
         ComponentIdentifier.createMavenCoordinates(DATA.betaComponentGroup(), filterBetaArtifactId,
             DATA.componentVersion());
 
-    RepositoryComponent c1 = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent c1 = tempEntity.newRepositoryComponent(
         repoAlpha.getId(), MatchState.EXACT, "path-alpha" + suffix, "ha" + uuid.substring(0, 8), identifierAlpha, now,
         now);
     tempEntity.newRepositoryPolicyViolation(
         c1.getRepositoryId(), DATA.violationThreatLevel(), c1.getPathname(), false,
         FailActionType.ID, policyAlpha.getId(), filterAlphaPolicyName, c1.getComponentIdentifier());
 
-    RepositoryComponent c2 = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent c2 = tempEntity.newRepositoryComponent(
         repoBeta.getId(), MatchState.EXACT, "path-beta" + suffix, "hb" + uuid.substring(0, 8), identifierBeta, now,
         oldDate);
     tempEntity.newRepositoryPolicyViolation(
@@ -573,7 +573,7 @@ public class FirewallDashboardPlaywrightTest
     ComponentIdentifier identifier =
         ComponentIdentifier.createMavenCoordinates("nav-grp" + suffix, navLinkArtifactId, DATA.componentVersion());
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(
         repo.getId(), MatchState.EXACT, "nav-path" + suffix, uuid.substring(0, 8), identifier, now, now);
     tempEntity.newRepositoryPolicyViolation(
         component.getRepositoryId(), DATA.violationThreatLevel(), component.getPathname(), false,
@@ -602,13 +602,13 @@ public class FirewallDashboardPlaywrightTest
         ComponentIdentifier.createMavenCoordinates("qs-zzz-grp" + suffix, "qs-zzz-art" + suffix,
             DATA.componentVersion());
 
-    RepositoryComponent cAaa = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent cAaa = tempEntity.newRepositoryComponent(
         repo.getId(), MatchState.EXACT, "qs-path-aaa" + suffix, "ha" + uuid.substring(0, 8), identifierAaa, now, now);
     tempEntity.newRepositoryPolicyViolation(
         cAaa.getRepositoryId(), DATA.violationThreatLevel(), cAaa.getPathname(), false,
         FailActionType.ID, policyAaa.getId(), sortAaaPolicyActualName, cAaa.getComponentIdentifier(), now);
 
-    RepositoryComponent cZzz = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent cZzz = tempEntity.newRepositoryComponent(
         repo.getId(), MatchState.EXACT, "qs-path-zzz" + suffix, "hz" + uuid.substring(0, 8), identifierZzz, now,
         sevenDaysAgo);
     tempEntity.newRepositoryPolicyViolation(
@@ -630,7 +630,7 @@ public class FirewallDashboardPlaywrightTest
     ComponentIdentifier identifier =
         ComponentIdentifier.createMavenCoordinates("zt-grp" + suffix, zeroThreatArtifactId, DATA.componentVersion());
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(
         repo.getId(), MatchState.EXACT, "zt-path" + suffix, uuid.substring(0, 8), identifier, now, now);
     tempEntity.newRepositoryPolicyViolation(
         component.getRepositoryId(), 0, component.getPathname(), false,
@@ -667,14 +667,14 @@ public class FirewallDashboardPlaywrightTest
         ComponentIdentifier.createMavenCoordinates("ml-mal-grp" + suffix, metricsMaliciousArtifactId,
             DATA.componentVersion());
 
-    RepositoryComponent cNs = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent cNs = tempEntity.newRepositoryComponent(
         repo.getId(), MatchState.EXACT, "ml-ns-path" + suffix, "hn" + uuid.substring(0, 8), identifierNs, now, now);
     tempEntity.newRepositoryPolicyViolation(
         cNs.getRepositoryId(), DATA.namespaceThreatLevel(), cNs.getPathname(), false,
         FailActionType.ID, namespacePolicy.getId(), namespacePolicyName,
         cNs.getComponentIdentifier());
 
-    RepositoryComponent cMal = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent cMal = tempEntity.newRepositoryComponent(
         repo.getId(), MatchState.EXACT, "ml-mal-path" + suffix, "hm" + uuid.substring(0, 8), identifierMal, now, now);
     tempEntity.newRepositoryPolicyViolation(
         cMal.getRepositoryId(), DATA.maliciousThreatLevel(), cMal.getPathname(), false,

@@ -55,7 +55,7 @@ public sealed interface ClusterLockId
     if (repositoryId == null || componentPathname == null) {
       throw new NullPointerException("Repository ID and component pathname must not be null");
     }
-    return new CompoundId(CompoundIdClass.REPOSITORY_COMPONENT, repositoryId + "-" + componentPathname);
+    return new CompoundId(CompoundIdClass.PROXY_REPOSITORY_COMPONENT, repositoryId + "-" + componentPathname);
   }
 
   static ClusterLockId forRepositoryReevaluation(String repositoryId) {
@@ -124,7 +124,7 @@ public sealed interface ClusterLockId
     // 2164260864 - 2181038079
     POLICY_VIOLATION_AGGREGATIONS,
     // 2181038080 - 2197815295
-    REPOSITORY_COMPONENT,
+    PROXY_REPOSITORY_COMPONENT,
     // 2197815296 - 2214592511
     REPOSITORY_REEVALUATION,
     // 2214592512 - 2231369727

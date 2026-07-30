@@ -44,7 +44,7 @@ public class IgnoredRepositoryComponentCleaner
   // Visible for testing
   static final String TASK_NAME = "IgnoredRepositoryComponentCleaner";
 
-  private final RepositoryComponentDeleteService repositoryComponentDeleteService;
+  private final ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService;
 
   private final RepositoryDAO repositoryDAO;
 
@@ -54,12 +54,12 @@ public class IgnoredRepositoryComponentCleaner
 
   @Inject
   public IgnoredRepositoryComponentCleaner(
-      RepositoryComponentDeleteService repositoryComponentDeleteService,
+      ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService,
       RepositoryDAO repositoryDAO,
       MigrationTrackerDAO migrationTrackerDAO,
       TaskScheduler taskScheduler)
   {
-    this.repositoryComponentDeleteService = repositoryComponentDeleteService;
+    this.proxyRepositoryComponentDeleteService = proxyRepositoryComponentDeleteService;
     this.repositoryDAO = repositoryDAO;
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.taskScheduler = taskScheduler;
@@ -90,7 +90,7 @@ public class IgnoredRepositoryComponentCleaner
     long start = System.currentTimeMillis();
     log.debug("Deleting ignored repository components...");
     List<Repository> repositories = repositoryDAO.getAll();
-    repositories.forEach(repositoryComponentDeleteService::deleteUnknownIgnoredComponents);
+    repositories.forEach(proxyRepositoryComponentDeleteService::deleteUnknownIgnoredComponents);
     migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
     log.info("Deleted ignored repository components for {} repositories in {} ms.", repositories.size(),
         System.currentTimeMillis() - start);

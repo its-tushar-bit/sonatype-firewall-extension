@@ -618,8 +618,8 @@ CREATE TABLE repository (
   CONSTRAINT repository_related_organization_fk FOREIGN KEY (related_organization_id) REFERENCES organization(organization_id) ON DELETE SET NULL
 );
 
-CREATE TABLE repository_component (
-  repository_component_id varchar(50) NOT NULL,
+CREATE TABLE proxy_repository_component (
+  proxy_repository_component_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
   pathname varchar(1000) NOT NULL,
   time timestamp NOT NULL,
@@ -638,26 +638,26 @@ CREATE TABLE repository_component (
   last_evaluation_stage varchar(50),
   scan_id varchar(50),
   component_count integer,
-  CONSTRAINT repository_component_pk PRIMARY KEY (repository_component_id),
-  CONSTRAINT repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
-  CONSTRAINT repository_component_uk UNIQUE (repository_id, pathname)
+  CONSTRAINT proxy_repository_component_pk PRIMARY KEY (proxy_repository_component_id),
+  CONSTRAINT proxy_repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
+  CONSTRAINT proxy_repository_component_uk UNIQUE (repository_id, pathname)
 );
-CREATE INDEX repository_component_hash_idx ON repository_component(hash);
-CREATE INDEX repository_component_repository_unquarantine_idx ON repository_component(repository_id, unquarantine_time);
-CREATE INDEX repository_component_quarantine_idx ON repository_component(repository_id, quarantine_time);
-CREATE INDEX repository_component_release_quarantine_idx ON repository_component (quarantine_time, unquarantine_time, auto_unquarantined);
-CREATE INDEX repository_component_component_coordinates_idx ON repository_component (component_id_format, component_id_coordinates_json);
-CREATE INDEX repository_component_scan_id_idx ON repository_component(scan_id);
+CREATE INDEX proxy_repository_component_hash_idx ON proxy_repository_component(hash);
+CREATE INDEX proxy_repository_component_repository_unquarantine_idx ON proxy_repository_component(repository_id, unquarantine_time);
+CREATE INDEX proxy_repository_component_quarantine_idx ON proxy_repository_component(repository_id, quarantine_time);
+CREATE INDEX proxy_repository_component_release_quarantine_idx ON proxy_repository_component (quarantine_time, unquarantine_time, auto_unquarantined);
+CREATE INDEX proxy_repository_component_component_coordinates_idx ON proxy_repository_component (component_id_format, component_id_coordinates_json);
+CREATE INDEX proxy_repository_component_scan_id_idx ON proxy_repository_component(scan_id);
 -- Plain index on component_id for fresh installs (H2 + PostgreSQL compatible).
 -- Upgrading installations get the engine-specific variant via schema_incremental_0470
 -- (.pg.sql uses a partial WHERE predicate for storage efficiency on PostgreSQL;
 -- .h2.sql uses a plain index since H2 does not support partial indexes).
-CREATE INDEX idx_repository_component_component_id ON repository_component(component_id);
-CREATE INDEX repository_component_last_evaluation_time_idx ON repository_component(last_evaluation_time);
-CREATE INDEX repository_component_dedup_keyset_idx ON repository_component (repository_id, hash, time DESC, repository_component_id DESC);
+CREATE INDEX idx_proxy_repository_component_component_id ON proxy_repository_component(component_id);
+CREATE INDEX proxy_repository_component_last_evaluation_time_idx ON proxy_repository_component(last_evaluation_time);
+CREATE INDEX proxy_repository_component_dedup_keyset_idx ON proxy_repository_component (repository_id, hash, time DESC, proxy_repository_component_id DESC);
 
-CREATE TABLE repository_policy_violation (
-  repository_policy_violation_id varchar(50) NOT NULL,
+CREATE TABLE proxy_repository_policy_violation (
+  proxy_repository_policy_violation_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
   pathname varchar(1000) NOT NULL,
   time timestamp NOT NULL,
@@ -678,13 +678,13 @@ CREATE TABLE repository_policy_violation (
   constraint_facts_id varchar(20),
   component_id varchar(255),
 
-  CONSTRAINT repository_policy_violation_pk PRIMARY KEY (repository_policy_violation_id),
-  CONSTRAINT repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
-  CONSTRAINT repository_policy_violation_constraint_facts_id_fk FOREIGN KEY (constraint_facts_id)
+  CONSTRAINT proxy_repository_policy_violation_pk PRIMARY KEY (proxy_repository_policy_violation_id),
+  CONSTRAINT proxy_repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
+  CONSTRAINT proxy_repository_policy_violation_constraint_facts_id_fk FOREIGN KEY (constraint_facts_id)
       REFERENCES policy_violation_constraint_facts(policy_violation_constraint_facts_id)
 );
-CREATE INDEX repository_policy_violation_pathname_idx ON repository_policy_violation(pathname);
-CREATE INDEX repository_policy_violation_repository_id_idx ON repository_policy_violation(repository_id);
+CREATE INDEX proxy_repository_policy_violation_pathname_idx ON proxy_repository_policy_violation(pathname);
+CREATE INDEX proxy_repository_policy_violation_repository_id_idx ON proxy_repository_policy_violation(repository_id);
 
 CREATE TABLE proprietary_component_name_pattern (
   proprietary_component_name_pattern_id varchar(50) NOT NULL,
@@ -1093,13 +1093,13 @@ CREATE TABLE reevaluate_cascade_progress
   reevaluate_cascade_progress_id varchar(50) NOT NULL,
   reevaluate_cascade_request_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
-  repository_component_id varchar(50) NOT NULL,
+  proxy_repository_component_id varchar(50) NOT NULL,
   quarantined boolean,
   status varchar(20) NOT NULL,
   CONSTRAINT reevaluate_cascade_progress_pk PRIMARY KEY (reevaluate_cascade_progress_id),
   CONSTRAINT reevaluate_cascade_request_id_fk FOREIGN KEY (reevaluate_cascade_request_id) REFERENCES reevaluate_cascade_request(reevaluate_cascade_request_id) ON DELETE CASCADE,
   CONSTRAINT repository_id_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id) ON DELETE CASCADE,
-  CONSTRAINT repository_component_id_fk FOREIGN KEY (repository_component_id) REFERENCES repository_component(repository_component_id) ON DELETE CASCADE
+  CONSTRAINT proxy_repository_component_id_fk FOREIGN KEY (proxy_repository_component_id) REFERENCES proxy_repository_component(proxy_repository_component_id) ON DELETE CASCADE
 );
 
 -- Since 1.114
@@ -1369,13 +1369,13 @@ CREATE TABLE attribution_report_template (
 CREATE TABLE quarantined_component_access (
   quarantined_component_access_id varchar(50) NOT NULL PRIMARY KEY,
   repository_id varchar(50) NOT NULL,
-  repository_component_id varchar(50) NOT NULL,
+  proxy_repository_component_id varchar(50) NOT NULL,
   generate_time timestamp NOT NULL,
   CONSTRAINT quarantined_component_access_repository_fk FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
-  CONSTRAINT quarantined_component_access_repository_component_fk FOREIGN KEY (repository_component_id) REFERENCES repository_component (repository_component_id)
+  CONSTRAINT quarantined_component_access_proxy_repository_component_fk FOREIGN KEY (proxy_repository_component_id) REFERENCES proxy_repository_component (proxy_repository_component_id)
 );
 CREATE INDEX quarantined_component_access_repository_id_idx ON quarantined_component_access(repository_id);
-CREATE INDEX quarantined_component_access_repository_component_id_idx ON quarantined_component_access(repository_component_id);
+CREATE INDEX quarantined_component_access_proxy_repository_component_id_idx ON quarantined_component_access(proxy_repository_component_id);
 
 -- Since 1.127
 CREATE TABLE repository_client_configuration

@@ -31,7 +31,7 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedComponentScanQueue.HOSTED_COMPONENT_SCAN_QUEUE;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryComponent.REPOSITORY_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryComponent.PROXY_REPOSITORY_COMPONENT;
 import static org.jooq.impl.DSL.count;
 
 @Named
@@ -269,7 +269,7 @@ public class HostedComponentScanQueueDAO
 
   /**
    * Deletes a repository's PENDING backlog, keyed on the queue's own {@code repository_id} rather than joined
-   * through {@code repository_component} so not-yet-evaluated entries (no component row) are also removed
+   * through {@code proxy_repository_component} so not-yet-evaluated entries (no component row) are also removed
    * (CLM-42122). Batched to bound lock duration; IN_PROGRESS is left to complete.
    */
   public int deletePendingByRepositoryId(final String repositoryId) {
@@ -329,10 +329,10 @@ public class HostedComponentScanQueueDAO
         .deleteFrom(HOSTED_COMPONENT_SCAN_QUEUE)
         .where(HOSTED_COMPONENT_SCAN_QUEUE.COMPONENT_ID.in(
             tx.dsl()
-                .select(REPOSITORY_COMPONENT.COMPONENT_ID)
-                .from(REPOSITORY_COMPONENT)
-                .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId)
-                    .and(REPOSITORY_COMPONENT.COMPONENT_ID.isNotNull()))))
+                .select(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID)
+                .from(PROXY_REPOSITORY_COMPONENT)
+                .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId)
+                    .and(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID.isNotNull()))))
         .execute();
   }
 

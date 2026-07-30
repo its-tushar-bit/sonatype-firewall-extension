@@ -17,7 +17,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabel
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -47,7 +47,7 @@ public class FirewallComponentDetailsPage
     super(ROOT);
   }
 
-  private static String getBaseUrl(RepositoryComponent component, String tabId, boolean fromFirewallRoute) {
+  private static String getBaseUrl(ProxyRepositoryComponent component, String tabId, boolean fromFirewallRoute) {
     ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
     try {
       String componentIdentifierJSONString =
@@ -63,47 +63,47 @@ public class FirewallComponentDetailsPage
     }
   }
 
-  public static String defaultUrlFromRepositoryResultsView(RepositoryComponent component) {
+  public static String defaultUrlFromRepositoryResultsView(ProxyRepositoryComponent component) {
     return getBaseUrl(component, NO_TAB_ID, false);
   }
 
-  public static String defaultUrl(RepositoryComponent component) {
+  public static String defaultUrl(ProxyRepositoryComponent component) {
     return getBaseUrl(component, NO_TAB_ID, true);
   }
 
-  public static String urlViolationsTabFromRepositoryResultsView(RepositoryComponent component) {
+  public static String urlViolationsTabFromRepositoryResultsView(ProxyRepositoryComponent component) {
     return getBaseUrl(component, VIOLATIONS_TAB_ID, false);
   }
 
-  public static String urlViolationsTab(RepositoryComponent component) {
+  public static String urlViolationsTab(ProxyRepositoryComponent component) {
     return getBaseUrl(component, VIOLATIONS_TAB_ID, true);
   }
 
-  public static String overviewTab(RepositoryComponent component) {
+  public static String overviewTab(ProxyRepositoryComponent component) {
     return getBaseUrl(component, OVERVIEW_TAB_ID, true);
   }
 
-  public static String urlSecurityTab(RepositoryComponent component) {
+  public static String urlSecurityTab(ProxyRepositoryComponent component) {
     return getBaseUrl(component, SECURITY_TAB_ID, true);
   }
 
-  public static String urlSecurityTabFromRepositoryResultsView(RepositoryComponent component) {
+  public static String urlSecurityTabFromRepositoryResultsView(ProxyRepositoryComponent component) {
     return getBaseUrl(component, SECURITY_TAB_ID, false);
   }
 
-  public static String urlLegalTab(RepositoryComponent component) {
+  public static String urlLegalTab(ProxyRepositoryComponent component) {
     return getBaseUrl(component, LEGAL_TAB_ID, true);
   }
 
-  public static String urlLegalTabFromRepositoryResultsView(RepositoryComponent component) {
+  public static String urlLegalTabFromRepositoryResultsView(ProxyRepositoryComponent component) {
     return getBaseUrl(component, LEGAL_TAB_ID, false);
   }
 
-  public static String urlLabelsTab(RepositoryComponent component) {
+  public static String urlLabelsTab(ProxyRepositoryComponent component) {
     return getBaseUrl(component, LABELS_TAB_ID, true);
   }
 
-  public static String urlLabelsTabFromRepositoryResultsView(RepositoryComponent component) {
+  public static String urlLabelsTabFromRepositoryResultsView(ProxyRepositoryComponent component) {
     return getBaseUrl(component, LABELS_TAB_ID, false);
   }
 

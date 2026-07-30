@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetry.ConditionTelemetry;
@@ -62,20 +62,20 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setHash("HASH");
     final PolicyWaiverReason policyWaiverReason = null;
 
-    final RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
-    repositoryPolicyViolation.setThreatLevel(5);
-    repositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
-    repositoryPolicyViolation.setActionTypeId("fail");
-    repositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
-    repositoryPolicyViolation
+    final ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = new ProxyRepositoryPolicyViolation();
+    proxyRepositoryPolicyViolation.setThreatLevel(5);
+    proxyRepositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
+    proxyRepositoryPolicyViolation.setActionTypeId("fail");
+    proxyRepositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
+    proxyRepositoryPolicyViolation
         .setComponentIdentifier(new ComponentIdentifier("npm", ImmutableMap.of("packageId", "value")));
-    repositoryPolicyViolation.setTime(new Date());
+    proxyRepositoryPolicyViolation.setTime(new Date());
 
     // when: telemetry is sent
-    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
+    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, proxyRepositoryPolicyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryForRepository(policyWaiver, policyWaiverReason, repositoryPolicyViolation);
+    assertTelemetryForRepository(policyWaiver, policyWaiverReason, proxyRepositoryPolicyViolation);
   }
 
   @Test
@@ -91,20 +91,20 @@ public class PolicyWaiverTelemetryCreatorTest
     var policyWaiverReason = policyWaiverReasonDAO.getAll().get(0);
     policyWaiver.setWaiverReasonId(policyWaiverReason.getId());
 
-    final RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
-    repositoryPolicyViolation.setThreatLevel(5);
-    repositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
-    repositoryPolicyViolation.setActionTypeId("fail");
-    repositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
-    repositoryPolicyViolation
+    final ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = new ProxyRepositoryPolicyViolation();
+    proxyRepositoryPolicyViolation.setThreatLevel(5);
+    proxyRepositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
+    proxyRepositoryPolicyViolation.setActionTypeId("fail");
+    proxyRepositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
+    proxyRepositoryPolicyViolation
         .setComponentIdentifier(new ComponentIdentifier("npm", ImmutableMap.of("packageId", "value")));
-    repositoryPolicyViolation.setTime(new Date());
+    proxyRepositoryPolicyViolation.setTime(new Date());
 
     // when: telemetry is sent
-    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
+    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, proxyRepositoryPolicyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryForRepository(policyWaiver, policyWaiverReason, repositoryPolicyViolation);
+    assertTelemetryForRepository(policyWaiver, policyWaiverReason, proxyRepositoryPolicyViolation);
   }
 
   @Test
@@ -118,20 +118,20 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setHash("HASH");
     final PolicyWaiverReason policyWaiverReason = null;
 
-    final RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
-    repositoryPolicyViolation.setThreatLevel(5);
-    repositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
-    repositoryPolicyViolation.setActionTypeId("fail");
-    repositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
-    repositoryPolicyViolation
+    final ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = new ProxyRepositoryPolicyViolation();
+    proxyRepositoryPolicyViolation.setThreatLevel(5);
+    proxyRepositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
+    proxyRepositoryPolicyViolation.setActionTypeId("fail");
+    proxyRepositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
+    proxyRepositoryPolicyViolation
         .setComponentIdentifier(new ComponentIdentifier("npm", ImmutableMap.of("packageId", "value")));
-    repositoryPolicyViolation.setTime(null);
+    proxyRepositoryPolicyViolation.setTime(null);
 
     // when: telemetry is sent
-    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
+    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, proxyRepositoryPolicyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryForRepository(policyWaiver, policyWaiverReason, repositoryPolicyViolation);
+    assertTelemetryForRepository(policyWaiver, policyWaiverReason, proxyRepositoryPolicyViolation);
   }
 
   @Test
@@ -145,19 +145,19 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setHash("HASH");
     final PolicyWaiverReason policyWaiverReason = null;
 
-    final RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
-    repositoryPolicyViolation.setThreatLevel(5);
-    repositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
-    repositoryPolicyViolation.setActionTypeId("fail");
-    repositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
-    repositoryPolicyViolation.setComponentIdentifier(null);
-    repositoryPolicyViolation.setTime(new Date());
+    final ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = new ProxyRepositoryPolicyViolation();
+    proxyRepositoryPolicyViolation.setThreatLevel(5);
+    proxyRepositoryPolicyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
+    proxyRepositoryPolicyViolation.setActionTypeId("fail");
+    proxyRepositoryPolicyViolation.setConstraintFacts(createConstraintFacts());
+    proxyRepositoryPolicyViolation.setComponentIdentifier(null);
+    proxyRepositoryPolicyViolation.setTime(new Date());
 
     // when: telemetry is sent
-    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
+    telemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, proxyRepositoryPolicyViolation);
 
     // then: expected telemetry entries are sent
-    assertTelemetryForRepository(policyWaiver, policyWaiverReason, repositoryPolicyViolation);
+    assertTelemetryForRepository(policyWaiver, policyWaiverReason, proxyRepositoryPolicyViolation);
   }
 
   @Test
@@ -314,7 +314,7 @@ public class PolicyWaiverTelemetryCreatorTest
   private void assertTelemetryForRepository(
       final PolicyWaiver policyWaiver,
       final PolicyWaiverReason policyWaiverReason,
-      final RepositoryPolicyViolation policyViolation)
+      final ProxyRepositoryPolicyViolation policyViolation)
   {
     final PolicyViolationTelemetry policyViolationTelemetry =
         new PolicyViolationTelemetry(policyViolation.getConstraintFacts(), policyViolation.getActionTypeId(),

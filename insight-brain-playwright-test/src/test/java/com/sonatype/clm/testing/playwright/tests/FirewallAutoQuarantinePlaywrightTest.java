@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -132,26 +132,26 @@ public class FirewallAutoQuarantinePlaywrightTest
 
     // Quarantined: quarantineTime set, unquarantineTime null → appears in the quarantine table.
     // The quarantine list query requires action_type_id = 'fail', so FailActionType.ID is mandatory.
-    RepositoryComponent c1 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent c1 = tempEntity.newRepositoryComponent(repository.getId(),
         COMPONENT_COORDINATE_1, date1, null, false);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), VIOLATION_COUNT,
         c1.getPathname(), false, FailActionType.ID, policy.getId(), POLICY_NAME,
         c1.getComponentIdentifier());
 
-    RepositoryComponent c2 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent c2 = tempEntity.newRepositoryComponent(repository.getId(),
         COMPONENT_COORDINATE_2, date2, null, false);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), VIOLATION_COUNT,
         c2.getPathname(), false, FailActionType.ID, policy.getId(), POLICY_NAME,
         c2.getComponentIdentifier());
 
     // Not quarantined: quarantineTime = null → must NOT appear in the quarantine table.
-    RepositoryComponent c3 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent c3 = tempEntity.newRepositoryComponent(repository.getId(),
         COMPONENT_COORDINATE_3);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), VIOLATION_COUNT,
         c3.getPathname(), false, FailActionType.ID, policy.getId(), POLICY_NAME,
         c3.getComponentIdentifier());
 
-    RepositoryComponent c4 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent c4 = tempEntity.newRepositoryComponent(repository.getId(),
         COMPONENT_COORDINATE_4);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), VIOLATION_COUNT,
         c4.getPathname(), false, FailActionType.ID, policy.getId(), POLICY_NAME,

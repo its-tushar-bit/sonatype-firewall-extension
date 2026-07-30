@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.jaxrs.JsonUtils;
@@ -51,7 +51,7 @@ public class ApiRepositoryComponentResourceTest
   @Test
   public void testDeleteComponents_FeatureDisabled() throws Exception {
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
-    RepositoryComponent component =
+    ProxyRepositoryComponent component =
         tempEntity.newRepositoryComponentWithComponentId(hostedRepo.getId(), "test-nxrm-id-1");
 
     HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getComponentId()))).delete();
@@ -61,7 +61,7 @@ public class ApiRepositoryComponentResourceTest
 
   @Test
   public void testDeleteComponents_Success() throws Exception {
-    RepositoryComponent component =
+    ProxyRepositoryComponent component =
         tempEntity.newRepositoryComponentWithComponentId(hostedRepo.getId(), "test-nxrm-id-1");
 
     HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getComponentId()))).delete();
@@ -135,7 +135,7 @@ public class ApiRepositoryComponentResourceTest
   public void testDeleteComponents_ProxyRepoComponent_Returns404() throws Exception {
     Repository proxyRepo =
         tempEntity.newProxyRepository(repositoryManager, "proxy-repo", "maven2", false, false);
-    RepositoryComponent proxyComponent =
+    ProxyRepositoryComponent proxyComponent =
         tempEntity.newRepositoryComponentWithComponentId(proxyRepo.getId(), "test-nxrm-proxy-id");
 
     HttpResponse response =

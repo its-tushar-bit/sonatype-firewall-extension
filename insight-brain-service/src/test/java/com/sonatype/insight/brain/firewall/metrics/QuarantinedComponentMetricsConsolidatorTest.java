@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -41,7 +41,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
   private FirewallMetricsDAO firewallMetricsDAOTest;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAOTest;
+  private ProxyRepositoryComponentDAO repositoryComponentDAOTest;
 
   @Inject
   private QuarantinedComponentMetricsConsolidator consolidator;
@@ -252,7 +252,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
 
     hoursForDateInThePast.forEach(dateTime -> {
       Repository newRepo = tempEntity.newRepository();
-      RepositoryComponent newRepositoryComponent = tempEntity
+      ProxyRepositoryComponent newRepositoryComponent = tempEntity
           .newRepositoryComponent(newRepo.getId());
       newRepositoryComponent.setQuarantineTime(dateTime);
       repositoryComponentDAOTest.update(newRepositoryComponent);

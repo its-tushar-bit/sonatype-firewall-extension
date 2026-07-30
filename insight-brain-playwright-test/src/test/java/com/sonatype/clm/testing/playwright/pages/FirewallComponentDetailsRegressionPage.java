@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.playwright.pages;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,11 +29,11 @@ public class FirewallComponentDetailsRegressionPage
   public FirewallComponentDetailsRegressionPage() {
   }
 
-  public static String urlViolationsTab(RepositoryComponent component) {
+  public static String urlViolationsTab(ProxyRepositoryComponent component) {
     return buildComponentDetailsUrl(component, "violations");
   }
 
-  private static String buildComponentDetailsUrl(RepositoryComponent component, String tabId) {
+  private static String buildComponentDetailsUrl(ProxyRepositoryComponent component, String tabId) {
     try {
       String componentIdentifierJson =
           URLEncoder.encode(OBJECT_MAPPER.writeValueAsString(component.getComponentIdentifier()),

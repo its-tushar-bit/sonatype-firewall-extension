@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -146,21 +146,21 @@ public class FirewallPagePlaywrightTest
     Date date1 = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
     Date date2 = Date.from(LocalDateTime.now().withDayOfMonth(2).toInstant(offset));
 
-    RepositoryComponent c1 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent c1 = tempEntity.newRepositoryComponent(repository.getId(),
         COMPONENT_COORDINATE_1, date1, date1, true);
     tempEntity.newRepositoryPolicyViolation(c1, policy.getId());
 
-    RepositoryComponent c2 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent c2 = tempEntity.newRepositoryComponent(repository.getId(),
         COMPONENT_COORDINATE_2, date2, date2, true);
     tempEntity.newRepositoryPolicyViolation(c2, policy.getId());
 
-    RepositoryComponent c3 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent c3 = tempEntity.newRepositoryComponent(repository.getId(),
         COMPONENT_COORDINATE_3, date1, null, false);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), VIOLATION_COUNT,
         c3.getPathname(), false, FailActionType.ID, policy.getId(), POLICY_NAME,
         c3.getComponentIdentifier());
 
-    RepositoryComponent c4 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent c4 = tempEntity.newRepositoryComponent(repository.getId(),
         COMPONENT_COORDINATE_4, date2, null, false);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), VIOLATION_COUNT,
         c4.getPathname(), false, FailActionType.ID, policy.getId(), POLICY_NAME,

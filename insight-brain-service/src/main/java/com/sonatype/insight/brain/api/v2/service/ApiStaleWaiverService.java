@@ -42,8 +42,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.Application;
@@ -55,7 +55,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
@@ -85,7 +85,7 @@ public class ApiStaleWaiverService
 
   private final RepositoryService repositoryService;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final ApplicationService applicationService;
 
@@ -96,7 +96,7 @@ public class ApiStaleWaiverService
   private final Comparator<PolicyEvaluation> policyEvalTimeComparator =
       Comparator.comparingLong(o -> o.getTime().getTime());
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final ApplicationDAO applicationDAO;
 
@@ -110,10 +110,10 @@ public class ApiStaleWaiverService
       PolicyWaiverDAO policyWaiverDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       RepositoryService repositoryService,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       ApplicationService applicationService,
       PolicyViolationLoader policyViolationLoader,
-      RepositoryComponentDAO repositoryComponentDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       ApplicationDAO applicationDAO,
       PolicyWaiverReasonDAO policyWaiverReasonDAO)
   {
@@ -123,10 +123,10 @@ public class ApiStaleWaiverService
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.repositoryService = repositoryService;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.applicationService = applicationService;
     this.policyViolationLoader = policyViolationLoader;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.applicationDAO = applicationDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
   }
@@ -201,7 +201,7 @@ public class ApiStaleWaiverService
         .map(
             repository -> {
               Date oldestDate =
-                  repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
+                  proxyRepositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
               return new RepositoryWithDate(repository, oldestDate);
             })
         .filter(repoWithDate -> repoWithDate.date != null) // no date on repo means it has no components
@@ -340,9 +340,9 @@ public class ApiStaleWaiverService
         .collect(Collectors.toList());
 
     Set<String> allUsedWaiverIds =
-        repositoryPolicyViolationDAO.getActiveWaivedRepositoryPolicyViolations(allRepositoryIds)
+        proxyRepositoryPolicyViolationDAO.getActiveWaivedProxyRepositoryPolicyViolations(allRepositoryIds)
             .stream()
-            .map(RepositoryPolicyViolation::getPolicyWaiverId)
+            .map(ProxyRepositoryPolicyViolation::getPolicyWaiverId)
             .collect(Collectors.toSet());
 
     // Repository violations can have legacy waivers without a waiverId. Throw an exception if we don't know

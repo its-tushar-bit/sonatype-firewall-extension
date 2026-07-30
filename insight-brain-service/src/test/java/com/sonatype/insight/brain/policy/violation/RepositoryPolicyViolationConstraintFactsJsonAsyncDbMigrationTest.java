@@ -20,12 +20,12 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -40,7 +40,7 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
     extends AbstractComponentTest
 {
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
@@ -55,7 +55,7 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
   public void testMigration() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
-    RepositoryPolicyViolation policyViolation = createPolicyViolation(constraintFacts);
+    ProxyRepositoryPolicyViolation policyViolation = createPolicyViolation(constraintFacts);
 
     // Ensure the migration tracker does not exist
     MigrationTracker migrationTracker = migrationTrackerDAO.getById(underTest.getMigrationName());
@@ -66,10 +66,11 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
 
     underTest.runMigration();
 
-    RepositoryPolicyViolation migratedPolicyViolation = repositoryPolicyViolationDAO.getById(policyViolation.getId());
+    ProxyRepositoryPolicyViolation migratedPolicyViolation =
+        proxyRepositoryPolicyViolationDAO.getById(policyViolation.getId());
     assertThat(migratedPolicyViolation.getConstraintFactsId()).isEqualTo(Sha1Util.halfSha1(constraintFactsJson));
     assertThat(migratedPolicyViolation.getDeprecatedConstraintFactsJson()).isNull();
-    repositoryPolicyViolationDAO.loadConstraintFacts(Collections.singletonList(migratedPolicyViolation));
+    proxyRepositoryPolicyViolationDAO.loadConstraintFacts(Collections.singletonList(migratedPolicyViolation));
     assertThat(migratedPolicyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson);
 
     MigrationTracker newMigrationTracker = migrationTrackerDAO.getById(underTest.getMigrationName());
@@ -79,14 +80,15 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
   @Test
   public void testMigration_doesNotRun_whenTrackerExists() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
-    RepositoryPolicyViolation policyViolation = createPolicyViolation(constraintFacts);
+    ProxyRepositoryPolicyViolation policyViolation = createPolicyViolation(constraintFacts);
     if (!migrationTrackerDAO.isTrackerPresent(underTest.getMigrationName())) {
       migrationTrackerDAO.insertTracker(underTest.getMigrationName());
     }
 
     underTest.runMigration();
 
-    RepositoryPolicyViolation policyViolationMigrated = repositoryPolicyViolationDAO.getById(policyViolation.getId());
+    ProxyRepositoryPolicyViolation policyViolationMigrated =
+        proxyRepositoryPolicyViolationDAO.getById(policyViolation.getId());
     assertThat(policyViolationMigrated.getDeprecatedConstraintFactsJson()).isNotBlank();
   }
 
@@ -103,7 +105,7 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
     return constraintFacts;
   }
 
-  private RepositoryPolicyViolation createPolicyViolation(
+  private ProxyRepositoryPolicyViolation createPolicyViolation(
       final List<ConstraintFact> constraintFacts) throws SQLException
   {
     Repository repository = tempEntity.newRepository();
@@ -113,18 +115,18 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1", "", "jar");
 
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repository.getId(), "path", now,
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation(repository.getId(), "path", now,
         policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier,
         constraintFacts);
 
-    repositoryPolicyViolationDAO.insert(policyViolation);
+    proxyRepositoryPolicyViolationDAO.insert(policyViolation);
 
     // Sanity check
     assertThat(policyViolation.getConstraintFactsJson()).isNotBlank();
 
     // Restore the pre-migration state.
-    String updateQuery = "UPDATE " + operationalDataStore.getDatabaseSchema() + ".repository_policy_violation"
-        + " SET constraint_facts_id = NULL, constraint_facts_json = ? WHERE repository_policy_violation_id = ?";
+    String updateQuery = "UPDATE " + operationalDataStore.getDatabaseSchema() + ".proxy_repository_policy_violation"
+        + " SET constraint_facts_id = NULL, constraint_facts_json = ? WHERE proxy_repository_policy_violation_id = ?";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
         PreparedStatement updateStmt = connection.prepareStatement(updateQuery))
     {
@@ -134,7 +136,8 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
     }
 
     // Sanity check
-    RepositoryPolicyViolation persistedPolicyViolation = repositoryPolicyViolationDAO.getById(policyViolation.getId());
+    ProxyRepositoryPolicyViolation persistedPolicyViolation =
+        proxyRepositoryPolicyViolationDAO.getById(policyViolation.getId());
     assertThat(persistedPolicyViolation.getDeprecatedConstraintFactsJson())
         .isEqualTo(policyViolation.getConstraintFactsJson());
     assertThat(persistedPolicyViolation.getConstraintFactsId()).isNull();

@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -90,7 +90,7 @@ public class ApiPolicyWaiverServiceFirewallScopeTest
   private OwnerService ownerService;
 
   @Mock
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Mock
   private PolicyViolationDAO policyViolationDAO;
@@ -133,7 +133,7 @@ public class ApiPolicyWaiverServiceFirewallScopeTest
     service = new ApiPolicyWaiverService(
         telemetrySender, policyWaiverDAO, policyDAO, applicationDAO, ownerDAO,
         policyEvaluationDAO, apiPolicyViolationServiceV2, policyWaiverTelemetryCreator,
-        currentUser, ownerService, repositoryPolicyViolationDAO, policyViolationDAO,
+        currentUser, ownerService, proxyRepositoryPolicyViolationDAO, policyViolationDAO,
         policyWaiverRequestDAO, organizationDAO, policyWaiverReasonDAO, repositoryDAO,
         idUtils, telemetryUtils, firewallPermissionGate);
 

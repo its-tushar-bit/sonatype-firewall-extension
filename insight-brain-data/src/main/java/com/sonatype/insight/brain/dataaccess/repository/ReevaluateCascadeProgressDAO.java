@@ -87,7 +87,7 @@ public class ReevaluateCascadeProgressDAO
   {
     return tx.dsl()
         .selectFrom(REEVALUATE_CASCADE_PROGRESS)
-        .where(REEVALUATE_CASCADE_PROGRESS.REPOSITORY_COMPONENT_ID.eq(repositoryComponentId))
+        .where(REEVALUATE_CASCADE_PROGRESS.PROXY_REPOSITORY_COMPONENT_ID.eq(repositoryComponentId))
         .orderBy(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_PROGRESS_ID.desc())
         .fetch(super::toEntity);
   }

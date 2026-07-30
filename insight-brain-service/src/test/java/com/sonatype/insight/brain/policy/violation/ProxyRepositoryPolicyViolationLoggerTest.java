@@ -10,7 +10,7 @@ import java.util.List;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class RepositoryPolicyViolationLoggerTest
+public class ProxyRepositoryPolicyViolationLoggerTest
     extends AbstractComponentTest
 {
   @Mock
@@ -55,14 +55,14 @@ public class RepositoryPolicyViolationLoggerTest
   public void testLog() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
-    RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
+    ProxyRepositoryPolicyViolationLogger policyViolationLogger =
+        new ProxyRepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
             repositoryManagerDAO);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
-    RepositoryPolicyViolation policyViolationOne =
+    ProxyRepositoryPolicyViolation policyViolationOne =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
-    RepositoryPolicyViolation policyViolationTwo =
+    ProxyRepositoryPolicyViolation policyViolationTwo =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolationLogger.add(policyViolationLogEvent, policyViolationTwo);
 
@@ -79,11 +79,11 @@ public class RepositoryPolicyViolationLoggerTest
   public void testLog_NoComponentIdentifier() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
-    RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
+    ProxyRepositoryPolicyViolationLogger policyViolationLogger =
+        new ProxyRepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
             repositoryManagerDAO);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
-    RepositoryPolicyViolation policyViolation =
+    ProxyRepositoryPolicyViolation policyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolation.setComponentIdentifier(null);
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
@@ -98,15 +98,15 @@ public class RepositoryPolicyViolationLoggerTest
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
-    RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
+    ProxyRepositoryPolicyViolationLogger policyViolationLogger =
+        new ProxyRepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser,
             repositoryManagerDAO);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
         .getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
     try {
       logger.setLevel(Level.OFF);
-      RepositoryPolicyViolation policyViolation =
+      ProxyRepositoryPolicyViolation policyViolation =
           tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
       policyViolationLogger.add(PolicyViolationLogEvent.CREATE, policyViolation);
 
@@ -121,10 +121,10 @@ public class RepositoryPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
-    RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(false /* licensed */, evaluationTime, repository, currentUser,
+    ProxyRepositoryPolicyViolationLogger policyViolationLogger =
+        new ProxyRepositoryPolicyViolationLogger(false /* licensed */, evaluationTime, repository, currentUser,
             repositoryManagerDAO);
-    RepositoryPolicyViolation policyViolation =
+    ProxyRepositoryPolicyViolation policyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolationLogger.add(PolicyViolationLogEvent.CREATE, policyViolation);
 
@@ -137,10 +137,10 @@ public class RepositoryPolicyViolationLoggerTest
   public void testLog_NoStagePolicyActionForCreateEventWithWaivedViolation() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
-    RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser, repositoryManagerDAO);
+    ProxyRepositoryPolicyViolationLogger policyViolationLogger =
+        new ProxyRepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser, repositoryManagerDAO);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
-    RepositoryPolicyViolation policyViolation =
+    ProxyRepositoryPolicyViolation policyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolation.setWaived(true);
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
@@ -155,10 +155,10 @@ public class RepositoryPolicyViolationLoggerTest
   public void testLog_NoStagePolicyActionForFixEvent() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
-    RepositoryPolicyViolationLogger policyViolationLogger =
-        new RepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser, repositoryManagerDAO);
+    ProxyRepositoryPolicyViolationLogger policyViolationLogger =
+        new ProxyRepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser, repositoryManagerDAO);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.FIX;
-    RepositoryPolicyViolation policyViolation =
+    ProxyRepositoryPolicyViolation policyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), evaluationTime);
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
 
@@ -175,7 +175,7 @@ public class RepositoryPolicyViolationLoggerTest
   private void assertPolicyViolationData(
       PolicyViolationLogDTO policyViolationLogDTO,
       PolicyViolationLogEvent policyViolationLogEvent,
-      RepositoryPolicyViolation policyViolation,
+      ProxyRepositoryPolicyViolation policyViolation,
       String userName) throws Exception
   {
     policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent,

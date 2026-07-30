@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.jaxrs.JsonUtils;
@@ -51,7 +51,7 @@ public class ApiRepositoryComponentResourceAuditTest
 
   @Test
   public void testDeleteComponents_AuditLogged() throws Exception {
-    RepositoryComponent component =
+    ProxyRepositoryComponent component =
         tempEntity.newRepositoryComponentWithComponentId(hostedRepo.getId(), "test-nxrm-id-1");
 
     HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getComponentId()))).delete();

@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -50,9 +50,9 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
@@ -78,7 +78,7 @@ public class ApiFirewallResourceTest
 {
   private static final ObjectMapper JSON = new ObjectMapper();
 
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private RepositoryDAO repositoryDAO;
 
@@ -88,7 +88,7 @@ public class ApiFirewallResourceTest
 
   @Before
   public void setUp() {
-    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
     repositoryDAO = lookup(RepositoryDAO.class);
     quarantinedComponentAccessDAO = lookup(QuarantinedComponentAccessDAO.class);
     repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
@@ -220,17 +220,17 @@ public class ApiFirewallResourceTest
     Policy policy1 = tempEntity.newPolicy("policy1", constraint);
 
     // ADD COMPONENT
-    final RepositoryComponent component1 =
+    final ProxyRepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, june2nd2020, true);
 
     // ADD ANOTHER COMPONENT
-    RepositoryComponent component2 =
+    ProxyRepositoryComponent component2 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june1st2020, june2nd2020, true);
     component2.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "b", "v"));
-    repositoryComponentDAO.update(component2);
+    proxyRepositoryComponentDAO.update(component2);
 
     // CREATE POLICY VIOLATION
-    final RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+    final ProxyRepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     // CREATE ANOTHER POLICY VIOLATION
@@ -269,11 +269,11 @@ public class ApiFirewallResourceTest
     Policy policy1 = tempEntity.newPolicy("policy1", constraint);
 
     // ADD COMPONENT
-    final RepositoryComponent component1 =
+    final ProxyRepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, june2nd2020, true);
 
     // CREATE POLICY VIOLATION
-    final RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+    final ProxyRepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     HttpResponse response = restRequest()
@@ -348,17 +348,17 @@ public class ApiFirewallResourceTest
     Policy policy1 = tempEntity.newPolicy("policy1", constraint);
 
     // ADD COMPONENT
-    final RepositoryComponent component1 =
+    final ProxyRepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, null, false);
 
     // ADD ANOTHER COMPONENT
-    RepositoryComponent component2 =
+    ProxyRepositoryComponent component2 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june2nd2020, null, false);
     component2.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "b", "v"));
-    repositoryComponentDAO.update(component2);
+    proxyRepositoryComponentDAO.update(component2);
 
     // CREATE POLICY VIOLATION
-    final RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+    final ProxyRepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     // CREATE ANOTHER POLICY VIOLATION
@@ -433,11 +433,11 @@ public class ApiFirewallResourceTest
     Policy policy1 = tempEntity.newPolicy("policy1", constraint);
 
     // ADD COMPONENT
-    final RepositoryComponent component1 =
+    final ProxyRepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, null, false);
 
     // CREATE POLICY VIOLATION
-    final RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+    final ProxyRepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     HttpResponse response = restRequest()

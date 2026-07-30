@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
@@ -264,15 +264,15 @@ public class ApiFirewallMetricsServiceTest
   }
 
   private void doTestCheckFirewallMetricsInRepositoryPolicyViolation(
-      Function<Date, RepositoryPolicyViolation> function,
+      Function<Date, ProxyRepositoryPolicyViolation> function,
       boolean isTestingNamespaceAttacksBlockedMetrics,
       boolean isTestingSupplyChainAttacksBlockedMetrics)
   {
     Map<LocalDate, FirewallMetrics> namespaceAttacksBlockedMetrics = new TreeMap<>();
     Map<LocalDate, FirewallMetrics> supplyChainAttacksBlockedMetrics = new TreeMap<>();
-    RepositoryPolicyViolation repositoryPolicyViolation = function.apply(new Date());
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = function.apply(new Date());
 
-    firewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(repositoryPolicyViolation,
+    firewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(proxyRepositoryPolicyViolation,
         namespaceAttacksBlockedMetrics, supplyChainAttacksBlockedMetrics);
 
     // initial today value
@@ -299,7 +299,7 @@ public class ApiFirewallMetricsServiceTest
     }
 
     // second value for today
-    firewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(repositoryPolicyViolation,
+    firewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(proxyRepositoryPolicyViolation,
         namespaceAttacksBlockedMetrics, supplyChainAttacksBlockedMetrics);
 
     if (isTestingNamespaceAttacksBlockedMetrics) {
@@ -325,8 +325,8 @@ public class ApiFirewallMetricsServiceTest
     }
 
     // third value for yesterday
-    repositoryPolicyViolation = function.apply(DateUtils.addDays(new Date(), -1));
-    firewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(repositoryPolicyViolation,
+    proxyRepositoryPolicyViolation = function.apply(DateUtils.addDays(new Date(), -1));
+    firewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(proxyRepositoryPolicyViolation,
         namespaceAttacksBlockedMetrics, supplyChainAttacksBlockedMetrics);
 
     if (isTestingNamespaceAttacksBlockedMetrics) {
@@ -352,7 +352,7 @@ public class ApiFirewallMetricsServiceTest
     }
   }
 
-  private RepositoryPolicyViolation newRepositoryPolicyViolationMaliciousCode(Date time) {
+  private ProxyRepositoryPolicyViolation newRepositoryPolicyViolationMaliciousCode(Date time) {
     Component component = new Component(ComponentIdentifier.createNpmCoordinates("p", "v"));
 
     Condition conditionMaliciousCode = new Condition(SecurityVulnerabilityCategoryConditionType.ID,
@@ -374,13 +374,13 @@ public class ApiFirewallMetricsServiceTest
 
     List<ConstraintFact> constraintFactsMaliciousCode = singletonList(constraintFactMaliciousCode);
 
-    RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
-    repositoryPolicyViolation.setConstraintFacts(constraintFactsMaliciousCode);
-    repositoryPolicyViolation.setTime(time);
-    return repositoryPolicyViolation;
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = new ProxyRepositoryPolicyViolation();
+    proxyRepositoryPolicyViolation.setConstraintFacts(constraintFactsMaliciousCode);
+    proxyRepositoryPolicyViolation.setTime(time);
+    return proxyRepositoryPolicyViolation;
   }
 
-  private RepositoryPolicyViolation newProprietaryNameConflictRepositoryPolicyViolation(Date time) {
+  private ProxyRepositoryPolicyViolation newProprietaryNameConflictRepositoryPolicyViolation(Date time) {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository hostedRepository =
         tempEntity.newHostedRepository(repositoryManager, "hostedRepo", ComponentIdentifier.FORMAT_NPM, true);
@@ -402,13 +402,15 @@ public class ApiFirewallMetricsServiceTest
 
     List<ConstraintFact> constraintFactsProprietaryNameConflict = singletonList(constraintFactProprietaryNameConflict);
 
-    RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
-    repositoryPolicyViolation.setConstraintFacts(constraintFactsProprietaryNameConflict);
-    repositoryPolicyViolation.setTime(time);
-    return repositoryPolicyViolation;
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = new ProxyRepositoryPolicyViolation();
+    proxyRepositoryPolicyViolation.setConstraintFacts(constraintFactsProprietaryNameConflict);
+    proxyRepositoryPolicyViolation.setTime(time);
+    return proxyRepositoryPolicyViolation;
   }
 
-  private RepositoryPolicyViolation newProprietaryNameConflictAndMaliciousCodeRepositoryPolicyViolation(Date date) {
+  private ProxyRepositoryPolicyViolation newProprietaryNameConflictAndMaliciousCodeRepositoryPolicyViolation(
+      Date date)
+  {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository hostedRepository =
         tempEntity.newHostedRepository(repositoryManager, "hostedRepo", ComponentIdentifier.FORMAT_NPM, true);
@@ -442,10 +444,10 @@ public class ApiFirewallMetricsServiceTest
 
     List<ConstraintFact> constraintFacts = singletonList(constraintFact);
 
-    RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation();
-    repositoryPolicyViolation.setConstraintFacts(constraintFacts);
-    repositoryPolicyViolation.setTime(date);
-    return repositoryPolicyViolation;
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = new ProxyRepositoryPolicyViolation();
+    proxyRepositoryPolicyViolation.setConstraintFacts(constraintFacts);
+    proxyRepositoryPolicyViolation.setTime(date);
+    return proxyRepositoryPolicyViolation;
   }
 
   @Test

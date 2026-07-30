@@ -11,7 +11,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 
 /**
@@ -31,7 +31,7 @@ public final class FirewallComponentDetailsHdsStub
    * Stub component metadata only — sufficient for policy-violations tab / security tab tables
    * that do not assert vulnerability rows.
    */
-  public static void stubRepositoryComponentDetails(HdsMockServerRule hdsServer, RepositoryComponent component) {
+  public static void stubRepositoryComponentDetails(HdsMockServerRule hdsServer, ProxyRepositoryComponent component) {
     registerComponentDetails(hdsServer, buildComponentDetails(component, false, null, 0, null, 0));
   }
 
@@ -40,7 +40,7 @@ public final class FirewallComponentDetailsHdsStub
    */
   public static void stubRepositoryComponentDetailsWithVulnerabilities(
       HdsMockServerRule hdsServer,
-      RepositoryComponent component,
+      ProxyRepositoryComponent component,
       String highSeverityCveId,
       float highSeverity,
       String lowSeverityCveId,
@@ -55,7 +55,7 @@ public final class FirewallComponentDetailsHdsStub
   }
 
   private static ComponentDetails buildComponentDetails(
-      RepositoryComponent component,
+      ProxyRepositoryComponent component,
       boolean withVulnerabilities,
       String highSeverityCveId,
       float highSeverity,

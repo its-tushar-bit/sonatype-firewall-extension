@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -47,7 +47,7 @@ public class IgnoredRepositoryComponentCleanerTest
   private MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
   private TaskScheduler mockTaskScheduler;
@@ -81,12 +81,12 @@ public class IgnoredRepositoryComponentCleanerTest
         .thenReturn(hdsResult);
 
     assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentCleaner.MIGRATION_ID)).isNull();
-    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isNotEmpty();
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryId(repository.getId())).isNotEmpty();
 
     ignoredRepositoryComponentMigrator.execute(null);
 
     assertThat(migrationTrackerDAO.getById(IgnoredRepositoryComponentCleaner.MIGRATION_ID)).isNotNull();
-    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
   }
 
   @Test

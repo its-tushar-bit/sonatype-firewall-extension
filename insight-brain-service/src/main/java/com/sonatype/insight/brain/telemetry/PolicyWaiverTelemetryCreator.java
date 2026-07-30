@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -40,7 +40,7 @@ public class PolicyWaiverTelemetryCreator
 
   public void sendRepositoryWaiverTelemetry(
       final PolicyWaiver policyWaiver,
-      final RepositoryPolicyViolation policyViolation)
+      final ProxyRepositoryPolicyViolation policyViolation)
   {
     final PolicyWaiverTelemetry policyWaiverTelemetry =
         new PolicyWaiverTelemetry(policyWaiver, OwnerType.REPOSITORY.toString(),

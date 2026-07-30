@@ -19,15 +19,17 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 /**
+ * Firewall's proxy-repo policy-violation persistence. Not written by hosted-repo scanning.
+ *
  * @since 1.17
  */
 @Entity
-@Table(name = "repository_policy_violation")
-public class RepositoryPolicyViolation
+@Table(name = "proxy_repository_policy_violation")
+public class ProxyRepositoryPolicyViolation
     extends AbstractPolicyViolation
 {
   @Id
-  @Column(name = "repository_policy_violation_id")
+  @Column(name = "proxy_repository_policy_violation_id")
   private String id;
 
   @Column(name = "repository_id")
@@ -59,10 +61,10 @@ public class RepositoryPolicyViolation
   @Column(name = "component_id")
   private String componentId;
 
-  public RepositoryPolicyViolation() {
+  public ProxyRepositoryPolicyViolation() {
   }
 
-  public RepositoryPolicyViolation(
+  public ProxyRepositoryPolicyViolation(
       String repositoryId,
       String pathname,
       Date time,

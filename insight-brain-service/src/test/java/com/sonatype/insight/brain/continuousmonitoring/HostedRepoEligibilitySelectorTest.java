@@ -11,8 +11,8 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.Page;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 public class HostedRepoEligibilitySelectorTest
 {
   @Mock
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
   private TransactionContext tx;
@@ -48,8 +48,8 @@ public class HostedRepoEligibilitySelectorTest
 
   @Before
   public void setup() {
-    when(repositoryComponentDAO.createTransactionContext()).thenReturn(tx);
-    underTest = new HostedRepoEligibilitySelector(repositoryComponentDAO);
+    when(proxyRepositoryComponentDAO.createTransactionContext()).thenReturn(tx);
+    underTest = new HostedRepoEligibilitySelector(proxyRepositoryComponentDAO);
   }
 
   @Test
@@ -58,16 +58,16 @@ public class HostedRepoEligibilitySelectorTest
     // (Date.from(Instant) truncates nanoseconds — breaks Date.equals on nanosecond clocks).
     Instant cycleStart = Instant.ofEpochMilli(System.currentTimeMillis());
     EligibilityCursor cursorIn = new EligibilityCursor(new Date(1000L), "in-id");
-    RepositoryComponent row = newComponent("row-id", new Date(2000L));
-    when(repositoryComponentDAO.getMonitoringEligiblePage(any(TransactionContext.class), any(Date.class), anyInt(),
+    ProxyRepositoryComponent row = newComponent("row-id", new Date(2000L));
+    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(TransactionContext.class), any(Date.class), anyInt(),
         any(EligibilityCursor.class))).thenReturn(List.of(row));
 
-    Page<RepositoryComponent> page = underTest.fetchPage(cursorIn, 100, cycleStart);
+    Page<ProxyRepositoryComponent> page = underTest.fetchPage(cursorIn, 100, cycleStart);
 
     assertThat(page.rows()).containsExactly(row);
     ArgumentCaptor<EligibilityCursor> cursorCaptor = ArgumentCaptor.forClass(EligibilityCursor.class);
     ArgumentCaptor<Date> cycleStartCaptor = ArgumentCaptor.forClass(Date.class);
-    verify(repositoryComponentDAO).getMonitoringEligiblePage(any(TransactionContext.class),
+    verify(proxyRepositoryComponentDAO).getMonitoringEligiblePage(any(TransactionContext.class),
         cycleStartCaptor.capture(), eq(100), cursorCaptor.capture());
     assertThat(cursorCaptor.getValue()).isEqualTo(cursorIn);
     assertThat(cycleStartCaptor.getValue()).isEqualTo(Date.from(cycleStart));
@@ -75,12 +75,12 @@ public class HostedRepoEligibilitySelectorTest
 
   @Test
   public void testFetchPage_nextCursorIsLastRowKey() {
-    RepositoryComponent first = newComponent("id-A", new Date(3000L));
-    RepositoryComponent last = newComponent("id-B", new Date(2000L));
-    when(repositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
+    ProxyRepositoryComponent first = newComponent("id-A", new Date(3000L));
+    ProxyRepositoryComponent last = newComponent("id-B", new Date(2000L));
+    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
         .thenReturn(List.of(first, last));
 
-    Page<RepositoryComponent> page = underTest.fetchPage(null, 100, Instant.now());
+    Page<ProxyRepositoryComponent> page = underTest.fetchPage(null, 100, Instant.now());
 
     assertThat(page.nextCursor())
         .isEqualTo(new EligibilityCursor(new Date(2000L), "id-B"));
@@ -89,38 +89,38 @@ public class HostedRepoEligibilitySelectorTest
   @Test
   public void testFetchPage_hasMoreTrueWhenPageIsSaturated() {
     // size == limit ⇒ probably more rows; the next fetch returns empty if not.
-    when(repositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
+    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
         .thenReturn(List.of(newComponent("id-1", new Date(1L)), newComponent("id-2", new Date(2L))));
 
-    Page<RepositoryComponent> page = underTest.fetchPage(null, 2, Instant.now());
+    Page<ProxyRepositoryComponent> page = underTest.fetchPage(null, 2, Instant.now());
 
     assertThat(page.hasMore()).isTrue();
   }
 
   @Test
   public void testFetchPage_hasMoreFalseOnShortPage() {
-    when(repositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
+    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
         .thenReturn(List.of(newComponent("id-1", new Date(1L))));
 
-    Page<RepositoryComponent> page = underTest.fetchPage(null, 100, Instant.now());
+    Page<ProxyRepositoryComponent> page = underTest.fetchPage(null, 100, Instant.now());
 
     assertThat(page.hasMore()).isFalse();
   }
 
   @Test
   public void testFetchPage_returnsEmptyPageWhenDaoReturnsEmpty() {
-    when(repositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
+    when(proxyRepositoryComponentDAO.getMonitoringEligiblePage(any(), any(), anyInt(), any()))
         .thenReturn(List.of());
 
-    Page<RepositoryComponent> page = underTest.fetchPage(null, 1000, Instant.now());
+    Page<ProxyRepositoryComponent> page = underTest.fetchPage(null, 1000, Instant.now());
 
     assertThat(page.rows()).isEmpty();
     assertThat(page.nextCursor()).isNull();
     assertThat(page.hasMore()).isFalse();
   }
 
-  private static RepositoryComponent newComponent(final String id, final Date time) {
-    RepositoryComponent c = new RepositoryComponent();
+  private static ProxyRepositoryComponent newComponent(final String id, final Date time) {
+    ProxyRepositoryComponent c = new ProxyRepositoryComponent();
     c.setId(id);
     c.setTime(time);
     return c;

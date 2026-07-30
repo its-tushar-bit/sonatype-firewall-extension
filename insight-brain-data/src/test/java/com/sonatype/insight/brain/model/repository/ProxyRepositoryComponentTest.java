@@ -11,11 +11,11 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RepositoryComponentTest
+public class ProxyRepositoryComponentTest
 {
   @Test
   public void testIsQuarantined() {
-    final RepositoryComponent component = new RepositoryComponent();
+    final ProxyRepositoryComponent component = new ProxyRepositoryComponent();
     assertThat(component.isQuarantined()).isFalse();
 
     final Date now = new Date();

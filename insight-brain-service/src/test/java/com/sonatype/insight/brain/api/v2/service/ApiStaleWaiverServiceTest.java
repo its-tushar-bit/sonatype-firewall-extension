@@ -29,8 +29,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiStaleWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.PolicyEvaluationRequiredException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
@@ -61,13 +61,13 @@ public class ApiStaleWaiverServiceTest
   private ApiStaleWaiverService apiStaleWaiverService;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   private OwnerDAO ownerDAO;
@@ -169,11 +169,11 @@ public class ApiStaleWaiverServiceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy.getId(), repo.getId(),
         constraintFacts1, "Some comments here1");
 
-    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(
         repo.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy.getId(), policy.getName(), componentIdentifier, date,
         policyWaiver.getId(), policyWaiver.getComment(), date);
-    repositoryPolicyViolationDAO.delete(repositoryPolicyViolation);
+    proxyRepositoryPolicyViolationDAO.delete(proxyRepositoryPolicyViolation);
 
     // should return the waiver as stale since the policy violation it waived is now deleted
     List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
@@ -846,12 +846,12 @@ public class ApiStaleWaiverServiceTest
         now);
 
     // stale evaluation
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repo.getId(), "path", componentCreateTime, "hash", componentIdentifier,
             MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), staleEvaluationTime);
 
     // remove component from repo
-    repositoryComponentDAO.delete(repositoryComponent);
+    proxyRepositoryComponentDAO.delete(proxyRepositoryComponent);
 
     List<ApiStaleWaiverDTO> staleRepositoryWaivers = apiStaleWaiverService.getStaleWaivers();
     assertThat(staleRepositoryWaivers).hasSize(1);

@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -28,13 +28,13 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetry.ConditionTelemetry;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetry.ConstraintTelemetry;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -51,7 +51,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-public class RepositoryComponentTelemetryCreatorTest
+public class ProxyRepositoryComponentTelemetryCreatorTest
     extends AbstractComponentTest
 {
   @Mock
@@ -61,40 +61,43 @@ public class RepositoryComponentTelemetryCreatorTest
   private PendoCache pendoCacheMock;
 
   @Inject
-  private RepositoryComponentTelemetryCreator telemetryCreator;
+  private ProxyRepositoryComponentTelemetryCreator telemetryCreator;
 
   @Test
   public void testSendRepositoryComponentTelemetry_NoViolationsOrReleaseType() {
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent,
+            ImmutableList.of(createViolation(), createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.DELETE);
 
-    assertTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+    assertTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation(), createViolation()),
         "repoManId", RepositoryComponentTelemetryEventType.DELETE);
   }
 
   @Test
   public void testSendRepositoryComponentTelemetry_WithNotifications() {
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     final List<PolicyNotification> policyNotifications =
         ImmutableList.of(createPolicyNotification(), createPolicyNotification());
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent,
+            ImmutableList.of(createViolation(), createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE, policyNotifications);
 
-    assertTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+    assertTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation(), createViolation()),
         "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE, policyNotifications);
   }
 
   @Test
   public void testSendRepositoryComponentTelemetry_WithNullNotifications() {
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent,
+            ImmutableList.of(createViolation(), createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE, (List<PolicyNotification>) null);
 
-    assertTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+    assertTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation(), createViolation()),
         "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE, (List<PolicyNotification>) null);
   }
 
@@ -127,46 +130,48 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testSendRepositoryComponentTelemetry_WithReleaseType() {
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent,
+            ImmutableList.of(createViolation(), createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE, ReleaseQuarantineType.AUTO);
 
-    assertTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+    assertTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation(), createViolation()),
         "repoManId", RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE, ReleaseQuarantineType.AUTO);
   }
 
   @Test
   public void testSendRepositoryComponentTelemetry_NullComponentIdentifier() {
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setComponentIdentifier(null);
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setComponentIdentifier(null);
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent,
+            ImmutableList.of(createViolation(), createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.DELETE);
-    assertTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+    assertTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation(), createViolation()),
         "repoManId", RepositoryComponentTelemetryEventType.DELETE);
   }
 
   @Test
   public void testComponentIdentifierExtraction_Maven() {
-    final RepositoryComponent repositoryComponent = new RepositoryComponent();
-    repositoryComponent.setRepositoryId("repoid");
-    repositoryComponent.setHash("hash");
-    repositoryComponent.setComponentIdentifier(new ComponentIdentifier("maven",
+    final ProxyRepositoryComponent proxyRepositoryComponent = new ProxyRepositoryComponent();
+    proxyRepositoryComponent.setRepositoryId("repoid");
+    proxyRepositoryComponent.setHash("hash");
+    proxyRepositoryComponent.setComponentIdentifier(new ComponentIdentifier("maven",
         ImmutableMap.of("groupId", "org.springframework", "artifactId", "spring-beans", "version", "5.3.16",
             "extension", "jar", "classifier", "")));
-    repositoryComponent.setQuarantineTime(new Date());
+    proxyRepositoryComponent.setQuarantineTime(new Date());
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getComponentIdentifier()).isNotNull().contains("maven").contains("spring-beans");
     assertThat(telemetry.getComponentName()).isEqualTo("spring-beans");
@@ -176,23 +181,23 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testComponentIdentifierExtraction_Npm() {
-    final RepositoryComponent repositoryComponent = new RepositoryComponent();
-    repositoryComponent.setRepositoryId("repoid");
-    repositoryComponent.setHash("hash");
-    repositoryComponent.setComponentIdentifier(new ComponentIdentifier("npm",
+    final ProxyRepositoryComponent proxyRepositoryComponent = new ProxyRepositoryComponent();
+    proxyRepositoryComponent.setRepositoryId("repoid");
+    proxyRepositoryComponent.setHash("hash");
+    proxyRepositoryComponent.setComponentIdentifier(new ComponentIdentifier("npm",
         ImmutableMap.of("packageId", "lodash", "version", "4.17.21")));
-    repositoryComponent.setQuarantineTime(new Date());
+    proxyRepositoryComponent.setQuarantineTime(new Date());
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getComponentIdentifier()).isNotNull().contains("npm").contains("lodash");
     assertThat(telemetry.getComponentName()).isEqualTo("lodash");
@@ -202,24 +207,24 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testComponentIdentifierExtraction_PyPI() {
-    final RepositoryComponent repositoryComponent = new RepositoryComponent();
-    repositoryComponent.setRepositoryId("repoid");
-    repositoryComponent.setHash("hash");
-    repositoryComponent.setComponentIdentifier(new ComponentIdentifier("pypi",
+    final ProxyRepositoryComponent proxyRepositoryComponent = new ProxyRepositoryComponent();
+    proxyRepositoryComponent.setRepositoryId("repoid");
+    proxyRepositoryComponent.setHash("hash");
+    proxyRepositoryComponent.setComponentIdentifier(new ComponentIdentifier("pypi",
         ImmutableMap.of("name", "tornado", "version", "6.1", "extension", "whl",
             "qualifier", "cp37-cp37m-manylinux2010_x86_64")));
-    repositoryComponent.setQuarantineTime(new Date());
+    proxyRepositoryComponent.setQuarantineTime(new Date());
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getComponentIdentifier()).isNotNull().contains("pypi").contains("tornado");
     assertThat(telemetry.getComponentName()).isEqualTo("tornado");
@@ -229,22 +234,22 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testComponentIdentifierExtraction_NullComponentIdentifier() {
-    final RepositoryComponent repositoryComponent = new RepositoryComponent();
-    repositoryComponent.setRepositoryId("repoid");
-    repositoryComponent.setHash("hash");
-    repositoryComponent.setComponentIdentifier(null);
-    repositoryComponent.setQuarantineTime(new Date());
+    final ProxyRepositoryComponent proxyRepositoryComponent = new ProxyRepositoryComponent();
+    proxyRepositoryComponent.setRepositoryId("repoid");
+    proxyRepositoryComponent.setHash("hash");
+    proxyRepositoryComponent.setComponentIdentifier(null);
+    proxyRepositoryComponent.setQuarantineTime(new Date());
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getComponentIdentifier()).isNull();
     assertThat(telemetry.getComponentName()).isNull();
@@ -254,13 +259,14 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testSendRepositoryComponentTelemetry_NullDates() {
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setQuarantineTime(null);
-    repositoryComponent.setUnquarantineTimeForMonitoring(null);
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setQuarantineTime(null);
+    proxyRepositoryComponent.setUnquarantineTimeForMonitoring(null);
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent,
+            ImmutableList.of(createViolation(), createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.DELETE);
-    assertTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()), "repoManId",
+    assertTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation(), createViolation()), "repoManId",
         RepositoryComponentTelemetryEventType.DELETE);
   }
 
@@ -274,8 +280,8 @@ public class RepositoryComponentTelemetryCreatorTest
     return policyNotification;
   }
 
-  private RepositoryPolicyViolation createViolation() {
-    final RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
+  private ProxyRepositoryPolicyViolation createViolation() {
+    final ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation();
     policyViolation.setThreatLevel(5);
     policyViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
     policyViolation.setActionTypeId("fail");
@@ -287,14 +293,15 @@ public class RepositoryComponentTelemetryCreatorTest
     return policyViolation;
   }
 
-  private RepositoryComponent createComponent() {
-    final RepositoryComponent repositoryComponent = new RepositoryComponent();
-    repositoryComponent.setRepositoryId("repoid");
-    repositoryComponent.setHash("hash");
-    repositoryComponent.setComponentIdentifier(new ComponentIdentifier("npm", ImmutableMap.of("packageId", "package")));
-    repositoryComponent.setQuarantineTime(new Date());
-    repositoryComponent.setUnquarantineTimeForMonitoring(new Date());
-    return repositoryComponent;
+  private ProxyRepositoryComponent createComponent() {
+    final ProxyRepositoryComponent proxyRepositoryComponent = new ProxyRepositoryComponent();
+    proxyRepositoryComponent.setRepositoryId("repoid");
+    proxyRepositoryComponent.setHash("hash");
+    proxyRepositoryComponent
+        .setComponentIdentifier(new ComponentIdentifier("npm", ImmutableMap.of("packageId", "package")));
+    proxyRepositoryComponent.setQuarantineTime(new Date());
+    proxyRepositoryComponent.setUnquarantineTimeForMonitoring(new Date());
+    return proxyRepositoryComponent;
   }
 
   private List<ConstraintFact> createConstraintFacts() {
@@ -315,65 +322,65 @@ public class RepositoryComponentTelemetryCreatorTest
   }
 
   private void assertTelemetry(
-      final RepositoryComponent repositoryComponent,
-      final List<RepositoryPolicyViolation> policyViolations,
+      final ProxyRepositoryComponent proxyRepositoryComponent,
+      final List<ProxyRepositoryPolicyViolation> policyViolations,
       final String repositoryManagerId,
       final RepositoryComponentTelemetryEventType repositoryComponentTelemetryEventType)
   {
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
         policyViolations.stream().map(PolicyViolationTelemetry::new).collect(Collectors.toList());
-    final RepositoryComponentTelemetry repositoryComponentTelemetry =
-        new RepositoryComponentTelemetry(null, repositoryManagerId, repositoryComponent,
+    final ProxyRepositoryComponentTelemetry proxyRepositoryComponentTelemetry =
+        new ProxyRepositoryComponentTelemetry(null, repositoryManagerId, proxyRepositoryComponent,
             repositoryComponentTelemetryEventType, null, null, Collections.emptyList());
-    assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
-        HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
-    assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
+    assertThat(proxyRepositoryComponentTelemetry.getComponentHash()).isEqualTo(
+        HdsClientAnalytics.obfuscate(proxyRepositoryComponent.getHash()));
+    assertTelemetry(policyViolationTelemetries, proxyRepositoryComponentTelemetry);
   }
 
   private void assertTelemetry(
-      final RepositoryComponent repositoryComponent,
-      final List<RepositoryPolicyViolation> policyViolations,
+      final ProxyRepositoryComponent proxyRepositoryComponent,
+      final List<ProxyRepositoryPolicyViolation> policyViolations,
       final String repositoryManagerId,
       final RepositoryComponentTelemetryEventType repositoryComponentTelemetryEventType,
       final List<PolicyNotification> policyNotifications)
   {
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
         policyViolations.stream().map(PolicyViolationTelemetry::new).collect(Collectors.toList());
-    final RepositoryComponentTelemetry repositoryComponentTelemetry =
-        new RepositoryComponentTelemetry(null, repositoryManagerId, repositoryComponent,
+    final ProxyRepositoryComponentTelemetry proxyRepositoryComponentTelemetry =
+        new ProxyRepositoryComponentTelemetry(null, repositoryManagerId, proxyRepositoryComponent,
             repositoryComponentTelemetryEventType, null, null, policyNotifications);
-    assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
-        HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
-    assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
+    assertThat(proxyRepositoryComponentTelemetry.getComponentHash()).isEqualTo(
+        HdsClientAnalytics.obfuscate(proxyRepositoryComponent.getHash()));
+    assertTelemetry(policyViolationTelemetries, proxyRepositoryComponentTelemetry);
   }
 
   private void assertTelemetry(
-      final RepositoryComponent repositoryComponent,
-      final List<RepositoryPolicyViolation> policyViolations,
+      final ProxyRepositoryComponent proxyRepositoryComponent,
+      final List<ProxyRepositoryPolicyViolation> policyViolations,
       final String repositoryManagerId,
       final RepositoryComponentTelemetryEventType repositoryComponentTelemetryEventType,
       final ReleaseQuarantineType releaseQuarantineType)
   {
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
         policyViolations.stream().map(PolicyViolationTelemetry::new).collect(Collectors.toList());
-    final RepositoryComponentTelemetry repositoryComponentTelemetry =
-        new RepositoryComponentTelemetry(null, repositoryManagerId, repositoryComponent,
+    final ProxyRepositoryComponentTelemetry proxyRepositoryComponentTelemetry =
+        new ProxyRepositoryComponentTelemetry(null, repositoryManagerId, proxyRepositoryComponent,
             repositoryComponentTelemetryEventType, releaseQuarantineType, null, Collections.emptyList());
-    assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
-        HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
-    assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
+    assertThat(proxyRepositoryComponentTelemetry.getComponentHash()).isEqualTo(
+        HdsClientAnalytics.obfuscate(proxyRepositoryComponent.getHash()));
+    assertTelemetry(policyViolationTelemetries, proxyRepositoryComponentTelemetry);
   }
 
   private void assertTelemetry(
       final List<PolicyViolationTelemetry> policyViolationTelemetries,
-      final RepositoryComponentTelemetry repositoryComponentTelemetry)
+      final ProxyRepositoryComponentTelemetry proxyRepositoryComponentTelemetry)
   {
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
     final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
     final Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put(POLICY_VIOLATION_TELEMETRY, policyViolationTelemetries);
-    expectedAttributes.put(REPOSITORY_COMPONENT_TELEMETRY, repositoryComponentTelemetry);
+    expectedAttributes.put(REPOSITORY_COMPONENT_TELEMETRY, proxyRepositoryComponentTelemetry);
 
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);
@@ -392,8 +399,8 @@ public class RepositoryComponentTelemetryCreatorTest
         (List<PolicyViolationTelemetry>) actualAttributes.get(POLICY_VIOLATION_TELEMETRY));
 
     assertRepositoryComponentTelemetry(
-        (RepositoryComponentTelemetry) expectedAttributes.get(REPOSITORY_COMPONENT_TELEMETRY),
-        (RepositoryComponentTelemetry) actualAttributes.get(REPOSITORY_COMPONENT_TELEMETRY));
+        (ProxyRepositoryComponentTelemetry) expectedAttributes.get(REPOSITORY_COMPONENT_TELEMETRY),
+        (ProxyRepositoryComponentTelemetry) actualAttributes.get(REPOSITORY_COMPONENT_TELEMETRY));
   }
 
   private void assertPolicyViolationTelemetry(
@@ -430,8 +437,8 @@ public class RepositoryComponentTelemetryCreatorTest
   }
 
   private void assertRepositoryComponentTelemetry(
-      final RepositoryComponentTelemetry expected,
-      final RepositoryComponentTelemetry actual)
+      final ProxyRepositoryComponentTelemetry expected,
+      final ProxyRepositoryComponentTelemetry actual)
   {
     assertThat(actual.getComponentFormat()).isEqualTo(expected.getComponentFormat());
     assertThat(actual.getComponentHash()).isEqualTo(expected.getComponentHash());
@@ -455,17 +462,17 @@ public class RepositoryComponentTelemetryCreatorTest
     telemetryProperties.segmentAttributes = ImmutableMap.of("iq_accountId", "001QO00000sRp3lYAC");
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
 
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getAccountId()).isEqualTo("001QO00000sRp3lYAC");
   }
@@ -474,17 +481,17 @@ public class RepositoryComponentTelemetryCreatorTest
   public void testAccountId_WithNullTelemetryProperties() {
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(null);
 
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getAccountId()).isNull();
   }
@@ -495,17 +502,17 @@ public class RepositoryComponentTelemetryCreatorTest
     telemetryProperties.segmentAttributes = null;
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
 
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getAccountId()).isNull();
   }
@@ -516,17 +523,17 @@ public class RepositoryComponentTelemetryCreatorTest
     telemetryProperties.segmentAttributes = ImmutableMap.of("someOtherKey", "someValue");
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
 
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getAccountId()).isNull();
   }
@@ -537,17 +544,17 @@ public class RepositoryComponentTelemetryCreatorTest
     telemetryProperties.segmentAttributes = ImmutableMap.of("iq_accountId", "UNKNOWN-12345");
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
 
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getAccountId()).isNull();
   }
@@ -556,17 +563,17 @@ public class RepositoryComponentTelemetryCreatorTest
   public void testAccountId_WithException() {
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenThrow(new RuntimeException("Test exception"));
 
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getAccountId()).isNull();
   }
@@ -574,40 +581,40 @@ public class RepositoryComponentTelemetryCreatorTest
   @Test
   public void testFetchApplications_WithValidRepositoryConnection() {
     // Create repository component with a valid repository
-    final RepositoryComponent repositoryComponent = createComponent();
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     // Verify telemetry is created successfully
     // The actual organization and application IDs depend on the repository connections in the database
     assertThat(telemetry).isNotNull();
-    assertThat(telemetry.getRepositoryId()).isEqualTo(repositoryComponent.getRepositoryId());
+    assertThat(telemetry.getRepositoryId()).isEqualTo(proxyRepositoryComponent.getRepositoryId());
   }
 
   @Test
   public void testFetchApplications_WithNullRepositoryId() {
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setRepositoryId(null); // Null repository ID
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setRepositoryId(null); // Null repository ID
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     // Lifecycle fields removed - only verify telemetry is created
     assertThat(telemetry).isNotNull();
@@ -617,19 +624,19 @@ public class RepositoryComponentTelemetryCreatorTest
   public void testFetchApplications_WithNoRepositoryConnections() {
     final String repoId = "non-existent-repo";
 
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setRepositoryId(repoId);
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setRepositoryId(repoId);
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     // Lifecycle fields removed - only verify telemetry is created
     assertThat(telemetry).isNotNull();
@@ -637,21 +644,21 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testFetchApplications_HandlesNullOrganizationId() {
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setRepositoryId("repo-without-org");
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setRepositoryId("repo-without-org");
 
     // Note: In production, extractOrganizationId may return null if repository has no manager/organization
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     // Lifecycle fields removed - only verify telemetry is created
     assertThat(telemetry).isNotNull();
@@ -666,19 +673,19 @@ public class RepositoryComponentTelemetryCreatorTest
         tempEntity.newRepository(repositoryManager, "test-repo-proxy",
             RepositoryType.proxy, "npm");
 
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setRepositoryId(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setRepositoryId(repository.getId());
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             repositoryManager.getId(), RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
     assertThat(telemetry.getRepositoryName()).isEqualTo("test-repo-proxy");
@@ -693,19 +700,19 @@ public class RepositoryComponentTelemetryCreatorTest
         tempEntity.newRepository(repositoryManager, "test-repo-hosted",
             RepositoryType.hosted, "maven2");
 
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setRepositoryId(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setRepositoryId(repository.getId());
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             repositoryManager.getId(), RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getRepositoryType()).isEqualTo("hosted");
     assertThat(telemetry.getRepositoryName()).isEqualTo("test-repo-hosted");
@@ -714,19 +721,19 @@ public class RepositoryComponentTelemetryCreatorTest
   @Test
   public void testSendTelemetry_RepositoryLookupFails_ReturnsNullType() {
     // Create component with non-existent repository ID
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setRepositoryId("non-existent-repo-id-12345");
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setRepositoryId("non-existent-repo-id-12345");
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
 
     ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     // Repository lookup should fail, type should be null
     assertThat(telemetry.getRepositoryType()).isNull();
@@ -741,13 +748,13 @@ public class RepositoryComponentTelemetryCreatorTest
         tempEntity.newRepository(repositoryManager, "db-repo-name",
             RepositoryType.proxy, "npm");
 
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setRepositoryId(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setRepositoryId(repository.getId());
 
     // Pass explicit repository name (should use this instead of doing DB lookup)
     String explicitRepoName = "explicit-repo-name";
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             repositoryManager.getId(), explicitRepoName, RepositoryComponentTelemetryEventType.QUARANTINE,
             Collections.emptyList(), null);
 
@@ -755,8 +762,8 @@ public class RepositoryComponentTelemetryCreatorTest
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     // Should use explicit name, not DB lookup
     assertThat(telemetry.getRepositoryName()).isEqualTo(explicitRepoName);
@@ -766,7 +773,7 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testSendTelemetry_NullRepositoryComponent_NullType() {
-    // This tests the Optional.ofNullable(repositoryComponent) path
+    // This tests the Optional.ofNullable(proxyRepositoryComponent) path
     telemetryCreator
         .sendRepositoryComponentTelemetry(null, ImmutableList.of(createViolation()),
             "repoManId", "repoName", RepositoryComponentTelemetryEventType.QUARANTINE,
@@ -776,8 +783,8 @@ public class RepositoryComponentTelemetryCreatorTest
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     // Repository type should be null when component is null
     assertThat(telemetry.getRepositoryType()).isNull();
@@ -792,11 +799,11 @@ public class RepositoryComponentTelemetryCreatorTest
         tempEntity.newRepository(repositoryManager, "test-repo-with-release",
             RepositoryType.proxy, "npm");
 
-    final RepositoryComponent repositoryComponent = createComponent();
-    repositoryComponent.setRepositoryId(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = createComponent();
+    proxyRepositoryComponent.setRepositoryId(repository.getId());
 
     telemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+        .sendRepositoryComponentTelemetry(proxyRepositoryComponent, ImmutableList.of(createViolation()),
             repositoryManager.getId(), "test-repo-with-release",
             RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
             ReleaseQuarantineType.MANUAL, "Waived", Collections.emptyList());
@@ -805,8 +812,8 @@ public class RepositoryComponentTelemetryCreatorTest
     verify(telemetrySenderMock).send(telemetryCaptor.capture());
     TelemetryData telemetryData = telemetryCaptor.getValue();
 
-    RepositoryComponentTelemetry telemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry telemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
 
     assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
     assertThat(telemetry.getRepositoryName()).isEqualTo("test-repo-with-release");

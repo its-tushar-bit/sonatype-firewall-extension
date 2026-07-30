@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -318,7 +318,7 @@ public class PolicyViolationsAndWaiverRequestsApiRegressionTest
   public void testGetPolicyWaiverRequests_list_afterCreate_containsRepoScopedRequest() throws Exception {
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, uniqueName("api-part7-list-policy"));
     Repository repo = tempEntity.newRepository();
-    RepositoryPolicyViolation violation =
+    ProxyRepositoryPolicyViolation violation =
         tempEntity.newRepositoryPolicyViolation(repo.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiPolicyWaiverRequestOptionsDTO body = new ApiPolicyWaiverRequestOptionsDTO();

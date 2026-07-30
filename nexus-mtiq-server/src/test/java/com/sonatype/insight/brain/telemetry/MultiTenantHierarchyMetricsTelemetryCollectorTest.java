@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.Application;
@@ -45,13 +45,14 @@ public class MultiTenantHierarchyMetricsTelemetryCollectorTest
     organizationDAO = daoFactory.createOrganizationDAO();
     applicationDAO = daoFactory.createApplicationDAO();
     RepositoryDAO repositoryDAO = daoFactory.createRepositoryDAO();
-    RepositoryComponentDAO repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
-    OwnerComponentDAO ownerComponentDAO = daoFactory.createOwnerComponentDAO();
-    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
+    ProxyRepositoryComponentDAO proxyRepositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
+    OwnerComponentDAO applicationComponentDAO = daoFactory.createOwnerComponentDAO();
+    ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO =
+        daoFactory.createRepositoryPolicyViolationDAO();
     PolicyViolationDAO policyViolationDAO = daoFactory.createPolicyViolationDAO();
     PolicyEvaluationDAO policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
     telemetryCollector = new HierarchyMetricsTelemetryCollector(applicationDAO, organizationDAO, repositoryDAO,
-        repositoryComponentDAO, ownerComponentDAO, repositoryPolicyViolationDAO, policyViolationDAO,
+        proxyRepositoryComponentDAO, applicationComponentDAO, proxyRepositoryPolicyViolationDAO, policyViolationDAO,
         policyEvaluationDAO);
   }
 

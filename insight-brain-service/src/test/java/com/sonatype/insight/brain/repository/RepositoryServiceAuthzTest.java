@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -322,7 +322,7 @@ public class RepositoryServiceAuthzTest
   @Test
   public void testReevaluateComponent_Authorized() {
     Repository repo = createRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.reevaluateComponent(repo.getId(), component.getHash(), null);
   }

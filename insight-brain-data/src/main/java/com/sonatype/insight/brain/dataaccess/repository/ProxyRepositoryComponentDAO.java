@@ -36,9 +36,9 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.Fire
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -57,8 +57,8 @@ import org.jooq.impl.DSL;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedComponentScanQueue.HOSTED_COMPONENT_SCAN_QUEUE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.QuarantinedComponentAccess.QUARANTINED_COMPONENT_ACCESS;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryComponent.REPOSITORY_COMPONENT;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryPolicyViolation.REPOSITORY_POLICY_VIOLATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryComponent.PROXY_REPOSITORY_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryPolicyViolation.PROXY_REPOSITORY_POLICY_VIOLATION;
 import static org.jooq.impl.DSL.notExists;
 import static org.jooq.impl.DSL.selectOne;
 
@@ -67,17 +67,17 @@ import static org.jooq.impl.DSL.selectOne;
  */
 @Named
 @Singleton
-public class RepositoryComponentDAO
-    extends AbstractOperationalSqlDAO<RepositoryComponent>
+public class ProxyRepositoryComponentDAO
+    extends AbstractOperationalSqlDAO<ProxyRepositoryComponent>
 {
-  private static final Logger log = LoggerFactory.getLogger(RepositoryComponentDAO.class);
+  private static final Logger log = LoggerFactory.getLogger(ProxyRepositoryComponentDAO.class);
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
   private final TemporaryTableHelper temporaryTableHelper;
 
   @Inject
-  public RepositoryComponentDAO(
+  public ProxyRepositoryComponentDAO(
       final OperationalDataStore operationalDataStore,
       final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
       final TemporaryTableHelper temporaryTableHelper)
@@ -89,10 +89,10 @@ public class RepositoryComponentDAO
 
   @Override
   public Table<?> getJooqTable() {
-    return REPOSITORY_COMPONENT;
+    return PROXY_REPOSITORY_COMPONENT;
   }
 
-  public List<RepositoryComponent> getByRepositoryIdPaged(
+  public List<ProxyRepositoryComponent> getByRepositoryIdPaged(
       String repositoryId,
       String filter,
       int limit,
@@ -103,16 +103,16 @@ public class RepositoryComponentDAO
     }
     try (TransactionContext tx = createTransactionContext()) {
       var query = tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .and(notInnerPathname());
       if (filter != null && !filter.isEmpty()) {
         String escaped = escapeLike(filter);
         query = query.and(
-            REPOSITORY_COMPONENT.DISPLAY_NAME.containsIgnoreCase(escaped)
-                .or(REPOSITORY_COMPONENT.PATHNAME.containsIgnoreCase(escaped)));
+            PROXY_REPOSITORY_COMPONENT.DISPLAY_NAME.containsIgnoreCase(escaped)
+                .or(PROXY_REPOSITORY_COMPONENT.PATHNAME.containsIgnoreCase(escaped)));
       }
-      return query.orderBy(REPOSITORY_COMPONENT.DISPLAY_NAME)
+      return query.orderBy(PROXY_REPOSITORY_COMPONENT.DISPLAY_NAME)
           .limit(limit)
           .offset(offset)
           .fetch(this::toEntity);
@@ -126,14 +126,14 @@ public class RepositoryComponentDAO
     try (TransactionContext tx = createTransactionContext()) {
       var query = tx.dsl()
           .selectCount()
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .and(notInnerPathname());
       if (filter != null && !filter.isEmpty()) {
         String escaped = escapeLike(filter);
         query = query.and(
-            REPOSITORY_COMPONENT.DISPLAY_NAME.containsIgnoreCase(escaped)
-                .or(REPOSITORY_COMPONENT.PATHNAME.containsIgnoreCase(escaped)));
+            PROXY_REPOSITORY_COMPONENT.DISPLAY_NAME.containsIgnoreCase(escaped)
+                .or(PROXY_REPOSITORY_COMPONENT.PATHNAME.containsIgnoreCase(escaped)));
       }
       return query.fetchOne(0, Integer.class);
     }
@@ -145,57 +145,57 @@ public class RepositoryComponentDAO
    * Apply on UI-facing queries so a refresh mid-evaluation does not surface these transient rows.
    */
   private static Condition notInnerPathname() {
-    return REPOSITORY_COMPONENT.PATHNAME.notLike("%!/%");
+    return PROXY_REPOSITORY_COMPONENT.PATHNAME.notLike("%!/%");
   }
 
   private static String escapeLike(String value) {
     return value.replace("%", "\\%").replace("_", "\\_");
   }
 
-  public List<RepositoryComponent> getByRepositoryId(String repositoryId) {
+  public List<ProxyRepositoryComponent> getByRepositoryId(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .fetch(this::toEntity);
     }
   }
 
-  public List<RepositoryComponent> getByRepositoryId(
+  public List<ProxyRepositoryComponent> getByRepositoryId(
       final TransactionContext tx,
       final String repositoryId,
       final int limit,
       final int offset)
   {
     return tx.dsl()
-        .selectFrom(REPOSITORY_COMPONENT)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .orderBy(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.asc())
+        .selectFrom(PROXY_REPOSITORY_COMPONENT)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .orderBy(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID.asc())
         .limit(limit)
         .offset(offset)
         .fetch(this::toEntity);
   }
 
-  public RepositoryComponent getByScanId(String scanId) {
+  public ProxyRepositoryComponent getByScanId(String scanId) {
     if (scanId == null) {
       return null;
     }
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.SCAN_ID.eq(scanId))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.SCAN_ID.eq(scanId))
           .fetchOne());
     }
   }
 
   /**
    * Returns components from monitoring-enabled hosted repositories whose last evaluation predates
-   * the given cycle start, paginated newest-first by {@code (time DESC, repository_component_id
+   * the given cycle start, paginated newest-first by {@code (time DESC, proxy_repository_component_id
    * DESC)} via keyset pagination (CLM-41005). Used by the unified continuous monitoring producer
    * (CLM-40039 Section 6.1) to enumerate eligibility for a cycle.
    * <p>
    * Deduplicates by {@code (repository_id, hash)} and emits globally newest-first. The satellite
-   * table's natural key is {@code (repository_id, component_hash)}, so multiple repository_component
+   * table's natural key is {@code (repository_id, component_hash)}, so multiple proxy_repository_component
    * rows sharing the same hash within a repo (same jar at different pathnames) must collapse to one
    * queue entry — otherwise the satellite UNIQUE constraint drops all but one and the consumer logs
    * "satellite missing" for the orphan parents.
@@ -203,18 +203,18 @@ public class RepositoryComponentDAO
    * Postgres uses a window function (ROW_NUMBER() OVER PARTITION BY) to pick the representative
    * row per group. H2 1.4.x — the embedded test/dev fixture — does not support window functions,
    * so we use a GROUP-BY + self-JOIN pattern that produces the same dedup semantics. Both paths
-   * emit the deduped rows ordered by {@code (rc.time DESC, rc.repository_component_id DESC)}.
+   * emit the deduped rows ordered by {@code (rc.time DESC, rc.proxy_repository_component_id DESC)}.
    * <p>
    * Tenant isolation in MTIQ is provided at the connection layer — each tenant is bound to its
    * own PostgreSQL schema by {@code OperationalDataStore}, and {@code repository}/
-   * {@code repository_component} carry no {@code tenant_id} column. The query inherits that
+   * {@code proxy_repository_component} carry no {@code tenant_id} column. The query inherits that
    * isolation; no explicit tenant filter is required or possible.
    *
-   * @param cursor the last {@code (time, repository_component_id)} tuple consumed in this cycle,
+   * @param cursor the last {@code (time, proxy_repository_component_id)} tuple consumed in this cycle,
    *          or {@code null} for the first page. The next page contains rows strictly less than
    *          this tuple in the DESC ordering.
    */
-  public List<RepositoryComponent> getMonitoringEligiblePage(
+  public List<ProxyRepositoryComponent> getMonitoringEligiblePage(
       final TransactionContext tx,
       final Date cycleStart,
       final int limit,
@@ -225,14 +225,14 @@ public class RepositoryComponentDAO
         : getMonitoringEligiblePagePostgres(tx, cycleStart, limit, cursor);
   }
 
-  private List<RepositoryComponent> getMonitoringEligiblePagePostgres(
+  private List<ProxyRepositoryComponent> getMonitoringEligiblePagePostgres(
       final TransactionContext tx,
       final Date cycleStart,
       final int limit,
       final EligibilityCursor cursor)
   {
-    // Driver scan: walk repository_component newest-first via the
-    // (time DESC, repository_component_id DESC) keyset index. The cursor predicate sits
+    // Driver scan: walk proxy_repository_component newest-first via the
+    // (time DESC, proxy_repository_component_id DESC) keyset index. The cursor predicate sits
     // directly on indexed columns of the base table — Postgres uses it as an Index Cond so
     // each page costs O(limit), not O(deduped-result-set). The NOT EXISTS anti-join below
     // implements the per-(repository_id, hash) dedup via index probe per emitted row,
@@ -244,104 +244,107 @@ public class RepositoryComponentDAO
     // ends up applied to the materialized window output, not to the base scan, so the
     // covering index is never used. The NOT EXISTS form leaves the cursor predicate on the
     // indexed base columns where the planner can use it.
-    var rcInner = REPOSITORY_COMPONENT.as("rc_inner");
+    var rcInner = PROXY_REPOSITORY_COMPONENT.as("rc_inner");
     Condition cursorCondition = cursor == null
         ? DSL.trueCondition()
-        : DSL.row(REPOSITORY_COMPONENT.TIME, REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID)
+        : DSL.row(PROXY_REPOSITORY_COMPONENT.TIME, PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID)
             .lessThan(DSL.row(cursor.time(), cursor.repositoryComponentId()));
 
     return tx.dsl()
-        .selectFrom(REPOSITORY_COMPONENT)
-        .where(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
+        .selectFrom(PROXY_REPOSITORY_COMPONENT)
+        .where(PROXY_REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
         .and(cursorCondition)
         // Eligibility: parent repository is a monitoring-enabled hosted repo.
         .and(DSL.exists(
             selectOne()
                 .from(REPOSITORY)
-                .where(REPOSITORY.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
+                .where(REPOSITORY.REPOSITORY_ID.eq(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID))
                 .and(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.hosted.name()))
                 .and(REPOSITORY.MONITORING_ENABLED.isTrue())))
         // Dedup: within (repository_id, hash) keep only the row with the greatest
-        // (time, repository_component_id) tuple. Anti-join asks "is there a sibling row
+        // (time, proxy_repository_component_id) tuple. Anti-join asks "is there a sibling row
         // strictly greater than me in the natural-key group?"; if not, I'm the rep.
         .and(notExists(
             selectOne()
                 .from(rcInner)
-                .where(rcInner.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
-                .and(rcInner.HASH.eq(REPOSITORY_COMPONENT.HASH))
+                .where(rcInner.REPOSITORY_ID.eq(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID))
+                .and(rcInner.HASH.eq(PROXY_REPOSITORY_COMPONENT.HASH))
                 .and(rcInner.LAST_EVALUATION_TIME.lt(cycleStart))
-                .and(DSL.row(rcInner.TIME, rcInner.REPOSITORY_COMPONENT_ID)
+                .and(DSL.row(rcInner.TIME, rcInner.PROXY_REPOSITORY_COMPONENT_ID)
                     .greaterThan(
-                        DSL.row(REPOSITORY_COMPONENT.TIME, REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID)))))
-        .orderBy(REPOSITORY_COMPONENT.TIME.desc(), REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.desc())
+                        DSL.row(PROXY_REPOSITORY_COMPONENT.TIME,
+                            PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID)))))
+        .orderBy(PROXY_REPOSITORY_COMPONENT.TIME.desc(),
+            PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID.desc())
         .limit(limit)
-        .fetchInto(RepositoryComponent.class);
+        .fetchInto(ProxyRepositoryComponent.class);
   }
 
-  private List<RepositoryComponent> getMonitoringEligiblePageH2(
+  private List<ProxyRepositoryComponent> getMonitoringEligiblePageH2(
       final TransactionContext tx,
       final Date cycleStart,
       final int limit,
       final EligibilityCursor cursor)
   {
     // H2 1.4.x does not support ROW_NUMBER() OVER PARTITION BY, so we replicate the
-    // ROW_NUMBER ordering (TIME.desc(), REPOSITORY_COMPONENT_ID.desc()) using two GROUP-BY
+    // ROW_NUMBER ordering (TIME.desc(), PROXY_REPOSITORY_COMPONENT_ID.desc()) using two GROUP-BY
     // passes:
     //
     // Pass 1 (`maxTimes`): per (repository_id, hash), find max(time). This is the primary
     // key for the "newest-first" representative.
     // Pass 2 (`reps`): from the rows matching (repository_id, hash, max_time), find
-    // max(repository_component_id). This is the deterministic tiebreaker for the rare
+    // max(proxy_repository_component_id). This is the deterministic tiebreaker for the rare
     // exact-millisecond TIME collision. We carry the rep_time forward so the keyset
-    // predicate in pass 3 can reference it without re-joining repository_component.
-    // Pass 3 (final SELECT): JOIN repository_component on the picked id, apply the keyset
+    // predicate in pass 3 can reference it without re-joining proxy_repository_component.
+    // Pass 3 (final SELECT): JOIN proxy_repository_component on the picked id, apply the keyset
     // (CLM-41005) cursor predicate, and order by (time DESC, id DESC) for newest-first emission.
     //
     // The end state matches the Postgres window-function path: one representative row per
     // (repository_id, hash) group, keyset-advanced past the cursor, ordered (time DESC, id DESC).
     Table<?> maxTimes = tx.dsl()
         .select(
-            REPOSITORY_COMPONENT.REPOSITORY_ID.as("mt_repo_id"),
-            REPOSITORY_COMPONENT.HASH.as("mt_hash"),
-            DSL.max(REPOSITORY_COMPONENT.TIME).as("mt_time"))
-        .from(REPOSITORY_COMPONENT)
+            PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.as("mt_repo_id"),
+            PROXY_REPOSITORY_COMPONENT.HASH.as("mt_hash"),
+            DSL.max(PROXY_REPOSITORY_COMPONENT.TIME).as("mt_time"))
+        .from(PROXY_REPOSITORY_COMPONENT)
         .join(REPOSITORY)
-        .on(REPOSITORY.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
+        .on(REPOSITORY.REPOSITORY_ID.eq(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID))
         .where(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.hosted.name()))
         .and(REPOSITORY.MONITORING_ENABLED.isTrue())
-        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
-        .groupBy(REPOSITORY_COMPONENT.REPOSITORY_ID, REPOSITORY_COMPONENT.HASH)
+        .and(PROXY_REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
+        .groupBy(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID, PROXY_REPOSITORY_COMPONENT.HASH)
         .asTable("maxTimes");
 
     // Reuse the original column's DataType for each derived-table field reference. Passing a
     // Class<?> instead would route through jOOQ's deprecated static type registry (and emit a
     // WARN for non-built-in types like java.util.Date / Timestamp).
-    Field<String> mtRepoId = maxTimes.field("mt_repo_id", REPOSITORY_COMPONENT.REPOSITORY_ID.getDataType());
-    Field<String> mtHash = maxTimes.field("mt_hash", REPOSITORY_COMPONENT.HASH.getDataType());
-    Field<Date> mtTime = maxTimes.field("mt_time", REPOSITORY_COMPONENT.TIME.getDataType());
+    Field<String> mtRepoId = maxTimes.field("mt_repo_id", PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.getDataType());
+    Field<String> mtHash = maxTimes.field("mt_hash", PROXY_REPOSITORY_COMPONENT.HASH.getDataType());
+    Field<Date> mtTime = maxTimes.field("mt_time", PROXY_REPOSITORY_COMPONENT.TIME.getDataType());
 
     // Re-apply the eligibility predicate inside the `reps` join: without it, a row sharing the
     // exact same (repository_id, hash, time) tuple as an eligible row but failing eligibility
     // (e.g. last_evaluation_time >= cycleStart) could be picked as the group representative if
-    // its repository_component_id is greater. The Postgres window-function path applies the
+    // its proxy_repository_component_id is greater. The Postgres window-function path applies the
     // filter inside the CTE partition automatically; this mirrors that semantic on H2.
     Table<?> reps = tx.dsl()
         .select(
-            REPOSITORY_COMPONENT.REPOSITORY_ID.as("rep_repo_id"),
-            REPOSITORY_COMPONENT.HASH.as("rep_hash"),
-            REPOSITORY_COMPONENT.TIME.as("rep_time"),
-            DSL.max(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID).as("rep_id"))
-        .from(REPOSITORY_COMPONENT)
+            PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.as("rep_repo_id"),
+            PROXY_REPOSITORY_COMPONENT.HASH.as("rep_hash"),
+            PROXY_REPOSITORY_COMPONENT.TIME.as("rep_time"),
+            DSL.max(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID).as("rep_id"))
+        .from(PROXY_REPOSITORY_COMPONENT)
         .join(maxTimes)
-        .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(mtRepoId))
-        .and(REPOSITORY_COMPONENT.HASH.eq(mtHash))
-        .and(REPOSITORY_COMPONENT.TIME.eq(mtTime))
-        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
-        .groupBy(REPOSITORY_COMPONENT.REPOSITORY_ID, REPOSITORY_COMPONENT.HASH, REPOSITORY_COMPONENT.TIME)
+        .on(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(mtRepoId))
+        .and(PROXY_REPOSITORY_COMPONENT.HASH.eq(mtHash))
+        .and(PROXY_REPOSITORY_COMPONENT.TIME.eq(mtTime))
+        .and(PROXY_REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
+        .groupBy(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID, PROXY_REPOSITORY_COMPONENT.HASH,
+            PROXY_REPOSITORY_COMPONENT.TIME)
         .asTable("reps");
 
-    Field<String> repId = reps.field("rep_id", REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.getDataType());
-    Field<Date> repTime = reps.field("rep_time", REPOSITORY_COMPONENT.TIME.getDataType());
+    Field<String> repId = reps.field("rep_id", PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID.getDataType());
+    Field<Date> repTime = reps.field("rep_time", PROXY_REPOSITORY_COMPONENT.TIME.getDataType());
 
     // Keyset predicate on (rep_time, rep_id). jOOQ renders row-value comparison on H2 either as a
     // native (a, b) < (c, d) or as the OR-expansion (a < c) OR (a == c AND b < d) depending on
@@ -351,27 +354,32 @@ public class RepositoryComponentDAO
         : DSL.row(repTime, repId).lessThan(DSL.row(cursor.time(), cursor.repositoryComponentId()));
 
     return tx.dsl()
-        .select(REPOSITORY_COMPONENT.fields())
-        .from(REPOSITORY_COMPONENT)
+        .select(PROXY_REPOSITORY_COMPONENT.fields())
+        .from(PROXY_REPOSITORY_COMPONENT)
         .join(reps)
-        .on(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.eq(repId))
+        .on(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID.eq(repId))
         .where(cursorCondition)
-        .orderBy(REPOSITORY_COMPONENT.TIME.desc(), REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.desc())
+        .orderBy(PROXY_REPOSITORY_COMPONENT.TIME.desc(),
+            PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID.desc())
         .limit(limit)
-        .fetch(record -> record.into(REPOSITORY_COMPONENT.fields()).into(RepositoryComponent.class));
+        .fetch(record -> record.into(PROXY_REPOSITORY_COMPONENT.fields()).into(ProxyRepositoryComponent.class));
   }
 
-  public RepositoryComponent getByRepositoryIdAndPathname(String repositoryId, String pathname) {
+  public ProxyRepositoryComponent getByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryIdAndPathname(tx, repositoryId, pathname);
     }
   }
 
-  public RepositoryComponent getByRepositoryIdAndPathname(TransactionContext tx, String repositoryId, String pathname) {
+  public ProxyRepositoryComponent getByRepositoryIdAndPathname(
+      TransactionContext tx,
+      String repositoryId,
+      String pathname)
+  {
     return toEntity(tx.dsl()
-        .selectFrom(REPOSITORY_COMPONENT)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .selectFrom(PROXY_REPOSITORY_COMPONENT)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .fetchOne());
   }
 
@@ -379,10 +387,10 @@ public class RepositoryComponentDAO
    * Merges the two per-component reads inside the (repositoryId, pathname) cluster lock in
    * {@code RepositoryPolicyEvaluator} into a single round trip (CLM-42134). Each table is pre-filtered
    * to the target key in its own subquery, then combined so that either side is preserved when the other
-   * is empty: this matters because {@code repository_policy_violation} rows can outlive their
-   * {@code repository_component} row (see the archive-of-archives inner-pathname cleanup in
+   * is empty: this matters because {@code proxy_repository_policy_violation} rows can outlive their
+   * {@code proxy_repository_component} row (see the archive-of-archives inner-pathname cleanup in
    * {@code HostedComponentScanQueueConsumer}, CLM-40943) — a plain left join from
-   * {@code repository_component} would silently drop those active violations.
+   * {@code proxy_repository_component} would silently drop those active violations.
    * <p>
    * This is a full outer join, emulated as {@code (rc LEFT JOIN rpv) UNION ALL (rpv LEFT JOIN rc WHERE
    * unmatched)} because H2 (used by this module's non-Postgres tests) doesn't support {@code FULL OUTER
@@ -393,7 +401,7 @@ public class RepositoryComponentDAO
    * @param tx transaction context; caller owns begin/commit (this method only reads)
    * @param repositoryId repository to look up; must be non-null, per caller's existing contract
    * @param pathname pathname within the repository; must be non-null, per caller's existing contract
-   * @return the component (null if no {@code repository_component} row exists for the key) paired with
+   * @return the component (null if no {@code proxy_repository_component} row exists for the key) paired with
    *         its active policy violations (empty list, never null, if there are none)
    */
   public ComponentWithActiveViolations getWithActiveViolationsByRepositoryIdAndPathname(
@@ -402,19 +410,19 @@ public class RepositoryComponentDAO
       String pathname)
   {
     var rc = tx.dsl()
-        .selectFrom(REPOSITORY_COMPONENT)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .selectFrom(PROXY_REPOSITORY_COMPONENT)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .asTable("rc");
     var rpv = tx.dsl()
-        .selectFrom(REPOSITORY_POLICY_VIOLATION)
-        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
-        .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+        .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+        .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
         .asTable("rpv");
 
-    Field<String> rcId = rc.field(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID);
-    Field<String> rpvId = rpv.field(REPOSITORY_POLICY_VIOLATION.REPOSITORY_POLICY_VIOLATION_ID);
+    Field<String> rcId = rc.field(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID);
+    Field<String> rpvId = rpv.field(PROXY_REPOSITORY_POLICY_VIOLATION.PROXY_REPOSITORY_POLICY_VIOLATION_ID);
 
     // Row count is bounded by the active violations for one (repositoryId, pathname) — at most one
     // component row fanned out across a handful of policy violations — so a full fetch() is safe here.
@@ -434,26 +442,27 @@ public class RepositoryComponentDAO
                 .where(rcId.isNull()))
         .fetch();
 
-    RepositoryComponent component = rows.stream()
+    ProxyRepositoryComponent component = rows.stream()
         .filter(r -> r.get(rcId) != null)
         .findFirst()
-        .map(r -> toEntity(r.into(REPOSITORY_COMPONENT.fields())))
+        .map(r -> toEntity(r.into(PROXY_REPOSITORY_COMPONENT.fields())))
         .orElse(null);
 
-    List<RepositoryPolicyViolation> activeViolations = rows.stream()
+    List<ProxyRepositoryPolicyViolation> activeViolations = rows.stream()
         .filter(r -> r.get(rpvId) != null)
-        .map(r -> r.into(REPOSITORY_POLICY_VIOLATION.fields()).into(RepositoryPolicyViolation.class))
-        .sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel)
+        .map(r -> r.into(PROXY_REPOSITORY_POLICY_VIOLATION.fields()).into(ProxyRepositoryPolicyViolation.class))
+        .sorted(Comparator.comparingInt(ProxyRepositoryPolicyViolation::getThreatLevel)
             .reversed()
-            .thenComparing(RepositoryPolicyViolation::getPolicyId, Comparator.nullsLast(Comparator.naturalOrder())))
+            .thenComparing(ProxyRepositoryPolicyViolation::getPolicyId,
+                Comparator.nullsLast(Comparator.naturalOrder())))
         .collect(Collectors.toList());
 
     return new ComponentWithActiveViolations(component, activeViolations);
   }
 
   public record ComponentWithActiveViolations(
-      RepositoryComponent component,
-      List<RepositoryPolicyViolation> activeViolations)
+      ProxyRepositoryComponent component,
+      List<ProxyRepositoryPolicyViolation> activeViolations)
   {
   }
 
@@ -463,16 +472,17 @@ public class RepositoryComponentDAO
   {
     try (TransactionContext tx = createTransactionContext()) {
       var record = tx.dsl()
-          .select(REPOSITORY_COMPONENT.COMPONENT_ID_FORMAT, REPOSITORY_COMPONENT.COMPONENT_ID_COORDINATES_JSON)
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+          .select(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID_FORMAT,
+              PROXY_REPOSITORY_COMPONENT.COMPONENT_ID_COORDINATES_JSON)
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
           .fetchOne();
       if (record == null) {
         return null;
       }
-      String format = record.get(REPOSITORY_COMPONENT.COMPONENT_ID_FORMAT);
-      String coordinatesJson = record.get(REPOSITORY_COMPONENT.COMPONENT_ID_COORDINATES_JSON);
+      String format = record.get(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID_FORMAT);
+      String coordinatesJson = record.get(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID_COORDINATES_JSON);
       if (format == null || coordinatesJson == null) {
         return null;
       }
@@ -480,20 +490,20 @@ public class RepositoryComponentDAO
     }
   }
 
-  public RepositoryComponent getByRepositoryIdAndComponentId(String repositoryId, String componentId) {
+  public ProxyRepositoryComponent getByRepositoryIdAndComponentId(String repositoryId, String componentId) {
     if (componentId == null) {
       return null;
     }
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.eq(componentId))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID.eq(componentId))
           .fetchOne());
     }
   }
 
-  public List<RepositoryComponent> getByRepositoryIdAndPathnames(
+  public List<ProxyRepositoryComponent> getByRepositoryIdAndPathnames(
       String repositoryId,
       List<String> pathnames)
   {
@@ -502,9 +512,9 @@ public class RepositoryComponentDAO
         .map(partition -> {
           try (TransactionContext tx = createTransactionContext()) {
             return tx.dsl()
-                .selectFrom(REPOSITORY_COMPONENT)
-                .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-                .and(REPOSITORY_COMPONENT.PATHNAME.in(partition))
+                .selectFrom(PROXY_REPOSITORY_COMPONENT)
+                .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+                .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.in(partition))
                 .fetch(this::toEntity);
           }
         })
@@ -512,17 +522,17 @@ public class RepositoryComponentDAO
         .collect(Collectors.toList());
   }
 
-  public List<RepositoryComponent> getByRepositoryIdAndHash(String repositoryId, String hash) {
+  public List<ProxyRepositoryComponent> getByRepositoryIdAndHash(String repositoryId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.HASH.eq(hash))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.HASH.eq(hash))
           .fetch(this::toEntity);
     }
   }
 
-  public Map<Repository, List<RepositoryComponent>> getRepositoryToComponentsByHash(
+  public Map<Repository, List<ProxyRepositoryComponent>> getRepositoryToComponentsByHash(
       TransactionContext tx,
       String hash)
   {
@@ -530,27 +540,28 @@ public class RepositoryComponentDAO
     // This is necessary because Repository doesn't have equals/hashCode based on ID,
     // and jOOQ creates new instances for each row
     Map<String, Repository> repositoryById = new HashMap<>();
-    Map<String, List<RepositoryComponent>> componentsByRepositoryId = new HashMap<>();
+    Map<String, List<ProxyRepositoryComponent>> componentsByRepositoryId = new HashMap<>();
 
     tx.dsl()
         .select(REPOSITORY.fields())
-        .select(REPOSITORY_COMPONENT.fields())
+        .select(PROXY_REPOSITORY_COMPONENT.fields())
         .from(REPOSITORY)
-        .join(REPOSITORY_COMPONENT)
-        .on(REPOSITORY.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
-        .where(REPOSITORY_COMPONENT.HASH.eq(hash))
+        .join(PROXY_REPOSITORY_COMPONENT)
+        .on(REPOSITORY.REPOSITORY_ID.eq(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID))
+        .where(PROXY_REPOSITORY_COMPONENT.HASH.eq(hash))
         .fetch()
         .forEach(record -> {
           Repository repository = record.into(REPOSITORY.fields()).into(Repository.class);
-          RepositoryComponent component = record.into(REPOSITORY_COMPONENT.fields()).into(RepositoryComponent.class);
+          ProxyRepositoryComponent component =
+              record.into(PROXY_REPOSITORY_COMPONENT.fields()).into(ProxyRepositoryComponent.class);
           String repositoryId = repository.getId();
           repositoryById.putIfAbsent(repositoryId, repository);
           componentsByRepositoryId.computeIfAbsent(repositoryId, key -> new ArrayList<>()).add(component);
         });
 
     // Build final map with Repository objects as keys
-    Map<Repository, List<RepositoryComponent>> resultMap = new HashMap<>();
-    for (Map.Entry<String, List<RepositoryComponent>> entry : componentsByRepositoryId.entrySet()) {
+    Map<Repository, List<ProxyRepositoryComponent>> resultMap = new HashMap<>();
+    for (Map.Entry<String, List<ProxyRepositoryComponent>> entry : componentsByRepositoryId.entrySet()) {
       resultMap.put(repositoryById.get(entry.getKey()), entry.getValue());
     }
     return resultMap;
@@ -560,8 +571,8 @@ public class RepositoryComponentDAO
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectCount()
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .and(notInnerPathname())
           .fetchOne(0, Integer.class);
     }
@@ -571,9 +582,9 @@ public class RepositoryComponentDAO
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectCount()
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.MATCH_STATE_ID.ne(MatchState.UNKNOWN.getId()))
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.MATCH_STATE_ID.ne(MatchState.UNKNOWN.getId()))
           .and(notInnerPathname())
           .fetchOne(0, Integer.class);
     }
@@ -583,10 +594,10 @@ public class RepositoryComponentDAO
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectCount()
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull())
-          .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull())
+          .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
           .and(notInnerPathname())
           .fetchOne(0, Integer.class);
     }
@@ -599,34 +610,34 @@ public class RepositoryComponentDAO
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectCount()
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(Date.from(Instant.EPOCH)))
-          .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(Date.from(Instant.EPOCH)))
+          .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
           .and(notInnerPathname())
           .fetchOne(0, Long.class);
     }
   }
 
-  public List<RepositoryComponent> getAllQuarantinedComponent() {
+  public List<ProxyRepositoryComponent> getAllQuarantinedComponent() {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull())
-          .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull())
+          .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
           .fetch(this::toEntity);
     }
   }
 
-  public List<RepositoryComponent> getQuarantinedByRepositoryId(TransactionContext tx, String repositoryId) {
+  public List<ProxyRepositoryComponent> getQuarantinedByRepositoryId(TransactionContext tx, String repositoryId) {
     return tx.dsl()
-        .selectFrom(REPOSITORY_COMPONENT)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull())
-        .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
+        .selectFrom(PROXY_REPOSITORY_COMPONENT)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull())
+        .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
         .fetch(this::toEntity);
   }
 
-  public List<RepositoryComponent> getQuarantinedByRepositoryId(String repositoryId) {
+  public List<ProxyRepositoryComponent> getQuarantinedByRepositoryId(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getQuarantinedByRepositoryId(tx, repositoryId);
     }
@@ -635,13 +646,13 @@ public class RepositoryComponentDAO
   /**
    * @since 1.104
    */
-  public List<RepositoryComponent> getQuarantinedByRepositoryIdAndDate(String repositoryId, Date date) {
+  public List<ProxyRepositoryComponent> getQuarantinedByRepositoryIdAndDate(String repositoryId, Date date) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(date))
-          .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(date))
+          .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull())
           .fetch(this::toEntity);
     }
   }
@@ -654,11 +665,11 @@ public class RepositoryComponentDAO
       // Collectors.toMap with Long::sum tolerates duplicate LocalDate keys that some PostgreSQL
       // session configurations can produce; ResultQuery.collect auto-manages the underlying cursor.
       return tx.dsl()
-          .select(DSL.cast(REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class).as("metrics_date"),
-              DSL.count(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID).as("metrics_value"))
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(date))
-          .groupBy(DSL.cast(REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class))
+          .select(DSL.cast(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class).as("metrics_date"),
+              DSL.count(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID).as("metrics_value"))
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(date))
+          .groupBy(DSL.cast(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class))
           .collect(Collectors.toMap(
               record -> record.get("metrics_date", java.sql.Date.class).toLocalDate(),
               record -> record.get("metrics_value", Long.class),
@@ -670,12 +681,12 @@ public class RepositoryComponentDAO
     try (TransactionContext tx = createTransactionContext()) {
       // See getConsolidatedQuarantinedComponentsMetricByDate above for the merge-fn rationale.
       return tx.dsl()
-          .select(DSL.cast(REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class).as("quarantine_date"),
+          .select(DSL.cast(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class).as("quarantine_date"),
               DSL.count().as("count"))
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(date))
-          .groupBy(DSL.cast(REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class))
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(date))
+          .groupBy(DSL.cast(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME, java.sql.Date.class))
           .collect(Collectors.toMap(
               record -> record.get("quarantine_date", java.sql.Date.class).toLocalDate(),
               record -> record.get("count", Long.class),
@@ -686,20 +697,20 @@ public class RepositoryComponentDAO
   public Date getOldestComponentEvaluationTimeByRepositoryId(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .select(DSL.min(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME))
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .select(DSL.min(PROXY_REPOSITORY_COMPONENT.LAST_EVALUATION_TIME))
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .fetchOne(0, Date.class);
     }
   }
 
-  public List<RepositoryComponent> getUnquarantinedByRepositoryId(String repositoryId, Date sinceUtcTimestamp) {
+  public List<ProxyRepositoryComponent> getUnquarantinedByRepositoryId(String repositoryId, Date sinceUtcTimestamp) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNotNull())
-          .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.ge(sinceUtcTimestamp))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNotNull())
+          .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.ge(sinceUtcTimestamp))
           .fetch(this::toEntity);
     }
   }
@@ -709,10 +720,10 @@ public class RepositoryComponentDAO
       Date epochStart = Date.from(Instant.EPOCH);
       return tx.dsl()
           .selectCount()
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart))
-          .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.ge(date))
-          .and(REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(true))
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart))
+          .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.ge(date))
+          .and(PROXY_REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(true))
           .fetchOne(0, Long.class);
     }
   }
@@ -724,17 +735,17 @@ public class RepositoryComponentDAO
   {
     try (TransactionContext tx = createTransactionContext()) {
       var dateCondition = exclusiveDate
-          ? REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(date)
-          : REPOSITORY_COMPONENT.UNQUARANTINE_TIME.ge(date);
+          ? PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(date)
+          : PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.ge(date);
       // See getConsolidatedQuarantinedComponentsMetricByDate above for the merge-fn rationale.
       return tx.dsl()
-          .select(DSL.cast(REPOSITORY_COMPONENT.UNQUARANTINE_TIME, java.sql.Date.class).as("unquarantine_date"),
+          .select(DSL.cast(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME, java.sql.Date.class).as("unquarantine_date"),
               DSL.count().as("count"))
-          .from(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .from(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .and(dateCondition)
-          .and(REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(true))
-          .groupBy(DSL.cast(REPOSITORY_COMPONENT.UNQUARANTINE_TIME, java.sql.Date.class))
+          .and(PROXY_REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(true))
+          .groupBy(DSL.cast(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME, java.sql.Date.class))
           .collect(Collectors.toMap(
               record -> record.get("unquarantine_date", java.sql.Date.class).toLocalDate(),
               record -> record.get("count", Long.class),
@@ -775,11 +786,11 @@ public class RepositoryComponentDAO
           " component.hash," +
           " component.match_state_id," +
           " component.quarantine_time" +
-          " FROM " + getDatabaseSchema() + ".repository_component component" +
+          " FROM " + getDatabaseSchema() + ".proxy_repository_component component" +
           (useTemporaryTable ? " JOIN temporary_ids ti ON component.repository_id = ti.id" : "") +
           " INNER JOIN " + getDatabaseSchema() + ".repository" +
           " ON repository.repository_id = component.repository_id" +
-          " INNER JOIN " + getDatabaseSchema() + ".repository_policy_violation violation" +
+          " INNER JOIN " + getDatabaseSchema() + ".proxy_repository_policy_violation violation" +
           " ON component.repository_id = violation.repository_id" +
           " AND component.pathname = violation.pathname" +
           " WHERE (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)" +
@@ -954,7 +965,7 @@ public class RepositoryComponentDAO
     }
   }
 
-  public List<RepositoryComponent> getFirewallRepositoryComponents(FirewallRepositoryComponentFilter filter) {
+  public List<ProxyRepositoryComponent> getFirewallRepositoryComponents(FirewallRepositoryComponentFilter filter) {
     validateFirewallRepositoryComponentFilter(filter);
 
     try (TransactionContext tx = createTransactionContext()) {
@@ -965,8 +976,8 @@ public class RepositoryComponentDAO
       }
 
       var query = tx.dsl()
-          .selectDistinct(REPOSITORY_COMPONENT.fields())
-          .from(REPOSITORY_COMPONENT);
+          .selectDistinct(PROXY_REPOSITORY_COMPONENT.fields())
+          .from(PROXY_REPOSITORY_COMPONENT);
 
       // Join with policy violation table if filtering by policy or sorting by policy name
       var conditions = new ArrayList<org.jooq.Condition>();
@@ -974,19 +985,19 @@ public class RepositoryComponentDAO
           || (filter.sortableField == FirewallSortableField.POLICY_NAME);
 
       if (needsPolicyViolationJoin) {
-        query = query.join(REPOSITORY_POLICY_VIOLATION)
-            .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID))
-            .and(REPOSITORY_COMPONENT.PATHNAME.eq(REPOSITORY_POLICY_VIOLATION.PATHNAME));
+        query = query.join(PROXY_REPOSITORY_POLICY_VIOLATION)
+            .on(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID))
+            .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME));
 
-        conditions.add(REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq("fail"));
-        conditions.add(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true));
-        conditions.add(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false));
+        conditions.add(PROXY_REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq("fail"));
+        conditions.add(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true));
+        conditions.add(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false));
 
         if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
           String[] policyIds = filter.getFilterFieldsMap()
               .get(FirewallFilterableField.POLICY_ID)
               .split(FirewallFilterField.MULTI_VALUE_SEPARATOR);
-          conditions.add(REPOSITORY_POLICY_VIOLATION.POLICY_ID.in(policyIds));
+          conditions.add(PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_ID.in(policyIds));
         }
       }
 
@@ -996,7 +1007,7 @@ public class RepositoryComponentDAO
 
       if (needsRepositoryJoin) {
         query = query.join(REPOSITORY)
-            .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(REPOSITORY.REPOSITORY_ID));
+            .on(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(REPOSITORY.REPOSITORY_ID));
 
         if (filterFieldsMapContainsField(filter, FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
           String repoPublicIdPattern = "%" + StringUtils.lowerCase(
@@ -1012,23 +1023,23 @@ public class RepositoryComponentDAO
       if (filterFieldsMapContainsField(filter, FirewallFilterableField.COMPONENT_NAME)) {
         String componentNamePattern = "%" + StringUtils.lowerCase(
             filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME)) + "%";
-        conditions.add(DSL.lower(REPOSITORY_COMPONENT.DISPLAY_NAME).like(componentNamePattern));
+        conditions.add(DSL.lower(PROXY_REPOSITORY_COMPONENT.DISPLAY_NAME).like(componentNamePattern));
       }
 
       // Add quarantine time filter
       if (filterFieldsMapContainsField(filter, FirewallFilterableField.QUARANTINE_TIME)) {
         String quarantineTimeStr = filter.getFilterFieldsMap().get(FirewallFilterableField.QUARANTINE_TIME);
         Date quarantineTime = Timestamp.valueOf(quarantineTimeStr.replace("T", " "));
-        conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(quarantineTime));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(quarantineTime));
       }
 
       if (filter.permittedRepositoryIds != null && !filter.permittedRepositoryIds.isEmpty()) {
         if (useTemporaryTable) {
           query = query.join(DSL.table("temporary_ids").as("ti"))
-              .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(DSL.field(DSL.name("ti", "id"), String.class)));
+              .on(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(DSL.field(DSL.name("ti", "id"), String.class)));
         }
         else {
-          conditions.add(REPOSITORY_COMPONENT.REPOSITORY_ID.in(filter.permittedRepositoryIds));
+          conditions.add(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.in(filter.permittedRepositoryIds));
         }
       }
 
@@ -1040,7 +1051,7 @@ public class RepositoryComponentDAO
         sortField = getJooqSortField(filter.sortableField);
       }
       else {
-        sortField = REPOSITORY_COMPONENT.TIME;
+        sortField = PROXY_REPOSITORY_COMPONENT.TIME;
       }
 
       var orderedQuery = filter.asc
@@ -1059,17 +1070,17 @@ public class RepositoryComponentDAO
   private org.jooq.Field<?> getJooqSortField(FirewallSortableField sortableField) {
     switch (sortableField) {
       case QUARANTINE_TIME:
-        return REPOSITORY_COMPONENT.QUARANTINE_TIME;
+        return PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME;
       case RELEASE_QUARANTINE_TIME:
-        return REPOSITORY_COMPONENT.UNQUARANTINE_TIME;
+        return PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME;
       case COMPONENT_DISPLAY_NAME:
-        return REPOSITORY_COMPONENT.DISPLAY_NAME;
+        return PROXY_REPOSITORY_COMPONENT.DISPLAY_NAME;
       case REPOSITORY_PUBLIC_ID:
         return REPOSITORY.PUBLIC_ID;
       case POLICY_NAME:
-        return REPOSITORY_POLICY_VIOLATION.POLICY_NAME;
+        return PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_NAME;
       default:
-        return REPOSITORY_COMPONENT.TIME;
+        return PROXY_REPOSITORY_COMPONENT.TIME;
     }
   }
 
@@ -1079,26 +1090,26 @@ public class RepositoryComponentDAO
 
     switch (filter.firewallComponentFilterState) {
       case AUDIT:
-        conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.isNull());
+        conditions.add(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.isNull());
         break;
       case QUARANTINE:
-        conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart));
-        conditions.add(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull());
+        conditions.add(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNull());
         break;
       case UNQUARANTINE_AUTO:
-        conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart));
-        conditions.add(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(epochStart));
-        conditions.add(REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(true));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(epochStart));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(true));
         break;
       case UNQUARANTINE_MANUAL:
-        conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart));
-        conditions.add(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(epochStart));
-        conditions.add(REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(false)
-            .or(REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.isNull()));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(epochStart));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.eq(false)
+            .or(PROXY_REPOSITORY_COMPONENT.AUTO_UNQUARANTINED.isNull()));
         break;
       case UNQUARANTINE_ALL:
-        conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart));
-        conditions.add(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(epochStart));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.gt(epochStart));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.gt(epochStart));
         break;
       case ALL:
       default:
@@ -1119,31 +1130,31 @@ public class RepositoryComponentDAO
       }
 
       var query = tx.dsl()
-          .select(DSL.countDistinct(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID))
-          .from(REPOSITORY_COMPONENT);
+          .select(DSL.countDistinct(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID))
+          .from(PROXY_REPOSITORY_COMPONENT);
 
       // Join with policy violation table if filtering by policy
       var conditions = new ArrayList<org.jooq.Condition>();
 
       if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
-        query = query.join(REPOSITORY_POLICY_VIOLATION)
-            .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID))
-            .and(REPOSITORY_COMPONENT.PATHNAME.eq(REPOSITORY_POLICY_VIOLATION.PATHNAME));
+        query = query.join(PROXY_REPOSITORY_POLICY_VIOLATION)
+            .on(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID))
+            .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME));
 
-        conditions.add(REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq("fail"));
-        conditions.add(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true));
-        conditions.add(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false));
+        conditions.add(PROXY_REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq("fail"));
+        conditions.add(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true));
+        conditions.add(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false));
 
         String[] policyIds = filter.getFilterFieldsMap()
             .get(FirewallFilterableField.POLICY_ID)
             .split(FirewallFilterField.MULTI_VALUE_SEPARATOR);
-        conditions.add(REPOSITORY_POLICY_VIOLATION.POLICY_ID.in(policyIds));
+        conditions.add(PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_ID.in(policyIds));
       }
 
       // Join with repository table if filtering by repository public id
       if (filterFieldsMapContainsField(filter, FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
         query = query.join(REPOSITORY)
-            .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(REPOSITORY.REPOSITORY_ID));
+            .on(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(REPOSITORY.REPOSITORY_ID));
 
         String repoPublicIdPattern = "%" + StringUtils.lowerCase(
             filter.getFilterFieldsMap().get(FirewallFilterableField.REPOSITORY_PUBLIC_ID)) + "%";
@@ -1157,23 +1168,23 @@ public class RepositoryComponentDAO
       if (filterFieldsMapContainsField(filter, FirewallFilterableField.COMPONENT_NAME)) {
         String componentNamePattern = "%" + StringUtils.lowerCase(
             filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME)) + "%";
-        conditions.add(DSL.lower(REPOSITORY_COMPONENT.DISPLAY_NAME).like(componentNamePattern));
+        conditions.add(DSL.lower(PROXY_REPOSITORY_COMPONENT.DISPLAY_NAME).like(componentNamePattern));
       }
 
       // Add quarantine time filter
       if (filterFieldsMapContainsField(filter, FirewallFilterableField.QUARANTINE_TIME)) {
         String quarantineTimeStr = filter.getFilterFieldsMap().get(FirewallFilterableField.QUARANTINE_TIME);
         Date quarantineTime = Timestamp.valueOf(quarantineTimeStr.replace("T", " "));
-        conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(quarantineTime));
+        conditions.add(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(quarantineTime));
       }
 
       if (filter.permittedRepositoryIds != null && !filter.permittedRepositoryIds.isEmpty()) {
         if (useTemporaryTable) {
           query = query.join(DSL.table("temporary_ids").as("ti"))
-              .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(DSL.field(DSL.name("ti", "id"), String.class)));
+              .on(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(DSL.field(DSL.name("ti", "id"), String.class)));
         }
         else {
-          conditions.add(REPOSITORY_COMPONENT.REPOSITORY_ID.in(filter.permittedRepositoryIds));
+          conditions.add(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.in(filter.permittedRepositoryIds));
         }
       }
 
@@ -1191,7 +1202,7 @@ public class RepositoryComponentDAO
         + "ELSE pathname END";
     String sQuery =
         " SELECT COUNT(DISTINCT " + stripExpr + ")" +
-            " FROM " + getDatabaseSchema() + ".repository_policy_violation" +
+            " FROM " + getDatabaseSchema() + ".proxy_repository_policy_violation" +
             " WHERE repository_id = ?" +
             "   AND active = true" +
             "   AND waived = false" +
@@ -1234,18 +1245,18 @@ public class RepositoryComponentDAO
     }
   }
 
-  public List<RepositoryComponent> getByRepositoryIdAndMatchStateId(String repositoryId, String matchStateId) {
+  public List<ProxyRepositoryComponent> getByRepositoryIdAndMatchStateId(String repositoryId, String matchStateId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.MATCH_STATE_ID.eq(matchStateId))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.MATCH_STATE_ID.eq(matchStateId))
           .fetch(this::toEntity);
     }
   }
 
   @Override
-  public final void delete(TransactionContext tx, RepositoryComponent entity) {
+  public final void delete(TransactionContext tx, ProxyRepositoryComponent entity) {
     // WARNING: Be careful adding business logic to this method because, for performance reasons,
     // we bypass this method when deleting all components for a repository.
     // See https://issues.sonatype.org/browse/CLM-15648 for details
@@ -1267,14 +1278,14 @@ public class RepositoryComponentDAO
       // See https://issues.sonatype.org/browse/CLM-15648 for details
       quarantinedComponentAccessDAO.deleteByRepositoryId(tx, repositoryId);
       tx.dsl()
-          .deleteFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .deleteFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .execute();
     }
   }
 
   /**
-   * Bulk-deletes {@code repository_component} rows for the given pathnames, in batches sized
+   * Bulk-deletes {@code proxy_repository_component} rows for the given pathnames, in batches sized
    * for the configured DB IN-clause threshold. Used by the hosted-repo archive-of-archives
    * fan-out path to remove the per-inner-pathname rows (kept only transiently inside the
    * evaluator) so the Components page only ever shows the outer artifact — see
@@ -1298,22 +1309,22 @@ public class RepositoryComponentDAO
       // Cascade: clear quarantined_component_access for any rows we're about to remove.
       tx.dsl()
           .deleteFrom(QUARANTINED_COMPONENT_ACCESS)
-          .where(QUARANTINED_COMPONENT_ACCESS.REPOSITORY_COMPONENT_ID.in(
+          .where(QUARANTINED_COMPONENT_ACCESS.PROXY_REPOSITORY_COMPONENT_ID.in(
               tx.dsl()
-                  .select(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID)
-                  .from(REPOSITORY_COMPONENT)
-                  .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-                  .and(REPOSITORY_COMPONENT.PATHNAME.in(chunk))))
+                  .select(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID)
+                  .from(PROXY_REPOSITORY_COMPONENT)
+                  .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+                  .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.in(chunk))))
           .execute();
       tx.dsl()
-          .deleteFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.PATHNAME.in(chunk))
+          .deleteFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.in(chunk))
           .execute();
     }
   }
 
-  public List<RepositoryComponent> getOtherVersionRepositoryComponentsByPathnameFilter(
+  public List<ProxyRepositoryComponent> getOtherVersionRepositoryComponentsByPathnameFilter(
       String repositoryId,
       String pathnamePrefix,
       String pathname)
@@ -1325,70 +1336,71 @@ public class RepositoryComponentDAO
     // Excludes the currently quarantined component itself (pathname <> pathname parameter)
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.PATHNAME.like(pathnamePrefix + "%"))
-          .and(REPOSITORY_COMPONENT.PATHNAME.ne(pathname))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.like(pathnamePrefix + "%"))
+          .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.ne(pathname))
           .and(
-              REPOSITORY_COMPONENT.QUARANTINE_TIME.isNull()
+              PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.isNull()
                   .and(notExists(
                       selectOne()
-                          .from(REPOSITORY_POLICY_VIOLATION)
-                          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
-                          .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(REPOSITORY_COMPONENT.PATHNAME))
-                          .and(REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq(Action.ID_FAIL))
-                          .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false))
-                          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))))
-                  .or(REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull()
-                      .and(REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNotNull())))
-          .fetchInto(RepositoryComponent.class);
+                          .from(PROXY_REPOSITORY_POLICY_VIOLATION)
+                          .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID
+                              .eq(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID))
+                          .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(PROXY_REPOSITORY_COMPONENT.PATHNAME))
+                          .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq(Action.ID_FAIL))
+                          .and(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false))
+                          .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))))
+                  .or(PROXY_REPOSITORY_COMPONENT.QUARANTINE_TIME.isNotNull()
+                      .and(PROXY_REPOSITORY_COMPONENT.UNQUARANTINE_TIME.isNotNull())))
+          .fetchInto(ProxyRepositoryComponent.class);
     }
   }
 
-  public List<RepositoryComponent> getByRepositoryIdAndComponentIdentifier(
+  public List<ProxyRepositoryComponent> getByRepositoryIdAndComponentIdentifier(
       String repositoryId,
       ComponentIdentifier componentIdentifier)
   {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_COMPONENT.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
-          .and(REPOSITORY_COMPONENT.COMPONENT_ID_COORDINATES_JSON.eq(
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+          .and(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID_COORDINATES_JSON.eq(
               ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
           .fetch(this::toEntity);
     }
   }
 
-  public List<RepositoryComponent> getByRepositoryIdAndDisplayName(String repositoryId, String displayName) {
+  public List<ProxyRepositoryComponent> getByRepositoryIdAndDisplayName(String repositoryId, String displayName) {
     try (TransactionContext tx = createTransactionContext()) {
-      var condition = REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId);
+      var condition = PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId);
       if (displayName == null) {
-        condition = condition.and(REPOSITORY_COMPONENT.DISPLAY_NAME.isNull());
+        condition = condition.and(PROXY_REPOSITORY_COMPONENT.DISPLAY_NAME.isNull());
       }
       else {
-        condition = condition.and(REPOSITORY_COMPONENT.DISPLAY_NAME.eq(displayName));
+        condition = condition.and(PROXY_REPOSITORY_COMPONENT.DISPLAY_NAME.eq(displayName));
       }
       return tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
           .where(condition)
           .fetch(this::toEntity);
     }
   }
 
   @Override
-  public int insert(TransactionContext tx, RepositoryComponent entity) {
+  public int insert(TransactionContext tx, ProxyRepositoryComponent entity) {
     fillDisplayName(entity);
     return super.insert(tx, entity);
   }
 
   @Override
-  public int update(TransactionContext tx, RepositoryComponent entity) {
+  public int update(TransactionContext tx, ProxyRepositoryComponent entity) {
     fillDisplayName(entity);
     return super.update(tx, entity);
   }
 
-  private void fillDisplayName(RepositoryComponent entity) {
+  private void fillDisplayName(ProxyRepositoryComponent entity) {
     if (entity.getComponentIdentifier() != null) {
       entity.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(entity.getComponentIdentifier()).toString());
       return;
@@ -1422,10 +1434,10 @@ public class RepositoryComponentDAO
       return Map.of();
     }
     return tx.dsl()
-        .select(REPOSITORY_COMPONENT.REPOSITORY_ID, DSL.max(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME))
-        .from(REPOSITORY_COMPONENT)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.in(repositoryIds))
-        .groupBy(REPOSITORY_COMPONENT.REPOSITORY_ID)
+        .select(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID, DSL.max(PROXY_REPOSITORY_COMPONENT.LAST_EVALUATION_TIME))
+        .from(PROXY_REPOSITORY_COMPONENT)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.in(repositoryIds))
+        .groupBy(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID)
         .fetch()
         .stream()
         .filter(record -> record.value2() != null)
@@ -1450,10 +1462,10 @@ public class RepositoryComponentDAO
       final String componentId)
   {
     tx.dsl()
-        .update(REPOSITORY_COMPONENT)
-        .set(REPOSITORY_COMPONENT.COMPONENT_ID, componentId)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .update(PROXY_REPOSITORY_COMPONENT)
+        .set(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID, componentId)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .execute();
   }
 
@@ -1468,17 +1480,17 @@ public class RepositoryComponentDAO
    * NXRM has a stamping bug. If duplicates are detected, a warning is logged and the first
    * matching row is returned.
    */
-  public RepositoryComponent getByNxrmComponentId(final String nxrmComponentId) {
+  public ProxyRepositoryComponent getByNxrmComponentId(final String nxrmComponentId) {
     if (nxrmComponentId == null) {
       return null;
     }
     try (TransactionContext tx = createTransactionContext()) {
       var results = tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.COMPONENT_ID.eq(nxrmComponentId))
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.COMPONENT_ID.eq(nxrmComponentId))
           .fetch();
       if (results.size() > 1) {
-        log.warn("Multiple repository_component rows share component_id={} — returning first. " +
+        log.warn("Multiple proxy_repository_component rows share component_id={} — returning first. " +
             "This indicates a data integrity issue; component_id should be unique per row.", nxrmComponentId);
       }
       return results.isEmpty() ? null : toEntity(results.get(0));
@@ -1492,10 +1504,10 @@ public class RepositoryComponentDAO
       final String scanId)
   {
     tx.dsl()
-        .update(REPOSITORY_COMPONENT)
-        .set(REPOSITORY_COMPONENT.SCAN_ID, scanId)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .update(PROXY_REPOSITORY_COMPONENT)
+        .set(PROXY_REPOSITORY_COMPONENT.SCAN_ID, scanId)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .execute();
   }
 
@@ -1506,10 +1518,10 @@ public class RepositoryComponentDAO
       final int componentCount)
   {
     tx.dsl()
-        .update(REPOSITORY_COMPONENT)
-        .set(REPOSITORY_COMPONENT.COMPONENT_COUNT, componentCount)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .update(PROXY_REPOSITORY_COMPONENT)
+        .set(PROXY_REPOSITORY_COMPONENT.COMPONENT_COUNT, componentCount)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .execute();
   }
 
@@ -1528,12 +1540,12 @@ public class RepositoryComponentDAO
       final int candidate)
   {
     return tx.dsl()
-        .update(REPOSITORY_COMPONENT)
-        .set(REPOSITORY_COMPONENT.COMPONENT_COUNT, candidate)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
-        .and(REPOSITORY_COMPONENT.COMPONENT_COUNT.isNull()
-            .or(REPOSITORY_COMPONENT.COMPONENT_COUNT.lessThan(candidate)))
+        .update(PROXY_REPOSITORY_COMPONENT)
+        .set(PROXY_REPOSITORY_COMPONENT.COMPONENT_COUNT, candidate)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .and(PROXY_REPOSITORY_COMPONENT.COMPONENT_COUNT.isNull()
+            .or(PROXY_REPOSITORY_COMPONENT.COMPONENT_COUNT.lessThan(candidate)))
         .execute();
   }
 
@@ -1544,10 +1556,10 @@ public class RepositoryComponentDAO
       final String stage)
   {
     tx.dsl()
-        .update(REPOSITORY_COMPONENT)
-        .set(REPOSITORY_COMPONENT.LAST_EVALUATION_STAGE, stage)
-        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .update(PROXY_REPOSITORY_COMPONENT)
+        .set(PROXY_REPOSITORY_COMPONENT.LAST_EVALUATION_STAGE, stage)
+        .where(PROXY_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .execute();
   }
 
@@ -1569,7 +1581,7 @@ public class RepositoryComponentDAO
   }
 
   @Override
-  public Class<RepositoryComponent> getEntityClass() {
-    return RepositoryComponent.class;
+  public Class<ProxyRepositoryComponent> getEntityClass() {
+    return ProxyRepositoryComponent.class;
   }
 }

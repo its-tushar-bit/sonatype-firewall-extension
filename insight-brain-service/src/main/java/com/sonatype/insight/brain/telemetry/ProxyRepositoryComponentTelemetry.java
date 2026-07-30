@@ -12,10 +12,10 @@ import java.util.Set;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-public class RepositoryComponentTelemetry
+public class ProxyRepositoryComponentTelemetry
 {
   private static final String USER_NOTIFICATION = "user";
 
@@ -60,7 +60,7 @@ public class RepositoryComponentTelemetry
   private final String accountId;
 
   // Private constructor for builder
-  private RepositoryComponentTelemetry(Builder builder) {
+  private ProxyRepositoryComponentTelemetry(Builder builder) {
     this.accountId = builder.accountId;
     this.repositoryManagerId = builder.repositoryManagerId;
     this.repositoryId = builder.repositoryId;
@@ -100,7 +100,7 @@ public class RepositoryComponentTelemetry
   }
 
   /**
-   * Creates a new Builder for RepositoryComponentTelemetry.
+   * Creates a new Builder for ProxyRepositoryComponentTelemetry.
    *
    * @return A new Builder instance
    */
@@ -108,22 +108,22 @@ public class RepositoryComponentTelemetry
     return new Builder();
   }
 
-  public RepositoryComponentTelemetry(
+  public ProxyRepositoryComponentTelemetry(
       final String accountId,
       final String repositoryManagerId,
-      final RepositoryComponent repositoryComponent,
+      final ProxyRepositoryComponent proxyRepositoryComponent,
       final RepositoryComponentTelemetryEventType eventType,
       final ReleaseQuarantineType releaseQuarantineType,
       final List<PolicyNotification> policyNotifications)
   {
-    this(accountId, repositoryManagerId, repositoryComponent, eventType, releaseQuarantineType, null,
+    this(accountId, repositoryManagerId, proxyRepositoryComponent, eventType, releaseQuarantineType, null,
         policyNotifications);
   }
 
-  public RepositoryComponentTelemetry(
+  public ProxyRepositoryComponentTelemetry(
       final String accountId,
       final String repositoryManagerId,
-      final RepositoryComponent repositoryComponent,
+      final ProxyRepositoryComponent proxyRepositoryComponent,
       final RepositoryComponentTelemetryEventType eventType,
       final ReleaseQuarantineType releaseQuarantineType,
       final String releaseReason,
@@ -131,38 +131,40 @@ public class RepositoryComponentTelemetry
   {
     this.accountId = accountId;
     this.repositoryManagerId = repositoryManagerId;
-    this.repositoryId = repositoryComponent.getRepositoryId();
+    this.repositoryId = proxyRepositoryComponent.getRepositoryId();
     this.repositoryName = null;
     this.repositoryType = null;
     this.componentFormat =
-        repositoryComponent.getComponentIdentifier() == null
+        proxyRepositoryComponent.getComponentIdentifier() == null
             ? null
-            : repositoryComponent.getComponentIdentifier()
+            : proxyRepositoryComponent.getComponentIdentifier()
                 .getFormat();
     this.componentHash =
-        repositoryComponent.getHash() != null ? HdsClientAnalytics.obfuscate(repositoryComponent.getHash()) : null;
+        proxyRepositoryComponent.getHash() != null
+            ? HdsClientAnalytics.obfuscate(proxyRepositoryComponent.getHash())
+            : null;
     this.eventType = eventType.getDescription();
     this.quarantineTime =
-        repositoryComponent.getQuarantineTime() == null
+        proxyRepositoryComponent.getQuarantineTime() == null
             ? null
-            : repositoryComponent.getQuarantineTime()
+            : proxyRepositoryComponent.getQuarantineTime()
                 .toInstant()
                 .toEpochMilli();
     this.releaseQuarantineTime =
-        repositoryComponent.getUnquarantineTime() == null
+        proxyRepositoryComponent.getUnquarantineTime() == null
             ? null
-            : repositoryComponent.getUnquarantineTime()
+            : proxyRepositoryComponent.getUnquarantineTime()
                 .toInstant()
                 .toEpochMilli();
     this.releaseQuarantineType = releaseQuarantineType == null ? null : releaseQuarantineType.getDescription();
     this.releaseReason = releaseReason;
 
     // Extract component identifier details using PackageUrlIdentifier for robust cross-format extraction
-    if (repositoryComponent.getComponentIdentifier() != null) {
+    if (proxyRepositoryComponent.getComponentIdentifier() != null) {
       this.componentIdentifier =
-          ComponentIdentifierAdapter.toJson(repositoryComponent.getComponentIdentifier());
+          ComponentIdentifierAdapter.toJson(proxyRepositoryComponent.getComponentIdentifier());
       PackageUrlIdentifier purl =
-          PackageUrlIdentifier.fromComponentIdentifier(repositoryComponent.getComponentIdentifier());
+          PackageUrlIdentifier.fromComponentIdentifier(proxyRepositoryComponent.getComponentIdentifier());
       this.componentName = purl.getName();
       this.componentNamespace = purl.getNamespace();
       this.componentVersion = purl.getVersion();
@@ -192,7 +194,7 @@ public class RepositoryComponentTelemetry
     }
   }
 
-  public RepositoryComponentTelemetry(
+  public ProxyRepositoryComponentTelemetry(
       final String repositoryManagerId,
       final String repositoryId,
       final String componentFormat,
@@ -206,7 +208,7 @@ public class RepositoryComponentTelemetry
         quarantineTime, releaseQuarantineTime, releaseQuarantineType, null);
   }
 
-  public RepositoryComponentTelemetry(
+  public ProxyRepositoryComponentTelemetry(
       final String repositoryManagerId,
       final String repositoryId,
       final String componentFormat,
@@ -358,7 +360,7 @@ public class RepositoryComponentTelemetry
   }
 
   /**
-   * Builder for RepositoryComponentTelemetry using Java 17 style.
+   * Builder for ProxyRepositoryComponentTelemetry using Java 17 style.
    * Provides a fluent API for constructing telemetry objects with optional parameters.
    */
   public static class Builder
@@ -503,43 +505,43 @@ public class RepositoryComponentTelemetry
     }
 
     /**
-     * Populates builder fields from a RepositoryComponent.
+     * Populates builder fields from a ProxyRepositoryComponent.
      * This is a convenience method for the common case of creating telemetry from a component.
      *
-     * @param repositoryComponent The repository component to extract data from
+     * @param proxyRepositoryComponent The repository component to extract data from
      * @return This builder instance
      */
-    public Builder fromRepositoryComponent(RepositoryComponent repositoryComponent) {
-      if (repositoryComponent == null) {
+    public Builder fromRepositoryComponent(ProxyRepositoryComponent proxyRepositoryComponent) {
+      if (proxyRepositoryComponent == null) {
         return this;
       }
 
-      this.repositoryId = repositoryComponent.getRepositoryId();
-      this.componentHash = repositoryComponent.getHash();
+      this.repositoryId = proxyRepositoryComponent.getRepositoryId();
+      this.componentHash = proxyRepositoryComponent.getHash();
 
-      if (repositoryComponent.getComponentIdentifier() != null) {
-        this.componentFormat = repositoryComponent.getComponentIdentifier().getFormat();
-        this.componentIdentifier = ComponentIdentifierAdapter.toJson(repositoryComponent.getComponentIdentifier());
+      if (proxyRepositoryComponent.getComponentIdentifier() != null) {
+        this.componentFormat = proxyRepositoryComponent.getComponentIdentifier().getFormat();
+        this.componentIdentifier = ComponentIdentifierAdapter.toJson(proxyRepositoryComponent.getComponentIdentifier());
         PackageUrlIdentifier purl =
-            PackageUrlIdentifier.fromComponentIdentifier(repositoryComponent.getComponentIdentifier());
+            PackageUrlIdentifier.fromComponentIdentifier(proxyRepositoryComponent.getComponentIdentifier());
         this.componentName = purl.getName();
         this.componentNamespace = purl.getNamespace();
         this.componentVersion = purl.getVersion();
       }
 
-      if (repositoryComponent.getQuarantineTime() != null) {
-        this.quarantineTime = repositoryComponent.getQuarantineTime().toInstant().toEpochMilli();
+      if (proxyRepositoryComponent.getQuarantineTime() != null) {
+        this.quarantineTime = proxyRepositoryComponent.getQuarantineTime().toInstant().toEpochMilli();
       }
 
-      if (repositoryComponent.getUnquarantineTime() != null) {
-        this.releaseQuarantineTime = repositoryComponent.getUnquarantineTime().toInstant().toEpochMilli();
+      if (proxyRepositoryComponent.getUnquarantineTime() != null) {
+        this.releaseQuarantineTime = proxyRepositoryComponent.getUnquarantineTime().toInstant().toEpochMilli();
       }
 
       return this;
     }
 
-    public RepositoryComponentTelemetry build() {
-      return new RepositoryComponentTelemetry(this);
+    public ProxyRepositoryComponentTelemetry build() {
+      return new ProxyRepositoryComponentTelemetry(this);
     }
   }
 }

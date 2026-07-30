@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -33,8 +33,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
@@ -390,8 +390,8 @@ public class TelemetryUtilsTest
     // Assert
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);
 
-    RepositoryComponentTelemetry componentTelemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry componentTelemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
     assertThat(componentTelemetry).isNotNull();
     assertThat(componentTelemetry.getRepositoryManagerId()).isEqualTo(repositoryManagerId);
     assertThat(componentTelemetry.getRepositoryId()).isEqualTo(repositoryId);
@@ -423,8 +423,8 @@ public class TelemetryUtilsTest
         RepositoryComponentTelemetryEventType.QUARANTINE,
         1234567890L, null, null, Collections.emptyList());
 
-    RepositoryComponentTelemetry componentTelemetry =
-        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry componentTelemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
     assertThat(componentTelemetry).isNotNull();
     assertThat(componentTelemetry.getComponentHash()).isNull();
   }

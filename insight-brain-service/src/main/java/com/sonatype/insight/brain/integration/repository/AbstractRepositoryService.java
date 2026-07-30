@@ -42,8 +42,8 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.container.images.ContainerImageReportService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
@@ -54,17 +54,17 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.ProxyRepositoryPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ContainerImageSummaryDTO;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
@@ -76,8 +76,8 @@ import com.sonatype.insight.brain.repository.component.QuarantinedComponentAcces
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -105,9 +105,9 @@ public abstract class AbstractRepositoryService
 
   protected final RepositoryDAO repositoryDAO;
 
-  protected final RepositoryComponentDAO repositoryComponentDAO;
+  protected final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  protected final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  protected final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   protected final ProductLicense productLicense;
 
@@ -117,7 +117,7 @@ public abstract class AbstractRepositoryService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
-  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+  private final ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator;
 
   private final QuarantinedComponentAccessManager quarantinedComponentAccessManager;
 
@@ -154,7 +154,7 @@ public abstract class AbstractRepositoryService
       ProductLicense productLicense,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
       LicensedFeature requiredFeature,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
       ApplicationDAO applicationDAO,
@@ -162,8 +162,8 @@ public abstract class AbstractRepositoryService
       TelemetrySender telemetrySender,
       RepositoryManagerDAO repositoryManagerDAO,
       RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       FirewallIgnorePatternService firewallIgnorePatternService,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
       RepositoryService repositoryService,
@@ -174,7 +174,7 @@ public abstract class AbstractRepositoryService
     this.productLicense = productLicense;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.requiredFeature = requiredFeature;
-    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.proxyRepositoryComponentTelemetryCreator = proxyRepositoryComponentTelemetryCreator;
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.quarantineHdsClient = quarantineHdsClient;
     this.telemetrySender = telemetrySender;
@@ -182,8 +182,8 @@ public abstract class AbstractRepositoryService
     this.applicationService = applicationService;
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.requestSafeComponentsMetricEventService = requestSafeComponentsMetricEventService;
     this.repositoryService = repositoryService;
@@ -803,14 +803,14 @@ public abstract class AbstractRepositoryService
           .setQuarantinedComponentCount((int) containerImageSummaryDTO.quarantinedContainerImageCount);
     }
     else {
-      PolicyViolationSummary summary = repositoryPolicyViolationDAO.getPolicyViolationSummary(repository.getId());
+      PolicyViolationSummary summary = proxyRepositoryPolicyViolationDAO.getPolicyViolationSummary(repository.getId());
 
       policyEvaluationSummary.setCriticalComponentCount(summary.getCriticalCount());
       policyEvaluationSummary.setSevereComponentCount(summary.getSevereCount());
       policyEvaluationSummary.setModerateComponentCount(summary.getModerateCount());
       policyEvaluationSummary.setAffectedComponentCount(summary.getAffectedComponentCount());
       policyEvaluationSummary.setQuarantinedComponentCount(
-          repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repository.getId()));
+          proxyRepositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repository.getId()));
     }
 
     policyEvaluationSummary.setReportUrl(UserInterfaceLinksHelper.getRepositoryReportUrl(repository.getId()));
@@ -878,36 +878,37 @@ public abstract class AbstractRepositoryService
       }
     }
 
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
-        pathname);
-    if (repositoryComponent != null) {
-      RepositoryPolicyViolationLogger repositoryPolicyViolationLogger = policyViolationLoggerFactory
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+            pathname);
+    if (proxyRepositoryComponent != null) {
+      ProxyRepositoryPolicyViolationLogger proxyRepositoryPolicyViolationLogger = policyViolationLoggerFactory
           .newLogger(new Date(), repository);
-      List<RepositoryPolicyViolation> repositoryPolicyViolations;
-      try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations;
+      try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
         tx.begin();
-        repositoryPolicyViolations = repositoryPolicyViolationDAO
-            .getActiveByRepositoryIdAndPathname(tx, repositoryComponent.getRepositoryId(),
-                repositoryComponent.getPathname());
-        repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
-        for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolations) {
-          repositoryPolicyViolationDAO.delete(tx, policyViolation);
-          repositoryPolicyViolationLogger.add(PolicyViolationLogEvent.FIX, policyViolation);
+        proxyRepositoryPolicyViolations = proxyRepositoryPolicyViolationDAO
+            .getActiveByRepositoryIdAndPathname(tx, proxyRepositoryComponent.getRepositoryId(),
+                proxyRepositoryComponent.getPathname());
+        proxyRepositoryPolicyViolationDAO.loadConstraintFacts(proxyRepositoryPolicyViolations);
+        for (ProxyRepositoryPolicyViolation policyViolation : proxyRepositoryPolicyViolations) {
+          proxyRepositoryPolicyViolationDAO.delete(tx, policyViolation);
+          proxyRepositoryPolicyViolationLogger.add(PolicyViolationLogEvent.FIX, policyViolation);
         }
-        repositoryComponentDAO.delete(tx, repositoryComponent);
+        proxyRepositoryComponentDAO.delete(tx, proxyRepositoryComponent);
         tx.commit();
       }
-      repositoryPolicyViolationLogger.log();
-      if (repositoryComponent.isQuarantined()) {
+      proxyRepositoryPolicyViolationLogger.log();
+      if (proxyRepositoryComponent.isQuarantined()) {
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RESET_QUARANTINE, true)) {
-          AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash());
-          auditComponentPath(repositoryComponent.getPathname());
+          AuditData.get().setRepository(repository).setComponentHash(proxyRepositoryComponent.getHash());
+          auditComponentPath(proxyRepositoryComponent.getPathname());
         }
       }
 
-      if (!repositoryPolicyViolations.isEmpty()) {
-        repositoryComponentTelemetryCreator
-            .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
+      if (!proxyRepositoryPolicyViolations.isEmpty()) {
+        proxyRepositoryComponentTelemetryCreator
+            .sendRepositoryComponentTelemetry(proxyRepositoryComponent, proxyRepositoryPolicyViolations,
                 repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.DELETE);
       }
     }
@@ -949,10 +950,10 @@ public abstract class AbstractRepositoryService
     long start = System.currentTimeMillis();
 
     UnquarantinedComponentList result = new UnquarantinedComponentList();
-    List<RepositoryComponent> unquarantinedComponents = repositoryComponentDAO.getUnquarantinedByRepositoryId(
+    List<ProxyRepositoryComponent> unquarantinedComponents = proxyRepositoryComponentDAO.getUnquarantinedByRepositoryId(
         repository.getId(), new Date(sinceUtcTimestamp));
 
-    for (RepositoryComponent unquarantinedComponent : unquarantinedComponents) {
+    for (ProxyRepositoryComponent unquarantinedComponent : unquarantinedComponents) {
       result.pathnames.add(unquarantinedComponent.getPathname());
     }
 
@@ -1172,16 +1173,16 @@ public abstract class AbstractRepositoryService
       throw new BadRequestException("Specified repository cannot be null");
     }
 
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), normalizePathname(pathname));
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), normalizePathname(pathname));
 
-    if (repositoryComponent == null) {
+    if (proxyRepositoryComponent == null) {
       throw new NotFoundException(String
           .format("Repository component for repository %s and pathname %s does not exist", repository.getPublicId(),
               pathname));
     }
 
-    final String token = quarantinedComponentAccessManager.createToken(repositoryComponent);
+    final String token = quarantinedComponentAccessManager.createToken(proxyRepositoryComponent);
     final QuarantinedComponentReport quarantinedComponentReport = new QuarantinedComponentReport();
     quarantinedComponentReport.setReportUrl(UserInterfaceLinksHelper.getQuarantinedComponentReportPath(token));
     return quarantinedComponentReport;

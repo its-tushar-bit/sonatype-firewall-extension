@@ -83,7 +83,7 @@ public class QuarantinedComponentAccessDAO
   public void deleteByRepositoryComponentId(final TransactionContext tx, final String repositoryComponentId) {
     tx.dsl()
         .deleteFrom(QUARANTINED_COMPONENT_ACCESS)
-        .where(QUARANTINED_COMPONENT_ACCESS.REPOSITORY_COMPONENT_ID.eq(repositoryComponentId))
+        .where(QUARANTINED_COMPONENT_ACCESS.PROXY_REPOSITORY_COMPONENT_ID.eq(repositoryComponentId))
         .execute();
   }
 

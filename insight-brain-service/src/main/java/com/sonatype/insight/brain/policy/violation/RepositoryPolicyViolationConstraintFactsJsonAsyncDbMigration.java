@@ -10,18 +10,18 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 @Named
 @Singleton
 public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration
-    extends AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration<RepositoryPolicyViolation>
+    extends AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration<ProxyRepositoryPolicyViolation>
 {
   @Inject
   public RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration(
-      final RepositoryPolicyViolationDAO dao,
+      final ProxyRepositoryPolicyViolationDAO dao,
       final MigrationTrackerDAO migrationTrackerDAO,
       final InsightConfig config)
   {

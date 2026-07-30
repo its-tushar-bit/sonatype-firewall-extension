@@ -566,7 +566,7 @@ public class ConsumptionEventDAO
    * <p>
    * Day grouping uses {@code DSL.cast(EVENT_TIMESTAMP, DATE)} which respects the JVM/DB
    * session timezone. Production deployments run TZ=UTC (operational contract; not enforced
-   * in code). Matches the project pattern in RepositoryComponentDAO, PolicyWaiverDAO, etc.
+   * in code). Matches the project pattern in ProxyRepositoryComponentDAO, PolicyWaiverDAO, etc.
    */
   public List<ConsumptionDailyTotal> dailyHistoryByWindow(final Instant start, final Instant end) {
     try (TransactionContext tx = createTransactionContext()) {
@@ -590,7 +590,7 @@ public class ConsumptionEventDAO
    * <p>
    * Day grouping uses {@code DSL.cast(EVENT_TIMESTAMP, DATE)} which respects the JVM/DB
    * session timezone. Production deployments run TZ=UTC (operational contract; not enforced
-   * in code). Matches the project pattern in RepositoryComponentDAO, PolicyWaiverDAO, etc.
+   * in code). Matches the project pattern in ProxyRepositoryComponentDAO, PolicyWaiverDAO, etc.
    */
   public List<ConsumptionMonthlyBreakdown> dailyHistoryWithBreakdownByWindow(
       final Instant start,

@@ -596,7 +596,7 @@ public class ApiCrossStageViolationServiceTest
 
   /**
    * CLM-40943 — for an archive-of-archives upload (e.g. {@code outer.zip} containing
-   * {@code inner.jar}), the evaluator persists inner-pathname {@code RepositoryPolicyViolation}
+   * {@code inner.jar}), the evaluator persists inner-pathname {@code ProxyRepositoryPolicyViolation}
    * rows like {@code outer.zip!/inner.jar} but the synthetic {@code Application} is created
    * ONLY for the outer pathname. The DTO builder must strip the {@code "!/..."} suffix and
    * resolve to the outer's synthetic app, instead of failing with a 404.
@@ -609,8 +609,8 @@ public class ApiCrossStageViolationServiceTest
     String innerPathname = outerPathname + "!/log4j-core-2.14.1.jar";
 
     // Create synthetic Application keyed on the OUTER pathname only (matches the consumer's
-    // post-fan-out cleanup pattern: inner repository_component rows are deleted, but inner
-    // repository_policy_violation rows survive and reference the outer Application).
+    // post-fan-out cleanup pattern: inner proxy_repository_component rows are deleted, but inner
+    // proxy_repository_policy_violation rows survive and reference the outer Application).
     String outerAppPublicId =
         com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService
             .generatePublicId(repository.getPublicId(), outerPathname);
@@ -618,7 +618,7 @@ public class ApiCrossStageViolationServiceTest
         "synthetic-app-" + outerPathname, outerAppPublicId, org.getId());
 
     // Persist an inner-pathname violation. The DAO under test must resolve via the outer app.
-    com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation innerViolation =
+    com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation innerViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), innerPathname);
 
     ApiCrossStageViolationDTOV2 result =
@@ -645,7 +645,7 @@ public class ApiCrossStageViolationServiceTest
     Application outerSyntheticApp = tempEntity.newApplication(
         "synthetic-app-" + outerPathname, outerAppPublicId, org.getId());
 
-    com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation outerViolation =
+    com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation outerViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), outerPathname);
 
     ApiCrossStageViolationDTOV2 result =

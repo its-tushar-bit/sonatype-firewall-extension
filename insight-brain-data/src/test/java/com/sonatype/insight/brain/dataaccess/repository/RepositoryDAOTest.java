@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -34,13 +34,13 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -65,9 +65,9 @@ public class RepositoryDAOTest
 
   private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private PolicyDAO policyDAO;
 
@@ -88,8 +88,8 @@ public class RepositoryDAOTest
     repositoryMigrationDAO = daoFactory.createRepositoryMigrationDAO();
     policyMonitoringDAO = daoFactory.createPolicyMonitoringDAO();
     proprietaryComponentNamePatternDAO = daoFactory.createProprietaryComponentNamePatternDAO();
-    repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
-    repositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
+    proxyRepositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
+    proxyRepositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
     policyDAO = daoFactory.createPolicyDAO();
     securityVulnerabilityOverrideDAO = daoFactory.createSecurityVulnerabilityOverrideDAO();
     licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
@@ -183,33 +183,33 @@ public class RepositoryDAOTest
   @Test
   public void testDelete_CascadesToRepositoryComponents() {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
 
     dao.delete(repository);
 
-    assertThat(repositoryComponentDAO.getById(repositoryComponent.getId())).isNull();
+    assertThat(proxyRepositoryComponentDAO.getById(proxyRepositoryComponent.getId())).isNull();
   }
 
   @Test
-  public void testDelete_CascadesToRepositoryPolicyViolations() {
+  public void testDelete_CascadesToProxyRepositoryPolicyViolations() {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    ProxyRepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
 
     dao.delete(repository);
 
-    assertThat(repositoryPolicyViolationDAO.getById(policyViolation.getId())).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getById(policyViolation.getId())).isNull();
   }
 
   @Test
-  public void testDelete_HostedRepo_CascadesToRepositoryPolicyViolations() {
+  public void testDelete_HostedRepo_CascadesToProxyRepositoryPolicyViolations() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repoManager, "hostedRepoPublicId",
         RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
-    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    ProxyRepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
 
     dao.delete(repository);
 
-    assertThat(repositoryPolicyViolationDAO.getById(policyViolation.getId())).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getById(policyViolation.getId())).isNull();
   }
 
   @Test
@@ -252,7 +252,7 @@ public class RepositoryDAOTest
   public void testDelete_CascadesToPolicyWaiverRequests() {
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    ProxyRepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
     tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setOwnerId(repository.getId())
         .setPolicyId(policy.getId())
         .setPolicyViolationId(policyViolation.getId()));
@@ -544,8 +544,9 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity
         .newRepository(repoManager, "SomePublicID", true /* enabled */, true /* quarantineEnabled */);
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "pathname",
-        new Date() /* quarantineTime */, null /* unquarantineTime */);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "pathname",
+            new Date() /* quarantineTime */, null /* unquarantineTime */);
 
     repository.setQuarantineEnabled(false);
     Date before = new Date();
@@ -555,10 +556,10 @@ public class RepositoryDAOTest
     repository = dao.getById(repository.getId());
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
-    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent.isQuarantined()).isFalse();
-    assertThat(repositoryComponent.getUnquarantineTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
-    assertThat(repositoryComponent.getAutoUnquarantined()).isFalse();
+    proxyRepositoryComponent = proxyRepositoryComponentDAO.getById(proxyRepositoryComponent.getId());
+    assertThat(proxyRepositoryComponent.isQuarantined()).isFalse();
+    assertThat(proxyRepositoryComponent.getUnquarantineTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
+    assertThat(proxyRepositoryComponent.getAutoUnquarantined()).isFalse();
   }
 
   @Test
@@ -566,10 +567,11 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repository =
         tempEntity.newRepository(repoManager, "SomePublicID", true /* enabled */, true /* quarantineEnabled */);
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "pathname",
-        new Date() /* quarantineTime */, null /* unquarantineTime */);
-    RepositoryPolicyViolation repositoryPolicyViolation =
-        tempEntity.newRepositoryPolicyViolation(repositoryComponent, "testPolicyId");
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "pathname",
+            new Date() /* quarantineTime */, null /* unquarantineTime */);
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(proxyRepositoryComponent, "testPolicyId");
 
     repository.setAuditEnabled(false);
 
@@ -578,8 +580,8 @@ public class RepositoryDAOTest
     repository = dao.getById(repository.getId());
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
-    assertThat(repositoryComponentDAO.getById(repositoryComponent.getId())).isNull();
-    assertThat(repositoryPolicyViolationDAO.getById(repositoryPolicyViolation.getId())).isNull();
+    assertThat(proxyRepositoryComponentDAO.getById(proxyRepositoryComponent.getId())).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getById(proxyRepositoryPolicyViolation.getId())).isNull();
   }
 
   @Test

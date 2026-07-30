@@ -9,17 +9,17 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Fills in the repository_component.display_name db column.
+ * Fills in the proxy_repository_component.display_name db column.
  *
  * @since 1.152
  */
@@ -34,17 +34,17 @@ public class RepositoryComponentDisplayNameMigrator
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   public RepositoryComponentDisplayNameMigrator(
       MigrationTrackerDAO migrationTrackerDAO,
       RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO)
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
   }
 
   public void migrate() {
@@ -59,10 +59,10 @@ public class RepositoryComponentDisplayNameMigrator
 
     int componentCount = 0;
     for (Repository repository : repositoryDAO.getAll()) {
-      for (RepositoryComponent repositoryComponent : repositoryComponentDAO
+      for (ProxyRepositoryComponent proxyRepositoryComponent : proxyRepositoryComponentDAO
           .getByRepositoryIdAndDisplayName(repository.getId(), null))
       {
-        repositoryComponentDAO.update(repositoryComponent);
+        proxyRepositoryComponentDAO.update(proxyRepositoryComponent);
         componentCount++;
       }
     }

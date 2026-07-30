@@ -17,7 +17,7 @@ import jakarta.annotation.Nullable;
  * cycle (CLM-40039 Section 6.1, CLM-41005 keyset pagination). Implementations decide what makes a
  * candidate eligible (e.g. Hosted Repo: monitoring-enabled repository AND
  * {@code last_evaluation_time} strictly less than {@code cycleStart}) and emit candidates ordered
- * as the flow requires (Hosted Repo: newest first by {@code (time DESC, repository_component_id
+ * as the flow requires (Hosted Repo: newest first by {@code (time DESC, proxy_repository_component_id
  * DESC)}). The producer pages with a {@link EligibilityCursor} on that ordering tuple, so paging
  * cost is O(limit) regardless of position and no rows are skipped under concurrent writes.
  * <p>

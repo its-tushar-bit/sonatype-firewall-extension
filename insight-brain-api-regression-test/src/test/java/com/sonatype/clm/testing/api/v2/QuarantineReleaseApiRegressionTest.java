@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiComponentReleaseQuarantineResource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * API regression suite for {@code POST /api/v2/repositories/quarantine/{quarantineId}/release}
  * ({@link ApiComponentReleaseQuarantineResource}). The endpoint releases a quarantined
  * repository component without re-evaluating policy — the {@code quarantineId} path segment
- * is the internal {@code RepositoryComponent.id}, and the request body is a plain-text
+ * is the internal {@code ProxyRepositoryComponent.id}, and the request body is a plain-text
  * comment (not JSON), so tests use the raw {@link #apiRequest} builder rather than
  * {@code apiPostJson}. This is the only JAX-RS method on the resource; there is no
  * intentionally-deferred coverage.
@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code ApiComponentReleaseQuarantineService}:
  * <ul>
  * <li>Unknown quarantineId → 404 {@code "Cannot find a component with quarantineId ..."}
- * (resource-body path: {@code RepositoryComponentDAO} lookup — the resource has no
+ * (resource-body path: {@code ProxyRepositoryComponentDAO} lookup — the resource has no
  * {@code @AuthzContext} interceptor, so this fragment reliably pins the DAO branch,
  * not an auth-layer 404.)
  * <li>Component exists but not quarantined → 400 {@code "... is not quarantined."}
@@ -82,7 +82,7 @@ public class QuarantineReleaseApiRegressionTest
    * @param quarantineTime {@code non-null} to seed a quarantined component; {@code null} to
    *          seed a component that was ingested but never quarantined
    */
-  private RepositoryComponent seedComponent(final Date quarantineTime) throws Exception {
+  private ProxyRepositoryComponent seedComponent(final Date quarantineTime) throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, uniqueId("api-quar-rel-repo"));
     Date ingestedTime = quarantineTime != null ? quarantineTime : new Date();
@@ -101,7 +101,7 @@ public class QuarantineReleaseApiRegressionTest
    * assertion on {@code quarantineReleaseTime} being non-null is not competing with any
    * clock-skew or same-millisecond edge case on fast machines.
    */
-  private RepositoryComponent seedQuarantinedComponent() throws Exception {
+  private ProxyRepositoryComponent seedQuarantinedComponent() throws Exception {
     return seedComponent(new Date(System.currentTimeMillis() - 1000));
   }
 
@@ -115,7 +115,7 @@ public class QuarantineReleaseApiRegressionTest
 
   @Test
   public void testReleaseQuarantine_happyPath_returns200() throws Exception {
-    RepositoryComponent quarantined = seedQuarantinedComponent();
+    ProxyRepositoryComponent quarantined = seedQuarantinedComponent();
 
     HttpResponse response = postRelease(quarantined.getId(), "released via regression");
     assertResponseStatus(200, response);
@@ -135,7 +135,7 @@ public class QuarantineReleaseApiRegressionTest
 
   @Test
   public void testReleaseQuarantine_componentNotQuarantined_returns400() throws Exception {
-    RepositoryComponent notQuarantined = seedComponent(null);
+    ProxyRepositoryComponent notQuarantined = seedComponent(null);
 
     HttpResponse response = postRelease(notQuarantined.getId(), "release attempt");
     assertResponseStatus(400, response);
@@ -144,7 +144,7 @@ public class QuarantineReleaseApiRegressionTest
 
   @Test
   public void testReleaseQuarantine_missingComment_returns400() throws Exception {
-    RepositoryComponent quarantined = seedQuarantinedComponent();
+    ProxyRepositoryComponent quarantined = seedQuarantinedComponent();
 
     HttpResponse response = postRelease(quarantined.getId(), "");
     assertResponseStatus(400, response);

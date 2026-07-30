@@ -10,11 +10,11 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO.ApiRepositoryComponentPath;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO.ApiRepositoryPathVersions;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -37,15 +37,15 @@ public class ApiRepositoryPathService
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   public ApiRepositoryPathService(
       final RepositoryDAO repositoryDAO,
-      final RepositoryComponentDAO repositoryComponentDAO)
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO)
   {
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -66,13 +66,13 @@ public class ApiRepositoryPathService
       return repositoryPathResponse;
     }
 
-    List<RepositoryComponent> quarantinedComponents =
-        repositoryComponentDAO.getQuarantinedByRepositoryId(repository.getId());
+    List<ProxyRepositoryComponent> quarantinedComponents =
+        proxyRepositoryComponentDAO.getQuarantinedByRepositoryId(repository.getId());
     int index = 0;
     for (String path : pathnames) {
       ApiRepositoryPathVersions pathVersions = new ApiRepositoryPathVersions();
       pathVersions.requestIndex = index;
-      for (RepositoryComponent matchedRepositoryPath : getComponentsAtPath(repository.getFormat(),
+      for (ProxyRepositoryComponent matchedRepositoryPath : getComponentsAtPath(repository.getFormat(),
           quarantinedComponents, path))
       {
         ApiRepositoryComponentPath repositoryPathStatus = new ApiRepositoryComponentPath();
@@ -86,12 +86,12 @@ public class ApiRepositoryPathService
     return repositoryPathResponse;
   }
 
-  private List<RepositoryComponent> getComponentsAtPath(
+  private List<ProxyRepositoryComponent> getComponentsAtPath(
       final String format,
-      final List<RepositoryComponent> quarantinedComponents,
+      final List<ProxyRepositoryComponent> quarantinedComponents,
       final String path)
   {
-    List<RepositoryComponent> matchedComponents;
+    List<ProxyRepositoryComponent> matchedComponents;
     if (ComponentIdentifier.FORMAT_NPM.equals(format)) {
       if (path.matches(".+/-/.+")) {
         final String searchPath = extractNpmPath(AbstractRepositoryService.normalizePathname(path));

@@ -49,7 +49,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStra
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -415,7 +415,7 @@ public class PolicyWaiverServiceTest
         .setOwnerId(repository.getId());
     tempEntity.newWaiver(policyWaiver);
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId());
 
     PolicyViolationTestHelper.createPolicyViolationWaived(policy, component, tempEntity);
 

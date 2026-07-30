@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
@@ -121,60 +121,60 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_Repository() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
-    testAddPolicyWaiverRequestByPolicyViolationId(repository, repositoryPolicyViolation);
+    testAddPolicyWaiverRequestByPolicyViolationId(repository, proxyRepositoryPolicyViolation);
   }
 
   @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_Repository_Unauthorized() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
-    testAddPolicyWaiverRequestByPolicyViolationId_Unauthorized(repository, repositoryPolicyViolation);
+    testAddPolicyWaiverRequestByPolicyViolationId_Unauthorized(repository, proxyRepositoryPolicyViolation);
   }
 
   @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_RepositoryManager() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
-    testAddPolicyWaiverRequestByPolicyViolationId(repositoryManager, repositoryPolicyViolation);
+    testAddPolicyWaiverRequestByPolicyViolationId(repositoryManager, proxyRepositoryPolicyViolation);
   }
 
   @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_RepositoryManager_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
-    testAddPolicyWaiverRequestByPolicyViolationId_Unauthorized(repositoryManager, repositoryPolicyViolation);
+    testAddPolicyWaiverRequestByPolicyViolationId_Unauthorized(repositoryManager, proxyRepositoryPolicyViolation);
   }
 
   @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_RepositoryContainer() throws Exception {
     Repository repository = tempEntity.newRepository();
     policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
-    testAddPolicyWaiverRequestByPolicyViolationId(RepositoryContainer.SINGLETON, repositoryPolicyViolation);
+    testAddPolicyWaiverRequestByPolicyViolationId(RepositoryContainer.SINGLETON, proxyRepositoryPolicyViolation);
   }
 
   @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_RepositoryContainer_Unauthorized() throws Exception {
     Repository repository = tempEntity.newRepository();
     policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     testAddPolicyWaiverRequestByPolicyViolationId_Unauthorized(RepositoryContainer.SINGLETON,
-        repositoryPolicyViolation);
+        proxyRepositoryPolicyViolation);
   }
 
   private void testAddPolicyWaiverRequestByPolicyViolationId(
@@ -284,43 +284,43 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   @Test
   public void testReviewPolicyWaiverRequest_Repository() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
     ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
     policyWaiverRequestOptionsDTO.comment = "waiver comment";
 
-    testReviewPolicyWaiverRequest(repository, repositoryPolicyViolation);
+    testReviewPolicyWaiverRequest(repository, proxyRepositoryPolicyViolation);
   }
 
   @Test
   public void testReviewPolicyWaiverRequest_Repository_Unauthorized() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
-    testReviewPolicyWaiverRequest_Unauthorized(repository, repositoryPolicyViolation);
+    testReviewPolicyWaiverRequest_Unauthorized(repository, proxyRepositoryPolicyViolation);
   }
 
   @Test
   public void testReviewPolicyWaiverRequest_RepositoryManager() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
     ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
     policyWaiverRequestOptionsDTO.comment = "waiver comment";
 
-    testReviewPolicyWaiverRequest(repositoryManager, repositoryPolicyViolation);
+    testReviewPolicyWaiverRequest(repositoryManager, proxyRepositoryPolicyViolation);
   }
 
   @Test
   public void testReviewPolicyWaiverRequest_RepositoryManager_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
-    testReviewPolicyWaiverRequest_Unauthorized(repositoryManager, repositoryPolicyViolation);
+    testReviewPolicyWaiverRequest_Unauthorized(repositoryManager, proxyRepositoryPolicyViolation);
   }
 
   @Test
@@ -356,10 +356,10 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   public void testReviewPolicyWaiverRequest_RepositoryContainer_Unauthorized() throws Exception {
     Repository repository = tempEntity.newRepository();
     policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
-    testReviewPolicyWaiverRequest_Unauthorized(RepositoryContainer.SINGLETON, repositoryPolicyViolation);
+    testReviewPolicyWaiverRequest_Unauthorized(RepositoryContainer.SINGLETON, proxyRepositoryPolicyViolation);
   }
 
   private void testReviewPolicyWaiverRequest(Owner owner, AbstractPolicyViolation policyViolation) throws Exception {
@@ -558,12 +558,12 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   @Test
   public void testUpdatePolicyWaiverRequest_Repository() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     HttpResponse response =
         restRequest().path(POLICY_VIOLATION_ID_PATH)
-            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .parameter(OwnerType.REPOSITORY, repository.getId(), proxyRepositoryPolicyViolation.getId())
             .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
                 ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
             .post();
@@ -576,12 +576,12 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   @Test
   public void testUpdatePolicyWaiverRequest_Repository_Unauthorized() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     HttpResponse response =
         restRequest().path(POLICY_VIOLATION_ID_PATH)
-            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .parameter(OwnerType.REPOSITORY, repository.getId(), proxyRepositoryPolicyViolation.getId())
             .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
                 ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
             .post();
@@ -595,12 +595,12 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   public void testUpdatePolicyWaiverRequest_RepositoryManager_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     HttpResponse response =
         restRequest().path(POLICY_VIOLATION_ID_PATH)
-            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .parameter(OwnerType.REPOSITORY, repository.getId(), proxyRepositoryPolicyViolation.getId())
             .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
                 ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
             .post();
@@ -614,12 +614,12 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   public void testUpdatePolicyWaiverRequest_RepositoryManager() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     HttpResponse response =
         restRequest().path(POLICY_VIOLATION_ID_PATH)
-            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .parameter(OwnerType.REPOSITORY, repository.getId(), proxyRepositoryPolicyViolation.getId())
             .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
                 ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
             .post();
@@ -633,12 +633,12 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   public void testUpdatePolicyWaiverRequest_RepositoryContainer() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     HttpResponse response =
         restRequest().path(POLICY_VIOLATION_ID_PATH)
-            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .parameter(OwnerType.REPOSITORY, repository.getId(), proxyRepositoryPolicyViolation.getId())
             .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
                 ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
             .post();
@@ -652,12 +652,12 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   public void testUpdatePolicyWaiverRequest_RepositoryContainer_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     HttpResponse response =
         restRequest().path(POLICY_VIOLATION_ID_PATH)
-            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .parameter(OwnerType.REPOSITORY, repository.getId(), proxyRepositoryPolicyViolation.getId())
             .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
                 ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
             .post();

@@ -13,15 +13,15 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -86,9 +86,9 @@ public class UserInterfaceLinksResource
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   public UserInterfaceLinksResource(
@@ -99,8 +99,8 @@ public class UserInterfaceLinksResource
       PolicyEvaluationDAO policyEvaluationDAO,
       TelemetryUtils telemetryUtils,
       RepositoryDAO repositoryDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      RepositoryComponentDAO repositoryComponentDAO)
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO)
   {
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;
@@ -109,8 +109,8 @@ public class UserInterfaceLinksResource
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.telemetryUtils = telemetryUtils;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
   }
 
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
@@ -427,21 +427,21 @@ public class UserInterfaceLinksResource
       String violationId,
       boolean addWaiverMode)
   {
-    RepositoryPolicyViolation violation = repositoryPolicyViolationDAO.getById(violationId);
+    ProxyRepositoryPolicyViolation violation = proxyRepositoryPolicyViolationDAO.getById(violationId);
     if (violation == null) {
       UriBuilder fallback = baseUrl.redirect();
       fallback.path(ASSET_INDEX_PATH).fragment("/firewall/waivers");
       return redirect(fallback);
     }
 
-    RepositoryComponent component =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, violation.getPathname());
+    ProxyRepositoryComponent component =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, violation.getPathname());
     String matchState = (component != null && component.getMatchStateId() != null)
         ? component.getMatchStateId()
         : "unknown";
 
     ComponentIdentifier componentIdentifier =
-        repositoryComponentDAO.getComponentIdentifierByRepositoryIdAndPathname(
+        proxyRepositoryComponentDAO.getComponentIdentifierByRepositoryIdAndPathname(
             repositoryId, violation.getPathname());
     if (componentIdentifier == null) {
       UriBuilder fallback = baseUrl.redirect();

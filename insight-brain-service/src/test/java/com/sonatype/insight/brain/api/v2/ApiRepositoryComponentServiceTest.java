@@ -11,13 +11,13 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.repository.RepositoryComponentDeleteService;
+import com.sonatype.insight.brain.repository.ProxyRepositoryComponentDeleteService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -62,13 +62,13 @@ public class ApiRepositoryComponentServiceTest
   private RepositoryDAO repositoryDAO;
 
   @Mock
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
   private HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
 
   @Mock
-  private RepositoryComponentDeleteService repositoryComponentDeleteService;
+  private ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService;
 
   @Mock
   private TransactionContext transactionContext;
@@ -76,19 +76,19 @@ public class ApiRepositoryComponentServiceTest
   @InjectMocks
   private ApiRepositoryComponentService service;
 
-  private RepositoryComponent component1;
+  private ProxyRepositoryComponent component1;
 
-  private RepositoryComponent component2;
+  private ProxyRepositoryComponent component2;
 
   @Before
   public void setup() {
     SecurityAspectControl.disableEnforcement();
 
-    component1 = mock(RepositoryComponent.class);
+    component1 = mock(ProxyRepositoryComponent.class);
     when(component1.getComponentId()).thenReturn(COMPONENT_ID_1);
     when(component1.getRepositoryId()).thenReturn(REPO_ID);
 
-    component2 = mock(RepositoryComponent.class);
+    component2 = mock(ProxyRepositoryComponent.class);
     when(component2.getComponentId()).thenReturn(COMPONENT_ID_2);
     when(component2.getRepositoryId()).thenReturn(REPO_ID);
 
@@ -112,15 +112,15 @@ public class ApiRepositoryComponentServiceTest
 
   @Test
   public void testDeleteComponents_Success() {
-    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
-    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_2)).thenReturn(component2);
+    when(proxyRepositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
+    when(proxyRepositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_2)).thenReturn(component2);
 
     service.deleteComponents(RM_INSTANCE_ID, List.of(COMPONENT_ID_1, COMPONENT_ID_2));
 
     verify(hostedComponentScanQueueDAO).deletePendingByComponentIds(eq(transactionContext),
         eq(List.of(COMPONENT_ID_1, COMPONENT_ID_2)));
-    verify(repositoryComponentDeleteService).deleteComponent(component1);
-    verify(repositoryComponentDeleteService).deleteComponent(component2);
+    verify(proxyRepositoryComponentDeleteService).deleteComponent(component1);
+    verify(proxyRepositoryComponentDeleteService).deleteComponent(component2);
     verify(transactionContext, times(1)).begin();
     verify(transactionContext, times(1)).commit();
   }
@@ -129,7 +129,7 @@ public class ApiRepositoryComponentServiceTest
   public void testDeleteComponents_NullList() {
     service.deleteComponents(RM_INSTANCE_ID, null);
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
@@ -137,37 +137,37 @@ public class ApiRepositoryComponentServiceTest
   public void testDeleteComponents_EmptyList() {
     service.deleteComponents(RM_INSTANCE_ID, Collections.emptyList());
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
   @Test
   public void testDeleteComponents_NullElementsInList_Filtered() {
-    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
+    when(proxyRepositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
 
     service.deleteComponents(RM_INSTANCE_ID, Arrays.asList(COMPONENT_ID_1, null));
 
-    verify(repositoryComponentDeleteService, times(1)).deleteComponent(component1);
+    verify(proxyRepositoryComponentDeleteService, times(1)).deleteComponent(component1);
     verify(hostedComponentScanQueueDAO).deletePendingByComponentIds(eq(transactionContext),
         eq(List.of(COMPONENT_ID_1)));
   }
 
   @Test
   public void testDeleteComponents_DuplicateIds_DeletedOnce() {
-    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
+    when(proxyRepositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
 
     service.deleteComponents(RM_INSTANCE_ID, List.of(COMPONENT_ID_1, COMPONENT_ID_1));
 
-    verify(repositoryComponentDeleteService, times(1)).deleteComponent(component1);
+    verify(proxyRepositoryComponentDeleteService, times(1)).deleteComponent(component1);
     verify(hostedComponentScanQueueDAO).deletePendingByComponentIds(eq(transactionContext),
         eq(List.of(COMPONENT_ID_1)));
   }
 
   @Test
   public void testDeleteComponents_NonHostedComponent_ThrowsNotFound() {
-    RepositoryComponent proxyComponent = mock(RepositoryComponent.class);
+    ProxyRepositoryComponent proxyComponent = mock(ProxyRepositoryComponent.class);
     when(proxyComponent.getRepositoryId()).thenReturn(REPO_ID);
-    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(proxyComponent);
+    when(proxyRepositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(proxyComponent);
 
     Repository proxyRepo = mock(Repository.class);
     when(proxyRepo.getRepositoryManagerId()).thenReturn(RM_INTERNAL_ID);
@@ -178,7 +178,7 @@ public class ApiRepositoryComponentServiceTest
         .isInstanceOf(NotFoundException.class)
         .hasMessageContaining("hosted repository");
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
@@ -190,18 +190,18 @@ public class ApiRepositoryComponentServiceTest
     assertThatThrownBy(() -> service.deleteComponents("bad-rm", List.of(COMPONENT_ID_1)))
         .isInstanceOf(NotFoundException.class);
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
   }
 
   @Test
   public void testDeleteComponents_UnknownComponentId_ThrowsNotFound() {
-    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(null);
+    when(proxyRepositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(null);
 
     assertThatThrownBy(() -> service.deleteComponents(RM_INSTANCE_ID, List.of(COMPONENT_ID_1)))
         .isInstanceOf(NotFoundException.class)
         .hasMessageContaining(COMPONENT_ID_1);
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
@@ -211,13 +211,13 @@ public class ApiRepositoryComponentServiceTest
     when(otherRm.getId()).thenReturn("other-rm-internal-id");
     when(repositoryManagerDAO.getByInstanceIdNotNull("other-rm")).thenReturn(otherRm);
 
-    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
+    when(proxyRepositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
 
     assertThatThrownBy(() -> service.deleteComponents("other-rm", List.of(COMPONENT_ID_1)))
         .isInstanceOf(NotFoundException.class)
         .hasMessageContaining(COMPONENT_ID_1);
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
@@ -231,14 +231,14 @@ public class ApiRepositoryComponentServiceTest
     Repository otherRepo = mock(Repository.class);
     when(otherRepo.getRepositoryManagerId()).thenReturn(RM_INTERNAL_ID);
 
-    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
+    when(proxyRepositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
     when(repositoryDAO.getByIdNotNull(REPO_ID)).thenReturn(otherRepo);
 
     assertThatThrownBy(() -> service.deleteComponents("other-rm", List.of(COMPONENT_ID_1, COMPONENT_ID_2)))
         .isInstanceOf(NotFoundException.class);
 
     // Neither component should be deleted due to upfront validation
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
@@ -251,7 +251,7 @@ public class ApiRepositoryComponentServiceTest
 
     when(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(RM_INSTANCE_ID, REPO_PUBLIC_ID))
         .thenReturn(hostedRepo);
-    when(repositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq(REPO_ID), eq(100), eq(0)))
+    when(proxyRepositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq(REPO_ID), eq(100), eq(0)))
         .thenReturn(List.of(component1, component2));
 
     service.deleteRepositoryComponents(RM_INSTANCE_ID, List.of(REPO_PUBLIC_ID));
@@ -259,8 +259,8 @@ public class ApiRepositoryComponentServiceTest
     verify(hostedComponentScanQueueDAO).deletePendingByRepositoryId(eq(REPO_ID));
     verify(hostedComponentScanQueueDAO).deletePendingByComponentIds(eq(transactionContext),
         eq(List.of(COMPONENT_ID_1, COMPONENT_ID_2)));
-    verify(repositoryComponentDeleteService).deleteComponent(component1);
-    verify(repositoryComponentDeleteService).deleteComponent(component2);
+    verify(proxyRepositoryComponentDeleteService).deleteComponent(component1);
+    verify(proxyRepositoryComponentDeleteService).deleteComponent(component2);
     // Purge uses its own tx; only the cleanup batch touches the injected one.
     verify(transactionContext, times(1)).begin();
     verify(transactionContext, times(1)).commit();
@@ -283,7 +283,7 @@ public class ApiRepositoryComponentServiceTest
         .isInstanceOf(RuntimeException.class)
         .hasMessageContaining("db down");
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
@@ -299,15 +299,15 @@ public class ApiRepositoryComponentServiceTest
 
     // Simulate 101 components: first fetch (offset=0) returns full batch of 100,
     // second fetch (offset=0 again, after deletion) returns the remaining 1, loop exits
-    List<RepositoryComponent> fullBatch = Collections.nCopies(100, component1);
-    when(repositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq(REPO_ID), eq(100), eq(0)))
+    List<ProxyRepositoryComponent> fullBatch = Collections.nCopies(100, component1);
+    when(proxyRepositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq(REPO_ID), eq(100), eq(0)))
         .thenReturn(fullBatch)
         .thenReturn(List.of(component2));
 
     service.deleteRepositoryComponents(RM_INSTANCE_ID, List.of(REPO_PUBLIC_ID));
 
-    verify(repositoryComponentDeleteService, times(100)).deleteComponent(component1);
-    verify(repositoryComponentDeleteService, times(1)).deleteComponent(component2);
+    verify(proxyRepositoryComponentDeleteService, times(100)).deleteComponent(component1);
+    verify(proxyRepositoryComponentDeleteService, times(1)).deleteComponent(component2);
     // Two cleanup batches; the purge manages its own tx (not the injected one).
     verify(transactionContext, times(2)).begin();
     verify(transactionContext, times(2)).commit();
@@ -329,17 +329,17 @@ public class ApiRepositoryComponentServiceTest
         .thenReturn(repo1);
     when(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(RM_INSTANCE_ID, "pub-2"))
         .thenReturn(repo2);
-    when(repositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq("repo-1"), eq(100), eq(0)))
+    when(proxyRepositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq("repo-1"), eq(100), eq(0)))
         .thenReturn(List.of(component1));
-    when(repositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq("repo-2"), eq(100), eq(0)))
+    when(proxyRepositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq("repo-2"), eq(100), eq(0)))
         .thenReturn(List.of(component2));
 
     service.deleteRepositoryComponents(RM_INSTANCE_ID, List.of("pub-1", "pub-2"));
 
     verify(hostedComponentScanQueueDAO).deletePendingByRepositoryId(eq("repo-1"));
     verify(hostedComponentScanQueueDAO).deletePendingByRepositoryId(eq("repo-2"));
-    verify(repositoryComponentDeleteService).deleteComponent(component1);
-    verify(repositoryComponentDeleteService).deleteComponent(component2);
+    verify(proxyRepositoryComponentDeleteService).deleteComponent(component1);
+    verify(proxyRepositoryComponentDeleteService).deleteComponent(component2);
     // One cleanup tx per repo (purge manages its own); two repos => 2.
     verify(transactionContext, times(2)).begin();
     verify(transactionContext, times(2)).commit();
@@ -364,7 +364,7 @@ public class ApiRepositoryComponentServiceTest
             .hasMessageContaining("not a hosted repository");
 
     // Neither repo's components should be deleted due to upfront validation
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByRepositoryId(any());
   }
@@ -373,7 +373,7 @@ public class ApiRepositoryComponentServiceTest
   public void testDeleteRepositoryComponents_NullList() {
     service.deleteRepositoryComponents(RM_INSTANCE_ID, null);
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
     verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
   }
 
@@ -386,13 +386,13 @@ public class ApiRepositoryComponentServiceTest
 
     when(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(RM_INSTANCE_ID, REPO_PUBLIC_ID))
         .thenReturn(hostedRepo);
-    when(repositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq(REPO_ID), eq(100), eq(0)))
+    when(proxyRepositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq(REPO_ID), eq(100), eq(0)))
         .thenReturn(List.of(component1));
 
     service.deleteRepositoryComponents(RM_INSTANCE_ID, Arrays.asList(REPO_PUBLIC_ID, null));
 
     verify(hostedComponentScanQueueDAO).deletePendingByRepositoryId(eq(REPO_ID));
-    verify(repositoryComponentDeleteService, times(1)).deleteComponent(component1);
+    verify(proxyRepositoryComponentDeleteService, times(1)).deleteComponent(component1);
   }
 
   @Test
@@ -407,7 +407,7 @@ public class ApiRepositoryComponentServiceTest
         .isInstanceOf(NotFoundException.class)
         .hasMessageContaining("not a hosted repository");
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
   }
 
   @Test
@@ -418,11 +418,11 @@ public class ApiRepositoryComponentServiceTest
 
     when(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(RM_INSTANCE_ID, REPO_PUBLIC_ID))
         .thenReturn(hostedRepo);
-    when(repositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq(REPO_ID), eq(100), eq(0)))
+    when(proxyRepositoryComponentDAO.getByRepositoryId(eq(transactionContext), eq(REPO_ID), eq(100), eq(0)))
         .thenReturn(Collections.emptyList());
 
     service.deleteRepositoryComponents(RM_INSTANCE_ID, List.of(REPO_PUBLIC_ID));
 
-    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(proxyRepositoryComponentDeleteService, never()).deleteComponent(any());
   }
 }

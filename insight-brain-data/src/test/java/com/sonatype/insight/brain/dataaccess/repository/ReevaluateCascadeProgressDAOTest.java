@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStat
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequest;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequestStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
@@ -58,12 +58,12 @@ public class ReevaluateCascadeProgressDAOTest
 
     // Create parent cascade request first
     Repository repository = tempEntity.newRepository("test-repo-123");
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
         "test-component-path");
     createTestDataForCascadeRequest(requestId, "test-hash-123");
 
     tempEntity.newReevaluateCascadeProgress(
-        progressId, requestId, repository.getId(), repositoryComponent.getId(), status.name());
+        progressId, requestId, repository.getId(), proxyRepositoryComponent.getId(), status.name());
 
     // Act - Find by request ID
     List<ReevaluateCascadeProgress> found = dao.getByRequestId(requestId);
@@ -75,7 +75,7 @@ public class ReevaluateCascadeProgressDAOTest
     assertThat(foundProgress.getId()).isEqualTo(progressId);
     assertThat(foundProgress.getReevaluateCascadeRequestId()).isEqualTo(requestId);
     assertThat(foundProgress.getRepositoryId()).isEqualTo(repository.getId());
-    assertThat(foundProgress.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
+    assertThat(foundProgress.getProxyRepositoryComponentId()).isEqualTo(proxyRepositoryComponent.getId());
     assertThat(foundProgress.getStatus()).isEqualTo(status);
     assertThat(foundProgress.isQuarantined()).isNull();
   }
@@ -89,9 +89,9 @@ public class ReevaluateCascadeProgressDAOTest
     // Create repositories and cascade requests
     Repository repository1 = tempEntity.newRepository("test-repo-1");
     Repository repository2 = tempEntity.newRepository("test-repo-2");
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-2");
-    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-3");
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-2");
+    ProxyRepositoryComponent component3 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-3");
     createTestDataForCascadeRequest(requestId1, "test-hash-1");
     createTestDataForCascadeRequest(requestId2, "test-hash-2");
 
@@ -127,10 +127,10 @@ public class ReevaluateCascadeProgressDAOTest
     Repository repository2 = tempEntity.newRepository("test-repo-2");
     Repository repository3 = tempEntity.newRepository("test-repo-3");
     Repository repository4 = tempEntity.newRepository("test-repo-4");
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
-    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repository3.getId(), "component-path-3");
-    RepositoryComponent component4 = tempEntity.newRepositoryComponent(repository4.getId(), "component-path-4");
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
+    ProxyRepositoryComponent component3 = tempEntity.newRepositoryComponent(repository3.getId(), "component-path-3");
+    ProxyRepositoryComponent component4 = tempEntity.newRepositoryComponent(repository4.getId(), "component-path-4");
     createTestDataForCascadeRequest(requestId, "test-hash-count");
 
     // Create progress entries with different statuses
@@ -163,8 +163,8 @@ public class ReevaluateCascadeProgressDAOTest
     // Create repositories and cascade request
     Repository repository1 = tempEntity.newRepository("test-repo-1");
     Repository repository2 = tempEntity.newRepository("test-repo-2");
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
     createTestDataForCascadeRequest(requestId, "test-hash-complete");
 
     // Create progress entries - all completed/failed (no pending)
@@ -190,7 +190,7 @@ public class ReevaluateCascadeProgressDAOTest
 
     // Create repository and cascade request first
     Repository repository = tempEntity.newRepository("test-repo-1");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path-1");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path-1");
     createTestDataForCascadeRequest(requestId, "test-hash-mark");
 
     ReevaluateCascadeProgress progress = tempEntity.newReevaluateCascadeProgress(
@@ -219,7 +219,7 @@ public class ReevaluateCascadeProgressDAOTest
 
     // Create repository and cascade request first
     Repository repository = tempEntity.newRepository("test-repo-1");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path-1");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path-1");
     createTestDataForCascadeRequest(requestId, "test-hash-fail");
 
     ReevaluateCascadeProgress progress = tempEntity.newReevaluateCascadeProgress(
@@ -253,11 +253,11 @@ public class ReevaluateCascadeProgressDAOTest
     Repository repository3 = tempEntity.newRepository("test-delete-all-repo-3");
     Repository repository4 = tempEntity.newRepository("test-delete-all-repo-4");
     Repository repository5 = tempEntity.newRepository("test-delete-all-repo-5");
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
-    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repository3.getId(), "component-path-3");
-    RepositoryComponent component4 = tempEntity.newRepositoryComponent(repository4.getId(), "component-path-4");
-    RepositoryComponent component5 = tempEntity.newRepositoryComponent(repository5.getId(), "component-path-5");
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
+    ProxyRepositoryComponent component3 = tempEntity.newRepositoryComponent(repository3.getId(), "component-path-3");
+    ProxyRepositoryComponent component4 = tempEntity.newRepositoryComponent(repository4.getId(), "component-path-4");
+    ProxyRepositoryComponent component5 = tempEntity.newRepositoryComponent(repository5.getId(), "component-path-5");
     createTestDataForCascadeRequest(requestId1, "test-hash-delete-all-1");
     createTestDataForCascadeRequest(requestId2, "test-hash-delete-all-2");
     createTestDataForCascadeRequest(requestId3, "test-hash-delete-all-3");
@@ -310,7 +310,7 @@ public class ReevaluateCascadeProgressDAOTest
     String requestId = "test9_empty_set_all_request";
 
     Repository repository = tempEntity.newRepository("test-empty-all-repo");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path");
     createTestDataForCascadeRequest(requestId, "test-hash-empty-all");
 
     tempEntity.newReevaluateCascadeProgress(
@@ -333,7 +333,7 @@ public class ReevaluateCascadeProgressDAOTest
     String nonExistentRequestId = "test10_non_existent_all_request";
 
     Repository repository = tempEntity.newRepository("test-non-existent-all-repo");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path");
     createTestDataForCascadeRequest(requestId, "test-hash-non-existent-all");
 
     tempEntity.newReevaluateCascadeProgress(

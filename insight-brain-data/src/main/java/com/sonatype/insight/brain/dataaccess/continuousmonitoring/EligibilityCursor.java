@@ -10,7 +10,7 @@ import java.util.Objects;
 
 /**
  * Keyset-pagination cursor over the CM eligibility result set (CLM-41005). Identifies the last row
- * the producer consumed in the current cycle by its (time, repository_component_id) tuple — the
+ * the producer consumed in the current cycle by its (time, proxy_repository_component_id) tuple — the
  * same tuple the result set is ordered by, so the next page's predicate is a strict
  * "less-than-this-tuple" comparison. {@code null} signifies "first page".
  * <p>

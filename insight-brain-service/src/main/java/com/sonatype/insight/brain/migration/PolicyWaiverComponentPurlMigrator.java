@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.HasComponentId;
@@ -56,7 +56,7 @@ public class PolicyWaiverComponentPurlMigrator
 
   private final OwnerComponentDAO applicationComponentDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   public PolicyWaiverComponentPurlMigrator(
@@ -66,14 +66,14 @@ public class PolicyWaiverComponentPurlMigrator
       final RepositoryDAO repositoryDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final OwnerComponentDAO applicationComponentDAO,
-      final RepositoryComponentDAO repositoryComponentDAO)
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
     this.repositoryDAO = repositoryDAO;
     this.applicationComponentDAO = applicationComponentDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
   }
 
@@ -147,7 +147,7 @@ public class PolicyWaiverComponentPurlMigrator
       final PolicyWaiver policyWaiver,
       final String ownerId)
   {
-    return repositoryComponentDAO.getByRepositoryIdAndHash(ownerId, policyWaiver.getHash())
+    return proxyRepositoryComponentDAO.getByRepositoryIdAndHash(ownerId, policyWaiver.getHash())
         .stream()
         .map(HasComponentId::getComponentIdentifier)
         .filter(Objects::nonNull)

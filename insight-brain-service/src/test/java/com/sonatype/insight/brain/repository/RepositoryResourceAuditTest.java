@@ -27,9 +27,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.organization.IconUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -130,15 +130,15 @@ public class RepositoryResourceAuditTest
   @Test
   public void testUnquarantineComponent() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), PATHNAME, new Date(), null);
     mockHdsResponse(1);
 
-    unquarantineRequest(repository.getId(), repositoryComponent.getPathname()).post();
+    unquarantineRequest(repository.getId(), proxyRepositoryComponent.getPathname()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RELEASE_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
-    assertUnquarantineData(auditDTO, repositoryComponent.getHash(), repositoryComponent.getPathname());
+    assertUnquarantineData(auditDTO, proxyRepositoryComponent.getHash(), proxyRepositoryComponent.getPathname());
   }
 
   @Test
@@ -154,11 +154,13 @@ public class RepositoryResourceAuditTest
   @Test
   public void testGetPolicyViolations() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "testPath");
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "testPath");
 
-    policyViolationsRequest(repository.getId(), repositoryComponent.getPathname()).get();
-    assertComponentData(repository, repositoryComponent.getComponentIdentifier(), repositoryComponent.getHash(),
-        repositoryComponent.getPathname());
+    policyViolationsRequest(repository.getId(), proxyRepositoryComponent.getPathname()).get();
+    assertComponentData(repository, proxyRepositoryComponent.getComponentIdentifier(),
+        proxyRepositoryComponent.getHash(),
+        proxyRepositoryComponent.getPathname());
   }
 
   @Test
@@ -181,11 +183,12 @@ public class RepositoryResourceAuditTest
   @Test
   public void testGetPolicyViolation() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId());
 
-    policyViolationRequest(repository.getId(), repositoryPolicyViolation.getId()).get();
-    assertComponentData(repository, repositoryPolicyViolation.getComponentIdentifier(),
-        repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPathname());
+    policyViolationRequest(repository.getId(), proxyRepositoryPolicyViolation.getId()).get();
+    assertComponentData(repository, proxyRepositoryPolicyViolation.getComponentIdentifier(),
+        proxyRepositoryPolicyViolation.getHash(), proxyRepositoryPolicyViolation.getPathname());
   }
 
   @Test

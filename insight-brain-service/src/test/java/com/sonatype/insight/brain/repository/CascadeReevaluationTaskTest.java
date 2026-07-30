@@ -22,10 +22,10 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
@@ -37,12 +37,12 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgress;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEventService;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
@@ -65,13 +65,13 @@ public class CascadeReevaluationTaskTest
 
   private Repository repository3;
 
-  private RepositoryComponent component1InRepo1;
+  private ProxyRepositoryComponent component1InRepo1;
 
-  private RepositoryComponent component2InRepo1;
+  private ProxyRepositoryComponent component2InRepo1;
 
-  private RepositoryComponent component1InRepo2;
+  private ProxyRepositoryComponent component1InRepo2;
 
-  private RepositoryComponent unrelatedComponent;
+  private ProxyRepositoryComponent unrelatedComponent;
 
   @Inject
   private ReevaluateCascadeProgressDAO cascadeProgressDAO;
@@ -80,7 +80,7 @@ public class CascadeReevaluationTaskTest
   private ReevaluateCascadeRequestDAO cascadeRequestDAO;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -95,7 +95,7 @@ public class CascadeReevaluationTaskTest
   private ComponentPolicyEvaluator componentPolicyEvaluator;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private PolicyDAO policyDAO;
@@ -107,7 +107,7 @@ public class CascadeReevaluationTaskTest
   private FirewallIgnorePatternService firewallIgnorePatternService;
 
   @Inject
-  private RepositoryComponentDeleteService repositoryComponentDeleteService;
+  private ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService;
 
   @Inject
   private RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
@@ -116,7 +116,7 @@ public class CascadeReevaluationTaskTest
   private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   @Inject
-  private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+  private ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator;
 
   @Inject
   private ClusterLockManager clusterLockManager;
@@ -178,7 +178,7 @@ public class CascadeReevaluationTaskTest
     createPolicy();
 
     task = new CascadeReevaluationTask(cascadeRequestId, targetComponentHash,
-        cascadeProgressDAO, cascadeRequestDAO, repositoryComponentDAO, mockRepositoryPolicyEvaluator);
+        cascadeProgressDAO, cascadeRequestDAO, proxyRepositoryComponentDAO, mockRepositoryPolicyEvaluator);
   }
 
   private void createHdsResponse() {
@@ -274,10 +274,10 @@ public class CascadeReevaluationTaskTest
 
   private RepositoryPolicyEvaluator createRepositoryPolicyEvaluator() {
     return new RepositoryPolicyEvaluator(
-        componentPolicyEvaluator, repositoryComponentDAO, repositoryPolicyViolationDAO,
+        componentPolicyEvaluator, proxyRepositoryComponentDAO, proxyRepositoryPolicyViolationDAO,
         policyDAO, auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
-        componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
-        repositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService,
+        componentDetailsLoaderFactory, proxyRepositoryComponentDeleteService, repositoryPolicyAlertEmailer,
+        proxyRepositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService,
         repositoryPathnameParser, firewallPolicyAlertEventService);
   }
 
@@ -329,14 +329,14 @@ public class CascadeReevaluationTaskTest
       assertThat(progress.getRepositoryId()).isEqualTo(repository1.getId());
       assertThat(progress.getStatus()).isEqualTo(ReevaluateCascadeProgressStatus.COMPLETED);
       // Verify the component ID matches one of our test components
-      assertThat(progress.getRepositoryComponentId())
+      assertThat(progress.getProxyRepositoryComponentId())
           .isIn(component1InRepo1.getId(), component2InRepo1.getId());
 
       // Check quarantine status matches mock evaluation results (Success test expects no quarantine)
-      if (progress.getRepositoryComponentId().equals(component1InRepo1.getId())) {
+      if (progress.getProxyRepositoryComponentId().equals(component1InRepo1.getId())) {
         assertThat(progress.isQuarantined()).isFalse(); // Mock returns quarantine=false
       }
-      else if (progress.getRepositoryComponentId().equals(component2InRepo1.getId())) {
+      else if (progress.getProxyRepositoryComponentId().equals(component2InRepo1.getId())) {
         assertThat(progress.isQuarantined()).isFalse(); // Mock returns quarantine=false
       }
     }
@@ -351,7 +351,7 @@ public class CascadeReevaluationTaskTest
     ReevaluateCascadeProgress repo2ProgressRecord = repo2CascadeProgress.get(0);
     assertThat(repo2ProgressRecord.getReevaluateCascadeRequestId()).isEqualTo(cascadeRequestId);
     assertThat(repo2ProgressRecord.getRepositoryId()).isEqualTo(repository2.getId());
-    assertThat(repo2ProgressRecord.getRepositoryComponentId()).isEqualTo(component1InRepo2.getId());
+    assertThat(repo2ProgressRecord.getProxyRepositoryComponentId()).isEqualTo(component1InRepo2.getId());
     assertThat(repo2ProgressRecord.getStatus()).isEqualTo(ReevaluateCascadeProgressStatus.COMPLETED);
     assertThat(repo2ProgressRecord.isQuarantined()).isFalse(); // Mock returns quarantine=false
 
@@ -399,7 +399,7 @@ public class CascadeReevaluationTaskTest
 
     // Arrange - Set one component as quarantined (this tests the end-to-end flow)
     component1InRepo1.setQuarantineTime(new Date());
-    repositoryComponentDAO.update(component1InRepo1);
+    proxyRepositoryComponentDAO.update(component1InRepo1);
 
     // Act
     task.run();
@@ -408,7 +408,7 @@ public class CascadeReevaluationTaskTest
     List<ReevaluateCascadeProgress> repo1Progress = cascadeProgressDAO.getByRepositoryId(repository1.getId());
     List<ReevaluateCascadeProgress> quarantinedProgress = repo1Progress.stream()
         .filter(p -> cascadeRequestId.equals(p.getReevaluateCascadeRequestId()))
-        .filter(p -> component1InRepo1.getId().equals(p.getRepositoryComponentId()))
+        .filter(p -> component1InRepo1.getId().equals(p.getProxyRepositoryComponentId()))
         .toList();
 
     assertThat(quarantinedProgress).hasSize(1);
@@ -427,7 +427,7 @@ public class CascadeReevaluationTaskTest
 
     CascadeReevaluationTask emptyTask = new CascadeReevaluationTask(
         emptyCascadeId, nonExistentHash,
-        cascadeProgressDAO, cascadeRequestDAO, repositoryComponentDAO, createRepositoryPolicyEvaluator());
+        cascadeProgressDAO, cascadeRequestDAO, proxyRepositoryComponentDAO, createRepositoryPolicyEvaluator());
 
     emptyTask.run();
 
@@ -448,7 +448,7 @@ public class CascadeReevaluationTaskTest
 
     CascadeReevaluationTask otherTask = new CascadeReevaluationTask(
         otherCascadeRequestId, targetComponentHash,
-        cascadeProgressDAO, cascadeRequestDAO, repositoryComponentDAO, mockRepositoryPolicyEvaluator);
+        cascadeProgressDAO, cascadeRequestDAO, proxyRepositoryComponentDAO, mockRepositoryPolicyEvaluator);
     otherTask.run();
 
     List<ReevaluateCascadeProgress> originalProgress = cascadeProgressDAO.getByRequestId(cascadeRequestId);
@@ -492,14 +492,14 @@ public class CascadeReevaluationTaskTest
     component1InRepo1.setQuarantineTime(null);
     component2InRepo1.setQuarantineTime(null);
     component1InRepo2.setQuarantineTime(null);
-    repositoryComponentDAO.update(component1InRepo1);
-    repositoryComponentDAO.update(component2InRepo1);
-    repositoryComponentDAO.update(component1InRepo2);
+    proxyRepositoryComponentDAO.update(component1InRepo1);
+    proxyRepositoryComponentDAO.update(component2InRepo1);
+    proxyRepositoryComponentDAO.update(component1InRepo2);
 
     // Verify initial state - refresh from DB to ensure changes are persisted
-    component1InRepo1 = repositoryComponentDAO.getById(component1InRepo1.getId());
-    component2InRepo1 = repositoryComponentDAO.getById(component2InRepo1.getId());
-    component1InRepo2 = repositoryComponentDAO.getById(component1InRepo2.getId());
+    component1InRepo1 = proxyRepositoryComponentDAO.getById(component1InRepo1.getId());
+    component2InRepo1 = proxyRepositoryComponentDAO.getById(component2InRepo1.getId());
+    component1InRepo2 = proxyRepositoryComponentDAO.getById(component1InRepo2.getId());
 
     assertThat(component1InRepo1.isQuarantined()).isFalse();
     assertThat(component2InRepo1.isQuarantined()).isFalse();
@@ -519,15 +519,15 @@ public class CascadeReevaluationTaskTest
     for (ReevaluateCascadeProgress progress : allProgress) {
       assertThat(progress.getStatus()).isEqualTo(ReevaluateCascadeProgressStatus.COMPLETED);
 
-      if (progress.getRepositoryComponentId().equals(component1InRepo1.getId())) {
+      if (progress.getProxyRepositoryComponentId().equals(component1InRepo1.getId())) {
         // This component should now be quarantined based on evaluation result
         assertThat(progress.isQuarantined()).isTrue();
       }
-      else if (progress.getRepositoryComponentId().equals(component2InRepo1.getId())) {
+      else if (progress.getProxyRepositoryComponentId().equals(component2InRepo1.getId())) {
         // This component should remain not quarantined based on evaluation result
         assertThat(progress.isQuarantined()).isFalse();
       }
-      else if (progress.getRepositoryComponentId().equals(component1InRepo2.getId())) {
+      else if (progress.getProxyRepositoryComponentId().equals(component1InRepo2.getId())) {
         // This component should now be quarantined based on evaluation result
         assertThat(progress.isQuarantined()).isTrue();
       }
@@ -538,7 +538,7 @@ public class CascadeReevaluationTaskTest
   public void testCascadeReevaluationTask_QuarantineStatusUnchangedWhenNoViolations() {
     // Arrange - Set one component as initially quarantined
     component1InRepo1.setQuarantineTime(new Date());
-    repositoryComponentDAO.update(component1InRepo1);
+    proxyRepositoryComponentDAO.update(component1InRepo1);
 
     // Mock evaluation results where all components are not quarantined (no violations)
     createHdsResponse(false, false, false);

@@ -12,9 +12,9 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -70,10 +70,10 @@ public class HostedComponentScanQueueConsumerTelemetryTest
   private RepositoryDAO repositoryDAO;
 
   @Mock
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Mock
   private jakarta.inject.Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider;
@@ -121,8 +121,8 @@ public class HostedComponentScanQueueConsumerTelemetryTest
         scanPersistenceServiceProvider,
         scanUploaderProvider,
         repositoryDAO,
-        repositoryComponentDAO,
-        repositoryPolicyViolationDAO,
+        proxyRepositoryComponentDAO,
+        proxyRepositoryPolicyViolationDAO,
         repositoryPolicyEvaluatorProvider,
         applicationForHostedComponentService,
         policyEvaluationDAO,
@@ -424,7 +424,7 @@ public class HostedComponentScanQueueConsumerTelemetryTest
   @Test
   public void sendHostedScanEvaluationTelemetry_emitsEmptyMapWhenEffectiveCountIsZero() {
     // Given - a scan with scanner-visible components but the authoritative DB view says 0
-    // (e.g. all repository_component rows deleted, or explicitly zeroed).
+    // (e.g. all proxy_repository_component rows deleted, or explicitly zeroed).
     List<ScanComponentInfo> componentInfos = List.of(
         new ScanComponentInfo("a.jar", "h1", "maven2"),
         new ScanComponentInfo("b.jar", "h2", "maven2"));

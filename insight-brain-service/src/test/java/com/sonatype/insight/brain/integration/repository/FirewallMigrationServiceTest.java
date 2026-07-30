@@ -20,17 +20,17 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -63,10 +63,10 @@ public class FirewallMigrationServiceTest
   private static final String TARGET_REPOSITORY_PUBLIC_ID = "repository";
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private LicenseOverrideDAO licenseOverrideDAO;
@@ -102,8 +102,8 @@ public class FirewallMigrationServiceTest
         lookup(com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO.class),
         lookup(RepositoryDAO.class),
         lookup(RepositoryMigrationDAO.class),
-        lookup(RepositoryComponentDAO.class),
-        lookup(RepositoryPolicyViolationDAO.class),
+        lookup(ProxyRepositoryComponentDAO.class),
+        lookup(ProxyRepositoryPolicyViolationDAO.class),
         lookup(LicenseOverrideDAO.class),
         lookup(SecurityVulnerabilityOverrideDAO.class),
         lookup(PolicyWaiverDAO.class),
@@ -218,10 +218,10 @@ public class FirewallMigrationServiceTest
                 .isEqualTo(MigrationState.COMPLETED));
 
     // Assert source untouched
-    assertThat(repositoryComponentDAO.getByRepositoryId(sourceRepository.getId()))
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryId(sourceRepository.getId()))
         .usingElementComparator(componentComparator)
         .containsExactlyInAnyOrderElementsOf(sourceData.components);
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(sourceRepository.getId()))
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(sourceRepository.getId()))
         .usingElementComparator(violationComparator)
         .containsExactlyInAnyOrderElementsOf(sourceData.violations);
     assertThat(licenseOverrideDAO.getByOwnerId(sourceRepository.getId()))
@@ -248,7 +248,7 @@ public class FirewallMigrationServiceTest
     assertThat(targetRepository.isQuarantineEnabled()).isEqualTo(sourceRepository.isQuarantineEnabled());
 
     // Assert Components are migrated
-    List<RepositoryComponent> migratedComponents = repositoryComponentDAO
+    List<ProxyRepositoryComponent> migratedComponents = proxyRepositoryComponentDAO
         .getByRepositoryId(targetRepository.getId());
     assertThat(migratedComponents).usingElementComparator(componentComparatorIgnoringIds)
         .containsExactlyInAnyOrderElementsOf(sourceData.components);
@@ -258,7 +258,7 @@ public class FirewallMigrationServiceTest
           .doesNotContainAnyElementsOf(previousRunData.components);
     }
     // Assert Policy Violations are migrated
-    List<RepositoryPolicyViolation> migratedViolations = repositoryPolicyViolationDAO
+    List<ProxyRepositoryPolicyViolation> migratedViolations = proxyRepositoryPolicyViolationDAO
         .getByRepositoryId(targetRepository.getId());
     assertThat(migratedViolations).usingElementComparator(violationComparatorIgnoringIds)
         .containsExactlyInAnyOrderElementsOf(sourceData.violations);
@@ -298,10 +298,12 @@ public class FirewallMigrationServiceTest
   }
 
   /**
-   * Generates 3 {@link RepositoryComponent components} in the specified {@link Repository} where the first one in the
+   * Generates 3 {@link ProxyRepositoryComponent components} in the specified {@link Repository} where the first one in
+   * the
    * returned list is the one with the latest evaluation timestamp.
    *
-   * Each {@link RepositoryComponent} will get a number of {@link RepositoryPolicyViolation violations} that is equal
+   * Each {@link ProxyRepositoryComponent} will get a number of {@link ProxyRepositoryPolicyViolation violations} that
+   * is equal
    * to the index under which the component is added in the returned list (first component has no violations, the third
    * has 2 violations).
    */
@@ -309,11 +311,11 @@ public class FirewallMigrationServiceTest
     GeneratedRepositoryData generatedRepositoryData = new GeneratedRepositoryData();
     DateTime now = DateTime.now();
     while (generatedRepositoryData.components.size() < 3) {
-      RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+      ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
           "migrate/history/component-" + (generatedRepositoryData.components.size() + 1), null, null,
           now.minusMinutes(generatedRepositoryData.components.size()).toDate());
       for (int i = 0; i < generatedRepositoryData.components.size(); i++) {
-        RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
+        ProxyRepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
             component.getPathname(), true, Action.ID_FAIL, policy.getId(), policy.getName(),
             component.getComponentIdentifier(), component.getLastEvaluationTime());
         generatedRepositoryData.violations.add(violation);
@@ -381,9 +383,9 @@ public class FirewallMigrationServiceTest
 
   private static class GeneratedRepositoryData
   {
-    final List<RepositoryComponent> components = new ArrayList<>();
+    final List<ProxyRepositoryComponent> components = new ArrayList<>();
 
-    final List<RepositoryPolicyViolation> violations = new ArrayList<>();
+    final List<ProxyRepositoryPolicyViolation> violations = new ArrayList<>();
 
     final List<LicenseOverride> licenseOverrides = new ArrayList<>();
 
@@ -396,38 +398,38 @@ public class FirewallMigrationServiceTest
     return Comparator.nullsFirst(Comparator.naturalOrder());
   }
 
-  private final Comparator<RepositoryComponent> componentComparatorIgnoringIds = Comparator //
-      .comparing(RepositoryComponent::getPathname) //
-      .thenComparing(RepositoryComponent::getTime) //
-      .thenComparing(RepositoryComponent::getHash) //
-      .thenComparing(RepositoryComponent::getMatchStateId) //
-      .thenComparing(RepositoryComponent::getIdentificationSourceId) //
-      .thenComparing(RepositoryComponent::getLastEvaluationTime) //
-      .thenComparing(RepositoryComponent::getQuarantineTime, nullSafe()) //
-      .thenComparing(RepositoryComponent::getUnquarantineTime, nullSafe()) //
-      .thenComparing(RepositoryComponent::getComponentIdentifier, nullSafe());
+  private final Comparator<ProxyRepositoryComponent> componentComparatorIgnoringIds = Comparator //
+      .comparing(ProxyRepositoryComponent::getPathname) //
+      .thenComparing(ProxyRepositoryComponent::getTime) //
+      .thenComparing(ProxyRepositoryComponent::getHash) //
+      .thenComparing(ProxyRepositoryComponent::getMatchStateId) //
+      .thenComparing(ProxyRepositoryComponent::getIdentificationSourceId) //
+      .thenComparing(ProxyRepositoryComponent::getLastEvaluationTime) //
+      .thenComparing(ProxyRepositoryComponent::getQuarantineTime, nullSafe()) //
+      .thenComparing(ProxyRepositoryComponent::getUnquarantineTime, nullSafe()) //
+      .thenComparing(ProxyRepositoryComponent::getComponentIdentifier, nullSafe());
 
-  private final Comparator<RepositoryComponent> componentComparator = Comparator //
-      .comparing(RepositoryComponent::getId) //
-      .thenComparing(RepositoryComponent::getRepositoryId) //
+  private final Comparator<ProxyRepositoryComponent> componentComparator = Comparator //
+      .comparing(ProxyRepositoryComponent::getId) //
+      .thenComparing(ProxyRepositoryComponent::getRepositoryId) //
       .thenComparing(componentComparatorIgnoringIds);
 
-  private final Comparator<RepositoryPolicyViolation> violationComparatorIgnoringIds = Comparator //
-      .comparing(RepositoryPolicyViolation::getPathname) //
-      .thenComparing(RepositoryPolicyViolation::getTime) //
-      .thenComparing(RepositoryPolicyViolation::getPolicyId) //
-      .thenComparing(RepositoryPolicyViolation::getPolicyName) //
-      .thenComparing(RepositoryPolicyViolation::getThreatLevel) //
-      .thenComparing(RepositoryPolicyViolation::getThreatCategory) //
-      .thenComparing(RepositoryPolicyViolation::getHash, nullSafe()) //
-      .thenComparing(RepositoryPolicyViolation::getConstraintFactsId) //
-      .thenComparing(RepositoryPolicyViolation::getActionTypeId, nullSafe()) //
-      .thenComparing(RepositoryPolicyViolation::isWaived) //
-      .thenComparing(RepositoryPolicyViolation::getComponentIdentifier, nullSafe());
+  private final Comparator<ProxyRepositoryPolicyViolation> violationComparatorIgnoringIds = Comparator //
+      .comparing(ProxyRepositoryPolicyViolation::getPathname) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getTime) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getPolicyId) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getPolicyName) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getThreatLevel) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getThreatCategory) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getHash, nullSafe()) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getConstraintFactsId) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getActionTypeId, nullSafe()) //
+      .thenComparing(ProxyRepositoryPolicyViolation::isWaived) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getComponentIdentifier, nullSafe());
 
-  private final Comparator<RepositoryPolicyViolation> violationComparator = Comparator //
-      .comparing(RepositoryPolicyViolation::getId) //
-      .thenComparing(RepositoryPolicyViolation::getRepositoryId) //
+  private final Comparator<ProxyRepositoryPolicyViolation> violationComparator = Comparator //
+      .comparing(ProxyRepositoryPolicyViolation::getId) //
+      .thenComparing(ProxyRepositoryPolicyViolation::getRepositoryId) //
       .thenComparing(violationComparatorIgnoringIds);
 
   private final Comparator<LicenseOverride> licenseOverrideComparatorIgnoringIds = Comparator //

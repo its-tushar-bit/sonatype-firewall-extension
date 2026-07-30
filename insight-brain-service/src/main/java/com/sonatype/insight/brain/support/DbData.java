@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -139,7 +139,7 @@ public class DbData
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
@@ -187,7 +187,7 @@ public class DbData
       final MigrationTrackerDAO migrationTrackerDAO,
       final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       final SourceControlDAO sourceControlDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
       final RepositoryConnectionDAO repositoryConnectionDAO,
@@ -225,7 +225,7 @@ public class DbData
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.sourceControlDAO = sourceControlDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
     this.repositoryConnectionDAO = repositoryConnectionDAO;
@@ -338,7 +338,7 @@ public class DbData
   }
 
   Entry<String, Object> getQuarantinedComponent() {
-    return wrapEntry("quarantinedComponent", repositoryComponentDAO.getAllQuarantinedComponent());
+    return wrapEntry("quarantinedComponent", proxyRepositoryComponentDAO.getAllQuarantinedComponent());
   }
 
   Entry<String, Object> getWaiver() {

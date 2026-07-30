@@ -57,14 +57,14 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallQuarantinedComponentDetails;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryException;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService;
@@ -72,11 +72,11 @@ import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.ConditionType;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -128,11 +128,11 @@ public class ApiFirewallService
 
   private final ProductLicense productLicense;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
 
@@ -163,9 +163,9 @@ public class ApiFirewallService
   @Inject
   public ApiFirewallService(
       final ProductLicense productLicense,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final RepositoryDAO repositoryDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO,
       final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
       final TelemetrySender telemetrySender,
@@ -179,9 +179,9 @@ public class ApiFirewallService
       final FirewallPermissionGate firewallPermissionGate)
   {
     this.productLicense = productLicense;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.autoUnquarantinePolicyConditionTypeDAO = autoUnquarantinePolicyConditionTypeDAO;
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
     this.telemetrySender = telemetrySender;
@@ -224,8 +224,8 @@ public class ApiFirewallService
     summary.repositoryCount = repositoryDAO.getCountByRepositoryType(RepositoryType.proxy);
     summary.quarantineEnabledRepositoryCount = repositoryDAO.getQuarantineEnabledCount();
     summary.quarantineEnabled = summary.quarantineEnabledRepositoryCount > 0;
-    summary.totalComponentCount = repositoryComponentDAO.getCount();
-    summary.quarantinedComponentCount = repositoryComponentDAO.getQuarantinedComponentCount();
+    summary.totalComponentCount = proxyRepositoryComponentDAO.getCount();
+    summary.quarantinedComponentCount = proxyRepositoryComponentDAO.getQuarantinedComponentCount();
 
     return summary;
   }
@@ -377,10 +377,10 @@ public class ApiFirewallService
         new ApiFirewallReleaseQuarantineSummaryDTO();
 
     apiFirewallReleaseQuarantineSummaryDTO.autoReleaseQuarantineCountMTD =
-        repositoryComponentDAO.getAutoReleaseQuarantinedCountByDate(startOfCurMonth);
+        proxyRepositoryComponentDAO.getAutoReleaseQuarantinedCountByDate(startOfCurMonth);
 
     apiFirewallReleaseQuarantineSummaryDTO.autoReleaseQuarantineCountYTD =
-        repositoryComponentDAO.getAutoReleaseQuarantinedCountByDate(startOfCurYear);
+        proxyRepositoryComponentDAO.getAutoReleaseQuarantinedCountByDate(startOfCurYear);
 
     return apiFirewallReleaseQuarantineSummaryDTO;
   }
@@ -397,17 +397,17 @@ public class ApiFirewallService
     this.validateFirewallRepositoryComponentFilter(filter);
 
     // get a list of all auto-unquarantined repository components
-    final List<RepositoryComponent> autoUnquarantinedComponents =
-        repositoryComponentDAO.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantinedComponents =
+        proxyRepositoryComponentDAO.getFirewallRepositoryComponents(filter);
 
     // get a list of all unique repository ids
     Map<String, Repository> repositoryMap = toRepositoryMap(autoUnquarantinedComponents);
 
-    final long total = repositoryComponentDAO.getTotalFirewallRepositoryComponents(filter);
+    final long total = proxyRepositoryComponentDAO.getTotalFirewallRepositoryComponents(filter);
     ApiPageResult<ApiFirewallComponentDTO> result = new ApiPageResult<>(total, filter.page, filter.pageSize);
 
     // for each component, attach policy violations for that component
-    for (RepositoryComponent component : autoUnquarantinedComponents) {
+    for (ProxyRepositoryComponent component : autoUnquarantinedComponents) {
       final ApiFirewallComponentDTO apiFirewallComponentDTO = new ApiFirewallComponentDTO();
       apiFirewallComponentDTO.displayName = component.getDisplayName();
       apiFirewallComponentDTO.repository = repositoryMap.get(component.getRepositoryId()).getPublicId();
@@ -421,11 +421,11 @@ public class ApiFirewallService
       apiFirewallComponentDTO.quarantined = component.isQuarantined();
 
       // find and add all policy violations for this repository component
-      List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO
+      List<ProxyRepositoryPolicyViolation> violations = proxyRepositoryPolicyViolationDAO
           .getByRepositoryIdAndPathnameAndActionAndNotWaived(component.getRepositoryId(), component.getPathname(),
               Action.ID_FAIL);
-      repositoryPolicyViolationDAO.loadConstraintFacts(violations);
-      for (RepositoryPolicyViolation policyViolation : violations) {
+      proxyRepositoryPolicyViolationDAO.loadConstraintFacts(violations);
+      for (ProxyRepositoryPolicyViolation policyViolation : violations) {
         final ApiPolicyViolationDTOV2 policyViolationDTO = ApiPolicyViolationAdapter.convert(policyViolation);
         apiFirewallComponentDTO.quarantinePolicyViolations.add(policyViolationDTO);
       }
@@ -445,12 +445,12 @@ public class ApiFirewallService
     this.validateGetQuarantinedComponentsFilter(firewallFilter);
 
     List<FirewallQuarantinedComponentDetails> detailsList =
-        repositoryComponentDAO.getQuarantinedComponentsDetails(firewallFilter);
+        proxyRepositoryComponentDAO.getQuarantinedComponentsDetails(firewallFilter);
 
     List<ApiFirewallQuarantinedComponentDto> responseDtos =
         detailsList.stream().map(ApiFirewallQuarantinedComponentDto::new).collect(Collectors.toList());
 
-    final long totalSize = repositoryComponentDAO.getTotalFirewallRepositoryComponents(firewallFilter);
+    final long totalSize = proxyRepositoryComponentDAO.getTotalFirewallRepositoryComponents(firewallFilter);
 
     return new ApiPageResult<>(totalSize, firewallFilter.page, firewallFilter.pageSize, responseDtos);
   }
@@ -495,11 +495,11 @@ public class ApiFirewallService
     }
   }
 
-  private Map<String, Repository> toRepositoryMap(final List<RepositoryComponent> components) {
+  private Map<String, Repository> toRepositoryMap(final List<ProxyRepositoryComponent> components) {
     Map<String, Repository> repositoryMap = new HashMap<>();
 
     final Set<String> repositoryIds = components.stream()
-        .map(RepositoryComponent::getRepositoryId)
+        .map(ProxyRepositoryComponent::getRepositoryId)
         .collect(Collectors.toSet());
 
     for (String repositoryId : repositoryIds) {

@@ -39,7 +39,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -170,22 +170,22 @@ public class ApiComponentsWithWaiversReportingServiceTest
     PolicyWaiver policyWaiver4 = tempEntity.newWaiver("hash4", policy1.getId(), repo1.getId(),
         "Some comments here4", null, constraintFacts1, MITIGATED_EXTERNALLY_WAIVER_REASON_ID);
 
-    RepositoryPolicyViolation waivedViolation1 = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation waivedViolation1 = tempEntity.newRepositoryPolicyViolation(
         repo1.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
         policyWaiver1.getId(), policyWaiver1.getComment(), date);
 
-    RepositoryPolicyViolation waivedViolation2 = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation waivedViolation2 = tempEntity.newRepositoryPolicyViolation(
         repo1.getId(), 7, "pathName2", "hash1", constraintFacts2, true,
         "actionId2", policy1.getId(), policy1.getName(), componentIdentifier1, date,
         policyWaiver2.getId(), policyWaiver2.getComment(), date);
 
-    RepositoryPolicyViolation waivedViolation3 = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation waivedViolation3 = tempEntity.newRepositoryPolicyViolation(
         repo2.getId(), 8, "pathName3", "hash3", constraintFacts1, true,
         "actionId3", policy2.getId(), policy2.getName(), componentIdentifier1, date,
         policyWaiver3.getId(), policyWaiver3.getComment(), date);
 
-    RepositoryPolicyViolation waivedViolation4 = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation waivedViolation4 = tempEntity.newRepositoryPolicyViolation(
         repo1.getId(), 9, "pathName4", "hash4", constraintFacts1, true,
         "actionId4", policy1.getId(), policy1.getName(), componentIdentifier2, date,
         policyWaiver4.getId(), policyWaiver4.getComment(), date);
@@ -272,7 +272,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
 
     // Waived active policy violations and their corresponding waivers
-    RepositoryPolicyViolation waivedViolation1 =
+    ProxyRepositoryPolicyViolation waivedViolation1 =
         tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "pathName1", "hash1", constraintFacts1,
             true, "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, date,
             "deletedPolicyWaiverId", "test waive", date);
@@ -321,7 +321,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     // Waived active policy violations and their corresponding waivers
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
         "Some comments here", null, constraintFacts1, NO_UPGRADE_PATH_WAIVER_REASON_ID);
-    RepositoryPolicyViolation waivedViolation =
+    ProxyRepositoryPolicyViolation waivedViolation =
         tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "tomcat/catalina/5.5.15/catalina-5.5.15.jar",
             "hash1", constraintFacts1, true, "actionId1", policy1.getId(), policy1.getName(),
             null, date, policyWaiver.getId(), "test waive", date);
@@ -377,7 +377,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     // Waived active policy violation and its corresponding waiver
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
         constraintFacts1, "Some comments here", today, aWeekFromNow, NO_UPGRADE_PATH_WAIVER_REASON_ID);
-    RepositoryPolicyViolation waivedViolation1 = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation waivedViolation1 = tempEntity.newRepositoryPolicyViolation(
         repo1.getId(), 6, "pathName1", "hash1", constraintFacts1, true,
         "actionId1", policy1.getId(), policy1.getName(), componentIdentifier1, today,
         policyWaiver1.getId(), policyWaiver1.getComment(), today);
@@ -859,7 +859,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     PolicyWaiver policyWaiver1 =
         tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(), constraintFacts1, "Some comments here");
     Date date = new Date();
-    RepositoryPolicyViolation v1 = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation v1 = tempEntity.newRepositoryPolicyViolation(
         repo1.getId(),
         6,
         "pathName1",

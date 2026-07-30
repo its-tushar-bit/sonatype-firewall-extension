@@ -26,17 +26,17 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -60,10 +60,10 @@ public class RepositoryServiceTest
   private RepositoryDAO repositoryDAO;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   private RepositoryService repositoryService;
@@ -78,15 +78,16 @@ public class RepositoryServiceTest
     Date now = new Date();
     RepositoryManager repoManager = tempEntity.newRepositoryManager("testRepoManagerInstanceId");
     Repository repository1 = tempEntity.newRepository(repoManager, "testRepoPublicId1", true);
-    RepositoryComponent componentRepo1ToKeep =
+    ProxyRepositoryComponent componentRepo1ToKeep =
         tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_1", now);
-    RepositoryComponent componentRepo1ToDelete =
+    ProxyRepositoryComponent componentRepo1ToDelete =
         tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_2", now);
-    RepositoryComponent componentRepo1ToKeepBecauseItIsNewer =
+    ProxyRepositoryComponent componentRepo1ToKeepBecauseItIsNewer =
         tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_3", new Date(now.getTime() + 1));
 
     Repository repository2 = tempEntity.newRepository(repoManager, "testRepoPublicId2", true);
-    RepositoryComponent componentRepo2 = tempEntity.newRepositoryComponent(repository2.getId(), "pathname2_1", now);
+    ProxyRepositoryComponent componentRepo2 =
+        tempEntity.newRepositoryComponent(repository2.getId(), "pathname2_1", now);
 
     RepositoryComponentPathnames repositoryComponentPathnames = new RepositoryComponentPathnames();
     repositoryComponentPathnames.time = now;
@@ -95,11 +96,11 @@ public class RepositoryServiceTest
     repositoryService.removeExtraComponents("testRepoManagerInstanceId", "testRepoPublicId1",
         repositoryComponentPathnames);
 
-    RepositoryComponentDAO repositoryComponentDAO = this.repositoryComponentDAO;
-    assertThat(repositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
-    assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
-    assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
-    assertThat(repositoryComponentDAO.getById(componentRepo2.getId())).isNotNull();
+    ProxyRepositoryComponentDAO proxyRepositoryComponentDAO = this.proxyRepositoryComponentDAO;
+    assertThat(proxyRepositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
+    assertThat(proxyRepositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
+    assertThat(proxyRepositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
+    assertThat(proxyRepositoryComponentDAO.getById(componentRepo2.getId())).isNotNull();
   }
 
   @Test
@@ -143,12 +144,12 @@ public class RepositoryServiceTest
     assertThat(componentFact.getPathnames()).containsExactly("somepath/foobar");
 
     // test that the component is not persisted
-    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repo.getId());
+    List<ProxyRepositoryComponent> repositoryComponents = proxyRepositoryComponentDAO.getByRepositoryId(repo.getId());
     assertThat(repositoryComponents).isEmpty();
 
     // test that the policy violation is not persisted
-    List<RepositoryPolicyViolation> policyViolations =
-        repositoryPolicyViolationDAO.getByRepositoryId(repo.getId());
+    List<ProxyRepositoryPolicyViolation> policyViolations =
+        proxyRepositoryPolicyViolationDAO.getByRepositoryId(repo.getId());
     assertThat(policyViolations).isEmpty();
   }
 
@@ -526,11 +527,11 @@ public class RepositoryServiceTest
     // Pre-insert a quarantined component in the DB at the path we will request
     String pathname = "maven2/com/example/foo/1.0/foo-1.0.jar";
     String hash = "somehash";
-    RepositoryComponent quarantinedComponent =
+    ProxyRepositoryComponent quarantinedComponent =
         tempEntity.newRepositoryComponent(repo.getId(), pathname, new Date() /* quarantineTime */, null);
     // Update hash to match what we'll send in the request
     quarantinedComponent.setHash(hash);
-    repositoryComponentDAO.update(quarantinedComponent);
+    proxyRepositoryComponentDAO.update(quarantinedComponent);
 
     RepositoryComponentEvaluationDataRequest componentRequest =
         new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
@@ -776,7 +777,7 @@ public class RepositoryServiceTest
   public void testGetConfiguredRepositories_HasQueuedScans_True_WhenPendingEntryExists() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
     tempEntity.newHostedComponentScanQueue(component.getId(), repo.getId(),
         HostedComponentScanQueueDAO.Status.PENDING.name());
 
@@ -791,7 +792,7 @@ public class RepositoryServiceTest
   public void testGetConfiguredRepositories_HasQueuedScans_True_WhenInProgressEntryExists() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
     tempEntity.newHostedComponentScanQueue(component.getId(), repo.getId(),
         HostedComponentScanQueueDAO.Status.IN_PROGRESS.name());
 
@@ -806,7 +807,7 @@ public class RepositoryServiceTest
   public void testGetConfiguredRepositories_HasQueuedScans_False_WhenOnlyCompletedEntryExists() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
     tempEntity.newHostedComponentScanQueue(component.getId(), repo.getId(),
         HostedComponentScanQueueDAO.Status.COMPLETED.name());
 

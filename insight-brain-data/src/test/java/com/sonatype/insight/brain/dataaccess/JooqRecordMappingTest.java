@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 import com.sonatype.insight.brain.model.roi.RoiConfiguration;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
@@ -49,7 +49,7 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.LdapConnectio
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.MailConfiguration.MAIL_CONFIGURATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyWaiver.POLICY_WAIVER;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyServerConfiguration.PROXY_SERVER_CONFIGURATION;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryComponent.REPOSITORY_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryComponent.PROXY_REPOSITORY_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryConnection.REPOSITORY_CONNECTION;
 import static com.sonatype.insight.brain.jooq.generated.aggregation.tables.RoiConfiguration.ROI_CONFIGURATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManager.REPOSITORY_MANAGER;
@@ -291,14 +291,14 @@ public class JooqRecordMappingTest
   /**
    * Test Case 2: Entity with Date fields - jOOQ forcedType converter handles conversion.
    *
-   * Entity: RepositoryComponent
+   * Entity: ProxyRepositoryComponent
    * - Has java.util.Date fields: time, lastEvaluationTime, quarantineTime, unquarantineTime
    * - jOOQ forcedTypes configured with LocalDateTimeToDateConverter
    * - The converter makes TableField use Date type directly (not LocalDateTime)
    */
   @Test
   public void testRecordFrom_entityWithDateFields() {
-    RepositoryComponent entity = new RepositoryComponent();
+    ProxyRepositoryComponent entity = new ProxyRepositoryComponent();
     entity.setId(UUID.randomUUID().toString());
     entity.setRepositoryId(repository.getId());
     entity.setPathname("/test/path/component.jar");
@@ -309,23 +309,23 @@ public class JooqRecordMappingTest
     entity.setQuarantineTime(new Date());
 
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
-      UpdatableRecord<?> record = tx.dsl().newRecord(REPOSITORY_COMPONENT);
+      UpdatableRecord<?> record = tx.dsl().newRecord(PROXY_REPOSITORY_COMPONENT);
 
       // Test Record.from(entity) - with forcedType converter, Date fields map directly
       record.from(entity);
 
       // Verify ID mapping
-      assertThat(record.get(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID))
+      assertThat(record.get(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID))
           .as("ID field should be mapped via @Column annotation")
           .isEqualTo(entity.getId());
 
       // With LocalDateTimeToDateConverter configured via forcedTypes, the TableField
       // uses Date as its Java type, so record.get() returns Date directly
-      assertThat(record.get(REPOSITORY_COMPONENT.TIME))
+      assertThat(record.get(PROXY_REPOSITORY_COMPONENT.TIME))
           .as("Date field should be mapped directly (converter handles DB conversion)")
           .isEqualTo(entity.getTime());
 
-      assertThat(record.get(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME))
+      assertThat(record.get(PROXY_REPOSITORY_COMPONENT.LAST_EVALUATION_TIME))
           .as("lastEvaluationTime Date should be mapped directly")
           .isEqualTo(entity.getLastEvaluationTime());
     }
@@ -563,7 +563,7 @@ public class JooqRecordMappingTest
   @Test
   public void testRecordInto_entityWithDateFields() {
     // Create a repository component using the DAO (which handles conversions correctly)
-    RepositoryComponent entity = new RepositoryComponent();
+    ProxyRepositoryComponent entity = new ProxyRepositoryComponent();
     entity.setId(UUID.randomUUID().toString());
     entity.setRepositoryId(repository.getId());
     entity.setPathname("/test/path/component-" + UUID.randomUUID() + ".jar");
@@ -574,15 +574,15 @@ public class JooqRecordMappingTest
     entity.setIdentificationSourceId("SONATYPE"); // Required field
 
     // Insert using our DAO (which handles conversions)
-    var repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
-    repositoryComponentDAO.insert(entity);
+    var proxyRepositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
+    proxyRepositoryComponentDAO.insert(entity);
 
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {
       // Try to fetch using fetchInto(Entity.class)
-      RepositoryComponent fetched = tx.dsl()
-          .selectFrom(REPOSITORY_COMPONENT)
-          .where(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.eq(entity.getId()))
-          .fetchOneInto(RepositoryComponent.class);
+      ProxyRepositoryComponent fetched = tx.dsl()
+          .selectFrom(PROXY_REPOSITORY_COMPONENT)
+          .where(PROXY_REPOSITORY_COMPONENT.PROXY_REPOSITORY_COMPONENT_ID.eq(entity.getId()))
+          .fetchOneInto(ProxyRepositoryComponent.class);
 
       assertThat(fetched).isNotNull();
       assertThat(fetched.getId()).isEqualTo(entity.getId());
@@ -599,7 +599,7 @@ public class JooqRecordMappingTest
     }
 
     // Cleanup
-    repositoryComponentDAO.delete(entity);
+    proxyRepositoryComponentDAO.delete(entity);
   }
 
   /**

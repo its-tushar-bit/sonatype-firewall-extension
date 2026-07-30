@@ -17,13 +17,13 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -50,12 +50,12 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
 
   private PolicyWaiverDAO policyWaiverDAO;
 
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Before
   public void setUp() {
     policyWaiverDAO = lookup(PolicyWaiverDAO.class);
-    repositoryPolicyViolationDAO = lookup(RepositoryPolicyViolationDAO.class);
+    proxyRepositoryPolicyViolationDAO = lookup(ProxyRepositoryPolicyViolationDAO.class);
   }
 
   @Test
@@ -63,24 +63,24 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
     Date quarantineTime = new Date();
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, PATHNAME, COMPONENT_HASH,
             PACKAGE_URL_IDENTIFIER.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
 
     Policy policy1 = tempEntity.newPolicy(repository.getParentOwnerId());
     Policy policy2 = tempEntity.newPolicy(repository.getParentOwnerId());
 
-    RepositoryPolicyViolation repositoryPolicyViolation1 =
-        createRepositoryPolicyViolation(repositoryComponent, false, 10, policy1, Action.ID_FAIL);
+    ProxyRepositoryPolicyViolation repositoryPolicyViolation1 =
+        createRepositoryPolicyViolation(proxyRepositoryComponent, false, 10, policy1, Action.ID_FAIL);
 
-    RepositoryPolicyViolation repositoryPolicyViolation2 =
-        createRepositoryPolicyViolation(repositoryComponent, false, 10, policy2, Action.ID_FAIL);
+    ProxyRepositoryPolicyViolation repositoryPolicyViolation2 =
+        createRepositoryPolicyViolation(proxyRepositoryComponent, false, 10, policy2, Action.ID_FAIL);
 
-    releaseQuarantineRequest(repositoryComponent.getId()).post();
+    releaseQuarantineRequest(proxyRepositoryComponent.getId()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RELEASE_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
-    assertUnquarantineData(auditDTO, repositoryComponent);
+    assertUnquarantineData(auditDTO, proxyRepositoryComponent);
 
     PolicyWaiver policyWaiver1 = getSavedPolicyWaiver(repositoryPolicyViolation1.getId());
     PolicyWaiver policyWaiver2 = getSavedPolicyWaiver(repositoryPolicyViolation2.getId());
@@ -91,21 +91,21 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
   }
 
   private PolicyWaiver getSavedPolicyWaiver(String repositoryPolicyViolationId) {
-    RepositoryPolicyViolation repositoryPolicyViolation =
-        repositoryPolicyViolationDAO.getById(repositoryPolicyViolationId);
-    return policyWaiverDAO.getByIdNotNull(repositoryPolicyViolation.getPolicyWaiverId());
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        proxyRepositoryPolicyViolationDAO.getById(repositoryPolicyViolationId);
+    return policyWaiverDAO.getByIdNotNull(proxyRepositoryPolicyViolation.getPolicyWaiverId());
   }
 
-  private RepositoryPolicyViolation createRepositoryPolicyViolation(
-      final RepositoryComponent repositoryComponent,
+  private ProxyRepositoryPolicyViolation createRepositoryPolicyViolation(
+      final ProxyRepositoryComponent proxyRepositoryComponent,
       final boolean waived,
       final int threatLevel,
       final Policy policy,
       final String action)
   {
-    return tempEntity.newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), threatLevel,
-        repositoryComponent.getPathname(), waived, action, policy.getId(), policy.getName(),
-        repositoryComponent.getComponentIdentifier());
+    return tempEntity.newRepositoryPolicyViolation(proxyRepositoryComponent.getRepositoryId(), threatLevel,
+        proxyRepositoryComponent.getPathname(), waived, action, policy.getId(), policy.getName(),
+        proxyRepositoryComponent.getComponentIdentifier());
   }
 
   @Test(expected = ConditionTimeoutException.class)
@@ -113,15 +113,15 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
     Date quarantineTime = new Date();
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, PATHNAME, COMPONENT_HASH,
             PACKAGE_URL_IDENTIFIER.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
 
-    releaseQuarantineRequest(repositoryComponent.getId()).post();
+    releaseQuarantineRequest(proxyRepositoryComponent.getId()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RELEASE_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
-    assertUnquarantineData(auditDTO, repositoryComponent);
+    assertUnquarantineData(auditDTO, proxyRepositoryComponent);
 
     // make sure there is no waiver auditing attempted
     assertAuditLog(AuditEvent.CREATE_WAIVER, null);
@@ -131,11 +131,11 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
   public void testReleaseQuarantineWithoutReEval_Unauthorized() throws Exception {
     Date quarantineTime = new Date();
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, PATHNAME, COMPONENT_HASH,
             PACKAGE_URL_IDENTIFIER.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
 
-    releaseQuarantineRequest(repositoryComponent.getId()).with(unauthorizedUser()).post();
+    releaseQuarantineRequest(proxyRepositoryComponent.getId()).with(unauthorizedUser()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RELEASE_QUARANTINE, "unauthorized");
     assertRepositoryData(auditDTO, repository);
@@ -147,9 +147,9 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
         .body("waiver comment", MediaType.TEXT_PLAIN);
   }
 
-  private void assertUnquarantineData(AuditDTO auditDTO, RepositoryComponent repositoryComponent) {
-    assertCustomData(auditDTO, "componentHash", repositoryComponent.getHash());
-    assertCustomData(auditDTO, "componentPathname", repositoryComponent.getPathname());
+  private void assertUnquarantineData(AuditDTO auditDTO, ProxyRepositoryComponent proxyRepositoryComponent) {
+    assertCustomData(auditDTO, "componentHash", proxyRepositoryComponent.getHash());
+    assertCustomData(auditDTO, "componentPathname", proxyRepositoryComponent.getPathname());
   }
 
   private void assertPolicyWaiverData(

@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -185,7 +185,7 @@ public class PolicyViolationLogDTOAssert
       Repository repository,
       Date before,
       Date after,
-      RepositoryPolicyViolation policyViolation,
+      ProxyRepositoryPolicyViolation policyViolation,
       String userName)
   {
     if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent)) {
@@ -209,10 +209,10 @@ public class PolicyViolationLogDTOAssert
       Repository repository,
       Date before,
       Date after,
-      List<RepositoryPolicyViolation> policyViolations,
+      List<ProxyRepositoryPolicyViolation> policyViolations,
       String userName) throws Exception
   {
-    for (RepositoryPolicyViolation policyViolation : policyViolations) {
+    for (ProxyRepositoryPolicyViolation policyViolation : policyViolations) {
       PolicyViolationLogDTO policyViolationLogDTO = policyViolationLogDTOs.stream()
           .filter(matchingDTO(policyViolation))
           .findFirst()
@@ -229,7 +229,7 @@ public class PolicyViolationLogDTOAssert
     return dto -> violation.getOwnerId().equals(dto.applicationId) && isMatching(violation, dto);
   }
 
-  private static Predicate<PolicyViolationLogDTO> matchingDTO(RepositoryPolicyViolation violation) {
+  private static Predicate<PolicyViolationLogDTO> matchingDTO(ProxyRepositoryPolicyViolation violation) {
     return dto -> violation.getRepositoryId().equals(dto.repositoryId) && isMatching(violation, dto);
   }
 
@@ -300,7 +300,7 @@ public class PolicyViolationLogDTOAssert
   private static void assertStagePolicyActionData(
       PolicyViolationLogDTO policyViolationLogDTO,
       PolicyViolationLogEvent policyViolationLogEvent,
-      RepositoryPolicyViolation policyViolation)
+      ProxyRepositoryPolicyViolation policyViolation)
   {
     if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent) && !policyViolation.isWaived()) {
       assertThat(policyViolationLogDTO.stagePolicyAction)

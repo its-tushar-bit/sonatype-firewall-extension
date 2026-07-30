@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -381,7 +381,7 @@ public class RequestPolicyWaiverEventServiceTest
       Policy policy = tempEntity.newPolicy(repository.getId());
       ComponentIdentifier componentIdentifier =
           ComponentIdentifier.createMavenCoordinates("com.example", "artifact", "1.0");
-      RepositoryPolicyViolation violation =
+      ProxyRepositoryPolicyViolation violation =
           tempEntity.newRepositoryPolicyViolation(repository, policy, "/com/example/artifact/1.0/artifact-1.0.jar",
               componentIdentifier, "abc123hash");
 

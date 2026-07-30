@@ -16,13 +16,13 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgress;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequest;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequestStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -48,7 +48,7 @@ public class CascadeReevaluationTask
 
   private final ReevaluateCascadeRequestDAO cascadeRequestDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
@@ -57,14 +57,14 @@ public class CascadeReevaluationTask
       final String componentHash,
       final ReevaluateCascadeProgressDAO cascadeProgressDAO,
       final ReevaluateCascadeRequestDAO cascadeRequestDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final RepositoryPolicyEvaluator repositoryPolicyEvaluator)
   {
     this.cascadeRequestId = cascadeRequestId;
     this.componentHash = componentHash;
     this.cascadeProgressDAO = cascadeProgressDAO;
     this.cascadeRequestDAO = cascadeRequestDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
   }
 
@@ -81,7 +81,7 @@ public class CascadeReevaluationTask
     updateRequestStatus(ReevaluateCascadeRequestStatus.IN_PROGRESS);
 
     try {
-      Map<Repository, List<RepositoryComponent>> repositoryToComponents =
+      Map<Repository, List<ProxyRepositoryComponent>> repositoryToComponents =
           getRepositoryToComponentsByHash(componentHash);
 
       AuditData.get().setData("repositoryCount", repositoryToComponents.size());
@@ -101,9 +101,9 @@ public class CascadeReevaluationTask
       int failedEvaluations = 0;
 
       // Process each repository with its pre-loaded components
-      for (Map.Entry<Repository, List<RepositoryComponent>> entry : repositoryToComponents.entrySet()) {
+      for (Map.Entry<Repository, List<ProxyRepositoryComponent>> entry : repositoryToComponents.entrySet()) {
         Repository repository = entry.getKey();
-        List<RepositoryComponent> components = entry.getValue();
+        List<ProxyRepositoryComponent> components = entry.getValue();
 
         try {
           processRepositoryWithComponents(repository, components);
@@ -138,15 +138,15 @@ public class CascadeReevaluationTask
     }
   }
 
-  private Map<Repository, List<RepositoryComponent>> getRepositoryToComponentsByHash(final String componentHash) {
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
-      return repositoryComponentDAO.getRepositoryToComponentsByHash(tx, componentHash);
+  private Map<Repository, List<ProxyRepositoryComponent>> getRepositoryToComponentsByHash(final String componentHash) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
+      return proxyRepositoryComponentDAO.getRepositoryToComponentsByHash(tx, componentHash);
     }
   }
 
   private void processRepositoryWithComponents(
       final Repository repository,
-      final List<RepositoryComponent> components)
+      final List<ProxyRepositoryComponent> components)
   {
     log.debug("Processing repository {} with {} pre-loaded components", repository.getId(), components.size());
     Map<String, ReevaluateCascadeProgress> progressByComponentId = new HashMap<>();
@@ -154,7 +154,7 @@ public class CascadeReevaluationTask
     try (TransactionContext tx = cascadeProgressDAO.createTransactionContext()) {
       tx.begin();
 
-      for (RepositoryComponent component : components) {
+      for (ProxyRepositoryComponent component : components) {
         ReevaluateCascadeProgress progress = new ReevaluateCascadeProgress(
             cascadeRequestId, repository.getId(), component.getId(), ReevaluateCascadeProgressStatus.PENDING);
 
@@ -170,7 +170,7 @@ public class CascadeReevaluationTask
 
   private void processComponentsBatch(
       final Repository repository,
-      final List<RepositoryComponent> components,
+      final List<ProxyRepositoryComponent> components,
       final Map<String, ReevaluateCascadeProgress> progressByComponentId)
   {
     log.debug("Batch processing {} components for cascade re-evaluation in repository {}",
@@ -180,7 +180,7 @@ public class CascadeReevaluationTask
       RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList(
           RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
-      for (RepositoryComponent component : components) {
+      for (ProxyRepositoryComponent component : components) {
         RepositoryComponentEvaluationDataRequest componentRequest = new RepositoryComponentEvaluationDataRequest(
             repository.getFormat(), component.getPathname(), component.getHash());
         request.components.add(componentRequest);
@@ -199,7 +199,7 @@ public class CascadeReevaluationTask
       if (CollectionUtils.isNotEmpty(evaluationResults.componentEvalResults)) {
         for (RepositoryComponentEvaluationData evaluationData : evaluationResults.componentEvalResults) {
           boolean newQuarantineStatus = evaluationData.quarantine;
-          RepositoryComponent component = components.get(evaluationData.requestIndex);
+          ProxyRepositoryComponent component = components.get(evaluationData.requestIndex);
           ReevaluateCascadeProgress progress = progressByComponentId.get(component.getId());
           progress.setQuarantined(newQuarantineStatus);
           updateProgressCompleted(progress);
@@ -213,7 +213,7 @@ public class CascadeReevaluationTask
           "Failed to re-evaluate {} components in repository {} in cascade re-evaluation request {} with hash {}: {}",
           components.size(), repository.getId(), cascadeRequestId, componentHash, e.getMessage(), e);
 
-      for (RepositoryComponent component : components) {
+      for (ProxyRepositoryComponent component : components) {
         updateProgressFailed(progressByComponentId.get(component.getId()));
       }
     }

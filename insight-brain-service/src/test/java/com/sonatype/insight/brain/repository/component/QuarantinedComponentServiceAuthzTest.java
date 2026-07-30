@@ -9,7 +9,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import jakarta.inject.Inject;
 import java.util.Date;
@@ -40,9 +40,10 @@ public class QuarantinedComponentServiceAuthzTest
   public void setupTestData() {
     Date date = new Date();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        "testpath", "testhash", componentIdentifier, date, date);
-    token = quarantinedComponentAccessManager.createToken(repositoryComponent);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "testpath", "testhash", componentIdentifier, date, date);
+    token = quarantinedComponentAccessManager.createToken(proxyRepositoryComponent);
   }
 
   @Test

@@ -20,19 +20,19 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationTestHelper
 {
-  public static RepositoryPolicyViolation createPolicyViolationFail(
+  public static ProxyRepositoryPolicyViolation createPolicyViolationFail(
       Policy policy,
-      RepositoryComponent component,
+      ProxyRepositoryComponent component,
       final TemporaryEntity tempEntity)
   {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation();
     policyViolation.setRepositoryId(component.getRepositoryId());
     policyViolation.setPathname(component.getPathname());
     policyViolation.setTime(new Date());
@@ -47,12 +47,12 @@ public class PolicyViolationTestHelper
     return tempEntity.newRepositoryPolicyViolation(policyViolation);
   }
 
-  public static RepositoryPolicyViolation createPolicyViolationWaived(
+  public static ProxyRepositoryPolicyViolation createPolicyViolationWaived(
       Policy policy,
-      RepositoryComponent component,
+      ProxyRepositoryComponent component,
       final TemporaryEntity tempEntity)
   {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation();
     policyViolation.setRepositoryId(component.getRepositoryId());
     policyViolation.setPathname(component.getPathname());
     policyViolation.setTime(new Date());
@@ -74,10 +74,10 @@ public class PolicyViolationTestHelper
 
   public static void createPolicyViolationWarn(
       Policy policy,
-      RepositoryComponent component,
+      ProxyRepositoryComponent component,
       final TemporaryEntity tempEntity)
   {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation();
     policyViolation.setRepositoryId(component.getRepositoryId());
     policyViolation.setPathname(component.getPathname());
     policyViolation.setTime(new Date());
@@ -105,7 +105,7 @@ public class PolicyViolationTestHelper
 
   public static void assertApiPolicyViolationDTOV2(
       ApiPolicyViolationDTOV2 policyViolationDTOV2,
-      RepositoryPolicyViolation expectedPolicyViolation)
+      ProxyRepositoryPolicyViolation expectedPolicyViolation)
   {
     assertThat(policyViolationDTOV2.policyId).isEqualTo(expectedPolicyViolation.getPolicyId());
     assertThat(policyViolationDTOV2.policyName).isEqualTo(expectedPolicyViolation.getPolicyName());

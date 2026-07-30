@@ -18,7 +18,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.MatchStateFilter;
 import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter;
 import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsCountSummary;
@@ -55,18 +55,18 @@ public class RepositoryResultsService
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
   @Inject
   public RepositoryResultsService(
       final RepositoryDAO repositoryDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final RepositoryManagerDAO repositoryManagerDAO)
   {
     this.repositoryDAO = repositoryDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
@@ -134,7 +134,7 @@ public class RepositoryResultsService
     List<RepositoryResultsDetails> detailsList =
         repositoryIds.isEmpty()
             ? Collections.emptyList()
-            : repositoryPolicyViolationDAO.getRepositoryResultsDetails(
+            : proxyRepositoryPolicyViolationDAO.getRepositoryResultsDetails(
                 repositoryIds, detailsFilter);
 
     RepositoryResultsDetailsResponseDto result = new RepositoryResultsDetailsResponseDto();
@@ -160,11 +160,11 @@ public class RepositoryResultsService
       }
       else {
         RepositoryResultsCountSummary filteredCountSummary =
-            repositoryPolicyViolationDAO.countRepositoryResultsDetails(repositoryIds, detailsFilter);
+            proxyRepositoryPolicyViolationDAO.countRepositoryResultsDetails(repositoryIds, detailsFilter);
         result.filterCount = filteredCountSummary.totalCount;
         if (hasActiveFilters(detailsFilter)) {
           RepositoryResultsCountSummary totalCountSummary =
-              repositoryPolicyViolationDAO.countRepositoryResultsDetails(
+              proxyRepositoryPolicyViolationDAO.countRepositoryResultsDetails(
                   repositoryIds, createUnfilteredBulkWaiverCountFilter(detailsFilter));
           result.totalCount = totalCountSummary.totalCount;
         }

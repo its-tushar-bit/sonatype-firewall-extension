@@ -28,12 +28,12 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -204,7 +204,7 @@ public class ViolationDetailsPlaywrightTest
         LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.DASHBOARD);
 
-    RepositoryComponent component = seedFirewallViolation();
+    ProxyRepositoryComponent component = seedFirewallViolation();
     playwrightRefreshOrOpen(
         FirewallComponentDetailsPage.urlViolationsTab(component));
     playwrightRefresh();
@@ -340,13 +340,13 @@ public class ViolationDetailsPlaywrightTest
     return violation.getId();
   }
 
-  private RepositoryComponent seedFirewallViolation() {
+  private ProxyRepositoryComponent seedFirewallViolation() {
     RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager(DATA.firewallRepositoryManagerInstanceId());
     Repository repository =
         tempEntity.newRepository(repositoryManager, DATA.firewallRepositoryPublicId(), true, false);
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(
         repository.getId(), MatchState.EXACT,
         DATA.firewallComponentPathname(), DATA.componentHash(),
         com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates(
@@ -361,7 +361,7 @@ public class ViolationDetailsPlaywrightTest
     constraintFact.addConditionFact(
         new ConditionFact(MatchStateConditionType.ID, 0, "summary", DATA.firewallConstraintReason()));
 
-    RepositoryPolicyViolation violation = new RepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation violation = new ProxyRepositoryPolicyViolation(
         component.getRepositoryId(), component.getPathname(), new Date(),
         fwPolicy.getId(), fwPolicy.getName(), DATA.firewallPolicyThreatLevel(),
         PolicyThreatCategory.SECURITY, component.getHash(), component.getComponentIdentifier(),

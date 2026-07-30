@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.api.v2.dto.CascadeReevaluateTicketDTO;
 import com.sonatype.insight.brain.api.v2.dto.CascadeStatusResponseDTO;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequestStatus;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -151,7 +151,7 @@ public class ApiFirewallCascadeResourceTest
     String componentHash = "test_hash_completed";
     Date now = new Date();
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT, "test/path/status", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-status-pkg", "1.0.0"), now, now);
 
@@ -198,7 +198,7 @@ public class ApiFirewallCascadeResourceTest
     String componentHash = "test_hash_mixed";
     Date now = new Date();
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT, "test/path/mixed", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-mixed-pkg", "1.0.0"), now, now);
 
@@ -245,7 +245,7 @@ public class ApiFirewallCascadeResourceTest
     String componentHash = "test_hash_mixed";
     Date now = new Date();
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT, "test/path/mixed", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-mixed-pkg", "1.0.0"), now, now);
 
@@ -292,7 +292,7 @@ public class ApiFirewallCascadeResourceTest
     String componentHash = "test_hash_pending";
     Date now = new Date();
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT, "test/path/pending", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-pending-pkg", "1.0.0"), now, now);
 
@@ -374,10 +374,10 @@ public class ApiFirewallCascadeResourceTest
     String componentHash = "test_hash_multi";
     Date now = new Date();
 
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo1.getId(),
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repo1.getId(),
         MatchState.EXACT, "test/path/multi1", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-multi-pkg", "1.0.0"), now, now);
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(),
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(),
         MatchState.EXACT, "test/path/multi2", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-multi-pkg", "1.0.0"), now, now);
 

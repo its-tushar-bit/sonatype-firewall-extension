@@ -87,7 +87,7 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.report.ReportDataReader;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryClient;
-import com.sonatype.insight.brain.repository.RepositoryComponentResult;
+import com.sonatype.insight.brain.repository.ProxyRepositoryComponentResult;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.security.Authorize;
@@ -1250,7 +1250,7 @@ public class ComponentInfoService
     List<ComponentDetails> detailsList = new ArrayList<>();
     boolean requestVersionAdded = false;
 
-    for (RepositoryComponentResult result : results.getComponents()) {
+    for (ProxyRepositoryComponentResult result : results.getComponents()) {
       if (!requestVersionAdded) {
         int comparison = compareVersions(identifier, result);
         if (comparison <= 0) {
@@ -1276,13 +1276,13 @@ public class ComponentInfoService
     return componentDetailsList;
   }
 
-  private String getHash(final ComponentIdentifier identifier, final RepositoryComponentResult result) {
+  private String getHash(final ComponentIdentifier identifier, final ProxyRepositoryComponentResult result) {
     return result.getSha1() != null ? HashHelper.truncateHash(result.getSha1()) : generateFakeHash(identifier);
   }
 
   private int compareVersions(
       ComponentIdentifier identifier,
-      RepositoryComponentResult result)
+      ProxyRepositoryComponentResult result)
   {
     ComparableVersion requestVersion = new ComparableVersion(identifier.get(ComponentIdentifier.VERSION));
     ComparableVersion resultVersion = new ComparableVersion(result.getIdentifier().get(ComponentIdentifier.VERSION));

@@ -131,12 +131,12 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -305,7 +305,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -320,7 +320,7 @@ import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStat
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequest;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequestStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
@@ -527,9 +527,9 @@ public class TemporaryEntity
 
   private RepositoryDAO repositoryDAO;
 
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private ReevaluateCascadeRequestDAO reevaluateCascadeRequestDAO;
 
@@ -964,9 +964,9 @@ public class TemporaryEntity
     // - PolicyWaiver: cascaded from Policy
     // - PolicyWaiverRequest: cascaded from Policy
     // - ProprietaryComponentNamePattern: cascaded from Repository
-    // - RepositoryComponent: cascaded from Repository
+    // - ProxyRepositoryComponent: cascaded from Repository
     // - RepositoryMigration: cascaded from Repository
-    // - RepositoryPolicyViolation: cascaded from Repository
+    // - ProxyRepositoryPolicyViolation: cascaded from Repository
     // - SastFinding: cascaded from SastScan
     // - SastScan: cascaded from Application
     // - SourceControlDefaultBranchCommitHistory: cascaded from Application
@@ -1967,7 +1967,7 @@ public class TemporaryEntity
     return componentLabel;
   }
 
-  public ComponentLabel newComponentLabel(RepositoryComponent component, Label label) {
+  public ComponentLabel newComponentLabel(ProxyRepositoryComponent component, Label label) {
     ComponentLabel componentLabel = new ComponentLabel(component.getRepositoryId(), label.getId(), component.getHash());
     componentLabelDAO.insert(componentLabel);
     return componentLabel;
@@ -3411,7 +3411,7 @@ public class TemporaryEntity
     return policyViolation;
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
       Repository repository,
       Policy policy,
       String pathname,
@@ -3427,13 +3427,14 @@ public class TemporaryEntity
     constraintFact.addConditionFact(conditionFact);
 
     List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact);
-    RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
-        new Date(), policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
-        componentIdentifier, constraintFacts);
-    repositoryPolicyViolationDAO.insert(repositoryPolicyViolation);
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        new ProxyRepositoryPolicyViolation(repository.getId(), pathname,
+            new Date(), policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
+            componentIdentifier, constraintFacts);
+    proxyRepositoryPolicyViolationDAO.insert(proxyRepositoryPolicyViolation);
     // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
-    repositoryPolicyViolation.setConstraintFacts(constraintFacts);
-    return repositoryPolicyViolation;
+    proxyRepositoryPolicyViolation.setConstraintFacts(constraintFacts);
+    return proxyRepositoryPolicyViolation;
   }
 
   public OwnerComponent newApplicationComponent(
@@ -3781,7 +3782,7 @@ public class TemporaryEntity
     return repository;
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,
       String pathname,
@@ -3790,7 +3791,7 @@ public class TemporaryEntity
     return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, false, componentIdentifier);
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,
       String pathname,
@@ -3801,17 +3802,20 @@ public class TemporaryEntity
         componentIdentifier);
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String pathname) {
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String pathname) {
     return newRepositoryPolicyViolation(repositoryId, 5 /* threatLevel */, pathname, false, "policyId",
         "policyName", null /* componentIdentifier */);
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryComponent component, String policyId) {
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
+      ProxyRepositoryComponent component,
+      String policyId)
+  {
     return newRepositoryPolicyViolation(component.getRepositoryId(), 5 /* threatLevel */, component.getPathname(),
         false, policyId, "policyName", null /* componentIdentifier */);
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,
       String pathname,
@@ -3824,7 +3828,7 @@ public class TemporaryEntity
         policyName, componentIdentifier);
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,
       String pathname,
@@ -3838,7 +3842,7 @@ public class TemporaryEntity
         policyName, componentIdentifier, new Date());
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,
       String pathname,
@@ -3862,18 +3866,19 @@ public class TemporaryEntity
     }
 
     List<ConstraintFact> constraintFactsList = Arrays.asList(constraintFacts);
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
-        policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
-        constraintFactsList);
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation(repositoryId, pathname, time, policyId,
+            policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
+            constraintFactsList);
     policyViolation.setWaived(isWaived);
     policyViolation.setActionTypeId(actionId);
-    repositoryPolicyViolationDAO.insert(policyViolation);
+    proxyRepositoryPolicyViolationDAO.insert(policyViolation);
     // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
     policyViolation.setConstraintFacts(constraintFactsList);
     return policyViolation;
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,
       String pathname,
@@ -3889,21 +3894,22 @@ public class TemporaryEntity
       String policyWaiverComment,
       Date waiveTime)
   {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
-        policyName, threatLevel, PolicyThreatCategory.LICENSE, hash, componentIdentifier, constraintFacts);
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation(repositoryId, pathname, time, policyId,
+            policyName, threatLevel, PolicyThreatCategory.LICENSE, hash, componentIdentifier, constraintFacts);
     policyViolation.setWaived(isWaived);
     policyViolation.setActionTypeId(actionId);
     policyViolation.setPolicyWaiverId(policyWaiverId);
     policyViolation.setPolicyWaiverComment(policyWaiverComment);
     policyViolation.setWaiveTime(waiveTime);
-    repositoryPolicyViolationDAO.insert(policyViolation);
+    proxyRepositoryPolicyViolationDAO.insert(policyViolation);
     // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
     policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(
-      RepositoryComponent component,
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
+      ProxyRepositoryComponent component,
       int threatLevel,
       boolean isWaived,
       String policyName,
@@ -3913,47 +3919,51 @@ public class TemporaryEntity
         actionId, uuid(), policyName, component.getComponentIdentifier());
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryPolicyViolation repositoryPolicyViolation) {
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
+      ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation)
+  {
     // Preserve constraint facts before insert since storeConstraints() clears them for memory optimization
-    List<ConstraintFact> constraintFacts = repositoryPolicyViolation.getConstraintFacts();
-    repositoryPolicyViolationDAO.insert(repositoryPolicyViolation);
+    List<ConstraintFact> constraintFacts = proxyRepositoryPolicyViolation.getConstraintFacts();
+    proxyRepositoryPolicyViolationDAO.insert(proxyRepositoryPolicyViolation);
     // Restore constraint facts after insert
-    repositoryPolicyViolation.setConstraintFacts(constraintFacts);
-    return repositoryPolicyViolation;
+    proxyRepositoryPolicyViolation.setConstraintFacts(constraintFacts);
+    return proxyRepositoryPolicyViolation;
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId) {
+  public ProxyRepositoryComponent newRepositoryComponent(String repositoryId) {
     return newRepositoryComponent(repositoryId, "path");
   }
 
   /**
    * Creates a repository component with a stamped component_id so it can be looked up
-   * by {@code RepositoryComponentDAO#getByNxrmComponentId} in tests.
+   * by {@code ProxyRepositoryComponentDAO#getByNxrmComponentId} in tests.
    */
-  public RepositoryComponent newRepositoryComponentWithComponentId(String repositoryId, String componentId) {
-    RepositoryComponent component = newRepositoryComponent(repositoryId);
-    try (com.sonatype.insight.dataaccess.TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+  public ProxyRepositoryComponent newRepositoryComponentWithComponentId(String repositoryId, String componentId) {
+    ProxyRepositoryComponent component = newRepositoryComponent(repositoryId);
+    try (
+        com.sonatype.insight.dataaccess.TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext())
+    {
       tx.begin();
-      repositoryComponentDAO.stampComponentId(tx, repositoryId, component.getPathname(), componentId);
+      proxyRepositoryComponentDAO.stampComponentId(tx, repositoryId, component.getPathname(), componentId);
       tx.commit();
     }
     component.setComponentId(componentId);
     return component;
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId, Date evalTime) {
+  public ProxyRepositoryComponent newRepositoryComponent(String repositoryId, Date evalTime) {
     return newRepositoryComponent(repositoryId, "path" + evalTime.getTime(), evalTime);
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname, Date evalTime) {
+  public ProxyRepositoryComponent newRepositoryComponent(String repositoryId, String pathname, Date evalTime) {
     return newRepositoryComponent(repositoryId, pathname, null, null, evalTime);
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname) {
+  public ProxyRepositoryComponent newRepositoryComponent(String repositoryId, String pathname) {
     return newRepositoryComponent(repositoryId, pathname, null, null);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       String pathname,
       Date quarantineTime,
@@ -3962,7 +3972,7 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, new Date(), false);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       String pathname,
       Date quarantineTime,
@@ -3973,21 +3983,22 @@ public class TemporaryEntity
         isAutoUnquarantined);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       Repository repository,
       String pathname,
       MatchState matchState,
       String hash)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), pathname, new Date(), hash,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), matchState.getId(),
-        IdentificationSource.SONATYPE.getId(), new Date());
-    repositoryComponentDAO.insert(repositoryComponent);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        new ProxyRepositoryComponent(repository.getId(), pathname, new Date(), hash,
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"), matchState.getId(),
+            IdentificationSource.SONATYPE.getId(), new Date());
+    proxyRepositoryComponentDAO.insert(proxyRepositoryComponent);
 
-    return repositoryComponent;
+    return proxyRepositoryComponent;
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       String pathname,
       Date quarantineTime,
@@ -3997,7 +4008,7 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, evalTime, false);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       String pathname,
       Date quarantineTime,
@@ -4005,31 +4016,33 @@ public class TemporaryEntity
       Date evalTime,
       boolean isAutoUnquarantined)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, evalTime, "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
-        IdentificationSource.SONATYPE.getId(), evalTime);
-    repositoryComponent.setQuarantineTime(quarantineTime);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        new ProxyRepositoryComponent(repositoryId, pathname, evalTime, "hash",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
+            IdentificationSource.SONATYPE.getId(), evalTime);
+    proxyRepositoryComponent.setQuarantineTime(quarantineTime);
     if (unquarantineTime != null) {
       if (isAutoUnquarantined) {
-        repositoryComponent.setUnquarantineTimeForMonitoring(unquarantineTime);
+        proxyRepositoryComponent.setUnquarantineTimeForMonitoring(unquarantineTime);
       }
       else {
-        repositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
+        proxyRepositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
       }
     }
-    repositoryComponentDAO.insert(repositoryComponent);
-    return repositoryComponent;
+    proxyRepositoryComponentDAO.insert(proxyRepositoryComponent);
+    return proxyRepositoryComponent;
   }
 
-  public RepositoryComponent newRepositoryComponent(Repository repository, String hash) {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), uuid(), new Date(), hash,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
-        IdentificationSource.SONATYPE.getId(), new Date());
-    repositoryComponentDAO.insert(repositoryComponent);
-    return repositoryComponent;
+  public ProxyRepositoryComponent newRepositoryComponent(Repository repository, String hash) {
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        new ProxyRepositoryComponent(repository.getId(), uuid(), new Date(), hash,
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
+            IdentificationSource.SONATYPE.getId(), new Date());
+    proxyRepositoryComponentDAO.insert(proxyRepositoryComponent);
+    return proxyRepositoryComponent;
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       MatchState matchState,
       ComponentIdentifier identifier)
@@ -4037,7 +4050,7 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, matchState, identifier, false);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       MatchState matchState,
       ComponentIdentifier identifier,
@@ -4046,7 +4059,7 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, matchState, uuid(), identifier, quarantined);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       MatchState matchState,
       String pathname,
@@ -4057,7 +4070,7 @@ public class TemporaryEntity
         pathname.substring(0, Math.min(pathname.length(), 20)), identifier, quarantined);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       MatchState matchState,
       String pathname,
@@ -4069,7 +4082,7 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, matchState, pathname, hash, identifier, now, quarantined ? now : null);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       MatchState matchState,
       String pathname,
@@ -4081,7 +4094,7 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, matchState, pathname, hash, identifier, time, quarantineTime, null);
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       MatchState matchState,
       String pathname,
@@ -4091,19 +4104,20 @@ public class TemporaryEntity
       Date quarantineTime,
       Date unquarantineTime)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, time, hash, identifier,
-        matchState.getId(), IdentificationSource.SONATYPE.getId(), time);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        new ProxyRepositoryComponent(repositoryId, pathname, time, hash, identifier,
+            matchState.getId(), IdentificationSource.SONATYPE.getId(), time);
 
-    repositoryComponent.setQuarantineTime(quarantineTime);
+    proxyRepositoryComponent.setQuarantineTime(quarantineTime);
     if (unquarantineTime != null) {
-      repositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
+      proxyRepositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
     }
 
-    repositoryComponentDAO.insert(repositoryComponent);
-    return repositoryComponent;
+    proxyRepositoryComponentDAO.insert(proxyRepositoryComponent);
+    return proxyRepositoryComponent;
   }
 
-  public RepositoryComponent newRepositoryComponent(
+  public ProxyRepositoryComponent newRepositoryComponent(
       String repositoryId,
       String pathname,
       Date createTime,
@@ -4113,16 +4127,17 @@ public class TemporaryEntity
       String identificationSourceId,
       Date lastEvaluationTime)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, createTime, hash,
-        componentIdentifier, matchStateId, identificationSourceId, lastEvaluationTime);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        new ProxyRepositoryComponent(repositoryId, pathname, createTime, hash,
+            componentIdentifier, matchStateId, identificationSourceId, lastEvaluationTime);
 
-    repositoryComponentDAO.insert(repositoryComponent);
-    return repositoryComponent;
+    proxyRepositoryComponentDAO.insert(proxyRepositoryComponent);
+    return proxyRepositoryComponent;
   }
 
-  public RepositoryComponent newRepositoryComponent(RepositoryComponent repositoryComponent) {
-    repositoryComponentDAO.insert(repositoryComponent);
-    return repositoryComponent;
+  public ProxyRepositoryComponent newRepositoryComponent(ProxyRepositoryComponent proxyRepositoryComponent) {
+    proxyRepositoryComponentDAO.insert(proxyRepositoryComponent);
+    return proxyRepositoryComponent;
   }
 
   public ReevaluateCascadeRequest newReevaluateCascadeRequest() {
@@ -4164,31 +4179,36 @@ public class TemporaryEntity
     return progress;
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
     return newRepositoryPolicyViolation(repositoryId, new Date());
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, Date time) {
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, Date time) {
     ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
     List<ConstraintFact> constraintFacts = List.of(constraintFact);
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", time,
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation(repositoryId, "path", time,
         "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
         constraintFacts);
-    repositoryPolicyViolationDAO.insert(policyViolation);
+    proxyRepositoryPolicyViolationDAO.insert(policyViolation);
     // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
     policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String policyId, int threatLevel) {
+  public ProxyRepositoryPolicyViolation newRepositoryPolicyViolation(
+      String repositoryId,
+      String policyId,
+      int threatLevel)
+  {
     ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
     List<ConstraintFact> constraintFacts = List.of(constraintFact);
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", new Date(),
-        policyId, "policyName", threatLevel, PolicyThreatCategory.LICENSE, "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
-        constraintFacts);
-    repositoryPolicyViolationDAO.insert(policyViolation);
+    ProxyRepositoryPolicyViolation policyViolation =
+        new ProxyRepositoryPolicyViolation(repositoryId, "path", new Date(),
+            policyId, "policyName", threatLevel, PolicyThreatCategory.LICENSE, "hash",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+            constraintFacts);
+    proxyRepositoryPolicyViolationDAO.insert(policyViolation);
     // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
     policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
@@ -6834,8 +6854,8 @@ public class TemporaryEntity
     policyMonitoringDAO = daoFactory.createPolicyMonitoringDAO();
     repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
     repositoryDAO = daoFactory.createRepositoryDAO();
-    repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
-    repositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
+    proxyRepositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
+    proxyRepositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
     reevaluateCascadeRequestDAO = daoFactory.createReevaluateCascadeRequestDAO();
     reevaluateCascadeProgressDAO = daoFactory.createReevaluateCascadeProgressDAO();
     securityVulnerabilityOverrideDAO = daoFactory.createSecurityVulnerabilityOverrideDAO();

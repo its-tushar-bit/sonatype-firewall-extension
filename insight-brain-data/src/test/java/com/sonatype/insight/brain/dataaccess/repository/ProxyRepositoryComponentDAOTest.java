@@ -42,12 +42,12 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.utils.DateConverter;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -63,14 +63,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryPolicyViolation.REPOSITORY_POLICY_VIOLATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryPolicyViolation.PROXY_REPOSITORY_POLICY_VIOLATION;
 import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 @Category(SlowTest.class)
-public class RepositoryComponentDAOTest
+public class ProxyRepositoryComponentDAOTest
     extends AbstractDbDAOTest
 {
   public static final int PARTITION_THRESHOLD = 2;
@@ -91,7 +91,7 @@ public class RepositoryComponentDAOTest
 
   private final Date june8th2020 = Date.from(LocalDateTime.of(2020, 6, 8, 1, 0).toInstant(ZoneOffset.UTC));
 
-  private RepositoryComponentDAO dao;
+  private ProxyRepositoryComponentDAO dao;
 
   private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
@@ -113,41 +113,43 @@ public class RepositoryComponentDAOTest
 
     // Create
     Date createTime = new Date();
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), "path", createTime, "hash",
-        componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        new ProxyRepositoryComponent(repository.getId(), "path", createTime, "hash",
+            componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
     String analyzerFeatures =
         JsonUtils.format(new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, "client", null));
-    repositoryComponent.setAnalyzerFeaturesJson(analyzerFeatures);
-    dao.insert(repositoryComponent);
-    assertThat(repositoryComponent.getId()).isNotNull();
+    proxyRepositoryComponent.setAnalyzerFeaturesJson(analyzerFeatures);
+    dao.insert(proxyRepositoryComponent);
+    assertThat(proxyRepositoryComponent.getId()).isNotNull();
 
     // Get
-    repositoryComponent = dao.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent).isNotNull();
+    proxyRepositoryComponent = dao.getById(proxyRepositoryComponent.getId());
+    assertThat(proxyRepositoryComponent).isNotNull();
     assertRepositoryComponent(repository.getId(), "path", createTime, "hash", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime, repositoryComponent,
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime, proxyRepositoryComponent,
         analyzerFeatures);
 
     // Update
     Date updateTime = new Date();
-    repositoryComponent.setLastEvaluationTime(updateTime);
+    proxyRepositoryComponent.setLastEvaluationTime(updateTime);
     analyzerFeatures =
         JsonUtils.format(new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.HASH, "client", null));
-    repositoryComponent.setAnalyzerFeaturesJson(analyzerFeatures);
-    dao.update(repositoryComponent);
-    repositoryComponent = dao.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent).isNotNull();
+    proxyRepositoryComponent.setAnalyzerFeaturesJson(analyzerFeatures);
+    dao.update(proxyRepositoryComponent);
+    proxyRepositoryComponent = dao.getById(proxyRepositoryComponent.getId());
+    assertThat(proxyRepositoryComponent).isNotNull();
     assertRepositoryComponent(repository.getId(), "path", createTime, "hash", componentIdentifier,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), updateTime, repositoryComponent,
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), updateTime, proxyRepositoryComponent,
         analyzerFeatures);
 
     // Delete
-    tempEntity.newQuarantinedComponentAccess(repositoryComponent.getRepositoryId(), repositoryComponent.getId());
-    dao.delete(repositoryComponent);
+    tempEntity.newQuarantinedComponentAccess(proxyRepositoryComponent.getRepositoryId(),
+        proxyRepositoryComponent.getId());
+    dao.delete(proxyRepositoryComponent);
 
     // Get
-    repositoryComponent = dao.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent).isNull();
+    proxyRepositoryComponent = dao.getById(proxyRepositoryComponent.getId());
+    assertThat(proxyRepositoryComponent).isNull();
     assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }
 
@@ -184,54 +186,55 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testGetByRepositoryIdAndPathnames_GetsSingleRepositoryComponent() {
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "jar"));
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "jar"));
 
     ArrayList<String> pathnames = new ArrayList<>();
-    pathnames.add(repositoryComponent.getPathname());
+    pathnames.add(proxyRepositoryComponent.getPathname());
 
-    List<RepositoryComponent> repositoryComponents =
+    List<ProxyRepositoryComponent> repositoryComponents =
         dao.getByRepositoryIdAndPathnames(repository.getId(), pathnames);
 
     assertThat(repositoryComponents).hasSize(1);
-    assertRepositoryComponent(repositoryComponent.getRepositoryId(), repositoryComponent.getPathname(),
-        repositoryComponent.getTime(),
-        repositoryComponent.getHash(), repositoryComponent.getComponentIdentifier(),
-        repositoryComponent.getMatchStateId(), repositoryComponent.getIdentificationSourceId(),
-        repositoryComponent.getLastEvaluationTime(), repositoryComponents.get(0), null);
+    assertRepositoryComponent(proxyRepositoryComponent.getRepositoryId(), proxyRepositoryComponent.getPathname(),
+        proxyRepositoryComponent.getTime(),
+        proxyRepositoryComponent.getHash(), proxyRepositoryComponent.getComponentIdentifier(),
+        proxyRepositoryComponent.getMatchStateId(), proxyRepositoryComponent.getIdentificationSourceId(),
+        proxyRepositoryComponent.getLastEvaluationTime(), repositoryComponents.get(0), null);
   }
 
   @Test
   public void testGetByRepositoryIdAndPathnames_GetsRepositoryComponentInBatches() {
-    List<RepositoryComponent> components = new ArrayList<>();
+    List<ProxyRepositoryComponent> components = new ArrayList<>();
     for (int i = 0; i < PARTITION_THRESHOLD + 1; i++) {
       components.add(tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
           ComponentIdentifier.createMavenCoordinates("g", "a", "v" + i, "c", "jar")));
     }
 
     List<String> pathnames = components.stream()
-        .map(RepositoryComponent::getPathname)
+        .map(ProxyRepositoryComponent::getPathname)
         .collect(Collectors.toList());
 
-    List<RepositoryComponent> repositoryComponents =
+    List<ProxyRepositoryComponent> repositoryComponents =
         dao.getByRepositoryIdAndPathnames(repository.getId(), pathnames);
 
     assertThat(components).hasSize(PARTITION_THRESHOLD + 1);
     assertThat(repositoryComponents).hasSize(PARTITION_THRESHOLD + 1);
-    for (RepositoryComponent expected : components) {
+    for (ProxyRepositoryComponent expected : components) {
       assertIsContainedIn(expected, repositoryComponents);
     }
   }
 
-  private void assertIsContainedIn(RepositoryComponent expected, List<RepositoryComponent> in) {
-    Optional<RepositoryComponent> optionalRepositoryComponent = in.stream()
+  private void assertIsContainedIn(ProxyRepositoryComponent expected, List<ProxyRepositoryComponent> in) {
+    Optional<ProxyRepositoryComponent> optionalRepositoryComponent = in.stream()
         .filter(component -> component.getPathname().equals(expected.getPathname()))
         .findFirst();
     assertThat(optionalRepositoryComponent.isPresent()).isTrue();
     assertRepositoryComponent(optionalRepositoryComponent.get(), expected);
   }
 
-  private void assertRepositoryComponent(RepositoryComponent expected, RepositoryComponent actual) {
+  private void assertRepositoryComponent(ProxyRepositoryComponent expected, ProxyRepositoryComponent actual) {
     assertRepositoryComponent(expected.getRepositoryId(), expected.getPathname(), expected.getTime(),
         expected.getHash(), expected.getComponentIdentifier(), expected.getMatchStateId(),
         expected.getIdentificationSourceId(), expected.getLastEvaluationTime(), actual,
@@ -247,7 +250,7 @@ public class RepositoryComponentDAOTest
       String matchStateId,
       String identificationSourceId,
       Date lastEvaluationTime,
-      RepositoryComponent actual,
+      ProxyRepositoryComponent actual,
       String analyzerFeatures)
   {
     assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
@@ -303,9 +306,9 @@ public class RepositoryComponentDAOTest
   public void testDeleteByRepositoryId_H2() {
     assertThat(dao.isDatabaseEmbedded()).isTrue();
 
-    RepositoryComponent repositoryComponent1 =
+    ProxyRepositoryComponent repositoryComponent1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-    RepositoryComponent repositoryComponent2 =
+    ProxyRepositoryComponent repositoryComponent2 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newQuarantinedComponentAccess(repositoryComponent1.getRepositoryId(), repositoryComponent1.getId());
@@ -324,9 +327,9 @@ public class RepositoryComponentDAOTest
     assertThat(dao.isDatabaseEmbedded()).isFalse();
 
     repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent1 =
+    ProxyRepositoryComponent repositoryComponent1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
-    RepositoryComponent repositoryComponent2 =
+    ProxyRepositoryComponent repositoryComponent2 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newQuarantinedComponentAccess(repositoryComponent1.getRepositoryId(), repositoryComponent1.getId());
@@ -362,8 +365,8 @@ public class RepositoryComponentDAOTest
       tx.commit();
     }
 
-    List<RepositoryComponent> remaining = dao.getByRepositoryId(repository.getId());
-    assertThat(remaining).extracting(RepositoryComponent::getPathname)
+    List<ProxyRepositoryComponent> remaining = dao.getByRepositoryId(repository.getId());
+    assertThat(remaining).extracting(ProxyRepositoryComponent::getPathname)
         .containsExactlyInAnyOrder(outerPath, unrelated);
   }
 
@@ -372,11 +375,11 @@ public class RepositoryComponentDAOTest
     // A row that has a quarantined_component_access entry must still be deleted, and the
     // matching access row must be cleaned up first via the cascade. Without the explicit
     // pre-delete on the access table, the FK from quarantined_component_access ->
-    // repository_component would block the parent delete.
+    // proxy_repository_component would block the parent delete.
     String outerPath = "outer.zip";
     String inner = outerPath + "!/lib.jar";
     tempEntity.newRepositoryComponent(repository.getId(), outerPath);
-    RepositoryComponent innerRow = tempEntity.newRepositoryComponent(repository.getId(), inner);
+    ProxyRepositoryComponent innerRow = tempEntity.newRepositoryComponent(repository.getId(), inner);
     tempEntity.newQuarantinedComponentAccess(innerRow.getRepositoryId(), innerRow.getId());
     assertThat(quarantinedComponentAccessDAO.getAll()).hasSize(1);
 
@@ -415,8 +418,8 @@ public class RepositoryComponentDAOTest
       tx.commit();
     }
 
-    List<RepositoryComponent> remaining = dao.getByRepositoryId(repository.getId());
-    assertThat(remaining).extracting(RepositoryComponent::getPathname).containsExactly(survivor);
+    List<ProxyRepositoryComponent> remaining = dao.getByRepositoryId(repository.getId());
+    assertThat(remaining).extracting(ProxyRepositoryComponent::getPathname).containsExactly(survivor);
   }
 
   @Test
@@ -445,22 +448,22 @@ public class RepositoryComponentDAOTest
   @Test
   public void testGetWithActiveViolationsByRepositoryIdAndPathname_returnsComponentAndViolations() {
     String pathname = "path";
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, null);
 
-    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
         pathname);
 
     assertThat(result.component()).isNotNull();
     assertThat(result.component().getId()).isEqualTo(component.getId());
-    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+    assertThat(result.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getThreatLevel)
         .containsExactly(3, 1);
   }
 
   @Test
   public void testGetWithActiveViolationsByRepositoryIdAndPathname_doesNotCrossContaminateOverlappingColumns() {
-    // repository_component and repository_policy_violation share several column names (repository_id,
+    // proxy_repository_component and proxy_repository_policy_violation share several column names (repository_id,
     // pathname, hash, component_id_format, component_id_coordinates_json, component_id). Use distinct
     // hash values on each side to prove the mapping doesn't mix up which physical table a column came
     // from — both fixtures otherwise default to the same literal "hash" (see TemporaryEntity), which
@@ -471,49 +474,49 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, false,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
 
-    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
         pathname);
 
     assertThat(result.component().getHash()).isEqualTo("component-hash");
-    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getHash).containsExactly("hash");
+    assertThat(result.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getHash).containsExactly("hash");
   }
 
   @Test
   public void testGetWithActiveViolationsByRepositoryIdAndPathname_excludesInactiveViolations() {
-    // Production code never creates inactive violations going forward — RepositoryPolicyViolation.active
+    // Production code never creates inactive violations going forward — ProxyRepositoryPolicyViolation.active
     // is @Deprecated since 1.90 with no public setter; inactive rows only exist as legacy pre-1.90 data
     // pending InactiveRepositoryViolationCleaner. Flip the row directly via jOOQ to simulate that state
     // and confirm the rpv subquery's ACTIVE.eq(true) filter actually excludes it.
     String pathname = "path";
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
-    RepositoryPolicyViolation activeViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 3,
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    ProxyRepositoryPolicyViolation activeViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 3,
         pathname, null);
-    RepositoryPolicyViolation inactiveViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
+    ProxyRepositoryPolicyViolation inactiveViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
         pathname, null);
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
       tx.dsl()
-          .update(REPOSITORY_POLICY_VIOLATION)
-          .set(REPOSITORY_POLICY_VIOLATION.ACTIVE, false)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_POLICY_VIOLATION_ID.eq(inactiveViolation.getId()))
+          .update(PROXY_REPOSITORY_POLICY_VIOLATION)
+          .set(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE, false)
+          .where(PROXY_REPOSITORY_POLICY_VIOLATION.PROXY_REPOSITORY_POLICY_VIOLATION_ID.eq(inactiveViolation.getId()))
           .execute();
       tx.commit();
     }
 
-    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
         pathname);
 
     assertThat(result.component().getId()).isEqualTo(component.getId());
-    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getId)
+    assertThat(result.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getId)
         .containsExactly(activeViolation.getId());
   }
 
   @Test
   public void testGetWithActiveViolationsByRepositoryIdAndPathname_componentOnly_noViolations() {
     String pathname = "path";
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
 
-    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
         pathname);
 
     assertThat(result.component()).isNotNull();
@@ -523,23 +526,23 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testGetWithActiveViolationsByRepositoryIdAndPathname_orphanViolation_noComponentRow() {
-    // CLM-40943 archive-of-archives: inner repository_component rows get deleted while their active
+    // CLM-40943 archive-of-archives: inner proxy_repository_component rows get deleted while their active
     // violations are intentionally kept (see HostedComponentScanQueueConsumer). The merged read must
     // still surface the violation even though there's no matching component row.
     String pathname = "outer.zip!/inner.jar";
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, pathname, null);
 
-    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
         pathname);
 
     assertThat(result.component()).isNull();
-    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+    assertThat(result.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getThreatLevel)
         .containsExactly(5);
   }
 
   @Test
   public void testGetWithActiveViolationsByRepositoryIdAndPathname_neitherExists_returnsNullAndEmpty() {
-    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
         "missing/path");
 
     assertThat(result.component()).isNull();
@@ -549,16 +552,16 @@ public class RepositoryComponentDAOTest
   @Test
   public void testGetWithActiveViolationsByRepositoryIdAndPathname_isolatesPerRepository() {
     String shared = "outer.zip!/lib.jar";
-    RepositoryComponent componentOne = tempEntity.newRepositoryComponent(repository.getId(), shared);
+    ProxyRepositoryComponent componentOne = tempEntity.newRepositoryComponent(repository.getId(), shared);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, shared, null);
     tempEntity.newRepositoryComponent(repositoryTwo.getId(), shared);
     tempEntity.newRepositoryPolicyViolation(repositoryTwo.getId(), 9, shared, null);
 
-    RepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations result = getWithActiveViolations(repository.getId(),
         shared);
 
     assertThat(result.component().getId()).isEqualTo(componentOne.getId());
-    assertThat(result.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+    assertThat(result.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getThreatLevel)
         .containsExactly(2);
   }
 
@@ -574,35 +577,35 @@ public class RepositoryComponentDAOTest
     repository = tempEntity.newRepository();
 
     String withComponent = "path";
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), withComponent);
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), withComponent);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, withComponent, null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, withComponent, null);
 
-    RepositoryComponentDAO.ComponentWithActiveViolations withComponentResult =
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations withComponentResult =
         getWithActiveViolations(repository.getId(), withComponent);
     assertThat(withComponentResult.component()).isNotNull();
     assertThat(withComponentResult.component().getId()).isEqualTo(component.getId());
-    assertThat(withComponentResult.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+    assertThat(withComponentResult.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getThreatLevel)
         .containsExactly(3, 1);
 
     // CLM-40943 archive-of-archives orphan case: active violation with no matching component row.
     String orphanPathname = "outer.zip!/inner.jar";
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, orphanPathname, null);
 
-    RepositoryComponentDAO.ComponentWithActiveViolations orphanResult =
+    ProxyRepositoryComponentDAO.ComponentWithActiveViolations orphanResult =
         getWithActiveViolations(repository.getId(), orphanPathname);
     assertThat(orphanResult.component()).isNull();
-    assertThat(orphanResult.activeViolations()).extracting(RepositoryPolicyViolation::getThreatLevel)
+    assertThat(orphanResult.activeViolations()).extracting(ProxyRepositoryPolicyViolation::getThreatLevel)
         .containsExactly(5);
   }
 
-  private RepositoryComponentDAO.ComponentWithActiveViolations getWithActiveViolations(
+  private ProxyRepositoryComponentDAO.ComponentWithActiveViolations getWithActiveViolations(
       String repositoryId,
       String pathname)
   {
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
-      RepositoryComponentDAO.ComponentWithActiveViolations result =
+      ProxyRepositoryComponentDAO.ComponentWithActiveViolations result =
           dao.getWithActiveViolationsByRepositoryIdAndPathname(tx, repositoryId, pathname);
       tx.commit();
       return result;
@@ -638,7 +641,7 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "quarantined-path", "hash2",
         ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), new Date(), quarantinedDateToQuery);
 
-    List<RepositoryComponent> results =
+    List<ProxyRepositoryComponent> results =
         dao.getQuarantinedByRepositoryIdAndDate(repository.getId(), quarantinedDateToQuery);
 
     assertThat(results).hasSize(1);
@@ -760,7 +763,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantined).isNotEmpty();
@@ -782,7 +785,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION - Both components should be returned, regardless of whether a failed violation is present
     assertThat(autoUnquarantined).isNotEmpty();
@@ -802,7 +805,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantined).isNotEmpty();
@@ -820,7 +823,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantined).isNotEmpty();
@@ -839,7 +842,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantined).isNotEmpty();
@@ -861,7 +864,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> all = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> all = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(all).isNotEmpty();
@@ -887,7 +890,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantinedDesc = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantinedDesc = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantinedDesc).isNotEmpty();
@@ -907,7 +910,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantinedDesc = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantinedDesc = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantinedDesc).isNotEmpty();
@@ -930,7 +933,7 @@ public class RepositoryComponentDAOTest
             filterFields);
 
     // EXECUTE
-    final List<RepositoryComponent> quarantinedFiltered = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> quarantinedFiltered = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION - only the component with failed policy violation should be returned
     // Warn action type or waived fail action type should not be returned
@@ -944,8 +947,9 @@ public class RepositoryComponentDAOTest
   public void testGetFirewallRepositoryComponents_filterByMultiplePolicyIds() {
     setupMockDataForGetFirewallRepositoryComponents();
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "/quarantined/multiple/test",
-        june7th2020, null, june8th2020, false);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined/multiple/test",
+            june7th2020, null, june8th2020, false);
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, component.getPathname(), false, FailActionType.ID,
         "policy_id_multiple", "policy_multiple", component.getComponentIdentifier());
@@ -959,7 +963,7 @@ public class RepositoryComponentDAOTest
         FirewallComponentFilterState.QUARANTINE, FirewallSortableField.QUARANTINE_TIME, true, filterFields);
 
     // EXECUTE
-    List<RepositoryComponent> quarantinedFiltered = dao.getFirewallRepositoryComponents(filter);
+    List<ProxyRepositoryComponent> quarantinedFiltered = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION - only the components with the given policies IDs should be returned
     assertThat(quarantinedFiltered).isNotEmpty();
@@ -972,13 +976,13 @@ public class RepositoryComponentDAOTest
   @Test
   public void testGetTotalFirewallRepositoryComponents_filterByRepoPublicId() {
     setupMockDataForGetFirewallRepositoryComponents();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "/quarantined/test",
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "/quarantined/test",
         june7th2020, null, june8th2020, false);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, component.getPathname(), false, FailActionType.ID,
         "policy_id", "policy", component.getComponentIdentifier());
 
     Repository repo2 = tempEntity.newRepository(repositoryManager);
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(), "/quarantined/test2",
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(), "/quarantined/test2",
         june7th2020, null, june8th2020, false);
     tempEntity.newRepositoryPolicyViolation(repo2.getId(), 5, component2.getPathname(), false, FailActionType.ID,
         "policy_id", "policy", component2.getComponentIdentifier());
@@ -1011,9 +1015,9 @@ public class RepositoryComponentDAOTest
     Repository repository1 = tempEntity.newRepository(repositoryManager);
     Repository repository2 = tempEntity.newRepository(repositoryManager);
 
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "/quarantined/test",
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "/quarantined/test",
         past7DaysQuarantineTime, null, past7DaysQuarantineTime, false);
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "/quarantined/test2",
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "/quarantined/test2",
         past7DaysQuarantineTime, null, past7DaysQuarantineTime, false);
 
     tempEntity.newRepositoryPolicyViolation(repository1.getId(), 5, component1.getPathname(), false, FailActionType.ID,
@@ -1050,7 +1054,7 @@ public class RepositoryComponentDAOTest
   @Test
   public void testGetFirewallRepositoryComponents_filterByComponentName() {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a1");
+    ProxyRepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a1");
     newQuarantinedRepositoryComponent(repository.getId(), "a2");
 
     assertThat(filter(null, "a1")).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
@@ -1062,10 +1066,10 @@ public class RepositoryComponentDAOTest
   @Test
   public void testGetFirewallRepositoryComponents_filterByPolicyIdAndComponentName() {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a11");
-    RepositoryComponent repositoryComponent2 = newQuarantinedRepositoryComponent(repository.getId(), "a12");
-    RepositoryComponent repositoryComponent3 = newQuarantinedRepositoryComponent(repository.getId(), "a21");
-    RepositoryComponent repositoryComponent4 = newQuarantinedRepositoryComponent(repository.getId(), "a22");
+    ProxyRepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a11");
+    ProxyRepositoryComponent repositoryComponent2 = newQuarantinedRepositoryComponent(repository.getId(), "a12");
+    ProxyRepositoryComponent repositoryComponent3 = newQuarantinedRepositoryComponent(repository.getId(), "a21");
+    ProxyRepositoryComponent repositoryComponent4 = newQuarantinedRepositoryComponent(repository.getId(), "a22");
     Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     Policy policy2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     newQuarantinedRepositoryComponentPolicyViolation(policy1, repositoryComponent1);
@@ -1086,17 +1090,21 @@ public class RepositoryComponentDAOTest
         .containsExactly(repositoryComponent1);
   }
 
-  public RepositoryComponent newQuarantinedRepositoryComponent(String repositoryId, String artifactName) {
+  public ProxyRepositoryComponent newQuarantinedRepositoryComponent(String repositoryId, String artifactName) {
     return tempEntity.newRepositoryComponent(repositoryId, MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", artifactName, "v", "c", "e"), true);
   }
 
-  public void newQuarantinedRepositoryComponentPolicyViolation(Policy policy, RepositoryComponent repositoryComponent) {
-    tempEntity.newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), 5, repositoryComponent.getPathname(),
-        false, FailActionType.ID, policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier());
+  public void newQuarantinedRepositoryComponentPolicyViolation(
+      Policy policy,
+      ProxyRepositoryComponent proxyRepositoryComponent)
+  {
+    tempEntity.newRepositoryPolicyViolation(proxyRepositoryComponent.getRepositoryId(), 5,
+        proxyRepositoryComponent.getPathname(),
+        false, FailActionType.ID, policy.getId(), policy.getName(), proxyRepositoryComponent.getComponentIdentifier());
   }
 
-  public List<RepositoryComponent> filter(String policyId, String componentName) {
+  public List<ProxyRepositoryComponent> filter(String policyId, String componentName) {
     List<FirewallFilterField> firewallFilterFields = new ArrayList<>();
     if (policyId != null) {
       firewallFilterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyId));
@@ -1120,7 +1128,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined3Items = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantined3Items = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantined3Items).isNotEmpty();
@@ -1141,7 +1149,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined2ndPage = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantined2ndPage = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantined2ndPage).isNotEmpty();
@@ -1160,7 +1168,7 @@ public class RepositoryComponentDAOTest
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantined).isEmpty();
@@ -1178,7 +1186,7 @@ public class RepositoryComponentDAOTest
             filterFieldsInvalid);
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantinedInvalidPolicy = dao.getFirewallRepositoryComponents(filter);
+    final List<ProxyRepositoryComponent> autoUnquarantinedInvalidPolicy = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
     assertThat(autoUnquarantinedInvalidPolicy).isEmpty();
@@ -1356,15 +1364,15 @@ public class RepositoryComponentDAOTest
     Repository repo3 = tempEntity.newRepository();
 
     // Create components with target hash in repo1 and repo2
-    RepositoryComponent component1InRepo1 = tempEntity.newRepositoryComponent(repo1.getId(),
+    ProxyRepositoryComponent component1InRepo1 = tempEntity.newRepositoryComponent(repo1.getId(),
         MatchState.EXACT, "/path1", targetHash,
         ComponentIdentifier.createMavenCoordinates("group1", "artifact1", "1.0.0"), now, now);
 
-    RepositoryComponent component2InRepo1 = tempEntity.newRepositoryComponent(repo1.getId(),
+    ProxyRepositoryComponent component2InRepo1 = tempEntity.newRepositoryComponent(repo1.getId(),
         MatchState.EXACT, "/path2", targetHash,
         ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "1.0.0"), now, now);
 
-    RepositoryComponent componentInRepo2 = tempEntity.newRepositoryComponent(repo2.getId(),
+    ProxyRepositoryComponent componentInRepo2 = tempEntity.newRepositoryComponent(repo2.getId(),
         MatchState.EXACT, "/path3", targetHash,
         ComponentIdentifier.createNpmCoordinates("package1", "2.0.0"), now, now);
 
@@ -1380,7 +1388,7 @@ public class RepositoryComponentDAOTest
 
     // Execute test with transaction context
     try (TransactionContext tx = dao.createTransactionContext()) {
-      Map<Repository, List<RepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
+      Map<Repository, List<ProxyRepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
 
       // Assertions
       assertThat(result).hasSize(2); // Only repo1 and repo2 should be returned
@@ -1392,9 +1400,9 @@ public class RepositoryComponentDAOTest
           .filter(r -> r.getId().equals(repo1.getId()))
           .findFirst()
           .orElseThrow(() -> new AssertionError("Repository 1 not found in results"));
-      List<RepositoryComponent> repo1Components = result.get(foundRepo1);
+      List<ProxyRepositoryComponent> repo1Components = result.get(foundRepo1);
       assertThat(repo1Components).hasSize(2);
-      assertThat(repo1Components).extracting(RepositoryComponent::getId)
+      assertThat(repo1Components).extracting(ProxyRepositoryComponent::getId)
           .containsExactlyInAnyOrder(component1InRepo1.getId(), component2InRepo1.getId());
       assertThat(repo1Components).allMatch(c -> c.getHash().equals(targetHash));
 
@@ -1404,7 +1412,7 @@ public class RepositoryComponentDAOTest
           .filter(r -> r.getId().equals(repo2.getId()))
           .findFirst()
           .orElseThrow(() -> new AssertionError("Repository 2 not found in results"));
-      List<RepositoryComponent> repo2Components = result.get(foundRepo2);
+      List<ProxyRepositoryComponent> repo2Components = result.get(foundRepo2);
       assertThat(repo2Components).hasSize(1);
       assertThat(repo2Components.get(0).getId()).isEqualTo(componentInRepo2.getId());
       assertThat(repo2Components.get(0).getHash()).isEqualTo(targetHash);
@@ -1425,7 +1433,7 @@ public class RepositoryComponentDAOTest
 
     // Execute test
     try (TransactionContext tx = dao.createTransactionContext()) {
-      Map<Repository, List<RepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, nonExistentHash);
+      Map<Repository, List<ProxyRepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, nonExistentHash);
 
       // Assertions
       assertThat(result).isEmpty();
@@ -1439,29 +1447,29 @@ public class RepositoryComponentDAOTest
     Repository repo = tempEntity.newRepository();
 
     // Create multiple components with same hash in single repository
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(),
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(),
         MatchState.EXACT, "/path1", targetHash,
         ComponentIdentifier.createMavenCoordinates("group1", "artifact1", "1.0.0"), now, now);
 
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo.getId(),
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repo.getId(),
         MatchState.EXACT, "/path2", targetHash,
         ComponentIdentifier.createNpmCoordinates("package1", "2.0.0"), now, now);
 
-    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repo.getId(),
+    ProxyRepositoryComponent component3 = tempEntity.newRepositoryComponent(repo.getId(),
         MatchState.EXACT, "/path3", targetHash,
         ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "3.0.0"), now, now);
 
     // Execute test
     try (TransactionContext tx = dao.createTransactionContext()) {
-      Map<Repository, List<RepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
+      Map<Repository, List<ProxyRepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
 
       // Assertions
       assertThat(result).hasSize(1);
       assertThat(result.keySet()).extracting(Repository::getId).containsExactly(repo.getId());
 
-      List<RepositoryComponent> components = result.values().iterator().next();
+      List<ProxyRepositoryComponent> components = result.values().iterator().next();
       assertThat(components).hasSize(3);
-      assertThat(components).extracting(RepositoryComponent::getId)
+      assertThat(components).extracting(ProxyRepositoryComponent::getId)
           .containsExactlyInAnyOrder(component1.getId(), component2.getId(), component3.getId());
       assertThat(components).allMatch(c -> c.getHash().equals(targetHash));
     }
@@ -1475,11 +1483,11 @@ public class RepositoryComponentDAOTest
     Repository repo = tempEntity.newRepository();
 
     // Create quarantined and non-quarantined components with same hash
-    RepositoryComponent quarantinedComponent = tempEntity.newRepositoryComponent(repo.getId(),
+    ProxyRepositoryComponent quarantinedComponent = tempEntity.newRepositoryComponent(repo.getId(),
         MatchState.EXACT, "/quarantined", targetHash,
         ComponentIdentifier.createMavenCoordinates("group1", "artifact1", "1.0.0"), now, quarantineTime);
 
-    RepositoryComponent nonQuarantinedComponent = tempEntity.newRepositoryComponent(repo.getId(),
+    ProxyRepositoryComponent nonQuarantinedComponent = tempEntity.newRepositoryComponent(repo.getId(),
         MatchState.EXACT, "/not-quarantined", targetHash,
         ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "1.0.0"), now, now);
     // Explicitly set non-quarantined (null quarantine time)
@@ -1488,25 +1496,25 @@ public class RepositoryComponentDAOTest
 
     // Execute test
     try (TransactionContext tx = dao.createTransactionContext()) {
-      Map<Repository, List<RepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
+      Map<Repository, List<ProxyRepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
 
       // Assertions
       assertThat(result).hasSize(1);
-      List<RepositoryComponent> components = result.values().iterator().next();
+      List<ProxyRepositoryComponent> components = result.values().iterator().next();
       assertThat(components).hasSize(2);
 
       // Verify both quarantined and non-quarantined components are returned
-      assertThat(components).extracting(RepositoryComponent::getId)
+      assertThat(components).extracting(ProxyRepositoryComponent::getId)
           .containsExactlyInAnyOrder(quarantinedComponent.getId(), nonQuarantinedComponent.getId());
 
       // Verify quarantine status is preserved
-      RepositoryComponent foundQuarantined = components.stream()
+      ProxyRepositoryComponent foundQuarantined = components.stream()
           .filter(c -> c.getId().equals(quarantinedComponent.getId()))
           .findFirst()
           .orElseThrow(() -> new AssertionError("Quarantined component not found"));
       assertThat(foundQuarantined.getQuarantineTime()).isNotNull();
 
-      RepositoryComponent foundNonQuarantined = components.stream()
+      ProxyRepositoryComponent foundNonQuarantined = components.stream()
           .filter(c -> c.getId().equals(nonQuarantinedComponent.getId()))
           .findFirst()
           .orElseThrow(() -> new AssertionError("Non-quarantined component not found"));
@@ -1518,17 +1526,17 @@ public class RepositoryComponentDAOTest
     // ADD COMPONENT
     tempEntity
         .newRepositoryComponent(repository.getId(), "/autoreleased1", june1st2020, june2nd2020, june8th2020, true);
-    final RepositoryComponent component2 =
+    final ProxyRepositoryComponent component2 =
         tempEntity
             .newRepositoryComponent(repository.getId(), "/autoreleased2", june2nd2020, june3rd2020, june7th2020, true);
-    final RepositoryComponent component3 =
+    final ProxyRepositoryComponent component3 =
         tempEntity
             .newRepositoryComponent(repository.getId(), "/autoreleased3", june3rd2020, june4th2020, june6th2020, true);
     tempEntity
         .newRepositoryComponent(repository.getId(), "/autoreleased4", june4th2020, june5th2020, june5th2020, true);
-    final RepositoryComponent component5 =
+    final ProxyRepositoryComponent component5 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june5th2020, null, june4th2020, false);
-    final RepositoryComponent component6 =
+    final ProxyRepositoryComponent component6 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june6th2020, null, june3rd2020, false);
     tempEntity.newRepositoryComponent(repository.getId(), "/manualreleased1", june7th2020, june8th2020, june2nd2020,
         false);
@@ -1550,7 +1558,7 @@ public class RepositoryComponentDAOTest
   }
 
   private void assertComponentForFirewall(
-      final RepositoryComponent component,
+      final ProxyRepositoryComponent component,
       final String pathName,
       final Date quarantineTime,
       final Date unquarantineTime,
@@ -1571,7 +1579,7 @@ public class RepositoryComponentDAOTest
     ComponentIdentifier v3 = ComponentIdentifier.createMavenCoordinates("com.example", "library", "3.0.0", null, "jar");
     ComponentIdentifier v4 = ComponentIdentifier.createMavenCoordinates("com.example", "library", "4.0.0", null, "jar");
 
-    RepositoryComponent quarantined = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent quarantined = tempEntity.newRepositoryComponent(
         repositoryId,
         MatchState.EXACT,
         "com/example/library/1.0.0/library-1.0.0.jar",
@@ -1582,7 +1590,7 @@ public class RepositoryComponentDAOTest
         null);
 
     // Pre-cached with active violations - should be excluded
-    RepositoryComponent preCachedWithViolation = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent preCachedWithViolation = tempEntity.newRepositoryComponent(
         repositoryId,
         MatchState.EXACT,
         "com/example/library/2.0.0/library-2.0.0.jar",
@@ -1603,7 +1611,7 @@ public class RepositoryComponentDAOTest
         v2,
         now);
 
-    RepositoryComponent safeComponent = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent safeComponent = tempEntity.newRepositoryComponent(
         repositoryId,
         MatchState.EXACT,
         "com/example/library/3.0.0/library-3.0.0.jar",
@@ -1613,7 +1621,7 @@ public class RepositoryComponentDAOTest
         null,
         null);
 
-    RepositoryComponent unquarantined = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent unquarantined = tempEntity.newRepositoryComponent(
         repositoryId,
         MatchState.EXACT,
         "com/example/library/4.0.0/library-4.0.0.jar",
@@ -1623,15 +1631,15 @@ public class RepositoryComponentDAOTest
         DateUtils.addDays(now, -1),
         now);
 
-    List<RepositoryComponent> result = dao.getOtherVersionRepositoryComponentsByPathnameFilter(
+    List<ProxyRepositoryComponent> result = dao.getOtherVersionRepositoryComponentsByPathnameFilter(
         repositoryId,
         "com/example/library/",
         quarantined.getPathname());
 
     assertThat(result).hasSize(2);
-    assertThat(result).extracting(RepositoryComponent::getId)
+    assertThat(result).extracting(ProxyRepositoryComponent::getId)
         .containsExactlyInAnyOrder(safeComponent.getId(), unquarantined.getId());
-    assertThat(result).extracting(RepositoryComponent::getId)
+    assertThat(result).extracting(ProxyRepositoryComponent::getId)
         .doesNotContain(preCachedWithViolation.getId(), quarantined.getId());
   }
 
@@ -1642,7 +1650,7 @@ public class RepositoryComponentDAOTest
     ComponentIdentifier v1 = ComponentIdentifier.createMavenCoordinates("com.example", "lib", "1.0.0", null, "jar");
     ComponentIdentifier v2 = ComponentIdentifier.createMavenCoordinates("com.example", "lib", "2.0.0", null, "jar");
 
-    RepositoryComponent quarantined = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent quarantined = tempEntity.newRepositoryComponent(
         repositoryId,
         MatchState.EXACT,
         "com/example/lib/1.0.0/lib-1.0.0.jar",
@@ -1653,7 +1661,7 @@ public class RepositoryComponentDAOTest
         null);
 
     // Pre-cached with waived violations - should be included
-    RepositoryComponent preCachedWithWaivedViolation = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent preCachedWithWaivedViolation = tempEntity.newRepositoryComponent(
         repositoryId,
         MatchState.EXACT,
         "com/example/lib/2.0.0/lib-2.0.0.jar",
@@ -1674,7 +1682,7 @@ public class RepositoryComponentDAOTest
         v2,
         now);
 
-    List<RepositoryComponent> result = dao.getOtherVersionRepositoryComponentsByPathnameFilter(
+    List<ProxyRepositoryComponent> result = dao.getOtherVersionRepositoryComponentsByPathnameFilter(
         repositoryId,
         "com/example/lib/",
         quarantined.getPathname());
@@ -1725,11 +1733,11 @@ public class RepositoryComponentDAOTest
     Repository repo2 = tempEntity.newRepository();
     Repository repo3 = tempEntity.newRepository();
 
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "2.0"));
-    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repo3.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent component3 = tempEntity.newRepositoryComponent(repo3.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "3.0"));
 
     tempEntity.newHostedComponentScanQueue(component1.getId(), repo1.getId(), Status.PENDING.name());
@@ -1751,7 +1759,7 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testStampComponentId_SetsComponentIdOnMatchingComponent() {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
     assertThat(component.getComponentId()).isNull();
 
@@ -1760,15 +1768,15 @@ public class RepositoryComponentDAOTest
       dao.stampComponentId(tx, repository.getId(), component.getPathname(), componentId);
     }
 
-    RepositoryComponent updated = dao.getById(component.getId());
+    ProxyRepositoryComponent updated = dao.getById(component.getId());
     assertThat(updated.getComponentId()).isEqualTo(componentId);
   }
 
   @Test
   public void testStampComponentId_DoesNotAffectOtherComponents() {
-    RepositoryComponent target = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent target = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
-    RepositoryComponent other = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent other = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "b", "1.0"));
 
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -1780,7 +1788,7 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testRaiseComponentCountIfHigher_NullExisting_writes() {
-    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
     assertThat(comp.getComponentCount()).isNull();
 
@@ -1797,7 +1805,7 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testRaiseComponentCountIfHigher_CandidateLarger_writes() {
-    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -1818,7 +1826,7 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testRaiseComponentCountIfHigher_CandidateSmaller_noWrite() {
-    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -1839,7 +1847,7 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testRaiseComponentCountIfHigher_CandidateEqual_noWrite() {
-    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -1860,9 +1868,9 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testRaiseComponentCountIfHigher_doesNotAffectOtherRows() {
-    RepositoryComponent target = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent target = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
-    RepositoryComponent other = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent other = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "b", "1.0"));
 
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -1882,7 +1890,7 @@ public class RepositoryComponentDAOTest
   public void testGetCountWithPolicyViolationInPolicyThreatLevelRange_innerPathnameRollsUpToOuter() {
     // One archive with violations on inner jars only — count must be 1 (one outer artifact
     // affected), not 2 (one per inner pathname).
-    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "archive", "1.0.0"));
     String outer = comp.getPathname();
     String innerA = outer + "!/log4j-core.jar";
@@ -1904,7 +1912,7 @@ public class RepositoryComponentDAOTest
   public void testGetCountWithPolicyViolationInPolicyThreatLevelRange_outerAndInnerCountedOnce() {
     // Outer has a violation AND its inner has a violation — both at the same threat tier. Must
     // still count as one outer, not two.
-    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "archive", "1.0.0"));
     String outer = comp.getPathname();
     String inner = outer + "!/log4j-core.jar";
@@ -1922,9 +1930,9 @@ public class RepositoryComponentDAOTest
   @Test
   public void testGetCountWithPolicyViolationInPolicyThreatLevelRange_distinctOutersCountedSeparately() {
     // Two distinct archives, each with inner violations — count must be 2.
-    RepositoryComponent comp1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent comp1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a1", "1.0.0"));
-    RepositoryComponent comp2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+    ProxyRepositoryComponent comp2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("g", "a2", "1.0.0"));
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, comp1.getPathname() + "!/x.jar",
@@ -1945,8 +1953,8 @@ public class RepositoryComponentDAOTest
     }
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page1 = dao.getByRepositoryId(tx, repository.getId(), 3, 0);
-      List<RepositoryComponent> page2 = dao.getByRepositoryId(tx, repository.getId(), 3, 3);
+      List<ProxyRepositoryComponent> page1 = dao.getByRepositoryId(tx, repository.getId(), 3, 0);
+      List<ProxyRepositoryComponent> page2 = dao.getByRepositoryId(tx, repository.getId(), 3, 3);
 
       assertThat(page1).hasSize(3);
       assertThat(page2).hasSize(2);
@@ -1964,7 +1972,7 @@ public class RepositoryComponentDAOTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "v1"));
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> result = dao.getByRepositoryId(tx, repository.getId(), 10, 100);
+      List<ProxyRepositoryComponent> result = dao.getByRepositoryId(tx, repository.getId(), 10, 100);
       assertThat(result).isEmpty();
     }
   }
@@ -1981,9 +1989,9 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), outer + "!/a.jar");
     tempEntity.newRepositoryComponent(repository.getId(), outer + "!/nested/b.jar");
 
-    List<RepositoryComponent> result = dao.getByRepositoryIdPaged(repository.getId(), null, 100, 0);
+    List<ProxyRepositoryComponent> result = dao.getByRepositoryIdPaged(repository.getId(), null, 100, 0);
 
-    assertThat(result).extracting(RepositoryComponent::getPathname).containsExactly(outer);
+    assertThat(result).extracting(ProxyRepositoryComponent::getPathname).containsExactly(outer);
   }
 
   @Test
@@ -1994,7 +2002,7 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), outer);
     tempEntity.newRepositoryComponent(repository.getId(), outer + "!/log4j-core.jar");
 
-    List<RepositoryComponent> result = dao.getByRepositoryIdPaged(repository.getId(), "log4j", 100, 0);
+    List<ProxyRepositoryComponent> result = dao.getByRepositoryIdPaged(repository.getId(), "log4j", 100, 0);
 
     assertThat(result).isEmpty();
   }
@@ -2022,11 +2030,11 @@ public class RepositoryComponentDAOTest
     tempEntity.newRepositoryComponent(repository.getId(), "standalone.jar");
 
     int count = dao.countByRepositoryIdWithFilter(repository.getId(), null);
-    List<RepositoryComponent> paged = dao.getByRepositoryIdPaged(repository.getId(), null, 100, 0);
+    List<ProxyRepositoryComponent> paged = dao.getByRepositoryIdPaged(repository.getId(), null, 100, 0);
 
     assertThat(count).isEqualTo(3);
     assertThat(paged).hasSize(count);
-    assertThat(paged).extracting(RepositoryComponent::getPathname)
+    assertThat(paged).extracting(ProxyRepositoryComponent::getPathname)
         .containsExactlyInAnyOrder("outer1.zip", "outer2.zip", "standalone.jar");
   }
 
@@ -2083,7 +2091,7 @@ public class RepositoryComponentDAOTest
   // CLM-40039 §6.1 — getMonitoringEligiblePage: eligibility filter + dedup
   // by (repository_id, hash) + globally newest-first emission.
   // Covers AT-001 / AT-002 / AT-003 plus the dedup + newest-first behavior
-  // introduced by the audit-finding fix to RepositoryComponentDAO.
+  // introduced by the audit-finding fix to ProxyRepositoryComponentDAO.
   // ----------------------------------------------------------------------
 
   /**
@@ -2098,12 +2106,14 @@ public class RepositoryComponentDAOTest
     Date afterCycle = Date.from(cycle.plusSeconds(60));
     Date beforeCycle = Date.from(cycle.minusSeconds(60));
 
-    RepositoryComponent stale = newComponentWithEvalTime(hostedRepo.getId(), "/path/old.jar", "hash-old", beforeCycle);
+    ProxyRepositoryComponent stale =
+        newComponentWithEvalTime(hostedRepo.getId(), "/path/old.jar", "hash-old", beforeCycle);
     newComponentWithEvalTime(hostedRepo.getId(), "/path/fresh.jar", "hash-fresh", afterCycle);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
-      assertThat(page).extracting(RepositoryComponent::getId).containsExactly(stale.getId());
+      List<ProxyRepositoryComponent> page =
+          dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
+      assertThat(page).extracting(ProxyRepositoryComponent::getId).containsExactly(stale.getId());
     }
   }
 
@@ -2119,7 +2129,7 @@ public class RepositoryComponentDAOTest
 
     // Hosted, monitoring enabled — eligible.
     Repository eligible = tempEntity.newHostedRepository(repositoryManager, uuid("eligible"), "maven2", false);
-    RepositoryComponent eligibleRc = newComponentWithEvalTime(eligible.getId(), "/p/eligible.jar", "h-elig", past);
+    ProxyRepositoryComponent eligibleRc = newComponentWithEvalTime(eligible.getId(), "/p/eligible.jar", "h-elig", past);
 
     // Hosted, monitoring DISABLED — excluded.
     Repository disabled = tempEntity.newHostedRepository(repositoryManager, uuid("disabled"), "maven2", false);
@@ -2131,13 +2141,14 @@ public class RepositoryComponentDAOTest
     newComponentWithEvalTime(repository.getId(), "/p/proxy.jar", "h-proxy", past);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
-      assertThat(page).extracting(RepositoryComponent::getId).containsExactly(eligibleRc.getId());
+      List<ProxyRepositoryComponent> page =
+          dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
+      assertThat(page).extracting(ProxyRepositoryComponent::getId).containsExactly(eligibleRc.getId());
     }
   }
 
   /**
-   * Dedup behavior — multiple {@code repository_component} rows sharing the same
+   * Dedup behavior — multiple {@code proxy_repository_component} rows sharing the same
    * {@code (repository_id, hash)} pair (e.g. same jar at different pathnames) collapse to a
    * single representative. Without this, parent queue rows would orphan against the
    * satellite UNIQUE constraint on consume.
@@ -2154,16 +2165,17 @@ public class RepositoryComponentDAOTest
     newComponentWithEvalTime(hostedRepo.getId(), "/c/lib.jar", "shared-hash", past);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
+      List<ProxyRepositoryComponent> page =
+          dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
       assertThat(page).hasSize(1);
-      assertThat(page).extracting(RepositoryComponent::getRepositoryId, RepositoryComponent::getHash)
+      assertThat(page).extracting(ProxyRepositoryComponent::getRepositoryId, ProxyRepositoryComponent::getHash)
           .containsExactly(tuple(hostedRepo.getId(), "shared-hash"));
     }
   }
 
   /**
    * Within each {@code (repository_id, hash)} group, the row with the most recent
-   * {@code repository_component.time} wins as the representative — the design's "newest-first"
+   * {@code proxy_repository_component.time} wins as the representative — the design's "newest-first"
    * intent operating at the dedup-group level.
    */
   @Test
@@ -2175,12 +2187,13 @@ public class RepositoryComponentDAOTest
     Date middle = Date.from(cycle.minusSeconds(400));
     Date newest = Date.from(cycle.minusSeconds(200));
 
-    RepositoryComponent oldestRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/a", "h", oldest);
-    RepositoryComponent middleRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/b", "h", middle);
-    RepositoryComponent newestRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/c", "h", newest);
+    ProxyRepositoryComponent oldestRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/a", "h", oldest);
+    ProxyRepositoryComponent middleRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/b", "h", middle);
+    ProxyRepositoryComponent newestRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/c", "h", newest);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
+      List<ProxyRepositoryComponent> page =
+          dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
       assertThat(page).hasSize(1);
       assertThat(page.get(0).getId()).isEqualTo(newestRow.getId());
       // Sanity: the older rows do exist in the table; they were filtered, not deleted.
@@ -2191,31 +2204,32 @@ public class RepositoryComponentDAOTest
 
   /**
    * Two rows sharing an exact-millisecond TIME within the same (repository_id, hash) group must
-   * resolve via the secondary {@code repository_component_id DESC} tiebreaker — the higher id
+   * resolve via the secondary {@code proxy_repository_component_id DESC} tiebreaker — the higher id
    * wins (CLM-41005). This protects both dialect paths from a future "simplification" that
    * drops the secondary term from the row-value comparison: the Postgres path's NOT EXISTS
    * anti-join uses {@code (time, id) > (rc.time, rc.id)} and the H2 path's third-pass uses
-   * {@code MAX(repository_component_id)} on rows tied at MAX(TIME).
+   * {@code MAX(proxy_repository_component_id)} on rows tied at MAX(TIME).
    */
   @Test
   public void getMonitoringEligiblePage_picksHigherIdOnExactTimeCollision() {
     Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
     Instant cycle = Instant.now();
     Date cycleStart = Date.from(cycle);
-    // Both rows: same repo + same hash + same time. Only repository_component_id differs (the PK
+    // Both rows: same repo + same hash + same time. Only proxy_repository_component_id differs (the PK
     // is assigned sequentially by TemporaryEntity, so the second insert gets a lexicographically
     // greater id — the test asserts on that property, not on numeric ordering, to stay robust to
     // any id-generation scheme.)
     Date sharedTime = Date.from(cycle.minusSeconds(100));
-    RepositoryComponent firstInsert = newComponentWithTimeAndHash(hostedRepo.getId(), "/a", "h", sharedTime);
-    RepositoryComponent secondInsert = newComponentWithTimeAndHash(hostedRepo.getId(), "/b", "h", sharedTime);
+    ProxyRepositoryComponent firstInsert = newComponentWithTimeAndHash(hostedRepo.getId(), "/a", "h", sharedTime);
+    ProxyRepositoryComponent secondInsert = newComponentWithTimeAndHash(hostedRepo.getId(), "/b", "h", sharedTime);
 
     String winnerId = firstInsert.getId().compareTo(secondInsert.getId()) > 0
         ? firstInsert.getId()
         : secondInsert.getId();
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
+      List<ProxyRepositoryComponent> page =
+          dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
       assertThat(page).hasSize(1);
       assertThat(page.get(0).getId()).isEqualTo(winnerId);
     }
@@ -2240,20 +2254,21 @@ public class RepositoryComponentDAOTest
     Date midTime = Date.from(cycle.minusSeconds(600));
     Date newTime = Date.from(cycle.minusSeconds(300));
 
-    RepositoryComponent inA = newComponentWithTimeAndHash(repoA.getId(), "/a", "h-a", oldTime);
-    RepositoryComponent inB = newComponentWithTimeAndHash(repoB.getId(), "/b", "h-b", newTime);
-    RepositoryComponent inC = newComponentWithTimeAndHash(repoC.getId(), "/c", "h-c", midTime);
+    ProxyRepositoryComponent inA = newComponentWithTimeAndHash(repoA.getId(), "/a", "h-a", oldTime);
+    ProxyRepositoryComponent inB = newComponentWithTimeAndHash(repoB.getId(), "/b", "h-b", newTime);
+    ProxyRepositoryComponent inC = newComponentWithTimeAndHash(repoC.getId(), "/c", "h-c", midTime);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
-      assertThat(page).extracting(RepositoryComponent::getId)
+      List<ProxyRepositoryComponent> page =
+          dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
+      assertThat(page).extracting(ProxyRepositoryComponent::getId)
           .containsExactly(inB.getId(), inC.getId(), inA.getId());
     }
   }
 
   /**
    * AT-001 (CLM-41005) — eligibility query is page-aware via keyset cursor: limit + cursor on
-   * (time DESC, repository_component_id DESC) slice the deduped, ordered set without skipping
+   * (time DESC, proxy_repository_component_id DESC) slice the deduped, ordered set without skipping
    * or duplicating rows under concurrent writes.
    */
   @Test
@@ -2263,22 +2278,22 @@ public class RepositoryComponentDAOTest
     Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
 
     // 4 distinct (repo, hash) pairs, ordered newest-first by time.
-    RepositoryComponent first = newComponentWithTimeAndHash(hostedRepo.getId(), "/p1", "h1",
+    ProxyRepositoryComponent first = newComponentWithTimeAndHash(hostedRepo.getId(), "/p1", "h1",
         Date.from(cycle.minusSeconds(100)));
-    RepositoryComponent second = newComponentWithTimeAndHash(hostedRepo.getId(), "/p2", "h2",
+    ProxyRepositoryComponent second = newComponentWithTimeAndHash(hostedRepo.getId(), "/p2", "h2",
         Date.from(cycle.minusSeconds(200)));
-    RepositoryComponent third = newComponentWithTimeAndHash(hostedRepo.getId(), "/p3", "h3",
+    ProxyRepositoryComponent third = newComponentWithTimeAndHash(hostedRepo.getId(), "/p3", "h3",
         Date.from(cycle.minusSeconds(300)));
-    RepositoryComponent fourth = newComponentWithTimeAndHash(hostedRepo.getId(), "/p4", "h4",
+    ProxyRepositoryComponent fourth = newComponentWithTimeAndHash(hostedRepo.getId(), "/p4", "h4",
         Date.from(cycle.minusSeconds(400)));
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page1 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, null);
-      assertThat(page1).extracting(RepositoryComponent::getId).containsExactly(first.getId(), second.getId());
+      List<ProxyRepositoryComponent> page1 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, null);
+      assertThat(page1).extracting(ProxyRepositoryComponent::getId).containsExactly(first.getId(), second.getId());
 
       EligibilityCursor cursor = new EligibilityCursor(second.getTime(), second.getId());
-      List<RepositoryComponent> page2 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, cursor);
-      assertThat(page2).extracting(RepositoryComponent::getId).containsExactly(third.getId(), fourth.getId());
+      List<ProxyRepositoryComponent> page2 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, cursor);
+      assertThat(page2).extracting(ProxyRepositoryComponent::getId).containsExactly(third.getId(), fourth.getId());
     }
   }
 
@@ -2286,7 +2301,7 @@ public class RepositoryComponentDAOTest
    * AT-002 (CLM-41005) — the primary correctness benefit of keyset over OFFSET: a row inserted
    * between the cursor and the eligibility tail does NOT shift pagination and does NOT cause a
    * skip. With OFFSET, an insert between pages would push later rows past the offset window and
-   * leak them out of the cycle. With keyset on {@code (time, repository_component_id)} the
+   * leak them out of the cycle. With keyset on {@code (time, proxy_repository_component_id)} the
    * predicate is independent of position, so the inserted row joins the result set in its proper
    * order and no eligible row is lost.
    */
@@ -2297,37 +2312,37 @@ public class RepositoryComponentDAOTest
     Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
 
     // 4 rows ordered newest-first by time.
-    RepositoryComponent r4 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p4", "h4",
+    ProxyRepositoryComponent r4 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p4", "h4",
         Date.from(cycle.minusSeconds(100)));
-    RepositoryComponent r3 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p3", "h3",
+    ProxyRepositoryComponent r3 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p3", "h3",
         Date.from(cycle.minusSeconds(200)));
-    RepositoryComponent r2 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p2", "h2",
+    ProxyRepositoryComponent r2 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p2", "h2",
         Date.from(cycle.minusSeconds(300)));
-    RepositoryComponent r1 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p1", "h1",
+    ProxyRepositoryComponent r1 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p1", "h1",
         Date.from(cycle.minusSeconds(400)));
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page1 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, null);
-      assertThat(page1).extracting(RepositoryComponent::getId).containsExactly(r4.getId(), r3.getId());
+      List<ProxyRepositoryComponent> page1 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, null);
+      assertThat(page1).extracting(ProxyRepositoryComponent::getId).containsExactly(r4.getId(), r3.getId());
 
       // Simulate a concurrent insert at time=cycle-250s — strictly between r3 and r2 in the DESC
       // order. Under OFFSET pagination this would push r1 outside the second page's window; under
       // keyset the cursor predicate is on the (time, id) tuple, not on row position.
-      RepositoryComponent inserted = newComponentWithTimeAndHash(hostedRepo.getId(), "/p-concurrent",
+      ProxyRepositoryComponent inserted = newComponentWithTimeAndHash(hostedRepo.getId(), "/p-concurrent",
           "h-concurrent", Date.from(cycle.minusSeconds(250)));
 
       EligibilityCursor cursor = new EligibilityCursor(r3.getTime(), r3.getId());
-      List<RepositoryComponent> page2 = dao.getMonitoringEligiblePage(tx, cycleStart, 10, cursor);
+      List<ProxyRepositoryComponent> page2 = dao.getMonitoringEligiblePage(tx, cycleStart, 10, cursor);
       // The concurrently inserted row joins the result set in DESC (time, id) order; r2 and r1
       // remain — no row skipped, no row duplicated.
-      assertThat(page2).extracting(RepositoryComponent::getId)
+      assertThat(page2).extracting(ProxyRepositoryComponent::getId)
           .containsExactly(inserted.getId(), r2.getId(), r1.getId());
     }
   }
 
   // -- helpers ---------------------------------------------------------------
 
-  private RepositoryComponent newComponentWithEvalTime(
+  private ProxyRepositoryComponent newComponentWithEvalTime(
       String repositoryId,
       String pathname,
       String hash,
@@ -2336,7 +2351,7 @@ public class RepositoryComponentDAOTest
     return newComponentWith(repositoryId, pathname, hash, evalTime, evalTime);
   }
 
-  private RepositoryComponent newComponentWithTimeAndHash(
+  private ProxyRepositoryComponent newComponentWithTimeAndHash(
       String repositoryId,
       String pathname,
       String hash,
@@ -2347,14 +2362,14 @@ public class RepositoryComponentDAOTest
     return newComponentWith(repositoryId, pathname, hash, rcTime, pastEval);
   }
 
-  private RepositoryComponent newComponentWith(
+  private ProxyRepositoryComponent newComponentWith(
       String repositoryId,
       String pathname,
       String hash,
       Date rcTime,
       Date lastEvalTime)
   {
-    RepositoryComponent rc = new RepositoryComponent(
+    ProxyRepositoryComponent rc = new ProxyRepositoryComponent(
         repositoryId, pathname, rcTime, hash,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), lastEvalTime);

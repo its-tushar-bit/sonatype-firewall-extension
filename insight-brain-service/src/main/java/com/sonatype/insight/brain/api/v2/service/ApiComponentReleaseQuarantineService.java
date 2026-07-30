@@ -28,27 +28,27 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.ProxyRepositoryPolicyViolationLogger;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseReason;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -71,15 +71,15 @@ public class ApiComponentReleaseQuarantineService
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
 
-  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+  private final ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator;
 
   private final PolicyDAO policyDAO;
 
@@ -90,21 +90,21 @@ public class ApiComponentReleaseQuarantineService
   @Inject
   public ApiComponentReleaseQuarantineService(
       RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
       PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator,
       PolicyDAO policyDAO,
       PolicyWaiverDAO policyWaiverDAO,
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory)
   {
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
-    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.proxyRepositoryComponentTelemetryCreator = proxyRepositoryComponentTelemetryCreator;
     this.policyDAO = policyDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
@@ -115,15 +115,15 @@ public class ApiComponentReleaseQuarantineService
       final String comment)
   {
 
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(quarantineId);
+    ProxyRepositoryComponent proxyRepositoryComponent = proxyRepositoryComponentDAO.getById(quarantineId);
 
-    if (repositoryComponent == null) {
+    if (proxyRepositoryComponent == null) {
       throw new NotFoundException("Cannot find a component with quarantineId " + quarantineId + ".");
     }
-    AuditData.get().setData("repositoryId", repositoryComponent.getRepositoryId());
-    AuditData.get().setRepository(repositoryDAO.getById(repositoryComponent.getRepositoryId()));
+    AuditData.get().setData("repositoryId", proxyRepositoryComponent.getRepositoryId());
+    AuditData.get().setRepository(repositoryDAO.getById(proxyRepositoryComponent.getRepositoryId()));
 
-    return releaseQuarantineWithoutReEval(repositoryComponent.getRepositoryId(), quarantineId, comment);
+    return releaseQuarantineWithoutReEval(proxyRepositoryComponent.getRepositoryId(), quarantineId, comment);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -139,51 +139,53 @@ public class ApiComponentReleaseQuarantineService
     ApiComponentReleasedFromQuarantineDTO componentReleasedFromQuarantineDTO =
         new ApiComponentReleasedFromQuarantineDTO();
 
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
 
       Repository repository = repositoryDAO.getById(tx, repositoryId);
 
       Date now = new Date();
 
-      RepositoryComponent repositoryComponent = getRepositoryComponentByIdNotNull(tx, quarantineId);
+      ProxyRepositoryComponent proxyRepositoryComponent = getRepositoryComponentByIdNotNull(tx, quarantineId);
 
-      if (!repositoryComponent.isQuarantined()) {
+      if (!proxyRepositoryComponent.isQuarantined()) {
         throw new BadRequestException(
             "Component with quarantineId " + quarantineId + " is not quarantined.");
       }
 
-      List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-          .getByRepositoryIdAndPathnameAndActionAndNotWaived(repositoryComponent.getRepositoryId(),
-              repositoryComponent.getPathname(), Action.ID_FAIL);
-      repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations = proxyRepositoryPolicyViolationDAO
+          .getByRepositoryIdAndPathnameAndActionAndNotWaived(proxyRepositoryComponent.getRepositoryId(),
+              proxyRepositoryComponent.getPathname(), Action.ID_FAIL);
+      proxyRepositoryPolicyViolationDAO.loadConstraintFacts(proxyRepositoryPolicyViolations);
 
       List<PolicyWaiver> policyWaivers = new ArrayList<>();
 
-      RepositoryPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, repository);
+      ProxyRepositoryPolicyViolationLogger policyViolationLogger =
+          policyViolationLoggerFactory.newLogger(now, repository);
 
-      for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-        policyWaivers.add(waiveRepositoryViolation(tx, repositoryPolicyViolation, now, comment, repository));
-        policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, repositoryPolicyViolation);
+      for (ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation : proxyRepositoryPolicyViolations) {
+        policyWaivers.add(waiveRepositoryViolation(tx, proxyRepositoryPolicyViolation, now, comment, repository));
+        policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, proxyRepositoryPolicyViolation);
       }
 
-      repositoryComponent.setUnquarantineTimeForManualRelease(now);
-      repositoryComponentDAO.update(tx, repositoryComponent);
+      proxyRepositoryComponent.setUnquarantineTimeForManualRelease(now);
+      proxyRepositoryComponentDAO.update(tx, proxyRepositoryComponent);
 
       log.debug(
           "releaseQuarantineWithoutReEval: Released component with quarantineId {} from quarantine and waived {} " +
               "repository policy violations.",
-          quarantineId, repositoryPolicyViolations.size());
+          quarantineId, proxyRepositoryPolicyViolations.size());
       tx.commit();
       policyViolationLogger.log();
-      AuditData.get().setData("componentPathname", repositoryComponent.getPathname());
-      AuditData.get().setComponentHash(repositoryComponent.getHash());
+      AuditData.get().setData("componentPathname", proxyRepositoryComponent.getPathname());
+      AuditData.get().setComponentHash(proxyRepositoryComponent.getHash());
 
       componentReleasedFromQuarantineDTO.componentReleasedFromQuarantine =
-          buildRepositoryComponentPolicyViolationDTO(repositoryComponent, repositoryPolicyViolations, policyWaivers);
+          buildRepositoryComponentPolicyViolationDTO(proxyRepositoryComponent, proxyRepositoryPolicyViolations,
+              policyWaivers);
 
-      repositoryComponentTelemetryCreator
-          .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
+      proxyRepositoryComponentTelemetryCreator
+          .sendRepositoryComponentTelemetry(proxyRepositoryComponent, proxyRepositoryPolicyViolations,
               repository.getRepositoryManagerId(), repository.getPublicId(),
               RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
               ReleaseQuarantineType.MANUAL, ReleaseReason.WAIVED.getDescription(), Collections.emptyList());
@@ -194,17 +196,17 @@ public class ApiComponentReleaseQuarantineService
 
   private PolicyWaiver waiveRepositoryViolation(
       TransactionContext tx,
-      RepositoryPolicyViolation repositoryPolicyViolation,
+      ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation,
       Date now,
       String comment,
       Repository repository)
   {
-    String componentPurl = PackageUrlIdentifier.toPackageUrl(repositoryPolicyViolation.getComponentIdentifier());
+    String componentPurl = PackageUrlIdentifier.toPackageUrl(proxyRepositoryPolicyViolation.getComponentIdentifier());
     PolicyWaiver policyWaiver =
-        new PolicyWaiver(repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPolicyId(),
-            repositoryPolicyViolation.getRepositoryId(), componentPurl, EXACT_COMPONENT, comment);
+        new PolicyWaiver(proxyRepositoryPolicyViolation.getHash(), proxyRepositoryPolicyViolation.getPolicyId(),
+            proxyRepositoryPolicyViolation.getRepositoryId(), componentPurl, EXACT_COMPONENT, comment);
     policyWaiver.setCreateTime(now);
-    policyWaiver.setConstraintFactsJson(repositoryPolicyViolation.getConstraintFactsJson());
+    policyWaiver.setConstraintFactsJson(proxyRepositoryPolicyViolation.getConstraintFactsJson());
 
     policyWaiverDAO.insert(tx, policyWaiver);
 
@@ -212,26 +214,26 @@ public class ApiComponentReleaseQuarantineService
       auditPolicyWaiver(policyWaiver, repository);
     }
 
-    repositoryPolicyViolation.setWaived(true);
-    repositoryPolicyViolation.setPolicyWaiverId(policyWaiver.getId());
-    repositoryPolicyViolation.setPolicyWaiverComment(policyWaiver.getComment());
-    repositoryPolicyViolation.setWaiveTime(now);
-    repositoryPolicyViolationDAO.update(tx, repositoryPolicyViolation);
+    proxyRepositoryPolicyViolation.setWaived(true);
+    proxyRepositoryPolicyViolation.setPolicyWaiverId(policyWaiver.getId());
+    proxyRepositoryPolicyViolation.setPolicyWaiverComment(policyWaiver.getComment());
+    proxyRepositoryPolicyViolation.setWaiveTime(now);
+    proxyRepositoryPolicyViolationDAO.update(tx, proxyRepositoryPolicyViolation);
 
-    policyWaiverTelemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
+    policyWaiverTelemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, proxyRepositoryPolicyViolation);
 
     return policyWaiver;
   }
 
   private ApiRepositoryComponentPolicyViolationDTO buildRepositoryComponentPolicyViolationDTO(
-      RepositoryComponent repositoryComponent,
-      List<RepositoryPolicyViolation> repositoryPolicyViolations,
+      ProxyRepositoryComponent proxyRepositoryComponent,
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations,
       List<PolicyWaiver> policyWaivers)
   {
     ApiRepositoryComponentPolicyViolationDTO repositoryComponentPolicyViolationDTO =
         new ApiRepositoryComponentPolicyViolationDTO();
-    repositoryComponentPolicyViolationDTO.component = buildRepositoryComponentDTO(repositoryComponent);
-    repositoryComponentPolicyViolationDTO.waivedPolicyViolations = repositoryPolicyViolations.stream()
+    repositoryComponentPolicyViolationDTO.component = buildRepositoryComponentDTO(proxyRepositoryComponent);
+    repositoryComponentPolicyViolationDTO.waivedPolicyViolations = proxyRepositoryPolicyViolations.stream()
         .map(
             policyViolation -> buildWaivedPolicyViolationDTO(policyViolation,
                 policyWaivers.stream()
@@ -243,23 +245,23 @@ public class ApiComponentReleaseQuarantineService
     return repositoryComponentPolicyViolationDTO;
   }
 
-  private ApiRepositoryComponentDTO buildRepositoryComponentDTO(RepositoryComponent repositoryComponent) {
+  private ApiRepositoryComponentDTO buildRepositoryComponentDTO(ProxyRepositoryComponent proxyRepositoryComponent) {
     ApiRepositoryComponentDTO repositoryComponentDTO = new ApiRepositoryComponentDTO();
-    ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
+    ComponentIdentifier componentIdentifier = proxyRepositoryComponent.getComponentIdentifier();
     repositoryComponentDTO.componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     repositoryComponentDTO.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
-    repositoryComponentDTO.displayName = repositoryComponent.getDisplayName();
-    repositoryComponentDTO.hash = repositoryComponent.getHash();
+    repositoryComponentDTO.displayName = proxyRepositoryComponent.getDisplayName();
+    repositoryComponentDTO.hash = proxyRepositoryComponent.getHash();
     repositoryComponentDTO.proprietary = null;
-    repositoryComponentDTO.quarantineTime = repositoryComponent.getQuarantineTime();
-    repositoryComponentDTO.quarantineReleaseTime = repositoryComponent.getUnquarantineTime();
+    repositoryComponentDTO.quarantineTime = proxyRepositoryComponent.getQuarantineTime();
+    repositoryComponentDTO.quarantineReleaseTime = proxyRepositoryComponent.getUnquarantineTime();
 
     return repositoryComponentDTO;
   }
 
   private ApiWaivedPolicyViolationDTO buildWaivedPolicyViolationDTO(
-      RepositoryPolicyViolation policyViolation,
+      ProxyRepositoryPolicyViolation policyViolation,
       PolicyWaiver policyWaiver)
   {
     ApiWaivedPolicyViolationDTO waivedPolicyViolationDTO = new ApiWaivedPolicyViolationDTO();
@@ -281,16 +283,16 @@ public class ApiComponentReleaseQuarantineService
     return waivedPolicyViolationDTO;
   }
 
-  private RepositoryComponent getRepositoryComponentByIdNotNull(
+  private ProxyRepositoryComponent getRepositoryComponentByIdNotNull(
       TransactionContext tx,
       String quarantineId)
   {
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(tx, quarantineId);
+    ProxyRepositoryComponent proxyRepositoryComponent = proxyRepositoryComponentDAO.getById(tx, quarantineId);
 
-    if (repositoryComponent == null) {
+    if (proxyRepositoryComponent == null) {
       throw new NotFoundException("Cannot find a component with quarantineId " + quarantineId + ".");
     }
-    return repositoryComponent;
+    return proxyRepositoryComponent;
   }
 
   private void auditPolicyWaiver(PolicyWaiver policyWaiver, Repository repository) {

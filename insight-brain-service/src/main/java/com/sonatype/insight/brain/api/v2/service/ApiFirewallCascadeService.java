@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.api.v2.dto.CascadeStatusResponseDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgress;
@@ -63,7 +63,7 @@ public class ApiFirewallCascadeService
 
   private final ReevaluateCascadeProgressDAO reevaluateCascadeProgressDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final RepositoryDAO repositoryDAO;
 
@@ -77,7 +77,7 @@ public class ApiFirewallCascadeService
   public ApiFirewallCascadeService(
       final ReevaluateCascadeRequestDAO reevaluateCascadeRequestDAO,
       final ReevaluateCascadeProgressDAO reevaluateCascadeProgressDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final RepositoryDAO repositoryDAO,
       final CurrentUser currentUser,
       final RepositoryPolicyEvaluator repositoryPolicyEvaluator,
@@ -85,7 +85,7 @@ public class ApiFirewallCascadeService
   {
     this.reevaluateCascadeRequestDAO = reevaluateCascadeRequestDAO;
     this.reevaluateCascadeProgressDAO = reevaluateCascadeProgressDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.repositoryDAO = repositoryDAO;
     this.currentUser = currentUser;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
@@ -133,7 +133,7 @@ public class ApiFirewallCascadeService
         .continueAsync(executor,
             new CascadeReevaluationTask(cascadeRequestId, componentHash,
                 reevaluateCascadeProgressDAO, reevaluateCascadeRequestDAO,
-                repositoryComponentDAO, repositoryPolicyEvaluator));
+                proxyRepositoryComponentDAO, repositoryPolicyEvaluator));
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -214,7 +214,7 @@ public class ApiFirewallCascadeService
   {
     CascadeComponentProgressDTO dto = new CascadeComponentProgressDTO();
     dto.repositoryId = progress.getRepositoryId();
-    dto.componentId = progress.getRepositoryComponentId();
+    dto.componentId = progress.getProxyRepositoryComponentId();
     if (progress.getStatus() == FAILED) {
       dto.quarantined = null;
     }

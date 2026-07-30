@@ -14,7 +14,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -44,17 +44,17 @@ public class RepositoryResultsServiceAuthzTest
   @Test
   public void testGetDetails_RepositoriesWithReadPermission() {
     DateTime now = DateTime.now();
-    final RepositoryComponent repositoryComponent1 =
+    final ProxyRepositoryComponent repositoryComponent1 =
         tempEntity.newRepositoryComponent(repository.getId(), "pathname1", now.minusDays(2).toDate(), null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), repositoryComponent1.getPathname());
 
     final RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
     final Repository repository2 = tempEntity.newRepository(repositoryManager2, "repository2");
-    final RepositoryComponent repositoryComponent2 =
+    final ProxyRepositoryComponent repositoryComponent2 =
         tempEntity.newRepositoryComponent(repository2.getId(), "pathname2", now.minusDays(1).toDate(), null);
     tempEntity.newRepositoryPolicyViolation(repository2.getId(), repositoryComponent2.getPathname());
     final Repository repository3 = tempEntity.newRepository(repositoryManager2, "repository3");
-    final RepositoryComponent repositoryComponent3 =
+    final ProxyRepositoryComponent repositoryComponent3 =
         tempEntity.newRepositoryComponent(repository3.getId(), "pathname3", now.toDate(), null);
     tempEntity.newRepositoryPolicyViolation(repository3.getId(), repositoryComponent3.getPathname());
 

@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import jakarta.inject.Inject;
@@ -48,13 +48,13 @@ public class QuarantinedComponentAccessPurgerTest
   public void testPurgeObsoleteRecords() {
     // Setup
     final Repository repository = tempEntity.newRepository("repo");
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
 
     for (int i = 0; i < 201; i++) {
-      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), daysAgo(63));
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId(), daysAgo(63));
     }
     for (int i = 0; i < 10; i++) {
-      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     }
     quarantinedComponentAccessPurger.purgeObsoleteRecords();
     assertThat(quarantinedComponentAccessDAO.getAll()).hasSize(10);

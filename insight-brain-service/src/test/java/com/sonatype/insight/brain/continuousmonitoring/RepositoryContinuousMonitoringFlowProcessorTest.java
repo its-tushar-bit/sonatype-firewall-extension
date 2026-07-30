@@ -11,14 +11,14 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
@@ -65,7 +65,7 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
   private RepositoryDAO repositoryDAO;
 
   @Mock
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
   private RepositoryPolicyEvaluator repositoryPolicyEvaluator;
@@ -88,7 +88,7 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     when(hostedRepoItemDAO.createTransactionContext()).thenReturn(tx);
     meterRegistry = new SimpleMeterRegistry();
     underTest =
-        new RepositoryContinuousMonitoringFlowProcessor(hostedRepoItemDAO, repositoryDAO, repositoryComponentDAO,
+        new RepositoryContinuousMonitoringFlowProcessor(hostedRepoItemDAO, repositoryDAO, proxyRepositoryComponentDAO,
             repositoryPolicyEvaluator, reportService, applicationForHostedRepositoryComponentService,
             meterRegistry);
   }
@@ -185,7 +185,7 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of());
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of());
 
     underTest.process(queueItem());
 
@@ -198,7 +198,7 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, null);
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH))
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH))
         .thenReturn(List.of(component(HASH, "/x.jar", null)));
 
     underTest.process(queueItem());
@@ -214,9 +214,9 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
     // Components exist for the hash, but every one is missing either hash or pathname so
     // request.components ends up empty — the 9th drop branch (no-evaluatable-components).
-    RepositoryComponent nullPath = component(HASH, null, null);
-    RepositoryComponent nullHash = component(null, "/x.jar", null);
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(nullPath, nullHash));
+    ProxyRepositoryComponent nullPath = component(HASH, null, null);
+    ProxyRepositoryComponent nullHash = component(null, "/x.jar", null);
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(nullPath, nullHash));
 
     underTest.process(queueItem());
 
@@ -229,9 +229,9 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    RepositoryComponent c1 = component(HASH, "lib/a.jar", "stage-release");
-    RepositoryComponent c2 = component(HASH, "lib/b.jar", null);
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2));
+    ProxyRepositoryComponent c1 = component(HASH, "lib/a.jar", "stage-release");
+    ProxyRepositoryComponent c2 = component(HASH, "lib/b.jar", null);
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2));
 
     underTest.process(queueItem());
 
@@ -249,9 +249,9 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    RepositoryComponent good = component(HASH, "lib/good.jar", null);
-    RepositoryComponent missingPath = component(HASH, null, null);
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(good, missingPath));
+    ProxyRepositoryComponent good = component(HASH, "lib/good.jar", null);
+    ProxyRepositoryComponent missingPath = component(HASH, null, null);
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(good, missingPath));
 
     underTest.process(queueItem());
 
@@ -267,8 +267,8 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    RepositoryComponent c = component(HASH, "lib/a.jar", "stage-release", "scan-1");
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
+    ProxyRepositoryComponent c = component(HASH, "lib/a.jar", "stage-release", "scan-1");
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
     Application app = application("app-1");
     when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
         .thenReturn(app);
@@ -289,8 +289,8 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
     // Component was never NXRM-scanned so no scanId exists — nothing on disk to refresh.
-    RepositoryComponent c = component(HASH, "lib/a.jar", null, null);
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
+    ProxyRepositoryComponent c = component(HASH, "lib/a.jar", null, null);
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
 
     underTest.process(queueItem());
 
@@ -306,9 +306,9 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    RepositoryComponent c1 = component(HASH, "lib/a.jar", null, "scan-1");
-    RepositoryComponent c2 = component(HASH, "lib/b.jar", null, "scan-2");
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2));
+    ProxyRepositoryComponent c1 = component(HASH, "lib/a.jar", null, "scan-1");
+    ProxyRepositoryComponent c2 = component(HASH, "lib/b.jar", null, "scan-2");
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2));
     Application app1 = application("app-1");
     Application app2 = application("app-2");
     when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
@@ -341,8 +341,8 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    RepositoryComponent c = component(HASH, "lib/a.jar", null, "scan-1");
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
+    ProxyRepositoryComponent c = component(HASH, "lib/a.jar", null, "scan-1");
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c));
     when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/a.jar"))
         .thenReturn(null);
 
@@ -365,9 +365,9 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
     // Two components in the batch: one has a valid pathname but no scanId (never persisted to
     // a scan file yet), one is a valid target for refresh. Only the first should be dropped.
-    RepositoryComponent noScanId = component(HASH, "lib/a.jar", null, null);
-    RepositoryComponent good = component(HASH, "lib/b.jar", null, "scan-b");
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(noScanId, good));
+    ProxyRepositoryComponent noScanId = component(HASH, "lib/a.jar", null, null);
+    ProxyRepositoryComponent good = component(HASH, "lib/b.jar", null, "scan-b");
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(noScanId, good));
     when(applicationForHostedRepositoryComponentService.getOrCreateApplication(REPO_ID, "lib/b.jar"))
         .thenReturn(application("app-b"));
 
@@ -385,10 +385,10 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     stubSatellite();
     Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
     when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
-    RepositoryComponent c1 = component(HASH, "lib/a.jar", null, "scan-1");
-    RepositoryComponent c2 = component(HASH, "lib/b.jar", null, "scan-2");
-    RepositoryComponent c3 = component(HASH, "lib/c.jar", null, "scan-3");
-    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2, c3));
+    ProxyRepositoryComponent c1 = component(HASH, "lib/a.jar", null, "scan-1");
+    ProxyRepositoryComponent c2 = component(HASH, "lib/b.jar", null, "scan-2");
+    ProxyRepositoryComponent c3 = component(HASH, "lib/c.jar", null, "scan-3");
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(c1, c2, c3));
     Application app1 = application("app-1");
     Application app2 = application("app-2");
     Application app3 = application("app-3");
@@ -446,17 +446,17 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
             .isEqualTo((double) expected);
   }
 
-  private static RepositoryComponent component(final String hash, final String pathname, final String stage) {
+  private static ProxyRepositoryComponent component(final String hash, final String pathname, final String stage) {
     return component(hash, pathname, stage, null);
   }
 
-  private static RepositoryComponent component(
+  private static ProxyRepositoryComponent component(
       final String hash,
       final String pathname,
       final String stage,
       final String scanId)
   {
-    RepositoryComponent c = new RepositoryComponent();
+    ProxyRepositoryComponent c = new ProxyRepositoryComponent();
     c.setRepositoryId(REPO_ID);
     c.setHash(hash);
     c.setPathname(pathname);

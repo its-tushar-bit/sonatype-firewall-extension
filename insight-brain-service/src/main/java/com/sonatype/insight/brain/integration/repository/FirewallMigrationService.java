@@ -18,8 +18,8 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
@@ -61,9 +61,9 @@ public class FirewallMigrationService
 
   private final RepositoryMigrationDAO repositoryMigrationDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final LicenseOverrideDAO licenseOverrideDAO;
 
@@ -87,8 +87,8 @@ public class FirewallMigrationService
       final RepositoryManagerDAO repositoryManagerDAO,
       final RepositoryDAO repositoryDAO,
       final RepositoryMigrationDAO repositoryMigrationDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final LicenseOverrideDAO licenseOverrideDAO,
       final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
       final PolicyWaiverDAO policyWaiverDAO,
@@ -99,8 +99,8 @@ public class FirewallMigrationService
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
     this.repositoryMigrationDAO = repositoryMigrationDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -221,7 +221,7 @@ public class FirewallMigrationService
     if (repositoryMigrationDAO.tryInsert(repositoryMigration)) {
       executor.submit(
           new FirewallMigrationWorker(sourceRepository, targetRepository, repositoryMigration, repositoryDAO,
-              repositoryComponentDAO, repositoryPolicyViolationDAO, licenseOverrideDAO,
+              proxyRepositoryComponentDAO, proxyRepositoryPolicyViolationDAO, licenseOverrideDAO,
               securityVulnerabilityOverrideDAO, policyWaiverDAO, repositoryMigrationDAO));
       log.info("Scheduled the history migration from {}:{} ({}) to {}:{} ({}).",
           sourceRepository.getRepositoryManagerId(), sourceRepository.getPublicId(), sourceRepository.getId(),

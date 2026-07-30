@@ -341,7 +341,8 @@ public class ApiSearchServiceV2
    * <p>
    * Uses {@link ReportService#getReportIfPresent} rather than {@code getReport} so a matched application whose report
    * is not stored on disk costs only a single report existence check (a filesystem stat, or one object-store lookup in
-   * S3-backed deployments), not the per-application {@code policy_evaluation} / {@code repository_component} recovery
+   * S3-backed deployments), not the per-application {@code policy_evaluation} / {@code proxy_repository_component}
+   * recovery
    * queries (and possible HDS re-download) that previously ran once per matched application and reintroduced an N+1
    * (CLM-41473). Dependency data is best-effort enrichment, so skipping an absent report rather than attempting
    * recovery during a bulk search is the intended behavior.

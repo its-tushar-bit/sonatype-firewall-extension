@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 
@@ -65,7 +65,7 @@ public class HostedComponentEvaluationServiceTest
   @Test
   public void queueScan_insertsRowWithCorrectFields() throws Exception {
     Repository repo = tempEntity.newRepository("repo-eval-1");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     File scanFile = writeScanFile("scan-eval-1.xml.gz");
 
     ScanReceipt receipt = new ScanReceipt();
@@ -90,7 +90,7 @@ public class HostedComponentEvaluationServiceTest
   public void queueScan_triggerProcessingAndJobCompletes() throws Exception {
     // Monitoring must be on for the consumer to evaluate rather than drop the job (CLM-42122 guard).
     Repository repo = enableMonitoring(tempEntity.newRepository("repo-eval-2"));
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     File scanFile = writeScanFile("scan-eval-2.xml.gz");
 
     consumer.disableForTesting = false;
@@ -112,7 +112,7 @@ public class HostedComponentEvaluationServiceTest
   @Test
   public void queueScan_cleansUpScanFileWhenDbInsertFails() throws Exception {
     Repository repo = tempEntity.newRepository("repo-eval-3");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     File scanFile = writeScanFile("scan-eval-3.xml.gz");
 
     String jobId = evaluationService.queueScan(repo.getId(), component.getId(), null, scanFile);
@@ -124,7 +124,7 @@ public class HostedComponentEvaluationServiceTest
   @Test
   public void queueScan_storageUsesRepositoryIdAsOwner() throws Exception {
     Repository repo = tempEntity.newRepository("repo-eval-4");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     File scanFile = writeScanFile("scan-eval-4.xml.gz");
 
     ScanReceipt receipt = new ScanReceipt();
@@ -141,7 +141,7 @@ public class HostedComponentEvaluationServiceTest
   @Test
   public void queueScan_propagatesIOExceptionWhenStoreScanFileFails() throws Exception {
     Repository repo = tempEntity.newRepository("repo-eval-5");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     File nonExistentFile = new File(tempDir.getRoot(), "does-not-exist.xml.gz");
 
@@ -154,7 +154,7 @@ public class HostedComponentEvaluationServiceTest
   @Test
   public void queueScan_originalDbExceptionPropagatesEvenWhenDeleteScanAlsoFails() throws Exception {
     Repository repo = tempEntity.newRepository("repo-eval-6");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     File scanFile = writeScanFile("scan-eval-6.xml.gz");
 
     ScanReceipt receipt = new ScanReceipt();
@@ -179,7 +179,7 @@ public class HostedComponentEvaluationServiceTest
   @Test
   public void queueScan_storesPolicyEvaluationStageOnQueueRow() throws Exception {
     Repository repo = tempEntity.newRepository("repo-eval-stage");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     File scanFile = writeScanFile("scan-stage.xml.gz");
 
     String stage = "source";

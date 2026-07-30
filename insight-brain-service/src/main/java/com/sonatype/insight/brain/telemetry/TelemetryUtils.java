@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.SbomPostImportMetricsTelemetry;
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -28,8 +28,8 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.COMPONENT_ANALYSIS_COMPONENT_COUNTS;
 
@@ -272,13 +272,14 @@ public final class TelemetryUtils
       String releaseQuarantineType,
       List<PolicyViolation> policyViolations)
   {
-    RepositoryComponentTelemetry repositoryComponentTelemetry =
-        new RepositoryComponentTelemetry(repositoryManagerId, repositoryId, componentFormat, componentHash, eventType,
+    ProxyRepositoryComponentTelemetry proxyRepositoryComponentTelemetry =
+        new ProxyRepositoryComponentTelemetry(repositoryManagerId, repositoryId, componentFormat, componentHash,
+            eventType,
             quarantineTime, releaseQuarantineTime, releaseQuarantineType);
     List<PolicyViolationTelemetry> policyViolationsTelemetry =
         policyViolations.stream().map(PolicyViolationTelemetry::new).toList();
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REPOSITORY_COMPONENT);
-    telemetryData.put(REPOSITORY_COMPONENT_TELEMETRY, repositoryComponentTelemetry);
+    telemetryData.put(REPOSITORY_COMPONENT_TELEMETRY, proxyRepositoryComponentTelemetry);
     telemetryData.put(POLICY_VIOLATION_TELEMETRY, policyViolationsTelemetry);
     return telemetryData;
   }

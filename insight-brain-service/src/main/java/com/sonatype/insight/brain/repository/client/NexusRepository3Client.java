@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryClient;
-import com.sonatype.insight.brain.repository.RepositoryComponentResult;
+import com.sonatype.insight.brain.repository.ProxyRepositoryComponentResult;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -44,7 +44,7 @@ public class NexusRepository3Client
 {
   private static final Logger log = LoggerFactory.getLogger(NexusRepository3Client.class);
 
-  private static final Comparator<RepositoryComponentResult> REPOSITORY_COMPONENT_VERSION_COMPARATOR =
+  private static final Comparator<ProxyRepositoryComponentResult> REPOSITORY_COMPONENT_VERSION_COMPARATOR =
       Comparator.comparing(r -> new ComparableVersion(r.getIdentifier().get(ComponentIdentifier.VERSION)));
 
   public static final String REPO_VERSION = "version";
@@ -73,7 +73,7 @@ public class NexusRepository3Client
   @Override
   public RepositoryAllVersionsResponse getAllVersions(Map<String, String> queryParams) throws IOException {
     String continuationToken = null;
-    List<RepositoryComponentResult> results = new ArrayList<>();
+    List<ProxyRepositoryComponentResult> results = new ArrayList<>();
     do {
       Result result = path("/service/rest/v1/search/assets")
           .queryWithEmptyParams(toQueryParams(queryParams, continuationToken))
@@ -120,7 +120,7 @@ public class NexusRepository3Client
   }
 
   private void mapToAllVersionsResponse(
-      final List<RepositoryComponentResult> results,
+      final List<ProxyRepositoryComponentResult> results,
       final NXRM3SearchResponse result)
   {
     if (result != null) {
@@ -129,7 +129,7 @@ public class NexusRepository3Client
         if (id != null) {
           try {
             id.ensureComplete();
-            results.add(new RepositoryComponentResult(id, getSha1Safely(item)));
+            results.add(new ProxyRepositoryComponentResult(id, getSha1Safely(item)));
           }
           catch (InvalidComponentIdentifierException e) {
             log.debug("Repository result contained missing/invalid coordinates", e);

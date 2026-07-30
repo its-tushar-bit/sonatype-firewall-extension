@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -563,19 +563,19 @@ public class ApiPolicyWaiverResourceTest
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
 
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
     HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
-        .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+        .parameter(OwnerType.REPOSITORY, repository.getId(), proxyRepositoryPolicyViolation.getId())
         .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
         .post();
 
     assertResponseStatus(204, response);
-    assertNonExpiringPolicyWaiver(repository.getId(), policy, repositoryPolicyViolation, "waiver comment",
-        repositoryPolicyViolation.getHash());
+    assertNonExpiringPolicyWaiver(repository.getId(), policy, proxyRepositoryPolicyViolation, "waiver comment",
+        proxyRepositoryPolicyViolation.getHash());
   }
 
   @Test
@@ -584,19 +584,19 @@ public class ApiPolicyWaiverResourceTest
     RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
 
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
     HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
-        .parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), repositoryPolicyViolation.getId())
+        .parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), proxyRepositoryPolicyViolation.getId())
         .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
         .post();
 
     assertResponseStatus(204, response);
-    assertNonExpiringPolicyWaiver(repositoryManager.getId(), policy, repositoryPolicyViolation, "waiver comment",
-        repositoryPolicyViolation.getHash());
+    assertNonExpiringPolicyWaiver(repositoryManager.getId(), policy, proxyRepositoryPolicyViolation, "waiver comment",
+        proxyRepositoryPolicyViolation.getHash());
   }
 
   @Test
@@ -604,7 +604,7 @@ public class ApiPolicyWaiverResourceTest
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
 
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
@@ -612,13 +612,13 @@ public class ApiPolicyWaiverResourceTest
     HttpResponse response = restRequest()
         .path(BY_POLICY_VIOLATION_ID_PATH)
         .parameter(OwnerType.REPOSITORY_CONTAINER,
-            RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId())
+            RepositoryContainer.REPOSITORY_CONTAINER_ID, proxyRepositoryPolicyViolation.getId())
         .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
         .post();
 
     assertResponseStatus(204, response);
-    assertNonExpiringPolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID, policy, repositoryPolicyViolation,
-        "waiver comment", repositoryPolicyViolation.getHash());
+    assertNonExpiringPolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID, policy, proxyRepositoryPolicyViolation,
+        "waiver comment", proxyRepositoryPolicyViolation.getHash());
   }
 
   private void testGetTransitivePolicyWaiversByAppScanComponent(UnaryOperator<HttpRequest> operator) throws Exception {
@@ -889,11 +889,11 @@ public class ApiPolicyWaiverResourceTest
     assertThat(post.getBodyText()).isEqualTo("Could not find associated policy violation");
 
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), Date.from(Instant.now()));
     post = restRequest()
         .path(ApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
-        .parameter(repositoryPolicyViolation.getId())
+        .parameter(proxyRepositoryPolicyViolation.getId())
         .body(dto, MediaType.APPLICATION_JSON)
         .post();
     assertThat(post.getStatusCode()).isEqualTo(HttpServletResponse.SC_NOT_FOUND);
@@ -1004,14 +1004,14 @@ public class ApiPolicyWaiverResourceTest
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
 
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
     waiverOptions.comment = "Repo bulk waiver";
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
-        singletonList(repositoryPolicyViolation.getId()),
+        singletonList(proxyRepositoryPolicyViolation.getId()),
         waiverOptions);
 
     HttpResponse response = restRequest()
@@ -1032,20 +1032,20 @@ public class ApiPolicyWaiverResourceTest
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
 
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
     waiverOptions.comment = "Container bulk waiver";
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
-        singletonList(repositoryPolicyViolation.getId()),
+        singletonList(proxyRepositoryPolicyViolation.getId()),
         waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
         .parameter(OwnerType.REPOSITORY_CONTAINER,
-            RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId())
+            RepositoryContainer.REPOSITORY_CONTAINER_ID, proxyRepositoryPolicyViolation.getId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1061,14 +1061,14 @@ public class ApiPolicyWaiverResourceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
     waiverOptions.comment = "Repository Manager bulk waiver";
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
-        singletonList(repositoryPolicyViolation.getId()),
+        singletonList(proxyRepositoryPolicyViolation.getId()),
         waiverOptions);
 
     HttpResponse response = restRequest()

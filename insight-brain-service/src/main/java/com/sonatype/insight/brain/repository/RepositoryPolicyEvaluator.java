@@ -41,8 +41,8 @@ import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
@@ -55,24 +55,24 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyResults;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.ProxyRepositoryPolicyViolationLogger;
 import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseReason;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
@@ -109,9 +109,9 @@ public class RepositoryPolicyEvaluator
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final PolicyDAO policyDAO;
 
@@ -125,11 +125,11 @@ public class RepositoryPolicyEvaluator
 
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
-  private final RepositoryComponentDeleteService repositoryComponentDeleteService;
+  private final ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService;
 
   private final RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
 
-  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+  private final ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator;
 
   private final ClusterLockManager clusterLockManager;
 
@@ -144,17 +144,17 @@ public class RepositoryPolicyEvaluator
   @Inject
   public RepositoryPolicyEvaluator(
       ComponentPolicyEvaluator componentPolicyEvaluator,
-      RepositoryComponentDAO repositoryComponentDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       PolicyDAO policyDAO,
       FirewallAuditHdsClient auditHdsClient,
       FirewallQuarantineHdsClient quarantineHdsClient,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
       FirewallIgnorePatternService firewallIgnorePatternService,
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
-      RepositoryComponentDeleteService repositoryComponentDeleteService,
+      ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService,
       RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator,
       final ClusterLockManager clusterLockManager,
       AsyncEventBus eventBus,
       ApiFirewallMetricsService firewallMetricsService,
@@ -162,17 +162,17 @@ public class RepositoryPolicyEvaluator
       FirewallPolicyAlertEventService firewallPolicyAlertEventService)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.policyDAO = policyDAO;
     this.auditHdsClient = auditHdsClient;
     this.quarantineHdsClient = quarantineHdsClient;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
-    this.repositoryComponentDeleteService = repositoryComponentDeleteService;
+    this.proxyRepositoryComponentDeleteService = proxyRepositoryComponentDeleteService;
     this.repositoryPolicyAlertEmailer = repositoryPolicyAlertEmailer;
-    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.proxyRepositoryComponentTelemetryCreator = proxyRepositoryComponentTelemetryCreator;
     this.clusterLockManager = clusterLockManager;
     this.eventBus = eventBus;
     this.firewallMetricsService = firewallMetricsService;
@@ -336,15 +336,15 @@ public class RepositoryPolicyEvaluator
         .filter(Objects::nonNull)
         .filter(componentPathnameMatchesIgnorePattern)
         .collect(Collectors.toList());
-    // (repository_id, pathname) is unique in the repository_component table, so duplicates are not expected.
+    // (repository_id, pathname) is unique in the proxy_repository_component table, so duplicates are not expected.
     // The merge function "keep last" matches the prior singular getByRepositoryIdAndPathname semantic (which
     // returned a single row) and avoids a confusing IllegalStateException if a hypothetical data anomaly ever
     // produced two rows for the same pathname.
-    Map<String, RepositoryComponent> existingRepositoryComponentsByPathname = ignoredPathnames.isEmpty()
+    Map<String, ProxyRepositoryComponent> existingRepositoryComponentsByPathname = ignoredPathnames.isEmpty()
         ? Collections.emptyMap()
-        : repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), ignoredPathnames)
+        : proxyRepositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), ignoredPathnames)
             .stream()
-            .collect(toMap(RepositoryComponent::getPathname, Function.identity(),
+            .collect(toMap(ProxyRepositoryComponent::getPathname, Function.identity(),
                 (existing, replacement) -> replacement));
 
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
@@ -357,10 +357,10 @@ public class RepositoryPolicyEvaluator
       // 2. Do not evaluate policies on it
       // 3. Do not persist it
       if (componentPathnameMatchesIgnorePattern.test(componentEvaluationRequest.pathname)) {
-        RepositoryComponent repositoryComponent =
+        ProxyRepositoryComponent proxyRepositoryComponent =
             existingRepositoryComponentsByPathname.get(componentEvaluationRequest.pathname);
-        if (repositoryComponent != null) {
-          repositoryComponentDeleteService.deleteComponent(repositoryComponent);
+        if (proxyRepositoryComponent != null) {
+          proxyRepositoryComponentDeleteService.deleteComponent(proxyRepositoryComponent);
         }
         components.add(null);
       }
@@ -472,7 +472,7 @@ public class RepositoryPolicyEvaluator
     boolean shouldSendNotifications =
         RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT.equals(componentEvaluationDataRequestList.cause);
 
-    Map<String, RepositoryComponent> repositoryComponents = Collections.emptyMap();
+    Map<String, ProxyRepositoryComponent> repositoryComponents = Collections.emptyMap();
     if (withQuarantine) {
       repositoryComponents = getRepositoryComponents(repository, components);
     }
@@ -499,7 +499,7 @@ public class RepositoryPolicyEvaluator
           Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent =
               getPolicyWaivers(policyResults, waivedAlerts, component);
 
-          RepositoryComponent repositoryComponent = persistEvaluationResults(
+          ProxyRepositoryComponent proxyRepositoryComponent = persistEvaluationResults(
               repository,
               now,
               component,
@@ -514,20 +514,20 @@ public class RepositoryPolicyEvaluator
               waivedAlerts,
               policyWaiversByComponent,
               policyNotifications);
-          repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
+          repositoryComponentEvaluationResult.quarantine = proxyRepositoryComponent.isQuarantined();
         }
         else if (withQuarantine) {
-          RepositoryComponent repositoryComponent =
+          ProxyRepositoryComponent proxyRepositoryComponent =
               repositoryComponents.getOrDefault(component.getPathnames().get(0), null);
           repositoryComponentEvaluationResult.quarantine =
-              canQuarantine(repositoryComponentEvaluationResult.policyAlerts, repositoryComponent, component);
+              canQuarantine(repositoryComponentEvaluationResult.policyAlerts, proxyRepositoryComponent, component);
         }
       }
       componentEvaluationResultList.componentEvalResults.add(repositoryComponentEvaluationResult);
     }
 
-    if (event != null && !event.repositoryPolicyViolations.isEmpty()) {
-      repositoryPolicyViolationDAO.loadConstraintFacts(event.repositoryPolicyViolations);
+    if (event != null && !event.proxyRepositoryPolicyViolations.isEmpty()) {
+      proxyRepositoryPolicyViolationDAO.loadConstraintFacts(event.proxyRepositoryPolicyViolations);
       eventBus.post(event);
     }
 
@@ -593,7 +593,7 @@ public class RepositoryPolicyEvaluator
         .orElse(null);
   }
 
-  private Map<String, RepositoryComponent> getRepositoryComponents(
+  private Map<String, ProxyRepositoryComponent> getRepositoryComponents(
       final Repository repository,
       final List<Component> components)
   {
@@ -602,9 +602,9 @@ public class RepositoryPolicyEvaluator
         .map(component -> component.getPathnames().get(0))
         .collect(Collectors.toList());
 
-    return repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), pathnames)
+    return proxyRepositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), pathnames)
         .stream()
-        .collect(toMap(RepositoryComponent::getPathname, Function.identity()));
+        .collect(toMap(ProxyRepositoryComponent::getPathname, Function.identity()));
   }
 
   private static List<String> validateIndexesMatchAndGetHashes(
@@ -637,19 +637,19 @@ public class RepositoryPolicyEvaluator
    */
   private boolean canQuarantine(
       List<PolicyAlert> policyAlerts,
-      RepositoryComponent repositoryComponent,
+      ProxyRepositoryComponent proxyRepositoryComponent,
       Component component)
   {
-    if (repositoryComponent != null &&
-        (component.getHash() == null || repositoryComponent.getHash().equals(component.getHash())))
+    if (proxyRepositoryComponent != null &&
+        (component.getHash() == null || proxyRepositoryComponent.getHash().equals(component.getHash())))
     {
-      return repositoryComponent.isQuarantined();
+      return proxyRepositoryComponent.isQuarantined();
     }
 
     return shouldQuarantine(policyAlerts, component);
   }
 
-  private RepositoryComponent persistEvaluationResults(
+  private ProxyRepositoryComponent persistEvaluationResults(
       Repository repository,
       Date evaluationTime,
       Component component,
@@ -665,7 +665,7 @@ public class RepositoryPolicyEvaluator
       Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent,
       List<PolicyNotification> policyNotifications)
   {
-    RepositoryComponent repositoryComponent;
+    ProxyRepositoryComponent proxyRepositoryComponent;
     try (ClusterLock clusterLock =
         clusterLockManager.createForRepositoryComponent(repository.getId(), component.getPathnames().get(0));
         TransactionContext tx = policyDAO.createTransactionContext())
@@ -673,41 +673,42 @@ public class RepositoryPolicyEvaluator
       clusterLock.lock();
       tx.begin();
 
-      RepositoryPolicyViolationLogger policyViolationLogger =
+      ProxyRepositoryPolicyViolationLogger policyViolationLogger =
           policyViolationLoggerFactory.newLogger(evaluationTime, repository);
 
       List<PolicyAlert> allPolicyAlertsByComponent = new ArrayList<>();
       allPolicyAlertsByComponent.addAll(activeAlerts);
       allPolicyAlertsByComponent.addAll(waivedAlerts);
 
-      // Single merged read per component: the existing repository_component row and its active policy
+      // Single merged read per component: the existing proxy_repository_component row and its active policy
       // violations for (repositoryId, pathname), in one round trip instead of two (CLM-42134). The
       // per-component read itself remains (still N round trips across an N-component batch); bounded-chunk
       // batching across components is a follow-up if profiling shows reads still dominate (see CLM-42071).
       String pathname = component.getPathnames().get(0);
-      RepositoryComponentDAO.ComponentWithActiveViolations existing =
-          repositoryComponentDAO.getWithActiveViolationsByRepositoryIdAndPathname(tx, repository.getId(), pathname);
+      ProxyRepositoryComponentDAO.ComponentWithActiveViolations existing =
+          proxyRepositoryComponentDAO.getWithActiveViolationsByRepositoryIdAndPathname(tx, repository.getId(),
+              pathname);
 
       // The order of the following calls are important and must not be changed. See: CLM-13853
-      List<RepositoryPolicyViolation> newRepositoryPolicyViolations =
+      List<ProxyRepositoryPolicyViolation> newRepositoryPolicyViolations =
           persistPolicyViolations(tx, repository, evaluationTime, component, policies,
               policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent,
               existing.activeViolations());
-      repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
+      proxyRepositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
           canBeQuarantined, forMonitoring, explicitReleaseReason, stageTypeId, activeAlerts,
           newRepositoryPolicyViolations, existing.component());
 
       tx.commit();
 
-      sendRepositoryComponentTelemetry(policyNotifications, repositoryComponent, repository,
+      sendRepositoryComponentTelemetry(policyNotifications, proxyRepositoryComponent, repository,
           isNotificationsToBeSent, component, newRepositoryPolicyViolations);
       AuditData.get().commitSubEvents();
       policyViolationLogger.log();
     }
-    return repositoryComponent;
+    return proxyRepositoryComponent;
   }
 
-  private RepositoryComponent persistRepositoryComponent(
+  private ProxyRepositoryComponent persistRepositoryComponent(
       TransactionContext tx,
       Repository repository,
       Date evaluationTime,
@@ -717,25 +718,25 @@ public class RepositoryPolicyEvaluator
       ReleaseReason explicitReleaseReason,
       String stageTypeId,
       List<PolicyAlert> activeAlerts,
-      List<RepositoryPolicyViolation> newRepositoryPolicyViolations,
-      RepositoryComponent existingRepositoryComponent)
+      List<ProxyRepositoryPolicyViolation> newRepositoryPolicyViolations,
+      ProxyRepositoryComponent existingRepositoryComponent)
   {
     String pathname = component.getPathnames().get(0);
-    RepositoryComponent repositoryComponent = existingRepositoryComponent;
-    // Must be read before any mutation to repositoryComponent below.
-    boolean wasQuarantined = repositoryComponent != null && repositoryComponent.isQuarantined();
-    String repositoryComponentId = repositoryComponent == null ? null : repositoryComponent.getId();
-    if (repositoryComponent != null && !repositoryComponent.getHash().equals(component.getHash())) {
-      if (repositoryComponent.isQuarantined()) {
+    ProxyRepositoryComponent proxyRepositoryComponent = existingRepositoryComponent;
+    // Must be read before any mutation to proxyRepositoryComponent below.
+    boolean wasQuarantined = proxyRepositoryComponent != null && proxyRepositoryComponent.isQuarantined();
+    String repositoryComponentId = proxyRepositoryComponent == null ? null : proxyRepositoryComponent.getId();
+    if (proxyRepositoryComponent != null && !proxyRepositoryComponent.getHash().equals(component.getHash())) {
+      if (proxyRepositoryComponent.isQuarantined()) {
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RESET_QUARANTINE, false)) {
           AuditData.get()
               .setRepository(repository)
-              .setComponentHash(repositoryComponent.getHash())
-              .setData("componentPathname", repositoryComponent.getPathname());
+              .setComponentHash(proxyRepositoryComponent.getHash())
+              .setData("componentPathname", proxyRepositoryComponent.getPathname());
         }
       }
     }
-    if (repositoryComponent == null || !repositoryComponent.getHash().equals(component.getHash())) {
+    if (proxyRepositoryComponent == null || !proxyRepositoryComponent.getHash().equals(component.getHash())) {
       boolean quarantine = canBeQuarantined && shouldQuarantine(activeAlerts, component);
       if (quarantine) {
         log.debug("Component {} in repository {}:{} ({}) was quarantined", pathname,
@@ -748,45 +749,46 @@ public class RepositoryPolicyEvaluator
         }
       }
       Date quarantineTime = quarantine ? evaluationTime : null;
-      repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),
-          component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
-              .getId(),
-          evaluationTime);
-      repositoryComponent.setQuarantineTime(quarantineTime);
-      repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
-      repositoryComponent.setLastEvaluationStage(stageTypeId);
+      proxyRepositoryComponent =
+          new ProxyRepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),
+              component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
+                  .getId(),
+              evaluationTime);
+      proxyRepositoryComponent.setQuarantineTime(quarantineTime);
+      proxyRepositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
+      proxyRepositoryComponent.setLastEvaluationStage(stageTypeId);
       if (repositoryComponentId == null) {
-        repositoryComponentDAO.insert(tx, repositoryComponent);
+        proxyRepositoryComponentDAO.insert(tx, proxyRepositoryComponent);
       }
       else {
-        repositoryComponent.setId(repositoryComponentId);
-        repositoryComponentDAO.update(tx, repositoryComponent);
+        proxyRepositoryComponent.setId(repositoryComponentId);
+        proxyRepositoryComponentDAO.update(tx, proxyRepositoryComponent);
       }
     }
     else {
-      repositoryComponent.setHash(component.getHash());
-      repositoryComponent.setComponentIdentifier(component.getComponentIdentifier());
-      repositoryComponent.setMatchStateId(component.getMatchState().getId());
-      repositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
-      repositoryComponent.setLastEvaluationTime(evaluationTime);
-      repositoryComponent.setLastEvaluationStage(stageTypeId);
-      repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
+      proxyRepositoryComponent.setHash(component.getHash());
+      proxyRepositoryComponent.setComponentIdentifier(component.getComponentIdentifier());
+      proxyRepositoryComponent.setMatchStateId(component.getMatchState().getId());
+      proxyRepositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
+      proxyRepositoryComponent.setLastEvaluationTime(evaluationTime);
+      proxyRepositoryComponent.setLastEvaluationStage(stageTypeId);
+      proxyRepositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
 
-      if (repositoryComponent.isQuarantined() && !shouldQuarantine(activeAlerts, component)) {
+      if (proxyRepositoryComponent.isQuarantined() && !shouldQuarantine(activeAlerts, component)) {
         // The component is quarantined, but it doesn't have any policy violations/alerts that would quarantine it
         // anymore.
-        unquarantineComponent(repository, repositoryComponent, evaluationTime, forMonitoring,
+        unquarantineComponent(repository, proxyRepositoryComponent, evaluationTime, forMonitoring,
             explicitReleaseReason, newRepositoryPolicyViolations);
       }
 
-      repositoryComponentDAO.update(tx, repositoryComponent);
+      proxyRepositoryComponentDAO.update(tx, proxyRepositoryComponent);
     }
 
-    boolean nowQuarantined = repositoryComponent.isQuarantined();
+    boolean nowQuarantined = proxyRepositoryComponent.isQuarantined();
     if (!wasQuarantined && nowQuarantined) {
       try {
         firewallPolicyAlertEventService.postEvent(repository, pathname, component.getHash(),
-            repositoryComponent.getQuarantineTime(), activeAlerts);
+            proxyRepositoryComponent.getQuarantineTime(), activeAlerts);
       }
       catch (RuntimeException e) {
         log.error("Failed to post FirewallPolicyAlertEvent for repository {} pathname {}",
@@ -794,34 +796,34 @@ public class RepositoryPolicyEvaluator
       }
     }
 
-    return repositoryComponent;
+    return proxyRepositoryComponent;
   }
 
   private void unquarantineComponent(
       Repository repository,
-      RepositoryComponent repositoryComponent,
+      ProxyRepositoryComponent proxyRepositoryComponent,
       Date evaluationTime,
       boolean forMonitoring,
       ReleaseReason explicitReleaseReason,
-      List<RepositoryPolicyViolation> newRepositoryPolicyViolations)
+      List<ProxyRepositoryPolicyViolation> newRepositoryPolicyViolations)
   {
     if (AuditData.get().getEvent() != null && !AuditData.get().getEvent().equals(AuditEvent.RELEASE_QUARANTINE)) {
       try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RELEASE_QUARANTINE, false)) {
         AuditData.get()
             .setRepository(repository)
-            .setComponentHash(repositoryComponent.getHash())
-            .setData("componentPathname", repositoryComponent.getPathname());
+            .setComponentHash(proxyRepositoryComponent.getHash())
+            .setData("componentPathname", proxyRepositoryComponent.getPathname());
       }
     }
 
     if (forMonitoring) {
-      repositoryComponent.setUnquarantineTimeForMonitoring(evaluationTime);
+      proxyRepositoryComponent.setUnquarantineTimeForMonitoring(evaluationTime);
     }
     else {
-      repositoryComponent.setUnquarantineTimeForManualRelease(evaluationTime);
+      proxyRepositoryComponent.setUnquarantineTimeForManualRelease(evaluationTime);
     }
 
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = newRepositoryPolicyViolations.stream()
+    List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations = newRepositoryPolicyViolations.stream()
         .filter(violation -> !violation.isWaived())
         .collect(Collectors.toList());
 
@@ -839,46 +841,46 @@ public class RepositoryPolicyEvaluator
           : ReleaseReason.POLICY_CHANGE.getDescription();
     }
 
-    repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
-        repositoryPolicyViolations, repository.getRepositoryManagerId(), repository.getPublicId(),
+    proxyRepositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(proxyRepositoryComponent,
+        proxyRepositoryPolicyViolations, repository.getRepositoryManagerId(), repository.getPublicId(),
         RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
         releaseQuarantineType, releaseReason, Collections.emptyList());
   }
 
   private void sendRepositoryComponentTelemetry(
       final List<PolicyNotification> policyNotifications,
-      final RepositoryComponent repositoryComponent,
+      final ProxyRepositoryComponent proxyRepositoryComponent,
       final Repository repository,
       final boolean isNotificationsToBeSent,
       final Component component,
-      final List<RepositoryPolicyViolation> newRepositoryPolicyViolations)
+      final List<ProxyRepositoryPolicyViolation> newRepositoryPolicyViolations)
   {
-    repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
+    proxyRepositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(proxyRepositoryComponent,
         newRepositoryPolicyViolations, repository.getRepositoryManagerId(), repository.getPublicId(),
-        repositoryComponent.isQuarantined()
+        proxyRepositoryComponent.isQuarantined()
             ? RepositoryComponentTelemetryEventType.QUARANTINE
             : RepositoryComponentTelemetryEventType.AUDIT,
         isNotificationsToBeSent ? policyNotifications : Collections.emptyList(),
         component);
   }
 
-  private List<RepositoryPolicyViolation> persistPolicyViolations(
+  private List<ProxyRepositoryPolicyViolation> persistPolicyViolations(
       TransactionContext tx,
       Repository repository,
       Date evaluationTime,
       Component component,
       List<Policy> policies,
-      RepositoryPolicyViolationLogger policyViolationLogger,
+      ProxyRepositoryPolicyViolationLogger policyViolationLogger,
       CreateRepositoryPolicyViolationsEvent event,
       List<PolicyAlert> allPolicyAlertsByComponent,
       Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent,
-      List<RepositoryPolicyViolation> oldPolicyViolations)
+      List<ProxyRepositoryPolicyViolation> oldPolicyViolations)
   {
     String pathname = component.getPathnames().get(0);
-    repositoryPolicyViolationDAO.loadConstraintFacts(oldPolicyViolations);
+    proxyRepositoryPolicyViolationDAO.loadConstraintFacts(oldPolicyViolations);
 
-    // Build the list of current RepositoryPolicyViolations for this component
-    List<RepositoryPolicyViolation> newPolicyViolations = new ArrayList<>();
+    // Build the list of current ProxyRepositoryPolicyViolations for this component
+    List<ProxyRepositoryPolicyViolation> newPolicyViolations = new ArrayList<>();
     for (PolicyAlert policyAlert : allPolicyAlertsByComponent) {
       ComponentFact componentFact = getComponentFact(policyAlert, component);
       if (componentFact == null) {
@@ -890,39 +892,41 @@ public class RepositoryPolicyEvaluator
           .findFirst()
           .get();
 
-      RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, policy, componentFact,
-          pathname,
-          repository, evaluationTime, policyWaiversByComponent.get(policyAlert));
+      ProxyRepositoryPolicyViolation policyViolation =
+          createRepositoryPolicyViolation(policyAlert, policy, componentFact,
+              pathname,
+              repository, evaluationTime, policyWaiversByComponent.get(policyAlert));
       newPolicyViolations.add(policyViolation);
     }
 
-    PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff =
+    PolicyViolationDiff<ProxyRepositoryPolicyViolation> policyViolationDiff =
         PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
 
-    for (RepositoryPolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
+    for (ProxyRepositoryPolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
       policyViolationLogger.add(PolicyViolationLogEvent.FIX, clearedPolicyViolation);
     }
-    repositoryPolicyViolationDAO.deleteBatch(tx, policyViolationDiff.getCleared());
+    proxyRepositoryPolicyViolationDAO.deleteBatch(tx, policyViolationDiff.getCleared());
 
-    for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
+    for (ProxyRepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
       if (event != null) {
-        event.repositoryPolicyViolations.add(newPolicyViolation);
+        event.proxyRepositoryPolicyViolations.add(newPolicyViolation);
       }
       policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
       if (newPolicyViolation.isWaived()) {
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
       }
     }
-    repositoryPolicyViolationDAO.insertBatch(tx, policyViolationDiff.getAppeared());
+    proxyRepositoryPolicyViolationDAO.insertBatch(tx, policyViolationDiff.getAppeared());
 
     // Update the existing violations so that 'time' is set and the original violation waive time, if it exists,
     // is brought forward
-    List<RepositoryPolicyViolation> updatedPolicyViolations = new ArrayList<>(policyViolationDiff.getSame().size());
-    for (Map.Entry<RepositoryPolicyViolation, RepositoryPolicyViolation> entry : policyViolationDiff.getSame()
+    List<ProxyRepositoryPolicyViolation> updatedPolicyViolations =
+        new ArrayList<>(policyViolationDiff.getSame().size());
+    for (Map.Entry<ProxyRepositoryPolicyViolation, ProxyRepositoryPolicyViolation> entry : policyViolationDiff.getSame()
         .entrySet())
     {
-      RepositoryPolicyViolation oldPolicyViolation = entry.getKey();
-      RepositoryPolicyViolation newPolicyViolation = entry.getValue();
+      ProxyRepositoryPolicyViolation oldPolicyViolation = entry.getKey();
+      ProxyRepositoryPolicyViolation newPolicyViolation = entry.getValue();
 
       boolean isOldPolicyViolationWaived = oldPolicyViolation.isWaived();
       boolean isNewPolicyViolationWaived = newPolicyViolation.isWaived();
@@ -940,20 +944,20 @@ public class RepositoryPolicyEvaluator
         policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
       }
     }
-    repositoryPolicyViolationDAO.updateBatch(tx, updatedPolicyViolations);
+    proxyRepositoryPolicyViolationDAO.updateBatch(tx, updatedPolicyViolations);
 
     // Preserve the wire ordering previously provided by getActiveByRepositoryIdAndPathname's
     // ORDER BY threat_level DESC, policy_id. Downstream telemetry consumers (event payloads emitted
-    // by repositoryComponentTelemetryCreator) may rely on highest-threat-first iteration.
+    // by proxyRepositoryComponentTelemetryCreator) may rely on highest-threat-first iteration.
     newPolicyViolations.sort(Comparator
-        .comparingInt(RepositoryPolicyViolation::getThreatLevel)
+        .comparingInt(ProxyRepositoryPolicyViolation::getThreatLevel)
         .reversed()
-        .thenComparing(RepositoryPolicyViolation::getPolicyId, Comparator.nullsLast(Comparator.naturalOrder())));
+        .thenComparing(ProxyRepositoryPolicyViolation::getPolicyId, Comparator.nullsLast(Comparator.naturalOrder())));
     return newPolicyViolations;
   }
 
   /**
-   * Creates a RepositoryPolicyViolation from a policy alert.
+   * Creates a ProxyRepositoryPolicyViolation from a policy alert.
    *
    * <p>
    * The actionTypeId will be set to the first non-NOTIFY action (FAIL or WARN). If the policy
@@ -968,9 +972,9 @@ public class RepositoryPolicyEvaluator
    * @param repository The repository where the violation occurred
    * @param evaluationTime The time of policy evaluation
    * @param policyWaiver Optional policy waiver (can be null)
-   * @return RepositoryPolicyViolation with actionTypeId set to FAIL/WARN, or null if only NOTIFY actions exist
+   * @return ProxyRepositoryPolicyViolation with actionTypeId set to FAIL/WARN, or null if only NOTIFY actions exist
    */
-  private RepositoryPolicyViolation createRepositoryPolicyViolation(
+  private ProxyRepositoryPolicyViolation createRepositoryPolicyViolation(
       PolicyAlert policyAlert,
       Policy policy,
       ComponentFact componentFact,
@@ -981,7 +985,7 @@ public class RepositoryPolicyEvaluator
   {
     PolicyFact policyFact = policyAlert.getTrigger();
     PolicyThreatCategory threatCategory = policy.getThreatCategory();
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation(repository.getId(), pathname,
         evaluationTime, policy.getId(), policy.getName(), policyFact.getThreatLevel(), threatCategory,
         componentFact.getHash(), componentFact.getComponentIdentifier(), componentFact.getConstraintFacts());
 

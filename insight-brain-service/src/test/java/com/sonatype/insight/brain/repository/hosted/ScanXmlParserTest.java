@@ -202,7 +202,7 @@ public class ScanXmlParserTest
     // inner .jar entries. The first <dir> is the outer artifact (its path is preserved verbatim);
     // each subsequent <dir> is an inner archive whose pathname is synthesised as
     // outerPath + "!/" + innerPathTail, so the IQ-side (repository_id, pathname) UNIQUE constraint
-    // admits each inner artifact as a distinct repository_component row.
+    // admits each inner artifact as a distinct proxy_repository_component row.
     String content = xml(
         "<repository id=\"r\" name=\"n\" format=\"maven2\"/>\n" +
             "<dir path=\"com/example/bundle-1.0.zip\" sha1=\"outer_zip_hash_01\" sha512=\"x\">\n</dir>\n" +

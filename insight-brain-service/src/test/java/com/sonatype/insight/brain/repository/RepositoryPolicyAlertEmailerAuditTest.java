@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.InsightMail;
 import jakarta.inject.Inject;
@@ -98,7 +98,7 @@ public class RepositoryPolicyAlertEmailerAuditTest
 
   private PolicyNotification createPolicyNotification(Policy policy, String hash) {
     PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, hash);
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository, hash);
     policyFact.addComponentFact(new ComponentFact(component.getComponentIdentifier(), component.getHash()));
     return new PolicyNotification(policyFact, policy.getNotifications());
   }

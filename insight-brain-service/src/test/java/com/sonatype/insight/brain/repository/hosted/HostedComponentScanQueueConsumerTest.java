@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.queue.AbstractPollDispatchQueueConsumer;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
@@ -69,13 +69,13 @@ public class HostedComponentScanQueueConsumerTest
   private ScanPersistenceService scanPersistenceService;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   private com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO repositoryDAO;
 
   @Inject
-  private com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO policyEvaluationDAO;
@@ -184,7 +184,7 @@ public class HostedComponentScanQueueConsumerTest
   public void run_executeJobThrowsIllegalStateWhenScanFileNotFound() throws Exception {
     // Insert a queue row with a scanFileId that does not exist on disk
     Repository repo = enableMonitoring(tempEntity.newRepository("repo-no-scan"));
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     HostedComponentScanQueue job = new HostedComponentScanQueue(
         component.getId(), "nonexistent-scan-file.xml.gz",
@@ -256,7 +256,7 @@ public class HostedComponentScanQueueConsumerTest
   @Test
   public void recoverStaleJobs_resetsInProgressToPending() throws Exception {
     Repository repo = tempEntity.newRepository("repo-stale");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     // Insert an IN_PROGRESS job (simulating a crashed worker)
     HostedComponentScanQueue job = new HostedComponentScanQueue(
@@ -369,7 +369,7 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), "com/example/my-lib/1.0.0/my-lib-1.0.0.jar");
     assertThat(rc).isNotNull();
     assertThat(rc.getHash()).isEqualTo("abc123def456ghi7");
@@ -408,7 +408,7 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job2.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job2.getRepositoryId(), "com/example/lib/1.0/lib-1.0.jar");
     assertThat(rc.getHash()).isEqualTo("hash_v2");
     assertThat(rc.getComponentId()).isEqualTo("comp-update-2");
@@ -418,7 +418,7 @@ public class HostedComponentScanQueueConsumerTest
   public void executeJob_stampsComponentIdRegardlessOfPurl() throws Exception {
     // The consumer no longer parses the PURL to set ComponentIdentifier —
     // that comes from HDS evaluation data. The job's componentId is always
-    // stamped onto the repository_component row via stampNxrmComponentId().
+    // stamped onto the proxy_repository_component row via stampNxrmComponentId().
     HostedComponentScanQueue job = insertPendingJobWithScanXml(
         "repo-purl", "comp-purl-1",
         "pkg:maven/org.apache.commons/commons-lang3@3.12.0", null,
@@ -435,7 +435,7 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(),
         "org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar");
     assertThat(rc).isNotNull();
@@ -446,7 +446,7 @@ public class HostedComponentScanQueueConsumerTest
   @Test
   public void executeJob_completesSuccessfullyWhenScanHasNoMatchingComponent() throws Exception {
     // Scan job completes even when HDS evaluation finds no matching component for the pathname.
-    // The repository_component row is still created by the evaluator (with hash from scan XML),
+    // The proxy_repository_component row is still created by the evaluator (with hash from scan XML),
     // and componentId is stamped from the job.
     HostedComponentScanQueue job = insertPendingJobWithScanXml(
         "repo-nomatch", "comp-nomatch",
@@ -464,7 +464,7 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), "com/example/unknown/1.0/unknown-1.0.jar");
     assertThat(rc).isNotNull();
     assertThat(rc.getHash()).isEqualTo("nomatch_hash_001");
@@ -486,8 +486,8 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    // No repository_component row should exist since ScanXmlParser returned null
-    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    // No proxy_repository_component row should exist since ScanXmlParser returned null
+    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), "scan-content");
     assertThat(rc).isNull();
   }
@@ -512,7 +512,7 @@ public class HostedComponentScanQueueConsumerTest
     assertThat(hdsMockServer.getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)).isNotNull();
 
     // scan_id must NOT be stamped — stampScanId is only called when application != null
-    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), "scan-content");
     if (rc != null) {
       assertThat(rc.getScanId()).isNull();
@@ -542,7 +542,7 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), "com/example/lib/1.0/lib-1.0.jar");
     assertThat(rc).isNotNull();
     assertThat(rc.getScanId()).isEqualTo("scan-id-stamped");
@@ -638,7 +638,7 @@ public class HostedComponentScanQueueConsumerTest
 
   private HostedComponentScanQueue insertPendingJob(final String repoName) throws Exception {
     Repository repo = enableMonitoring(tempEntity.newRepository(repoName));
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     ScanEntity scanEntity = scanPersistenceService.createTempScan(repo.getId());
     try (OutputStream out = scanEntity.getOutputStream()) {
@@ -737,7 +737,7 @@ public class HostedComponentScanQueueConsumerTest
    * } elements — simulating an
    * archive-of-archives upload (e.g. a {@code .zip} that the insight-scanner unpacked into N inner
    * artifacts). Used by the archive-fan-out test below to verify the consumer creates one
-   * {@code repository_component} row per inner artifact.
+   * {@code proxy_repository_component} row per inner artifact.
    */
   private HostedComponentScanQueue insertPendingJobWithMultiComponentScanXml(
       final String repoName,
@@ -802,7 +802,7 @@ public class HostedComponentScanQueueConsumerTest
     // Components page should still show just ONE row — the outer .zip (mirroring today's UX where
     // every uploaded artifact is one row). The inner-pathname rows that the policy evaluator
     // creates as it walks the multi-component request are deleted post-evaluation; the inner
-    // pathname violations stay in repository_policy_violation so the outer's report can roll
+    // pathname violations stay in proxy_repository_policy_violation so the outer's report can roll
     // them up via HostedReportFileBuilder.
     String outerPath = "com/example/bundle/1.0/bundle-1.0.zip";
     String outerHash = "outer_zip_hash_001a";
@@ -834,17 +834,17 @@ public class HostedComponentScanQueueConsumerTest
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
     // The outer artifact survives — keyed on the literal .zip path.
-    RepositoryComponent outerRow = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent outerRow = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath);
     assertThat(outerRow).as("outer .zip row").isNotNull();
 
     // The inner-pathname rows are deleted post-evaluation so the Components page only shows the
     // outer artifact (one row per uploaded file).
-    RepositoryComponent innerLog4j = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent innerLog4j = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath + "!/" + innerPaths[0]);
     assertThat(innerLog4j).as("inner log4j row should have been deleted").isNull();
 
-    RepositoryComponent innerCli = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent innerCli = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath + "!/" + innerPaths[1]);
     assertThat(innerCli).as("inner commons-cli row should have been deleted").isNull();
   }
@@ -852,15 +852,15 @@ public class HostedComponentScanQueueConsumerTest
   /**
    * Companion test for {@link #executeJob_archiveOfArchivesScan_keepsOneOuterRowAndDeletesInnerRows}:
    * verifies the OTHER half of the fan-out invariant — that inner-pathname
-   * {@code repository_policy_violation} rows survive even when the matching
-   * {@code repository_component} row is deleted, AND that the new DAO method
+   * {@code proxy_repository_policy_violation} rows survive even when the matching
+   * {@code proxy_repository_component} row is deleted, AND that the new DAO method
    * {@code getActiveByRepositoryIdAndPathnameOrInnerPathnames} returns them all under the outer's
    * pathname. This is what {@code ReportService.saveOverlayFiles} relies on to roll inner
    * violations into the outer's synthesised {@code policythreats.json}.
    * <p>
    * The real evaluator only persists violations when policies match, but this test exercises the
    * persistence-layer contract directly: seed inner-pathname violation rows, delete inner
-   * repository_component rows the way the consumer would, then assert the DAO surfaces them.
+   * proxy_repository_component rows the way the consumer would, then assert the DAO surfaces them.
    * No HDS / queue / Drools required — the same code path the production saveOverlayFiles
    * recovery hits is hit here.
    */
@@ -875,12 +875,12 @@ public class HostedComponentScanQueueConsumerTest
     tempEntity.newRepositoryPolicyViolation(repo.getId(), 10, innerLog4j, false, "p-cve", "Security-Critical", null);
     tempEntity.newRepositoryPolicyViolation(repo.getId(), 1, innerCli, false, "p-arch", "Architecture-Quality", null);
 
-    java.util.List<com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation> rolledUp =
-        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repo.getId(), outerPath);
+    java.util.List<com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation> rolledUp =
+        proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repo.getId(), outerPath);
 
     assertThat(rolledUp)
         .as("rolled-up query returns the outer pathname's violations and every inner-pathname violation")
-        .extracting(com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation::getPathname)
+        .extracting(com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation::getPathname)
         .containsExactlyInAnyOrder(outerPath, innerLog4j, innerCli);
   }
 
@@ -916,7 +916,7 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), pathname);
     assertThat(rc).isNotNull();
     assertThat(rc.getComponentCount())
@@ -932,7 +932,7 @@ public class HostedComponentScanQueueConsumerTest
    * state for the outer artifact AND the repository format is NOT in
    * {@code KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER} (maven2 is not), the consumer collapses the
    * report to a single component view — {@code componentCount=1} on the outer row, and any
-   * stale inner-pathname {@code repository_component} rows from a prior run are deleted.
+   * stale inner-pathname {@code proxy_repository_component} rows from a prior run are deleted.
    * Mirrors the iq-cli single-file scan output for the same binary.
    */
   @Test
@@ -960,19 +960,19 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    RepositoryComponent outerRow = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent outerRow = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath);
     assertThat(outerRow).as("outer row").isNotNull();
     assertThat(outerRow.getComponentCount())
         .as("identified-outer gate (non-keep-set format) collapses to componentCount=1")
         .isEqualTo(1);
 
-    // Inner pathname repository_component rows are deleted (matches existing fan-out cleanup).
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(
+    // Inner pathname proxy_repository_component rows are deleted (matches existing fan-out cleanup).
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath + "!/" + innerPaths[0]))
             .as("inner log4j row should not survive identified-outer gate")
             .isNull();
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath + "!/" + innerPaths[1]))
             .as("inner commons-cli row should not survive identified-outer gate")
             .isNull();
@@ -1017,7 +1017,7 @@ public class HostedComponentScanQueueConsumerTest
         .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
-    RepositoryComponent outerRow = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent outerRow = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath);
     assertThat(outerRow).as("outer rubygems row").isNotNull();
     assertThat(outerRow.getComponentCount())
@@ -1027,11 +1027,11 @@ public class HostedComponentScanQueueConsumerTest
 
     // Inner-pathname rows deleted by the collapse cleanup — same behavior as the identified-
     // outer maven test above.
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath + "!/" + innerPaths[0]))
             .as("inner rack row should not survive rubygems always-collapse")
             .isNull();
-    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(
+    assertThat(proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job.getRepositoryId(), outerPath + "!/" + innerPaths[1]))
             .as("inner nokogiri row should not survive rubygems always-collapse")
             .isNull();
@@ -1039,7 +1039,7 @@ public class HostedComponentScanQueueConsumerTest
 
   /**
    * Idempotency: re-running the same job (e.g. a producer-cycle replay after a restart) must
-   * not double-count or duplicate rows. The repository_component is unique on
+   * not double-count or duplicate rows. The proxy_repository_component is unique on
    * {@code (repository_id, pathname)}, so a re-run UPSERT-style should leave exactly one outer
    * row, not two. Verifies the executeJob path is idempotent on the outer row identity.
    */
@@ -1067,7 +1067,7 @@ public class HostedComponentScanQueueConsumerTest
             .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
 
     // First pass result.
-    RepositoryComponent afterFirstRun = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent afterFirstRun = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job1.getRepositoryId(), outerPath);
     assertThat(afterFirstRun).as("outer row after first run").isNotNull();
 
@@ -1090,7 +1090,7 @@ public class HostedComponentScanQueueConsumerTest
     // Note: insertPendingJobWithMultiComponentScanXml creates a new Repository, so job1 and job2
     // live in different repos. We verify each repo has exactly one outer row, not two — i.e.
     // each individual evaluation is internally consistent and doesn't duplicate the outer.
-    RepositoryComponent afterSecondRun = repositoryComponentDAO.getByRepositoryIdAndPathname(
+    ProxyRepositoryComponent afterSecondRun = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
         job2.getRepositoryId(), outerPath);
     assertThat(afterSecondRun).as("outer row after replay run").isNotNull();
     assertThat(afterSecondRun.getComponentCount())
@@ -1102,7 +1102,7 @@ public class HostedComponentScanQueueConsumerTest
 
   /**
    * Regression guard for CLM-42118 and the follow-up commit on CLM-41737's branch: the
-   * repository_component.component_count column MUST be stamped from HDS's
+   * proxy_repository_component.component_count column MUST be stamped from HDS's
    * {@code data.json.totalArtifactCount} via an unconditional UPDATE — not from
    * {@code bom.json.aaData.length} via {@code raiseComponentCountIfHigher}.
    * <p>
@@ -1168,9 +1168,9 @@ public class HostedComponentScanQueueConsumerTest
     // component_count must reflect HDS's data.json.totalArtifactCount.
     await().atMost(15, TimeUnit.SECONDS)
         .untilAsserted(() -> {
-          RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+          ProxyRepositoryComponent rc = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(
               job.getRepositoryId(), pathname);
-          assertThat(rc).as("outer repository_component row").isNotNull();
+          assertThat(rc).as("outer proxy_repository_component row").isNotNull();
           assertThat(rc.getComponentCount())
               .as("component_count must be stamped from data.json.totalArtifactCount (=4). "
                   + "If this reads 1, the stamp regressed to raise-only + scanner-count source. "
@@ -1186,7 +1186,7 @@ public class HostedComponentScanQueueConsumerTest
   public void executeJob_dropsJobWhenRepositoryMonitoringDisabled() throws Exception {
     // newRepository defaults monitoring off, so this repo is disabled.
     Repository repo = tempEntity.newRepository("repo-monitoring-disabled");
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     ScanEntity scanEntity = scanPersistenceService.createTempScan(repo.getId());
     try (OutputStream out = scanEntity.getOutputStream()) {
       out.write("scan-content".getBytes(StandardCharsets.UTF_8));
@@ -1213,7 +1213,7 @@ public class HostedComponentScanQueueConsumerTest
   public void executeJob_dropsJobWhenRepositoryMissing() throws Exception {
     // Repo row absent entirely (e.g. deleted): guard drops the job rather than NPE / evaluate.
     Repository repo = enableMonitoring(tempEntity.newRepository("repo-to-delete"));
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
     ScanEntity scanEntity = scanPersistenceService.createTempScan(repo.getId());
     try (OutputStream out = scanEntity.getOutputStream()) {
       out.write("scan-content".getBytes(StandardCharsets.UTF_8));

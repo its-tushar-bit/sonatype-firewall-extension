@@ -84,9 +84,9 @@ public class RepositoryComponentDedupKeysetIndexAsyncDbMigrationTest
     ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
     verify(createIndexStmt).execute(sqlCaptor.capture());
     assertThat(sqlCaptor.getValue())
-        .contains("CREATE INDEX CONCURRENTLY IF NOT EXISTS repository_component_dedup_keyset_idx")
-        .contains("ON public.repository_component "
-            + "(repository_id, hash, time DESC, repository_component_id DESC)");
+        .contains("CREATE INDEX CONCURRENTLY IF NOT EXISTS proxy_repository_component_dedup_keyset_idx")
+        .contains("ON public.proxy_repository_component "
+            + "(repository_id, hash, time DESC, proxy_repository_component_id DESC)");
     verify(createIndexStmt, never()).execute(
         org.mockito.ArgumentMatchers.startsWith("DROP INDEX CONCURRENTLY"));
   }
@@ -101,7 +101,7 @@ public class RepositoryComponentDedupKeysetIndexAsyncDbMigrationTest
 
     assertThat(underTest.executeMigration()).isTrue();
 
-    verify(dropStmt).execute("DROP INDEX CONCURRENTLY public.repository_component_dedup_keyset_idx");
+    verify(dropStmt).execute("DROP INDEX CONCURRENTLY public.proxy_repository_component_dedup_keyset_idx");
     verify(createIndexStmt).execute(anyString());
   }
 

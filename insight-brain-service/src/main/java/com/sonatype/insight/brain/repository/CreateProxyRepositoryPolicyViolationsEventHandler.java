@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.repository;
 import com.google.common.eventbus.Subscribe;
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -23,17 +23,17 @@ import com.sonatype.insight.brain.lifecycle.Managed;
 
 @Named
 @Singleton
-public class CreateRepositoryPolicyViolationsEventHandler
+public class CreateProxyRepositoryPolicyViolationsEventHandler
     implements Managed
 {
-  private static final Logger log = LoggerFactory.getLogger(CreateRepositoryPolicyViolationsEventHandler.class);
+  private static final Logger log = LoggerFactory.getLogger(CreateProxyRepositoryPolicyViolationsEventHandler.class);
 
   private final AsyncEventBus eventBus;
 
   private final ApiFirewallMetricsService firewallMetricsService;
 
   @Inject
-  public CreateRepositoryPolicyViolationsEventHandler(
+  public CreateProxyRepositoryPolicyViolationsEventHandler(
       AsyncEventBus eventBus,
       ApiFirewallMetricsService firewallMetricsService)
   {
@@ -52,13 +52,13 @@ public class CreateRepositoryPolicyViolationsEventHandler
   }
 
   @Subscribe
-  public void onRepositoryPolicyViolationsCreated(CreateRepositoryPolicyViolationsEvent event) {
+  public void onProxyRepositoryPolicyViolationsCreated(CreateRepositoryPolicyViolationsEvent event) {
     if (!firewallMetricsService.isValidProductLicense()) {
       log.debug("Invalid product license to create Firewall Metrics");
       return;
     }
 
-    if (CollectionUtils.isEmpty(event.repositoryPolicyViolations)) {
+    if (CollectionUtils.isEmpty(event.proxyRepositoryPolicyViolations)) {
       log.debug("No repository policy violations to process");
       return;
     }
@@ -69,8 +69,8 @@ public class CreateRepositoryPolicyViolationsEventHandler
     Map<LocalDate, FirewallMetrics> namespaceAttacksBlockedMetrics = new HashMap<>();
     Map<LocalDate, FirewallMetrics> supplyChainAttacksBlockedMetrics = new HashMap<>();
 
-    for (RepositoryPolicyViolation repositoryPolicyViolation : event.repositoryPolicyViolations) {
-      firewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(repositoryPolicyViolation,
+    for (ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation : event.proxyRepositoryPolicyViolations) {
+      firewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(proxyRepositoryPolicyViolation,
           namespaceAttacksBlockedMetrics, supplyChainAttacksBlockedMetrics);
     }
 

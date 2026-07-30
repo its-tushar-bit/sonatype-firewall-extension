@@ -28,12 +28,12 @@ import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -86,9 +86,9 @@ public class FirewallMetricsMigrator
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
@@ -108,8 +108,8 @@ public class FirewallMetricsMigrator
       ProductLicenseDAO productLicenseDAO,
       ApiFirewallMetricsService apiFirewallMetricsService,
       RepositoryDAO repositoryDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       PolicyWaiverDAO policyWaiverDAO,
       FirewallMetricsDAO firewallMetricsDAO)
   {
@@ -117,8 +117,8 @@ public class FirewallMetricsMigrator
     this.productLicenseDAO = productLicenseDAO;
     this.apiFirewallMetricsService = apiFirewallMetricsService;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.firewallMetricsDAO = firewallMetricsDAO;
   }
@@ -168,22 +168,23 @@ public class FirewallMetricsMigrator
             .min(LocalDate::compareTo)
             .orElse(null);
 
-    List<RepositoryPolicyViolationsMetrics> allMetrics = CompletableFuture.supplyAsync(
+    List<ProxyRepositoryPolicyViolationsMetrics> allMetrics = CompletableFuture.supplyAsync(
         new TenantAwareSupplier<>(() -> repositories.parallelStream()
-            .map(new TenantAwareFunction<Repository, RepositoryPolicyViolationsMetrics>(
-                repository -> processRepositoryPolicyViolations(repository, earliestMetricDate)))
+            .map(new TenantAwareFunction<Repository, ProxyRepositoryPolicyViolationsMetrics>(
+                repository -> processProxyRepositoryPolicyViolations(repository, earliestMetricDate)))
             .collect(toList())),
         ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
 
     List<FirewallMetrics> allNamespaceAttacksBlockedMetrics = new ArrayList<>();
     List<FirewallMetrics> allSupplyChainAttacksBlockedMetrics = new ArrayList<>();
 
-    for (RepositoryPolicyViolationsMetrics repositoryPolicyViolationsMetrics : allMetrics) {
-      if (isNotEmpty(repositoryPolicyViolationsMetrics.namespaceAttacksBlockedMetrics)) {
-        allNamespaceAttacksBlockedMetrics.addAll(repositoryPolicyViolationsMetrics.namespaceAttacksBlockedMetrics);
+    for (ProxyRepositoryPolicyViolationsMetrics proxyRepositoryPolicyViolationsMetrics : allMetrics) {
+      if (isNotEmpty(proxyRepositoryPolicyViolationsMetrics.namespaceAttacksBlockedMetrics)) {
+        allNamespaceAttacksBlockedMetrics.addAll(proxyRepositoryPolicyViolationsMetrics.namespaceAttacksBlockedMetrics);
       }
-      if (isNotEmpty(repositoryPolicyViolationsMetrics.supplyChainAttacksBlockedMetrics)) {
-        allSupplyChainAttacksBlockedMetrics.addAll(repositoryPolicyViolationsMetrics.supplyChainAttacksBlockedMetrics);
+      if (isNotEmpty(proxyRepositoryPolicyViolationsMetrics.supplyChainAttacksBlockedMetrics)) {
+        allSupplyChainAttacksBlockedMetrics
+            .addAll(proxyRepositoryPolicyViolationsMetrics.supplyChainAttacksBlockedMetrics);
       }
     }
 
@@ -194,30 +195,30 @@ public class FirewallMetricsMigrator
         System.currentTimeMillis() - start);
   }
 
-  private RepositoryPolicyViolationsMetrics processRepositoryPolicyViolations(
+  private ProxyRepositoryPolicyViolationsMetrics processProxyRepositoryPolicyViolations(
       Repository repository,
       LocalDate fromDate)
   {
     Map<LocalDate, FirewallMetrics> namespaceAttacksBlockedMetrics = new HashMap<>();
     Map<LocalDate, FirewallMetrics> supplyChainAttacksBlockedMetrics = new HashMap<>();
 
-    try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryPolicyViolationDAO.createTransactionContext()) {
       Date beforeDate = fromDate != null ? toDate(fromDate) : null;
 
       int currentBatch = 0;
-      List<RepositoryPolicyViolation> repositoryPolicyViolations;
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations;
 
       do {
-        repositoryPolicyViolations = repositoryPolicyViolationDAO.getByRepositoryIdPaginated(
+        proxyRepositoryPolicyViolations = proxyRepositoryPolicyViolationDAO.getByRepositoryIdPaginated(
             tx,
             repository.getId(),
             beforeDate,
             currentBatch * repositoryPolicyViolationsBatchSize,
             repositoryPolicyViolationsBatchSize);
-        repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
+        proxyRepositoryPolicyViolationDAO.loadConstraintFacts(proxyRepositoryPolicyViolations);
 
-        for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-          apiFirewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(repositoryPolicyViolation,
+        for (ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation : proxyRepositoryPolicyViolations) {
+          apiFirewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(proxyRepositoryPolicyViolation,
               namespaceAttacksBlockedMetrics, supplyChainAttacksBlockedMetrics);
 
           logProgressIfNeeded(logger -> logger
@@ -227,7 +228,7 @@ public class FirewallMetricsMigrator
 
         currentBatch++;
       }
-      while (isNotEmpty(repositoryPolicyViolations));
+      while (isNotEmpty(proxyRepositoryPolicyViolations));
     }
     catch (Exception e) {
       log.error("Error processing policy violations for repository {}", repository.getId(), e);
@@ -235,7 +236,7 @@ public class FirewallMetricsMigrator
 
     processedRepositories.incrementAndGet();
 
-    RepositoryPolicyViolationsMetrics metrics = new RepositoryPolicyViolationsMetrics();
+    ProxyRepositoryPolicyViolationsMetrics metrics = new ProxyRepositoryPolicyViolationsMetrics();
     metrics.namespaceAttacksBlockedMetrics = namespaceAttacksBlockedMetrics.values();
     metrics.supplyChainAttacksBlockedMetrics = supplyChainAttacksBlockedMetrics.values();
     return metrics;
@@ -258,7 +259,8 @@ public class FirewallMetricsMigrator
               List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
               Map<LocalDate, Long> results =
-                  repositoryComponentDAO.getQuarantinedCountByRepositoryIdAndDate(repository.getId(), twelveMonthsAgo);
+                  proxyRepositoryComponentDAO.getQuarantinedCountByRepositoryIdAndDate(repository.getId(),
+                      twelveMonthsAgo);
 
               for (Entry<LocalDate, Long> entry : results.entrySet()) {
                 repositoryMetrics
@@ -297,7 +299,7 @@ public class FirewallMetricsMigrator
         .map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
           List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
-          Map<LocalDate, Long> results = repositoryComponentDAO
+          Map<LocalDate, Long> results = proxyRepositoryComponentDAO
               .getAutoReleaseQuarantinedCountByRepositoryIdAndDate(repository.getId(), twelveMonthsAgo, false);
 
           for (Entry<LocalDate, Long> entry : results.entrySet()) {
@@ -420,7 +422,7 @@ public class FirewallMetricsMigrator
     }
   }
 
-  private static class RepositoryPolicyViolationsMetrics
+  private static class ProxyRepositoryPolicyViolationsMetrics
   {
     Collection<FirewallMetrics> namespaceAttacksBlockedMetrics;
 

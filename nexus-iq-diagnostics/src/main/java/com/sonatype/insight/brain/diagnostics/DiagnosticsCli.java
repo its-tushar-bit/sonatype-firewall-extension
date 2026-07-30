@@ -160,7 +160,7 @@ public class DiagnosticsCli
     log.info("Row counts:");
     String[] tables = {"organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
       "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "owner_component",
-      "repository_manager", "repository", "repository_component", "repository_policy_violation",
+      "repository_manager", "repository", "proxy_repository_component", "proxy_repository_policy_violation",
       "proprietary_component_name_pattern"};
     for (String table : tables) {
       try (Statement statement = connection.createStatement();
@@ -183,7 +183,7 @@ public class DiagnosticsCli
     log.info("Table sizes:");
     String[] tables = {"organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
       "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "owner_component",
-      "repository_manager", "repository", "repository_component", "repository_policy_violation",
+      "repository_manager", "repository", "proxy_repository_component", "proxy_repository_policy_violation",
       "proprietary_component_name_pattern"};
     for (String table : tables) {
       try (Statement statement = connection.createStatement();

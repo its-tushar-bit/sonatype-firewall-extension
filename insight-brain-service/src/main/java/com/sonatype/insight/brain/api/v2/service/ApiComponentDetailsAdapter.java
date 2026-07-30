@@ -44,14 +44,14 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationReq
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList.ApiRepositoryComponentEvaluationResult;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.utils.RepositoryPathnameSerializer;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -68,23 +68,23 @@ public class ApiComponentDetailsAdapter
 
   private final ApiComponentProjectDetailsAdapter componentProjectDetailsAdapter;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   public ApiComponentDetailsAdapter(
       final ApiLicenseDataAdapter licenseDataAdapter,
       final ApiSecurityDataAdapter securityDataAdapter,
       final ApiComponentProjectDetailsAdapter componentProjectDetailsAdapter,
-      final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO)
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO)
   {
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
     this.componentProjectDetailsAdapter = componentProjectDetailsAdapter;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
   }
 
   public ApiComponentDetailsDTOV2 convertToDTO(final Component component, final Collection<PolicyAlert> policyAlerts) {
@@ -273,21 +273,21 @@ public class ApiComponentDetailsAdapter
         .distinct()
         .collect(Collectors.toList());
 
-    Map<String, RepositoryComponent> componentByPathname = distinctPathnames.isEmpty()
+    Map<String, ProxyRepositoryComponent> componentByPathname = distinctPathnames.isEmpty()
         ? Collections.emptyMap()
-        : repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), distinctPathnames)
+        : proxyRepositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), distinctPathnames)
             .stream()
-            .collect(Collectors.toMap(RepositoryComponent::getPathname, Function.identity(), (a, b) -> a));
+            .collect(Collectors.toMap(ProxyRepositoryComponent::getPathname, Function.identity(), (a, b) -> a));
 
-    List<RepositoryPolicyViolation> allViolations = distinctPathnames.isEmpty()
+    List<ProxyRepositoryPolicyViolation> allViolations = distinctPathnames.isEmpty()
         ? Collections.emptyList()
-        : repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnames(repository.getId(), distinctPathnames);
+        : proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnames(repository.getId(), distinctPathnames);
 
-    Map<String, List<RepositoryPolicyViolation>> violationsByPathname = allViolations.stream()
-        .collect(Collectors.groupingBy(RepositoryPolicyViolation::getPathname));
+    Map<String, List<ProxyRepositoryPolicyViolation>> violationsByPathname = allViolations.stream()
+        .collect(Collectors.groupingBy(ProxyRepositoryPolicyViolation::getPathname));
 
     if (!allViolations.isEmpty()) {
-      repositoryPolicyViolationDAO.loadConstraintFacts(allViolations);
+      proxyRepositoryPolicyViolationDAO.loadConstraintFacts(allViolations);
     }
 
     for (int i = 0; i < evalResults.size(); i++) {
@@ -299,17 +299,17 @@ public class ApiComponentDetailsAdapter
 
       componentEvaluationResult.quarantined = repositoryComponentEvaluationData.quarantine;
       String pathname = pathnamesInOrder.get(i);
-      RepositoryComponent repositoryComponent = pathname == null ? null : componentByPathname.get(pathname);
-      if (repositoryComponent != null) {
-        componentEvaluationResult.quarantineDate = repositoryComponent.getQuarantineTime();
+      ProxyRepositoryComponent proxyRepositoryComponent = pathname == null ? null : componentByPathname.get(pathname);
+      if (proxyRepositoryComponent != null) {
+        componentEvaluationResult.quarantineDate = proxyRepositoryComponent.getQuarantineTime();
       }
       componentEvaluationResult.component = apiRepositoryComponentEvaluationRequest;
       componentEvaluationResult.catalogDate = repositoryComponentEvaluationData.catalogDate;
-      List<RepositoryPolicyViolation> repositoryPolicyViolations = pathname == null
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations = pathname == null
           ? Collections.emptyList()
           : violationsByPathname.getOrDefault(pathname, Collections.emptyList());
       componentEvaluationResult.policyViolations.addAll(
-          repositoryPolicyViolations.stream().map(this::convert).collect(Collectors.toList()));
+          proxyRepositoryPolicyViolations.stream().map(this::convert).collect(Collectors.toList()));
       resultDTO.results.add(componentEvaluationResult);
     }
     return resultDTO;
@@ -325,15 +325,15 @@ public class ApiComponentDetailsAdapter
     return null;
   }
 
-  private ApiPolicyViolationDTOV2 convert(RepositoryPolicyViolation repositoryPolicyViolation) {
+  private ApiPolicyViolationDTOV2 convert(ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation) {
     ApiPolicyViolationDTOV2 dto = new ApiPolicyViolationDTOV2();
-    dto.policyId = repositoryPolicyViolation.getPolicyId();
-    dto.policyName = repositoryPolicyViolation.getPolicyName();
-    dto.policyViolationId = repositoryPolicyViolation.getId();
-    dto.openTime = repositoryPolicyViolation.getOpenTime();
-    dto.waiveTime = repositoryPolicyViolation.getWaiveTime();
-    dto.threatLevel = repositoryPolicyViolation.getThreatLevel();
-    for (ConstraintFact constraintFact : repositoryPolicyViolation.getConstraintFacts()) {
+    dto.policyId = proxyRepositoryPolicyViolation.getPolicyId();
+    dto.policyName = proxyRepositoryPolicyViolation.getPolicyName();
+    dto.policyViolationId = proxyRepositoryPolicyViolation.getId();
+    dto.openTime = proxyRepositoryPolicyViolation.getOpenTime();
+    dto.waiveTime = proxyRepositoryPolicyViolation.getWaiveTime();
+    dto.threatLevel = proxyRepositoryPolicyViolation.getThreatLevel();
+    for (ConstraintFact constraintFact : proxyRepositoryPolicyViolation.getConstraintFacts()) {
       dto.constraintViolations.add(convert(constraintFact));
     }
     return dto;

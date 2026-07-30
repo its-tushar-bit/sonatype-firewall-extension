@@ -24,11 +24,11 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import org.junit.Test;
@@ -44,10 +44,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApiComponentDetailsAdapterBatchDAOTest
 {
   @Mock
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Mock
   private RepositoryManager repositoryManager;
@@ -80,23 +80,23 @@ public class ApiComponentDetailsAdapterBatchDAOTest
       evalDataList.componentEvalResults.add(d);
     }
 
-    when(repositoryComponentDAO.getByRepositoryIdAndPathnames(eq("repo-1"), any()))
-        .thenReturn(Collections.<RepositoryComponent>emptyList());
-    when(repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnames(eq("repo-1"), any()))
-        .thenReturn(Collections.<RepositoryPolicyViolation>emptyList());
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndPathnames(eq("repo-1"), any()))
+        .thenReturn(Collections.<ProxyRepositoryComponent>emptyList());
+    when(proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnames(eq("repo-1"), any()))
+        .thenReturn(Collections.<ProxyRepositoryPolicyViolation>emptyList());
 
     adapter.convertToDTO(repositoryManager, repository, requestList, evalDataList);
 
-    verify(repositoryComponentDAO, times(1)).getByRepositoryIdAndPathnames(eq("repo-1"), any());
-    verify(repositoryComponentDAO, never()).getByRepositoryIdAndPathname(anyString(), anyString());
+    verify(proxyRepositoryComponentDAO, times(1)).getByRepositoryIdAndPathnames(eq("repo-1"), any());
+    verify(proxyRepositoryComponentDAO, never()).getByRepositoryIdAndPathname(anyString(), anyString());
 
-    verify(repositoryPolicyViolationDAO, times(1))
+    verify(proxyRepositoryPolicyViolationDAO, times(1))
         .getActiveByRepositoryIdAndPathnames(eq("repo-1"), any());
-    verify(repositoryPolicyViolationDAO, never())
+    verify(proxyRepositoryPolicyViolationDAO, never())
         .getActiveByRepositoryIdAndPathname(anyString(), anyString());
 
     // With no violations, the adapter must skip loadConstraintFacts entirely.
-    verify(repositoryPolicyViolationDAO, never()).loadConstraintFacts(any());
+    verify(proxyRepositoryPolicyViolationDAO, never()).loadConstraintFacts(any());
   }
 
   @Test
@@ -121,27 +121,27 @@ public class ApiComponentDetailsAdapterBatchDAOTest
       evalDataList.componentEvalResults.add(d);
     }
 
-    List<RepositoryPolicyViolation> violations = Arrays.asList(
+    List<ProxyRepositoryPolicyViolation> violations = Arrays.asList(
         newViolation("/a"),
         newViolation("/b"),
         newViolation("/c"));
 
-    when(repositoryComponentDAO.getByRepositoryIdAndPathnames(eq("repo-1"), any()))
-        .thenReturn(Collections.<RepositoryComponent>emptyList());
-    when(repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnames(eq("repo-1"), any()))
+    when(proxyRepositoryComponentDAO.getByRepositoryIdAndPathnames(eq("repo-1"), any()))
+        .thenReturn(Collections.<ProxyRepositoryComponent>emptyList());
+    when(proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnames(eq("repo-1"), any()))
         .thenReturn(violations);
 
     adapter.convertToDTO(repositoryManager, repository, requestList, evalDataList);
 
     // Locks in the "called exactly once regardless of component count" contract: a regression
     // that moved loadConstraintFacts back into the per-component loop would fail here.
-    verify(repositoryPolicyViolationDAO, times(1)).loadConstraintFacts(any());
+    verify(proxyRepositoryPolicyViolationDAO, times(1)).loadConstraintFacts(any());
   }
 
-  private static RepositoryPolicyViolation newViolation(String pathname) {
-    // Mock rather than instantiate: RepositoryPolicyViolation.getConstraintFacts() throws unless
+  private static ProxyRepositoryPolicyViolation newViolation(String pathname) {
+    // Mock rather than instantiate: ProxyRepositoryPolicyViolation.getConstraintFacts() throws unless
     // loadConstraintFacts() actually populates them, which the mocked DAO does not do here.
-    RepositoryPolicyViolation violation = mock(RepositoryPolicyViolation.class);
+    ProxyRepositoryPolicyViolation violation = mock(ProxyRepositoryPolicyViolation.class);
     when(violation.getPathname()).thenReturn(pathname);
     when(violation.getConstraintFacts()).thenReturn(Collections.emptyList());
     return violation;

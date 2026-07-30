@@ -21,15 +21,15 @@ import com.sonatype.clm.dto.model.component.IntegrityRating;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditi
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -50,16 +50,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutomaticQuarantineReleaseTest
     extends AbstractBrainServiceIntegrationTest
 {
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private AutomaticQuarantineRelease automaticQuarantineRelease;
 
   @Before
   public void setup() {
-    repositoryPolicyViolationDAO = lookup(RepositoryPolicyViolationDAO.class);
-    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    proxyRepositoryPolicyViolationDAO = lookup(ProxyRepositoryPolicyViolationDAO.class);
+    proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
     automaticQuarantineRelease = lookup(AutomaticQuarantineRelease.class);
   }
 
@@ -70,7 +70,7 @@ public class AutomaticQuarantineReleaseTest
     constraint.addCondition(condition);
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity
+    ProxyRepositoryComponent component = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", new Date(), null, new Date());
     tempEntity.newRepositoryPolicyViolation(repository, policy, component.getPathname(),
         component.getComponentIdentifier(), component.getHash());
@@ -80,15 +80,15 @@ public class AutomaticQuarantineReleaseTest
 
     mockFirewallResponse(getFirewallHdsResponse(component, component.getHash(), new IntegrityRating(2, "Pending")));
     automaticQuarantineRelease.run();
-    Date secondCompEvalTime = repositoryComponentDAO.getById(component.getId()).getLastEvaluationTime();
+    Date secondCompEvalTime = proxyRepositoryComponentDAO.getById(component.getId()).getLastEvaluationTime();
     assertThat(assertThat(secondCompEvalTime).isAfter(firstCompEvalTime));
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
 
     mockFirewallResponse(getFirewallHdsResponse(component, component.getHash(), new IntegrityRating(4, "Laggard")));
     automaticQuarantineRelease.run();
-    assertThat(assertThat(repositoryComponentDAO.getById(component.getId()).getLastEvaluationTime()).isAfter(
+    assertThat(assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getLastEvaluationTime()).isAfter(
         secondCompEvalTime));
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
   }
 
   @Test
@@ -104,7 +104,7 @@ public class AutomaticQuarantineReleaseTest
             .minusDays(AutomaticQuarantineRelease.MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED + 1)
             .atZone(ZoneId.systemDefault())
             .toInstant());
-    RepositoryComponent component = tempEntity
+    ProxyRepositoryComponent component = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1", "hash1",
             ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), new Date(), quarantineTime);
     assertThat(component.isQuarantined()).isTrue();
@@ -116,9 +116,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -129,8 +129,9 @@ public class AutomaticQuarantineReleaseTest
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
 
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -140,9 +141,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -157,8 +158,9 @@ public class AutomaticQuarantineReleaseTest
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
 
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -168,9 +170,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(component.getRepositoryId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(component.getRepositoryId())).hasSize(1);
   }
 
   @Test
@@ -185,8 +187,9 @@ public class AutomaticQuarantineReleaseTest
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
 
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -196,9 +199,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(component.getRepositoryId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(component.getRepositoryId())).hasSize(1);
   }
 
   @Test
@@ -208,8 +211,9 @@ public class AutomaticQuarantineReleaseTest
     constraint.addCondition(condition);
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -219,9 +223,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -234,8 +238,9 @@ public class AutomaticQuarantineReleaseTest
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
 
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -245,9 +250,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -260,8 +265,9 @@ public class AutomaticQuarantineReleaseTest
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
 
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -271,8 +277,8 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).isEmpty();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).isEmpty();
   }
 
   @Test
@@ -287,8 +293,9 @@ public class AutomaticQuarantineReleaseTest
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
 
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -298,9 +305,9 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -318,8 +325,9 @@ public class AutomaticQuarantineReleaseTest
     Policy policy2 = createPolicy("policy2", new Stage(ProxyStageType.ID), WarnActionType.ID, constraint2);
 
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy1, component, FailActionType.ID);
@@ -330,8 +338,8 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -344,8 +352,9 @@ public class AutomaticQuarantineReleaseTest
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
 
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), false);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), false);
     assertThat(component.isQuarantined()).isFalse();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -356,8 +365,8 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   @Test
@@ -369,8 +378,9 @@ public class AutomaticQuarantineReleaseTest
     constraint.addCondition(condition);
     Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    ProxyRepositoryComponent component =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+            "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     assertThat(component.isQuarantined()).isTrue();
 
     createPolicyViolation(policy, component, FailActionType.ID);
@@ -379,13 +389,13 @@ public class AutomaticQuarantineReleaseTest
 
     automaticQuarantineRelease.run();
 
-    assertThat(repositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(repositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(proxyRepositoryComponentDAO.getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(1);
   }
 
   private ComponentEvaluationDataList getFirewallHdsResponse(
-      final RepositoryComponent component,
+      final ProxyRepositoryComponent component,
       final String hash,
       final IntegrityRating integrityRating)
   {
@@ -393,7 +403,7 @@ public class AutomaticQuarantineReleaseTest
   }
 
   private ComponentEvaluationDataList getFirewallHdsResponse(
-      final RepositoryComponent component,
+      final ProxyRepositoryComponent component,
       final String hash,
       final HygieneRating hygieneRating)
   {
@@ -401,7 +411,7 @@ public class AutomaticQuarantineReleaseTest
   }
 
   private ComponentEvaluationDataList getFirewallHdsResponse(
-      final RepositoryComponent component,
+      final ProxyRepositoryComponent component,
       final String hash,
       final IntegrityRating integrityRating,
       final HygieneRating hygieneRating)
@@ -422,12 +432,12 @@ public class AutomaticQuarantineReleaseTest
     return hdsResult;
   }
 
-  private RepositoryPolicyViolation createPolicyViolation(
+  private ProxyRepositoryPolicyViolation createPolicyViolation(
       Policy policy,
-      RepositoryComponent component,
+      ProxyRepositoryComponent component,
       String action)
   {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation();
     policyViolation.setRepositoryId(component.getRepositoryId());
     policyViolation.setPathname(component.getPathname());
     policyViolation.setTime(new Date());

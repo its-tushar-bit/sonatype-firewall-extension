@@ -15,8 +15,8 @@ import static com.sonatype.clm.dto.model.policy.Stage.ID_PROXY;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
 import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -108,7 +108,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.test.MailboxTestUtil;
 import com.sonatype.insight.brain.utils.ScanHelper;
@@ -1514,8 +1514,9 @@ public class PolicyEvaluateServiceTest
     assertThat(telemetryDataForContainer.getAttributes())
         .containsKey(REPOSITORY_COMPONENT_TELEMETRY)
         .containsKey(POLICY_VIOLATION_TELEMETRY);
-    RepositoryComponentTelemetry containerTelemetry =
-        (RepositoryComponentTelemetry) telemetryDataForContainer.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    ProxyRepositoryComponentTelemetry containerTelemetry =
+        (ProxyRepositoryComponentTelemetry) telemetryDataForContainer.getAttributes()
+            .get(REPOSITORY_COMPONENT_TELEMETRY);
     assertThat(containerTelemetry.getComponentHash()).isNull();
   }
 

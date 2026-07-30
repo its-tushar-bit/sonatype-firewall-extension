@@ -9,7 +9,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -32,32 +32,35 @@ public class ApiComponentReleaseQuarantineServiceAuthzTest
   public void testReleaseQuarantineWithoutReEval_Authorized() {
     String packageUrl = "pkg:maven/tomcat/catalina@5.5.23?type=jar";
     Repository repository = createRepository();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier(), true);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier(), true);
 
     grantWritePermission(repository.getId());
-    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment");
+    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(proxyRepositoryComponent.getId(), "comment");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testReleaseQuarantineWithoutReEval_Unauthenticated() {
     String packageUrl = "pkg:maven/tomcat/catalina@5.5.23?type=jar";
     Repository repository = createRepository();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier(), true);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier(), true);
 
-    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment");
+    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(proxyRepositoryComponent.getId(), "comment");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testReleaseQuarantineWithoutReEval_Unauthorized() {
     String packageUrl = "pkg:maven/tomcat/catalina@5.5.23?type=jar";
     Repository repository = createRepository();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier(), true);
+    ProxyRepositoryComponent proxyRepositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier(), true);
 
     login();
-    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment");
+    apiComponentReleaseQuarantineService.releaseQuarantineWithoutReEval(proxyRepositoryComponent.getId(), "comment");
   }
 
   private Repository createRepository() {

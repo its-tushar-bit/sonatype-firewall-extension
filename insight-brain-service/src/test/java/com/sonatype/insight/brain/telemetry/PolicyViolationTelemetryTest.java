@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -376,7 +376,7 @@ public class PolicyViolationTelemetryTest
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     constraintFacts.add(constraintFact);
 
-    RepositoryPolicyViolation violation = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation violation = new ProxyRepositoryPolicyViolation();
     violation.setConstraintFacts(constraintFacts);
     violation.setThreatLevel(9);
     violation.setThreatCategory(PolicyThreatCategory.SECURITY);
@@ -397,7 +397,7 @@ public class PolicyViolationTelemetryTest
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     constraintFacts.add(constraintFact);
 
-    RepositoryPolicyViolation violation = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation violation = new ProxyRepositoryPolicyViolation();
     violation.setConstraintFacts(constraintFacts);
     violation.setThreatLevel(5);
     violation.setThreatCategory(PolicyThreatCategory.LICENSE);

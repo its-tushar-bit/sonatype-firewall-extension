@@ -19,8 +19,8 @@ import static org.mockito.Mockito.when;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.Organization;
@@ -28,12 +28,12 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,20 +42,20 @@ import java.util.List;
 import org.junit.Test;
 import org.mockito.Mock;
 
-public class RepositoryComponentDeleteServiceTest
+public class ProxyRepositoryComponentDeleteServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private RepositoryComponentDeleteService repositoryComponentDeleteService;
+  private ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private ComponentLabelDAO componentLabelDAO;
@@ -64,7 +64,7 @@ public class RepositoryComponentDeleteServiceTest
   private HdsClient hdsClientMock;
 
   @Mock
-  private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+  private ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator;
 
   @Test
   public void testDeleteUnknownIgnoredComponents() {
@@ -81,8 +81,8 @@ public class RepositoryComponentDeleteServiceTest
 
     // The following component is unknown and matches the ignore patterns from HDS.
     // The component, all its violations, labels and waivers must be deleted.
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
-    RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component, policy.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
+    ProxyRepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component, policy.getId());
     tempEntity.newWaiver(component.getHash(), policy.getId(), repository.getId());
     tempEntity.newComponentLabel(component, label);
 
@@ -93,12 +93,12 @@ public class RepositoryComponentDeleteServiceTest
     // We do not want to delete any policy violations or waivers that reside in other repositories
     // or unrelated to our unknown component, but reference the same policy.
     Repository repo2 = tempEntity.newRepository("rm2", "r2", repositoryFormat);
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2, "exact/jar", EXACT, "hash2");
-    RepositoryPolicyViolation violation2 = tempEntity.newRepositoryPolicyViolation(component2, policy.getId());
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2, "exact/jar", EXACT, "hash2");
+    ProxyRepositoryPolicyViolation violation2 = tempEntity.newRepositoryPolicyViolation(component2, policy.getId());
     PolicyWaiver waiver2 = tempEntity.newWaiver(component2.getHash(), policy.getId(), repo2.getId());
     ComponentLabel componentLabel2 = tempEntity.newComponentLabel(component2, label);
 
-    repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
+    proxyRepositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     assertThat(reload(component)).isNull();
     assertThat(reload(component2)).isNotNull();
@@ -110,7 +110,7 @@ public class RepositoryComponentDeleteServiceTest
 
     assertThat(getComponentLabelIds(label)).containsOnly(componentLabel1.getId(), componentLabel2.getId());
 
-    verify(repositoryComponentTelemetryCreator)
+    verify(proxyRepositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.DELETE), any(), any());
   }
@@ -127,19 +127,19 @@ public class RepositoryComponentDeleteServiceTest
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/sha", EXACT, "hash");
-    RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component, policy.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/sha", EXACT, "hash");
+    ProxyRepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component, policy.getId());
     PolicyWaiver policyWaiver = tempEntity.newWaiver(component.getHash(), policy.getId(), repository.getId());
     ComponentLabel componentLabel = tempEntity.newComponentLabel(component, label);
 
-    repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
+    proxyRepositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     assertThat(reload(component)).isNotNull();
     assertThat(reload(violation)).isNotNull();
     assertThat(getPolicyWaiverIdsOf(policy)).containsOnly(policyWaiver.getId());
     assertThat(getComponentLabelIds(label)).containsOnly(componentLabel.getId());
 
-    verifyNoInteractions(repositoryComponentTelemetryCreator);
+    verifyNoInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -154,19 +154,19 @@ public class RepositoryComponentDeleteServiceTest
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/jar", UNKNOWN, "hash");
-    RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component, policy.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/jar", UNKNOWN, "hash");
+    ProxyRepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component, policy.getId());
     PolicyWaiver policyWaiver = tempEntity.newWaiver(component.getHash(), policy.getId(), repository.getId());
     ComponentLabel componentLabel = tempEntity.newComponentLabel(component, label);
 
-    repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
+    proxyRepositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     assertThat(reload(component)).isNotNull();
     assertThat(reload(violation)).isNotNull();
     assertThat(getPolicyWaiverIdsOf(policy)).containsOnly(policyWaiver.getId());
     assertThat(getComponentLabelIds(label)).containsOnly(componentLabel.getId());
 
-    verifyNoInteractions(repositoryComponentTelemetryCreator);
+    verifyNoInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -181,19 +181,19 @@ public class RepositoryComponentDeleteServiceTest
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/jar", EXACT, "hash");
-    RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component, policy.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository, "unknown/jar", EXACT, "hash");
+    ProxyRepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component, policy.getId());
     PolicyWaiver policyWaiver = tempEntity.newWaiver(component.getHash(), policy.getId(), repository.getId());
     ComponentLabel componentLabel = tempEntity.newComponentLabel(component, label);
 
-    repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
+    proxyRepositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     assertThat(reload(component)).isNotNull();
     assertThat(reload(violation)).isNotNull();
     assertThat(getPolicyWaiverIdsOf(policy)).containsOnly(policyWaiver.getId());
     assertThat(getComponentLabelIds(label)).containsOnly(componentLabel.getId());
 
-    verifyNoInteractions(repositoryComponentTelemetryCreator);
+    verifyNoInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -210,19 +210,19 @@ public class RepositoryComponentDeleteServiceTest
 
     // The following component is unknown and matches the ignore patterns,
     // but ignore patterns of a different repository format!
-    RepositoryComponent unknownSha = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
-    RepositoryPolicyViolation unknownShaViolation =
+    ProxyRepositoryComponent unknownSha = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
+    ProxyRepositoryPolicyViolation unknownShaViolation =
         tempEntity.newRepositoryPolicyViolation(unknownSha.getRepositoryId(), unknownSha.getPathname());
 
     // Action
     // This repository has no matching ignore patterns
-    repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
+    proxyRepositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     // Assertions
-    assertThat(repositoryComponentDAO.getById(unknownSha.getId())).isNotNull();
-    assertThat(repositoryPolicyViolationDAO.getById(unknownShaViolation.getId())).isNotNull();
+    assertThat(proxyRepositoryComponentDAO.getById(unknownSha.getId())).isNotNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getById(unknownShaViolation.getId())).isNotNull();
 
-    verifyNoInteractions(repositoryComponentTelemetryCreator);
+    verifyNoInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -237,18 +237,18 @@ public class RepositoryComponentDeleteServiceTest
         .thenReturn(hdsResult);
 
     // For this repository format, there are no ignore patterns.
-    RepositoryComponent unknownSha = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
-    RepositoryPolicyViolation unknownShaViolation =
+    ProxyRepositoryComponent unknownSha = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
+    ProxyRepositoryPolicyViolation unknownShaViolation =
         tempEntity.newRepositoryPolicyViolation(unknownSha.getRepositoryId(), unknownSha.getPathname());
 
     // Action
-    repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
+    proxyRepositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     // Assertions
-    assertThat(repositoryComponentDAO.getById(unknownSha.getId())).isNotNull();
-    assertThat(repositoryPolicyViolationDAO.getById(unknownShaViolation.getId())).isNotNull();
+    assertThat(proxyRepositoryComponentDAO.getById(unknownSha.getId())).isNotNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getById(unknownShaViolation.getId())).isNotNull();
 
-    verifyNoInteractions(repositoryComponentTelemetryCreator);
+    verifyNoInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -261,18 +261,18 @@ public class RepositoryComponentDeleteServiceTest
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
-    RepositoryComponent unknownSha = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
-    RepositoryPolicyViolation unknownShaViolation =
+    ProxyRepositoryComponent unknownSha = tempEntity.newRepositoryComponent(repository, "unknown/sha", UNKNOWN, "hash");
+    ProxyRepositoryPolicyViolation unknownShaViolation =
         tempEntity.newRepositoryPolicyViolation(unknownSha.getRepositoryId(), unknownSha.getPathname());
 
     // Action
-    repositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
+    proxyRepositoryComponentDeleteService.deleteUnknownIgnoredComponents(repository);
 
     // Assertions
     assertThat(reload(unknownSha)).isNotNull();
     assertThat(reload(unknownShaViolation)).isNotNull();
 
-    verifyNoInteractions(repositoryComponentTelemetryCreator);
+    verifyNoInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -282,28 +282,28 @@ public class RepositoryComponentDeleteServiceTest
     Repository repository = tempEntity.newRepository("rm1", "r1", repositoryFormat);
     Policy policy = tempEntity.newPolicy();
 
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "pathname", UNKNOWN, "hash");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository, "pathname", UNKNOWN, "hash");
     tempEntity.newRepositoryPolicyViolation(component, policy.getId());
 
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository, "pathname2", EXACT, "hash2");
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repository, "pathname2", EXACT, "hash2");
 
     // when: a components are deleted
-    repositoryComponentDeleteService.deleteComponent(component);
-    repositoryComponentDeleteService.deleteComponent(component2);
+    proxyRepositoryComponentDeleteService.deleteComponent(component);
+    proxyRepositoryComponentDeleteService.deleteComponent(component2);
 
     // then: telemetry is only sent for components with violations
-    verify(repositoryComponentTelemetryCreator)
+    verify(proxyRepositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
             eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.DELETE), any(), any());
-    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+    verifyNoMoreInteractions(proxyRepositoryComponentTelemetryCreator);
   }
 
-  private RepositoryComponent reload(RepositoryComponent repositoryComponent) {
-    return repositoryComponentDAO.getById(repositoryComponent.getId());
+  private ProxyRepositoryComponent reload(ProxyRepositoryComponent proxyRepositoryComponent) {
+    return proxyRepositoryComponentDAO.getById(proxyRepositoryComponent.getId());
   }
 
-  private RepositoryPolicyViolation reload(RepositoryPolicyViolation policyViolation) {
-    return repositoryPolicyViolationDAO.getById(policyViolation.getId());
+  private ProxyRepositoryPolicyViolation reload(ProxyRepositoryPolicyViolation policyViolation) {
+    return proxyRepositoryPolicyViolationDAO.getById(policyViolation.getId());
   }
 
   private List<String> getPolicyWaiverIdsOf(Policy policy) {

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.policy.violation;
 import java.util.Date;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -17,14 +17,14 @@ import com.sonatype.insight.brain.security.CurrentUser;
 /**
  * @since 1.60
  */
-public class RepositoryPolicyViolationLogger
-    extends AbstractPolicyViolationLogger<RepositoryPolicyViolation>
+public class ProxyRepositoryPolicyViolationLogger
+    extends AbstractPolicyViolationLogger<ProxyRepositoryPolicyViolation>
 {
   private final Repository repository;
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
-  public RepositoryPolicyViolationLogger(
+  public ProxyRepositoryPolicyViolationLogger(
       boolean licensed,
       Date logTimestamp,
       Repository repository,
@@ -38,7 +38,7 @@ public class RepositoryPolicyViolationLogger
 
   @Override
   protected PolicyViolationLogDTO createPolicyViolationLogDTO(
-      PolicyViolationData<RepositoryPolicyViolation> policyViolationData)
+      PolicyViolationData<ProxyRepositoryPolicyViolation> policyViolationData)
   {
     PolicyViolationLogDTO policyViolationLogDTO = super.createPolicyViolationLogDTO(policyViolationData);
 
@@ -57,7 +57,7 @@ public class RepositoryPolicyViolationLogger
   @Override
   protected boolean shouldIncludeStagePolicyAction(
       PolicyViolationLogEvent policyViolationLogEvent,
-      RepositoryPolicyViolation policyViolation)
+      ProxyRepositoryPolicyViolation policyViolation)
   {
     return super.shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation) &&
         !policyViolation.isWaived();

@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -424,14 +424,14 @@ public class SupportInfoFilesTest
   @Test
   public void shouldProvideComponentsInQuarantine() throws IOException {
     // Given
-    RepositoryComponent repositoryComponent1 = new RepositoryComponent();
+    ProxyRepositoryComponent repositoryComponent1 = new ProxyRepositoryComponent();
     repositoryComponent1.setQuarantineTime(new Date());
     repositoryComponent1.setUnquarantineTimeForManualRelease(null);
-    RepositoryComponent repositoryComponent2 = new RepositoryComponent();
+    ProxyRepositoryComponent repositoryComponent2 = new ProxyRepositoryComponent();
     repositoryComponent2.setQuarantineTime(new Date());
     repositoryComponent2.setUnquarantineTimeForManualRelease(null);
 
-    List<RepositoryComponent> quarantinedComponents = Arrays.asList(repositoryComponent1, repositoryComponent2);
+    List<ProxyRepositoryComponent> quarantinedComponents = Arrays.asList(repositoryComponent1, repositoryComponent2);
     Map<String, Object> expectedQuarantinedComponents = new HashMap<>();
     expectedQuarantinedComponents.put("quarantinedComponent", quarantinedComponents);
 

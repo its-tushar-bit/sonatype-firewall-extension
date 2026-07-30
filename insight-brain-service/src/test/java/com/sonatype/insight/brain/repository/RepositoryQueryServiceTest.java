@@ -106,13 +106,13 @@ public class RepositoryQueryServiceTest
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     Map<String, String> params =
         ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
-    RepositoryComponentResult c1 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
-    RepositoryComponentResult c2 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
-    RepositoryComponentResult c3 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
-    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    ProxyRepositoryComponentResult c1 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    ProxyRepositoryComponentResult c2 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    ProxyRepositoryComponentResult c3 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<ProxyRepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
@@ -176,13 +176,13 @@ public class RepositoryQueryServiceTest
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     Map<String, String> params =
         ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
-    RepositoryComponentResult c1 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
-    RepositoryComponentResult c2 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
-    RepositoryComponentResult c3 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
-    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    ProxyRepositoryComponentResult c1 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    ProxyRepositoryComponentResult c2 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    ProxyRepositoryComponentResult c3 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<ProxyRepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
@@ -211,13 +211,13 @@ public class RepositoryQueryServiceTest
     lenient().when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     Map<String, String> params =
         ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
-    RepositoryComponentResult c1 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
-    RepositoryComponentResult c2 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
-    RepositoryComponentResult c3 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
-    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    ProxyRepositoryComponentResult c1 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    ProxyRepositoryComponentResult c2 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    ProxyRepositoryComponentResult c3 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<ProxyRepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     lenient().when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
@@ -245,13 +245,13 @@ public class RepositoryQueryServiceTest
     lenient().when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     Map<String, String> params =
         ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
-    RepositoryComponentResult c1 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
-    RepositoryComponentResult c2 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
-    RepositoryComponentResult c3 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
-    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    ProxyRepositoryComponentResult c1 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    ProxyRepositoryComponentResult c2 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    ProxyRepositoryComponentResult c3 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<ProxyRepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     lenient().when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
@@ -272,13 +272,13 @@ public class RepositoryQueryServiceTest
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     Map<String, String> params =
         ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
-    RepositoryComponentResult c1 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
-    RepositoryComponentResult c2 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
-    RepositoryComponentResult c3 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
-    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    ProxyRepositoryComponentResult c1 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    ProxyRepositoryComponentResult c2 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    ProxyRepositoryComponentResult c3 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<ProxyRepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
@@ -318,13 +318,13 @@ public class RepositoryQueryServiceTest
     when(clientFactory.create()).thenReturn(mockBuilder);
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     Map<String, String> params = ImmutableMap.of("name", "p1");
-    RepositoryComponentResult c1 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
-    RepositoryComponentResult c2 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
-    RepositoryComponentResult c3 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
-    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    ProxyRepositoryComponentResult c1 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    ProxyRepositoryComponentResult c2 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    ProxyRepositoryComponentResult c3 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<ProxyRepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
@@ -346,13 +346,13 @@ public class RepositoryQueryServiceTest
     when(clientFactory.create()).thenReturn(mockBuilder);
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     Map<String, String> params = ImmutableMap.of("name", "p1");
-    RepositoryComponentResult c1 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
-    RepositoryComponentResult c2 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
-    RepositoryComponentResult c3 =
-        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
-    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    ProxyRepositoryComponentResult c1 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    ProxyRepositoryComponentResult c2 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    ProxyRepositoryComponentResult c3 =
+        new ProxyRepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<ProxyRepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 

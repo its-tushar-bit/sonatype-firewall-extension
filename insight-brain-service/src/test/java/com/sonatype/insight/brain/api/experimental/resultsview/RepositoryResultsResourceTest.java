@@ -15,9 +15,9 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -36,20 +36,20 @@ public class RepositoryResultsResourceTest
     DateTime now = DateTime.now();
     final RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
     final Repository repository1 = tempEntity.newRepository(repositoryManager1, "repository1");
-    final RepositoryComponent repositoryComponent1 =
+    final ProxyRepositoryComponent repositoryComponent1 =
         tempEntity.newRepositoryComponent(repository1.getId(), "pathname1", now.minusDays(2).toDate(), null);
-    final RepositoryPolicyViolation policyViolation1 =
+    final ProxyRepositoryPolicyViolation policyViolation1 =
         tempEntity.newRepositoryPolicyViolation(repository1.getId(), repositoryComponent1.getPathname());
     final RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
     final Repository repository2 = tempEntity.newRepository(repositoryManager2, "repository2");
-    final RepositoryComponent repositoryComponent2 =
+    final ProxyRepositoryComponent repositoryComponent2 =
         tempEntity.newRepositoryComponent(repository2.getId(), "pathname2", now.minusDays(1).toDate(), null);
-    final RepositoryPolicyViolation policyViolation2 =
+    final ProxyRepositoryPolicyViolation policyViolation2 =
         tempEntity.newRepositoryPolicyViolation(repository2.getId(), repositoryComponent2.getPathname());
     final Repository repository3 = tempEntity.newRepository(repositoryManager2, "repository3");
-    final RepositoryComponent repositoryComponent3 =
+    final ProxyRepositoryComponent repositoryComponent3 =
         tempEntity.newRepositoryComponent(repository3.getId(), "pathname3", now.toDate(), null);
-    final RepositoryPolicyViolation policyViolation3 =
+    final ProxyRepositoryPolicyViolation policyViolation3 =
         tempEntity.newRepositoryPolicyViolation(repository3.getId(), repositoryComponent3.getPathname());
 
     SortField sortField = new SortField();

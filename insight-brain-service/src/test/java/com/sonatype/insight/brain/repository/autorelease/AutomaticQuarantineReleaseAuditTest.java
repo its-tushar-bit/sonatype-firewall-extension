@@ -30,12 +30,12 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -54,7 +54,7 @@ public class AutomaticQuarantineReleaseAuditTest
 
   private Repository repository;
 
-  private RepositoryComponent component;
+  private ProxyRepositoryComponent component;
 
   @Before
   public void setup() {
@@ -136,7 +136,7 @@ public class AutomaticQuarantineReleaseAuditTest
   }
 
   private ComponentEvaluationDataList getFirewallHdsResponse(
-      final RepositoryComponent component,
+      final ProxyRepositoryComponent component,
       final String hash,
       final IntegrityRating integrityRating)
   {
@@ -169,8 +169,8 @@ public class AutomaticQuarantineReleaseAuditTest
     return tempEntity.newPolicy(policy);
   }
 
-  private RepositoryPolicyViolation createPolicyViolationFail(Policy policy, RepositoryComponent component) {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
+  private ProxyRepositoryPolicyViolation createPolicyViolationFail(Policy policy, ProxyRepositoryComponent component) {
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation();
     policyViolation.setRepositoryId(component.getRepositoryId());
     policyViolation.setPathname(component.getPathname());
     policyViolation.setTime(new Date());

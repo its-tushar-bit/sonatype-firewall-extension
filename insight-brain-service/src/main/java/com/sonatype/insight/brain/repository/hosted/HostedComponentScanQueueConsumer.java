@@ -40,16 +40,16 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
@@ -135,7 +135,7 @@ public class HostedComponentScanQueueConsumer
    * <b>Pub (Dart/Flutter)</b> packages ship {@code pubspec.yaml} declaring their dependencies.
    * For {@code vulnerable_test 1.0.0.tar.gz} the LC application path surfaces 5 components
    * (vulnerable_test + archive + http + http_parser + path); without this carveout the
-   * hosted gate stamps {@code componentCount = 1} while {@code repository_policy_violation}
+   * hosted gate stamps {@code componentCount = 1} while {@code proxy_repository_policy_violation}
    * still holds the inner rows — producing an internal inconsistency where the header pill
    * reads "1 COMPONENT" but the body table shows 5 rows.
    * <p>
@@ -172,7 +172,7 @@ public class HostedComponentScanQueueConsumer
    * truth — i.e. the manifest inside the archive (go.mod for go, pubspec.yaml for pub) is
    * what LC's iq-cli / Evaluate File path uses to identify transitive components, not a
    * "drop these" hint. For these formats the {@code dependency:}-prefixed pathname filter is
-   * bypassed so the mirrored {@code repository_policy_violation} rows and the stamped
+   * bypassed so the mirrored {@code proxy_repository_policy_violation} rows and the stamped
    * {@code component_count} match the LC application report.
    * <p>
    * Default for any format NOT in this set: the filter applies (manifest-derived entries are
@@ -215,9 +215,9 @@ public class HostedComponentScanQueueConsumer
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider;
 
@@ -251,8 +251,8 @@ public class HostedComponentScanQueueConsumer
       final Provider<ScanPersistenceService> scanPersistenceServiceProvider,
       final Provider<ScanUploader> scanUploaderProvider,
       final RepositoryDAO repositoryDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider,
       final ApplicationForHostedRepositoryComponentService applicationForHostedComponentService,
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -272,8 +272,8 @@ public class HostedComponentScanQueueConsumer
     this.scanPersistenceServiceProvider = scanPersistenceServiceProvider;
     this.scanUploaderProvider = scanUploaderProvider;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.repositoryPolicyEvaluatorProvider = repositoryPolicyEvaluatorProvider;
     this.applicationForHostedComponentService = applicationForHostedComponentService;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -360,11 +360,11 @@ public class HostedComponentScanQueueConsumer
     // entry; for an archive-of-archives upload (e.g. a .zip containing multiple .jar files) it's
     // one entry per inner artifact. The first <dir> is always the outer artifact (the thing the
     // user uploaded); any subsequent <dir>s are inner artifacts the scanner discovered inside it.
-    // We process the outer artifact as the single repository_component row (so the Components page
+    // We process the outer artifact as the single proxy_repository_component row (so the Components page
     // shows one row per uploaded artifact) but pass ALL components — outer + inners — into the
     // policy evaluator so violations get persisted for every inner pathname too. Inner-pathname
-    // repository_component rows are deleted post-eval so the Components page stays clean; the
-    // inner-pathname repository_policy_violation rows survive and feed the synthesised
+    // proxy_repository_component rows are deleted post-eval so the Components page stays clean; the
+    // inner-pathname proxy_repository_policy_violation rows survive and feed the synthesised
     // policythreats.json so drilling into the outer's report shows per-inner findings.
     List<ScanComponentInfo> componentInfos = ScanXmlParser.extractComponentInfos(scanEntity);
     // Visibility for outsized archives: a normal hosted upload produces a handful of inner
@@ -429,8 +429,8 @@ public class HostedComponentScanQueueConsumer
     }
 
     // Evaluate ALL components (outer + every inner) in a single request. The evaluator persists
-    // one repository_component row + one batch of repository_policy_violation rows per request
-    // entry. We delete the inner repository_component rows immediately afterwards (see below) so
+    // one proxy_repository_component row + one batch of proxy_repository_policy_violation rows per request
+    // entry. We delete the inner proxy_repository_component rows immediately afterwards (see below) so
     // the Components page only ever shows the outer artifact.
     evaluatePolicies(job, repositoryId, componentInfos, stage);
 
@@ -452,7 +452,7 @@ public class HostedComponentScanQueueConsumer
     // CLM-40943: Nested-component policy violations via ScanPolicyEvaluator + mirror.
     //
     // The repository-evaluation pipeline (evaluatePolicies above) only writes a single
-    // repository_policy_violation row for the outer artifact, because the scanner emits a
+    // proxy_repository_policy_violation row for the outer artifact, because the scanner emits a
     // single <dir> for archives whose container format it cannot crack natively (npm .tgz,
     // pypi sdist/wheel, helm charts, go module zips, etc.) and HDS's firewall purpose returns
     // only outer-scope match data.
@@ -461,11 +461,11 @@ public class HostedComponentScanQueueConsumer
     // runs full Drools policy evaluation against every component HDS identified in bom.json
     // (outer + every nested), producing one policy_violation row per (component × policy).
     // Hosted-repo doesn't normally invoke that path because its persistence boundary is
-    // repository_policy_violation, not policy_violation.
+    // proxy_repository_policy_violation, not policy_violation.
     //
     // Solution: invoke ScanPolicyEvaluator on the synthetic application IQ already created
     // for this hosted upload — same Drools logic that runs for "Evaluate a binary" in the UI —
-    // then mirror each resulting policy_violation row into repository_policy_violation,
+    // then mirror each resulting policy_violation row into proxy_repository_policy_violation,
     // skipping the row that corresponds to the outer (evaluatePolicies already handled that
     // and the existing data is the source of truth for quarantine + firewall behaviour).
     //
@@ -515,7 +515,7 @@ public class HostedComponentScanQueueConsumer
   }
 
   /**
-   * Returns the authoritative {@code repository_component.component_count} for the outer artifact
+   * Returns the authoritative {@code proxy_repository_component.component_count} for the outer artifact
    * — the value the Hosted Repository UI header displays as "N COMPONENTS". Used by telemetry
    * to keep {@code number_of_components} attribute in lockstep with what users see in the report.
    * <p>
@@ -531,7 +531,7 @@ public class HostedComponentScanQueueConsumer
       final int fallbackCount)
   {
     try {
-      RepositoryComponent row = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
+      ProxyRepositoryComponent row = proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
       if (row != null && row.getComponentCount() != null) {
         return row.getComponentCount();
       }
@@ -544,7 +544,7 @@ public class HostedComponentScanQueueConsumer
   }
 
   /**
-   * Eagerly raises {@code component_count} on the outer artifact's {@code repository_component}
+   * Eagerly raises {@code component_count} on the outer artifact's {@code proxy_repository_component}
    * row to the scanner's {@code componentInfos.size()} — but ONLY if that value is higher than
    * whatever is already stored (or the column is NULL). The same atomic-monotonic semantics that
    * {@code saveReportFiles}'s HDS-bom refinement uses, applied here too: this means a re-scan
@@ -557,9 +557,9 @@ public class HostedComponentScanQueueConsumer
       final String pathname,
       final int count)
   {
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.raiseComponentCountIfHigher(tx, repositoryId, pathname, count);
+      proxyRepositoryComponentDAO.raiseComponentCountIfHigher(tx, repositoryId, pathname, count);
       tx.commit();
     }
     catch (Exception e) {
@@ -578,9 +578,9 @@ public class HostedComponentScanQueueConsumer
       final String pathname,
       final int count)
   {
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.stampComponentCount(tx, repositoryId, pathname, count);
+      proxyRepositoryComponentDAO.stampComponentCount(tx, repositoryId, pathname, count);
       tx.commit();
     }
     catch (Exception e) {
@@ -733,15 +733,15 @@ public class HostedComponentScanQueueConsumer
       // Save policythreats.json only — HDS data.json has the real totalArtifactCount
       // (number of internal components found inside the artifact). Overriding it with
       // our generated version (hardcoded to 1) would mask the true component count.
-      RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
+      ProxyRepositoryComponent comp = proxyRepositoryComponentDAO.getByScanId(scanId);
       // For an archive-of-archives upload the evaluator persisted N policy_violation rows: one
       // batch keyed on the outer pathname (outer.zip) plus one batch per inner pathname
       // (outer.zip!/inner.jar). The Components page only shows the outer row, so the synthesised
       // policythreats.json that backs the outer's report must include violations from BOTH the
       // outer pathname AND any inner pathname under it.
-      List<RepositoryPolicyViolation> violations = List.of();
+      List<ProxyRepositoryPolicyViolation> violations = List.of();
       if (comp != null && comp.getPathname() != null) {
-        violations = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
+        violations = proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
             comp.getRepositoryId(), comp.getPathname());
         Repository repositoryForFormat = repositoryDAO.getById(comp.getRepositoryId());
         String repoFormatForOuterFilter =
@@ -752,7 +752,7 @@ public class HostedComponentScanQueueConsumer
       }
       // CLM-40943: extract bom.json's outer hash so policythreats.json + data.json use the same
       // hash bom.json carries for the outer entry. For npm/nuget/pub formats the file SHA1 (which
-      // is what RepositoryPolicyViolation.hash stores) differs from HDS's identification hash
+      // is what ProxyRepositoryPolicyViolation.hash stores) differs from HDS's identification hash
       // (what bom.json carries), and the LC Application Report body table joins on bom's hash.
       // Without aligning, the body shows the outer with zero violations attached even when the
       // pill header reports many. Formats whose file SHA1 already equals HDS's hash (maven, pypi,
@@ -855,9 +855,9 @@ public class HostedComponentScanQueueConsumer
             JsonNode totalNode = dataJson.path("totalArtifactCount");
             if (totalNode.isNumber() && totalNode.asInt() >= 0) {
               int hdsCount = totalNode.asInt();
-              try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+              try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
                 tx.begin();
-                repositoryComponentDAO.stampComponentCount(
+                proxyRepositoryComponentDAO.stampComponentCount(
                     tx, comp.getRepositoryId(), comp.getPathname(), hdsCount);
                 tx.commit();
               }
@@ -899,7 +899,7 @@ public class HostedComponentScanQueueConsumer
    * would otherwise leave HDS's pre-collapse counts intact.
    * <p>
    * <b>Sequencing contract:</b> caller must have committed the inner-pathname
-   * {@code repository_policy_violation} cleanup transaction before invoking this method —
+   * {@code proxy_repository_policy_violation} cleanup transaction before invoking this method —
    * otherwise the outer-only read below would still see the pre-cleanup rows.
    */
   private void rebuildPolicyThreatsAfterCollapse(
@@ -909,15 +909,15 @@ public class HostedComponentScanQueueConsumer
       final String outerPathname,
       final int knownArtifactCount) throws Exception
   {
-    RepositoryComponent outerComp =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, outerPathname);
+    ProxyRepositoryComponent outerComp =
+        proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, outerPathname);
     if (outerComp == null || outerComp.getPathname() == null) {
-      log.warn("Cannot rebuild policythreats.json for collapse gate — no repository_component row for "
+      log.warn("Cannot rebuild policythreats.json for collapse gate — no proxy_repository_component row for "
           + "repositoryId={} outerPathname={}; drill-in report may show pre-collapse rows",
           repositoryId, outerPathname);
       return;
     }
-    List<RepositoryPolicyViolation> outerViolations = repositoryPolicyViolationDAO
+    List<ProxyRepositoryPolicyViolation> outerViolations = proxyRepositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repositoryId, outerComp.getPathname());
     Repository repositoryForFormat = repositoryDAO.getById(repositoryId);
     String repoFormatForOuterFilter = repositoryForFormat != null ? repositoryForFormat.getFormat() : null;
@@ -1094,14 +1094,14 @@ public class HostedComponentScanQueueConsumer
   /**
    * CLM-40943: extract the outer artifact's hash from bom.json's first {@code aaData[]} entry.
    * That hash is HDS's identification hash for the outer component, which for npm/nuget/pub
-   * formats differs from the file SHA1 stored on {@code repository_policy_violation.hash}. We
+   * formats differs from the file SHA1 stored on {@code proxy_repository_policy_violation.hash}. We
    * thread it through to {@link HostedReportFileBuilder} so the synthesised
    * {@code policythreats.json} (and the patched {@code data.json} policy counts) carry the
    * same hash bom.json carries — that's the key the LC Application Report body joins on.
    * <p>
    * Returns {@code null} when bom is null/unparseable or has no {@code aaData[0].hash} —
    * fail-soft so the call site falls back to today's behaviour (use
-   * {@code RepositoryPolicyViolation.hash}) for any format we haven't accounted for.
+   * {@code ProxyRepositoryPolicyViolation.hash}) for any format we haven't accounted for.
    */
   static String extractBomOuterHash(final byte[] patchedBom) {
     if (patchedBom == null || patchedBom.length == 0) {
@@ -1317,9 +1317,9 @@ public class HostedComponentScanQueueConsumer
   }
 
   private void stampStage(final String repositoryId, final String pathname, final String stage) {
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.stampLastEvaluationStage(tx, repositoryId, pathname, stage);
+      proxyRepositoryComponentDAO.stampLastEvaluationStage(tx, repositoryId, pathname, stage);
       tx.commit();
     }
     catch (Exception e) {
@@ -1328,9 +1328,9 @@ public class HostedComponentScanQueueConsumer
   }
 
   private void stampScanId(final String repositoryId, final String pathname, final String scanId) {
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.stampScanId(tx, repositoryId, pathname, scanId);
+      proxyRepositoryComponentDAO.stampScanId(tx, repositoryId, pathname, scanId);
       tx.commit();
     }
     catch (Exception e) {
@@ -1368,8 +1368,8 @@ public class HostedComponentScanQueueConsumer
 
     // Stamp NXRM componentId on the outer pathname AND on every inner-pathname violation row
     // (outer.zip!/inner.jar) the evaluator just persisted. The Components page is keyed on the
-    // outer (we delete the inner repository_component rows next), but downstream code that
-    // joins on repository_policy_violation.component_id — waivers-by-component, quarantine-by-
+    // outer (we delete the inner proxy_repository_component rows next), but downstream code that
+    // joins on proxy_repository_policy_violation.component_id — waivers-by-component, quarantine-by-
     // component — needs the column populated on the inner rows too. Skipping this would create
     // a silent gap where component-keyed waivers don't match inner-artifact violations.
     if (job.getComponentId() != null && !componentInfos.isEmpty()) {
@@ -1382,11 +1382,11 @@ public class HostedComponentScanQueueConsumer
    * Drive nested-component policy violations via {@link ScanPolicyEvaluator} (the Lifecycle
    * "Evaluate a binary" path) on the synthetic application IQ already created for this hosted
    * upload, then mirror the resulting {@code policy_violation} rows into
-   * {@code repository_policy_violation} so the existing repository-side UI, queries, and
+   * {@code proxy_repository_policy_violation} so the existing repository-side UI, queries, and
    * report-building code paths see per-inner findings.
    * <p>
    * <b>Why:</b> the repository-evaluation pipeline (called by {@link #evaluatePolicies}) only
-   * writes a single {@code repository_policy_violation} row for the outer artifact, because the
+   * writes a single {@code proxy_repository_policy_violation} row for the outer artifact, because the
    * scanner emits a single {@code
    *
   <dir>
@@ -1397,7 +1397,7 @@ public class HostedComponentScanQueueConsumer
    * evaluation against every component HDS identified in bom.json (outer + every nested),
    * producing one {@code policy_violation} row per (component × policy). Hosted-repo doesn't
    * normally invoke that path because its persistence boundary is
-   * {@code repository_policy_violation}, not {@code policy_violation}.
+   * {@code proxy_repository_policy_violation}, not {@code policy_violation}.
    * <p>
    * <b>What this does:</b>
    * <ol>
@@ -1407,8 +1407,8 @@ public class HostedComponentScanQueueConsumer
    * <li>Read back the {@code policy_violation} rows by (application_id, stage_type_id).</li>
    * <li>For each row whose component hash is NOT the outer's hash (the outer is already
    * handled by {@link #evaluatePolicies} above; double-writing would create duplicate
-   * {@code repository_policy_violation} rows under different pathnames), build a synthetic
-   * {@code outer!/coords} pathname and insert into {@code repository_policy_violation} with
+   * {@code proxy_repository_policy_violation} rows under different pathnames), build a synthetic
+   * {@code outer!/coords} pathname and insert into {@code proxy_repository_policy_violation} with
    * the policy fields copied verbatim — same policyId, policyName, threatLevel,
    * threatCategory, hash, componentIdentifier, constraintFacts.</li>
    * </ol>
@@ -1469,12 +1469,12 @@ public class HostedComponentScanQueueConsumer
       // outer would otherwise expand the archive's full dependency tree — manifest entries
       // (Gemfile.lock, requirements.txt), declared transitive gems, etc. — and Drools would
       // produce one policy_violation row per (component × policy) for the entire tree, then
-      // we'd mirror them into repository_policy_violation and the drill-in Build Report
+      // we'd mirror them into proxy_repository_policy_violation and the drill-in Build Report
       // would show "178 VIOLATIONS Affecting 32 components" for what iq-cli reports as
       // "4 violations, 1 component".
       //
       // RepositoryPolicyEvaluator (run earlier in executeJob) already populated
-      // repository_component.match_state_id with HDS's identification verdict for the outer.
+      // proxy_repository_component.match_state_id with HDS's identification verdict for the outer.
       // We read it here without re-running the evaluator. UNKNOWN means HDS couldn't
       // identify the outer (a proprietary archive, a maven fat-jar of jars, an internal
       // package) — in that case drill-down is the right behaviour: invoke
@@ -1488,8 +1488,8 @@ public class HostedComponentScanQueueConsumer
       // components) are handled symmetrically: drill or skip purely on the outer's verdict.
       // Ross retracted the deeper "stop at first known component" rule pending HDS-side
       // discussion (Slack 2026-06-26 22:29), so we keep this simple one-level decision.
-      RepositoryComponent outerRow =
-          repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, outerPathname);
+      ProxyRepositoryComponent outerRow =
+          proxyRepositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, outerPathname);
       boolean outerIdentified = outerRow != null
           && outerRow.getMatchStateId() != null
           && !MatchState.UNKNOWN.getId().equalsIgnoreCase(outerRow.getMatchStateId());
@@ -1559,17 +1559,17 @@ public class HostedComponentScanQueueConsumer
         }
 
         // Idempotent cleanup: delete any stale inner-pathname rows a prior run (or earlier
-        // version of this code) left in repository_policy_violation. The outer's own row
+        // version of this code) left in proxy_repository_policy_violation. The outer's own row
         // (no "!/" in pathname) is owned by RepositoryPolicyEvaluator and stays.
-        try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
+        try (TransactionContext tx = proxyRepositoryPolicyViolationDAO.createTransactionContext()) {
           tx.begin();
-          List<RepositoryPolicyViolation> existingForOuter = repositoryPolicyViolationDAO
+          List<ProxyRepositoryPolicyViolation> existingForOuter = proxyRepositoryPolicyViolationDAO
               .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repositoryId, outerPathname);
           int deleted = 0;
-          for (RepositoryPolicyViolation existing : existingForOuter) {
+          for (ProxyRepositoryPolicyViolation existing : existingForOuter) {
             String existingPathname = existing.getPathname();
             if (existingPathname != null && existingPathname.contains("!/")) {
-              repositoryPolicyViolationDAO.delete(tx, existing);
+              proxyRepositoryPolicyViolationDAO.delete(tx, existing);
               deleted++;
             }
           }
@@ -1642,7 +1642,7 @@ public class HostedComponentScanQueueConsumer
       // load their constraint_facts. PolicyViolationDAO returns rows with constraintFacts
       // unloaded (lazy by default for perf — most callers don't need them); calling
       // getConstraintFacts() on an unloaded row throws IllegalStateException with a message
-      // that names the DAO method to fix it. We DO need them: the RepositoryPolicyViolation
+      // that names the DAO method to fix it. We DO need them: the ProxyRepositoryPolicyViolation
       // constructor requires non-null/non-empty constraintFacts (see AbstractPolicyViolation
       // line ~173) because that's the source of truth for which CVE / license rule actually
       // matched. Loading them in one batch call is the standard pattern (see
@@ -1668,17 +1668,17 @@ public class HostedComponentScanQueueConsumer
       }
 
       // Step 4: mirror only INNER violations. Skip the outer (already persisted by
-      // evaluatePolicies; double-write would create a second repository_policy_violation row
+      // evaluatePolicies; double-write would create a second proxy_repository_policy_violation row
       // under a different pathname with the same coordinates, breaking dedup downstream).
       // (outerHash is a parameter of this method — no local re-declaration needed.)
       Date now = new Date();
       int mirrored = 0;
-      try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
+      try (TransactionContext tx = proxyRepositoryPolicyViolationDAO.createTransactionContext()) {
         tx.begin();
 
         // Idempotent re-mirror: delete the inner-pathname rows we previously wrote for this
         // outer before inserting the fresh batch. Without this, a re-evaluation (or a partial
-        // mirror retry) leaves stale rows in repository_policy_violation that either inflate
+        // mirror retry) leaves stale rows in proxy_repository_policy_violation that either inflate
         // counts (re-eval doubles inner pathnames) or under-report (a prior partial mirror
         // left only some inners persisted). The component-list summary pill sums raw rows
         // without hash-dedup, so the discrepancy surfaces there even when the drill-in report
@@ -1689,13 +1689,13 @@ public class HostedComponentScanQueueConsumer
         // not be touched here. The existing
         // getActiveByRepositoryIdAndPathnameOrInnerPathnames helper returns the outer row +
         // all inners under it; we filter to inners-only before deleting.
-        List<RepositoryPolicyViolation> existingForOuter = repositoryPolicyViolationDAO
+        List<ProxyRepositoryPolicyViolation> existingForOuter = proxyRepositoryPolicyViolationDAO
             .getActiveByRepositoryIdAndPathnameOrInnerPathnames(repositoryId, outerPathname);
         int deletedStale = 0;
-        for (RepositoryPolicyViolation existing : existingForOuter) {
+        for (ProxyRepositoryPolicyViolation existing : existingForOuter) {
           String existingPathname = existing.getPathname();
           if (existingPathname != null && existingPathname.contains("!/")) {
-            repositoryPolicyViolationDAO.delete(tx, existing);
+            proxyRepositoryPolicyViolationDAO.delete(tx, existing);
             deletedStale++;
           }
         }
@@ -1707,7 +1707,7 @@ public class HostedComponentScanQueueConsumer
         int skippedDependencyDerived = 0;
         for (PolicyViolation pv : violations) {
           if (pv.getHash() != null && pv.getHash().equals(outerHash)) {
-            // Outer-hash violations are already in repository_policy_violation under the
+            // Outer-hash violations are already in proxy_repository_policy_violation under the
             // real outer pathname.
             continue;
           }
@@ -1739,7 +1739,7 @@ public class HostedComponentScanQueueConsumer
           String innerLabel = innerLabelFromComponent(pv, ac);
           String innerPathname = outerPathname + "!/" + innerLabel;
 
-          RepositoryPolicyViolation rpv = new RepositoryPolicyViolation(
+          ProxyRepositoryPolicyViolation rpv = new ProxyRepositoryPolicyViolation(
               repositoryId,
               innerPathname,
               now,
@@ -1765,17 +1765,17 @@ public class HostedComponentScanQueueConsumer
           if (componentIdOrNull != null) {
             rpv.setComponentId(componentIdOrNull);
           }
-          repositoryPolicyViolationDAO.insert(tx, rpv);
+          proxyRepositoryPolicyViolationDAO.insert(tx, rpv);
           mirrored++;
         }
         tx.commit();
         if (skippedDependencyDerived > 0) {
           log.info("Excluded {} manifest-derived 'dependency:' policy_violation rows from "
-              + "repository_policy_violation mirror for jobLogId={}, app={}, scan={}",
+              + "proxy_repository_policy_violation mirror for jobLogId={}, app={}, scan={}",
               skippedDependencyDerived, jobLogId, application.getId(), scanId);
         }
       }
-      log.info("Mirrored {} inner-component policy_violation rows into repository_policy_violation "
+      log.info("Mirrored {} inner-component policy_violation rows into proxy_repository_policy_violation "
           + "for jobLogId={}, app={}, scan={} (total app-side violations: {}, outer-hash filtered)",
           mirrored, jobLogId, application.getId(), scanId, violations.size());
     }
@@ -1826,9 +1826,9 @@ public class HostedComponentScanQueueConsumer
   }
 
   /**
-   * Removes the {@code repository_component} rows the evaluator created for inner artifact
+   * Removes the {@code proxy_repository_component} rows the evaluator created for inner artifact
    * pathnames (those containing the {@code !/} separator). The inner-pathname
-   * {@code repository_policy_violation} rows are intentionally left in place — they feed the
+   * {@code proxy_repository_policy_violation} rows are intentionally left in place — they feed the
    * outer artifact's synthesised {@code policythreats.json} so drilling into the outer report
    * surfaces every inner finding.
    */
@@ -1846,24 +1846,24 @@ public class HostedComponentScanQueueConsumer
     for (int i = 1; i < componentInfos.size(); i++) {
       innerPathnames.add(componentInfos.get(i).pathname());
     }
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.deleteByRepositoryIdAndPathnames(tx, repositoryId, innerPathnames);
+      proxyRepositoryComponentDAO.deleteByRepositoryIdAndPathnames(tx, repositoryId, innerPathnames);
       tx.commit();
     }
     catch (Exception e) {
       // Don't fail the job — at worst the Components page shows extra inner-pathname rows the
       // user can ignore. The outer row + report are unaffected.
-      log.warn("Failed to delete inner repository_component rows for repositoryId={}: {}",
+      log.warn("Failed to delete inner proxy_repository_component rows for repositoryId={}: {}",
           repositoryId, e.getMessage(), e);
     }
   }
 
   /**
-   * Stamps {@code component_id} on the outer artifact's {@code repository_component} row AND on
+   * Stamps {@code component_id} on the outer artifact's {@code proxy_repository_component} row AND on
    * every active violation row whose pathname is either the outer pathname OR an inner-pathname
-   * under it ({@code outer.zip!/inner.jar}). The {@code repository_component} side is intentionally
-   * outer-only because the inner repository_component rows are deleted in
+   * under it ({@code outer.zip!/inner.jar}). The {@code proxy_repository_component} side is intentionally
+   * outer-only because the inner proxy_repository_component rows are deleted in
    * {@link #deleteInnerRepositoryComponentRows}; the violation side covers both so future
    * component-id-keyed code paths (waivers, quarantine) match inner-artifact findings too.
    */
@@ -1872,14 +1872,14 @@ public class HostedComponentScanQueueConsumer
       final String outerPathname,
       final String componentId)
   {
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.stampComponentId(tx, repositoryId, outerPathname, componentId);
-      repositoryPolicyViolationDAO.stampComponentIdOnPathnameOrInnerPathnames(
+      proxyRepositoryComponentDAO.stampComponentId(tx, repositoryId, outerPathname, componentId);
+      proxyRepositoryPolicyViolationDAO.stampComponentIdOnPathnameOrInnerPathnames(
           tx, repositoryId, outerPathname, componentId);
       tx.commit();
-      log.debug("Stamped component_id={} on repository_component (outer) and "
-          + "repository_policy_violation (outer + inner pathnames) for pathname={}",
+      log.debug("Stamped component_id={} on proxy_repository_component (outer) and "
+          + "proxy_repository_policy_violation (outer + inner pathnames) for pathname={}",
           componentId, outerPathname);
     }
     catch (Exception e) {

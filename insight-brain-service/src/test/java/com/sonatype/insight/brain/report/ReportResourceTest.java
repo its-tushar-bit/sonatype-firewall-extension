@@ -51,7 +51,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -74,7 +74,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
@@ -1097,20 +1097,20 @@ public class ReportResourceTest
     // Hosted scans re-evaluate synchronously regardless of async=true: reevaluatePolicy returns at the
     // isHostedScan early-return (before the async branch), so the response is 200 OK with an empty body and no
     // statusId. This guards that guard order against future reordering.
-    RepositoryComponentDAO repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    ProxyRepositoryComponentDAO proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
 
     String scanId = "ReportResourceTest_HostedScanId";
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId());
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId());
     // isHostedScan(scanId, appId) requires the (appId, scanId) pair to be linked in
     // policy_evaluation with a hosted trigger type — that's the CLM-41904 IDOR guard against a
     // caller re-evaluating another app's hosted scanId. Seed the first-time hosted row here
     // (as HostedComponentScanQueueConsumer would on a real first-time scan) and bind the
-    // repository_component to the scanId.
+    // proxy_repository_component to the scanId.
     component.setScanId(scanId);
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.update(tx, component);
+      proxyRepositoryComponentDAO.update(tx, component);
       tx.commit();
     }
     try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {

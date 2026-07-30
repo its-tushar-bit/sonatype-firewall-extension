@@ -14,7 +14,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.utils.DateConverter;
@@ -29,7 +29,7 @@ public class QuarantinedComponentMetricsConsolidator
 {
   private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentMetricsConsolidator.class);
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final FirewallMetricsDAO firewallMetricsDAO;
 
@@ -39,11 +39,11 @@ public class QuarantinedComponentMetricsConsolidator
 
   @Inject
   public QuarantinedComponentMetricsConsolidator(
-      RepositoryComponentDAO repositoryComponentDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       FirewallMetricsDAO firewallMetricsDAO,
       ApiFirewallMetricsService apiFirewallMetricsService)
   {
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.firewallMetricsDAO = firewallMetricsDAO;
     this.apiFirewallMetricsService = apiFirewallMetricsService;
   }
@@ -62,11 +62,11 @@ public class QuarantinedComponentMetricsConsolidator
     Map<LocalDate, Long> quarantinedComponentsCount;
     if (mostRecentMetricDateFound != null) {
       quarantinedComponentsCount =
-          repositoryComponentDAO.getConsolidatedQuarantinedComponentsMetricByDate(mostRecentMetricDateFound);
+          proxyRepositoryComponentDAO.getConsolidatedQuarantinedComponentsMetricByDate(mostRecentMetricDateFound);
 
     }
     else {
-      quarantinedComponentsCount = repositoryComponentDAO
+      quarantinedComponentsCount = proxyRepositoryComponentDAO
           .getConsolidatedQuarantinedComponentsMetricByDate(
               DateConverter.toDate(
                   LocalDate.now().minusMonths(12)));

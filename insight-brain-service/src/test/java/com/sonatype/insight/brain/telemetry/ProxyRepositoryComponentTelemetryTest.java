@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Collections;
 
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 
 import org.junit.Test;
 
@@ -19,13 +19,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link RepositoryComponentTelemetry}, specifically focusing on the Builder pattern.
+ * Tests for {@link ProxyRepositoryComponentTelemetry}, specifically focusing on the Builder pattern.
  */
-public class RepositoryComponentTelemetryTest
+public class ProxyRepositoryComponentTelemetryTest
 {
   @Test
   public void testBuilder_MinimalConstruction() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryId("repo-1")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
@@ -38,7 +38,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_FullConstruction() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .accountId("account-123")
         .repositoryManagerId("repo-manager-1")
         .repositoryId("repo-1")
@@ -73,7 +73,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_EventTypeWithEnum() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .eventType(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE)
         .build();
@@ -83,7 +83,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_EventTypeWithString() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .eventType("custom_event")
         .build();
@@ -93,7 +93,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_ReleaseQuarantineTypeWithEnum() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .releaseQuarantineType(ReleaseQuarantineType.AUTO)
         .build();
@@ -103,7 +103,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_ReleaseQuarantineTypeWithString() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .releaseQuarantineType("custom_type")
         .build();
@@ -113,7 +113,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_FromRepositoryComponentWithNull() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .fromRepositoryComponent(null)
         .repositoryManagerId("repo-manager-1")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
@@ -124,7 +124,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_WithNullPolicyNotifications() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .policyNotifications(null)
@@ -135,7 +135,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_ComponentHashObfuscation() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .componentHash("plaintext-hash-12345")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
@@ -147,7 +147,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_WithNullComponentHash() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .componentHash(null)
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
@@ -158,9 +158,9 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_ChainedMethodCalls() {
-    RepositoryComponentTelemetry.Builder builder = RepositoryComponentTelemetry.builder();
+    ProxyRepositoryComponentTelemetry.Builder builder = ProxyRepositoryComponentTelemetry.builder();
 
-    RepositoryComponentTelemetry.Builder result = builder
+    ProxyRepositoryComponentTelemetry.Builder result = builder
         .accountId("account-1")
         .repositoryManagerId("repo-manager-1")
         .repositoryId("repo-1");
@@ -170,12 +170,12 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_MultipleBuildsFromSameBuilder() {
-    RepositoryComponentTelemetry.Builder builder = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry.Builder builder = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE);
 
-    RepositoryComponentTelemetry telemetry1 = builder.build();
-    RepositoryComponentTelemetry telemetry2 = builder.build();
+    ProxyRepositoryComponentTelemetry telemetry1 = builder.build();
+    ProxyRepositoryComponentTelemetry telemetry2 = builder.build();
 
     assertThat(telemetry1).isNotSameAs(telemetry2);
     assertThat(telemetry1.getRepositoryManagerId()).isEqualTo(telemetry2.getRepositoryManagerId());
@@ -198,7 +198,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_WithNullEnumValues() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .eventType((RepositoryComponentTelemetryEventType) null)
         .releaseQuarantineType((ReleaseQuarantineType) null)
@@ -210,7 +210,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_OverwritingValues() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryManagerId("repo-manager-2")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
@@ -221,7 +221,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_EmptyLists() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .policyNotifications(Collections.emptyList())
@@ -237,7 +237,7 @@ public class RepositoryComponentTelemetryTest
     TelemetryDataObfuscator obfuscator = new TelemetryDataObfuscator(mockConfiguration);
 
     String originalRepoName = "my-sensitive-repo-name";
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryName(originalRepoName)
         .telemetryDataObfuscator(obfuscator)
@@ -255,7 +255,7 @@ public class RepositoryComponentTelemetryTest
     TelemetryDataObfuscator obfuscator = new TelemetryDataObfuscator(mockConfiguration);
 
     String originalRepoName = "my-repo-name";
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryName(originalRepoName)
         .telemetryDataObfuscator(obfuscator)
@@ -268,7 +268,7 @@ public class RepositoryComponentTelemetryTest
   @Test
   public void testBuilder_RepositoryNameNotObfuscated_WhenNoObfuscatorProvided() {
     String originalRepoName = "my-repo-name";
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryName(originalRepoName)
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
@@ -283,7 +283,7 @@ public class RepositoryComponentTelemetryTest
     when(mockConfiguration.getAdvanceReportingInsightsEnabled()).thenReturn(false);
     TelemetryDataObfuscator obfuscator = new TelemetryDataObfuscator(mockConfiguration);
 
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryName(null)
         .telemetryDataObfuscator(obfuscator)
@@ -295,7 +295,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_WithRepositoryType() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryId("repo-1")
         .repositoryType("proxy")
@@ -307,7 +307,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_WithNullRepositoryType() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryId("repo-1")
         .repositoryType(null)
@@ -319,7 +319,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_WithRepositoryTypeProxy() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryType("proxy")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
@@ -330,7 +330,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_WithRepositoryTypeHosted() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryType("hosted")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
@@ -341,7 +341,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_RepositoryTypeNotSetDefaultsToNull() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .build();
@@ -351,7 +351,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_WithAllFieldsIncludingRepositoryType() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .accountId("account-123")
         .repositoryManagerId("repo-manager-1")
         .repositoryId("repo-1")
@@ -373,12 +373,12 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testRepositoryComponentConstructor_NullHash_DoesNotThrow() {
-    RepositoryComponent repositoryComponent = mock(RepositoryComponent.class);
-    when(repositoryComponent.getRepositoryId()).thenReturn("repo-1");
-    when(repositoryComponent.getHash()).thenReturn(null);
+    ProxyRepositoryComponent proxyRepositoryComponent = mock(ProxyRepositoryComponent.class);
+    when(proxyRepositoryComponent.getRepositoryId()).thenReturn("repo-1");
+    when(proxyRepositoryComponent.getHash()).thenReturn(null);
 
-    RepositoryComponentTelemetry telemetry = new RepositoryComponentTelemetry(
-        "account-1", "repo-manager-1", repositoryComponent,
+    ProxyRepositoryComponentTelemetry telemetry = new ProxyRepositoryComponentTelemetry(
+        "account-1", "repo-manager-1", proxyRepositoryComponent,
         RepositoryComponentTelemetryEventType.QUARANTINE, null, null, Collections.emptyList());
 
     assertThat(telemetry.getComponentHash()).isNull();
@@ -386,7 +386,7 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testGetRepositoryType_ReturnsCorrectValue() {
-    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+    ProxyRepositoryComponentTelemetry telemetry = ProxyRepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryType("hosted")
         .eventType(RepositoryComponentTelemetryEventType.AUDIT)

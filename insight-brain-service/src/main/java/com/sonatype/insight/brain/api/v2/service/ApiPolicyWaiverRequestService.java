@@ -46,7 +46,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -118,7 +118,7 @@ public class ApiPolicyWaiverRequestService
 
   private final CurrentUser currentUser;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
 
@@ -147,7 +147,7 @@ public class ApiPolicyWaiverRequestService
       PolicyDAO policyDAO,
       OwnerDAO ownerDAO,
       CurrentUser currentUser,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       PolicyViolationDAO policyViolationDAO,
       PolicyWaiverReasonDAO policyWaiverReasonDAO,
       IdUtils idUtils,
@@ -165,7 +165,7 @@ public class ApiPolicyWaiverRequestService
     this.policyDAO = policyDAO;
     this.ownerDAO = ownerDAO;
     this.currentUser = currentUser;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
     this.idUtils = idUtils;
@@ -380,7 +380,7 @@ public class ApiPolicyWaiverRequestService
   private AbstractPolicyViolation getAbstractPolicyViolation(String policyViolationId) {
     AbstractPolicyViolation policyViolation = policyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
     if (policyViolation == null) {
-      policyViolation = repositoryPolicyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
+      policyViolation = proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
       if (policyViolation == null) {
         throw new NotFoundException("Could not find policy violation with ID " + policyViolationId + ".");
       }
@@ -629,7 +629,7 @@ public class ApiPolicyWaiverRequestService
 
     // ownerId is set to REPOSITORY_CONTAINER_ID by addContainerImagePolicyWaiverRequest. Only
     // PolicyViolation (regular) anchors require the canonical container-image waiver set; a
-    // RepositoryPolicyViolation under this scope uses the single-waiver flow.
+    // ProxyRepositoryPolicyViolation under this scope uses the single-waiver flow.
     if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(policyWaiverRequest.getOwnerId())
         && abstractPolicyViolation instanceof PolicyViolation)
     {
@@ -828,7 +828,7 @@ public class ApiPolicyWaiverRequestService
         policyViolationDAO.getByIdWithConstraintFacts(policyWaiverRequest.getPolicyViolationId());
     if (abstractPolicyViolation == null) {
       abstractPolicyViolation =
-          repositoryPolicyViolationDAO.getByIdWithConstraintFacts(policyWaiverRequest.getPolicyViolationId());
+          proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(policyWaiverRequest.getPolicyViolationId());
     }
     PolicyWaiverReason policyWaiverReason = policyWaiverRequest.getWaiverReasonId() != null
         ? policyWaiverReasonDAO.getById(policyWaiverRequest.getWaiverReasonId())
@@ -853,7 +853,7 @@ public class ApiPolicyWaiverRequestService
 
     // Mirror the create/update telemetry path so dashboards counting waiver request
     // activity see withdrawals too. The helper no-ops on non-PolicyViolation (e.g., null
-    // or RepositoryPolicyViolation).
+    // or ProxyRepositoryPolicyViolation).
     sendTelemetryForPolicyWaiverRequest(abstractPolicyViolation, policyWaiverReason);
   }
 
@@ -986,7 +986,7 @@ public class ApiPolicyWaiverRequestService
     Set<String> unresolvedIds = new LinkedHashSet<>(violationIds);
     unresolvedIds.removeAll(byId.keySet());
     if (!unresolvedIds.isEmpty()) {
-      for (var v : repositoryPolicyViolationDAO.getByIds(unresolvedIds)) {
+      for (var v : proxyRepositoryPolicyViolationDAO.getByIds(unresolvedIds)) {
         byId.put(v.getId(), v);
       }
       unresolvedIds.removeAll(byId.keySet());

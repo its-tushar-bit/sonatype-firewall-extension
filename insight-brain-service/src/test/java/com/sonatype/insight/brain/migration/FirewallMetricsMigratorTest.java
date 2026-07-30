@@ -201,7 +201,7 @@ public class FirewallMetricsMigratorTest
     int expectedSupplyChainAttacksBlockedMetricsAtDate1 = 4;
     int expectedSupplyChainAttacksBlockedMetricsAtDate2 = 15;
 
-    createProprietaryNameConflictRepositoryPolicyViolations(component, date1, date2,
+    createProprietaryNameConflictProxyRepositoryPolicyViolations(component, date1, date2,
         expectedNamespaceAttacksBlockedMetricsAtDate1, expectedNamespaceAttacksBlockedMetricsAtDate2);
 
     createMaliciousCodeRepositoryPolicyViolations(component, date1, date2,
@@ -438,7 +438,7 @@ public class FirewallMetricsMigratorTest
         });
   }
 
-  private void createProprietaryNameConflictRepositoryPolicyViolations(
+  private void createProprietaryNameConflictProxyRepositoryPolicyViolations(
       Component component,
       LocalDate localDate1,
       LocalDate localDate2,

@@ -17,8 +17,8 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 /**
- * Creates a composite index on {@code repository_component (repository_id, hash, time DESC,
- * repository_component_id DESC)} using {@code CREATE INDEX CONCURRENTLY} outside the migration
+ * Creates a composite index on {@code proxy_repository_component (repository_id, hash, time DESC,
+ * proxy_repository_component_id DESC)} using {@code CREATE INDEX CONCURRENTLY} outside the migration
  * lock (CLM-41005). One index serves two parts of the CM eligibility query:
  * <ol>
  * <li>The outer driver: a {@code Bitmap Index Scan} per qualifying {@code repository} (from the
@@ -28,7 +28,7 @@ import jakarta.inject.Singleton;
  * bitmap result, not the table). At eligibility scale this is dominated by {@code repository_id}
  * being the leading column — see r3465949378 for the EXPLAIN ANALYZE.</li>
  * <li>The inner {@code NOT EXISTS} anti-join probe: correlates on
- * {@code (repository_id, hash, time, repository_component_id)} — exactly the index column
+ * {@code (repository_id, hash, time, proxy_repository_component_id)} — exactly the index column
  * order — so the dedup check is one b-tree probe per candidate row, not a seq scan or a
  * scan of every component sharing the same hash.</li>
  * </ol>
@@ -39,13 +39,13 @@ import jakarta.inject.Singleton;
  * driver scan. The inner probe's index use is robust regardless because all four probe columns are
  * indexed leading keys; the outer driver's path is the one to verify against fresh EXPLAIN.
  * <p>
- * See {@code RepositoryComponentDAO.getMonitoringEligiblePagePostgres} and the PR #16434 review
+ * See {@code ProxyRepositoryComponentDAO.getMonitoringEligiblePagePostgres} and the PR #16434 review
  * threads (r3465319178, r3465949378) for the EXPLAIN ANALYZE that drove this column order: an
- * earlier {@code (time DESC, repository_component_id DESC)} variant served only the outer driver
+ * earlier {@code (time DESC, proxy_repository_component_id DESC)} variant served only the outer driver
  * and forced the inner probe onto an unindexed seq scan; this composite serves both paths.
  * <p>
  * Runs as an AsyncDbMigration rather than in a regular incremental script because
- * {@code repository_component} is a large table on production tenants (per
+ * {@code proxy_repository_component} is a large table on production tenants (per
  * {@code insight-brain-db/.claude/rules/sql-saas-compatibility.md}, &gt;100K rows is the threshold
  * for the rule) and {@code CREATE INDEX CONCURRENTLY} cannot run inside the migration advisory-lock
  * transaction (see {@code db/CLAUDE.md} for the deadlock rationale shared with the sibling
@@ -59,7 +59,7 @@ import jakarta.inject.Singleton;
 public class RepositoryComponentDedupKeysetIndexAsyncDbMigration
     extends AbstractAsyncDbMigration
 {
-  private static final String INDEX_NAME = "repository_component_dedup_keyset_idx";
+  private static final String INDEX_NAME = "proxy_repository_component_dedup_keyset_idx";
 
   private final OperationalDataStore operationalDataStore;
 
@@ -68,6 +68,11 @@ public class RepositoryComponentDedupKeysetIndexAsyncDbMigration
       final MigrationTrackerDAO migrationTrackerDAO,
       final OperationalDataStore operationalDataStore)
   {
+    // Migration-tracker key stays "repository_component dedup-keyset composite index" (unchanged
+    // from origin/main). Customers who already applied this migration have that exact string
+    // recorded in the tracker table — changing it here would cause the migration to re-run on
+    // their databases after the CLM-42788 upgrade. Same rationale as keeping the class name
+    // unchanged: historical-migration idempotency requires the tracker key to be stable.
     super(migrationTrackerDAO, "repository_component dedup-keyset composite index");
     this.operationalDataStore = operationalDataStore;
   }
@@ -89,8 +94,8 @@ public class RepositoryComponentDedupKeysetIndexAsyncDbMigration
         log.info("Creating {} CONCURRENTLY for schema: {}", INDEX_NAME, schema);
         stmt.execute(
             "CREATE INDEX CONCURRENTLY IF NOT EXISTS " + INDEX_NAME + " "
-                + "ON " + schema + ".repository_component "
-                + "(repository_id, hash, time DESC, repository_component_id DESC)");
+                + "ON " + schema + ".proxy_repository_component "
+                + "(repository_id, hash, time DESC, proxy_repository_component_id DESC)");
       }
     }
     catch (SQLException e) {

@@ -58,14 +58,14 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
 import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
@@ -208,9 +208,9 @@ public class ReportService
 
   private final ScanPersistenceService scanPersistenceService;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final RepositoryDAO repositoryDAO;
 
@@ -257,8 +257,8 @@ public class ReportService
       final AutomatedPullRequestCreationService automatedPullRequestCreationService,
       final CpeMatchingConfigurationService cpeMatchingConfigurationService,
       final ScanPersistenceService scanPersistenceService,
-      final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final RepositoryDAO repositoryDAO,
       final PolicyDAO policyDAO,
       final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider,
@@ -295,8 +295,8 @@ public class ReportService
     this.automatedPullRequestCreationService = automatedPullRequestCreationService;
     this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
     this.scanPersistenceService = scanPersistenceService;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.repositoryDAO = repositoryDAO;
     this.policyDAO = policyDAO;
     this.repositoryPolicyEvaluatorProvider = repositoryPolicyEvaluatorProvider;
@@ -412,7 +412,7 @@ public class ReportService
   }
 
   public boolean isHostedRepositoryComponent(final String scanId) {
-    return repositoryComponentDAO.getByScanId(scanId) != null;
+    return proxyRepositoryComponentDAO.getByScanId(scanId) != null;
   }
 
   public boolean isHostedScan(final String scanId, final String appId) {
@@ -456,7 +456,7 @@ public class ReportService
    * proxy layer.
    */
   public void reevaluateHostedComponent(final String appId, final String scanId) {
-    RepositoryComponent component = repositoryComponentDAO.getByScanId(scanId);
+    ProxyRepositoryComponent component = proxyRepositoryComponentDAO.getByScanId(scanId);
     if (component == null) {
       throw new NotFoundException("No hosted component found for scanId: " + scanId);
     }
@@ -531,7 +531,7 @@ public class ReportService
    *          internal {@code ScanPolicyEvaluator.evaluate} is enough).
    */
   public void refreshHostedComponentAfterEvaluation(
-      final RepositoryComponent component,
+      final ProxyRepositoryComponent component,
       final Repository repository,
       final Application application,
       final String appId,
@@ -678,7 +678,8 @@ public class ReportService
    * Returns the application's stored report only if it already exists, without the {@link #getReport} recovery path.
    * <p>
    * {@link #getReport} re-fetches the application by id and, when the report is missing on disk, issues per-application
-   * {@code policy_evaluation} and {@code repository_component} lookups and may trigger an HDS re-download. Running that
+   * {@code policy_evaluation} and {@code proxy_repository_component} lookups and may trigger an HDS re-download.
+   * Running that
    * per matched application reintroduced an N+1 in the bulk component search dependency-data path (CLM-41473). This
    * method is the best-effort, read-only alternative for callers that enrich a result when a report happens to be
    * present and otherwise skip it: it issues no DB queries and performs no recovery -- only a single report existence
@@ -764,19 +765,19 @@ public class ReportService
     // collapse-gate's rebuildPolicyThreatsAfterCollapse. That is safe because it reads the
     // already-collapse-treated on-disk state — bom.json has been trimmed to the outer's entry
     // (so extractBomOuterHash below returns the same hash the pathname-aware lookup would),
-    // repository_policy_violation rows have been cleaned to outer-only, and data.json.
+    // proxy_repository_policy_violation rows have been cleaned to outer-only, and data.json.
     // policyComponentCount is already stamped so patchDataJsonPolicyComponentCountIfAbsent
     // no-ops. If a future change breaks any of those preconditions, this method needs the
     // rebuild wired in explicitly.
-    RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
+    ProxyRepositoryComponent comp = proxyRepositoryComponentDAO.getByScanId(scanId);
     // For an archive-of-archives upload the evaluator persisted N batches of policy_violation rows:
     // one batch keyed on the outer pathname (outer.zip) plus one batch per inner pathname
     // (outer.zip!/inner.jar). The Components page only shows the outer row, so the synthesised
     // policythreats.json that backs the outer's report must include violations from BOTH the outer
     // pathname AND any inner pathname under it. Without this, this recovery path silently
     // collapses an archive's report back to just the outer's violations on the next UI load.
-    List<RepositoryPolicyViolation> violations = comp != null && comp.getPathname() != null
-        ? repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
+    List<ProxyRepositoryPolicyViolation> violations = comp != null && comp.getPathname() != null
+        ? proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
             comp.getRepositoryId(), comp.getPathname())
         : List.of();
     if (comp != null) {
@@ -787,7 +788,7 @@ public class ReportService
     }
     // CLM-40943: read bom.json early so we can extract the outer's HDS identification hash
     // and thread it through to policythreats.json + data.json. For npm/nuget/pub the bom hash
-    // differs from repository_policy_violation.hash (which is the file SHA1) — without aligning,
+    // differs from proxy_repository_policy_violation.hash (which is the file SHA1) — without aligning,
     // the LC Application Report body joins violations to bom entries by hash and finds zero
     // matches, leaving the outer component with no attached violations.
     Application application = applicationDAO.getByIdNotNull(appId);
@@ -915,17 +916,17 @@ public class ReportService
     // policy_violation with the correct outer identity (e.g. Component-Similar/threat 7 for a
     // conan_package.tgz that HDS matches to a cross-format maven jar), while the firewall
     // evaluator called at line 404 (`component/details/firewall` with format hint) populates
-    // repository_policy_violation with the format-scoped verdict (Component-Unknown/threat 2 for
+    // proxy_repository_policy_violation with the format-scoped verdict (Component-Unknown/threat 2 for
     // the same file, because HDS has no conan-namespace entry for that SHA).
     //
-    // CLM-41693 originally chose repository_policy_violation because the LC aggregator's
+    // CLM-41693 originally chose proxy_repository_policy_violation because the LC aggregator's
     // DEVELOPER_DASHBOARD model returned zero for hosted-only apps that had never been scanned
     // by iq-cli. But for hosted synthetic apps the scan-XML pipeline DOES populate policy_violation
     // at first-upload time, so the LC aggregator now returns the correct number for them.
     //
     // Strategy: try the LC path first. If it produces a non-zero risk, use it (matches what an
     // iq-cli scan of the same file would report — same numbers, same source). Only fall back to
-    // repository_policy_violation when the LC path returns zero or no data, preserving CLM-41693
+    // proxy_repository_policy_violation when the LC path returns zero or no data, preserving CLM-41693
     // behavior for legacy REPOSITORY_MANAGER records and any edge case where the app-analysis
     // pipeline didn't populate policy_violation.
     if (isHostedScanTriggerType(evaluation.getScanTriggerType())) {
@@ -948,15 +949,15 @@ public class ReportService
         metadata.setTotalRisk(lcTotalRisk);
       }
       else {
-        RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
+        ProxyRepositoryComponent comp = proxyRepositoryComponentDAO.getByScanId(scanId);
         if (comp != null) {
           // CLM-40943: roll up inner-pathname violations into the outer artifact's totalRisk so
           // archive-of-archives reports show the real risk surface, not just the outer's own
-          // (typically "component-unknown") violations. The outer row's repository_component still
+          // (typically "component-unknown") violations. The outer row's proxy_repository_component still
           // exists, but inner-pathname violations (`outer.zip!/inner.jar`) live alongside it after
           // the fan-out evaluator and must be counted under the outer.
-          List<RepositoryPolicyViolation> violations =
-              repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
+          List<ProxyRepositoryPolicyViolation> violations =
+              proxyRepositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
                   comp.getRepositoryId(), comp.getPathname());
           // CLM-42117 (from Ashu's #16532 on target): before summing, drop the outer's own
           // component-unknown violations for formats where the outer row should surface only the

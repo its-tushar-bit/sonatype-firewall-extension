@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 /**
  * @since 1.143
  */
-public class RepositoryPolicyViolationDTO
+public class ProxyRepositoryPolicyViolationDTO
 {
   public String policyViolationId;
 
@@ -53,10 +53,10 @@ public class RepositoryPolicyViolationDTO
   public Date lastReported;
 
   // Needed for de-serialization
-  public RepositoryPolicyViolationDTO() {
+  public ProxyRepositoryPolicyViolationDTO() {
   }
 
-  public RepositoryPolicyViolationDTO(
+  public ProxyRepositoryPolicyViolationDTO(
       String policyViolationId,
       ApiComponentIdentifierDTOV2 componentIdentifier,
       ComponentDisplayName componentDisplayName,

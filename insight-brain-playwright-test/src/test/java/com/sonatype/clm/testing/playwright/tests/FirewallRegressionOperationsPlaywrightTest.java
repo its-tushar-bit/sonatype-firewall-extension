@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -203,7 +203,7 @@ public class FirewallRegressionOperationsPlaywrightTest
     Date now = Date.from(Instant.now());
     Policy policy = tempEntity.newPolicy();
     for (int i = 1; i <= 3; i++) {
-      RepositoryComponent component = tempEntity.newRepositoryComponent(
+      ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(
           repo.getId(), MatchState.EXACT, "bw/path-" + i + suffix, "bw-hash-00" + i,
           ComponentIdentifier.createMavenCoordinates(
               "bw-grp-" + i + suffix, "bw-art-" + i + suffix, DATA.componentVersion()),
@@ -662,7 +662,7 @@ public class FirewallRegressionOperationsPlaywrightTest
     ComponentIdentifier identifier =
         ComponentIdentifier.createMavenCoordinates("qcr-grp" + suffix, "qcr-art" + suffix, DATA.componentVersion());
     Date now = Date.from(Instant.now());
-    RepositoryComponent component = new RepositoryComponent(
+    ProxyRepositoryComponent component = new ProxyRepositoryComponent(
         repo.getId(), "qcr/path" + suffix, now, "qcr-hash-001",
         identifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), now);
     component.setDisplayName("qcr-art" + suffix + ":1.0");
@@ -679,7 +679,7 @@ public class FirewallRegressionOperationsPlaywrightTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo = tempEntity.newRepository(repoManager, "rrs-repo" + suffix, true, false);
     Date now = Date.from(Instant.now());
-    RepositoryComponent component = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(
         repo.getId(), MatchState.EXACT, "rrs/path" + suffix, "rrs-hash-001",
         ComponentIdentifier.createMavenCoordinates("rrs-grp" + suffix, "rrs-art" + suffix, DATA.componentVersion()),
         now, now);
@@ -772,14 +772,14 @@ public class FirewallRegressionOperationsPlaywrightTest
     assertThat(detailsPage.labelsTab()).isVisible();
   }
 
-  private RepositoryComponent seedDbForNavigationTest(String suffix) {
+  private ProxyRepositoryComponent seedDbForNavigationTest(String suffix) {
     Policy policy = tempEntity.newPolicy();
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo = tempEntity.newRepository(repoManager, "nav-repo" + suffix, true, false);
     Date now = Date.from(Instant.now());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates(
         "nav-grp" + suffix, "nav-art" + suffix, DATA.componentVersion());
-    RepositoryComponent component = new RepositoryComponent(
+    ProxyRepositoryComponent component = new ProxyRepositoryComponent(
         repo.getId(), "nav/path" + suffix, now, "nav-hash-001",
         identifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), now);
     component.setDisplayName("nav-art" + suffix + ":" + DATA.componentVersion());

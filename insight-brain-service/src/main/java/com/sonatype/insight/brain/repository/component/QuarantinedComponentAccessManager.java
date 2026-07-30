@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.repository.component;
 import java.util.Date;
 
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 public interface QuarantinedComponentAccessManager
 {
-  String createToken(final RepositoryComponent repositoryComponent);
+  String createToken(final ProxyRepositoryComponent proxyRepositoryComponent);
 
   QuarantinedComponentAccess getQuarantinedComponentAccessFromToken(final String token);
 

@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.roi.dto.RoiFirewallMetricsDTO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -130,7 +130,7 @@ public class ApiFirewallMetricsService
   }
 
   public void checkFirewallMetricsInRepositoryPolicyViolation(
-      RepositoryPolicyViolation repositoryPolicyViolation,
+      ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation,
       Map<LocalDate, FirewallMetrics> namespaceAttacksBlockedMetrics,
       Map<LocalDate, FirewallMetrics> supplyChainAttacksBlockedMetrics)
   {
@@ -138,7 +138,7 @@ public class ApiFirewallMetricsService
       boolean hasProprietaryNameConflict = false;
       boolean hasSecurityVulnerabilityCategoryMaliciousCode = false;
 
-      for (Iterator<ConstraintFact> iterator = repositoryPolicyViolation.getConstraintFacts()
+      for (Iterator<ConstraintFact> iterator = proxyRepositoryPolicyViolation.getConstraintFacts()
           .iterator(); (!hasProprietaryNameConflict || !hasSecurityVulnerabilityCategoryMaliciousCode)
               && iterator.hasNext();)
       {
@@ -164,23 +164,25 @@ public class ApiFirewallMetricsService
       }
 
       LocalDate violationLocalDate =
-          repositoryPolicyViolation.getTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+          proxyRepositoryPolicyViolation.getTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
       if (hasProprietaryNameConflict) {
         FirewallMetrics firewallMetrics = namespaceAttacksBlockedMetrics.computeIfAbsent(violationLocalDate,
-            key -> new FirewallMetrics(toLocalDate(repositoryPolicyViolation.getTime()), NAMESPACE_ATTACKS_BLOCKED, 0));
+            key -> new FirewallMetrics(toLocalDate(proxyRepositoryPolicyViolation.getTime()), NAMESPACE_ATTACKS_BLOCKED,
+                0));
         firewallMetrics.incrementMetricsValue(1);
       }
       if (hasSecurityVulnerabilityCategoryMaliciousCode) {
         FirewallMetrics firewallMetrics = supplyChainAttacksBlockedMetrics.computeIfAbsent(violationLocalDate,
-            key -> new FirewallMetrics(toLocalDate(repositoryPolicyViolation.getTime()), SUPPLY_CHAIN_ATTACKS_BLOCKED,
+            key -> new FirewallMetrics(toLocalDate(proxyRepositoryPolicyViolation.getTime()),
+                SUPPLY_CHAIN_ATTACKS_BLOCKED,
                 0));
         firewallMetrics.incrementMetricsValue(1);
       }
     }
     catch (Exception e) {
       log.error("Error checking Firewal Metrics in repository policy violation with ID {}",
-          repositoryPolicyViolation.getId(), e);
+          proxyRepositoryPolicyViolation.getId(), e);
     }
   }
 

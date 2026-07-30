@@ -44,7 +44,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceCleanupPendingService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
@@ -390,7 +390,7 @@ public class ReportServiceTest
   private CpeMatchingConfigurationService cpeMatchingConfigurationService;
 
   @Mock
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
   private InnerSourceCleanupPendingService innerSourceCleanupPendingService;
@@ -452,7 +452,7 @@ public class ReportServiceTest
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
         mockScanUploadService, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService,
-        scanPersistenceService, repositoryComponentDAO, null, null, null, null, null,
+        scanPersistenceService, proxyRepositoryComponentDAO, null, null, null, null, null,
         innerSourceCleanupPendingService, thirdPartySbomMetadataDAO,
         mock(com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer.class),
         mock(com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager.class));

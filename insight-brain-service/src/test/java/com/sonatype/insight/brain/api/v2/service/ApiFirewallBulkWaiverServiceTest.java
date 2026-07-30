@@ -23,15 +23,15 @@ import com.sonatype.insight.brain.api.v2.dto.ApiBulkWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -104,10 +104,10 @@ public class ApiFirewallBulkWaiverServiceTest
   private RepositoryDAO repositoryDAO;
 
   @Mock
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Mock
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Mock
   private PolicyWaiverDAO policyWaiverDAO;
@@ -125,7 +125,7 @@ public class ApiFirewallBulkWaiverServiceTest
   private Repository repository;
 
   @Mock
-  private RepositoryComponent repositoryComponent;
+  private ProxyRepositoryComponent proxyRepositoryComponent;
 
   @Mock
   private PolicyWaiver policyWaiver;
@@ -138,8 +138,8 @@ public class ApiFirewallBulkWaiverServiceTest
     service = new ApiFirewallBulkWaiverService(
         ownerDAO,
         repositoryDAO,
-        repositoryComponentDAO,
-        repositoryPolicyViolationDAO,
+        proxyRepositoryComponentDAO,
+        proxyRepositoryPolicyViolationDAO,
         policyWaiverDAO,
         apiPolicyWaiverService,
         idUtils);
@@ -156,7 +156,7 @@ public class ApiFirewallBulkWaiverServiceTest
 
     // Default mock setup
     when(idUtils.getInternalOwnerId(any(OwnerType.class), anyString())).thenReturn(INTERNAL_OWNER_ID);
-    when(repositoryComponentDAO.createTransactionContext()).thenReturn(transactionContext);
+    when(proxyRepositoryComponentDAO.createTransactionContext()).thenReturn(transactionContext);
     when(repositoryDAO.getById(any(TransactionContext.class), anyString())).thenReturn(repository);
     when(repository.getId()).thenReturn(REPOSITORY_ID);
     when(policyWaiver.getId()).thenReturn("waiver-id");
@@ -164,7 +164,7 @@ public class ApiFirewallBulkWaiverServiceTest
     // Default stub for savePolicyWaiver - return the policyWaiver mock by default
     // Note: Using nullable() for expiryTime and waiverReasonId since they can be null
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -207,7 +207,7 @@ public class ApiFirewallBulkWaiverServiceTest
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("Maximum " + MAX_BULK_WAIVER_VIOLATIONS + " violations allowed");
 
-    verifyNoInteractions(repositoryComponentDAO);
+    verifyNoInteractions(proxyRepositoryComponentDAO);
   }
 
   /**
@@ -250,16 +250,16 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    RepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
 
     Owner owner = createOwner(INTERNAL_OWNER_ID);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -268,7 +268,7 @@ public class ApiFirewallBulkWaiverServiceTest
     service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request);
 
     // Assert - Should process only 2 unique violations
-    verify(repositoryPolicyViolationDAO, times(2)).getByIdWithConstraintFacts(anyString());
+    verify(proxyRepositoryPolicyViolationDAO, times(2)).getByIdWithConstraintFacts(anyString());
   }
 
   /**
@@ -281,7 +281,7 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(null);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(null);
 
     // Act & Assert
     assertThatThrownBy(() -> service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request))
@@ -300,10 +300,10 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
     violation.setActionTypeId(Action.ID_WARN); // Not a quarantine violation - should still be waivable
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
@@ -327,14 +327,14 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, true);
-    RepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, true);
+    ProxyRepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
 
     // Extract values before setting up mocks to avoid "unfinished stubbing" error
     String constraintFactsJson1 = violation1.getConstraintFactsJson();
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
@@ -347,7 +347,7 @@ public class ApiFirewallBulkWaiverServiceTest
         .thenReturn(Collections.singletonList(existingWaiver));
 
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -357,7 +357,7 @@ public class ApiFirewallBulkWaiverServiceTest
 
     // Assert - Should waive only violation2 (violation1 already has waiver in policy_waiver table)
     verify(apiPolicyWaiverService, times(1)).savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
   }
@@ -367,7 +367,7 @@ public class ApiFirewallBulkWaiverServiceTest
     List<String> violationIds = Collections.singletonList(VIOLATION_ID_1);
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, createValidWaiverOptions());
 
-    RepositoryPolicyViolation violation = createValidViolationWithDetails(
+    ProxyRepositoryPolicyViolation violation = createValidViolationWithDetails(
         VIOLATION_ID_1, REPOSITORY_ID, "Policy One", "npm", "test-package", "1.0.0",
         "Constraint A", "Reason A", false);
 
@@ -377,7 +377,7 @@ public class ApiFirewallBulkWaiverServiceTest
     String constraintFactsJson = violation.getConstraintFactsJson();
     Owner owner = createOwner(INTERNAL_OWNER_ID);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
     PolicyWaiver existingWaiver = new PolicyWaiver();
@@ -390,7 +390,7 @@ public class ApiFirewallBulkWaiverServiceTest
     service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request);
 
     verify(apiPolicyWaiverService, never()).savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
   }
@@ -400,10 +400,10 @@ public class ApiFirewallBulkWaiverServiceTest
     List<String> violationIds = Collections.singletonList(VIOLATION_ID_1);
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, createValidWaiverOptions());
 
-    RepositoryPolicyViolation violation = createValidViolationWithDetails(
+    ProxyRepositoryPolicyViolation violation = createValidViolationWithDetails(
         VIOLATION_ID_1, REPOSITORY_ID, "Policy One", "npm", "test-package", "1.0.0",
         "Constraint A", "Reason A", false);
-    RepositoryPolicyViolation otherConstraintViolation = createValidViolationWithDetails(
+    ProxyRepositoryPolicyViolation otherConstraintViolation = createValidViolationWithDetails(
         VIOLATION_ID_2, REPOSITORY_ID, "Policy One", "npm", "test-package", "1.0.0",
         "Constraint A", "Reason B", false);
 
@@ -413,7 +413,7 @@ public class ApiFirewallBulkWaiverServiceTest
     String otherConstraintFactsJson = otherConstraintViolation.getConstraintFactsJson();
     Owner owner = createOwner(INTERNAL_OWNER_ID);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
     PolicyWaiver existingWaiver = new PolicyWaiver();
@@ -440,7 +440,7 @@ public class ApiFirewallBulkWaiverServiceTest
     List<String> violationIds = Collections.singletonList(VIOLATION_ID_1);
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, allVersionsOptions);
 
-    RepositoryPolicyViolation violation = createValidViolationWithDetails(
+    ProxyRepositoryPolicyViolation violation = createValidViolationWithDetails(
         VIOLATION_ID_1, REPOSITORY_ID, "Policy One", "npm", "test-package", "1.0.0",
         "Constraint A", "Reason A", false);
 
@@ -448,7 +448,7 @@ public class ApiFirewallBulkWaiverServiceTest
     String constraintFactsJson = violation.getConstraintFactsJson();
     Owner owner = createOwner(INTERNAL_OWNER_ID);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
     // Existing waiver has null hash (as stored for ALL_VERSIONS waivers)
@@ -463,7 +463,7 @@ public class ApiFirewallBulkWaiverServiceTest
 
     // Pre-check should detect the duplicate via null hash and skip — savePolicyWaiver must NOT be called
     verify(apiPolicyWaiverService, never()).savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
   }
@@ -584,8 +584,8 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
 
     // Owner hierarchy does NOT include INTERNAL_OWNER_ID (cross-tenant)
     Owner differentOwner = createOwner("different-owner-id");
@@ -597,7 +597,7 @@ public class ApiFirewallBulkWaiverServiceTest
         .hasMessageContaining("Violation " + VIOLATION_ID_1 + " does not belong to owner " + OWNER_ID);
 
     verify(apiPolicyWaiverService, never()).savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
   }
@@ -612,8 +612,8 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
 
     // Owner hierarchy: repo -> repo_manager -> repo_container (INTERNAL_OWNER_ID at top)
     Owner repoOwner = createOwner("repo-owner");
@@ -622,7 +622,7 @@ public class ApiFirewallBulkWaiverServiceTest
     when(ownerDAO.walkHierarchy(REPOSITORY_ID))
         .thenReturn(Arrays.asList(repoOwner, repoManagerOwner, repoContainerOwner));
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -647,12 +647,12 @@ public class ApiFirewallBulkWaiverServiceTest
     String repo1 = "repo-1";
     String repo2 = "repo-2"; // Different tenant
 
-    RepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, repo1, false);
-    RepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, repo2, false);
+    ProxyRepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, repo1, false);
+    ProxyRepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, repo2, false);
     // Note: violation3 is never fetched because the test fails on violation2 (cross-tenant)
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
 
     // repo1 belongs to our tenant, repo2 does not
     Owner owner1 = createOwner(INTERNAL_OWNER_ID);
@@ -669,7 +669,7 @@ public class ApiFirewallBulkWaiverServiceTest
     // The transaction is rolled back but the mock call is still registered
     // So we verify at most 1 call (for violation1) before the cross-tenant error
     verify(apiPolicyWaiverService, atMost(1)).savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
   }
@@ -688,17 +688,17 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    RepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
     // First waiver succeeds, second fails with database exception
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver)
@@ -726,17 +726,17 @@ public class ApiFirewallBulkWaiverServiceTest
         new ApiWaiverOptionsDTO(WAIVER_COMMENT, ALL_VERSIONS, null, null, false);
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    RepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
     // First waiver succeeds, second is rejected because its violation has no component identifier
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver)
@@ -765,14 +765,14 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
     violation.setPathname(COMPONENT_PATHNAME);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -792,7 +792,7 @@ public class ApiFirewallBulkWaiverServiceTest
         eq(OwnerType.REPOSITORY), eq(INTERNAL_OWNER_ID), eq(policyWaiver), eq(violation));
 
     // Verify NO immediate unquarantine (deferred to reevaluation)
-    verify(repositoryComponentDAO, never()).getByRepositoryIdAndPathname(any(), anyString(), anyString());
+    verify(proxyRepositoryComponentDAO, never()).getByRepositoryIdAndPathname(any(), anyString(), anyString());
   }
 
   /**
@@ -806,14 +806,14 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
     violation.setPathname(COMPONENT_PATHNAME);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -822,8 +822,8 @@ public class ApiFirewallBulkWaiverServiceTest
     service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request);
 
     // Assert - verify NO component interaction (deferred to reevaluation)
-    verify(repositoryComponentDAO, never()).getByRepositoryIdAndPathname(any(), anyString(), anyString());
-    verify(repositoryPolicyViolationDAO, never()).getByRepositoryIdAndPathnameAndActionAndNotWaived(
+    verify(proxyRepositoryComponentDAO, never()).getByRepositoryIdAndPathname(any(), anyString(), anyString());
+    verify(proxyRepositoryPolicyViolationDAO, never()).getByRepositoryIdAndPathnameAndActionAndNotWaived(
         anyString(), anyString(), anyString());
   }
 
@@ -838,14 +838,14 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
     violation.setPathname(COMPONENT_PATHNAME);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -854,8 +854,8 @@ public class ApiFirewallBulkWaiverServiceTest
     service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request);
 
     // Assert - verify NO component interaction (deferred to reevaluation)
-    verify(repositoryComponentDAO, never()).getByRepositoryIdAndPathname(any(), anyString(), anyString());
-    verify(repositoryComponentDAO, never()).update(any(), any());
+    verify(proxyRepositoryComponentDAO, never()).getByRepositoryIdAndPathname(any(), anyString(), anyString());
+    verify(proxyRepositoryComponentDAO, never()).update(any(), any());
   }
 
   // ============================================================================
@@ -872,18 +872,18 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    RepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    ProxyRepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
     PolicyWaiver waiver1 = createPolicyWaiver("waiver-1");
     PolicyWaiver waiver2 = createPolicyWaiver("waiver-2");
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(waiver1, waiver2);
@@ -896,15 +896,16 @@ public class ApiFirewallBulkWaiverServiceTest
     verify(transactionContext).commit();
     // Verify PolicyWaivers were created (not violation updates - those are deferred to reevaluation)
     verify(apiPolicyWaiverService, times(2)).savePolicyWaiver(
-        any(TransactionContext.class), eq(INTERNAL_OWNER_ID), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), eq(INTERNAL_OWNER_ID), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
     // Verify telemetry was sent after commit
     verify(apiPolicyWaiverService, times(2)).auditAndSendTelemetry(
-        eq(OwnerType.REPOSITORY), eq(INTERNAL_OWNER_ID), any(PolicyWaiver.class), any(RepositoryPolicyViolation.class));
+        eq(OwnerType.REPOSITORY), eq(INTERNAL_OWNER_ID), any(PolicyWaiver.class),
+        any(ProxyRepositoryPolicyViolation.class));
     // Verify NO immediate violation updates (deferred to reevaluation)
-    verify(repositoryPolicyViolationDAO, never()).update(any(TransactionContext.class),
-        any(RepositoryPolicyViolation.class));
+    verify(proxyRepositoryPolicyViolationDAO, never()).update(any(TransactionContext.class),
+        any(ProxyRepositoryPolicyViolation.class));
   }
 
   /**
@@ -928,8 +929,8 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
     when(repositoryDAO.getById(any(TransactionContext.class), eq(REPOSITORY_ID))).thenReturn(null);
@@ -951,17 +952,17 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
     // Create violation with constraint but no condition reason
-    RepositoryPolicyViolation violation = createValidViolationWithDetails(
+    ProxyRepositoryPolicyViolation violation = createValidViolationWithDetails(
         VIOLATION_ID_1, REPOSITORY_ID, "Test-Policy", "npm", "test-package", "1.0.0",
         "Test Constraint", null, false); // null conditionReason
 
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
     PolicyWaiver waiver = createPolicyWaiver("waiver-1");
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(waiver);
@@ -982,12 +983,12 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -1009,12 +1010,12 @@ public class ApiFirewallBulkWaiverServiceTest
     ApiWaiverOptionsDTO waiverOptions = createValidWaiverOptions();
     ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
 
-    RepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
-    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    ProxyRepositoryPolicyViolation violation = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, false);
+    when(proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
     when(apiPolicyWaiverService.savePolicyWaiver(
-        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        any(TransactionContext.class), anyString(), any(ProxyRepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean()))
             .thenReturn(policyWaiver);
@@ -1040,8 +1041,8 @@ public class ApiFirewallBulkWaiverServiceTest
     );
   }
 
-  private RepositoryPolicyViolation createValidViolation(String id, String repositoryId, boolean isWaived) {
-    RepositoryPolicyViolation violation = new RepositoryPolicyViolation();
+  private ProxyRepositoryPolicyViolation createValidViolation(String id, String repositoryId, boolean isWaived) {
+    ProxyRepositoryPolicyViolation violation = new ProxyRepositoryPolicyViolation();
     violation.setId(id);
     violation.setRepositoryId(repositoryId);
     violation.setActionTypeId(Action.ID_FAIL);
@@ -1056,7 +1057,7 @@ public class ApiFirewallBulkWaiverServiceTest
     return violation;
   }
 
-  private RepositoryPolicyViolation createValidViolationWithDetails(
+  private ProxyRepositoryPolicyViolation createValidViolationWithDetails(
       String id,
       String repositoryId,
       String policyName,
@@ -1087,7 +1088,7 @@ public class ApiFirewallBulkWaiverServiceTest
     }
 
     // Create violation
-    RepositoryPolicyViolation violation = new RepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation violation = new ProxyRepositoryPolicyViolation(
         repositoryId,
         COMPONENT_PATHNAME,
         new Date(),

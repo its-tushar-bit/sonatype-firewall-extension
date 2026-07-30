@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStat
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequest;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequestStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
@@ -286,8 +286,8 @@ public class ReevaluateCascadeRequestDAOTest
 
     Repository repository1 = tempEntity.newRepository("test-repo-1");
     Repository repository2 = tempEntity.newRepository("test-repo-2");
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
 
     tempEntity.newReevaluateCascadeProgress(
         "progress_1", "cascade_deletion_test", repository1.getId(), component1.getId(),

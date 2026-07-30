@@ -13,11 +13,11 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class RepositoryComponentDisplayNameMigratorTest
   private MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   private RepositoryComponentDisplayNameMigrator repositoryComponentDisplayNameMigrator;
@@ -42,7 +42,7 @@ public class RepositoryComponentDisplayNameMigratorTest
   @Test
   public void testMigrate() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path1", "hash1",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), new Date(), new Date(), null);
     nullifyDisplayNames();
@@ -53,14 +53,14 @@ public class RepositoryComponentDisplayNameMigratorTest
 
     assertThat(migrationTrackerDAO.isTrackerPresent(RepositoryComponentDisplayNameMigrator.MIGRATION_ID)).isTrue();
 
-    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent.getDisplayName()).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    proxyRepositoryComponent = proxyRepositoryComponentDAO.getById(proxyRepositoryComponent.getId());
+    assertThat(proxyRepositoryComponent.getDisplayName()).isEqualTo("g1 : a1 : e1 : c1 : v1");
   }
 
   @Test
   public void testMigrate_AlreadyMigrated() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path1", "hash1",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), new Date(), new Date(), null);
     nullifyDisplayNames();
@@ -70,15 +70,15 @@ public class RepositoryComponentDisplayNameMigratorTest
     assertThat(migrationTrackerDAO.isTrackerPresent(RepositoryComponentDisplayNameMigrator.MIGRATION_ID)).isTrue();
 
     // Since the migrator already run, it shouldn't have done anything, so the display names should still be null.
-    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
-    assertThat(repositoryComponent.getDisplayName()).isNull();
+    proxyRepositoryComponent = proxyRepositoryComponentDAO.getById(proxyRepositoryComponent.getId());
+    assertThat(proxyRepositoryComponent.getDisplayName()).isNull();
   }
 
   private void nullifyDisplayNames() throws SQLException {
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
         PreparedStatement updateStmt =
             connection.prepareStatement("UPDATE " + operationalDataStore.getDatabaseSchema()
-                + ".repository_component" + " SET display_name = NULL"))
+                + ".proxy_repository_component" + " SET display_name = NULL"))
     {
       updateStmt.execute();
     }

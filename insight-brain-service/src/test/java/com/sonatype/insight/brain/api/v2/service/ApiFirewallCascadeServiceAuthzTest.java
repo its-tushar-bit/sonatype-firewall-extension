@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.CascadeStatusResponseDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -191,7 +191,7 @@ public class ApiFirewallCascadeServiceAuthzTest
     Date now = new Date();
 
     // Create repository component for the test
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(
         repository.getId(),
         MatchState.EXACT,
         "authz/status/test",
@@ -204,7 +204,7 @@ public class ApiFirewallCascadeServiceAuthzTest
     tempEntity.newReevaluateCascadeRequest(cascadeRequestId, componentHash, "testuser");
 
     tempEntity.newReevaluateCascadeProgress("authz_progress_completed", cascadeRequestId, repository.getId(),
-        repositoryComponent.getId(), ReevaluateCascadeProgressStatus.COMPLETED.name());
+        proxyRepositoryComponent.getId(), ReevaluateCascadeProgressStatus.COMPLETED.name());
 
     return cascadeRequestId;
   }

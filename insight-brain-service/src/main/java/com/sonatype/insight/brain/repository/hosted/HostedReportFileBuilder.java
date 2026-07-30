@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -69,9 +69,9 @@ public class HostedReportFileBuilder
    * </ul>
    * Read-time only — no stored rows are modified; enforcement paths read the outer row directly.
    */
-  public static List<RepositoryPolicyViolation> excludeOuterViolationsForFormat(
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations,
+  public static List<ProxyRepositoryPolicyViolation> excludeOuterViolationsForFormat(
+      final ProxyRepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> violations,
       final String repositoryFormat)
   {
     return excludeOuterViolationsForFormat(outerComponent, violations, repositoryFormat, null);
@@ -85,9 +85,9 @@ public class HostedReportFileBuilder
    * and threat are tenant-editable, so hardcoding either diverges from LC once a tenant customizes
    * the policy. When the policy cannot be resolved the synthetic row falls back to the defaults.
    */
-  public static List<RepositoryPolicyViolation> excludeOuterViolationsForFormat(
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations,
+  public static List<ProxyRepositoryPolicyViolation> excludeOuterViolationsForFormat(
+      final ProxyRepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> violations,
       final String repositoryFormat,
       final Policy componentUnknownPolicy)
   {
@@ -100,17 +100,17 @@ public class HostedReportFileBuilder
     }
 
     if (repositoryFormat != null && OUTER_AS_UNKNOWN_FORMATS.contains(repositoryFormat.toLowerCase())) {
-      List<RepositoryPolicyViolation> inners = violations.stream()
+      List<ProxyRepositoryPolicyViolation> inners = violations.stream()
           .filter(v -> !outerPathname.equals(v.getPathname()))
           .collect(java.util.stream.Collectors.toList());
-      List<RepositoryPolicyViolation> result = new java.util.ArrayList<>(inners.size() + 1);
+      List<ProxyRepositoryPolicyViolation> result = new java.util.ArrayList<>(inners.size() + 1);
       result.add(buildOuterUnknownViolation(outerComponent, componentUnknownPolicy));
       result.addAll(inners);
       return result;
     }
 
     Set<String> innerIdentities = new java.util.HashSet<>();
-    for (RepositoryPolicyViolation v : violations) {
+    for (ProxyRepositoryPolicyViolation v : violations) {
       if (v.getPathname() != null && v.getPathname().startsWith(outerPathname + "!/")) {
         String id = componentIdentity(v);
         if (id != null) {
@@ -172,7 +172,7 @@ public class HostedReportFileBuilder
   }
 
   /** Component identity used to detect the outer self-mirror: format + coordinates (never the hash). */
-  private static String componentIdentity(final RepositoryPolicyViolation v) {
+  private static String componentIdentity(final ProxyRepositoryPolicyViolation v) {
     ComponentIdentifier ci = v.getComponentIdentifier();
     if (ci == null || ci.getCoordinates() == null || ci.getCoordinates().isEmpty()) {
       return null;
@@ -185,11 +185,11 @@ public class HostedReportFileBuilder
    * mirroring LC. Stamps the resolved policy's id, name and threat level so the row matches whatever
    * LC emits for the scan's owner; when no policy was resolved, falls back to the defaults.
    */
-  private static RepositoryPolicyViolation buildOuterUnknownViolation(
-      final RepositoryComponent outerComponent,
+  private static ProxyRepositoryPolicyViolation buildOuterUnknownViolation(
+      final ProxyRepositoryComponent outerComponent,
       final Policy componentUnknownPolicy)
   {
-    RepositoryPolicyViolation unknown = new RepositoryPolicyViolation();
+    ProxyRepositoryPolicyViolation unknown = new ProxyRepositoryPolicyViolation();
     unknown.setPathname(outerComponent != null ? outerComponent.getPathname() : null);
     unknown.setHash(outerComponent != null ? outerComponent.getHash() : null);
     if (componentUnknownPolicy != null) {
@@ -206,8 +206,8 @@ public class HostedReportFileBuilder
 
   public static byte[] build(
       final String name,
-      final RepositoryComponent component,
-      final List<RepositoryPolicyViolation> violations) throws Exception
+      final ProxyRepositoryComponent component,
+      final List<ProxyRepositoryPolicyViolation> violations) throws Exception
   {
     return build(name, component, violations, null);
   }
@@ -215,7 +215,7 @@ public class HostedReportFileBuilder
   /**
    * CLM-40943: overload that accepts an {@code outerHashOverride} — the hash HDS's
    * {@code bom.json} uses for the outer component. When the bom hash differs from
-   * {@code repository_component.hash} (npm and most nuget formats — file SHA1 vs HDS-derived
+   * {@code proxy_repository_component.hash} (npm and most nuget formats — file SHA1 vs HDS-derived
    * package hash), the synthesised {@code policythreats.json} must use bom's hash so the
    * downstream LC Application Report body can join violations to bom entries by hash. Without
    * this the body table shows the outer component with zero violations attached even when the
@@ -229,8 +229,8 @@ public class HostedReportFileBuilder
    */
   public static byte[] build(
       final String name,
-      final RepositoryComponent component,
-      final List<RepositoryPolicyViolation> violations,
+      final ProxyRepositoryComponent component,
+      final List<ProxyRepositoryPolicyViolation> violations,
       final String outerHashOverride) throws Exception
   {
     if (POLICY_THREATS.getName().equals(name)) {
@@ -255,15 +255,15 @@ public class HostedReportFileBuilder
   }
 
   private static byte[] buildPolicyThreats(
-      final RepositoryComponent component,
-      final List<RepositoryPolicyViolation> violations) throws Exception
+      final ProxyRepositoryComponent component,
+      final List<ProxyRepositoryPolicyViolation> violations) throws Exception
   {
     return buildPolicyThreats(component, violations, null);
   }
 
   private static byte[] buildPolicyThreats(
-      final RepositoryComponent component,
-      final List<RepositoryPolicyViolation> violations,
+      final ProxyRepositoryComponent component,
+      final List<ProxyRepositoryPolicyViolation> violations,
       final String outerHashOverride) throws Exception
   {
     ObjectNode root = MAPPER.createObjectNode();
@@ -273,8 +273,8 @@ public class HostedReportFileBuilder
       // First pass: group by pathname (the natural unit produced by the evaluator — one batch per
       // (repository, pathname)). LinkedHashMap preserves DAO order: outer first, then inners
       // ordered by pathname.
-      Map<String, List<RepositoryPolicyViolation>> byPathname = new LinkedHashMap<>();
-      for (RepositoryPolicyViolation v : violations) {
+      Map<String, List<ProxyRepositoryPolicyViolation>> byPathname = new LinkedHashMap<>();
+      for (ProxyRepositoryPolicyViolation v : violations) {
         byPathname.computeIfAbsent(v.getPathname(), k -> new java.util.ArrayList<>()).add(v);
       }
       // Second pass: emit one aaData entry per UNIQUE HASH. The downstream PDF generator
@@ -295,8 +295,8 @@ public class HostedReportFileBuilder
       // the same Duplicate-key crash on the empty-string side.
       String outerPathname = component != null ? component.getPathname() : null;
       Set<String> seenHashes = new java.util.HashSet<>();
-      for (Map.Entry<String, List<RepositoryPolicyViolation>> entry : byPathname.entrySet()) {
-        List<RepositoryPolicyViolation> group = entry.getValue();
+      for (Map.Entry<String, List<ProxyRepositoryPolicyViolation>> entry : byPathname.entrySet()) {
+        List<ProxyRepositoryPolicyViolation> group = entry.getValue();
         // CLM-40943: only the outer-pathname row gets the bom-hash override. Inner-pathname rows
         // (`outer.zip!/inner.jar`) keep their own per-violation hash, which is already the inner
         // component's HDS identification hash.
@@ -326,23 +326,23 @@ public class HostedReportFileBuilder
    * } fan-out).
    */
   private static String effectiveHashForGroup(
-      final List<RepositoryPolicyViolation> group,
-      final RepositoryComponent outerComponent)
+      final List<ProxyRepositoryPolicyViolation> group,
+      final ProxyRepositoryComponent outerComponent)
   {
     return effectiveHashForGroup(group, outerComponent, null);
   }
 
   private static String effectiveHashForGroup(
-      final List<RepositoryPolicyViolation> group,
-      final RepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> group,
+      final ProxyRepositoryComponent outerComponent,
       final String outerHashOverride)
   {
-    RepositoryPolicyViolation top = selectTopViolation(group);
+    ProxyRepositoryPolicyViolation top = selectTopViolation(group);
     if (top == null) {
       return null;
     }
     // CLM-40943: when caller supplied a bom-hash override for this outer-pathname group, use it
-    // unconditionally. This wins over the persisted RepositoryPolicyViolation.hash, which for
+    // unconditionally. This wins over the persisted ProxyRepositoryPolicyViolation.hash, which for
     // npm/nuget is the file SHA1 (`.tgz`/`.nupkg`) — HDS's bom.json carries a different
     // identification hash and the LC Application Report body joins on bom's hash.
     if (outerHashOverride != null) {
@@ -369,15 +369,15 @@ public class HostedReportFileBuilder
    * computed the top independently and the comparator drifted, the dedup key and the emitted
    * hash could silently disagree.
    */
-  private static RepositoryPolicyViolation selectTopViolation(
-      final List<RepositoryPolicyViolation> group)
+  private static ProxyRepositoryPolicyViolation selectTopViolation(
+      final List<ProxyRepositoryPolicyViolation> group)
   {
     if (group == null || group.isEmpty()) {
       return null;
     }
     return group.stream()
-        .max(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel)
-            .thenComparing(RepositoryPolicyViolation::getPolicyId,
+        .max(Comparator.comparingInt(ProxyRepositoryPolicyViolation::getThreatLevel)
+            .thenComparing(ProxyRepositoryPolicyViolation::getPolicyId,
                 Comparator.nullsFirst(Comparator.<String>naturalOrder()).reversed()))
         .orElse(null);
   }
@@ -390,22 +390,22 @@ public class HostedReportFileBuilder
    */
   private static ObjectNode buildAaDataEntry(
       final String pathname,
-      final List<RepositoryPolicyViolation> groupViolations,
-      final RepositoryComponent outerComponent)
+      final List<ProxyRepositoryPolicyViolation> groupViolations,
+      final ProxyRepositoryComponent outerComponent)
   {
     return buildAaDataEntry(pathname, groupViolations, outerComponent, null);
   }
 
   private static ObjectNode buildAaDataEntry(
       final String pathname,
-      final List<RepositoryPolicyViolation> groupViolations,
-      final RepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> groupViolations,
+      final ProxyRepositoryComponent outerComponent,
       final String outerHashOverride)
   {
     ArrayNode active = MAPPER.createArrayNode();
     ArrayNode waived = MAPPER.createArrayNode();
     ArrayNode all = MAPPER.createArrayNode();
-    for (RepositoryPolicyViolation v : groupViolations) {
+    for (ProxyRepositoryPolicyViolation v : groupViolations) {
       ObjectNode vNode = MAPPER.createObjectNode();
       vNode.put("policyId", v.getPolicyId());
       vNode.put("policyName", v.getPolicyName());
@@ -430,7 +430,7 @@ public class HostedReportFileBuilder
     // can never disagree. orElseThrow makes the invariant (non-empty group) explicit; callers
     // always pass a non-empty list because the grouping loop only adds entries with at least
     // one violation.
-    RepositoryPolicyViolation top = selectTopViolation(groupViolations);
+    ProxyRepositoryPolicyViolation top = selectTopViolation(groupViolations);
     if (top == null) {
       throw new IllegalStateException("Empty violation group passed to buildAaDataEntry");
     }
@@ -443,7 +443,7 @@ public class HostedReportFileBuilder
     // were minted without per-row hash metadata), fall back to the outer component's identity.
     // This keeps single-component scans byte-for-byte compatible with the pre-fan-out builder.
     // CLM-40943: when the caller supplied an outerHashOverride (bom.json's hash for the outer
-    // entry — different from RepositoryPolicyViolation.hash for npm/nuget/pub formats), use it
+    // entry — different from ProxyRepositoryPolicyViolation.hash for npm/nuget/pub formats), use it
     // so the LC Application Report body table can join violations to bom entries by hash.
     String hash;
     if (outerHashOverride != null) {
@@ -479,7 +479,7 @@ public class HostedReportFileBuilder
 
   private static byte[] injectTopLevelComponentIfAbsent(
       final byte[] originalBom,
-      final RepositoryComponent component) throws Exception
+      final ProxyRepositoryComponent component) throws Exception
   {
     if (component == null || component.getHash() == null) {
       return originalBom;
@@ -517,7 +517,7 @@ public class HostedReportFileBuilder
     return MAPPER.writeValueAsBytes(node);
   }
 
-  private static byte[] buildBom(final RepositoryComponent component) throws Exception {
+  private static byte[] buildBom(final ProxyRepositoryComponent component) throws Exception {
     ObjectNode root = MAPPER.createObjectNode();
     ArrayNode aaData = root.putArray("aaData");
     if (component != null && component.getHash() != null) {
@@ -551,7 +551,7 @@ public class HostedReportFileBuilder
    */
   public static byte[] patchBomDisplayName(
       final byte[] originalBom,
-      final RepositoryComponent component) throws Exception
+      final ProxyRepositoryComponent component) throws Exception
   {
     byte[] patched = injectTopLevelComponentIfAbsent(originalBom, component);
     return patchBomDisplayName(patched);
@@ -606,7 +606,7 @@ public class HostedReportFileBuilder
 
   /**
    * Overwrites {@code policyComponentCount} and {@code policyCounts[]} in the HDS-supplied
-   * {@code data.json} based on rolled-up {@code RepositoryPolicyViolation} rows from the IQ
+   * {@code data.json} based on rolled-up {@code ProxyRepositoryPolicyViolation} rows from the IQ
    * evaluator. Mirrors the algorithm in {@code ScanPolicyEvaluator.updateDataJson} — for each
    * UNIQUE component (deduped by effective hash, the same dedup logic
    * {@link #buildPolicyThreats} uses to emit one aaData entry per byte-identical inner jar),
@@ -1000,8 +1000,8 @@ public class HostedReportFileBuilder
 
   public static byte[] patchDataJsonPolicyCounts(
       final byte[] originalDataJson,
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations)
+      final ProxyRepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> violations)
   {
     return patchDataJsonPolicyCounts(originalDataJson, outerComponent, violations, null);
   }
@@ -1010,13 +1010,13 @@ public class HostedReportFileBuilder
    * Overload accepting {@code outerHashOverride} — the hash bom.json carries for the outer
    * entry, used as the dedup key for the outer-pathname group so the count of buckets in
    * data.json's {@code policyComponentCount} matches what {@code policythreats.json} (built with
-   * the same override) emits. See {@link #build(String, RepositoryComponent, List, String)}
+   * the same override) emits. See {@link #build(String, ProxyRepositoryComponent, List, String)}
    * for the rationale on per-format hash divergence.
    */
   public static byte[] patchDataJsonPolicyCounts(
       final byte[] originalDataJson,
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations,
+      final ProxyRepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> violations,
       final String outerHashOverride)
   {
     if (originalDataJson == null || originalDataJson.length == 0
@@ -1033,8 +1033,8 @@ public class HostedReportFileBuilder
 
       // Pass 1: group active (non-waived) violations by pathname — the natural unit produced
       // by the evaluator (one batch per (repository, pathname)).
-      Map<String, List<RepositoryPolicyViolation>> byPathname = new LinkedHashMap<>();
-      for (RepositoryPolicyViolation v : violations) {
+      Map<String, List<ProxyRepositoryPolicyViolation>> byPathname = new LinkedHashMap<>();
+      for (ProxyRepositoryPolicyViolation v : violations) {
         if (v.isWaived() || v.getPathname() == null) {
           continue;
         }
@@ -1050,8 +1050,8 @@ public class HostedReportFileBuilder
       Set<String> seenHashes = new java.util.HashSet<>();
       int[] policyCounts = new int[11];
       int policyComponentCount = 0;
-      for (Map.Entry<String, List<RepositoryPolicyViolation>> entry : byPathname.entrySet()) {
-        List<RepositoryPolicyViolation> group = entry.getValue();
+      for (Map.Entry<String, List<ProxyRepositoryPolicyViolation>> entry : byPathname.entrySet()) {
+        List<ProxyRepositoryPolicyViolation> group = entry.getValue();
         // CLM-40943: apply the outerHashOverride only to the outer-pathname group so the dedup
         // key matches buildPolicyThreats's emitted hash for that aaData entry.
         boolean isOuter = outerHashOverride != null && outerPathname != null
@@ -1062,7 +1062,7 @@ public class HostedReportFileBuilder
           continue;
         }
         int maxThreat = group.stream()
-            .mapToInt(RepositoryPolicyViolation::getThreatLevel)
+            .mapToInt(ProxyRepositoryPolicyViolation::getThreatLevel)
             .max()
             .orElse(0);
         int bucketed = maxThreat < 0 ? 0 : Math.min(maxThreat, 10);
@@ -1139,8 +1139,8 @@ public class HostedReportFileBuilder
    */
   public static byte[] patchDataJsonPolicyComponentCountIfAbsent(
       final byte[] originalDataJson,
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations,
+      final ProxyRepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> violations,
       final String outerHashOverride)
   {
     if (originalDataJson == null || originalDataJson.length == 0) {
@@ -1171,15 +1171,15 @@ public class HostedReportFileBuilder
    * so hosted-repo and application-evaluation paths compute the same value for the same violation set.
    */
   private static int countPolicyAffectedComponents(
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations,
+      final ProxyRepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> violations,
       final String outerHashOverride)
   {
     if (violations == null || violations.isEmpty()) {
       return 0;
     }
-    Map<String, List<RepositoryPolicyViolation>> byPathname = new LinkedHashMap<>();
-    for (RepositoryPolicyViolation v : violations) {
+    Map<String, List<ProxyRepositoryPolicyViolation>> byPathname = new LinkedHashMap<>();
+    for (ProxyRepositoryPolicyViolation v : violations) {
       if (v.isWaived() || v.getPathname() == null) {
         continue;
       }
@@ -1188,8 +1188,8 @@ public class HostedReportFileBuilder
     String outerPathname = outerComponent != null ? outerComponent.getPathname() : null;
     Set<String> seenHashes = new java.util.HashSet<>();
     int count = 0;
-    for (Map.Entry<String, List<RepositoryPolicyViolation>> entry : byPathname.entrySet()) {
-      List<RepositoryPolicyViolation> group = entry.getValue();
+    for (Map.Entry<String, List<ProxyRepositoryPolicyViolation>> entry : byPathname.entrySet()) {
+      List<ProxyRepositoryPolicyViolation> group = entry.getValue();
       boolean isOuter = outerHashOverride != null && outerPathname != null
           && outerPathname.equals(entry.getKey());
       String effectiveHash = effectiveHashForGroup(group, outerComponent, isOuter ? outerHashOverride : null);
@@ -1198,7 +1198,7 @@ public class HostedReportFileBuilder
         continue;
       }
       int maxThreat = group.stream()
-          .mapToInt(RepositoryPolicyViolation::getThreatLevel)
+          .mapToInt(ProxyRepositoryPolicyViolation::getThreatLevel)
           .max()
           .orElse(0);
       if (maxThreat >= 2) {
@@ -1219,14 +1219,14 @@ public class HostedReportFileBuilder
    * LC's component set. {@code outerComponent} is unused, kept for call-site symmetry.
    */
   public static int totalRisk(
-      final RepositoryComponent outerComponent,
-      final List<RepositoryPolicyViolation> violations)
+      final ProxyRepositoryComponent outerComponent,
+      final List<ProxyRepositoryPolicyViolation> violations)
   {
     if (violations == null || violations.isEmpty()) {
       return 0;
     }
     Map<String, Integer> maxThreatByKey = new LinkedHashMap<>();
-    for (RepositoryPolicyViolation v : violations) {
+    for (ProxyRepositoryPolicyViolation v : violations) {
       if (v.isWaived()) {
         continue;
       }
@@ -1241,8 +1241,8 @@ public class HostedReportFileBuilder
   }
 
   private static byte[] buildData(
-      final RepositoryComponent component,
-      final List<RepositoryPolicyViolation> violations)
+      final ProxyRepositoryComponent component,
+      final List<ProxyRepositoryPolicyViolation> violations)
   {
     int count = component != null ? 1 : 0;
     boolean isExact = component != null && MatchState.EXACT.getId().equalsIgnoreCase(component.getMatchStateId());

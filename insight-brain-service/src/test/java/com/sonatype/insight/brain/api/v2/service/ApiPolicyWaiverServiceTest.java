@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.owner.OwnerService;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -66,7 +66,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -124,7 +124,7 @@ public class ApiPolicyWaiverServiceTest
   private PolicyViolationDAO policyViolationDAO;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
@@ -705,7 +705,7 @@ public class ApiPolicyWaiverServiceTest
         policyWaiverTelemetryCreator,
         lookup(CurrentUser.class),
         lookup(OwnerService.class),
-        repositoryPolicyViolationDAO,
+        proxyRepositoryPolicyViolationDAO,
         policyViolationDAO,
         lookup(PolicyWaiverRequestDAO.class),
         organizationDAO,
@@ -1114,10 +1114,10 @@ public class ApiPolicyWaiverServiceTest
         ComponentIdentifier.createMavenCoordinates("group", "otherArtifact", "*", "c1", "jar");
     String packageUrlAllVersions = PackageUrlIdentifier.toPackageUrl(identifierAllVersions);
     String packageUrlAllVersions2 = PackageUrlIdentifier.toPackageUrl(identifierAllVersions2);
-    RepositoryPolicyViolation violation =
+    ProxyRepositoryPolicyViolation violation =
         tempEntity.newRepositoryPolicyViolation(repository, policy, "testPathname", identifier, "hash");
     violation.setConstraintFacts(constraintFacts);
-    repositoryPolicyViolationDAO.update(violation);
+    proxyRepositoryPolicyViolationDAO.update(violation);
 
     String policyId = policy.getId();
     String policy2Id = policy2.getId();
@@ -1760,18 +1760,19 @@ public class ApiPolicyWaiverServiceTest
   public void testAddPolicyWaiverByPolicyViolationId_Repository() {
     Repository repository = tempEntity.newRepository();
     policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.REPOSITORY, repository.getId(),
-        repositoryPolicyViolation.getId(),
+        proxyRepositoryPolicyViolation.getId(),
         new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
 
     assertNotExpiringPolicyWaiver(repository.getId(), "waiver comment", "testuser", "Test User",
-        repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getConstraintFactsJson(), EXACT_COMPONENT,
-        PackageUrlIdentifier.toPackageUrl(repositoryPolicyViolation.getComponentIdentifier()), null);
+        proxyRepositoryPolicyViolation.getHash(), proxyRepositoryPolicyViolation.getConstraintFactsJson(),
+        EXACT_COMPONENT,
+        PackageUrlIdentifier.toPackageUrl(proxyRepositoryPolicyViolation.getComponentIdentifier()), null);
     assertTelemetry(OwnerType.REPOSITORY, repository.getId());
-    assertWaiverTelemetry(OwnerType.REPOSITORY, repositoryPolicyViolation,
+    assertWaiverTelemetry(OwnerType.REPOSITORY, proxyRepositoryPolicyViolation,
         policyWaiverDAO.getByOwnerId(repository.getId()).get(0));
   }
 
@@ -1779,18 +1780,19 @@ public class ApiPolicyWaiverServiceTest
   public void testAddPolicyWaiverByPolicyViolationId_RepositoryContainer() {
     Repository repository = tempEntity.newRepository();
     policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    RepositoryPolicyViolation repositoryPolicyViolation =
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId(),
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, proxyRepositoryPolicyViolation.getId(),
         new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
 
     assertNotExpiringPolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID, "waiver comment", "testuser",
-        "Test User", repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getConstraintFactsJson(),
-        EXACT_COMPONENT, PackageUrlIdentifier.toPackageUrl(repositoryPolicyViolation.getComponentIdentifier()), null);
+        "Test User", proxyRepositoryPolicyViolation.getHash(), proxyRepositoryPolicyViolation.getConstraintFactsJson(),
+        EXACT_COMPONENT, PackageUrlIdentifier.toPackageUrl(proxyRepositoryPolicyViolation.getComponentIdentifier()),
+        null);
     assertTelemetry(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    assertWaiverTelemetry(OwnerType.REPOSITORY_CONTAINER, repositoryPolicyViolation,
+    assertWaiverTelemetry(OwnerType.REPOSITORY_CONTAINER, proxyRepositoryPolicyViolation,
         policyWaiverDAO.getByOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID).get(0));
   }
 
@@ -2603,7 +2605,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddBulkPolicyWaivers_Repository_Success() {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repoPolicyViolation = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation repoPolicyViolation = tempEntity.newRepositoryPolicyViolation(
         repository.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
@@ -2627,7 +2629,7 @@ public class ApiPolicyWaiverServiceTest
   public void testAddBulkPolicyWaivers_RepositoryManager_Success() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation repoPolicyViolation = tempEntity.newRepositoryPolicyViolation(
+    ProxyRepositoryPolicyViolation repoPolicyViolation = tempEntity.newRepositoryPolicyViolation(
         repository.getId(), policy.getId(), policy.getThreatLevel());
 
     ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();

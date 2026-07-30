@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
@@ -51,14 +51,14 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CreateRepositoryPolicyViolationsEventHandlerTest
+public class CreateProxyRepositoryPolicyViolationsEventHandlerTest
     extends AbstractComponentTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput(CreateRepositoryPolicyViolationsEventHandler.class);
+  public LogOutput logOutput = new LogOutput(CreateProxyRepositoryPolicyViolationsEventHandler.class);
 
   @Inject
-  private CreateRepositoryPolicyViolationsEventHandler handler;
+  private CreateProxyRepositoryPolicyViolationsEventHandler handler;
 
   @Inject
   private FirewallMetricsDAO firewallMetricsDAO;
@@ -85,15 +85,15 @@ public class CreateRepositoryPolicyViolationsEventHandlerTest
   public void testOnRepositoryPolicyViolationsCreated_InvalidProductLicense() {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
-    handler.onRepositoryPolicyViolationsCreated(null);
+    handler.onProxyRepositoryPolicyViolationsCreated(null);
 
     assertThat(logOutput).contains("Invalid product license to create Firewall Metrics");
     assertThat(firewallMetricsDAO.getAll()).isEmpty();
   }
 
   @Test
-  public void testOnRepositoryPolicyViolationsCreated_EmptyRepositoryPolicyViolations() {
-    handler.onRepositoryPolicyViolationsCreated(new CreateRepositoryPolicyViolationsEvent());
+  public void testOnProxyRepositoryPolicyViolationsCreated_EmptyProxyRepositoryPolicyViolations() {
+    handler.onProxyRepositoryPolicyViolationsCreated(new CreateRepositoryPolicyViolationsEvent());
 
     assertThat(logOutput).contains("No repository policy violations to process");
     assertThat(firewallMetricsDAO.getAll()).isEmpty();
@@ -103,7 +103,7 @@ public class CreateRepositoryPolicyViolationsEventHandlerTest
   public void testOnRepositoryPolicyViolationsCreated_NamespaceAttacksBlocked() {
     int expectedMetrics = 14;
     doTestOnRepositoryPolicyViolationsCreated(expectedMetrics, NAMESPACE_ATTACKS_BLOCKED,
-        createProprietaryNameConflictRepositoryPolicyViolations(expectedMetrics));
+        createProprietaryNameConflictProxyRepositoryPolicyViolations(expectedMetrics));
   }
 
   @Test
@@ -119,12 +119,12 @@ public class CreateRepositoryPolicyViolationsEventHandlerTest
     int expectedSupplyChainAttacksBlockedMetrics = 3;
 
     CreateRepositoryPolicyViolationsEvent event = new CreateRepositoryPolicyViolationsEvent();
-    event.repositoryPolicyViolations
-        .addAll(createProprietaryNameConflictRepositoryPolicyViolations(expectedNamespaceAttacksBlockedMetrics));
-    event.repositoryPolicyViolations
+    event.proxyRepositoryPolicyViolations
+        .addAll(createProprietaryNameConflictProxyRepositoryPolicyViolations(expectedNamespaceAttacksBlockedMetrics));
+    event.proxyRepositoryPolicyViolations
         .addAll(createMaliciousCodeRepositoryPolicyViolations(expectedSupplyChainAttacksBlockedMetrics));
 
-    handler.onRepositoryPolicyViolationsCreated(event);
+    handler.onProxyRepositoryPolicyViolationsCreated(event);
 
     List<FirewallMetrics> result = firewallMetricsDAO.getAll();
 
@@ -150,12 +150,12 @@ public class CreateRepositoryPolicyViolationsEventHandlerTest
   private void doTestOnRepositoryPolicyViolationsCreated(
       int expectedMetrics,
       FirewallMetricsName firewallMetricsName,
-      List<RepositoryPolicyViolation> repositoryPolicyViolations)
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations)
   {
     CreateRepositoryPolicyViolationsEvent event = new CreateRepositoryPolicyViolationsEvent();
-    event.repositoryPolicyViolations = repositoryPolicyViolations;
+    event.proxyRepositoryPolicyViolations = proxyRepositoryPolicyViolations;
 
-    handler.onRepositoryPolicyViolationsCreated(event);
+    handler.onProxyRepositoryPolicyViolationsCreated(event);
 
     assertThat(logOutput).contains("Start processing repository policy violations for Firewall Metrics");
     assertThat(logOutput).contains("Finished processing repository policy violations for Firewall Metrics");
@@ -169,8 +169,10 @@ public class CreateRepositoryPolicyViolationsEventHandlerTest
     assertThat(firewallMetrics.getMetricsValue()).isEqualTo(expectedMetrics);
   }
 
-  private List<RepositoryPolicyViolation> createProprietaryNameConflictRepositoryPolicyViolations(int expectedMetrics) {
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = new ArrayList<>();
+  private List<ProxyRepositoryPolicyViolation> createProprietaryNameConflictProxyRepositoryPolicyViolations(
+      int expectedMetrics)
+  {
+    List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations = new ArrayList<>();
 
     Date date = toDate(LocalDate.now().minusDays(expectedMetrics));
     MatchFact matchFactProprietaryNameConflict =
@@ -189,17 +191,18 @@ public class CreateRepositoryPolicyViolationsEventHandlerTest
     List<ConstraintFact> constraintFactsProprietaryNameConflict = singletonList(constraintFactProprietaryNameConflict);
 
     for (int i = 0; i < expectedMetrics; i++) {
-      repositoryPolicyViolations.add(tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, "path", "hash",
-          constraintFactsProprietaryNameConflict, false, FailActionType.ID,
-          matchFactProprietaryNameConflict.getPolicyId(), matchFactProprietaryNameConflict.getPolicyId(),
-          component.getComponentIdentifier(), DateUtils.addSeconds(date, i * 10), null, null, null));
+      proxyRepositoryPolicyViolations
+          .add(tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, "path", "hash",
+              constraintFactsProprietaryNameConflict, false, FailActionType.ID,
+              matchFactProprietaryNameConflict.getPolicyId(), matchFactProprietaryNameConflict.getPolicyId(),
+              component.getComponentIdentifier(), DateUtils.addSeconds(date, i * 10), null, null, null));
     }
 
-    return repositoryPolicyViolations;
+    return proxyRepositoryPolicyViolations;
   }
 
-  private List<RepositoryPolicyViolation> createMaliciousCodeRepositoryPolicyViolations(int expectedMetrics) {
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = new ArrayList<>();
+  private List<ProxyRepositoryPolicyViolation> createMaliciousCodeRepositoryPolicyViolations(int expectedMetrics) {
+    List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations = new ArrayList<>();
 
     Date date = toDate(LocalDate.now().minusDays(expectedMetrics));
 
@@ -223,12 +226,12 @@ public class CreateRepositoryPolicyViolationsEventHandlerTest
     List<ConstraintFact> constraintFactsMaliciousCode = singletonList(constraintFactMaliciousCode);
 
     for (int i = 0; i < expectedMetrics; i++) {
-      repositoryPolicyViolations.add(
+      proxyRepositoryPolicyViolations.add(
           tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, "path", "hash", constraintFactsMaliciousCode,
               false, FailActionType.ID, matchFactMaliciousCode.getPolicyId(), matchFactMaliciousCode.getPolicyId(),
               component.getComponentIdentifier(), DateUtils.addSeconds(date, i * 10), null, null, null));
     }
 
-    return repositoryPolicyViolations;
+    return proxyRepositoryPolicyViolations;
   }
 }

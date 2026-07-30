@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAcce
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -43,10 +43,10 @@ public class DbQuarantinedComponentAccessManagerTest
   public void testCreateToken() {
     // Setup
     final Repository repository = tempEntity.newRepository();
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
 
     Date before = new Date();
-    final String token = quarantinedComponentAccessManager.createToken(repositoryComponent);
+    final String token = quarantinedComponentAccessManager.createToken(proxyRepositoryComponent);
     Date after = new Date();
 
     assertThat(token).isNotNull().isNotEmpty();
@@ -56,7 +56,7 @@ public class DbQuarantinedComponentAccessManagerTest
 
     final QuarantinedComponentAccess quarantinedComponentAccess = quarantinedComponentAccessDAO.getById(decodedInput);
     assertThat(quarantinedComponentAccess.getRepositoryId()).isEqualTo(repository.getId());
-    assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
+    assertThat(quarantinedComponentAccess.getProxyRepositoryComponentId()).isEqualTo(proxyRepositoryComponent.getId());
     assertThat(quarantinedComponentAccess.getGenerateTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
   }
 
@@ -64,9 +64,9 @@ public class DbQuarantinedComponentAccessManagerTest
   public void testGetQuarantinedComponentAccessFromToken() {
     // Setup
     final Repository repository = tempEntity.newRepository();
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId());
     final String encodedToken = Base64.getUrlEncoder()
         .withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
@@ -75,7 +75,8 @@ public class DbQuarantinedComponentAccessManagerTest
         quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken);
     assertThat(result.getId()).isEqualTo(quarantinedComponentAccess.getId());
     assertThat(result.getRepositoryId()).isEqualTo(quarantinedComponentAccess.getRepositoryId());
-    assertThat(result.getRepositoryComponentId()).isEqualTo(quarantinedComponentAccess.getRepositoryComponentId());
+    assertThat(result.getProxyRepositoryComponentId())
+        .isEqualTo(quarantinedComponentAccess.getProxyRepositoryComponentId());
     assertThat(quarantinedComponentAccess.getGenerateTime()).isEqualTo(quarantinedComponentAccess.getGenerateTime());
   }
 
@@ -95,9 +96,9 @@ public class DbQuarantinedComponentAccessManagerTest
   public void testGetQuarantinedComponentAccessFromToken_tokenExpired() {
     // Setup
     final Repository repository = tempEntity.newRepository();
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final ProxyRepositoryComponent proxyRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(),
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), proxyRepositoryComponent.getId(),
             DateUtils.addHours(new Date(), -13));
     final String encodedToken = Base64.getUrlEncoder()
         .withoutPadding()

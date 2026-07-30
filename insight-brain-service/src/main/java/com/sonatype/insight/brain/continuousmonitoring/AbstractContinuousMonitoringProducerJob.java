@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * next fire.
  * <p>
  * The cycle runs until the selector reports {@code page.hasMore() == false}. Keyset pagination
- * on {@code (time DESC, repository_component_id DESC)} makes per-page cost O(limit) regardless of
+ * on {@code (time DESC, proxy_repository_component_id DESC)} makes per-page cost O(limit) regardless of
  * position and prevents row-skip under concurrent inserts, so the previous 1M-row
  * {@code maxCyclePages} ceiling is no longer needed for correctness. A high
  * {@value #DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES}-page safety net remains as a backstop against a

@@ -224,7 +224,8 @@ public class ApiSearchServiceV2Test
    * CLM-41473 regression: when a matched application's report is not stored on disk (the SaaS norm, where reports are
    * purged), the dependency-data path must not fall back to the per-application recovery {@code getReport(appId,
    * scanId)} -- which issued ~4 DB queries per matched application ({@code application}, two {@code policy_evaluation}
-   * and {@code repository_component}) and reintroduced an N+1 that scaled with the number of results. It must use the
+   * and {@code proxy_repository_component}) and reintroduced an N+1 that scaled with the number of results. It must use
+   * the
    * no-recovery {@code getReportIfPresent} path and return empty dependency data.
    */
   @Test

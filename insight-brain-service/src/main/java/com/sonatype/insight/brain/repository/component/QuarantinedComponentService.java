@@ -23,9 +23,9 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
@@ -33,12 +33,12 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.repository.ProxyRepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -62,9 +62,9 @@ public class QuarantinedComponentService
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
@@ -93,8 +93,8 @@ public class QuarantinedComponentService
       final DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       final ComponentInfoService componentInfoService,
       final RepositoryDAO repositoryDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
       final TelemetrySender telemetrySender,
       final RepositoryService repositoryService,
@@ -103,8 +103,8 @@ public class QuarantinedComponentService
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.componentInfoService = componentInfoService;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
     this.telemetrySender = telemetrySender;
     this.repositoryService = repositoryService;
@@ -115,10 +115,10 @@ public class QuarantinedComponentService
 
   public QuarantinedComponentDto getQuarantinedComponent(final String token) {
     String repositoryComponentId =
-        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getProxyRepositoryComponentId();
+    ProxyRepositoryComponent proxyRepositoryComponent = proxyRepositoryComponentDAO.getById(repositoryComponentId);
 
-    checkAccess(repositoryComponent);
+    checkAccess(proxyRepositoryComponent);
 
     final QuarantinedComponentDto quarantinedComponentDto = new QuarantinedComponentDto();
     quarantinedComponentDto.repositoryComponentId = repositoryComponentId;
@@ -129,49 +129,51 @@ public class QuarantinedComponentService
   public QuarantinedComponentOverviewDto getQuarantinedComponentOverview(final String token) {
     QuarantinedComponentAccess quarantinedComponentAccess =
         quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token);
-    final String repositoryComponentId = quarantinedComponentAccess.getRepositoryComponentId();
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+    final String repositoryComponentId = quarantinedComponentAccess.getProxyRepositoryComponentId();
+    ProxyRepositoryComponent proxyRepositoryComponent = proxyRepositoryComponentDAO.getById(repositoryComponentId);
 
-    checkAccess(repositoryComponent);
+    checkAccess(proxyRepositoryComponent);
 
     final QuarantinedComponentOverviewDto quarantinedComponentOverviewDto = new QuarantinedComponentOverviewDto();
     quarantinedComponentOverviewDto.componentIdentifier =
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(repositoryComponent.getComponentIdentifier());
-    quarantinedComponentOverviewDto.componentHash = repositoryComponent.getHash();
-    quarantinedComponentOverviewDto.matchState = repositoryComponent.getMatchStateId();
-    quarantinedComponentOverviewDto.pathname = repositoryComponent.getPathname();
-    quarantinedComponentOverviewDto.componentDisplayName = repositoryComponent.getDisplayName();
-    if (repositoryComponent.getComponentIdentifier() != null) {
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(proxyRepositoryComponent.getComponentIdentifier());
+    quarantinedComponentOverviewDto.componentHash = proxyRepositoryComponent.getHash();
+    quarantinedComponentOverviewDto.matchState = proxyRepositoryComponent.getMatchStateId();
+    quarantinedComponentOverviewDto.pathname = proxyRepositoryComponent.getPathname();
+    quarantinedComponentOverviewDto.componentDisplayName = proxyRepositoryComponent.getDisplayName();
+    if (proxyRepositoryComponent.getComponentIdentifier() != null) {
       quarantinedComponentOverviewDto.componentVersion =
-          repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION);
+          proxyRepositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION);
     }
-    quarantinedComponentOverviewDto.isQuarantined = repositoryComponent.isQuarantined();
+    quarantinedComponentOverviewDto.isQuarantined = proxyRepositoryComponent.isQuarantined();
     quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount =
-        getQuarantinedPolicyViolationsCount(repositoryComponent);
-    quarantinedComponentOverviewDto.repositoryId = repositoryComponent.getRepositoryId();
-    quarantinedComponentOverviewDto.repositoryName = getRepositoryName(repositoryComponent);
-    quarantinedComponentOverviewDto.quarantinedDate = repositoryComponent.getQuarantineTime();
+        getQuarantinedPolicyViolationsCount(proxyRepositoryComponent);
+    quarantinedComponentOverviewDto.repositoryId = proxyRepositoryComponent.getRepositoryId();
+    quarantinedComponentOverviewDto.repositoryName = getRepositoryName(proxyRepositoryComponent);
+    quarantinedComponentOverviewDto.quarantinedDate = proxyRepositoryComponent.getQuarantineTime();
     quarantinedComponentOverviewDto.tokenExpiryTime = quarantinedComponentAccessManager
         .getTokenExpiryTime(quarantinedComponentAccess.getGenerateTime());
 
-    sendTelemetry(token, quarantinedComponentAccess.getGenerateTime(), repositoryComponent.getHash());
+    sendTelemetry(token, quarantinedComponentAccess.getGenerateTime(), proxyRepositoryComponent.getHash());
 
     return quarantinedComponentOverviewDto;
   }
 
-  public List<RepositoryPolicyViolationDTO> getQuarantinedComponentPolicyViolations(final String token) {
+  public List<ProxyRepositoryPolicyViolationDTO> getQuarantinedComponentPolicyViolations(final String token) {
     final String repositoryComponentId =
-        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
-    final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getProxyRepositoryComponentId();
+    final ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getById(repositoryComponentId);
 
-    checkAccess(repositoryComponent);
+    checkAccess(proxyRepositoryComponent);
 
-    final List<RepositoryPolicyViolation> policyViolations = getQuarantinedPolicyViolations(repositoryComponent);
-    repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
+    final List<ProxyRepositoryPolicyViolation> policyViolations =
+        getQuarantinedPolicyViolations(proxyRepositoryComponent);
+    proxyRepositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
 
-    List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
+    List<ProxyRepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
         policyViolations.stream()
-            .sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel).reversed())
+            .sorted(Comparator.comparingInt(ProxyRepositoryPolicyViolation::getThreatLevel).reversed())
             .map(repositoryService::toRepositoryPolicyViolationDTO)
             .collect(Collectors.toList());
 
@@ -180,14 +182,15 @@ public class QuarantinedComponentService
 
   public ComponentVersionInfoDTO getQuarantineComponentVersionRemediation(final String token) {
     final String repositoryComponentId =
-        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
-    final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getProxyRepositoryComponentId();
+    final ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getById(repositoryComponentId);
 
-    checkAccess(repositoryComponent);
+    checkAccess(proxyRepositoryComponent);
 
     return componentInfoService.getComponentVersionInfoNoAuth(OwnerType.REPOSITORY,
-        repositoryComponent.getRepositoryId(), repositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
-        repositoryComponent.getIdentificationSourceId(), null, null, SourceEndpoint.QUARANTINED_COMPONENT,
+        proxyRepositoryComponent.getRepositoryId(), proxyRepositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
+        proxyRepositoryComponent.getIdentificationSourceId(), null, null, SourceEndpoint.QUARANTINED_COMPONENT,
         false);
   }
 
@@ -197,21 +200,22 @@ public class QuarantinedComponentService
       final String version) throws IOException
   {
     final String repositoryComponentId =
-        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
-    final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getProxyRepositoryComponentId();
+    final ProxyRepositoryComponent proxyRepositoryComponent =
+        proxyRepositoryComponentDAO.getById(repositoryComponentId);
 
-    checkAccess(repositoryComponent);
+    checkAccess(proxyRepositoryComponent);
 
-    final Owner owner = idUtils.getOwnerNotNull(OwnerType.REPOSITORY, repositoryComponent.getRepositoryId());
+    final Owner owner = idUtils.getOwnerNotNull(OwnerType.REPOSITORY, proxyRepositoryComponent.getRepositoryId());
 
-    ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
-    String hash = repositoryComponent.getHash();
+    ComponentIdentifier componentIdentifier = proxyRepositoryComponent.getComponentIdentifier();
+    String hash = proxyRepositoryComponent.getHash();
 
     if (!StringUtils.isBlank(version)
-        && !version.equals(repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION)))
+        && !version.equals(proxyRepositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION)))
     {
       // The request is for a different version than the quarantined component's version
-      componentIdentifier = repositoryComponent.getComponentIdentifier().createAlternativeVersion(version);
+      componentIdentifier = proxyRepositoryComponent.getComponentIdentifier().createAlternativeVersion(version);
       hash = null;
     }
 
@@ -230,24 +234,24 @@ public class QuarantinedComponentService
     }
 
     final String repositoryComponentId =
-        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getProxyRepositoryComponentId();
+    ProxyRepositoryComponent proxyRepositoryComponent = proxyRepositoryComponentDAO.getById(repositoryComponentId);
 
-    checkAccess(repositoryComponent);
+    checkAccess(proxyRepositoryComponent);
 
-    String repositoryId = repositoryComponent.getRepositoryId();
-    String pathname = repositoryComponent.getPathname();
+    String repositoryId = proxyRepositoryComponent.getRepositoryId();
+    String pathname = proxyRepositoryComponent.getPathname();
     String pathnamePrefix = getPathnamePrefix(pathname);
     int skipCount = (page - 1) * pageSize;
 
-    List<RepositoryComponent> otherVersionComponents = repositoryComponentDAO
+    List<ProxyRepositoryComponent> otherVersionComponents = proxyRepositoryComponentDAO
         .getOtherVersionRepositoryComponentsByPathnameFilter(repositoryId, pathnamePrefix, pathname)
         .stream()
-        .filter(component -> filterAllowedVersions(repositoryComponent.getComponentIdentifier(),
+        .filter(component -> filterAllowedVersions(proxyRepositoryComponent.getComponentIdentifier(),
             component.getComponentIdentifier()))
         .collect(Collectors.toList());
 
-    Comparator<RepositoryComponent> comparator = Comparator.comparing(component -> new ComparableVersion(
+    Comparator<ProxyRepositoryComponent> comparator = Comparator.comparing(component -> new ComparableVersion(
         component.getComponentIdentifier().get(ComponentIdentifier.VERSION)));
 
     if (!asc) {
@@ -257,7 +261,7 @@ public class QuarantinedComponentService
     List<String> otherVersionComponentDisplayNames =
         otherVersionComponents.stream()
             .sorted(comparator)
-            .map(RepositoryComponent::getDisplayName)
+            .map(ProxyRepositoryComponent::getDisplayName)
             .skip(skipCount)
             .limit(pageSize)
             .collect(Collectors.toList());
@@ -284,35 +288,37 @@ public class QuarantinedComponentService
     return pathname;
   }
 
-  private int getQuarantinedPolicyViolationsCount(RepositoryComponent repositoryComponent) {
-    String repositoryId = repositoryComponent.getRepositoryId();
-    String pathName = repositoryComponent.getPathname();
-    return repositoryPolicyViolationDAO.getQuarantinedPolicyViolationsCountByRepositoryIdAndPathname(
+  private int getQuarantinedPolicyViolationsCount(ProxyRepositoryComponent proxyRepositoryComponent) {
+    String repositoryId = proxyRepositoryComponent.getRepositoryId();
+    String pathName = proxyRepositoryComponent.getPathname();
+    return proxyRepositoryPolicyViolationDAO.getQuarantinedPolicyViolationsCountByRepositoryIdAndPathname(
         repositoryId,
         pathName);
   }
 
-  private String getRepositoryName(RepositoryComponent repositoryComponent) {
-    String repositoryId = repositoryComponent.getRepositoryId();
+  private String getRepositoryName(ProxyRepositoryComponent proxyRepositoryComponent) {
+    String repositoryId = proxyRepositoryComponent.getRepositoryId();
     Repository repository = repositoryDAO.getById(repositoryId);
     return repository.getPublicId();
   }
 
-  private List<RepositoryPolicyViolation> getQuarantinedPolicyViolations(RepositoryComponent repositoryComponent) {
-    String repositoryId = repositoryComponent.getRepositoryId();
-    String pathName = repositoryComponent.getPathname();
-    return repositoryPolicyViolationDAO.getByRepositoryIdAndPathnameAndActionAndNotWaived(
+  private List<ProxyRepositoryPolicyViolation> getQuarantinedPolicyViolations(
+      ProxyRepositoryComponent proxyRepositoryComponent)
+  {
+    String repositoryId = proxyRepositoryComponent.getRepositoryId();
+    String pathName = proxyRepositoryComponent.getPathname();
+    return proxyRepositoryPolicyViolationDAO.getByRepositoryIdAndPathnameAndActionAndNotWaived(
         repositoryId,
         pathName,
         Action.ID_FAIL);
   }
 
-  private void checkAccess(RepositoryComponent repositoryComponent) {
+  private void checkAccess(ProxyRepositoryComponent proxyRepositoryComponent) {
     if (quarantinedComponentAccessDAO.isAnonymousAccessEnabled()) {
       return;
     }
 
-    checkPermission(repositoryComponent.getRepositoryId());
+    checkPermission(proxyRepositoryComponent.getRepositoryId());
   }
 
   // Must have at least package visibility for the authz annotations to take effect.

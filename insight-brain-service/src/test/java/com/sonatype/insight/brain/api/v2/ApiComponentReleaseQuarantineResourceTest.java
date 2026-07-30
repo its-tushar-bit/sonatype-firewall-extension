@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentReleasedFromQuarantineD
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentPolicyViolationDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -41,12 +41,12 @@ public class ApiComponentReleaseQuarantineResourceTest
 
     Date quarantineTime = new Date(System.currentTimeMillis() - 1000);
 
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "hash",
             packageURLIdentifier.ensureCompleteIdentifier(), quarantineTime, quarantineTime);
 
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
-        .parameter(repositoryComponent.getId())
+        .parameter(proxyRepositoryComponent.getId())
         .body("waiver comment", MediaType.TEXT_PLAIN)
         .post();
     assertResponseStatus(200, response);

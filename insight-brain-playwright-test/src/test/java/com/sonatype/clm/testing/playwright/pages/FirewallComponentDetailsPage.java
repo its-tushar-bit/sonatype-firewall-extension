@@ -9,7 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,25 +37,25 @@ public class FirewallComponentDetailsPage
   }
 
   /**
-   * Build the deep-link URL for the Security tab of a {@code RepositoryComponent}, mirroring
+   * Build the deep-link URL for the Security tab of a {@code ProxyRepositoryComponent}, mirroring
    * the Selenide {@code FirewallComponentDetailsPage#urlSecurityTab}. Used by tests that
    * prefer direct navigation over clicking through the dashboard quarantine row (more
    * deterministic when the click target depends on data-loading order).
    */
-  public static String urlSecurityTab(RepositoryComponent component) {
+  public static String urlSecurityTab(ProxyRepositoryComponent component) {
     return buildComponentDetailsUrl(component, SECURITY_TAB_ID);
   }
 
   /**
-   * Build the deep-link URL for the Policy Violations tab of a {@code RepositoryComponent}.
+   * Build the deep-link URL for the Policy Violations tab of a {@code ProxyRepositoryComponent}.
    * Used by tests that prefer direct navigation over clicking through the dashboard quarantine
    * row (more deterministic when the click target depends on data-loading order).
    */
-  public static String urlViolationsTab(RepositoryComponent component) {
+  public static String urlViolationsTab(ProxyRepositoryComponent component) {
     return buildComponentDetailsUrl(component, "violations");
   }
 
-  private static String buildComponentDetailsUrl(RepositoryComponent component, String tabId) {
+  private static String buildComponentDetailsUrl(ProxyRepositoryComponent component, String tabId) {
     try {
       String componentIdentifierJson =
           URLEncoder.encode(OBJECT_MAPPER.writeValueAsString(component.getComponentIdentifier()),

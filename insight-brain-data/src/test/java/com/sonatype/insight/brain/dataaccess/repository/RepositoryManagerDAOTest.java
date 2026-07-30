@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -191,7 +191,7 @@ public class RepositoryManagerDAOTest
   public void testDelete_CascadesToPolicyWaiverRequests() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
-    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    ProxyRepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
     tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setOwnerId(repoManager.getId())
         .setPolicyId(policy.getId())
         .setPolicyViolationId(policyViolation.getId()));

@@ -16,13 +16,13 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -53,7 +53,7 @@ public class FirewallPageTest
 
   private PolicyDAO policyDAO;
 
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @BeforeClass
   public static void beforeClass() {
@@ -65,7 +65,7 @@ public class FirewallPageTest
   public void before() {
     firewallMetricsDAO = lookup(FirewallMetricsDAO.class);
     policyDAO = lookup(PolicyDAO.class);
-    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
 
     setFeatures(
         LicensedFeature.POLICY_MANAGEMENT,
@@ -90,20 +90,20 @@ public class FirewallPageTest
     Date date1 = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
     Date date2 = Date.from(LocalDateTime.now().withDayOfMonth(2).toInstant(offset));
 
-    RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(),
         "g:a:1", date1, date1, true);
     tempEntity.newRepositoryPolicyViolation(repositoryComponent1, policy.getId());
 
-    RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(),
         "g:a:2", date2, date2, true);
     tempEntity.newRepositoryPolicyViolation(repositoryComponent2, policy.getId());
 
-    RepositoryComponent repositoryComponent3 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent repositoryComponent3 = tempEntity.newRepositoryComponent(repository.getId(),
         "g:a:3", date1, null, false);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent3.getPathname(), false,
         FailActionType.ID, policy.getId(), "policyName", repositoryComponent3.getComponentIdentifier());
 
-    RepositoryComponent repositoryComponent4 = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent repositoryComponent4 = tempEntity.newRepositoryComponent(repository.getId(),
         "g:a:4", date2, null, false);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent4.getPathname(), false,
         FailActionType.ID, policy.getId(), "policyName", repositoryComponent4.getComponentIdentifier());

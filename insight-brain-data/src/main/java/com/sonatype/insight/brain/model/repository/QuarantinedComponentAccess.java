@@ -26,8 +26,8 @@ public class QuarantinedComponentAccess
   @Column(name = "repository_id")
   private String repositoryId;
 
-  @Column(name = "repository_component_id")
-  private String repositoryComponentId;
+  @Column(name = "proxy_repository_component_id")
+  private String proxyRepositoryComponentId;
 
   @Column(name = "generate_time")
   private Date generateTime;
@@ -37,12 +37,12 @@ public class QuarantinedComponentAccess
 
   public QuarantinedComponentAccess(
       final String repositoryId,
-      final String repositoryComponentId,
+      final String proxyRepositoryComponentId,
       final Date generateTime)
   {
     this.repositoryId = repositoryId;
     this.generateTime = generateTime;
-    this.repositoryComponentId = repositoryComponentId;
+    this.proxyRepositoryComponentId = proxyRepositoryComponentId;
   }
 
   @Override
@@ -63,12 +63,12 @@ public class QuarantinedComponentAccess
     this.repositoryId = repositoryId;
   }
 
-  public String getRepositoryComponentId() {
-    return repositoryComponentId;
+  public String getProxyRepositoryComponentId() {
+    return proxyRepositoryComponentId;
   }
 
-  public void setRepositoryComponentId(final String repositoryComponentId) {
-    this.repositoryComponentId = repositoryComponentId;
+  public void setProxyRepositoryComponentId(final String proxyRepositoryComponentId) {
+    this.proxyRepositoryComponentId = proxyRepositoryComponentId;
   }
 
   public Date getGenerateTime() {

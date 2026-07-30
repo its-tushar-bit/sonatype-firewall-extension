@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStat
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequest;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequestStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -232,7 +232,7 @@ public class ApiFirewallCascadeServiceTest
     Repository repository = tempEntity.newRepository("test-repo-status");
     String componentHash = "status_test_hash";
     Date now = new Date();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT, "test/status/path", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-status-pkg", "1.0.0"), now, now);
 
@@ -269,7 +269,7 @@ public class ApiFirewallCascadeServiceTest
     Repository repository = tempEntity.newRepository("test-repo-mixed");
     String componentHash = "mixed_test_hash";
     Date now = new Date();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT, "test/mixed/path", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-mixed-pkg", "1.0.0"), now, now);
 
@@ -330,7 +330,7 @@ public class ApiFirewallCascadeServiceTest
     Repository repository = tempEntity.newRepository("test-repo-pending");
     String componentHash = "pending_test_hash";
     Date now = new Date();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT, "test/pending/path", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-pending-pkg", "1.0.0"), now, now);
 
@@ -399,10 +399,10 @@ public class ApiFirewallCascadeServiceTest
     String componentHash = "multi_repo_test_hash";
     Date now = new Date();
 
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo1.getId(),
+    ProxyRepositoryComponent component1 = tempEntity.newRepositoryComponent(repo1.getId(),
         MatchState.EXACT, "test/multi1/path", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-multi-pkg", "1.0.0"), now, now);
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(),
+    ProxyRepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(),
         MatchState.EXACT, "test/multi2/path", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-multi-pkg", "1.0.0"), now, now);
 

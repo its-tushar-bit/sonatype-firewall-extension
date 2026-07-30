@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -41,7 +41,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -64,7 +64,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryResourceTest
     extends AbstractRepositoryResourceTest
 {
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private OrganizationDAO organizationDAO;
 
@@ -74,7 +74,7 @@ public class RepositoryResourceTest
   @Override
   public void setUp() {
     super.setUp();
-    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);
     persistedPolicyEvaluationPollingResultDAO = lookup(PersistedPolicyEvaluationPollingResultDAO.class);
   }
@@ -211,15 +211,16 @@ public class RepositoryResourceTest
     Date now = new Date();
     RepositoryManager repoManager = tempEntity.newRepositoryManager("testRepoManagerInstanceId");
     Repository repository1 = tempEntity.newRepository(repoManager, "testRepoPublicId1", true);
-    RepositoryComponent componentRepo1ToKeep =
+    ProxyRepositoryComponent componentRepo1ToKeep =
         tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_1", now);
-    RepositoryComponent componentRepo1ToDelete =
+    ProxyRepositoryComponent componentRepo1ToDelete =
         tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_2", now);
-    RepositoryComponent componentRepo1ToKeepBecauseItIsNewer =
+    ProxyRepositoryComponent componentRepo1ToKeepBecauseItIsNewer =
         tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_3", new Date(now.getTime() + 1));
 
     Repository repository2 = tempEntity.newRepository(repoManager, "testRepoPublicId2", true);
-    RepositoryComponent componentRepo2 = tempEntity.newRepositoryComponent(repository2.getId(), "pathname2_1", now);
+    ProxyRepositoryComponent componentRepo2 =
+        tempEntity.newRepositoryComponent(repository2.getId(), "pathname2_1", now);
 
     RepositoryComponentPathnames repositoryComponentPathnames = new RepositoryComponentPathnames();
     repositoryComponentPathnames.time = now;
@@ -232,10 +233,10 @@ public class RepositoryResourceTest
 
     assertResponseStatus(204, response);
 
-    assertThat(repositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
-    assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
-    assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
-    assertThat(repositoryComponentDAO.getById(componentRepo2.getId())).isNotNull();
+    assertThat(proxyRepositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
+    assertThat(proxyRepositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
+    assertThat(proxyRepositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
+    assertThat(proxyRepositoryComponentDAO.getById(componentRepo2.getId())).isNotNull();
   }
 
   @Test

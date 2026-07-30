@@ -33,9 +33,9 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -50,10 +50,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @Category(SlowTest.class)
-public class RepositoryPolicyViolationDAOTest
+public class ProxyRepositoryPolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
-  private RepositoryPolicyViolationDAO dao;
+  private ProxyRepositoryPolicyViolationDAO dao;
 
   private PolicyViolationConstraintFactsDAO constraintFactsDAO;
 
@@ -73,7 +73,7 @@ public class RepositoryPolicyViolationDAOTest
     ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
     Date now = new Date();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repository.getId(), "path", now,
+    ProxyRepositoryPolicyViolation policyViolation = new ProxyRepositoryPolicyViolation(repository.getId(), "path", now,
         policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier,
         List.of(constraintFact));
     assertThat(policyViolation.getId()).isNull();
@@ -88,7 +88,7 @@ public class RepositoryPolicyViolationDAOTest
 
     // Read
     {
-      RepositoryPolicyViolation persistedPolicyViolation = dao.getById(policyViolation.getId());
+      ProxyRepositoryPolicyViolation persistedPolicyViolation = dao.getById(policyViolation.getId());
       assertThat(persistedPolicyViolation).isNotNull();
       assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), 5,
           PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, now, null /* actionTypeId */,
@@ -103,7 +103,7 @@ public class RepositoryPolicyViolationDAOTest
     dao.update(policyViolation);
 
     // Read
-    RepositoryPolicyViolation persistedpolicyViolation = dao.getById(policyViolation.getId());
+    ProxyRepositoryPolicyViolation persistedpolicyViolation = dao.getById(policyViolation.getId());
     assertThat(persistedpolicyViolation).isNotNull();
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), 5,
         PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, now, Action.ID_FAIL,
@@ -133,8 +133,10 @@ public class RepositoryPolicyViolationDAOTest
   private void testInsertBatch_persistsAllAndStoresConstraintFacts() {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     Date now = new Date();
-    RepositoryPolicyViolation v1 = newViolation(policy, "p1", 5, PolicyThreatCategory.LICENSE, "h1", "1", "c1", now);
-    RepositoryPolicyViolation v2 = newViolation(policy, "p2", 3, PolicyThreatCategory.SECURITY, "h2", "2", "c2", now);
+    ProxyRepositoryPolicyViolation v1 =
+        newViolation(policy, "p1", 5, PolicyThreatCategory.LICENSE, "h1", "1", "c1", now);
+    ProxyRepositoryPolicyViolation v2 =
+        newViolation(policy, "p2", 3, PolicyThreatCategory.SECURITY, "h2", "2", "c2", now);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -167,8 +169,10 @@ public class RepositoryPolicyViolationDAOTest
   private void testUpdateBatch_persistsChangesForAllEntries() {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     Date now = new Date();
-    RepositoryPolicyViolation v1 = newViolation(policy, "p1", 5, PolicyThreatCategory.LICENSE, "h1", "1", "c1", now);
-    RepositoryPolicyViolation v2 = newViolation(policy, "p2", 3, PolicyThreatCategory.SECURITY, "h2", "2", "c2", now);
+    ProxyRepositoryPolicyViolation v1 =
+        newViolation(policy, "p1", 5, PolicyThreatCategory.LICENSE, "h1", "1", "c1", now);
+    ProxyRepositoryPolicyViolation v2 =
+        newViolation(policy, "p2", 3, PolicyThreatCategory.SECURITY, "h2", "2", "c2", now);
     dao.insert(v1);
     dao.insert(v2);
 
@@ -201,11 +205,11 @@ public class RepositoryPolicyViolationDAOTest
   private void testDeleteBatch_removesSelectedViolationsPreservingOthers() {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     Date now = new Date();
-    RepositoryPolicyViolation keep =
+    ProxyRepositoryPolicyViolation keep =
         newViolation(policy, "keep", 5, PolicyThreatCategory.LICENSE, "hk", "k", "ck", now);
-    RepositoryPolicyViolation del1 =
+    ProxyRepositoryPolicyViolation del1 =
         newViolation(policy, "del1", 3, PolicyThreatCategory.SECURITY, "hd1", "d1", "cd1", now);
-    RepositoryPolicyViolation del2 =
+    ProxyRepositoryPolicyViolation del2 =
         newViolation(policy, "del2", 4, PolicyThreatCategory.SECURITY, "hd2", "d2", "cd2", now);
     dao.insert(keep);
     dao.insert(del1);
@@ -237,7 +241,7 @@ public class RepositoryPolicyViolationDAOTest
     }
   }
 
-  private RepositoryPolicyViolation newViolation(
+  private ProxyRepositoryPolicyViolation newViolation(
       Policy policy,
       String pathname,
       int threatLevel,
@@ -247,7 +251,7 @@ public class RepositoryPolicyViolationDAOTest
       String constraintData,
       Date time)
   {
-    return new RepositoryPolicyViolation(repository.getId(), pathname, time,
+    return new ProxyRepositoryPolicyViolation(repository.getId(), pathname, time,
         policy.getId(), policy.getName(), threatLevel, category, hash,
         ComponentIdentifier.createMavenCoordinates("g", "a", versionSuffix),
         List.of(new ConstraintFact(constraintData, constraintData, constraintData)));
@@ -264,7 +268,7 @@ public class RepositoryPolicyViolationDAOTest
       ComponentIdentifier componentIdentifier,
       Date time,
       String actionTypeId,
-      RepositoryPolicyViolation actual)
+      ProxyRepositoryPolicyViolation actual)
   {
     assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
     assertThat(actual.getPathname()).isEqualTo(pathname);
@@ -290,15 +294,15 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, pathname, null);
 
-    final List<RepositoryPolicyViolation> violations = dao.getActiveByRepositoryIdAndPathname(repository.getId(),
+    final List<ProxyRepositoryPolicyViolation> violations = dao.getActiveByRepositoryIdAndPathname(repository.getId(),
         pathname);
 
     int i = 0;
-    final RepositoryPolicyViolation firstViolation = violations.get(i++);
+    final ProxyRepositoryPolicyViolation firstViolation = violations.get(i++);
     assertThat(firstViolation.getThreatLevel()).isEqualTo(3);
     assertThat(firstViolation.getPolicyId()).isEqualTo("policyId");
 
-    final RepositoryPolicyViolation secondViolation = violations.get(i++);
+    final ProxyRepositoryPolicyViolation secondViolation = violations.get(i++);
     assertThat(secondViolation.getThreatLevel()).isEqualTo(3);
     assertThat(secondViolation.getPolicyId()).isEqualTo(policyIdSecond);
 
@@ -319,11 +323,11 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, innerCli, false, "p-cli", "Architecture-Quality",
         null);
 
-    List<RepositoryPolicyViolation> all =
+    List<ProxyRepositoryPolicyViolation> all =
         dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
 
     assertThat(all).hasSize(3);
-    assertThat(all).extracting(RepositoryPolicyViolation::getPathname)
+    assertThat(all).extracting(ProxyRepositoryPolicyViolation::getPathname)
         .containsExactlyInAnyOrder(outer, innerLog4j, innerCli);
   }
 
@@ -335,11 +339,11 @@ public class RepositoryPolicyViolationDAOTest
     // Different outer that happens to start with the same letters — must NOT match.
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "a/a/1/a-1-other.zip!/x.jar", null);
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
 
     assertThat(result).hasSize(2);
-    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+    assertThat(result).extracting(ProxyRepositoryPolicyViolation::getPathname)
         .containsExactlyInAnyOrder(outer, outer + "!/inner.jar");
   }
 
@@ -347,14 +351,14 @@ public class RepositoryPolicyViolationDAOTest
   public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_excludesViolationsForOtherRepositories() {
     // Confirms the repositoryId predicate is honored — a same-shape pathname under a different
     // repository must not leak through. (active=false is documented as deprecated/cleanup-only,
-    // see RepositoryPolicyViolation.active javadoc, so a per-repository test gives broader
+    // see ProxyRepositoryPolicyViolation.active javadoc, so a per-repository test gives broader
     // coverage of the WHERE clause without depending on a setter that no longer exists.)
     String outer = "x/x/1/x-1.zip";
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
     Repository otherRepo = tempEntity.newRepository(repositoryManager);
     tempEntity.newRepositoryPolicyViolation(otherRepo.getId(), 5, outer + "!/inner.jar", null);
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
 
     assertThat(result).hasSize(1);
@@ -373,10 +377,10 @@ public class RepositoryPolicyViolationDAOTest
     // '%' is wildcarded — it only matches when escaping is correct.
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "weirdABCpct/file.zip!/x.jar", null);
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
 
-    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+    assertThat(result).extracting(ProxyRepositoryPolicyViolation::getPathname)
         .containsExactlyInAnyOrder(outer, outer + "!/inner.jar");
   }
 
@@ -389,10 +393,10 @@ public class RepositoryPolicyViolationDAOTest
     // would also be returned.
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "libXunder/file.zip!/x.jar", null);
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
 
-    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+    assertThat(result).extracting(ProxyRepositoryPolicyViolation::getPathname)
         .containsExactlyInAnyOrder(outer, outer + "!/inner.jar");
   }
 
@@ -416,7 +420,7 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, innerA, false, "p-A-lo", "Security-Low", null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, innerB, false, "p-B-hi", "Security-Med", null);
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
 
     // Ordering: pathname asc, then threatLevel desc, then policyId asc — matches the DAO's
@@ -424,7 +428,7 @@ public class RepositoryPolicyViolationDAOTest
     // every inner (a shorter string is less than any longer one starting with it under standard
     // SQL collation, regardless of whether '!' or '/' compares first as a glyph). Then the two
     // innerA rows in threat-desc order, then innerB.
-    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+    assertThat(result).extracting(ProxyRepositoryPolicyViolation::getPathname)
         .containsExactly(
             outer, innerA, innerA, innerB);
     // Outer's only violation has threat=5; first innerA row has threat=9 (desc), then threat=3.
@@ -454,13 +458,13 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 4, unrelated, null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 6, outer3UnusedNoMatch, null);
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
             repository.getId(), java.util.List.of(outer1, outer2));
 
     // The batch query returns: outer1 + inner1A + inner1B + outer2 + inner2 (five rows).
     // Unrelated row and outer3 (not in the input list) are excluded.
-    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+    assertThat(result).extracting(ProxyRepositoryPolicyViolation::getPathname)
         .containsExactlyInAnyOrder(outer1, inner1A, inner1B, outer2, inner2);
   }
 
@@ -484,10 +488,10 @@ public class RepositoryPolicyViolationDAOTest
     input.add(outer);
     input.add(null);
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(repository.getId(), input);
 
-    assertThat(result).extracting(RepositoryPolicyViolation::getPathname).containsExactly(outer);
+    assertThat(result).extracting(ProxyRepositoryPolicyViolation::getPathname).containsExactly(outer);
   }
 
   @Test
@@ -500,12 +504,12 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 6, outer1Inner, null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, outer1Look, null);
 
-    List<RepositoryPolicyViolation> result =
+    List<ProxyRepositoryPolicyViolation> result =
         dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(repository.getId(),
             java.util.List.of(outer1));
 
     // The "!/x.jar" inner matches; the "Suffix/extra.jar" sibling that lacks "!/" does NOT.
-    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+    assertThat(result).extracting(ProxyRepositoryPolicyViolation::getPathname)
         .containsExactlyInAnyOrder(outer1, outer1Inner);
   }
 
@@ -563,11 +567,11 @@ public class RepositoryPolicyViolationDAOTest
     String outer = "archive/archive/3/archive-3.zip";
     String innerLog4j = outer + "!/log4j-core-2.14.1.jar";
     String innerCli = outer + "!/commons-cli-1.9.0.jar";
-    RepositoryPolicyViolation outerV =
+    ProxyRepositoryPolicyViolation outerV =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, outer, null);
-    RepositoryPolicyViolation log4jV =
+    ProxyRepositoryPolicyViolation log4jV =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, innerLog4j, null);
-    RepositoryPolicyViolation cliV =
+    ProxyRepositoryPolicyViolation cliV =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, innerCli, null);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -585,9 +589,9 @@ public class RepositoryPolicyViolationDAOTest
   public void testStampComponentIdOnPathnameOrInnerPathnames_doesNotStampUnrelatedPathnames() {
     String outer = "a/a/1/a-1.zip";
     String unrelatedSibling = "a/a/1/a-1-other.zip!/x.jar"; // shares prefix but is not inside outer
-    RepositoryPolicyViolation in =
+    ProxyRepositoryPolicyViolation in =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer + "!/inner.jar", null);
-    RepositoryPolicyViolation siblingV =
+    ProxyRepositoryPolicyViolation siblingV =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, unrelatedSibling, null);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -607,9 +611,9 @@ public class RepositoryPolicyViolationDAOTest
     // "lib_under/file.zip" would erroneously stamp the same component_id onto rows under
     // "libXunder/file.zip!/...". Pin the contract.
     String outer = "lib_under/file.zip";
-    RepositoryPolicyViolation legitInner =
+    ProxyRepositoryPolicyViolation legitInner =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, outer + "!/inner.jar", null);
-    RepositoryPolicyViolation maliciousMatch =
+    ProxyRepositoryPolicyViolation maliciousMatch =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "libXunder/file.zip!/x.jar", null);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -627,9 +631,9 @@ public class RepositoryPolicyViolationDAOTest
   @Test
   public void testStampComponentIdOnPathnameOrInnerPathnames_pathnameWithPercentLiteral_escapedCorrectly() {
     String outer = "weird%pct/file.zip";
-    RepositoryPolicyViolation legitInner =
+    ProxyRepositoryPolicyViolation legitInner =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, outer + "!/inner.jar", null);
-    RepositoryPolicyViolation maliciousMatch =
+    ProxyRepositoryPolicyViolation maliciousMatch =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "weirdABCpct/file.zip!/x.jar", null);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -649,9 +653,9 @@ public class RepositoryPolicyViolationDAOTest
     String shared = "outer.zip!/lib.jar";
     String outer = "outer.zip";
     Repository otherRepo = tempEntity.newRepository(repositoryManager);
-    RepositoryPolicyViolation thisRepo =
+    ProxyRepositoryPolicyViolation thisRepo =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, shared, null);
-    RepositoryPolicyViolation otherRepoV =
+    ProxyRepositoryPolicyViolation otherRepoV =
         tempEntity.newRepositoryPolicyViolation(otherRepo.getId(), 5, shared, null);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -669,7 +673,7 @@ public class RepositoryPolicyViolationDAOTest
   @Test
   public void testStampComponentIdOnPathnameOrInnerPathnames_nullInputs_noOp() {
     String outer = "outer.zip";
-    RepositoryPolicyViolation v = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
+    ProxyRepositoryPolicyViolation v = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -746,7 +750,7 @@ public class RepositoryPolicyViolationDAOTest
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       // Test fetching non-waived violations
-      final List<RepositoryPolicyViolation> nonWaivedViolations =
+      final List<ProxyRepositoryPolicyViolation> nonWaivedViolations =
           dao.getActiveByRepositoryIdAndPathnameAndWaived(tx, repository.getId(), pathname, false);
 
       assertThat(nonWaivedViolations).hasSize(2);
@@ -756,7 +760,7 @@ public class RepositoryPolicyViolationDAOTest
       assertThat(nonWaivedViolations.get(1).isWaived()).isFalse();
 
       // Test fetching waived violations
-      final List<RepositoryPolicyViolation> waivedViolations =
+      final List<ProxyRepositoryPolicyViolation> waivedViolations =
           dao.getActiveByRepositoryIdAndPathnameAndWaived(tx, repository.getId(), pathname, true);
 
       assertThat(waivedViolations).hasSize(1);
@@ -831,20 +835,20 @@ public class RepositoryPolicyViolationDAOTest
     Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 1);
     Repository repository = tempEntity.newRepository();
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, false);
-    RepositoryPolicyViolation c1v1 =
+    ProxyRepositoryPolicyViolation c1v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
             p1.getId(), p1.getName(), c1.getComponentIdentifier());
-    RepositoryPolicyViolation c1v2 =
+    ProxyRepositoryPolicyViolation c1v2 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), false,
             p2.getId(), p2.getName(), c1.getComponentIdentifier());
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
-    RepositoryComponent c2 =
+    ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash2",
             componentIdentifier2, false);
-    RepositoryPolicyViolation c2v1 =
+    ProxyRepositoryPolicyViolation c2v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c2.getPathname(), false,
             p1.getId(), p1.getName(), c2.getComponentIdentifier());
     Set<String> repositoryIds = ImmutableSet.of(repository.getId());
@@ -885,19 +889,19 @@ public class RepositoryPolicyViolationDAOTest
     Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 1);
     Repository repository = tempEntity.newRepository();
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, false);
-    RepositoryPolicyViolation c1v1 =
+    ProxyRepositoryPolicyViolation c1v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
             p1.getId(), p1.getName(), c1.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), false,
         p2.getId(), p2.getName(), c1.getComponentIdentifier());
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
-    RepositoryComponent c2 =
+    ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash2",
             componentIdentifier2, false);
-    RepositoryPolicyViolation c2v1 =
+    ProxyRepositoryPolicyViolation c2v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c2.getPathname(), false,
             p1.getId(), p1.getName(), c2.getComponentIdentifier());
     Set<String> repositoryIds = ImmutableSet.of(repository.getId());
@@ -947,19 +951,19 @@ public class RepositoryPolicyViolationDAOTest
     Date date1 = Date.from(localDate1.atStartOfDay(defaultZoneId).toInstant());
     Date date2 = Date.from(localDate2.atStartOfDay(defaultZoneId).toInstant());
 
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, date1, date1);
-    RepositoryComponent c2 =
+    ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash2",
             componentIdentifier2, date2, date2);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g3/a3/v3/test-v3-c3.e3", "hash3",
         componentIdentifier3, false);
 
-    RepositoryPolicyViolation c1v1 =
+    ProxyRepositoryPolicyViolation c1v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getThreatLevel(), c1.getPathname(), false,
             policy.getId(), policy.getName(), c1.getComponentIdentifier());
-    RepositoryPolicyViolation c2v1 =
+    ProxyRepositoryPolicyViolation c2v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getThreatLevel(), c2.getPathname(), false,
             policy.getId(), policy.getName(), c2.getComponentIdentifier());
     Set<String> repositoryIds = ImmutableSet.of(repository.getId());
@@ -1022,19 +1026,19 @@ public class RepositoryPolicyViolationDAOTest
     Date date1 = Date.from(localDate1.atStartOfDay(defaultZoneId).toInstant());
     Date date2 = Date.from(localDate2.atStartOfDay(defaultZoneId).toInstant());
 
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, date1, null);
-    RepositoryComponent c2 =
+    ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash2",
             componentIdentifier2, date2, null);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g3/a3/v3/test-v3-c3.e3", "hash3",
         componentIdentifier3, false);
 
-    RepositoryPolicyViolation c1v1 =
+    ProxyRepositoryPolicyViolation c1v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getThreatLevel(), c1.getPathname(), false,
             policy.getId(), policy.getName(), c1.getComponentIdentifier());
-    RepositoryPolicyViolation c2v1 =
+    ProxyRepositoryPolicyViolation c2v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getThreatLevel(), c2.getPathname(), false,
             policy.getId(), policy.getName(), c2.getComponentIdentifier());
     Set<String> repositoryIds = ImmutableSet.of(repository.getId());
@@ -1099,15 +1103,15 @@ public class RepositoryPolicyViolationDAOTest
     ComponentIdentifier componentIdentifier4 = ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4", "c4", "e4");
     ComponentIdentifier componentIdentifier5 = ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5", "c5", "e5");
 
-    RepositoryComponent c1 = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent c1 = tempEntity.newRepositoryComponent(
         repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1", componentIdentifier1, false);
-    RepositoryComponent c2 = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent c2 = tempEntity.newRepositoryComponent(
         repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash1", componentIdentifier2, false);
-    RepositoryComponent c3 = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent c3 = tempEntity.newRepositoryComponent(
         repository.getId(), MatchState.EXACT, "g3/a3/v3/test-v3-c3.e3", "hash1", componentIdentifier3, false);
-    RepositoryComponent c4 = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent c4 = tempEntity.newRepositoryComponent(
         repository.getId(), MatchState.EXACT, "g4/a4/v4/test-v4-c4.e4", "hash1", componentIdentifier4, false);
-    RepositoryComponent c5 = tempEntity.newRepositoryComponent(
+    ProxyRepositoryComponent c5 = tempEntity.newRepositoryComponent(
         repository.getId(), MatchState.EXACT, "g5/a5/v5/test-v5-c5.e5", "hash1", componentIdentifier5, false);
 
     // c1 component has 2 critical policy violations
@@ -1178,20 +1182,20 @@ public class RepositoryPolicyViolationDAOTest
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
 
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, false);
 
-    RepositoryPolicyViolation c1v1 =
+    ProxyRepositoryPolicyViolation c1v1 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
             p1.getId(), p1.getName(), c1.getComponentIdentifier());
-    RepositoryPolicyViolation c1v2 =
+    ProxyRepositoryPolicyViolation c1v2 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), false,
             p2.getId(), p2.getName(), c1.getComponentIdentifier());
-    RepositoryPolicyViolation c1v3 =
+    ProxyRepositoryPolicyViolation c1v3 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p3.getThreatLevel(), c1.getPathname(), false,
             p3.getId(), p3.getName(), c1.getComponentIdentifier());
-    RepositoryPolicyViolation c1v4 =
+    ProxyRepositoryPolicyViolation c1v4 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), p4.getThreatLevel(), c1.getPathname(), false,
             p4.getId(), p4.getName(), c1.getComponentIdentifier());
     Set<String> repositoryIds = ImmutableSet.of(repository.getId());
@@ -1248,7 +1252,7 @@ public class RepositoryPolicyViolationDAOTest
     Repository repository = tempEntity.newRepository();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, false);
 
@@ -1294,7 +1298,7 @@ public class RepositoryPolicyViolationDAOTest
     Repository repository = tempEntity.newRepository();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, false);
 
@@ -1340,7 +1344,7 @@ public class RepositoryPolicyViolationDAOTest
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
     // Quarantined component (quarantine_time set, unquarantine_time null)
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, new Date(), new Date());
 
@@ -1385,7 +1389,7 @@ public class RepositoryPolicyViolationDAOTest
     Repository repository = tempEntity.newRepository();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    RepositoryComponent c1 =
+    ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
             componentIdentifier1, false);
 
@@ -1451,11 +1455,11 @@ public class RepositoryPolicyViolationDAOTest
 
   private RepositoryResultsDetails toRepositoryResultsDetailsWithoutWaived(
       Repository repository,
-      RepositoryComponent repositoryComponent,
-      RepositoryPolicyViolation repositoryPolicyViolation)
+      ProxyRepositoryComponent proxyRepositoryComponent,
+      ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation)
   {
     RepositoryResultsDetails result =
-        toRepositoryResultsDetails(repository, repositoryComponent, repositoryPolicyViolation);
+        toRepositoryResultsDetails(repository, proxyRepositoryComponent, proxyRepositoryPolicyViolation);
     result.waived = null;
     result.policyViolationId = null; // Aggregate queries don't return violation ID
     return result;
@@ -1463,26 +1467,28 @@ public class RepositoryPolicyViolationDAOTest
 
   private RepositoryResultsDetails toRepositoryResultsDetails(
       Repository repository,
-      RepositoryComponent repositoryComponent,
-      RepositoryPolicyViolation repositoryPolicyViolation)
+      ProxyRepositoryComponent proxyRepositoryComponent,
+      ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation)
   {
     return new RepositoryResultsDetails(
-        repositoryPolicyViolation.getThreatLevel(),
-        repositoryPolicyViolation.getPolicyName(),
+        proxyRepositoryPolicyViolation.getThreatLevel(),
+        proxyRepositoryPolicyViolation.getPolicyName(),
         repository.getRepositoryManagerId(),
         repository.getId(),
-        repositoryComponent.getComponentIdentifier().getFormat(),
-        repositoryComponent.getPathname(),
-        ComponentIdentifierAdapter.toJson(repositoryComponent.getComponentIdentifier().getCoordinates()),
-        repositoryComponent.getDisplayName(),
-        repositoryComponent.getHash(),
-        repositoryComponent.getMatchStateId(),
-        repositoryComponent.getLastEvaluationTime(),
-        (repositoryComponent.getQuarantineTime() != null &&
-            repositoryComponent.getUnquarantineTime() == null) ? repositoryComponent.getQuarantineTime() : null,
-        repositoryPolicyViolation.isWaived(),
+        proxyRepositoryComponent.getComponentIdentifier().getFormat(),
+        proxyRepositoryComponent.getPathname(),
+        ComponentIdentifierAdapter.toJson(proxyRepositoryComponent.getComponentIdentifier().getCoordinates()),
+        proxyRepositoryComponent.getDisplayName(),
+        proxyRepositoryComponent.getHash(),
+        proxyRepositoryComponent.getMatchStateId(),
+        proxyRepositoryComponent.getLastEvaluationTime(),
+        (proxyRepositoryComponent.getQuarantineTime() != null &&
+            proxyRepositoryComponent.getUnquarantineTime() == null)
+                ? proxyRepositoryComponent.getQuarantineTime()
+                : null,
+        proxyRepositoryPolicyViolation.isWaived(),
         null, // constraintFactsJson - tested separately, excluded from filter tests
-        repositoryPolicyViolation.getId());
+        proxyRepositoryPolicyViolation.getId());
   }
 
   @Test
@@ -1507,7 +1513,7 @@ public class RepositoryPolicyViolationDAOTest
     for (int i = 1; i <= 25; i++) {
       ComponentIdentifier componentId =
           ComponentIdentifier.createMavenCoordinates("com.example", "component-" + i, "1.0.0");
-      RepositoryComponent component = tempEntity.newRepositoryComponent(
+      ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(
           repository.getId(),
           MatchState.EXACT,
           "com/example/component-" + i + "/1.0.0/component-" + i + "-1.0.0.jar",
@@ -1600,7 +1606,7 @@ public class RepositoryPolicyViolationDAOTest
     for (int i = 1; i <= 12; i++) {
       ComponentIdentifier componentId =
           ComponentIdentifier.createMavenCoordinates("com.example", "component-" + i, "1.0.0");
-      RepositoryComponent component = tempEntity.newRepositoryComponent(
+      ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(
           repository.getId(),
           MatchState.EXACT,
           "com/example/component-" + i + "/1.0.0/component-" + i + "-1.0.0.jar",

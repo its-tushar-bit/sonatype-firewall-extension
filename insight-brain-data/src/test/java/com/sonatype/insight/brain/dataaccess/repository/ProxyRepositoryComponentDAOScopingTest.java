@@ -13,7 +13,7 @@ import java.util.Set;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import org.junit.Before;
@@ -23,10 +23,10 @@ import org.junit.experimental.categories.Category;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
-public class RepositoryComponentDAOScopingTest
+public class ProxyRepositoryComponentDAOScopingTest
     extends AbstractDbDAOTest
 {
-  private RepositoryComponentDAO dao;
+  private ProxyRepositoryComponentDAO dao;
 
   private Repository repoA;
 
@@ -54,7 +54,7 @@ public class RepositoryComponentDAOScopingTest
         FirewallSortableField.QUARANTINE_TIME, false, Collections.emptyList());
     filter.permittedRepositoryIds = Set.of(repoA.getId());
 
-    List<RepositoryComponent> result = dao.getFirewallRepositoryComponents(filter);
+    List<ProxyRepositoryComponent> result = dao.getFirewallRepositoryComponents(filter);
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getRepositoryId()).isEqualTo(repoA.getId());

@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -43,11 +43,11 @@ public class HierarchyMetricsTelemetryCollector
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final OwnerComponentDAO applicationComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
 
@@ -80,18 +80,18 @@ public class HierarchyMetricsTelemetryCollector
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
       RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       OwnerComponentDAO applicationComponentDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       PolicyViolationDAO policyViolationDAO,
       PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.applicationComponentDAO = applicationComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
   }
@@ -117,8 +117,8 @@ public class HierarchyMetricsTelemetryCollector
     long appViolationsCount = policyViolationDAO.getCount();
     long appEvaluationsCount = policyEvaluationDAO.getCount();
     long repoCount = repositoryDAO.getCount();
-    long repoComponentsCount = repositoryComponentDAO.getCount();
-    long repoViolationsCount = repositoryPolicyViolationDAO.getCount();
+    long repoComponentsCount = proxyRepositoryComponentDAO.getCount();
+    long repoViolationsCount = proxyRepositoryPolicyViolationDAO.getCount();
 
     attributes.put(NUMBER_OF_APP_COMPONENTS, appComponentsCount);
     attributes.put(NUMBER_OF_APP_COMPONENT_VIOLATIONS, appViolationsCount);

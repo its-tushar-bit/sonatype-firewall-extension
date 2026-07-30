@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiComponentsInQuarantineReportingResource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 
 import java.util.Date;
 
@@ -28,7 +28,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
  * ({@link ApiComponentsInQuarantineReportingResource}).
  *
  * <p>
- * A {@link RepositoryComponent} enters "quarantined" state when
+ * A {@link ProxyRepositoryComponent} enters "quarantined" state when
  * {@code setQuarantineTime(...)} is non-null and {@code setUnquarantineTimeForManualRelease}
  * is null — released components must not surface in the response.
  *
@@ -77,20 +77,24 @@ public class ComponentsInQuarantineReportApiRegressionTest
   }
 
   private void createQuarantinedComponent(final Repository repo, final String pathname, final String hash) {
-    RepositoryComponent component = baseComponent(repo, pathname, hash);
+    ProxyRepositoryComponent component = baseComponent(repo, pathname, hash);
     component.setQuarantineTime(new Date());
     tempEntity.newRepositoryComponent(component);
   }
 
   private void createReleasedComponent(final Repository repo, final String pathname, final String hash) {
-    RepositoryComponent component = baseComponent(repo, pathname, hash);
+    ProxyRepositoryComponent component = baseComponent(repo, pathname, hash);
     component.setQuarantineTime(new Date());
     component.setUnquarantineTimeForManualRelease(new Date());
     tempEntity.newRepositoryComponent(component);
   }
 
-  private static RepositoryComponent baseComponent(final Repository repo, final String pathname, final String hash) {
-    RepositoryComponent component = new RepositoryComponent();
+  private static ProxyRepositoryComponent baseComponent(
+      final Repository repo,
+      final String pathname,
+      final String hash)
+  {
+    ProxyRepositoryComponent component = new ProxyRepositoryComponent();
     component.setRepositoryId(repo.getId());
     component.setPathname(pathname);
     component.setTime(new Date());

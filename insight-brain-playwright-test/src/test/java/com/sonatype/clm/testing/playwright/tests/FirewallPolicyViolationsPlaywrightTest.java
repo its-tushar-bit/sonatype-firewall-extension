@@ -23,12 +23,12 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -105,7 +105,7 @@ public class FirewallPolicyViolationsPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testPolicyViolationsTabLoads() {
-    RepositoryComponent component = seedComponentWithTwoViolations();
+    ProxyRepositoryComponent component = seedComponentWithTwoViolations();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
 
     FirewallComponentDetailsPage detailsPage = new FirewallComponentDetailsPage();
@@ -120,14 +120,14 @@ public class FirewallPolicyViolationsPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testPolicyViolationsTableRowCount() {
-    RepositoryComponent component = seedComponentWithTwoViolations();
+    ProxyRepositoryComponent component = seedComponentWithTwoViolations();
     playwrightRefreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
 
     FirewallComponentDetailsPage detailsPage = new FirewallComponentDetailsPage();
     assertThat(detailsPage.policyViolationRows()).hasCount(EXPECTED_VIOLATION_ROW_COUNT);
   }
 
-  private RepositoryComponent seedComponentWithTwoViolations() {
+  private ProxyRepositoryComponent seedComponentWithTwoViolations() {
     RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager(REPOSITORY_MANAGER_INSTANCE_ID);
     Repository repository =
@@ -135,7 +135,7 @@ public class FirewallPolicyViolationsPlaywrightTest
 
     ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
     Date evalTime = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(),
         MatchState.EXACT,
         COMPONENT_PATHNAME,
         COMPONENT_HASH,
@@ -156,8 +156,8 @@ public class FirewallPolicyViolationsPlaywrightTest
     return component;
   }
 
-  private RepositoryPolicyViolation newPolicyViolation(
-      RepositoryComponent component,
+  private ProxyRepositoryPolicyViolation newPolicyViolation(
+      ProxyRepositoryComponent component,
       Policy policy,
       String actionId,
       int threatLevel,
@@ -168,7 +168,7 @@ public class FirewallPolicyViolationsPlaywrightTest
         new ConstraintFact(java.util.UUID.randomUUID().toString(), constraintName, LogicalOperator.AND.name());
     constraintFact.addConditionFact(new ConditionFact(MatchStateConditionType.ID, 0, "summary", constraintReason));
 
-    RepositoryPolicyViolation violation = new RepositoryPolicyViolation(component.getRepositoryId(),
+    ProxyRepositoryPolicyViolation violation = new ProxyRepositoryPolicyViolation(component.getRepositoryId(),
         component.getPathname(), new Date(), policy.getId(), policy.getName(), threatLevel,
         PolicyThreatCategory.SECURITY, component.getHash(), component.getComponentIdentifier(),
         List.of(constraintFact));

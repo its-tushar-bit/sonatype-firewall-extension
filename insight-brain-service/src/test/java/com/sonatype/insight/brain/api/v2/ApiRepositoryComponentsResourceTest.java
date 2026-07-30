@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -134,7 +134,7 @@ public class ApiRepositoryComponentsResourceTest
 
   @Test
   public void testGetComponent_ReturnsComponent() throws Exception {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
 
     String response = restRequest()
         .path("/api/v2/repositories/test-nexus/" + repository.getId() + "/components/" + component.getId())
@@ -156,7 +156,7 @@ public class ApiRepositoryComponentsResourceTest
 
   @Test
   public void testGetComponent_WithViolation_ReturnsViolationCount() throws Exception {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
     tempEntity.newRepositoryPolicyViolation(repository.getId(), "log4j-core-2.14.1.jar");
 
     String response = restRequest()
@@ -169,7 +169,7 @@ public class ApiRepositoryComponentsResourceTest
 
   @Test
   public void testGetViolations_ReturnsEmptyList() throws Exception {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
 
     String response = restRequest()
         .path("/api/v2/repositories/test-nexus/" + repository.getId() + "/components/" + component.getId()
@@ -183,7 +183,7 @@ public class ApiRepositoryComponentsResourceTest
 
   @Test
   public void testGetViolations_ReturnsViolations() throws Exception {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
     tempEntity.newRepositoryPolicyViolation(repository.getId(), "log4j-core-2.14.1.jar");
 
     String response = restRequest()
@@ -214,7 +214,7 @@ public class ApiRepositoryComponentsResourceTest
 
   @Test
   public void testGetQueueStats_WithEntries() throws Exception {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "log4j-core-2.14.1.jar");
     tempEntity.newHostedComponentScanQueue(component.getId(), repository.getId(), "PENDING");
     tempEntity.newHostedComponentScanQueue(component.getId(), repository.getId(), "IN_PROGRESS");
     tempEntity.newHostedComponentScanQueue(component.getId(), repository.getId(), "COMPLETED");

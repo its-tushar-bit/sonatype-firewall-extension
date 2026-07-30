@@ -18,10 +18,10 @@ import com.sonatype.insight.brain.jooq.generated.ods.tables.records.RepositoryRe
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -51,9 +51,9 @@ public class RepositoryDAO
 
   private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final Provider<OwnerDAO> ownerDAOProvider;
 
@@ -65,16 +65,16 @@ public class RepositoryDAO
   public RepositoryDAO(
       final OperationalDataStore operationalDataStore,
       final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final Provider<OwnerDAO> ownerDAOProvider,
       final RepositoryMigrationDAO repositoryMigrationDAO,
       final HostedComponentScanQueueDAO hostedComponentScanQueueDAO)
   {
     super(operationalDataStore);
     this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.ownerDAOProvider = ownerDAOProvider;
     this.repositoryMigrationDAO = repositoryMigrationDAO;
     this.hostedComponentScanQueueDAO = hostedComponentScanQueueDAO;
@@ -273,9 +273,9 @@ public class RepositoryDAO
   private void onDisableAudit(TransactionContext tx, Repository repository) {
     Repository existingRepository = getById(tx, repository.getId());
     if (existingRepository.isAuditEnabled()) {
-      repositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
+      proxyRepositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
 
-      repositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
+      proxyRepositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
     }
   }
 
@@ -286,11 +286,12 @@ public class RepositoryDAO
     Repository existingRepository = getById(tx, repository.getId());
     if (existingRepository.isQuarantineEnabled()) {
       Date unquarantineTime = new Date();
-      List<RepositoryComponent> quarantinedComponents = repositoryComponentDAO.getQuarantinedByRepositoryId(tx,
-          repository.getId());
-      for (RepositoryComponent quarantinedComponent : quarantinedComponents) {
+      List<ProxyRepositoryComponent> quarantinedComponents =
+          proxyRepositoryComponentDAO.getQuarantinedByRepositoryId(tx,
+              repository.getId());
+      for (ProxyRepositoryComponent quarantinedComponent : quarantinedComponents) {
         quarantinedComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
-        repositoryComponentDAO.update(tx, quarantinedComponent);
+        proxyRepositoryComponentDAO.update(tx, quarantinedComponent);
       }
     }
   }
@@ -360,10 +361,10 @@ public class RepositoryDAO
     switch (repository.getRepositoryType()) {
       case proxy:
         // Cascade to repository policy violations
-        repositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
+        proxyRepositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
 
         // Cascade to repository components
-        repositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
+        proxyRepositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
 
         // Cascade to repository migration (if any)
         if (includeRepositoryMigration) {
@@ -374,13 +375,13 @@ public class RepositoryDAO
         }
         break;
       case hosted:
-        repositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
+        proxyRepositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
 
         // Cascade to scan queue entries (must precede component delete — no DB-level FK exists)
         hostedComponentScanQueueDAO.deleteByRepositoryComponentIds(tx, repository.getId());
 
         // Cascade to repository components
-        repositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
+        proxyRepositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
 
         // Cascade to proprietary component name patterns
         proprietaryComponentNamePatternDAO.deleteByRepository(tx, repository.getId());

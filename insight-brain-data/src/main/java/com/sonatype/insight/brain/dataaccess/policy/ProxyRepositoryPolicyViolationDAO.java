@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -41,7 +41,7 @@ import org.jooq.Condition;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryPolicyViolation.REPOSITORY_POLICY_VIOLATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProxyRepositoryPolicyViolation.PROXY_REPOSITORY_POLICY_VIOLATION;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -49,11 +49,11 @@ import static java.util.stream.Collectors.toMap;
  */
 @Named
 @Singleton
-public class RepositoryPolicyViolationDAO
-    extends AbstractPolicyViolationDAO<RepositoryPolicyViolation>
+public class ProxyRepositoryPolicyViolationDAO
+    extends AbstractPolicyViolationDAO<ProxyRepositoryPolicyViolation>
 {
   @Inject
-  public RepositoryPolicyViolationDAO(
+  public ProxyRepositoryPolicyViolationDAO(
       OperationalDataStore operationalDataStore,
       PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
   {
@@ -62,30 +62,30 @@ public class RepositoryPolicyViolationDAO
 
   @Override
   public Table<?> getJooqTable() {
-    return REPOSITORY_POLICY_VIOLATION;
+    return PROXY_REPOSITORY_POLICY_VIOLATION;
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {
+  public List<ProxyRepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getActiveByRepositoryIdAndPathname(tx, repositoryId, pathname);
     }
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(
+  public List<ProxyRepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(
       TransactionContext tx,
       String repositoryId,
       String pathname)
   {
     return tx.dsl()
-        .selectFrom(REPOSITORY_POLICY_VIOLATION)
-        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
-        .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-        .orderBy(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(), REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+        .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+        .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+        .orderBy(PROXY_REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(), PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_ID)
         .fetch(this::toEntity);
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnames(
+  public List<ProxyRepositoryPolicyViolation> getActiveByRepositoryIdAndPathnames(
       String repositoryId,
       List<String> pathnames)
   {
@@ -97,11 +97,12 @@ public class RepositoryPolicyViolationDAO
         .flatMap(partition -> {
           try (TransactionContext tx = createTransactionContext()) {
             return tx.dsl()
-                .selectFrom(REPOSITORY_POLICY_VIOLATION)
-                .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-                .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.in(partition))
-                .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-                .orderBy(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(), REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+                .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+                .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+                .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.in(partition))
+                .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+                .orderBy(PROXY_REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(),
+                    PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_ID)
                 .fetch(this::toEntity)
                 .stream();
           }
@@ -116,7 +117,7 @@ public class RepositoryPolicyViolationDAO
    * artifact has its own violations, plus the evaluator stamps each inner artifact's pathname as
    * {@code outer.zip!/inner.jar}; this method gathers both batches in one query.
    */
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameOrInnerPathnames(
+  public List<ProxyRepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameOrInnerPathnames(
       String repositoryId,
       String outerPathname)
   {
@@ -127,13 +128,13 @@ public class RepositoryPolicyViolationDAO
     String escapedPrefix = innerPrefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(outerPathname)
-              .or(REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\')))
-          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-          .orderBy(REPOSITORY_POLICY_VIOLATION.PATHNAME, REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(),
-              REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+          .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+          .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(outerPathname)
+              .or(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\')))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+          .orderBy(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME, PROXY_REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(),
+              PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_ID)
           .fetch(this::toEntity);
     }
   }
@@ -151,7 +152,7 @@ public class RepositoryPolicyViolationDAO
    * each outer pathname before being assembled into the LIKE pattern so user-supplied path
    * characters cannot widen the match.
    */
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
+  public List<ProxyRepositoryPolicyViolation> getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
       String repositoryId,
       List<String> outerPathnames)
   {
@@ -168,7 +169,7 @@ public class RepositoryPolicyViolationDAO
     return partitions.stream()
         .flatMap(partition -> {
           try (TransactionContext tx = createTransactionContext()) {
-            Condition exactMatch = REPOSITORY_POLICY_VIOLATION.PATHNAME.in(partition);
+            Condition exactMatch = PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.in(partition);
             Condition prefixMatch = null;
             for (String outer : partition) {
               String innerPrefix = outer + "!/";
@@ -176,18 +177,18 @@ public class RepositoryPolicyViolationDAO
                   .replace("\\", "\\\\")
                   .replace("%", "\\%")
                   .replace("_", "\\_");
-              Condition like = REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\');
+              Condition like = PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\');
               prefixMatch = prefixMatch == null ? like : prefixMatch.or(like);
             }
             Condition pathnameMatch = prefixMatch == null ? exactMatch : exactMatch.or(prefixMatch);
             return tx.dsl()
-                .selectFrom(REPOSITORY_POLICY_VIOLATION)
-                .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+                .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+                .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
                 .and(pathnameMatch)
-                .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-                .orderBy(REPOSITORY_POLICY_VIOLATION.PATHNAME,
-                    REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(),
-                    REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+                .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+                .orderBy(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME,
+                    PROXY_REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(),
+                    PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_ID)
                 .fetch(this::toEntity)
                 .stream();
           }
@@ -195,23 +196,23 @@ public class RepositoryPolicyViolationDAO
         .collect(Collectors.toList());
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
+  public List<ProxyRepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
       TransactionContext tx,
       String repositoryId,
       String pathname,
       boolean isWaived)
   {
     return tx.dsl()
-        .selectFrom(REPOSITORY_POLICY_VIOLATION)
-        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
-        .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(isWaived))
-        .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-        .orderBy(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(), REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+        .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+        .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(isWaived))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+        .orderBy(PROXY_REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(), PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_ID)
         .fetch(this::toEntity);
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
+  public List<ProxyRepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
       String repositoryId,
       String pathname,
       boolean isWaived)
@@ -224,33 +225,33 @@ public class RepositoryPolicyViolationDAO
   /**
    * @since 1.78
    */
-  public List<RepositoryPolicyViolation> getByRepositoryIdAndPathnameAndActionAndNotWaived(
+  public List<ProxyRepositoryPolicyViolation> getByRepositoryIdAndPathnameAndActionAndNotWaived(
       String repositoryId,
       String pathname,
       String actionTypeId)
   {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
-          .and(REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq(actionTypeId))
-          .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false))
-          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+          .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+          .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq(actionTypeId))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
           .fetch(this::toEntity);
     }
   }
 
-  public List<RepositoryPolicyViolation> getByRepositoryId(String repositoryId) {
+  public List<ProxyRepositoryPolicyViolation> getByRepositoryId(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .selectFrom(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+          .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+          .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
           .fetch(this::toEntity);
     }
   }
 
-  public List<RepositoryPolicyViolation> getByRepositoryIdPaginated(
+  public List<ProxyRepositoryPolicyViolation> getByRepositoryIdPaginated(
       TransactionContext tx,
       String repositoryId,
       Date beforeDate,
@@ -258,14 +259,14 @@ public class RepositoryPolicyViolationDAO
       int pageSize)
   {
     var query = tx.dsl()
-        .selectFrom(REPOSITORY_POLICY_VIOLATION)
-        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId));
+        .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+        .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId));
 
     if (beforeDate != null) {
-      query = query.and(REPOSITORY_POLICY_VIOLATION.TIME.lt(beforeDate));
+      query = query.and(PROXY_REPOSITORY_POLICY_VIOLATION.TIME.lt(beforeDate));
     }
 
-    return query.orderBy(REPOSITORY_POLICY_VIOLATION.REPOSITORY_POLICY_VIOLATION_ID)
+    return query.orderBy(PROXY_REPOSITORY_POLICY_VIOLATION.PROXY_REPOSITORY_POLICY_VIOLATION_ID)
         .offset(offset)
         .limit(pageSize)
         .fetch(this::toEntity);
@@ -291,7 +292,7 @@ public class RepositoryPolicyViolationDAO
             "        COUNT(CASE WHEN max_threat_level >= 4 AND max_threat_level < 8 THEN 1 END) AS severeCount," +
             "        COUNT(CASE WHEN max_threat_level >= 2 AND max_threat_level < 4 THEN 1 END) AS moderateCount" +
             " FROM (SELECT MAX(threat_level) AS max_threat_level" +
-            "       FROM " + getDatabaseSchema() + ".repository_policy_violation" +
+            "       FROM " + getDatabaseSchema() + ".proxy_repository_policy_violation" +
             "       WHERE repository_id=?" +
             "         AND active=true" +
             "         AND waived=false" +
@@ -313,41 +314,41 @@ public class RepositoryPolicyViolationDAO
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectCount()
-          .from(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
-          .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(true))
-          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-          .and(REPOSITORY_POLICY_VIOLATION.POLICY_NAME.eq("Security-Malicious"))
+          .from(PROXY_REPOSITORY_POLICY_VIOLATION)
+          .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(true))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.POLICY_NAME.eq("Security-Malicious"))
           .fetchOne(0, Integer.class) > 0;
     }
   }
 
-  public List<RepositoryPolicyViolation> getActiveWaivedRepositoryPolicyViolations(
+  public List<ProxyRepositoryPolicyViolation> getActiveWaivedProxyRepositoryPolicyViolations(
       final Collection<String> repositoryIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      List<RepositoryPolicyViolation> repositoryPolicyViolations = new ArrayList<>();
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations = new ArrayList<>();
       for (String repositoryId : repositoryIds) {
-        repositoryPolicyViolations.addAll(
+        proxyRepositoryPolicyViolations.addAll(
             tx.dsl()
-                .selectFrom(REPOSITORY_POLICY_VIOLATION)
-                .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-                .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-                .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(true))
+                .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+                .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+                .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+                .and(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(true))
                 .fetch(this::toEntity));
       }
-      return repositoryPolicyViolations;
+      return proxyRepositoryPolicyViolations;
     }
   }
 
   @Override
-  public final void delete(RepositoryPolicyViolation entity) {
+  public final void delete(ProxyRepositoryPolicyViolation entity) {
     super.delete(entity);
   }
 
   @Override
-  public final void delete(TransactionContext tx, RepositoryPolicyViolation entity) {
+  public final void delete(TransactionContext tx, ProxyRepositoryPolicyViolation entity) {
     super.delete(tx, entity);
   }
 
@@ -357,8 +358,8 @@ public class RepositoryPolicyViolationDAO
     }
     else {
       tx.dsl()
-          .deleteFrom(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+          .deleteFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+          .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
           .execute();
     }
   }
@@ -370,10 +371,10 @@ public class RepositoryPolicyViolationDAO
       final String componentId)
   {
     tx.dsl()
-        .update(REPOSITORY_POLICY_VIOLATION)
-        .set(REPOSITORY_POLICY_VIOLATION.COMPONENT_ID, componentId)
-        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .update(PROXY_REPOSITORY_POLICY_VIOLATION)
+        .set(PROXY_REPOSITORY_POLICY_VIOLATION.COMPONENT_ID, componentId)
+        .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
         .execute();
   }
 
@@ -383,7 +384,7 @@ public class RepositoryPolicyViolationDAO
    * Used by the hosted-repo archive-of-archives flow so a single NXRM componentId reaches BOTH
    * the outer artifact's violations AND the synthesized inner-pathname violations the evaluator
    * persists during fan-out. Without this, future code that joins on
-   * {@code repository_policy_violation.component_id} (waiver-by-component, quarantine-by-component)
+   * {@code proxy_repository_policy_violation.component_id} (waiver-by-component, quarantine-by-component)
    * would silently miss inner findings.
    * <p>
    * The LIKE side of the predicate is escaped the same way as
@@ -408,30 +409,30 @@ public class RepositoryPolicyViolationDAO
     // the asymmetry could mislead a future reader into thinking the filter on the SELECT side
     // wasn't required.
     tx.dsl()
-        .update(REPOSITORY_POLICY_VIOLATION)
-        .set(REPOSITORY_POLICY_VIOLATION.COMPONENT_ID, componentId)
-        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(outerPathname)
-            .or(REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\')))
-        .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+        .update(PROXY_REPOSITORY_POLICY_VIOLATION)
+        .set(PROXY_REPOSITORY_POLICY_VIOLATION.COMPONENT_ID, componentId)
+        .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(outerPathname)
+            .or(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\')))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
         .execute();
   }
 
-  public List<RepositoryPolicyViolation> getByRepositoryIdAndPathname(String repositoryId, String pathname) {
+  public List<ProxyRepositoryPolicyViolation> getByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryIdAndPathname(tx, repositoryId, pathname);
     }
   }
 
-  public List<RepositoryPolicyViolation> getByRepositoryIdAndPathname(
+  public List<ProxyRepositoryPolicyViolation> getByRepositoryIdAndPathname(
       TransactionContext tx,
       String repositoryId,
       String pathname)
   {
     return tx.dsl()
-        .selectFrom(REPOSITORY_POLICY_VIOLATION)
-        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .selectFrom(PROXY_REPOSITORY_POLICY_VIOLATION)
+        .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
         .fetch(this::toEntity);
   }
 
@@ -445,12 +446,12 @@ public class RepositoryPolicyViolationDAO
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectCount()
-          .from(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
-          .and(REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq("fail"))
-          .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false))
-          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+          .from(PROXY_REPOSITORY_POLICY_VIOLATION)
+          .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTION_TYPE_ID.eq("fail"))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false))
+          .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
           .fetchOne(0, Integer.class);
     }
   }
@@ -489,10 +490,10 @@ public class RepositoryPolicyViolationDAO
           " component.quarantine_time END AS quarantine_time," +
           " violation.waived," +
           " COALESCE(cf.constraint_facts_json, violation.constraint_facts_json) AS constraint_facts_json," +
-          " violation.repository_policy_violation_id" +
-          " FROM " + getDatabaseSchema() + ".repository_component component" +
+          " violation.proxy_repository_policy_violation_id" +
+          " FROM " + getDatabaseSchema() + ".proxy_repository_component component" +
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
-          " " + getDatabaseSchema() + ".repository_policy_violation violation" +
+          " " + getDatabaseSchema() + ".proxy_repository_policy_violation violation" +
           " ON component.repository_id = violation.repository_id AND component.pathname = violation.pathname" +
           " LEFT JOIN " + getDatabaseSchema() + ".policy_violation_constraint_facts cf" +
           " ON violation.constraint_facts_id = cf.policy_violation_constraint_facts_id" +
@@ -594,11 +595,11 @@ public class RepositoryPolicyViolationDAO
           .append(" MAX(component.display_name) AS display_name")
           .append(" FROM ")
           .append(getDatabaseSchema())
-          .append(".repository_component component")
+          .append(".proxy_repository_component component")
           .append((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN")
           .append(" ")
           .append(getDatabaseSchema())
-          .append(".repository_policy_violation violation")
+          .append(".proxy_repository_policy_violation violation")
           .append(" ON component.repository_id = violation.repository_id")
           .append(" AND component.pathname = violation.pathname")
           .append(" INNER JOIN ")
@@ -681,7 +682,7 @@ public class RepositoryPolicyViolationDAO
           " component.last_evaluation_time," +
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)" +
           " THEN component.quarantine_time END AS quarantine_time" +
-          " FROM " + getDatabaseSchema() + ".repository_component component" +
+          " FROM " + getDatabaseSchema() + ".proxy_repository_component component" +
           " INNER JOIN (" + select2 + ") AS t2" +
           " ON t2.pathname = component.pathname AND t2.repository_id = component.repository_id" +
           validateAndAddSortFields(detailsFilter.sortFields, true) +
@@ -718,16 +719,16 @@ public class RepositoryPolicyViolationDAO
   public Map<Integer, Integer> getCountsByPolicyThreatLevel(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       try (var stream = tx.dsl()
-          .select(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL, DSL.count())
-          .from(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId)
-              .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-              .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false)))
-          .groupBy(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL)
+          .select(PROXY_REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL, DSL.count())
+          .from(PROXY_REPOSITORY_POLICY_VIOLATION)
+          .where(PROXY_REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId)
+              .and(PROXY_REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+              .and(PROXY_REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false)))
+          .groupBy(PROXY_REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL)
           .fetchStream())
       {
         return stream.collect(toMap(
-            record -> record.get(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL).intValue(),
+            record -> record.get(PROXY_REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL).intValue(),
             record -> record.get(1, Integer.class),
             Integer::sum));
       }
@@ -748,9 +749,9 @@ public class RepositoryPolicyViolationDAO
           " COUNT(CASE WHEN component.quarantine_time IS NOT NULL" +
           " AND component.unquarantine_time IS NULL" +
           " AND violation.action_type_id = 'fail' THEN 1 END) AS quarantined_count" +
-          " FROM " + getDatabaseSchema() + ".repository_component component" +
+          " FROM " + getDatabaseSchema() + ".proxy_repository_component component" +
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
-          " " + getDatabaseSchema() + ".repository_policy_violation violation" +
+          " " + getDatabaseSchema() + ".proxy_repository_policy_violation violation" +
           " ON component.repository_id = violation.repository_id AND component.pathname = violation.pathname" +
           " INNER JOIN " + getDatabaseSchema() + ".repository ON component.repository_id = repository.repository_id" +
           " WHERE component.repository_id IN " +
@@ -945,7 +946,7 @@ public class RepositoryPolicyViolationDAO
         result.add("component.repository_id");
       }
       else {
-        result.add("violation.repository_policy_violation_id NULLS LAST");
+        result.add("violation.proxy_repository_policy_violation_id NULLS LAST");
       }
       query.append(" ORDER BY ").append(StringUtils.join(result, ", "));
     }
@@ -991,7 +992,7 @@ public class RepositoryPolicyViolationDAO
         return clob.getSubString(1, (int) clob.length());
       }
       catch (Exception e) {
-        org.slf4j.LoggerFactory.getLogger(RepositoryPolicyViolationDAO.class)
+        org.slf4j.LoggerFactory.getLogger(ProxyRepositoryPolicyViolationDAO.class)
             .debug("Failed to read Clob value", e);
         return null;
       }
@@ -1010,7 +1011,7 @@ public class RepositoryPolicyViolationDAO
   }
 
   @Override
-  public Class<RepositoryPolicyViolation> getEntityClass() {
-    return RepositoryPolicyViolation.class;
+  public Class<ProxyRepositoryPolicyViolation> getEntityClass() {
+    return ProxyRepositoryPolicyViolation.class;
   }
 }

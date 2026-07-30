@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 
 public class CreateRepositoryPolicyViolationsEvent
     extends WebhookEvent
 {
-  public List<RepositoryPolicyViolation> repositoryPolicyViolations = new ArrayList<>();
+  public List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations = new ArrayList<>();
 }

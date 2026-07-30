@@ -14,9 +14,9 @@ import java.util.function.Consumer;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.repository.InactiveRepositoryViolationCleaner.InactiveRepositoryViolationCleanerWorker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -41,7 +41,7 @@ public class InactiveRepositoryViolationCleanerTest
   private MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Test
   public void testStart() throws Exception {
@@ -50,13 +50,13 @@ public class InactiveRepositoryViolationCleanerTest
     for (int i = 0; i < InactiveRepositoryViolationCleaner.BATCH_SIZE + 1; i++) {
       newInactiveViolation(repository);
     }
-    RepositoryPolicyViolation activeViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    ProxyRepositoryPolicyViolation activeViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
 
     inactiveRepositoryViolationCleaner.start();
 
     assertThat(inactiveRepositoryViolationCleaner.workerThread).isNotNull();
     inactiveRepositoryViolationCleaner.workerThread.join(5000);
-    assertThat(repositoryPolicyViolationDAO.getById(activeViolation.getId())).isNotNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getById(activeViolation.getId())).isNotNull();
     assertThat(getInactiveViolationCount(repository)).isEqualTo(0);
     assertThat(migrationTrackerDAO.isTrackerPresent(InactiveRepositoryViolationCleaner.MIGRATION_ID)).isTrue();
   }
@@ -67,12 +67,12 @@ public class InactiveRepositoryViolationCleanerTest
       migrationTrackerDAO.insert(new MigrationTracker(InactiveRepositoryViolationCleaner.MIGRATION_ID));
     }
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation inactiveViolation = newInactiveViolation(repository);
+    ProxyRepositoryPolicyViolation inactiveViolation = newInactiveViolation(repository);
 
     inactiveRepositoryViolationCleaner.start();
 
     assertThat(inactiveRepositoryViolationCleaner.workerThread).isNull();
-    assertThat(repositoryPolicyViolationDAO.getById(inactiveViolation.getId())).isNotNull();
+    assertThat(proxyRepositoryPolicyViolationDAO.getById(inactiveViolation.getId())).isNotNull();
   }
 
   @Test
@@ -94,19 +94,20 @@ public class InactiveRepositoryViolationCleanerTest
     testCallable_DisallowConcurrentExecution(callable, answerConsumer);
   }
 
-  private RepositoryPolicyViolation newInactiveViolation(Repository repository) throws SQLException {
-    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+  private ProxyRepositoryPolicyViolation newInactiveViolation(Repository repository) throws SQLException {
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId());
     String databaseSchema = databaseContainerRule.getOperationalDataStore().getDatabaseSchema();
     try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement("UPDATE " + databaseSchema +
-            ".repository_policy_violation SET active=false WHERE repository_policy_violation_id=?"))
+            ".proxy_repository_policy_violation SET active=false WHERE proxy_repository_policy_violation_id=?"))
     {
       connection.setAutoCommit(true);
-      preparedStatement.setString(1, repositoryPolicyViolation.getId());
+      preparedStatement.setString(1, proxyRepositoryPolicyViolation.getId());
       int updated = preparedStatement.executeUpdate();
       assertThat(updated).isEqualTo(1);
     }
-    return repositoryPolicyViolation;
+    return proxyRepositoryPolicyViolation;
   }
 
   private int getInactiveViolationCount(Repository repository) throws SQLException {
@@ -114,7 +115,7 @@ public class InactiveRepositoryViolationCleanerTest
     try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(
             "SELECT COUNT(*) FROM " + databaseSchema +
-                ".repository_policy_violation WHERE repository_id=? AND active=false"))
+                ".proxy_repository_policy_violation WHERE repository_id=? AND active=false"))
     {
       preparedStatement.setString(1, repository.getId());
       try (ResultSet resultSet = preparedStatement.executeQuery()) {

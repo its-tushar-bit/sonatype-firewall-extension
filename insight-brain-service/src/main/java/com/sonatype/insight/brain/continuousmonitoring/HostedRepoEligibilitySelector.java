@@ -11,8 +11,8 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.Page;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import jakarta.annotation.Nullable;
@@ -24,34 +24,34 @@ import jakarta.inject.Singleton;
  * {@link EligibilitySelector} for hosted-repository continuous monitoring (CLM-40039 Section 6.1,
  * CLM-41005 keyset pagination). Returns repository components from monitoring-enabled hosted
  * repositories whose {@code last_evaluation_time} predates the cycle start, ordered newest-first
- * by {@code (time DESC, repository_component_id DESC)} and keyset-advanced past the cursor.
+ * by {@code (time DESC, proxy_repository_component_id DESC)} and keyset-advanced past the cursor.
  */
 @Named
 @Singleton
 public class HostedRepoEligibilitySelector
-    implements EligibilitySelector<RepositoryComponent>
+    implements EligibilitySelector<ProxyRepositoryComponent>
 {
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
-  public HostedRepoEligibilitySelector(final RepositoryComponentDAO repositoryComponentDAO) {
-    this.repositoryComponentDAO = repositoryComponentDAO;
+  public HostedRepoEligibilitySelector(final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO) {
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
   }
 
   @Override
-  public Page<RepositoryComponent> fetchPage(
+  public Page<ProxyRepositoryComponent> fetchPage(
       @Nullable final EligibilityCursor cursor,
       final int limit,
       final Instant cycleStart)
   {
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
-      List<RepositoryComponent> rows =
-          repositoryComponentDAO.getMonitoringEligiblePage(tx, Date.from(cycleStart), limit, cursor);
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
+      List<ProxyRepositoryComponent> rows =
+          proxyRepositoryComponentDAO.getMonitoringEligiblePage(tx, Date.from(cycleStart), limit, cursor);
       if (rows.isEmpty()) {
         return Page.empty();
       }
-      RepositoryComponent last = rows.get(rows.size() - 1);
-      // RepositoryComponent.getId() returns the repository_component_id PK column.
+      ProxyRepositoryComponent last = rows.get(rows.size() - 1);
+      // ProxyRepositoryComponent.getId() returns the proxy_repository_component_id PK column.
       EligibilityCursor nextCursor = new EligibilityCursor(last.getTime(), last.getId());
       // Saturated page (size == limit) ⇒ probably more rows behind it. When the eligibility set
       // is an exact multiple of limit, this triggers one extra DAO round-trip (which returns an

@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
@@ -93,22 +93,22 @@ public class ApiComponentsInQuarantineReportingResourceAuditTest
       boolean isQuarantined,
       boolean isReleasedFromQuarantine)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent();
-    repositoryComponent.setRepositoryId(repo.getId());
-    repositoryComponent.setPathname(pathname);
-    repositoryComponent.setTime(new Date());
-    repositoryComponent.setHash("hash");
-    repositoryComponent.setComponentIdentifier(
+    ProxyRepositoryComponent proxyRepositoryComponent = new ProxyRepositoryComponent();
+    proxyRepositoryComponent.setRepositoryId(repo.getId());
+    proxyRepositoryComponent.setPathname(pathname);
+    proxyRepositoryComponent.setTime(new Date());
+    proxyRepositoryComponent.setHash("hash");
+    proxyRepositoryComponent.setComponentIdentifier(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    repositoryComponent.setMatchStateId(MatchState.EXACT.getId());
-    repositoryComponent.setIdentificationSourceId(IdentificationSource.SONATYPE.getId());
-    repositoryComponent.setLastEvaluationTime(new Date());
+    proxyRepositoryComponent.setMatchStateId(MatchState.EXACT.getId());
+    proxyRepositoryComponent.setIdentificationSourceId(IdentificationSource.SONATYPE.getId());
+    proxyRepositoryComponent.setLastEvaluationTime(new Date());
     if (isQuarantined) {
-      repositoryComponent.setQuarantineTime(new Date());
+      proxyRepositoryComponent.setQuarantineTime(new Date());
     }
     if (isReleasedFromQuarantine) {
-      repositoryComponent.setUnquarantineTimeForManualRelease(new Date());
+      proxyRepositoryComponent.setUnquarantineTimeForManualRelease(new Date());
     }
-    tempEntity.newRepositoryComponent(repositoryComponent);
+    tempEntity.newRepositoryComponent(proxyRepositoryComponent);
   }
 }

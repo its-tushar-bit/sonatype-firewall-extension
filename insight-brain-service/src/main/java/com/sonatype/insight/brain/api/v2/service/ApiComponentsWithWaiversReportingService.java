@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
@@ -92,7 +92,7 @@ public class ApiComponentsWithWaiversReportingService
 
   private final PolicyViolationDAO policyViolationDao;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDao;
+  private final ProxyRepositoryPolicyViolationDAO repositoryPolicyViolationDao;
 
   private final PolicyWaiverDAO policyWaiverDao;
 
@@ -110,7 +110,7 @@ public class ApiComponentsWithWaiversReportingService
       PolicyViolationLoader policyViolationLoader,
       RepositoryService repositoryService,
       PolicyViolationDAO policyViolationDao,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDao,
+      ProxyRepositoryPolicyViolationDAO repositoryPolicyViolationDao,
       PolicyWaiverDAO policyWaiverDao,
       OwnerDAO ownerDAO,
       PolicyWaiverReasonDAO policyWaiverReasonDAO)
@@ -278,7 +278,7 @@ public class ApiComponentsWithWaiversReportingService
   private List<ApiRepositoryWaiverDTO> buildRepositoryWaiverDTOs(
       Map<String, PolicyWaiverReason> waiverReasonIdToReasonMap,
       List<RepositoryDTO> repositoryDTOs,
-      Predicate<? super RepositoryPolicyViolation> violationFilterPredicate,
+      Predicate<? super ProxyRepositoryPolicyViolation> violationFilterPredicate,
       final AtomicInteger componentsWithWaiversCount)
   {
     List<ApiRepositoryWaiverDTO> repositoryWaiverDTOs = new ArrayList<>();
@@ -289,13 +289,13 @@ public class ApiComponentsWithWaiversReportingService
           .collect(toMap(repositoryDTO -> repositoryDTO.repository.getId(),
               repositoryDTO -> repositoryDTO.repository));
 
-      List<RepositoryPolicyViolation> repositoryPolicyViolations =
-          repositoryPolicyViolationDao.getActiveWaivedRepositoryPolicyViolations(idToRepositoryMap.keySet());
-      repositoryPolicyViolationDao.loadConstraintFacts(repositoryPolicyViolations);
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations =
+          repositoryPolicyViolationDao.getActiveWaivedProxyRepositoryPolicyViolations(idToRepositoryMap.keySet());
+      repositoryPolicyViolationDao.loadConstraintFacts(proxyRepositoryPolicyViolations);
 
-      repositoryPolicyViolations.stream()
+      proxyRepositoryPolicyViolations.stream()
           .filter(violationFilterPredicate)
-          .collect(Collectors.groupingBy(RepositoryPolicyViolation::getRepositoryId))
+          .collect(Collectors.groupingBy(ProxyRepositoryPolicyViolation::getRepositoryId))
           .forEach((repositoryId, policyViolations) -> {
             ApiRepositoryDTO repositoryDTO =
                 ApiRepositoryAdapter.convert(idToRepositoryMap.get(repositoryId));
@@ -472,19 +472,19 @@ public class ApiComponentsWithWaiversReportingService
     return policyViolationStageDTO;
   }
 
-  private Map<ComponentIdentifier, List<RepositoryPolicyViolation>> getGroupedRepositoryPolicyViolationsByComponentIdentifier(
-      List<RepositoryPolicyViolation> repositoryPolicyViolations)
+  private Map<ComponentIdentifier, List<ProxyRepositoryPolicyViolation>> getGroupedRepositoryPolicyViolationsByComponentIdentifier(
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations)
   {
-    return repositoryPolicyViolations.stream()
+    return proxyRepositoryPolicyViolations.stream()
         .filter(r -> r.getComponentIdentifier() != null)
-        .collect(Collectors.groupingBy(RepositoryPolicyViolation::getComponentIdentifier));
+        .collect(Collectors.groupingBy(ProxyRepositoryPolicyViolation::getComponentIdentifier));
   }
 
-  private Map<String, List<RepositoryPolicyViolation>> getGroupedRepositoryPolicyViolationsByHash(
-      List<RepositoryPolicyViolation> repositoryPolicyViolations)
+  private Map<String, List<ProxyRepositoryPolicyViolation>> getGroupedRepositoryPolicyViolationsByHash(
+      List<ProxyRepositoryPolicyViolation> proxyRepositoryPolicyViolations)
   {
-    return repositoryPolicyViolations.stream()
+    return proxyRepositoryPolicyViolations.stream()
         .filter(r -> r.getComponentIdentifier() == null)
-        .collect(Collectors.groupingBy(RepositoryPolicyViolation::getHash));
+        .collect(Collectors.groupingBy(ProxyRepositoryPolicyViolation::getHash));
   }
 }

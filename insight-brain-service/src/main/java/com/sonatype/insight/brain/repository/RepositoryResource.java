@@ -188,7 +188,7 @@ public class RepositoryResource
   @Path(POLICY_VIOLATIONS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  public List<RepositoryPolicyViolationDTO> getPolicyViolations(
+  public List<ProxyRepositoryPolicyViolationDTO> getPolicyViolations(
       @PathParam("repositoryId") String repositoryId,
       @PathParam("pathname") String pathname)
   {
@@ -202,7 +202,7 @@ public class RepositoryResource
   @Path(POLICY_VIOLATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  public RepositoryPolicyViolationDTO getPolicyViolation(
+  public ProxyRepositoryPolicyViolationDTO getPolicyViolation(
       @PathParam("repositoryId") String repositoryId,
       @PathParam("repositoryPolicyViolationId") String repositoryPolicyViolationId)
   {

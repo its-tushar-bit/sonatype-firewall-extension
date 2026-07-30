@@ -91,10 +91,10 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -740,8 +740,8 @@ public class TestDAOFactory
   }
 
   @Override
-  public RepositoryPolicyViolationDAO createRepositoryPolicyViolationDAO() {
-    return new RepositoryPolicyViolationDAO(dataStoreProvider.getOperationalDataStore(),
+  public ProxyRepositoryPolicyViolationDAO createRepositoryPolicyViolationDAO() {
+    return new ProxyRepositoryPolicyViolationDAO(dataStoreProvider.getOperationalDataStore(),
         createPolicyViolationConstraintFactsDAO());
   }
 
@@ -758,10 +758,10 @@ public class TestDAOFactory
   }
 
   @Override
-  public RepositoryComponentDAO createRepositoryComponentDAO() {
+  public ProxyRepositoryComponentDAO createRepositoryComponentDAO() {
     QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = createQuarantinedComponentAccessDAO();
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
-    return new RepositoryComponentDAO(dataStoreProvider.getOperationalDataStore(), quarantinedComponentAccessDAO,
+    return new ProxyRepositoryComponentDAO(dataStoreProvider.getOperationalDataStore(), quarantinedComponentAccessDAO,
         temporaryTableHelper);
   }
 
@@ -773,13 +773,13 @@ public class TestDAOFactory
   @Override
   public RepositoryDAO createRepositoryDAO() {
     ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO = createProprietaryComponentNamePatternDAO();
-    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = createRepositoryPolicyViolationDAO();
-    RepositoryComponentDAO repositoryComponentDAO = createRepositoryComponentDAO();
+    ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO = createRepositoryPolicyViolationDAO();
+    ProxyRepositoryComponentDAO proxyRepositoryComponentDAO = createRepositoryComponentDAO();
     Provider<OwnerDAO> ownerDAOProvider = this::createOwnerDAO;
     RepositoryMigrationDAO repositoryMigrationDAO = createRepositoryMigrationDAO();
     HostedComponentScanQueueDAO hostedComponentScanQueueDAO = createHostedComponentScanQueueDAO();
     return new RepositoryDAO(dataStoreProvider.getOperationalDataStore(), proprietaryComponentNamePatternDAO,
-        repositoryPolicyViolationDAO, repositoryComponentDAO, ownerDAOProvider, repositoryMigrationDAO,
+        proxyRepositoryPolicyViolationDAO, proxyRepositoryComponentDAO, ownerDAOProvider, repositoryMigrationDAO,
         hostedComponentScanQueueDAO);
   }
 

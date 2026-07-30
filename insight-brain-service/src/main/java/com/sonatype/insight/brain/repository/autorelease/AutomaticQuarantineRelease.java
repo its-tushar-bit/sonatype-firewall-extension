@@ -32,15 +32,15 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryService;
@@ -75,9 +75,9 @@ public class AutomaticQuarantineRelease
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final ClusterLockManager clusterLockManager;
 
@@ -90,8 +90,8 @@ public class AutomaticQuarantineRelease
       final PolicyMonitoringDAO policyMonitoringDAO,
       final OwnerDAO ownerDAO,
       final RepositoryDAO repositoryDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final ClusterLockManager clusterLockManager)
   {
     this.productLicense = productLicense;
@@ -101,8 +101,8 @@ public class AutomaticQuarantineRelease
     this.policyMonitoringDAO = policyMonitoringDAO;
     this.ownerDAO = ownerDAO;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.clusterLockManager = clusterLockManager;
     log.debug("Created a new AutomaticQuarantineRelease for tenant {}", TenantThreadLocal.getTenant());
   }
@@ -191,14 +191,14 @@ public class AutomaticQuarantineRelease
     }
 
     log.debug("Getting quarantined components supporting auto un-quarantine of repository {}", repository.getName());
-    List<RepositoryComponent> applicableQuarantinedComponents =
+    List<ProxyRepositoryComponent> applicableQuarantinedComponents =
         getApplicableQuarantinedComponents(repository, autoUnquarantineEnabledConditionTypes);
     if (applicableQuarantinedComponents.isEmpty()) {
       return;
     }
 
     log.debug("Starting re-evaluation for {} repository components", applicableQuarantinedComponents.size());
-    Iterator<RepositoryComponent> componentIterator = applicableQuarantinedComponents.iterator();
+    Iterator<ProxyRepositoryComponent> componentIterator = applicableQuarantinedComponents.iterator();
     int totalUnquarantineCount = 0;
     while (componentIterator.hasNext()) {
       try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_REPOSITORY)) {
@@ -211,7 +211,7 @@ public class AutomaticQuarantineRelease
 
   private int autoUnquarantineComponents(
       final Repository repository,
-      final Iterator<RepositoryComponent> componentIterator)
+      final Iterator<ProxyRepositoryComponent> componentIterator)
   {
     RepositoryComponentEvaluationDataRequestList evaluationRequestList =
         getRepositoryEvaluationRequest(repository, componentIterator);
@@ -253,18 +253,18 @@ public class AutomaticQuarantineRelease
     }
   }
 
-  private List<RepositoryComponent> getApplicableQuarantinedComponents(
+  private List<ProxyRepositoryComponent> getApplicableQuarantinedComponents(
       final Repository repository,
       Set<String> autoUnquarantineEnabledConditionTypes)
   {
     Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED)));
 
-    List<RepositoryComponent> quarantinedComponents =
-        repositoryComponentDAO.getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
+    List<ProxyRepositoryComponent> quarantinedComponents =
+        proxyRepositoryComponentDAO.getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
 
-    List<RepositoryComponent> applicableQuarantinedComponents = new ArrayList<>();
+    List<ProxyRepositoryComponent> applicableQuarantinedComponents = new ArrayList<>();
 
-    for (RepositoryComponent component : quarantinedComponents) {
+    for (ProxyRepositoryComponent component : quarantinedComponents) {
       if (shouldCheckForUpdatedConditionTypes(component, autoUnquarantineEnabledConditionTypes)) {
         applicableQuarantinedComponents.add(component);
       }
@@ -274,13 +274,13 @@ public class AutomaticQuarantineRelease
 
   private RepositoryComponentEvaluationDataRequestList getRepositoryEvaluationRequest(
       Repository repository,
-      Iterator<RepositoryComponent> componentIterator)
+      Iterator<ProxyRepositoryComponent> componentIterator)
   {
     RepositoryComponentEvaluationDataRequestList evaluationDataRequests =
         new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     int componentCount = 0;
     while (componentIterator.hasNext() && componentCount < RepositoryService.MAX_REPOSITORY_EVALUATION_REQUEST_SIZE) {
-      RepositoryComponent component = componentIterator.next();
+      ProxyRepositoryComponent component = componentIterator.next();
       RepositoryComponentEvaluationDataRequest evaluationDataRequest =
           new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component.getPathname(),
               component.getHash());
@@ -292,14 +292,14 @@ public class AutomaticQuarantineRelease
   }
 
   private boolean shouldCheckForUpdatedConditionTypes(
-      final RepositoryComponent quarantinedComponent,
+      final ProxyRepositoryComponent quarantinedComponent,
       final Set<String> supportedConditionTypes)
   {
-    List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO
+    List<ProxyRepositoryPolicyViolation> violations = proxyRepositoryPolicyViolationDAO
         .getByRepositoryIdAndPathname(quarantinedComponent.getRepositoryId(), quarantinedComponent.getPathname());
-    repositoryPolicyViolationDAO.loadConstraintFacts(violations);
+    proxyRepositoryPolicyViolationDAO.loadConstraintFacts(violations);
 
-    for (RepositoryPolicyViolation violation : violations) {
+    for (ProxyRepositoryPolicyViolation violation : violations) {
       for (ConstraintFact constraintFact : violation.getConstraintFacts()) {
         for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
           if (supportedConditionTypes.contains(conditionFact.getConditionTypeId())) {

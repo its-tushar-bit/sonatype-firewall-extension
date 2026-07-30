@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
@@ -53,7 +53,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryException;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
@@ -65,7 +65,7 @@ import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
@@ -81,7 +81,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityR
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ManagerType;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -139,7 +139,7 @@ public class ApiFirewallServiceTest
   private RepositoryDAO repositoryDAO;
 
   @Inject
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   @Inject
   private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
@@ -148,7 +148,7 @@ public class ApiFirewallServiceTest
   private RepositoryManagerDAO repositoryManagerDAO;
 
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Inject
   private OrganizationDAO organizationDAO;
@@ -549,20 +549,20 @@ public class ApiFirewallServiceTest
     Policy policy2 = tempEntity.newPolicy("policy2", constraint);
 
     // ADD COMPONENT
-    final RepositoryComponent component1 =
+    final ProxyRepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, june2nd2020, true);
-    final RepositoryComponent component2 =
+    final ProxyRepositoryComponent component2 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june2nd2020, june3rd2020, true);
-    final RepositoryComponent component3 =
+    final ProxyRepositoryComponent component3 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined3", june3rd2020, june4th2020, true);
-    final RepositoryComponent component4 =
+    final ProxyRepositoryComponent component4 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined4", june3rd2020, june4th2020, true);
 
     // CREATE POLICY VIOLATION
-    RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
-    RepositoryPolicyViolation policyViolation2 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation2 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy2, component2, tempEntity);
 
     // a non-failing violation should not be included in results
@@ -613,13 +613,13 @@ public class ApiFirewallServiceTest
     Policy policy1 = tempEntity.newPolicy("policy1", constraint);
 
     // ADD COMPONENT
-    final RepositoryComponent component1 =
+    final ProxyRepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, june2nd2020, true);
 
     tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june2nd2020, june3rd2020, true);
 
     // CREATE POLICY VIOLATION
-    RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     final FirewallSortableField sortField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
@@ -643,10 +643,10 @@ public class ApiFirewallServiceTest
   public void testGetComponents_UnknownComponent() {
     Date date = new Date();
     Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager(), "testRepo", true, true);
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
+    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
         "testPathName", "testHash", null /* componentIdentifier */, date, date);
     Policy policy = tempEntity.newPolicy();
-    RepositoryPolicyViolation policyViolation =
+    ProxyRepositoryPolicyViolation policyViolation =
         PolicyViolationTestHelper.createPolicyViolationFail(policy, component, tempEntity);
 
     FirewallRepositoryComponentFilter filter =
@@ -693,18 +693,18 @@ public class ApiFirewallServiceTest
     Policy policy2 = tempEntity.newPolicy("policy2", constraint);
 
     // ADD COMPONENT
-    final RepositoryComponent component1 =
+    final ProxyRepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, june2nd2020, true);
-    final RepositoryComponent component2 =
+    final ProxyRepositoryComponent component2 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june2nd2020, june3rd2020, true);
-    final RepositoryComponent component3 =
+    final ProxyRepositoryComponent component3 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined3", june3rd2020, june4th2020, true);
 
     // CREATE POLICY VIOLATION
-    RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
-    RepositoryPolicyViolation policyViolation2 = PolicyViolationTestHelper
+    ProxyRepositoryPolicyViolation policyViolation2 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy2, component2, tempEntity);
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined3", false, "policy_id_3", "policy_3",
@@ -982,14 +982,14 @@ public class ApiFirewallServiceTest
   public void testEvaluateComponents_TooManyComponents() {
     // given
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.format = ComponentIdentifier.FORMAT_MAVEN;
     for (int i = 0; i < 101; i++) {
       requestList.components.add(
-          new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(),
-              repositoryComponent.getHash()));
+          new ApiRepositoryComponentEvaluationRequest(proxyRepositoryComponent.getPathname(),
+              proxyRepositoryComponent.getHash()));
     }
 
     // then
@@ -1003,11 +1003,12 @@ public class ApiFirewallServiceTest
   public void testEvaluateComponents_RequestWithoutFormat() {
     // given
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.components.add(
-        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+        new ApiRepositoryComponentEvaluationRequest(proxyRepositoryComponent.getPathname(),
+            proxyRepositoryComponent.getHash()));
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
@@ -1085,18 +1086,19 @@ public class ApiFirewallServiceTest
   public void testEvaluateComponents_PathnameAndHash() {
     // given
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "/audit", new Date(), null);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.format = ComponentIdentifier.FORMAT_MAVEN;
     requestList.components.add(
-        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+        new ApiRepositoryComponentEvaluationRequest(proxyRepositoryComponent.getPathname(),
+            proxyRepositoryComponent.getHash()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
     rced.quarantine = true;
     rced.catalogDate = new Date();
-    RepositoryPolicyViolation repositoryPolicyViolation =
-        tempEntity.newRepositoryPolicyViolation(repositoryComponent, 10, false, "Policy Name", null);
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(proxyRepositoryComponent, 10, false, "Policy Name", null);
     repositoryServiceEvaluateResult.componentEvalResults.add(rced);
     doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
         .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
@@ -1114,13 +1116,13 @@ public class ApiFirewallServiceTest
     assertThat(result.repositoryType).isEqualTo(repository.getRepositoryType().name());
     assertThat(result.results.size()).isEqualTo(1);
     assertThat(result.results.get(0).quarantined).isEqualTo(rced.quarantine);
-    assertThat(result.results.get(0).quarantineDate).isEqualTo(repositoryComponent.getQuarantineTime());
+    assertThat(result.results.get(0).quarantineDate).isEqualTo(proxyRepositoryComponent.getQuarantineTime());
     assertThat(result.results.get(0).component).isEqualTo(requestList.components.get(0));
     assertThat(result.results.get(0).catalogDate).isAfterOrEqualTo(rced.catalogDate);
     assertThat(result.results.get(0).policyViolations.size()).isEqualTo(1);
     ApiPolicyViolationDTOV2 policyViolationDTOV2 = result.results.get(0).policyViolations.get(0);
-    assertThat(policyViolationDTOV2.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
-    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+    assertThat(policyViolationDTOV2.policyId).isEqualTo(proxyRepositoryPolicyViolation.getPolicyId());
+    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(proxyRepositoryPolicyViolation.getThreatLevel());
   }
 
   @Test
@@ -1129,18 +1131,18 @@ public class ApiFirewallServiceTest
     Repository repository = tempEntity.newRepository();
 
     // Component A: not quarantined, has one active policy violation
-    RepositoryComponent componentA =
+    ProxyRepositoryComponent componentA =
         tempEntity.newRepositoryComponent(repository.getId(), "/a", null, null);
-    RepositoryPolicyViolation violationA =
+    ProxyRepositoryPolicyViolation violationA =
         tempEntity.newRepositoryPolicyViolation(componentA, 7, false, "Policy A", null);
 
     // Component B: quarantined, no active violations
     Date quarantineTimeB = new Date();
-    RepositoryComponent componentB =
+    ProxyRepositoryComponent componentB =
         tempEntity.newRepositoryComponent(repository.getId(), "/b", quarantineTimeB, null);
 
     // Component C: not quarantined, no active violations
-    RepositoryComponent componentC =
+    ProxyRepositoryComponent componentC =
         tempEntity.newRepositoryComponent(repository.getId(), "/c", null, null);
 
     // Eval results arrive with requestIndex permuted from list position — response must map each
@@ -1202,22 +1204,23 @@ public class ApiFirewallServiceTest
     Repository repository = tempEntity.newRepository();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     String fakePathname = RepositoryPathnameSerializer.toPathname(componentIdentifier);
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), fakePathname, new Date(), null);
-    repositoryComponent.setComponentIdentifier(componentIdentifier);
-    repositoryComponentDAO.update(repositoryComponent);
+    proxyRepositoryComponent.setComponentIdentifier(componentIdentifier);
+    proxyRepositoryComponentDAO.update(proxyRepositoryComponent);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.format = ComponentIdentifier.FORMAT_MAVEN;
     requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
         null,
-        repositoryComponent.getHash(),
-        PackageUrlIdentifier.fromComponentIdentifier(repositoryComponent.getComponentIdentifier()).getPackageUrl()));
+        proxyRepositoryComponent.getHash(),
+        PackageUrlIdentifier.fromComponentIdentifier(proxyRepositoryComponent.getComponentIdentifier())
+            .getPackageUrl()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
     rced.quarantine = true;
     rced.catalogDate = new Date();
-    RepositoryPolicyViolation repositoryPolicyViolation =
-        tempEntity.newRepositoryPolicyViolation(repositoryComponent, 10, false, "Policy Name", null);
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(proxyRepositoryComponent, 10, false, "Policy Name", null);
     repositoryServiceEvaluateResult.componentEvalResults.add(rced);
     doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
         .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
@@ -1233,13 +1236,13 @@ public class ApiFirewallServiceTest
     assertThat(result.repositoryType).isEqualTo(repository.getRepositoryType().name());
     assertThat(result.results.size()).isEqualTo(1);
     assertThat(result.results.get(0).quarantined).isEqualTo(rced.quarantine);
-    assertThat(result.results.get(0).quarantineDate).isEqualTo(repositoryComponent.getQuarantineTime());
+    assertThat(result.results.get(0).quarantineDate).isEqualTo(proxyRepositoryComponent.getQuarantineTime());
     assertThat(result.results.get(0).component).isEqualTo(requestList.components.get(0));
     assertThat(result.results.get(0).catalogDate).isAfterOrEqualTo(rced.catalogDate);
     assertThat(result.results.get(0).policyViolations.size()).isEqualTo(1);
     ApiPolicyViolationDTOV2 policyViolationDTOV2 = result.results.get(0).policyViolations.get(0);
-    assertThat(policyViolationDTOV2.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
-    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+    assertThat(policyViolationDTOV2.policyId).isEqualTo(proxyRepositoryPolicyViolation.getPolicyId());
+    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(proxyRepositoryPolicyViolation.getThreatLevel());
     ArgumentCaptor<RepositoryComponentEvaluationDataRequestList> captor = ArgumentCaptor.forClass(
         RepositoryComponentEvaluationDataRequestList.class);
     verify(spyRepositoryService).evaluateComponents(any(Repository.class), anyString(), captor.capture(), eq(false),
@@ -1255,10 +1258,10 @@ public class ApiFirewallServiceTest
     Repository repository = tempEntity.newRepository();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createConanCoordinates("zlib", "1.3.1", null, null);
     String fakePathname = RepositoryPathnameSerializer.toPathname(componentIdentifier);
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), fakePathname, new Date(), null);
-    repositoryComponent.setComponentIdentifier(componentIdentifier);
-    repositoryComponentDAO.update(repositoryComponent);
+    proxyRepositoryComponent.setComponentIdentifier(componentIdentifier);
+    proxyRepositoryComponentDAO.update(proxyRepositoryComponent);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.format = ComponentIdentifier.FORMAT_CONAN;
     requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
@@ -1340,12 +1343,13 @@ public class ApiFirewallServiceTest
   public void testEvaluateComponents_WithoutPolicyAlerts() {
     // given
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.format = ComponentIdentifier.FORMAT_MAVEN;
     requestList.components.add(
-        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+        new ApiRepositoryComponentEvaluationRequest(proxyRepositoryComponent.getPathname(),
+            proxyRepositoryComponent.getHash()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     repositoryServiceEvaluateResult.componentEvalResults.add(new RepositoryComponentEvaluationData());
     doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
@@ -1374,12 +1378,13 @@ public class ApiFirewallServiceTest
     Repository repository = tempEntity.newRepository();
     repository.setQuarantineEnabled(true);
     repositoryDAO.update(repository);
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.format = ComponentIdentifier.FORMAT_MAVEN;
     requestList.components.add(
-        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+        new ApiRepositoryComponentEvaluationRequest(proxyRepositoryComponent.getPathname(),
+            proxyRepositoryComponent.getHash()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     repositoryServiceEvaluateResult.componentEvalResults.add(new RepositoryComponentEvaluationData());
     doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
@@ -1396,21 +1401,22 @@ public class ApiFirewallServiceTest
   @Test
   public void testEvaluateComponents_includesOpenWaiveTimes() {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent =
+    ProxyRepositoryComponent proxyRepositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "/audit", new Date(), null);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.format = ComponentIdentifier.FORMAT_MAVEN;
     requestList.components.add(
-        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+        new ApiRepositoryComponentEvaluationRequest(proxyRepositoryComponent.getPathname(),
+            proxyRepositoryComponent.getHash()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
     rced.catalogDate = new Date();
-    RepositoryPolicyViolation v1 =
-        tempEntity.newRepositoryPolicyViolation(repositoryComponent, 10, false, "Policy Name", null);
-    RepositoryPolicyViolation v2 =
-        tempEntity.newRepositoryPolicyViolation(repositoryComponent, 9, true, "Policy Name", null);
+    ProxyRepositoryPolicyViolation v1 =
+        tempEntity.newRepositoryPolicyViolation(proxyRepositoryComponent, 10, false, "Policy Name", null);
+    ProxyRepositoryPolicyViolation v2 =
+        tempEntity.newRepositoryPolicyViolation(proxyRepositoryComponent, 9, true, "Policy Name", null);
     v2.setWaiveTime(DateUtils.addDays(rced.catalogDate, 1));
-    repositoryPolicyViolationDAO.update(v2);
+    proxyRepositoryPolicyViolationDAO.update(v2);
     repositoryServiceEvaluateResult.componentEvalResults.add(rced);
     doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
         .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
@@ -1431,7 +1437,7 @@ public class ApiFirewallServiceTest
   }
 
   static void assertRepositoryComponentWithOnePolicyViolation(
-      final RepositoryPolicyViolation expectedPolicyViolation,
+      final ProxyRepositoryPolicyViolation expectedPolicyViolation,
       final ApiFirewallComponentDTO componentDTO,
       final Date quarantineDate,
       final Date dateCleared)
@@ -1448,8 +1454,8 @@ public class ApiFirewallServiceTest
 
   static void assertFirewallQuarantinedDetails(
       final Repository expectedRepository,
-      final RepositoryComponent expectedComponent,
-      final RepositoryPolicyViolation expectedViolation,
+      final ProxyRepositoryComponent expectedComponent,
+      final ProxyRepositoryPolicyViolation expectedViolation,
       final ApiFirewallQuarantinedComponentDto componentDTO)
   {
     assertThat(componentDTO.threatLevel).isEqualTo(expectedViolation.getThreatLevel());
@@ -1905,27 +1911,32 @@ public class ApiFirewallServiceTest
     RepositoryManager rm2 = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository(rm1, "repo1", true, true);
     Repository repo2 = tempEntity.newRepository(rm2, "repo2", true, true);
-    final RepositoryComponent c1 =
+    final ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repo1.getId(), "pathname1", jan2nd2024hour14, null);
-    final RepositoryComponent c2 =
+    final ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repo2.getId(), "pathname2", jan2nd2024hour14, null);
-    final RepositoryComponent c3 =
+    final ProxyRepositoryComponent c3 =
         tempEntity.newRepositoryComponent(repo1.getId(), "pathname3", jan2nd2024hour12, null);
-    final RepositoryComponent c4 =
+    final ProxyRepositoryComponent c4 =
         tempEntity.newRepositoryComponent(repo1.getId(), "pathname4", jan1st2024hour12, null);
-    final RepositoryComponent c5 =
+    final ProxyRepositoryComponent c5 =
         tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname5", "hash",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), jan1st2024hour12, jan1st2024hour12);
     tempEntity.newRepositoryComponent(repo2.getId(), "pathname6", jan1st2024hour14, jan1st2024hour12);
     PolicyViolationTestHelper.createPolicyViolationFail(policy1, c1, tempEntity);
-    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy2, c1, tempEntity);
+    ProxyRepositoryPolicyViolation violation1 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy2, c1, tempEntity);
     PolicyViolationTestHelper.createPolicyViolationFail(policy3, c1, tempEntity);
-    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy3, c2, tempEntity);
+    ProxyRepositoryPolicyViolation violation2 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy3, c2, tempEntity);
     PolicyViolationTestHelper.createPolicyViolationWarn(policy4, c2, tempEntity);
-    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c3, tempEntity);
-    RepositoryPolicyViolation violation4 = PolicyViolationTestHelper.createPolicyViolationFail(policy3, c4, tempEntity);
+    ProxyRepositoryPolicyViolation violation3 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy1, c3, tempEntity);
+    ProxyRepositoryPolicyViolation violation4 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy3, c4, tempEntity);
     PolicyViolationTestHelper.createPolicyViolationWaived(policy2, c5, tempEntity);
-    RepositoryPolicyViolation violation5 = PolicyViolationTestHelper.createPolicyViolationFail(policy3, c5, tempEntity);
+    ProxyRepositoryPolicyViolation violation5 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy3, c5, tempEntity);
 
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.QUARANTINE,
@@ -1995,31 +2006,37 @@ public class ApiFirewallServiceTest
     RepositoryManager rm1 = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository(rm1, "repo1", true, true);
 
-    final RepositoryComponent c1 =
+    final ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname1", "hash",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), june1st2022, june1st2022);
-    final RepositoryComponent c2 =
+    final ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname2", "hash",
             ComponentIdentifier.createMavenCoordinates("g2", "a2", "v1"), june2nd2022, june2nd2022);
-    final RepositoryComponent c3 =
+    final ProxyRepositoryComponent c3 =
         tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname3", "hash",
             ComponentIdentifier.createMavenCoordinates("g1", "a3", "v1"), june3rd2022, june3rd2022);
-    final RepositoryComponent c4 =
+    final ProxyRepositoryComponent c4 =
         tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname4", "hash",
             ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"), june4th2022, june4th2022);
-    final RepositoryComponent c5 =
+    final ProxyRepositoryComponent c5 =
         tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname5", "hash",
             ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"), june5th2022, june5th2022);
-    final RepositoryComponent c6 =
+    final ProxyRepositoryComponent c6 =
         tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname6", "hash",
             ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"), june6th2022, june6th2022);
 
-    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c1, tempEntity);
-    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy2, c2, tempEntity);
-    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy3, c3, tempEntity);
-    RepositoryPolicyViolation violation4 = PolicyViolationTestHelper.createPolicyViolationFail(policy4, c4, tempEntity);
-    RepositoryPolicyViolation violation5 = PolicyViolationTestHelper.createPolicyViolationFail(policy4, c5, tempEntity);
-    RepositoryPolicyViolation violation6 = PolicyViolationTestHelper.createPolicyViolationFail(policy4, c6, tempEntity);
+    ProxyRepositoryPolicyViolation violation1 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy1, c1, tempEntity);
+    ProxyRepositoryPolicyViolation violation2 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy2, c2, tempEntity);
+    ProxyRepositoryPolicyViolation violation3 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy3, c3, tempEntity);
+    ProxyRepositoryPolicyViolation violation4 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy4, c4, tempEntity);
+    ProxyRepositoryPolicyViolation violation5 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy4, c5, tempEntity);
+    ProxyRepositoryPolicyViolation violation6 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy4, c6, tempEntity);
 
     // FILTER BY MULTIPLE POLICY IDS
     List<FirewallFilterField> filterFields = new ArrayList<>();
@@ -2138,19 +2155,22 @@ public class ApiFirewallServiceTest
     Repository repo1 = tempEntity.newRepository(rm1, "repo1", true, true);
     Repository repo2 = tempEntity.newRepository(rm1, "repo2", true, true);
 
-    final RepositoryComponent c1 =
+    final ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname1", "hash1",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), jan1st2024hour12, jan1st2024hour12);
-    final RepositoryComponent c2 =
+    final ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname2", "hash2",
             ComponentIdentifier.createMavenCoordinates("g2", "a2", "v1"), jan1st2024hour12, jan1st2024hour12);
-    final RepositoryComponent c3 =
+    final ProxyRepositoryComponent c3 =
         tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname3", "hash3",
             ComponentIdentifier.createMavenCoordinates("g1", "a3", "v1"), jan2nd2024hour12, jan2nd2024hour12);
 
-    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c1, tempEntity);
-    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c2, tempEntity);
-    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c3, tempEntity);
+    ProxyRepositoryPolicyViolation violation1 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy1, c1, tempEntity);
+    ProxyRepositoryPolicyViolation violation2 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy1, c2, tempEntity);
+    ProxyRepositoryPolicyViolation violation3 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy1, c3, tempEntity);
 
     // SORT BY REPOSITORY PUBLIC ID DESC
     FirewallRepositoryComponentFilter filter =
@@ -2220,18 +2240,21 @@ public class ApiFirewallServiceTest
     Policy policy3 = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy3", 5, Action.ID_FAIL,
         Stage.ID_PROXY, null);
     Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
-    final RepositoryComponent c1 =
+    final ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "pathname1", "hash1",
             ComponentIdentifier.createMavenCoordinates("g10", "a11", "v12"), jan1st2024hour12, jan1st2024hour12);
-    final RepositoryComponent c2 =
+    final ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "pathname2", "hash2",
             ComponentIdentifier.createMavenCoordinates("g20", "a21", "v22"), jan1st2024hour12, jan1st2024hour12);
-    final RepositoryComponent c3 =
+    final ProxyRepositoryComponent c3 =
         tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "pathname3", "hash3",
             ComponentIdentifier.createMavenCoordinates("g30", "a31", "v32"), jan2nd2024hour12, jan2nd2024hour12);
-    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy3, c1, tempEntity);
-    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c2, tempEntity);
-    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy2, c3, tempEntity);
+    ProxyRepositoryPolicyViolation violation1 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy3, c1, tempEntity);
+    ProxyRepositoryPolicyViolation violation2 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy1, c2, tempEntity);
+    ProxyRepositoryPolicyViolation violation3 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy2, c3, tempEntity);
 
     // SORT BY POLICY NAME DESC
     FirewallRepositoryComponentFilter filter =
@@ -2284,18 +2307,21 @@ public class ApiFirewallServiceTest
     Policy policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy1", 10, Action.ID_FAIL,
         Stage.ID_PROXY, null);
     Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
-    final RepositoryComponent c1 =
+    final ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "pathname1", "hash1",
             ComponentIdentifier.createMavenCoordinates("g01", "a01", "v01"), jan1st2024hour12, jan1st2024hour12);
-    final RepositoryComponent c2 =
+    final ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "pathname2", "hash2",
             ComponentIdentifier.createMavenCoordinates("g02", "a02", "v02"), jan1st2024hour12, jan1st2024hour12);
-    final RepositoryComponent c3 =
+    final ProxyRepositoryComponent c3 =
         tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "pathname3", "hash3",
             ComponentIdentifier.createMavenCoordinates("g03", "a03", "v03"), new Date(), new Date());
-    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c1, tempEntity);
-    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c2, tempEntity);
-    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c3, tempEntity);
+    ProxyRepositoryPolicyViolation violation1 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy, c1, tempEntity);
+    ProxyRepositoryPolicyViolation violation2 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy, c2, tempEntity);
+    ProxyRepositoryPolicyViolation violation3 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy, c3, tempEntity);
 
     // SORT BY COMPONENT DISPLAY NAME DESC
     FirewallRepositoryComponentFilter filter =
@@ -2356,24 +2382,27 @@ public class ApiFirewallServiceTest
     Repository repo1 = tempEntity.newRepository(rm1, "repo1", true, true);
     Repository repo2 = tempEntity.newRepository(rm1, "repo2", true, true);
 
-    final RepositoryComponent c1 =
+    final ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname1", "hash1",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), past7DaysQuarantineTime,
             past7DaysQuarantineTime);
-    final RepositoryComponent c2 =
+    final ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname2", "hash2",
             ComponentIdentifier.createMavenCoordinates("g2", "a2", "v1"), past7DaysQuarantineTime,
             past7DaysQuarantineTime);
-    final RepositoryComponent c3 =
+    final ProxyRepositoryComponent c3 =
         tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname3", "hash3",
             ComponentIdentifier.createMavenCoordinates("g1", "a3", "v1"), past1DaysQuarantineTime,
             past1DaysQuarantineTime);
 
     Policy policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy", 10, Action.ID_FAIL,
         Stage.ID_PROXY, null);
-    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c1, tempEntity);
-    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c2, tempEntity);
-    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c3, tempEntity);
+    ProxyRepositoryPolicyViolation violation1 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy, c1, tempEntity);
+    ProxyRepositoryPolicyViolation violation2 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy, c2, tempEntity);
+    ProxyRepositoryPolicyViolation violation3 =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy, c3, tempEntity);
 
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.QUARANTINE,

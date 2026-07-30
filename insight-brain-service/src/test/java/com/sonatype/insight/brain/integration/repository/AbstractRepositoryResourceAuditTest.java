@@ -23,7 +23,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -50,13 +50,13 @@ public abstract class AbstractRepositoryResourceAuditTest
 
   protected static final String REPOSITORY_PUBLIC_ID = "repoPubId";
 
-  private RepositoryComponentDAO repositoryComponentDAO;
+  private ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private RepositoryDAO repositoryDAO;
 
   @Before
   public void setUp() {
-    repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
     repositoryDAO = lookup(RepositoryDAO.class);
   }
 
@@ -221,10 +221,10 @@ public abstract class AbstractRepositoryResourceAuditTest
   public void testEvaluateComponents_QuarantinedComponent_ResetQuarantineSubEvent() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", new Date(), null);
-    repositoryComponent.setHash("differentHash");
-    repositoryComponentDAO.update(repositoryComponent);
+    proxyRepositoryComponent.setHash("differentHash");
+    proxyRepositoryComponentDAO.update(proxyRepositoryComponent);
 
     evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList(1))
         .post();
@@ -232,17 +232,17 @@ public abstract class AbstractRepositoryResourceAuditTest
     repository = repositoryDAO.getById(repository.getId());
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RESET_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
-    assertComponentData(auditDTO, repositoryComponent.getHash(), repositoryComponent.getPathname());
+    assertComponentData(auditDTO, proxyRepositoryComponent.getHash(), proxyRepositoryComponent.getPathname());
   }
 
   @Test
   public void testEvaluateComponents_NeverQuarantinedComponent_NoResetQuarantineSubEvent() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", null, null);
-    repositoryComponent.setHash("differentHash");
-    repositoryComponentDAO.update(repositoryComponent);
+    proxyRepositoryComponent.setHash("differentHash");
+    proxyRepositoryComponentDAO.update(proxyRepositoryComponent);
 
     evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList(1))
         .post();
@@ -255,10 +255,10 @@ public abstract class AbstractRepositoryResourceAuditTest
   public void testEvaluateComponents_UnquarantinedComponent_NoResetQuarantineSubEvent() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", new Date(), new Date());
-    repositoryComponent.setHash("differentHash");
-    repositoryComponentDAO.update(repositoryComponent);
+    proxyRepositoryComponent.setHash("differentHash");
+    proxyRepositoryComponentDAO.update(proxyRepositoryComponent);
 
     evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList(1))
         .post();
@@ -321,27 +321,29 @@ public abstract class AbstractRepositoryResourceAuditTest
   public void testRemoveComponent_QuarantinedComponent_ResetQuarantineSubEvent() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", new Date(), null);
 
-    componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(), repositoryComponent.getPathname())
-        .delete();
+    componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(),
+        proxyRepositoryComponent.getPathname())
+            .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RESET_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
-    assertComponentData(auditDTO, repositoryComponent.getHash(), repositoryComponent.getPathname());
+    assertComponentData(auditDTO, proxyRepositoryComponent.getHash(), proxyRepositoryComponent.getPathname());
   }
 
   @Test
   public void testRemoveComponent_NeverQuarantinedComponent_NoResetQuarantineSubEvent() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", null, null);
 
     assertResponseStatus(204,
-        componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(), repositoryComponent.getPathname())
-            .delete());
+        componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(),
+            proxyRepositoryComponent.getPathname())
+                .delete());
 
     assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0)).isEmpty();
   }
@@ -350,12 +352,13 @@ public abstract class AbstractRepositoryResourceAuditTest
   public void testRemoveComponent_UnquarantinedComponent_NoResetQuarantineSubEvent() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
-    RepositoryComponent repositoryComponent = tempEntity
+    ProxyRepositoryComponent proxyRepositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", new Date(), new Date());
 
     assertResponseStatus(204,
-        componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(), repositoryComponent.getPathname())
-            .delete());
+        componentRequest(repositoryManager.getInstanceId(), repository.getPublicId(),
+            proxyRepositoryComponent.getPathname())
+                .delete());
 
     assertThat(awaitLogEntries(AuditEvent.RESET_QUARANTINE, 0)).isEmpty();
   }

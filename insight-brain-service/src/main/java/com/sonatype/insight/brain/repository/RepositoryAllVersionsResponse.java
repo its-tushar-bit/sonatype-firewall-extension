@@ -9,13 +9,13 @@ import java.util.List;
 
 public class RepositoryAllVersionsResponse
 {
-  private final List<RepositoryComponentResult> components;
+  private final List<ProxyRepositoryComponentResult> components;
 
-  public List<RepositoryComponentResult> getComponents() {
+  public List<ProxyRepositoryComponentResult> getComponents() {
     return components;
   }
 
-  public RepositoryAllVersionsResponse(List<RepositoryComponentResult> components) {
+  public RepositoryAllVersionsResponse(List<ProxyRepositoryComponentResult> components) {
     this.components = components;
   }
 }

@@ -10,16 +10,16 @@ import java.util.List;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 
@@ -36,9 +36,9 @@ public class FirewallMigrationWorker
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final LicenseOverrideDAO licenseOverrideDAO;
 
@@ -59,8 +59,8 @@ public class FirewallMigrationWorker
       Repository targetRepository,
       RepositoryMigration repositoryMigration,
       RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       LicenseOverrideDAO licenseOverrideDAO,
       SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
       PolicyWaiverDAO policyWaiverDAO,
@@ -70,8 +70,8 @@ public class FirewallMigrationWorker
     this.targetRepository = targetRepository;
     this.repositoryMigration = repositoryMigration;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -115,15 +115,16 @@ public class FirewallMigrationWorker
   private void migrateRepositoryComponents() {
     long start = System.currentTimeMillis();
 
-    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(sourceRepository.getId());
+    List<ProxyRepositoryComponent> repositoryComponents =
+        proxyRepositoryComponentDAO.getByRepositoryId(sourceRepository.getId());
     log.info("Starting the migration of {} repository components for repository {}:{} ({})...",
         repositoryComponents.size(), targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(),
         targetRepository.getId());
-    for (RepositoryComponent repositoryComponent : repositoryComponents) {
-      log.trace("Migrating repository component {}", repositoryComponent.getPathname());
-      repositoryComponent.setId(null);
-      repositoryComponent.setRepositoryId(targetRepository.getId());
-      repositoryComponentDAO.insert(repositoryComponent);
+    for (ProxyRepositoryComponent proxyRepositoryComponent : repositoryComponents) {
+      log.trace("Migrating repository component {}", proxyRepositoryComponent.getPathname());
+      proxyRepositoryComponent.setId(null);
+      proxyRepositoryComponent.setRepositoryId(targetRepository.getId());
+      proxyRepositoryComponentDAO.insert(proxyRepositoryComponent);
     }
 
     log.info("Migrated {} repository components in {} ms.", repositoryComponents.size(),
@@ -133,15 +134,15 @@ public class FirewallMigrationWorker
   private void migratePolicyViolations() {
     long start = System.currentTimeMillis();
 
-    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
+    List<ProxyRepositoryPolicyViolation> policyViolations = proxyRepositoryPolicyViolationDAO
         .getByRepositoryId(sourceRepository.getId());
-    repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
+    proxyRepositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
     log.info("Starting the migration of {} policy violations for repository {}:{} ({})...", policyViolations.size(),
         targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
-    for (RepositoryPolicyViolation violation : policyViolations) {
+    for (ProxyRepositoryPolicyViolation violation : policyViolations) {
       violation.setId(null);
       violation.setRepositoryId(targetRepository.getId());
-      repositoryPolicyViolationDAO.insert(violation);
+      proxyRepositoryPolicyViolationDAO.insert(violation);
     }
 
     log.info("Migrated {} policy violations in {} ms.", policyViolations.size(), System.currentTimeMillis() - start);

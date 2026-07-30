@@ -139,9 +139,9 @@ public class ApiFirewallServiceResolvePermittedRepositoryIdsTest
         RepositoryType.proxy, "docker");
 
     java.util.Date quarantineDate = new java.util.Date();
-    com.sonatype.insight.brain.model.repository.RepositoryComponent c1 =
+    com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(proxyRepo1.getId(), "/path1", quarantineDate, null);
-    com.sonatype.insight.brain.model.repository.RepositoryComponent c2 =
+    com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(proxyRepo2.getId(), "/path2", quarantineDate, null);
 
     // Create policy violations for the components
@@ -184,9 +184,9 @@ public class ApiFirewallServiceResolvePermittedRepositoryIdsTest
         RepositoryType.proxy, "docker");
 
     java.util.Date quarantineDate = new java.util.Date();
-    com.sonatype.insight.brain.model.repository.RepositoryComponent c1 =
+    com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent c1 =
         tempEntity.newRepositoryComponent(proxyRepo1.getId(), "/path1", quarantineDate, null);
-    com.sonatype.insight.brain.model.repository.RepositoryComponent c2 =
+    com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent c2 =
         tempEntity.newRepositoryComponent(proxyRepo2.getId(), "/path2", quarantineDate, null);
 
     // Create policy violations for the components

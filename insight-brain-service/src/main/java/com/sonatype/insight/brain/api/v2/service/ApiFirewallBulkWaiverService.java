@@ -26,12 +26,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiBulkWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -62,9 +62,9 @@ public class ApiFirewallBulkWaiverService
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
@@ -76,16 +76,16 @@ public class ApiFirewallBulkWaiverService
   public ApiFirewallBulkWaiverService(
       final OwnerDAO ownerDAO,
       final RepositoryDAO repositoryDAO,
-      final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      final ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final ApiPolicyWaiverService apiPolicyWaiverService,
       final IdUtils idUtils)
   {
     this.ownerDAO = ownerDAO;
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
-    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
+    this.proxyRepositoryPolicyViolationDAO = proxyRepositoryPolicyViolationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.apiPolicyWaiverService = apiPolicyWaiverService;
     this.idUtils = idUtils;
@@ -109,7 +109,7 @@ public class ApiFirewallBulkWaiverService
     validateOwnerType(ownerType);
     final String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
       tx.begin();
 
       final Map<String, Repository> repositoriesById = new HashMap<>();
@@ -125,14 +125,14 @@ public class ApiFirewallBulkWaiverService
       final List<String> existingViolations = new ArrayList<>();
 
       for (String violationId : uniqueViolationIds) {
-        final RepositoryPolicyViolation repositoryPolicyViolation =
-            repositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
+        final ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+            proxyRepositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
 
-        if (repositoryPolicyViolation == null) {
+        if (proxyRepositoryPolicyViolation == null) {
           throw new BadRequestException("Could not find repository policy violation with ID: " + violationId);
         }
 
-        final String repoId = repositoryPolicyViolation.getRepositoryId();
+        final String repoId = proxyRepositoryPolicyViolation.getRepositoryId();
         boolean belongsToOwner = repositoryOwnershipCache.computeIfAbsent(repoId,
             id -> isViolationOwnedByOwner(id, internalOwnerId));
         if (!belongsToOwner) {
@@ -149,9 +149,9 @@ public class ApiFirewallBulkWaiverService
 
         String waiverHash = (waiverOptionsDTO.matcherStrategy == ALL_VERSIONS)
             ? null
-            : repositoryPolicyViolation.getHash();
-        String waiverKey = buildWaiverKey(repositoryPolicyViolation.getPolicyId(), waiverHash,
-            repositoryPolicyViolation.getConstraintFactsJson());
+            : proxyRepositoryPolicyViolation.getHash();
+        String waiverKey = buildWaiverKey(proxyRepositoryPolicyViolation.getPolicyId(), waiverHash,
+            proxyRepositoryPolicyViolation.getConstraintFactsJson());
         if (existingWaiverKeys.contains(waiverKey)) {
           existingViolations.add(violationId);
           continue;
@@ -160,7 +160,7 @@ public class ApiFirewallBulkWaiverService
         final PolicyWaiver policyWaiver = apiPolicyWaiverService.savePolicyWaiver(
             tx,
             internalOwnerId,
-            repositoryPolicyViolation,
+            proxyRepositoryPolicyViolation,
             waiverOptionsDTO.comment,
             waiverOptionsDTO.matcherStrategy,
             waiverOptionsDTO.expiryTime,
@@ -168,7 +168,7 @@ public class ApiFirewallBulkWaiverService
             waiverOptionsDTO.expireWhenRemediationAvailable);
 
         existingWaiverKeys.add(waiverKey);
-        telemetryQueue.add(new WaiverTelemetryData(policyWaiver, repositoryPolicyViolation));
+        telemetryQueue.add(new WaiverTelemetryData(policyWaiver, proxyRepositoryPolicyViolation));
       }
 
       tx.commit();
@@ -271,7 +271,7 @@ public class ApiFirewallBulkWaiverService
     return constraintFactsJson != null ? DigestUtils.sha256Hex(constraintFactsJson) : "";
   }
 
-  private record WaiverTelemetryData(PolicyWaiver policyWaiver, RepositoryPolicyViolation violation)
+  private record WaiverTelemetryData(PolicyWaiver policyWaiver, ProxyRepositoryPolicyViolation violation)
   {
   }
 }

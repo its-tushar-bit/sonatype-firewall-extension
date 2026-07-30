@@ -38,13 +38,13 @@ import org.slf4j.LoggerFactory;
  *
 <dir>
  * }'s {@code sha1} attribute is already truncated to 20 chars (matching the
- * {@code repository_component.hash} column size). Format comes from the
+ * {@code proxy_repository_component.hash} column size). Format comes from the
  * {@code <repository format="..."/>} element.
  * <p>
  * For nested archives, the parser preserves the outer/inner relationship in the synthesised
  * {@code pathname} using the {@code !/} separator convention ({@code outer.zip!/inner.jar}) so the
  * IQ-side {@code (repository_id, pathname)} UNIQUE constraint admits each inner artifact as a
- * distinct {@code repository_component} row.
+ * distinct {@code proxy_repository_component} row.
  */
 public class ScanXmlParser
 {
@@ -64,7 +64,7 @@ public class ScanXmlParser
   <dir>
    * } elements represent inner archives discovered by the
    * scanner; their pathname is synthesised as {@code outer.path + "!/" + inner.path-tail} so the
-   * IQ-side persistence layer can store each as its own {@code repository_component} row.
+   * IQ-side persistence layer can store each as its own {@code proxy_repository_component} row.
    *
    * @param scanEntity the scan entity to parse
    * @return one {@code ScanComponentInfo} per {@code <dir>} element. Empty list if parsing fails or

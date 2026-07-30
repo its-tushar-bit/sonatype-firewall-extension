@@ -28,27 +28,27 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.container.images.ContainerImageReportService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
-import com.sonatype.insight.brain.repository.RepositoryComponentDeleteService;
+import com.sonatype.insight.brain.repository.ProxyRepositoryComponentDeleteService;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.license.model.LicensedFeature;
 import org.slf4j.Logger;
@@ -64,7 +64,7 @@ public class RepositoryService
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryService.class);
 
-  private final RepositoryComponentDeleteService repositoryComponentDeleteService;
+  private final ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService;
 
   private final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
 
@@ -74,17 +74,17 @@ public class RepositoryService
       ProprietaryComponentNameDetector proprietaryComponentNameDetector,
       ProductLicense productLicense,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
       ApplicationDAO applicationDAO,
       ApplicationService applicationService,
-      RepositoryComponentDeleteService repositoryComponentDeleteService,
+      ProxyRepositoryComponentDeleteService proxyRepositoryComponentDeleteService,
       TelemetrySender telemetrySender,
       RepositoryManagerDAO repositoryManagerDAO,
       RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       FirewallIgnorePatternService firewallIgnorePatternService,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
       com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService,
@@ -92,11 +92,11 @@ public class RepositoryService
       final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
-        LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
+        LicensedFeature.FIREWALL, proxyRepositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
         quarantineHdsClient, applicationDAO, applicationService, telemetrySender, repositoryManagerDAO, repositoryDAO,
-        repositoryComponentDAO, repositoryPolicyViolationDAO, firewallIgnorePatternService,
+        proxyRepositoryComponentDAO, proxyRepositoryPolicyViolationDAO, firewallIgnorePatternService,
         requestSafeComponentsMetricEventService, mainRepositoryService, containerImageReportService);
-    this.repositoryComponentDeleteService = repositoryComponentDeleteService;
+    this.proxyRepositoryComponentDeleteService = proxyRepositoryComponentDeleteService;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
   }
 
@@ -182,18 +182,18 @@ public class RepositoryService
       RepositoryComponentPathnames repositoryComponentPathnames)
   {
     long start = System.currentTimeMillis();
-    List<RepositoryComponent> allComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    List<ProxyRepositoryComponent> allComponents = proxyRepositoryComponentDAO.getByRepositoryId(repository.getId());
 
     // Find all components that are not in the input list of pathnames
     // and were added before the input timestamp.
-    List<RepositoryComponent> extraComponents = allComponents.stream() //
+    List<ProxyRepositoryComponent> extraComponents = allComponents.stream() //
         .filter(component -> !repositoryComponentPathnames.pathnames.contains(component.getPathname())) //
         .filter(component -> component.getTime().getTime() <= repositoryComponentPathnames.time.getTime()) //
         .collect(toList());
     log.debug("Retrieved {} components to be deleted in {} ms.", extraComponents.size(),
         System.currentTimeMillis() - start);
 
-    extraComponents.forEach(repositoryComponentDeleteService::deleteComponent);
+    extraComponents.forEach(proxyRepositoryComponentDeleteService::deleteComponent);
 
     return extraComponents.size();
   }
@@ -234,8 +234,8 @@ public class RepositoryService
       List<String> repositoryIds = repositories.stream()
           .map(Repository::getId)
           .collect(Collectors.toList());
-      lastScanTimes = repositoryComponentDAO.getLastScanTimesByRepositoryIds(tx, repositoryIds);
-      repositoriesWithQueuedScans = repositoryComponentDAO.getRepositoryIdsWithQueuedScans(tx, repositoryIds);
+      lastScanTimes = proxyRepositoryComponentDAO.getLastScanTimesByRepositoryIds(tx, repositoryIds);
+      repositoriesWithQueuedScans = proxyRepositoryComponentDAO.getRepositoryIdsWithQueuedScans(tx, repositoryIds);
     }
 
     List<HostedRepositoryDTO> dtos = repositories.stream()
@@ -257,7 +257,7 @@ public class RepositoryService
         })
         .collect(Collectors.toList());
 
-    // lastScannedTime is derived from REPOSITORY_COMPONENT, not a column on REPOSITORY,
+    // lastScannedTime is derived from PROXY_REPOSITORY_COMPONENT, not a column on REPOSITORY,
     // so it cannot be sorted at the DB layer. Sort in Java after populating the field.
     if ("lastscannedtime".equalsIgnoreCase(sortBy)) {
       Comparator<HostedRepositoryDTO> byLastScanned;
@@ -321,6 +321,6 @@ public class RepositoryService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   boolean isMalwareWaived(@AuthzContext(Key.REPOSITORY) Repository repository, String pathname) {
-    return repositoryPolicyViolationDAO.hasActiveMalwareWaivedViolation(repository.getId(), pathname);
+    return proxyRepositoryPolicyViolationDAO.hasActiveMalwareWaivedViolation(repository.getId(), pathname);
   }
 }

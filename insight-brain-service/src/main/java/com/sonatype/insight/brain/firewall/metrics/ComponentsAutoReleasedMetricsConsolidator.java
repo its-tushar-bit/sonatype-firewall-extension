@@ -18,7 +18,7 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
@@ -44,7 +44,7 @@ public class ComponentsAutoReleasedMetricsConsolidator
 
   private final RepositoryDAO repositoryDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
+  private final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO;
 
   private final FirewallMetricsDAO firewallMetricsDAO;
 
@@ -55,12 +55,12 @@ public class ComponentsAutoReleasedMetricsConsolidator
   @Inject
   public ComponentsAutoReleasedMetricsConsolidator(
       RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       FirewallMetricsDAO firewallMetricsDAO,
       ApiFirewallMetricsService apiFirewallMetricsService)
   {
     this.repositoryDAO = repositoryDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.proxyRepositoryComponentDAO = proxyRepositoryComponentDAO;
     this.firewallMetricsDAO = firewallMetricsDAO;
     this.apiFirewallMetricsService = apiFirewallMetricsService;
   }
@@ -86,7 +86,7 @@ public class ComponentsAutoReleasedMetricsConsolidator
         .map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
           List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
-          Map<LocalDate, Long> autoReleasedComponentsCount = repositoryComponentDAO
+          Map<LocalDate, Long> autoReleasedComponentsCount = proxyRepositoryComponentDAO
               .getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
                   repository.getId(), mostRecentMetricDateFound, true);
 

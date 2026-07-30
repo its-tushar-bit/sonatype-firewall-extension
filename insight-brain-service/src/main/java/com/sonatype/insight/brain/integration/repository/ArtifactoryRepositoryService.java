@@ -10,8 +10,8 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.container.images.ContainerImageReportService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RequestSafeComponentsMetricEventService;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -36,7 +36,7 @@ public class ArtifactoryRepositoryService
       ProprietaryComponentNameDetector proprietaryComponentNameDetector,
       ProductLicense productLicense,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
       ApplicationDAO applicationDAO,
@@ -44,17 +44,17 @@ public class ArtifactoryRepositoryService
       TelemetrySender telemetrySender,
       RepositoryManagerDAO repositoryManagerDAO,
       RepositoryDAO repositoryDAO,
-      RepositoryComponentDAO repositoryComponentDAO,
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
+      ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO,
       FirewallIgnorePatternService firewallIgnorePatternService,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
       com.sonatype.insight.brain.repository.RepositoryService repositoryService,
       ContainerImageReportService containerImageReportService)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
-        LicensedFeature.FIREWALL_FOR_ARTIFACTORY, repositoryComponentTelemetryCreator,
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY, proxyRepositoryComponentTelemetryCreator,
         quarantinedComponentAccessManager, quarantineHdsClient, applicationDAO, applicationService, telemetrySender,
-        repositoryManagerDAO, repositoryDAO, repositoryComponentDAO, repositoryPolicyViolationDAO,
+        repositoryManagerDAO, repositoryDAO, proxyRepositoryComponentDAO, proxyRepositoryPolicyViolationDAO,
         firewallIgnorePatternService, requestSafeComponentsMetricEventService, repositoryService,
         containerImageReportService);
   }

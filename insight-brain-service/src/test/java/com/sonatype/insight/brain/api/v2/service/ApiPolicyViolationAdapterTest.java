@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -21,25 +21,26 @@ public class ApiPolicyViolationAdapterTest
     extends AbstractComponentTest
 {
   @Inject
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  private ProxyRepositoryPolicyViolationDAO proxyRepositoryPolicyViolationDAO;
 
   @Test
   public void testConvert() {
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
-    repositoryPolicyViolation.setWaiveTime(DateUtils.addDays(repositoryPolicyViolation.getOpenTime(), 1));
-    repositoryPolicyViolationDAO.update(repositoryPolicyViolation);
+    ProxyRepositoryPolicyViolation proxyRepositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId());
+    proxyRepositoryPolicyViolation.setWaiveTime(DateUtils.addDays(proxyRepositoryPolicyViolation.getOpenTime(), 1));
+    proxyRepositoryPolicyViolationDAO.update(proxyRepositoryPolicyViolation);
 
-    var result = ApiPolicyViolationAdapter.convert(repositoryPolicyViolation);
+    var result = ApiPolicyViolationAdapter.convert(proxyRepositoryPolicyViolation);
 
     assertThat(result).isNotNull();
-    assertThat(result.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
-    assertThat(result.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
-    assertThat(result.threatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
-    assertThat(result.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
-    assertThat(result.openTime).isNotNull().isEqualTo(repositoryPolicyViolation.getOpenTime());
-    assertThat(result.waiveTime).isNotNull().isEqualTo(repositoryPolicyViolation.getWaiveTime());
+    assertThat(result.policyId).isEqualTo(proxyRepositoryPolicyViolation.getPolicyId());
+    assertThat(result.policyName).isEqualTo(proxyRepositoryPolicyViolation.getPolicyName());
+    assertThat(result.threatLevel).isEqualTo(proxyRepositoryPolicyViolation.getThreatLevel());
+    assertThat(result.policyViolationId).isEqualTo(proxyRepositoryPolicyViolation.getId());
+    assertThat(result.openTime).isNotNull().isEqualTo(proxyRepositoryPolicyViolation.getOpenTime());
+    assertThat(result.waiveTime).isNotNull().isEqualTo(proxyRepositoryPolicyViolation.getWaiveTime());
     assertThat(result.constraintViolations).usingRecursiveComparison()
-        .isEqualTo(PolicyViolationAdapter.convert(repositoryPolicyViolation));
+        .isEqualTo(PolicyViolationAdapter.convert(proxyRepositoryPolicyViolation));
   }
 }

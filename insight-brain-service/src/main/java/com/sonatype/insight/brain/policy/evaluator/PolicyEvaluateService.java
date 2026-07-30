@@ -58,8 +58,8 @@ import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.ProxyRepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -135,7 +135,7 @@ public class PolicyEvaluateService
 
   public final PolicyViolationDAO policyViolationDAO;
 
-  public RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+  public ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator;
 
   private final TelemetrySender telemetrySender;
 
@@ -162,7 +162,7 @@ public class PolicyEvaluateService
       RepositoryDAO repositoryDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationDAO policyViolationDAO,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      ProxyRepositoryComponentTelemetryCreator proxyRepositoryComponentTelemetryCreator,
       TelemetrySender telemetrySender,
       @Nullable MeterRegistry meterRegistry)
   {
@@ -187,7 +187,7 @@ public class PolicyEvaluateService
     this.repositoryDAO = repositoryDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
-    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.proxyRepositoryComponentTelemetryCreator = proxyRepositoryComponentTelemetryCreator;
     this.telemetrySender = telemetrySender;
   }
 
@@ -828,7 +828,7 @@ public class PolicyEvaluateService
         updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
         policyEvaluateServiceMetrics.emitEndPolicyEvaluation(sample);
 
-        // Send REPOSITORY_COMPONENT telemetry for container image
+        // Send PROXY_REPOSITORY_COMPONENT telemetry for container image
         Repository containerRepository = repositoryDAO.getByContainerImageId(app.getId());
         boolean isFirewallContainerImage = stage.getStageTypeId().equals(Stage.ID_PROXY) && containerRepository != null;
         boolean isPolicyEvaluationCompleted =
@@ -1004,7 +1004,7 @@ public class PolicyEvaluateService
     {
       TelemetryData repositoryComponentTelemetryDataForContainer =
           buildRepositoryComponentTelemetryDataForContainer(policyEvaluationPollingResult, repository);
-      repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(
+      proxyRepositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(
           repositoryComponentTelemetryDataForContainer);
 
       if (scanContext != null && scanContext.containerImageTelemetryMetrics() != null) {

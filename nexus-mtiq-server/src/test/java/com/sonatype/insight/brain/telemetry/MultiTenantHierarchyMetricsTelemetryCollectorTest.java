@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -46,12 +46,12 @@ public class MultiTenantHierarchyMetricsTelemetryCollectorTest
     applicationDAO = daoFactory.createApplicationDAO();
     RepositoryDAO repositoryDAO = daoFactory.createRepositoryDAO();
     RepositoryComponentDAO repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
-    ApplicationComponentDAO applicationComponentDAO = daoFactory.createApplicationComponentDAO();
+    OwnerComponentDAO ownerComponentDAO = daoFactory.createOwnerComponentDAO();
     RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
     PolicyViolationDAO policyViolationDAO = daoFactory.createPolicyViolationDAO();
     PolicyEvaluationDAO policyEvaluationDAO = daoFactory.createPolicyEvaluationDAO();
     telemetryCollector = new HierarchyMetricsTelemetryCollector(applicationDAO, organizationDAO, repositoryDAO,
-        repositoryComponentDAO, applicationComponentDAO, repositoryPolicyViolationDAO, policyViolationDAO,
+        repositoryComponentDAO, ownerComponentDAO, repositoryPolicyViolationDAO, policyViolationDAO,
         policyEvaluationDAO);
   }
 

@@ -368,9 +368,9 @@ public class ApplicationsListResourceTest
     PolicyEvaluation developEvaluation =
         tempEntity.newPolicyEvaluation(developApp.getId(), Stage.ID_DEVELOP, "develop-scan-1");
     InsightWork insightWork = lookup(InsightWork.class);
-    ReportTestUtils.createReportFile(buildEvaluation.getApplicationId(), buildEvaluation.getScanId(),
+    ReportTestUtils.createReportFile(buildEvaluation.getOwnerId(), buildEvaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), insightWork);
-    ReportTestUtils.createReportFile(developEvaluation.getApplicationId(), developEvaluation.getScanId(),
+    ReportTestUtils.createReportFile(developEvaluation.getOwnerId(), developEvaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), insightWork);
     tempEntity.newPolicyViolation(buildEvaluation, buildPolicy);
     tempEntity.newPolicyViolation(developEvaluation, developPolicy);

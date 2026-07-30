@@ -869,7 +869,7 @@ public class ApiCycloneDxServiceV2Test
     PolicyEvaluation policyEvaluation = null;
     if (version.getVersion() >= 1.2) {
       policyEvaluation =
-          policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
+          policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(), scanId);
     }
     Metadata metadata = bom.getMetadata();
     if (policyEvaluation == null) {

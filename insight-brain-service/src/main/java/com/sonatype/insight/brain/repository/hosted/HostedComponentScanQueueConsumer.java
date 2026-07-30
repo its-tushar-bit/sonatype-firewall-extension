@@ -33,7 +33,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -236,7 +236,7 @@ public class HostedComponentScanQueueConsumer
 
   private final PolicyViolationDAO policyViolationDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final TelemetryUtils telemetryUtils;
 
@@ -261,7 +261,7 @@ public class HostedComponentScanQueueConsumer
       final LifecycleReportPersistenceService lifecycleReportPersistenceService,
       final Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider,
       final PolicyViolationDAO policyViolationDAO,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final TelemetryUtils telemetryUtils,
       final TelemetrySender telemetrySender,
       final ShutdownHandler shutdownHandler)
@@ -1304,7 +1304,7 @@ public class HostedComponentScanQueueConsumer
   private void createPolicyEvaluationRecord(final String appId, final String scanId, final String stageTypeId) {
     try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       tx.begin();
-      if (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) == null) {
+      if (policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, appId, scanId) == null) {
         PolicyEvaluation pe = PolicyEvaluation.createForHostedComponent(appId, stageTypeId, scanId, false);
         policyEvaluationDAO.insert(tx, pe);
         log.debug("Created policy_evaluation record appId={} scanId={}", appId, scanId);
@@ -1632,8 +1632,8 @@ public class HostedComponentScanQueueConsumer
       // policy_violation to its component pathnames. keepDependencyDerived is still needed
       // for the mirror loop's filter branch (currently out of scope — see steps 4/5 in the
       // follow-up ticket).
-      List<ApplicationComponent> appComponents =
-          applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stageTypeId.toLowerCase());
+      List<OwnerComponent> appComponents =
+          applicationComponentDAO.getByOwnerIdAndStageTypeId(application.getId(), stageTypeId.toLowerCase());
 
       boolean keepDependencyDerived =
           repoFormat != null && KEEP_DEPENDENCY_DERIVED_COMPONENTS_FORMATS.contains(repoFormat.toLowerCase());
@@ -1648,7 +1648,7 @@ public class HostedComponentScanQueueConsumer
       // matched. Loading them in one batch call is the standard pattern (see
       // ScanPolicyEvaluator's own use at lines 590, 653, 772, 1154, 1987).
       List<PolicyViolation> violations =
-          policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), stageTypeId.toLowerCase());
+          policyViolationDAO.getActiveByOwnerIdAndStageId(application.getId(), stageTypeId.toLowerCase());
       if (violations.isEmpty()) {
         log.debug("ScanPolicyEvaluator produced no policy_violation rows for jobLogId={}, app={}, scan={} — "
             + "no inner-component violations to mirror (stale inner rows will still be cleaned up)",
@@ -1658,12 +1658,12 @@ public class HostedComponentScanQueueConsumer
         policyViolationDAO.loadConstraintFacts(violations);
       }
 
-      // Step 3: build a hash → ApplicationComponent map so we can resolve each violation's
+      // Step 3: build a hash → OwnerComponent map so we can resolve each violation's
       // pathnames (= file paths inside the outer archive). The bom-derived pathnames are the
       // truthful "where inside the outer" — preserve them in the mirrored row's pathname so
       // downstream UI/audit can render exact locations. Re-using appComponents from above.
-      Map<String, ApplicationComponent> componentByHash = new HashMap<>();
-      for (ApplicationComponent ac : appComponents) {
+      Map<String, OwnerComponent> componentByHash = new HashMap<>();
+      for (OwnerComponent ac : appComponents) {
         componentByHash.put(ac.getHash(), ac);
       }
 
@@ -1711,7 +1711,7 @@ public class HostedComponentScanQueueConsumer
             // real outer pathname.
             continue;
           }
-          ApplicationComponent ac = componentByHash.get(pv.getHash());
+          OwnerComponent ac = componentByHash.get(pv.getHash());
           // CLM-40943: skip mirroring violations whose component was discovered solely via
           // dependency-manifest extraction (Gemfile.lock entry, requirements.txt entry,
           // package-lock.json entry, etc. — insight-scanner tags those pathnames with a
@@ -1732,7 +1732,7 @@ public class HostedComponentScanQueueConsumer
             continue;
           }
           // Compose the synthetic pathname: outer + "!/" + inner-coordinates-label.
-          // displayName / coordinates label is the most readable choice; ApplicationComponent
+          // displayName / coordinates label is the most readable choice; OwnerComponent
           // carries the full pathnames list (newline-separated text) but we don't need every
           // path — one canonical label per inner component is enough for the UI and matches
           // what the existing policythreats.json builder expects.
@@ -1790,13 +1790,13 @@ public class HostedComponentScanQueueConsumer
    * {@code outer + "!/" + label}. Preference order:
    * <ol>
    * <li>{@code componentIdentifier} → format-coordinates-derived label (e.g. {@code form-data@2.3.3})</li>
-   * <li>{@code ApplicationComponent.pathnames} → first non-blank entry (the truthful nested path)</li>
+   * <li>{@code OwnerComponent.pathnames} → first non-blank entry (the truthful nested path)</li>
    * <li>{@code hash} → opaque fallback</li>
    * </ol>
    */
   private static String innerLabelFromComponent(
       final PolicyViolation violation,
-      final ApplicationComponent component)
+      final OwnerComponent component)
   {
     ComponentIdentifier ci = violation.getComponentIdentifier();
     if (ci != null && ci.getCoordinates() != null && !ci.getCoordinates().isEmpty()) {

@@ -685,14 +685,14 @@ public class LicenseThreatGroupDAOTest
     ComponentIdentifier identifier =
         ComponentIdentifier.createMavenCoordinates("g", "a-" + hash, "1.0.0");
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, identifier);
-    String acId = appComponentDAO().getByApplicationIdAndStageTypeIdAndHash(app.getId(), BuildStageType.ID, hash)
+    String acId = appComponentDAO().getByOwnerIdAndStageTypeIdAndHash(app.getId(), BuildStageType.ID, hash)
         .getId();
     tempEntity.newApplicationComponentLicense(acId, licenseId);
     return identifier;
   }
 
-  private com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO appComponentDAO() {
-    return daoFactory.createApplicationComponentDAO();
+  private com.sonatype.insight.brain.dataaccess.OwnerComponentDAO appComponentDAO() {
+    return daoFactory.createOwnerComponentDAO();
   }
 
   @Test

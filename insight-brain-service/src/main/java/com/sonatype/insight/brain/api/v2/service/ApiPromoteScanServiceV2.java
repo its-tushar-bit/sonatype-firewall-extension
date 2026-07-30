@@ -125,7 +125,7 @@ public class ApiPromoteScanServiceV2
   }
 
   private PolicyEvaluation getLastEvaluation(String applicationId, String stageId) {
-    return policyEvaluationDAO.getLastByApplicationIdAndStageId(applicationId, stageId);
+    return policyEvaluationDAO.getLastByOwnerIdAndStageId(applicationId, stageId);
   }
 
   private boolean isValidTargetStage(String stageId) {
@@ -229,7 +229,7 @@ public class ApiPromoteScanServiceV2
         ClientScanType clientScanType = ClientScanType.SONATYPE;
 
         PolicyEvaluation policyEvaluation =
-            policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, sourceScanId);
+            policyEvaluationDAO.getLastByOwnerIdAndScanId(applicationId, sourceScanId);
         if (policyEvaluation != null) {
           scanTriggerType = policyEvaluation.getScanTriggerType();
           if (policyEvaluation.getClientScanType() != null) {

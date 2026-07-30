@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.PolicyAuditDTO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
@@ -55,7 +55,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO.ContainerImageInQuarantineData;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -104,7 +104,7 @@ public class ApiPolicyViolationServiceV2
 
   private final ApplicationService applicationService;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -127,7 +127,7 @@ public class ApiPolicyViolationServiceV2
   @Inject
   public ApiPolicyViolationServiceV2(
       final ApplicationService applicationService,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyViolationDAO policyViolationDAO,
       final OwnerDAO ownerDAO,
@@ -193,27 +193,27 @@ public class ApiPolicyViolationServiceV2
 
     Map<String, Application> applicationsById =
         applications.stream().collect(Collectors.toMap(Application::getId, Function.identity()));
-    Set<String> applicationIds = applicationsById.keySet();
+    Set<String> ownerIds = applicationsById.keySet();
 
-    Collection<PolicyEvaluation> policyEvaluations = loadPolicyEvaluations(applicationIds);
-    // Filter app ids to those that have policy evaluations
-    applicationIds = policyEvaluations.stream().map(PolicyEvaluation::getApplicationId).collect(toSet());
+    Collection<PolicyEvaluation> policyEvaluations = loadPolicyEvaluations(ownerIds);
+    // Filter owner ids to those that have policy evaluations
+    ownerIds = policyEvaluations.stream().map(PolicyEvaluation::getOwnerId).collect(toSet());
 
     Collection<PolicyViolation> policyViolations =
-        loadPolicyViolations(applicationIds, policyIds, openTimeAfterDate, openTimeBeforeDate, violationTypes);
+        loadPolicyViolations(ownerIds, policyIds, openTimeAfterDate, openTimeBeforeDate, violationTypes);
 
     Map<String, List<PolicyViolation>> policyViolationsByAppId =
-        policyViolations.stream().collect(Collectors.groupingBy(PolicyViolation::getApplicationId));
+        policyViolations.stream().collect(Collectors.groupingBy(PolicyViolation::getOwnerId));
 
     // Sort violations using the standard violation comparator in order to get consistent results.
     sortPolicyViolations(policyViolationsByAppId);
 
     Map<String, PolicyEvaluation> policyEvaluationsByAppIdAndStageId = policyEvaluations.stream()
         .collect(Collectors.toMap(
-            policyEvaluation -> policyEvaluation.getApplicationId() + policyEvaluation.getStageTypeId(),
+            policyEvaluation -> policyEvaluation.getOwnerId() + policyEvaluation.getStageTypeId(),
             Function.identity()));
 
-    Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByAppIdStageIdHash =
+    Map<OwnerComponentDAO.OwnerComponentKey, OwnerComponent> componentsByAppIdStageIdHash =
         batchLoadApplicationComponents(policyViolationsByAppId);
 
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTOV2 = new ApiApplicationViolationListDTOV2();
@@ -227,7 +227,7 @@ public class ApiPolicyViolationServiceV2
       apiApplicationViolationDTOV2.policyViolations = new ArrayList<>();
       for (PolicyViolation policyViolation : policyViolationsForApp) {
         PolicyEvaluation policyEvaluation = policyEvaluationsByAppIdAndStageId
-            .get(policyViolation.getApplicationId() + policyViolation.getStageTypeId());
+            .get(policyViolation.getOwnerId() + policyViolation.getStageTypeId());
         ApiEnhancedPolicyViolationDTOV2 apiEnhancedPolicyViolationDTOV2 =
             toApiEnhancedPolicyViolationDTOV2(application, policyEvaluation, policyViolation,
                 componentsByAppIdStageIdHash);
@@ -238,7 +238,7 @@ public class ApiPolicyViolationServiceV2
     }
 
     log.debug("Retrieved {} policy violations for {} applications and {} policies in {} ms", policyViolations.size(),
-        applicationIds.size(), policyIds.size(), System.currentTimeMillis() - start);
+        ownerIds.size(), policyIds.size(), System.currentTimeMillis() - start);
 
     return apiApplicationViolationListDTOV2;
   }
@@ -251,23 +251,23 @@ public class ApiPolicyViolationServiceV2
     return policyAuditDTOs;
   }
 
-  private Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> batchLoadApplicationComponents(
+  private Map<OwnerComponentDAO.OwnerComponentKey, OwnerComponent> batchLoadApplicationComponents(
       Map<String, List<PolicyViolation>> policyViolationsByAppId)
   {
-    Set<String> applicationIds = new HashSet<>();
+    Set<String> ownerIds = new HashSet<>();
     Set<String> stageTypeIds = new HashSet<>();
     Set<String> hashes = new HashSet<>();
 
     for (List<PolicyViolation> violations : policyViolationsByAppId.values()) {
       for (PolicyViolation pv : violations) {
-        applicationIds.add(pv.getApplicationId());
+        ownerIds.add(pv.getOwnerId());
         stageTypeIds.add(pv.getStageTypeId());
         hashes.add(pv.getHash());
       }
     }
 
-    return applicationComponentDAO.getMapByApplicationIdsAndStageTypeIdsAndHashes(
-        applicationIds, stageTypeIds, hashes);
+    return applicationComponentDAO.getMapByOwnerIdsAndStageTypeIdsAndHashes(
+        ownerIds, stageTypeIds, hashes);
   }
 
   private void sortPolicyViolations(Map<String, List<PolicyViolation>> policyViolationsByAppId) {
@@ -277,7 +277,7 @@ public class ApiPolicyViolationServiceV2
   }
 
   private Collection<PolicyViolation> loadPolicyViolations(
-      Set<String> applicationIds,
+      Set<String> ownerIds,
       Set<String> policyIds,
       Date openTimeAfter,
       Date openTimeBefore,
@@ -285,8 +285,8 @@ public class ApiPolicyViolationServiceV2
   {
     long start = System.currentTimeMillis();
 
-    Collection<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationIdsAndPolicyIdsAndTypes(
-        applicationIds,
+    Collection<PolicyViolation> policyViolations = policyViolationDAO.getByOwnerIdsAndPolicyIdsAndTypes(
+        ownerIds,
         policyIds,
         openTimeAfter,
         openTimeBefore,
@@ -296,17 +296,17 @@ public class ApiPolicyViolationServiceV2
 
     policyViolationDAO.loadConstraintFacts(policyViolations);
     log.debug("Loaded {} policy violations for {} applications and {} policies in {} ms", policyViolations.size(),
-        applicationIds.size(), policyIds.size(), System.currentTimeMillis() - start);
+        ownerIds.size(), policyIds.size(), System.currentTimeMillis() - start);
 
     return policyViolations;
   }
 
-  private Collection<PolicyEvaluation> loadPolicyEvaluations(Set<String> applicationIds) {
+  private Collection<PolicyEvaluation> loadPolicyEvaluations(Set<String> ownerIds) {
     long start = System.currentTimeMillis();
 
-    Collection<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIds(applicationIds);
+    Collection<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByOwnerIds(ownerIds);
     log.debug("Loaded {} policy evaluations for {} applications across all stages in {} ms", policyEvaluations.size(),
-        applicationIds.size(), System.currentTimeMillis() - start);
+        ownerIds.size(), System.currentTimeMillis() - start);
 
     return policyEvaluations;
   }
@@ -315,7 +315,7 @@ public class ApiPolicyViolationServiceV2
       Application application,
       PolicyEvaluation policyEvaluation,
       PolicyViolation policyViolation,
-      Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByAppIdStageIdHash)
+      Map<OwnerComponentDAO.OwnerComponentKey, OwnerComponent> componentsByAppIdStageIdHash)
   {
     ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiEnhancedPolicyViolationDTOV2();
     apiPolicyViolationDTO.policyId = policyViolation.getPolicyId();
@@ -327,9 +327,9 @@ public class ApiPolicyViolationServiceV2
         UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), policyEvaluation.getScanId());
     apiPolicyViolationDTO.stageId = policyViolation.getStageTypeId();
     apiPolicyViolationDTO.reportId = policyEvaluation.getScanId();
-    ApplicationComponentDAO.ApplicationComponentKey lookupKey = new ApplicationComponentDAO.ApplicationComponentKey(
+    OwnerComponentDAO.OwnerComponentKey lookupKey = new OwnerComponentDAO.OwnerComponentKey(
         application.getId(), policyViolation.getStageTypeId(), policyViolation.getHash());
-    ApplicationComponent applicationComponent = componentsByAppIdStageIdHash.get(lookupKey);
+    OwnerComponent applicationComponent = componentsByAppIdStageIdHash.get(lookupKey);
     apiPolicyViolationDTO.component = new ApiComponentDTOV2();
     apiPolicyViolationDTO.component.hash = policyViolation.getHash();
     apiPolicyViolationDTO.component.proprietary = applicationComponent != null && applicationComponent.isProprietary();
@@ -369,7 +369,7 @@ public class ApiPolicyViolationServiceV2
       throw new BadRequestException("scanId can only be specified for an application.");
     }
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(owner.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
     if (policyEvaluation == null) {
       throw new NotFoundException("scanId " + scanId + " not found for application " + owner.getPublicId() + ".");
     }
@@ -393,7 +393,7 @@ public class ApiPolicyViolationServiceV2
       throw new InvalidStageException(stageId);
     }
     List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO
-        .getLastByApplicationIdsAndStageIds(ownerDAO.getDescendantOrSelfApplicationIds(owner),
+        .getLastByOwnerIdsAndStageIds(ownerDAO.getDescendantOrSelfApplicationIds(owner),
             Collections.singleton(stageIdLowercase));
     return getTransitivePolicyViolations(stageIdLowercase, componentIdentifier, packageUrl, hash, policyEvaluations);
   }
@@ -422,7 +422,7 @@ public class ApiPolicyViolationServiceV2
       String packageUrl,
       String hash)
   {
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(applicationId, scanId);
     if (policyEvaluation == null) {
       throw new NotFoundException("Evaluation not found with application " + applicationId + " and scan " + scanId);
     }
@@ -471,7 +471,7 @@ public class ApiPolicyViolationServiceV2
     List<Pair<PolicyViolation, Component>> allTransitivePolicyViolations = new ArrayList<>();
     Component foundComponent = null;
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-      List<Component> components = getComponents(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+      List<Component> components = getComponents(policyEvaluation.getOwnerId(), policyEvaluation.getScanId());
       if (components == null || components.isEmpty()) {
         continue;
       }
@@ -485,7 +485,7 @@ public class ApiPolicyViolationServiceV2
       }
       List<Component> transitiveComponents = getTransitiveComponents(component.getComponentIdentifier(), components);
       List<PolicyViolation> activePolicyViolations =
-          getPolicyViolations(policyEvaluation.getApplicationId(), stageId, policyEvaluation.getScanId());
+          getPolicyViolations(policyEvaluation.getOwnerId(), stageId, policyEvaluation.getScanId());
       List<Pair<PolicyViolation, Component>> transitivePolicyViolations = activePolicyViolations.stream()
           .map(policyViolation -> Pair.of(policyViolation, getComponentByComponentIdentifierOrHash(
               transitiveComponents, policyViolation.getComponentIdentifier(), policyViolation.getHash())))
@@ -692,7 +692,7 @@ public class ApiPolicyViolationServiceV2
     List<PolicyViolation> results = new ArrayList<>();
     for (PolicyThreats.PolicyViolation policyViolation : component.activeViolations) {
       PolicyViolation result = new PolicyViolation();
-      result.setApplicationId(applicationId);
+      result.setOwnerId(applicationId);
       result.setStageTypeId(stageTypeId);
       result.setPolicyId(policyViolation.policyId);
       result.setPolicyName(policyViolation.policyName);

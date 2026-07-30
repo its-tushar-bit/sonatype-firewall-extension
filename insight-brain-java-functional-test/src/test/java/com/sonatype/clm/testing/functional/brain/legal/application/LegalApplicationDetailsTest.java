@@ -14,7 +14,7 @@ import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage.ComponentTable;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
@@ -50,7 +50,7 @@ public class LegalApplicationDetailsTest
   {
     final ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
-    final ApplicationComponent applicationComponent =
+    final OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
             componentIdentifier);
     Arrays.stream(licenseIds)

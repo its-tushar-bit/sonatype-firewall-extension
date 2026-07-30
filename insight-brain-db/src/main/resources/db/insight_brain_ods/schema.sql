@@ -422,7 +422,7 @@ CREATE TABLE policy_tag (
 
 CREATE TABLE policy_evaluation (
   policy_evaluation_id varchar(50) NOT NULL,
-  application_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
   scan_id varchar(50) NOT NULL,
   reevaluation bool DEFAULT false NOT NULL,
@@ -438,16 +438,15 @@ CREATE TABLE policy_evaluation (
   commit_hash_source varchar(50) NULL,
   branch_name_source varchar(50) NULL,
   scm_repository_url_source varchar(50) NULL,
-  CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
-  CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE
+  CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id)
 );
 CREATE INDEX policy_evaluation_scan_id_idx ON policy_evaluation(scan_id);
 CREATE INDEX policy_evaluation_time_idx ON policy_evaluation(time);
-CREATE INDEX policy_evaluation_app_monitoring_stage_idx ON policy_evaluation(application_id, for_monitoring, stage_type_id);
-CREATE INDEX policy_evaluation_app_time_idx ON policy_evaluation(application_id, time);
+CREATE INDEX policy_evaluation_owner_monitoring_stage_idx ON policy_evaluation(owner_id, for_monitoring, stage_type_id);
+CREATE INDEX policy_evaluation_owner_time_idx ON policy_evaluation(owner_id, time);
 CREATE INDEX policy_evaluation_commit_hash_idx ON policy_evaluation(commit_hash);
-CREATE INDEX policy_evaluation_reeval_time_idx ON policy_evaluation (reevaluation, stage_type_id, application_id, time DESC);
-CREATE INDEX policy_evaluation_scan_app_idx ON policy_evaluation (scan_id, application_id);
+CREATE INDEX policy_evaluation_reeval_time_idx ON policy_evaluation (reevaluation, stage_type_id, owner_id, time DESC);
+CREATE INDEX policy_evaluation_scan_owner_idx ON policy_evaluation (scan_id, owner_id);
 
 CREATE TABLE policy_violation_constraint_facts (
    policy_violation_constraint_facts_id VARCHAR(20) NOT NULL,
@@ -458,7 +457,7 @@ CREATE TABLE policy_violation_constraint_facts (
 CREATE TABLE policy_violation (
   policy_violation_id varchar(50) NOT NULL,
 
-  application_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
 
   -- summary of the policy that caused the violation
@@ -508,12 +507,11 @@ CREATE TABLE policy_violation (
   last_telemetry_emitted_date date NULL,
 
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
-  CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE,
   CONSTRAINT policy_violation_constraint_facts_id_fk FOREIGN KEY (constraint_facts_id)
       REFERENCES policy_violation_constraint_facts(policy_violation_constraint_facts_id)
 );
-CREATE INDEX policy_violation_app_fix_time_stage_idx ON policy_violation(application_id, fix_time, stage_type_id);
-CREATE INDEX policy_violation_policy_app_idx ON policy_violation(policy_id, application_id);
+CREATE INDEX policy_violation_owner_fix_time_stage_idx ON policy_violation(owner_id, fix_time, stage_type_id);
+CREATE INDEX policy_violation_policy_owner_idx ON policy_violation(policy_id, owner_id);
 CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
 CREATE INDEX policy_violation_open_time_idx ON policy_violation (open_time);
 
@@ -531,9 +529,9 @@ CREATE TABLE dashboard_filter (
   CONSTRAINT dashboard_filter_uk UNIQUE (username_lowercase, realm_id, name_lowercase_no_whitespace)
 );
 
-CREATE TABLE application_component (
-  application_component_id varchar(50) NOT NULL,
-  application_id varchar(50) NOT NULL,
+CREATE TABLE owner_component (
+  owner_component_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
   time timestamp NOT NULL,
   hash varchar(20) NOT NULL,
@@ -543,34 +541,31 @@ CREATE TABLE application_component (
   identification_source_id varchar(20) NOT NULL,
   proprietary bool DEFAULT false NOT NULL,
   pathnames text, -- the paths to the component that caused the policy violation, paths are new line delimited
-  CONSTRAINT application_component_pk PRIMARY KEY (application_component_id),
-  CONSTRAINT application_component_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE,
-  CONSTRAINT application_component_uk UNIQUE (application_id, stage_type_id, hash)
+  CONSTRAINT owner_component_pk PRIMARY KEY (owner_component_id),
+  CONSTRAINT owner_component_uk UNIQUE (owner_id, stage_type_id, hash)
 );
-CREATE INDEX application_component_hash_idx ON application_component(hash);
-CREATE INDEX application_component_time_idx ON application_component(time);
+CREATE INDEX owner_component_hash_idx ON owner_component(hash);
+CREATE INDEX owner_component_time_idx ON owner_component(time);
 
 CREATE TABLE aggregate_file (
   aggregate_file_id varchar(50) NOT NULL,
-  application_component_id varchar(50) NOT NULL,
+  owner_component_id varchar(50) NOT NULL,
   hash varchar(20) NOT NULL,
   pathnames text,
   CONSTRAINT aggregate_file_pk PRIMARY KEY (aggregate_file_id),
-  CONSTRAINT aggregate_file_application_component_fk FOREIGN KEY (application_component_id) REFERENCES application_component(application_component_id) ON DELETE CASCADE,
-  CONSTRAINT aggregate_file_uk UNIQUE (application_component_id, hash)
+  CONSTRAINT aggregate_file_owner_component_fk FOREIGN KEY (owner_component_id) REFERENCES owner_component(owner_component_id) ON DELETE CASCADE,
+  CONSTRAINT aggregate_file_uk UNIQUE (owner_component_id, hash)
 );
-CREATE INDEX aggregate_file_application_component_id_idx ON aggregate_file(application_component_id);
+CREATE INDEX aggregate_file_owner_component_id_idx ON aggregate_file(owner_component_id);
 
 CREATE TABLE last_policy_evaluation (
   policy_evaluation_id varchar(50) NOT NULL,
-  application_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
   CONSTRAINT last_policy_evaluation_PK PRIMARY KEY (policy_evaluation_id),
-  CONSTRAINT last_policy_evaluation_uk UNIQUE (application_id, stage_type_id),
+  CONSTRAINT last_policy_evaluation_uk UNIQUE (owner_id, stage_type_id),
   CONSTRAINT last_policy_evaluation_eval_fk FOREIGN KEY (policy_evaluation_id)
-    REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE,
-  CONSTRAINT last_policy_evaluation_app_fk FOREIGN KEY (application_id)
-    REFERENCES application(application_id) ON DELETE CASCADE
+    REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_viewed_product_notification (
@@ -1236,15 +1231,15 @@ CREATE TABLE perpetual_lock (
 );
 
 -- Since 1.104
-CREATE TABLE application_component_license (
-  application_component_license_id varchar(50) NOT NULL,
-  application_component_id varchar(50) NOT NULL,
+CREATE TABLE owner_component_license (
+  owner_component_license_id varchar(50) NOT NULL,
+  owner_component_id varchar(50) NOT NULL,
   effective_license_id varchar(1000) NOT NULL,
-  CONSTRAINT application_component_license_pk PRIMARY KEY (application_component_license_id),
-  CONSTRAINT application_component_license_application_component_fk FOREIGN KEY (application_component_id) REFERENCES application_component(application_component_id) ON DELETE CASCADE,
-  CONSTRAINT application_component_license_uk UNIQUE (application_component_id, effective_license_id)
+  CONSTRAINT owner_component_license_pk PRIMARY KEY (owner_component_license_id),
+  CONSTRAINT owner_component_license_owner_component_fk FOREIGN KEY (owner_component_id) REFERENCES owner_component(owner_component_id) ON DELETE CASCADE,
+  CONSTRAINT owner_component_license_uk UNIQUE (owner_component_id, effective_license_id)
 );
-CREATE INDEX application_component_license_effective_license_id_idx ON application_component_license(effective_license_id);
+CREATE INDEX owner_component_license_effective_license_id_idx ON owner_component_license(effective_license_id);
 
 -- Since 1.105
 CREATE TABLE component_copyright (

@@ -86,7 +86,7 @@ public class ApiLegacyViolationService
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     List<PolicyViolation> legacyViolations =
-        policyViolationDAO.getUnfixedLegacyViolationByApplicationId(app.getId());
+        policyViolationDAO.getUnfixedLegacyViolationByOwnerId(app.getId());
     policyViolationDAO.loadConstraintFacts(legacyViolations);
 
     return legacyViolations.stream()

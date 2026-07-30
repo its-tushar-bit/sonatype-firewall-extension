@@ -31,13 +31,13 @@ import com.sonatype.insight.brain.componentsearch.dto.ApplicationComponentMatchD
 import com.sonatype.insight.brain.componentsearch.dto.ComponentSearchAggregatesDTO;
 import com.sonatype.insight.brain.componentsearch.dto.ComponentSearchPageResultDTO;
 import com.sonatype.insight.brain.componentsearch.model.ComponentMatchSortField;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.hds.AffectedCoordinates;
 import com.sonatype.insight.brain.hds.CveAffectedComponentsService;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -59,7 +59,7 @@ public class CveAffectedComponentSearchService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
 
@@ -77,7 +77,7 @@ public class CveAffectedComponentSearchService
       final CveAffectedComponentsService cveAffectedComponentsService,
       final ApplicationService applicationService,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final PolicyViolationDAO policyViolationDAO,
       final ComponentMatchDtoBuilder dtoBuilder,
       final ComponentMatchEnrichmentService enrichmentService,
@@ -225,7 +225,7 @@ public class CveAffectedComponentSearchService
   }
 
   private Map<String, List<PolicyEvaluation>> getLatestEvaluations(final List<Application> applications) {
-    Set<String> applicationIds = applications.stream()
+    Set<String> ownerIds = applications.stream()
         .map(Application::getId)
         .collect(Collectors.toSet());
 
@@ -236,12 +236,12 @@ public class CveAffectedComponentSearchService
         .collect(Collectors.toSet());
 
     List<PolicyEvaluation> evaluations =
-        policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds, relevantStageTypes);
+        policyEvaluationDAO.getLastByOwnerIdsAndStageIds(ownerIds, relevantStageTypes);
     if (evaluations == null) {
       return Map.of();
     }
     return evaluations.stream()
-        .collect(Collectors.groupingBy(PolicyEvaluation::getApplicationId));
+        .collect(Collectors.groupingBy(PolicyEvaluation::getOwnerId));
   }
 
   private List<ApplicationComponentMatchDTO> processApplication(
@@ -259,14 +259,14 @@ public class CveAffectedComponentSearchService
         .collect(Collectors.toSet());
 
     Set<String> matchingComponentHashes = new HashSet<>();
-    Map<String, List<ApplicationComponent>> componentsByStage = new HashMap<>();
+    Map<String, List<OwnerComponent>> componentsByStage = new HashMap<>();
 
     for (PolicyEvaluation evaluation : evaluations) {
-      List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(
+      List<OwnerComponent> appComponents = applicationComponentDAO.getByOwnerIdAndStageTypeId(
           application.getId(),
           evaluation.getStageTypeId());
 
-      List<ApplicationComponent> matchingComponents = filterMatchingComponents(appComponents, affectedCoordinates);
+      List<OwnerComponent> matchingComponents = filterMatchingComponents(appComponents, affectedCoordinates);
 
       if (!matchingComponents.isEmpty()) {
         componentsByStage.put(evaluation.getStageTypeId(), matchingComponents);
@@ -303,13 +303,13 @@ public class CveAffectedComponentSearchService
     List<ApplicationComponentMatchDTO> allMatches = new ArrayList<>();
 
     for (PolicyEvaluation evaluation : evaluations) {
-      List<ApplicationComponent> matchingComponents = componentsByStage.get(evaluation.getStageTypeId());
+      List<OwnerComponent> matchingComponents = componentsByStage.get(evaluation.getStageTypeId());
 
       if (matchingComponents == null) {
         continue;
       }
 
-      for (ApplicationComponent component : matchingComponents) {
+      for (OwnerComponent component : matchingComponents) {
         ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
         if (componentIdentifier == null) {
           continue;
@@ -345,8 +345,8 @@ public class CveAffectedComponentSearchService
     return allMatches;
   }
 
-  private List<ApplicationComponent> filterMatchingComponents(
-      final List<ApplicationComponent> components,
+  private List<OwnerComponent> filterMatchingComponents(
+      final List<OwnerComponent> components,
       final Set<AffectedCoordinates> affectedCoordinates)
   {
     return components.stream()

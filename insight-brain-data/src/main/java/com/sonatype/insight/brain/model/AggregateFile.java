@@ -38,8 +38,8 @@ public class AggregateFile
   @Column(name = "aggregate_file_id")
   private String id;
 
-  @Column(name = "application_component_id")
-  private String applicationComponentId;
+  @Column(name = "owner_component_id")
+  private String ownerComponentId;
 
   @Column(name = "hash")
   private String hash;
@@ -50,8 +50,8 @@ public class AggregateFile
   public AggregateFile() {
   }
 
-  public AggregateFile(String applicationComponentId, String hash, Set<String> pathnames) {
-    this.applicationComponentId = applicationComponentId;
+  public AggregateFile(String ownerComponentId, String hash, Set<String> pathnames) {
+    this.ownerComponentId = ownerComponentId;
     this.hash = hash;
     setPathnames(pathnames);
   }
@@ -66,12 +66,12 @@ public class AggregateFile
     this.id = id;
   }
 
-  public String getApplicationComponentId() {
-    return applicationComponentId;
+  public String getOwnerComponentId() {
+    return ownerComponentId;
   }
 
-  public void setApplicationComponentId(String applicationComponentId) {
-    this.applicationComponentId = applicationComponentId;
+  public void setOwnerComponentId(String ownerComponentId) {
+    this.ownerComponentId = ownerComponentId;
   }
 
   public String getHash() {

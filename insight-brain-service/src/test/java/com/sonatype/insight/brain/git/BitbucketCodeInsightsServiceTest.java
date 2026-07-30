@@ -156,7 +156,7 @@ public class BitbucketCodeInsightsServiceTest
 
     // setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
-        featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+        featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
   }
 
   @Test

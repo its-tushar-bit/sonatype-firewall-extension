@@ -77,7 +77,7 @@ public class PostgresDashboardMetricsSqlReadinessTest
 
   private void createIndex() throws Exception {
     execute("CREATE INDEX " + INDEX_NAME + " ON " + schema() + ".policy_violation "
-        + "(application_id, waive_time, stage_type_id, open_time DESC, threat_level DESC, policy_violation_id) "
+        + "(owner_id, waive_time, stage_type_id, open_time DESC, threat_level DESC, policy_violation_id) "
         + "WHERE fix_time IS NULL");
   }
 

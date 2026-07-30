@@ -91,6 +91,13 @@ public class PolicyViolationDAO
     return POLICY_VIOLATION;
   }
 
+  public void deleteByOwnerId(TransactionContext tx, String ownerId) {
+    tx.dsl()
+        .deleteFrom(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
+        .execute();
+  }
+
   @Override
   public List<PolicyViolation> getAll(TransactionContext tx) {
     return tx.dsl().selectFrom(POLICY_VIOLATION).fetchInto(PolicyViolation.class);
@@ -119,28 +126,28 @@ public class PolicyViolationDAO
   }
 
   public List<RawThreatLevelCount> countUnfixedByThreatLevel(
-      @Nullable Set<String> applicationIds,
+      @Nullable Set<String> ownerIds,
       @Nullable Set<String> stageTypeIds)
   {
-    if (applicationIds != null && applicationIds.isEmpty()) {
+    if (ownerIds != null && ownerIds.isEmpty()) {
       return List.of();
     }
-    if (applicationIds == null) {
+    if (ownerIds == null) {
       return countUnfixedByThreatLevelChunk(null, stageTypeIds);
     }
     return mergeRawThreatCounts(getListWithSqlInClause(
-        applicationIds,
+        ownerIds,
         chunk -> countUnfixedByThreatLevelChunk(new HashSet<>(chunk), stageTypeIds)));
   }
 
   private List<RawThreatLevelCount> countUnfixedByThreatLevelChunk(
-      @Nullable Set<String> applicationIds,
+      @Nullable Set<String> ownerIds,
       @Nullable Set<String> stageTypeIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
       Condition condition = POLICY_VIOLATION.FIX_TIME.isNull();
-      if (applicationIds != null) {
-        condition = condition.and(POLICY_VIOLATION.APPLICATION_ID.in(applicationIds));
+      if (ownerIds != null) {
+        condition = condition.and(POLICY_VIOLATION.OWNER_ID.in(ownerIds));
       }
       if (stageTypeIds != null && !stageTypeIds.isEmpty()) {
         condition = condition.and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds));
@@ -164,11 +171,11 @@ public class PolicyViolationDAO
         .toList();
   }
 
-  public List<PolicyViolation> getByApplicationId(String applicationId) {
+  public List<PolicyViolation> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectFrom(POLICY_VIOLATION)
-          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
           .fetchInto(PolicyViolation.class);
     }
   }
@@ -189,15 +196,15 @@ public class PolicyViolationDAO
         .fetchInto(PolicyViolation.class);
   }
 
-  public List<PolicyViolation> getByApplicationIdAndPolicyIdAndHash(
-      String applicationId,
+  public List<PolicyViolation> getByOwnerIdAndPolicyIdAndHash(
+      String ownerId,
       String policyId,
       String hash)
   {
     try (TransactionContext tx = createTransactionContext()) {
       var query = tx.dsl()
           .selectFrom(POLICY_VIOLATION)
-          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
           .and(POLICY_VIOLATION.POLICY_ID.eq(policyId));
 
       if (hash == null) {
@@ -211,20 +218,20 @@ public class PolicyViolationDAO
     }
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIdAndStageId(String applicationId, String stageTypeId) {
+  public List<PolicyViolation> getUnfixedByOwnerIdAndStageId(String ownerId, String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
-      return getUnfixedByApplicationIdAndStageId(tx, applicationId, stageTypeId);
+      return getUnfixedByOwnerIdAndStageId(tx, ownerId, stageTypeId);
     }
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIdAndStageId(
+  public List<PolicyViolation> getUnfixedByOwnerIdAndStageId(
       TransactionContext tx,
-      String applicationId,
+      String ownerId,
       String stageTypeId)
   {
     return tx.dsl()
         .selectFrom(POLICY_VIOLATION)
-        .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+        .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
         .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
         .and(POLICY_VIOLATION.FIX_TIME.isNull())
         .fetchInto(PolicyViolation.class);
@@ -235,11 +242,11 @@ public class PolicyViolationDAO
    * Firewall (proxy): Ignores legacy violations completely (treats as active).
    * Lifecycle (build/release): Excludes all legacy violations.
    */
-  public List<PolicyViolation> getActiveByApplicationIdAndStageId(String applicationId, String stageTypeId) {
+  public List<PolicyViolation> getActiveByOwnerIdAndStageId(String ownerId, String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
       var query = tx.dsl()
           .selectFrom(POLICY_VIOLATION)
-          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
           .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
           .and(POLICY_VIOLATION.FIX_TIME.isNull())
           .and(POLICY_VIOLATION.WAIVE_TIME.isNull());
@@ -258,15 +265,15 @@ public class PolicyViolationDAO
    * Firewall (proxy): Ignores legacy violations completely (treats as active).
    * Lifecycle (build/release): Excludes all legacy violations.
    */
-  public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndActionId(
-      String applicationId,
+  public List<PolicyViolation> getActiveByOwnerIdAndStageIdAndActionId(
+      String ownerId,
       String stageTypeId,
       String actionTypeId)
   {
     try (TransactionContext tx = createTransactionContext()) {
       var query = tx.dsl()
           .selectFrom(POLICY_VIOLATION)
-          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
           .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
           .and(POLICY_VIOLATION.ACTION_TYPE_ID.eq(actionTypeId))
           .and(POLICY_VIOLATION.FIX_TIME.isNull())
@@ -286,15 +293,15 @@ public class PolicyViolationDAO
    * Firewall (proxy): Ignores legacy violations completely (treats as active).
    * Lifecycle (build/release): Excludes all legacy violations.
    */
-  public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndHash(
-      String applicationId,
+  public List<PolicyViolation> getActiveByOwnerIdAndStageIdAndHash(
+      String ownerId,
       String stageTypeId,
       String hash)
   {
     try (TransactionContext tx = createTransactionContext()) {
       var query = tx.dsl()
           .selectFrom(POLICY_VIOLATION)
-          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
           .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
           .and(POLICY_VIOLATION.HASH.eq(hash))
           .and(POLICY_VIOLATION.FIX_TIME.isNull())
@@ -310,30 +317,30 @@ public class PolicyViolationDAO
   }
 
   /**
-   * Batch variant of {@link #getActiveByApplicationIdAndStageIdAndHash(String, String, String)} for many
+   * Batch variant of {@link #getActiveByOwnerIdAndStageIdAndHash(String, String, String)} for many
    * applications/hashes at once, applying the same active/legacy-violation rules. Callers group the result by
    * application id and hash (e.g. to compute a per-component max threat level).
    */
-  public List<PolicyViolation> getActiveByApplicationIdsAndStageIdAndHashes(
-      Set<String> applicationIds,
+  public List<PolicyViolation> getActiveByOwnerIdsAndStageIdAndHashes(
+      Set<String> ownerIds,
       String stageTypeId,
       Set<String> hashes)
   {
-    if (CollectionUtils.isEmpty(applicationIds) || CollectionUtils.isEmpty(hashes)) {
+    if (CollectionUtils.isEmpty(ownerIds) || CollectionUtils.isEmpty(hashes)) {
       return List.of();
     }
     // The app-id and hash IN-clauses are combined into a single query, so each chunk must reserve bind-parameter
     // budget for the other clause (plus the stageTypeId param) to stay under the database parameter limit. See
-    // ApplicationComponentDAO#getMapByApplicationIdsAndStageTypeIdsAndHashes for the same nested-chunking pattern.
+    // OwnerComponentDAO#getMapByOwnerIdsAndStageTypeIdsAndHashes for the same nested-chunking pattern.
     return getListWithSqlInClause(
-        applicationIds,
+        ownerIds,
         appIdChunk -> getListWithSqlInClause(
             hashes,
             hashChunk -> {
               try (TransactionContext tx = createTransactionContext()) {
                 var query = tx.dsl()
                     .selectFrom(POLICY_VIOLATION)
-                    .where(POLICY_VIOLATION.APPLICATION_ID.in(appIdChunk))
+                    .where(POLICY_VIOLATION.OWNER_ID.in(appIdChunk))
                     .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
                     .and(POLICY_VIOLATION.HASH.in(hashChunk))
                     .and(POLICY_VIOLATION.FIX_TIME.isNull())
@@ -355,30 +362,30 @@ public class PolicyViolationDAO
         1 + 1); // reserve 1 for the stageTypeId param and a minimum of 1 hash in each inner IN-clause
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(
-      Collection<String> applicationIds,
+  public List<PolicyViolation> getUnfixedByOwnerIdsOpenedAfterDate(
+      Collection<String> ownerIds,
       Date minDate,
       Integer minThreatLevel,
       Integer maxThreatLevel,
       Collection<PolicyThreatCategory> policyThreatCategories)
   {
-    return getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, false, minThreatLevel, maxThreatLevel,
+    return getUnfixedByOwnerIdsOpenedAfterDate(ownerIds, minDate, false, minThreatLevel, maxThreatLevel,
         policyThreatCategories);
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdsOpenedAfterDate(
-      Collection<String> applicationIds,
+  public List<PolicyViolation> getActiveByOwnerIdsOpenedAfterDate(
+      Collection<String> ownerIds,
       Date minDate,
       Integer minThreatLevel,
       Integer maxThreatLevel,
       Collection<PolicyThreatCategory> policyThreatCategories)
   {
-    return getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, true, minThreatLevel, maxThreatLevel,
+    return getUnfixedByOwnerIdsOpenedAfterDate(ownerIds, minDate, true, minThreatLevel, maxThreatLevel,
         policyThreatCategories);
   }
 
-  private List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(
-      Collection<String> applicationIds,
+  private List<PolicyViolation> getUnfixedByOwnerIdsOpenedAfterDate(
+      Collection<String> ownerIds,
       Date minDate,
       boolean onlyActiveViolations,
       Integer minThreatLevel,
@@ -393,11 +400,11 @@ public class PolicyViolationDAO
         .map(PolicyThreatCategory::name)
         .collect(toList());
 
-    return getUnfixed(applicationIds, appIds -> {
+    return getUnfixed(ownerIds, ownerIdsChunk -> {
       try (TransactionContext tx = createTransactionContext()) {
         var query = tx.dsl()
             .selectFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .where(POLICY_VIOLATION.OWNER_ID.in(ownerIdsChunk))
             .and(POLICY_VIOLATION.OPEN_TIME.ge(minDate))
             .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
             .and(POLICY_VIOLATION.THREAT_LEVEL.le((short) finalMaxThreatLevel))
@@ -414,23 +421,23 @@ public class PolicyViolationDAO
     });
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIds(Collection<String> applicationIds) {
-    return getUnfixedByApplicationIds(applicationIds, false);
+  public List<PolicyViolation> getUnfixedByOwnerIds(Collection<String> ownerIds) {
+    return getUnfixedByOwnerIds(ownerIds, false);
   }
 
-  public List<PolicyViolation> getActiveByApplicationIds(Collection<String> applicationIds) {
-    return getUnfixedByApplicationIds(applicationIds, true);
+  public List<PolicyViolation> getActiveByOwnerIds(Collection<String> ownerIds) {
+    return getUnfixedByOwnerIds(ownerIds, true);
   }
 
-  private List<PolicyViolation> getUnfixedByApplicationIds(
-      Collection<String> applicationIds,
+  private List<PolicyViolation> getUnfixedByOwnerIds(
+      Collection<String> ownerIds,
       boolean onlyActiveViolations)
   {
-    return getUnfixed(applicationIds, appIds -> {
+    return getUnfixed(ownerIds, ownerIdsChunk -> {
       try (TransactionContext tx = createTransactionContext()) {
         var query = tx.dsl()
             .selectFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .where(POLICY_VIOLATION.OWNER_ID.in(ownerIdsChunk))
             .and(POLICY_VIOLATION.FIX_TIME.isNull());
 
         if (onlyActiveViolations) {
@@ -443,16 +450,16 @@ public class PolicyViolationDAO
     });
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationId(TransactionContext tx, String applicationId) {
+  public List<PolicyViolation> getUnfixedByOwnerId(TransactionContext tx, String ownerId) {
     return tx.dsl()
         .selectFrom(POLICY_VIOLATION)
-        .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+        .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
         .and(POLICY_VIOLATION.FIX_TIME.isNull())
         .fetchInto(PolicyViolation.class);
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdsAndStageIdsOpenedAfterDate(
-      Collection<String> applicationIds,
+  public List<PolicyViolation> getActiveByOwnerIdsAndStageIdsOpenedAfterDate(
+      Collection<String> ownerIds,
       Collection<String> stageTypeIds,
       Date minDate,
       Integer minThreatLevel,
@@ -467,11 +474,11 @@ public class PolicyViolationDAO
         .map(PolicyThreatCategory::name)
         .collect(toList());
 
-    return getUnfixed(applicationIds, appIds -> {
+    return getUnfixed(ownerIds, ownerIdsChunk -> {
       try (TransactionContext tx = createTransactionContext()) {
         return tx.dsl()
             .selectFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .where(POLICY_VIOLATION.OWNER_ID.in(ownerIdsChunk))
             .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
             .and(POLICY_VIOLATION.OPEN_TIME.ge(minDate))
             .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
@@ -487,20 +494,20 @@ public class PolicyViolationDAO
 
   public List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainer(
       Collection<String> repositoryIds,
-      Collection<String> applicationIds,
+      Collection<String> ownerIds,
       RepositoryResultsForImageContainerFilter detailsFilter)
   {
     if (detailsFilter.aggregate) {
-      return getRepositoryResultsForImageContainerAggregate(repositoryIds, applicationIds, detailsFilter);
+      return getRepositoryResultsForImageContainerAggregate(repositoryIds, ownerIds, detailsFilter);
     }
     else {
-      return getRepositoryResultsForImageContainerNonAggregate(repositoryIds, applicationIds, detailsFilter);
+      return getRepositoryResultsForImageContainerNonAggregate(repositoryIds, ownerIds, detailsFilter);
     }
   }
 
   private List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainerNonAggregate(
       Collection<String> repositoryIds,
-      Collection<String> applicationIds,
+      Collection<String> ownerIds,
       RepositoryResultsForImageContainerFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
@@ -515,7 +522,7 @@ public class PolicyViolationDAO
       int searchFiltersParamStartPosition = repositoryIdsSize + threatLevelFiltersSize + 1;
 
       List<PolicyEvaluation> policyEvalList =
-          policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds.stream().collect(Collectors.toSet()),
+          policyEvaluationDAO.getLastByOwnerIdsAndStageIds(ownerIds.stream().collect(Collectors.toSet()),
               Set.of(Stage.ID_PROXY));
 
       if (policyEvalList.isEmpty()) {
@@ -524,7 +531,7 @@ public class PolicyViolationDAO
 
       Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
           .collect(Collectors.toMap(
-              PolicyEvaluation::getApplicationId, // Key: applicationId
+              PolicyEvaluation::getOwnerId, // Key: ownerId
               PolicyEvaluation::getScanId // Value: scanId
           ));
 
@@ -543,12 +550,12 @@ public class PolicyViolationDAO
           .append(".application app");
       sQuery.append(" ON org.organization_id = app.organization_id");
       sQuery.append(" INNER JOIN ").append(getDatabaseSchema()).append(".last_policy_evaluation lpe");
-      sQuery.append(" ON lpe.application_id = app.application_id");
+      sQuery.append(" ON lpe.owner_id = app.application_id");
       sQuery.append(" INNER JOIN ").append(getDatabaseSchema()).append(".policy_evaluation pe");
       sQuery.append(" ON lpe.policy_evaluation_id = pe.policy_evaluation_id");
       sQuery.append((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN");
       sQuery.append(" ").append(getDatabaseSchema()).append(".policy_violation pv");
-      sQuery.append(" ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'");
+      sQuery.append(" ON app.application_id = pv.owner_id AND pv.stage_type_id = 'proxy'");
       sQuery.append(" WHERE related_repository_id IN ");
       sQuery.append(buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition));
       sQuery.append(" AND pv.fix_time IS NULL");
@@ -615,7 +622,7 @@ public class PolicyViolationDAO
 
   protected List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainerAggregate(
       Collection<String> repositoryIds,
-      Collection<String> applicationIds,
+      Collection<String> ownerIds,
       RepositoryResultsForImageContainerFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
@@ -632,7 +639,7 @@ public class PolicyViolationDAO
       int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
 
       List<PolicyEvaluation> policyEvalList =
-          policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds.stream().collect(Collectors.toSet()),
+          policyEvaluationDAO.getLastByOwnerIdsAndStageIds(ownerIds.stream().collect(Collectors.toSet()),
               Set.of(Stage.ID_PROXY));
 
       if (policyEvalList.isEmpty()) {
@@ -640,7 +647,7 @@ public class PolicyViolationDAO
       }
       Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
           .collect(Collectors.toMap(
-              PolicyEvaluation::getApplicationId, // Key: applicationId
+              PolicyEvaluation::getOwnerId, // Key: ownerId
               PolicyEvaluation::getScanId // Value: scanId
           ));
 
@@ -661,9 +668,9 @@ public class PolicyViolationDAO
       sQuery.append(" ON org.organization_id = app.organization_id");
       sQuery.append((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN");
       sQuery.append(" ").append(getDatabaseSchema()).append(".policy_violation pv");
-      sQuery.append(" ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'");
+      sQuery.append(" ON app.application_id = pv.owner_id AND pv.stage_type_id = 'proxy'");
       sQuery.append(" INNER JOIN ").append(getDatabaseSchema()).append(".last_policy_evaluation lpe");
-      sQuery.append(" ON lpe.application_id = app.application_id");
+      sQuery.append(" ON lpe.owner_id = app.application_id");
       sQuery.append(" INNER JOIN ").append(getDatabaseSchema()).append(".policy_evaluation pe");
       sQuery.append(" ON lpe.policy_evaluation_id = pe.policy_evaluation_id");
       sQuery.append(" WHERE related_repository_id IN");
@@ -874,8 +881,8 @@ public class PolicyViolationDAO
     }
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdsAndStageIds(
-      Collection<String> applicationIds,
+  public List<PolicyViolation> getActiveByOwnerIdsAndStageIds(
+      Collection<String> ownerIds,
       Collection<String> stageTypeIds,
       Integer minThreatLevel,
       Integer maxThreatLevel,
@@ -889,11 +896,11 @@ public class PolicyViolationDAO
         .map(PolicyThreatCategory::name)
         .collect(toList());
 
-    return getUnfixed(applicationIds, appIds -> {
+    return getUnfixed(ownerIds, ownerIdsChunk -> {
       try (TransactionContext tx = createTransactionContext()) {
         return tx.dsl()
             .selectFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .where(POLICY_VIOLATION.OWNER_ID.in(ownerIdsChunk))
             .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
             .and(POLICY_VIOLATION.FIX_TIME.isNull())
             .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
@@ -907,7 +914,7 @@ public class PolicyViolationDAO
   }
 
   public List<PolicyViolation> getUnfixedBy(
-      Collection<String> applicationIds,
+      Collection<String> ownerIds,
       Collection<String> stageTypeIds,
       Integer minThreatLevel,
       Integer maxThreatLevel,
@@ -926,11 +933,11 @@ public class PolicyViolationDAO
     final org.jooq.Condition stateCondition = buildPolicyStateCondition(
         violationStateOpen, violationStateWaived, violationStateLegacyViolation);
 
-    return getUnfixed(applicationIds, appIds -> {
+    return getUnfixed(ownerIds, ownerIdsChunk -> {
       try (TransactionContext tx = createTransactionContext()) {
         var query = tx.dsl()
             .selectFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .where(POLICY_VIOLATION.OWNER_ID.in(ownerIdsChunk))
             .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
             .and(POLICY_VIOLATION.FIX_TIME.isNull())
             .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
@@ -947,7 +954,7 @@ public class PolicyViolationDAO
   }
 
   public List<PolicyViolation> getUnfixedBy(
-      Collection<String> applicationIds,
+      Collection<String> ownerIds,
       Collection<String> stageTypeIds,
       Date minDate,
       Integer minThreatLevel,
@@ -967,11 +974,11 @@ public class PolicyViolationDAO
     final org.jooq.Condition stateCondition = buildPolicyStateCondition(
         violationStateOpen, violationStateWaived, violationStateLegacyViolation);
 
-    return getUnfixed(applicationIds, appIds -> {
+    return getUnfixed(ownerIds, ownerIdsChunk -> {
       try (TransactionContext tx = createTransactionContext()) {
         var query = tx.dsl()
             .selectFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .where(POLICY_VIOLATION.OWNER_ID.in(ownerIdsChunk))
             .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
             .and(POLICY_VIOLATION.OPEN_TIME.ge(minDate))
             .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
@@ -1105,17 +1112,17 @@ public class PolicyViolationDAO
     return policyStateFilter;
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdsAndPolicyIds(
-      Collection<String> applicationIds,
+  public List<PolicyViolation> getActiveByOwnerIdsAndPolicyIds(
+      Collection<String> ownerIds,
       Collection<String> policyIds,
       Date openTimeAfter,
       Date openTimeBefore)
   {
-    return getUnfixed(applicationIds, appIds -> {
+    return getUnfixed(ownerIds, ownerIdsChunk -> {
       try (TransactionContext tx = createTransactionContext()) {
         var query = tx.dsl()
             .selectFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .where(POLICY_VIOLATION.OWNER_ID.in(ownerIdsChunk))
             .and(POLICY_VIOLATION.POLICY_ID.in(policyIds))
             .and(POLICY_VIOLATION.FIX_TIME.isNull())
             .and(POLICY_VIOLATION.WAIVE_TIME.isNull())
@@ -1136,15 +1143,15 @@ public class PolicyViolationDAO
   /**
    * Executes a jOOQ query for unfixed policy violations with optimized handling for different databases.
    * <p>
-   * For H2 (embedded): Runs one query per application ID in parallel to ensure index usage. For PostgreSQL: Uses IN
+   * For H2 (embedded): Runs one query per owner ID in parallel to ensure index usage. For PostgreSQL: Uses IN
    * clause batching for efficiency.
    *
-   * @param applicationIds the application IDs to query
-   * @param queryFunction a function that takes a collection of application IDs and returns the query results
+   * @param ownerIds the owner IDs to query
+   * @param queryFunction a function that takes a collection of owner IDs and returns the query results
    * @return list of policy violations matching the criteria
    */
   private List<PolicyViolation> getUnfixed(
-      Collection<String> applicationIds,
+      Collection<String> ownerIds,
       java.util.function.Function<Collection<String>, List<PolicyViolation>> queryFunction)
   {
     if (isDatabaseEmbedded()) {
@@ -1152,25 +1159,25 @@ public class PolicyViolationDAO
       // has additional filter criteria like the fix_time), doing an expensive table scan instead.
       // So we make one query per app to ensure the index is used (and all the fixed violations aren't scanned).
       TenantAwareFunction<String, List<PolicyViolation>> tenantAwareFunction =
-          new TenantAwareFunction<>(applicationId -> queryFunction.apply(Collections.singletonList(applicationId)));
+          new TenantAwareFunction<>(ownerId -> queryFunction.apply(Collections.singletonList(ownerId)));
       return CompletableFuture.supplyAsync(
-          new TenantAwareSupplier<>(() -> applicationIds.stream()
+          new TenantAwareSupplier<>(() -> ownerIds.stream()
               .parallel()
               .map(tenantAwareFunction)
               .flatMap(Collection::stream)
               .collect(toList())),
           ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.DAO)).join();
     }
-    else if (!applicationIds.isEmpty()) {
-      return getListWithSqlInClause(applicationIds, queryFunction);
+    else if (!ownerIds.isEmpty()) {
+      return getListWithSqlInClause(ownerIds, queryFunction);
     }
     else {
       return Collections.emptyList();
     }
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(
-      String appId,
+  public List<PolicyViolation> getActiveByOwnerIdAndStageIdsAndTimeRange(
+      String ownerId,
       Collection<String> stageTypeIds,
       Date from,
       Date to)
@@ -1192,23 +1199,24 @@ public class PolicyViolationDAO
 
       return tx.dsl()
           .selectFrom(POLICY_VIOLATION)
-          .where(POLICY_VIOLATION.APPLICATION_ID.eq(appId))
+          .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
           .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
           .and(openedDuringRange.or(openedBeforeRange))
+          .orderBy(POLICY_VIOLATION.OPEN_TIME, POLICY_VIOLATION.POLICY_VIOLATION_ID)
           .fetchInto(PolicyViolation.class);
     }
   }
 
-  public List<PolicyViolation> getUnfixedLegacyViolationByApplicationId(String appId) {
+  public List<PolicyViolation> getUnfixedLegacyViolationByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
-      return getUnfixedLegacyViolationByApplicationId(tx, appId);
+      return getUnfixedLegacyViolationByOwnerId(tx, ownerId);
     }
   }
 
-  public List<PolicyViolation> getUnfixedLegacyViolationByApplicationId(TransactionContext tx, String appId) {
+  public List<PolicyViolation> getUnfixedLegacyViolationByOwnerId(TransactionContext tx, String ownerId) {
     return tx.dsl()
         .selectFrom(POLICY_VIOLATION)
-        .where(POLICY_VIOLATION.APPLICATION_ID.eq(appId))
+        .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
         .and(POLICY_VIOLATION.FIX_TIME.isNull())
         .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNotNull())
         .fetchInto(PolicyViolation.class);
@@ -1224,16 +1232,16 @@ public class PolicyViolationDAO
     }
   }
 
-  public int replacePolicyId(TransactionContext tx, String applicationId, String fromPolicyId, String toPolicyId) {
+  public int replacePolicyId(TransactionContext tx, String ownerId, String fromPolicyId, String toPolicyId) {
     return tx.dsl()
         .update(POLICY_VIOLATION)
         .set(POLICY_VIOLATION.POLICY_ID, toPolicyId)
-        .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+        .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
         .and(POLICY_VIOLATION.POLICY_ID.eq(fromPolicyId))
         .execute();
   }
 
-  public int deleteFixedByApplicationIdAndDate(String applicationId, Date fixedBefore) {
+  public int deleteFixedByOwnerIdAndDate(String ownerId, Date fixedBefore) {
     // For performance reasons, we bypass the standard delete (per entity) method here.
 
     if (isDatabaseEmbedded()) {
@@ -1247,7 +1255,7 @@ public class PolicyViolationDAO
           ids = tx.dsl()
               .select(POLICY_VIOLATION.POLICY_VIOLATION_ID)
               .from(POLICY_VIOLATION)
-              .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+              .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
               .and(POLICY_VIOLATION.FIX_TIME.lt(fixedBefore))
               .limit(DELETE_BATCH_SIZE)
               .fetchInto(String.class);
@@ -1269,7 +1277,7 @@ public class PolicyViolationDAO
       try (TransactionContext tx = createTransactionContext()) {
         return tx.dsl()
             .deleteFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+            .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
             .and(POLICY_VIOLATION.FIX_TIME.lt(fixedBefore))
             .execute();
       }
@@ -1295,7 +1303,7 @@ public class PolicyViolationDAO
   public int getCountApplicationsWithPolicyActionFailures(final String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
-          .select(DSL.countDistinct(POLICY_VIOLATION.APPLICATION_ID))
+          .select(DSL.countDistinct(POLICY_VIOLATION.OWNER_ID))
           .from(POLICY_VIOLATION)
           .where(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
           .and(POLICY_VIOLATION.FIX_TIME.isNull())
@@ -1342,7 +1350,7 @@ public class PolicyViolationDAO
     String sQuery = String.format("""
         SELECT
           pv.policy_violation_id,
-          pv.application_id,
+          pv.owner_id,
           pv.policy_id,
           pv.policy_name,
           pv.stage_type_id,
@@ -1397,7 +1405,7 @@ public class PolicyViolationDAO
             PolicyViolation policyViolation = new PolicyViolation();
             lastProcessedViolationId = resultSet.getString("policy_violation_id");
             policyViolation.setId(lastProcessedViolationId);
-            policyViolation.setApplicationId(resultSet.getString("application_id"));
+            policyViolation.setOwnerId(resultSet.getString("owner_id"));
             policyViolation.setPolicyId(resultSet.getString("policy_id"));
             policyViolation.setPolicyName(resultSet.getString("policy_name"));
             policyViolation.setStageTypeId(resultSet.getString("stage_type_id"));
@@ -1464,7 +1472,7 @@ public class PolicyViolationDAO
   }
 
   public Map<String, SbomPolicyViolationSummaryDTO> getSbomPolicyViolationSummaryForAnApplication(
-      Collection<String> applicationIds)
+      Collection<String> ownerIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
       var pv = POLICY_VIOLATION;
@@ -1477,25 +1485,25 @@ public class PolicyViolationDAO
       var lowCount = DSL.count(DSL.case_().when(pv.THREAT_LEVEL.lt((short) 2), 1)).as("policyViolationLow");
 
       var results = tx.dsl()
-          .select(pv.APPLICATION_ID, criticalCount, severeCount, moderateCount, lowCount)
+          .select(pv.OWNER_ID, criticalCount, severeCount, moderateCount, lowCount)
           .from(pv)
           .where(pv.FIX_TIME.isNull())
           .and(pv.WAIVE_TIME.isNull())
           .and(pv.STAGE_TYPE_ID.eq(ComplianceStageType.ID))
-          .and(pv.APPLICATION_ID.in(applicationIds))
-          .groupBy(pv.APPLICATION_ID)
+          .and(pv.OWNER_ID.in(ownerIds))
+          .groupBy(pv.OWNER_ID)
           .fetch();
 
       Map<String, SbomPolicyViolationSummaryDTO> applicationIdResultMap = new HashMap<>();
       for (var record : results) {
         Object[] resultArray = new Object[]{
-          record.get(pv.APPLICATION_ID),
+          record.get(pv.OWNER_ID),
           record.get(criticalCount),
           record.get(severeCount),
           record.get(moderateCount),
           record.get(lowCount)
         };
-        applicationIdResultMap.put(record.get(pv.APPLICATION_ID), new SbomPolicyViolationSummaryDTO(resultArray));
+        applicationIdResultMap.put(record.get(pv.OWNER_ID), new SbomPolicyViolationSummaryDTO(resultArray));
       }
 
       return applicationIdResultMap;
@@ -1516,10 +1524,10 @@ public class PolicyViolationDAO
       var moderateCount =
           DSL.count(DSL.case_().when(pv.THREAT_LEVEL.ge((short) 2).and(pv.THREAT_LEVEL.lt((short) 4)), 1))
               .as("policyViolationModerate");
-      var affectedContainers = DSL.countDistinct(DSL.case_().when(pv.THREAT_LEVEL.gt((short) 1), pv.APPLICATION_ID))
+      var affectedContainers = DSL.countDistinct(DSL.case_().when(pv.THREAT_LEVEL.gt((short) 1), pv.OWNER_ID))
           .as("affectedContainers");
       var containersInQuarantine =
-          DSL.countDistinct(DSL.case_().when(pv.ACTION_TYPE_ID.eq(Action.ID_FAIL), pv.APPLICATION_ID))
+          DSL.countDistinct(DSL.case_().when(pv.ACTION_TYPE_ID.eq(Action.ID_FAIL), pv.OWNER_ID))
               .as("containersInQuarantine");
 
       var record = tx.dsl()
@@ -1528,7 +1536,7 @@ public class PolicyViolationDAO
           .join(app)
           .on(org.RELATED_REPOSITORY_ID.eq(repositoryId).and(org.ORGANIZATION_ID.eq(app.ORGANIZATION_ID)))
           .join(pv)
-          .on(pv.APPLICATION_ID.eq(app.APPLICATION_ID))
+          .on(pv.OWNER_ID.eq(app.APPLICATION_ID))
           .where(pv.FIX_TIME.isNull())
           .and(pv.WAIVE_TIME.isNull())
           .and(pv.STAGE_TYPE_ID.eq(ProxyStageType.ID))
@@ -1592,7 +1600,7 @@ public class PolicyViolationDAO
   }
 
   public List<InternalDashboardViolationRiskDTO> getDashboardViolationRisk(
-      Set<String> applicationIds,
+      Set<String> ownerIds,
       Set<String> stageTypeIds,
       Integer minPolicyThreatLevel,
       Integer maxPolicyThreatLevel,
@@ -1605,7 +1613,7 @@ public class PolicyViolationDAO
       int page,
       int pageSize)
   {
-    if (applicationIds.isEmpty()) {
+    if (ownerIds.isEmpty()) {
       return Collections.emptyList();
     }
 
@@ -1620,15 +1628,15 @@ public class PolicyViolationDAO
 
     try (TransactionContext tx = createTransactionContext()) {
       boolean useTemporaryTable =
-          temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, applicationIds);
+          temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, ownerIds);
 
       int appIdsParamStartPosition = 1;
-      int stageIdsParamStartPosition = useTemporaryTable ? 1 : appIdsParamStartPosition + applicationIds.size();
+      int stageIdsParamStartPosition = useTemporaryTable ? 1 : appIdsParamStartPosition + ownerIds.size();
 
       aggregationQuery = String.format("""
           SELECT
             DISTINCT ON (
-              pv.application_id,
+              pv.owner_id,
               pv.policy_name,
               pv.threat_level,
               pv.hash,
@@ -1636,7 +1644,7 @@ public class PolicyViolationDAO
               pv.component_id_coordinates_json,
               pv.constraint_facts_id
             )
-            pv.application_id,
+            pv.owner_id,
             pv.policy_name,
             pv.policy_id,
             pv.threat_level,
@@ -1656,11 +1664,11 @@ public class PolicyViolationDAO
             %s
           """,
           databaseSchema,
-          useTemporaryTable ? "JOIN temporary_ids ti ON pv.application_id = ti.id" : "",
+          useTemporaryTable ? "JOIN temporary_ids ti ON pv.owner_id = ti.id" : "",
           buildPositionalParameters(stageTypeIds, stageIdsParamStartPosition),
           useTemporaryTable
               ? ""
-              : "AND pv.application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition));
+              : "AND pv.owner_id IN " + buildPositionalParameters(ownerIds, appIdsParamStartPosition));
 
       int nextParamPosition = stageIdsParamStartPosition + stageTypeIds.size();
       int minDateParamPosition = nextParamPosition;
@@ -1688,7 +1696,7 @@ public class PolicyViolationDAO
           getPolicyStateFilterForNativeQuery(violationStateOpen, violationStateWaived, violationStateLegacyViolation);
       aggregationQuery += """
           ORDER BY
-            pv.application_id,
+            pv.owner_id,
             pv.policy_name,
             pv.threat_level,
             pv.hash,
@@ -1719,7 +1727,7 @@ public class PolicyViolationDAO
             apv.open_time,
             apv.auto_policy_waiver_id
           FROM aggregated_policy_violation apv
-          JOIN %s.application application ON apv.application_id = application.application_id
+          JOIN %s.application application ON apv.owner_id = application.application_id
           JOIN %s.organization organization ON application.organization_id = organization.organization_id
           """, aggregationQuery, databaseSchema, databaseSchema);
       // Adds sorting by policy_violation_id to get repeatable results
@@ -1737,7 +1745,7 @@ public class PolicyViolationDAO
       List<Object> bindings = new ArrayList<>();
       bindings.addAll(stageTypeIds);
       if (!useTemporaryTable) {
-        bindings.addAll(applicationIds);
+        bindings.addAll(ownerIds);
       }
       if (minDate != null) {
         bindings.add(DSL.val(minDate, SQLDataType.TIMESTAMP));
@@ -1760,7 +1768,7 @@ public class PolicyViolationDAO
           .fetch()
           .stream()
           .map(record -> new InternalDashboardViolationRiskDTO(
-              record.get(0, String.class), // applicationId
+              record.get(0, String.class), // ownerId
               record.get(1, String.class), // applicationName
               record.get(2, String.class), // organizationName
               record.get(3, String.class), // policyViolationId
@@ -1781,11 +1789,11 @@ public class PolicyViolationDAO
     }
   }
 
-  public List<PolicyViolation> getAutoWaivedByApplicationIdAndStageId(final String appId, final String stageTypeId) {
+  public List<PolicyViolation> getAutoWaivedByOwnerIdAndStageId(final String ownerId, final String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
           .selectFrom(POLICY_VIOLATION)
-          .where(POLICY_VIOLATION.APPLICATION_ID.eq(appId))
+          .where(POLICY_VIOLATION.OWNER_ID.eq(ownerId))
           .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
           .and(POLICY_VIOLATION.FIX_TIME.isNull())
           .and(POLICY_VIOLATION.WAIVE_TIME.isNotNull())
@@ -1794,8 +1802,8 @@ public class PolicyViolationDAO
     }
   }
 
-  public Collection<PolicyViolation> getByApplicationIdsAndPolicyIdsAndTypes(
-      Set<String> applicationIds,
+  public Collection<PolicyViolation> getByOwnerIdsAndPolicyIdsAndTypes(
+      Set<String> ownerIds,
       Set<String> policyIds,
       Date openTimeAfter,
       Date openTimeBefore,
@@ -1805,11 +1813,11 @@ public class PolicyViolationDAO
   {
     final org.jooq.Condition stateCondition = buildPolicyStateCondition(includeActive, includeWaived, includeLegacy);
 
-    return getUnfixed(applicationIds, appIds -> {
+    return getUnfixed(ownerIds, ownerIdsChunk -> {
       try (TransactionContext tx = createTransactionContext()) {
         var query = tx.dsl()
             .selectFrom(POLICY_VIOLATION)
-            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .where(POLICY_VIOLATION.OWNER_ID.in(ownerIdsChunk))
             .and(POLICY_VIOLATION.POLICY_ID.in(policyIds))
             .and(POLICY_VIOLATION.FIX_TIME.isNull());
 
@@ -1830,9 +1838,9 @@ public class PolicyViolationDAO
 
   public long getContainerImagesQuarantinedCount() {
     String sQuery = String.format("""
-        SELECT COUNT(DISTINCT CONCAT(pv.application_id, r.repository_id)) AS total_failed_proxy_violations
+        SELECT COUNT(DISTINCT CONCAT(pv.owner_id, r.repository_id)) AS total_failed_proxy_violations
         FROM %1$s.policy_violation pv
-                 JOIN %1$s.application a ON pv.application_id = a.application_id
+                 JOIN %1$s.application a ON pv.owner_id = a.application_id
                  JOIN %1$s.organization o ON a.organization_id = o.organization_id
                  JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
         WHERE r.format = 'docker'
@@ -1854,16 +1862,16 @@ public class PolicyViolationDAO
   public List<ContainerImageInQuarantineData> getContainerImagesInQuarantine(int page, int pageSize) {
     String sQuery = String.format("""
         WITH AggregatedPolicyViolation AS (
-            SELECT pv.application_id,
+            SELECT pv.owner_id,
                    MAX(pv.open_time) AS max_open_time,
                    MAX(pv.threat_level) AS max_threat_level,
-                   COUNT(pv.application_id) AS policy_violation_count
+                   COUNT(pv.owner_id) AS policy_violation_count
             FROM %1$s.policy_violation pv
             WHERE pv.stage_type_id = 'proxy'
               AND pv.action_type_id = 'fail'
               AND pv.waive_time IS NULL
               AND pv.fix_time IS NULL
-            GROUP BY pv.application_id
+            GROUP BY pv.owner_id
         )
         SELECT max_threat_level AS threat_level,
                max_open_time AS open_time,
@@ -1875,10 +1883,10 @@ public class PolicyViolationDAO
                apv.policy_violation_count,
                pe.scan_id
         FROM AggregatedPolicyViolation apv
-                 JOIN %1$s.application a ON apv.application_id = a.application_id
+                 JOIN %1$s.application a ON apv.owner_id = a.application_id
                  JOIN %1$s.organization o ON a.organization_id = o.organization_id
                  JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
-                 JOIN %1$s.policy_evaluation pe ON apv.application_id = pe.application_id
+                 JOIN %1$s.policy_evaluation pe ON apv.owner_id = pe.owner_id
                           AND apv.max_open_time = pe.time
         WHERE r.format = 'docker'
           AND r.quarantine_enabled = true
@@ -1895,7 +1903,7 @@ public class PolicyViolationDAO
                 ((Number) array[0]).intValue(), // threatLevel
                 toDateFromTimestampOrLocalDateTime(array[1]), // openTime
                 (String) array[2], // applicationPublicId
-                (String) array[3], // applicationId
+                (String) array[3], // ownerId
                 (String) array[4], // applicationName
                 (String) array[5], // repositoryPublicId
                 (String) array[6], // repositoryId
@@ -1937,16 +1945,16 @@ public class PolicyViolationDAO
       if (useTemporaryTable) {
         sQuery = String.format("""
             WITH AggregatedPolicyViolation AS (
-                SELECT pv.application_id,
+                SELECT pv.owner_id,
                        MAX(pv.open_time) AS max_open_time,
                        MAX(pv.threat_level) AS max_threat_level,
-                       COUNT(pv.application_id) AS policy_violation_count
+                       COUNT(pv.owner_id) AS policy_violation_count
                 FROM %1$s.policy_violation pv
                 WHERE pv.stage_type_id = ?1
                   AND pv.action_type_id = ?2
                   AND pv.waive_time IS NULL
                   AND pv.fix_time IS NULL
-                GROUP BY pv.application_id
+                GROUP BY pv.owner_id
             )
             SELECT max_threat_level AS threat_level,
                    max_open_time AS open_time,
@@ -1958,11 +1966,11 @@ public class PolicyViolationDAO
                    apv.policy_violation_count,
                    pe.scan_id
             FROM AggregatedPolicyViolation apv
-                     JOIN %1$s.application a ON apv.application_id = a.application_id
+                     JOIN %1$s.application a ON apv.owner_id = a.application_id
                      JOIN %1$s.organization o ON a.organization_id = o.organization_id
                      JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
                      JOIN temporary_ids ti ON r.repository_id = ti.id
-                     JOIN %1$s.policy_evaluation pe ON apv.application_id = pe.application_id
+                     JOIN %1$s.policy_evaluation pe ON apv.owner_id = pe.owner_id
                               AND apv.max_open_time = pe.time
             WHERE r.format = 'docker'
               AND r.quarantine_enabled = true
@@ -1974,16 +1982,16 @@ public class PolicyViolationDAO
       else {
         sQuery = String.format("""
             WITH AggregatedPolicyViolation AS (
-                SELECT pv.application_id,
+                SELECT pv.owner_id,
                        MAX(pv.open_time) AS max_open_time,
                        MAX(pv.threat_level) AS max_threat_level,
-                       COUNT(pv.application_id) AS policy_violation_count
+                       COUNT(pv.owner_id) AS policy_violation_count
                 FROM %1$s.policy_violation pv
                 WHERE pv.stage_type_id = ?1
                   AND pv.action_type_id = ?2
                   AND pv.waive_time IS NULL
                   AND pv.fix_time IS NULL
-                GROUP BY pv.application_id
+                GROUP BY pv.owner_id
             )
             SELECT max_threat_level AS threat_level,
                    max_open_time AS open_time,
@@ -1995,10 +2003,10 @@ public class PolicyViolationDAO
                    apv.policy_violation_count,
                    pe.scan_id
             FROM AggregatedPolicyViolation apv
-                     JOIN %1$s.application a ON apv.application_id = a.application_id
+                     JOIN %1$s.application a ON apv.owner_id = a.application_id
                      JOIN %1$s.organization o ON a.organization_id = o.organization_id
                      JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
-                     JOIN %1$s.policy_evaluation pe ON apv.application_id = pe.application_id
+                     JOIN %1$s.policy_evaluation pe ON apv.owner_id = pe.owner_id
                               AND apv.max_open_time = pe.time
             WHERE r.format = 'docker'
               AND r.quarantine_enabled = true
@@ -2023,7 +2031,7 @@ public class PolicyViolationDAO
                 ((Number) array[0]).intValue(), // threatLevel
                 toDateFromTimestampOrLocalDateTime(array[1]), // openTime
                 (String) array[2], // applicationPublicId
-                (String) array[3], // applicationId
+                (String) array[3], // ownerId
                 (String) array[4], // applicationName
                 (String) array[5], // repositoryPublicId
                 (String) array[6], // repositoryId
@@ -2050,9 +2058,9 @@ public class PolicyViolationDAO
 
     List<Long> counts = getListWithSqlInClause(new ArrayList<>(repositoryIds), chunk -> {
       String sQuery = String.format("""
-          SELECT COUNT(DISTINCT pv.application_id) AS total_failed_proxy_violations
+          SELECT COUNT(DISTINCT pv.owner_id) AS total_failed_proxy_violations
           FROM %1$s.policy_violation pv
-                   JOIN %1$s.application a ON pv.application_id = a.application_id
+                   JOIN %1$s.application a ON pv.owner_id = a.application_id
                    JOIN %1$s.organization o ON a.organization_id = o.organization_id
                    JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
           WHERE r.format = 'docker'
@@ -2116,7 +2124,7 @@ public class PolicyViolationDAO
       int threatLevel,
       Date openTime,
       String applicationPublicId,
-      String applicationId,
+      String ownerId,
       String applicationName,
       String repositoryPublicId,
       String repositoryId,
@@ -2224,7 +2232,7 @@ public class PolicyViolationDAO
    *
    * <p>
    * An open violation here matches the same definition used by {@code getCountsByOwner}: {@code fix_time IS NULL
-   * AND waive_time IS NULL}. {@code applicationIds} is the user's already-authorized scope set; an empty set is
+   * AND waive_time IS NULL}. {@code ownerIds} is the user's already-authorized scope set; an empty set is
    * returned eagerly without a DB round-trip so callers can branch on "no scope" cleanly. The {@code LIMIT} is
    * applied at the SQL boundary so the result set is bounded by {@code limit} regardless of how many distinct
    * policies the tenant has.
@@ -2237,11 +2245,11 @@ public class PolicyViolationDAO
    * @since 1.205
    */
   public List<PolicyOpenViolationSummary> getTopOpenByCategory(
-      final Collection<String> applicationIds,
+      final Collection<String> ownerIds,
       final PolicyThreatCategory threatCategory,
       final int limit)
   {
-    if (applicationIds == null || applicationIds.isEmpty() || limit <= 0) {
+    if (ownerIds == null || ownerIds.isEmpty() || limit <= 0) {
       return Collections.emptyList();
     }
     try (TransactionContext tx = createTransactionContext()) {
@@ -2249,7 +2257,7 @@ public class PolicyViolationDAO
       return tx.dsl()
           .select(POLICY_VIOLATION.POLICY_ID, POLICY_VIOLATION.POLICY_NAME, violationCount)
           .from(POLICY_VIOLATION)
-          .where(POLICY_VIOLATION.APPLICATION_ID.in(applicationIds))
+          .where(POLICY_VIOLATION.OWNER_ID.in(ownerIds))
           .and(POLICY_VIOLATION.THREAT_CATEGORY.eq(threatCategory.getName()))
           .and(POLICY_VIOLATION.FIX_TIME.isNull())
           .and(POLICY_VIOLATION.WAIVE_TIME.isNull())
@@ -2264,27 +2272,27 @@ public class PolicyViolationDAO
   }
 
   /**
-   * Counts open policy violations within the given threat category across {@code applicationIds} that were opened
+   * Counts open policy violations within the given threat category across {@code ownerIds} that were opened
    * during the half-open window {@code [from, to)}. Used by the ALP variant of the Legal Obligations tile
    * (CLM-39604 / P1.5-D-2) to compute the 30-day-over-prior-30-day trend per license-threat-group.
    *
    * <p>
-   * An empty {@code applicationIds} short-circuits with zero (no DB round-trip).
+   * An empty {@code ownerIds} short-circuits with zero (no DB round-trip).
    *
    * @since 1.205
    */
   public long countOpenInWindowByCategory(
-      final Collection<String> applicationIds,
+      final Collection<String> ownerIds,
       final PolicyThreatCategory threatCategory,
       final Date from,
       final Date to)
   {
-    if (applicationIds == null || applicationIds.isEmpty()) {
+    if (ownerIds == null || ownerIds.isEmpty()) {
       return 0L;
     }
     try (TransactionContext tx = createTransactionContext()) {
       return getStreamWithSqlInClause(
-          new ArrayList<>(applicationIds),
+          new ArrayList<>(ownerIds),
           chunk -> Stream.of(countOpenInWindowByCategoryChunk(tx, chunk, threatCategory, from, to)))
               .mapToLong(Long::longValue)
               .sum();
@@ -2293,7 +2301,7 @@ public class PolicyViolationDAO
 
   private long countOpenInWindowByCategoryChunk(
       final TransactionContext tx,
-      final Collection<String> applicationIds,
+      final Collection<String> ownerIds,
       final PolicyThreatCategory threatCategory,
       final Date from,
       final Date to)
@@ -2301,7 +2309,7 @@ public class PolicyViolationDAO
     Integer count = tx.dsl()
         .selectCount()
         .from(POLICY_VIOLATION)
-        .where(POLICY_VIOLATION.APPLICATION_ID.in(applicationIds))
+        .where(POLICY_VIOLATION.OWNER_ID.in(ownerIds))
         .and(POLICY_VIOLATION.THREAT_CATEGORY.eq(threatCategory.getName()))
         .and(POLICY_VIOLATION.OPEN_TIME.greaterOrEqual(from))
         .and(POLICY_VIOLATION.OPEN_TIME.lessThan(to))
@@ -2312,17 +2320,17 @@ public class PolicyViolationDAO
   /**
    * Counts violations in ALL states (open, fixed, waived) for a single application at a single stage, optionally
    * limited to those changed since {@code updatedSince}. Backs the SLO violation feed
-   * ({@code GET rest/slo/{applicationId}/violations}). Single-application equality (not an IN-clause) avoids the H2
-   * IN-operator index pitfall. {@code applicationId} is the application internal id.
+   * ({@code GET rest/slo/{ownerId}/violations}). Single-application equality (not an IN-clause) avoids the H2
+   * IN-operator index pitfall. {@code ownerId} is the owner internal id.
    *
-   * @param applicationId the application internal id
+   * @param ownerId the owner internal id
    * @param stageTypeId the stage type id (e.g. {@code release})
    * @param updatedSince if non-null, only violations whose open/waive/fix/legacy time is at or after this cutoff are
    *          counted. The cutoff is <b>inclusive</b> ({@code >=}); see {@link #updatedSinceCondition(Date)}.
    * @return the number of matching violations
    */
-  public long countByApplicationIdAndStage(
-      final String applicationId,
+  public long countByOwnerIdAndStage(
+      final String ownerId,
       final String stageTypeId,
       final Date updatedSince)
   {
@@ -2330,7 +2338,7 @@ public class PolicyViolationDAO
       Integer count = tx.dsl()
           .selectCount()
           .from(POLICY_VIOLATION)
-          .where(applicationStageCondition(applicationId, stageTypeId, updatedSince))
+          .where(applicationStageCondition(ownerId, stageTypeId, updatedSince))
           .fetchOne(0, Integer.class);
       return count == null ? 0L : count.longValue();
     }
@@ -2363,7 +2371,7 @@ public class PolicyViolationDAO
    * for why the position is frozen and the resulting client dedupe-by-{@code violationId} contract — the same guidance
    * already applies to the {@code updatedSince} watermark poll (see {@link #updatedSinceCondition(Date)}).
    *
-   * @param applicationId the application internal id
+   * @param ownerId the owner internal id
    * @param stageTypeId the stage type id (e.g. {@code release})
    * @param updatedSince if non-null, the inclusive lower bound on update time; also the frozen sort-key value to page
    *          after when {@code afterViolationId} is supplied
@@ -2371,8 +2379,8 @@ public class PolicyViolationDAO
    * @param limit the maximum number of rows to return
    * @return the matching slice of violations
    */
-  public List<PolicyViolation> getByApplicationIdAndStageAfterCursor(
-      final String applicationId,
+  public List<PolicyViolation> getByOwnerIdAndStageAfterCursor(
+      final String ownerId,
       final String stageTypeId,
       final Date updatedSince,
       final String afterViolationId,
@@ -2388,11 +2396,11 @@ public class PolicyViolationDAO
         // Row-value keyset: (updateTime, id) > (updatedSince, afterViolationId). Postgres plans this as a single
         // ordered range scan over the (app, stage, updateTime, id) expression index, rather than the OR-decomposed
         // shape which it does not always plan that way; jOOQ emulates the row comparison on dialects lacking it.
-        condition = applicationStageCondition(applicationId, stageTypeId, null)
+        condition = applicationStageCondition(ownerId, stageTypeId, null)
             .and(DSL.row(updateTime, POLICY_VIOLATION.POLICY_VIOLATION_ID).gt(updatedSince, afterViolationId));
       }
       else {
-        condition = applicationStageCondition(applicationId, stageTypeId, updatedSince);
+        condition = applicationStageCondition(ownerId, stageTypeId, updatedSince);
       }
       return tx.dsl()
           .selectFrom(POLICY_VIOLATION)
@@ -2404,11 +2412,11 @@ public class PolicyViolationDAO
   }
 
   private org.jooq.Condition applicationStageCondition(
-      final String applicationId,
+      final String ownerId,
       final String stageTypeId,
       final Date updatedSince)
   {
-    org.jooq.Condition condition = POLICY_VIOLATION.APPLICATION_ID.eq(applicationId)
+    org.jooq.Condition condition = POLICY_VIOLATION.OWNER_ID.eq(ownerId)
         .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId));
     if (updatedSince != null) {
       condition = condition.and(updatedSinceCondition(updatedSince));

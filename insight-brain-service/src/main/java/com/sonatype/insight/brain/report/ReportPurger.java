@@ -244,11 +244,11 @@ public class ReportPurger
     List<PolicyEvaluation> evaluations;
     boolean isForMonitoring = DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING.equals(contextId);
     if (isForMonitoring) {
-      evaluations = policyEvaluationDAO.getPrimaryForMonitoringByApplicationId(application.getId());
+      evaluations = policyEvaluationDAO.getPrimaryForMonitoringByOwnerId(application.getId());
     }
     else {
       evaluations =
-          policyEvaluationDAO.getPrimaryNonMonitoringByApplicationIdAndStageId(application.getId(), contextId);
+          policyEvaluationDAO.getPrimaryNonMonitoringByOwnerIdAndStageId(application.getId(), contextId);
     }
     if (evaluations.isEmpty()) {
       return 0;
@@ -288,7 +288,7 @@ public class ReportPurger
       log.debug("Purging {} reports from report {} with time {} to report {} with time {}.", purgeableScanIds.size(),
           fromEvaluation.getScanId(), fromEvaluation.getTime(), toEvaluation.getScanId(), toEvaluation.getTime());
     }
-    policyEvaluationDAO.getLastByApplicationIds(Collections.singleton(application.getId()))
+    policyEvaluationDAO.getLastByOwnerIds(Collections.singleton(application.getId()))
         .stream()
         .map(PolicyEvaluation::getScanId)
         .forEach(purgeableScanIds::remove);

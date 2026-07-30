@@ -269,7 +269,7 @@ public class GitCommitHistoryServiceTest
     commits.add(setupCommit("ANOTHER_COMMIT_HASH", new Date()));
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -291,7 +291,7 @@ public class GitCommitHistoryServiceTest
     commits.add(setupCommit("OLDEST_COMMIT_HASH", new Date(date.getTime() - 2000)));
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -315,7 +315,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("ANOTHER_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -339,7 +339,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("OLDEST_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -365,7 +365,7 @@ public class GitCommitHistoryServiceTest
     setupHistoryItemWithoutEvaluation("EXISTING_HASH_4", new Date(date.getTime() - 4000));
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -394,7 +394,7 @@ public class GitCommitHistoryServiceTest
     setupHistoryItemWithoutEvaluation("EXISTING_HASH_4", new Date(date.getTime() - 6000));
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -421,7 +421,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("ANOTHER_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -452,7 +452,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("OLDER_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -480,7 +480,7 @@ public class GitCommitHistoryServiceTest
     setupHistoryItemWithoutEvaluation("EXISTING_HASH_4", new Date(date.getTime() - 4000));
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -510,7 +510,7 @@ public class GitCommitHistoryServiceTest
     setupHistoryItemWithoutEvaluation("EXISTING_HASH_4", new Date(date.getTime() - 6000));
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -541,7 +541,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("ANOTHER_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -573,7 +573,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("OLDEST_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -602,7 +602,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("ANOTHER_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -631,7 +631,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("OLDEST_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -788,7 +788,7 @@ public class GitCommitHistoryServiceTest
     setupPolicyEvaluation("OLDEST_COMMIT_HASH");
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 
@@ -834,7 +834,7 @@ public class GitCommitHistoryServiceTest
         policyEvalForCommit1);
 
     // when: update commit history and fetch current list
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvalForCommit5.getApplicationId(), commitsFromSCM);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvalForCommit5.getOwnerId(), commitsFromSCM);
     List<SourceControlDefaultBranchCommitHistory> historyList =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
     newestCommitHistoryWithPolicyEval =
@@ -900,7 +900,7 @@ public class GitCommitHistoryServiceTest
     final List<Commit> commits = new ArrayList<>();
 
     // when
-    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getApplicationId(), commits);
+    gitCommitHistoryService.updateCommitHistoryForCommits(policyEvaluation.getOwnerId(), commits);
     final List<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories =
         commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
 

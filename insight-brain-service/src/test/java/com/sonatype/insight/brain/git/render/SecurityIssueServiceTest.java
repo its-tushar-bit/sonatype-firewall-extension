@@ -160,7 +160,7 @@ public class SecurityIssueServiceTest
 
     // And setup the VulnerabilityDetailsService to not find the referenceId
     setupVulnerabilityServiceException(
-        REF_ID_1, PV_1.getComponentIdentifier(), PV_1.getApplicationId(), RuntimeException.class);
+        REF_ID_1, PV_1.getComponentIdentifier(), PV_1.getOwnerId(), RuntimeException.class);
 
     // When SecurityIssueService is called
     final List<SecurityIssue> actualSecurityIssues = underTest.getSecurityIssuesFromViolations(

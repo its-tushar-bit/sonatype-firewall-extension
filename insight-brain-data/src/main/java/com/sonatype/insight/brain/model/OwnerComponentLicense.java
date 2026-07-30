@@ -18,25 +18,25 @@ import jakarta.persistence.Table;
  * @since 1.104
  */
 @Entity
-@Table(name = "application_component_license")
-public class ApplicationComponentLicense
+@Table(name = "owner_component_license")
+public class OwnerComponentLicense
     implements HasStringId
 {
   @Id
-  @Column(name = "application_component_license_id")
+  @Column(name = "owner_component_license_id")
   private String id;
 
-  @Column(name = "application_component_id")
-  private String applicationComponentId;
+  @Column(name = "owner_component_id")
+  private String ownerComponentId;
 
   @Column(name = "effective_license_id")
   private String effectiveLicenseId;
 
-  public ApplicationComponentLicense() {
+  public OwnerComponentLicense() {
   }
 
-  public ApplicationComponentLicense(String applicationComponentId, String effectiveLicenseId) {
-    this.applicationComponentId = applicationComponentId;
+  public OwnerComponentLicense(String ownerComponentId, String effectiveLicenseId) {
+    this.ownerComponentId = ownerComponentId;
     this.effectiveLicenseId = effectiveLicenseId;
   }
 
@@ -50,12 +50,12 @@ public class ApplicationComponentLicense
     this.id = id;
   }
 
-  public String getApplicationComponentId() {
-    return applicationComponentId;
+  public String getOwnerComponentId() {
+    return ownerComponentId;
   }
 
-  public void setApplicationComponentId(String applicationComponentId) {
-    this.applicationComponentId = applicationComponentId;
+  public void setOwnerComponentId(String ownerComponentId) {
+    this.ownerComponentId = ownerComponentId;
   }
 
   public String getEffectiveLicenseId() {
@@ -68,7 +68,7 @@ public class ApplicationComponentLicense
 
   @Override
   public String toString() {
-    return "ApplicationComponentLicense [applicationComponentId=" + applicationComponentId + ", effectiveLicenseId="
+    return "OwnerComponentLicense [ownerComponentId=" + ownerComponentId + ", effectiveLicenseId="
         + effectiveLicenseId + "]";
   }
 }

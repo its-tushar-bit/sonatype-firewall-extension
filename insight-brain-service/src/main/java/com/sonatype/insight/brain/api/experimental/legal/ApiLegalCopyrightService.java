@@ -23,9 +23,9 @@ import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightContextDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathsDTO;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.model.AggregateFile;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -57,7 +57,7 @@ public class ApiLegalCopyrightService
 
   private final ApiLicenseLegalHdsService hdsService;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final AggregateFileDAO aggregateFileDAO;
 
@@ -66,7 +66,7 @@ public class ApiLegalCopyrightService
   @Inject
   public ApiLegalCopyrightService(
       final ApiLicenseLegalHdsService hdsService,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final AggregateFileDAO aggregateFileDAO,
       final ProductLicense productLicense)
   {
@@ -250,9 +250,9 @@ public class ApiLegalCopyrightService
     if (componentHash == null) {
       return Collections.emptyMap();
     }
-    final ApplicationComponent lastByHash = applicationComponentDAO.getLastByHash(componentHash);
+    final OwnerComponent lastByHash = applicationComponentDAO.getLastByHash(componentHash);
     final List<AggregateFile> aggregateFiles =
-        aggregateFileDAO.getByApplicationComponentId(lastByHash.getId());
+        aggregateFileDAO.getByOwnerComponentId(lastByHash.getId());
     return aggregateFiles == null
         ? Collections.emptyMap()
         : aggregateFiles.stream()

@@ -109,26 +109,26 @@ public class PolicyViolationLoader
   {
     long start = System.currentTimeMillis();
 
-    Set<String> applicationIds = applications.stream().map(Application::getId).collect(toSet());
+    Set<String> ownerIds = applications.stream().map(Application::getId).collect(toSet());
 
     Set<String> stageTypeIds = stageTypes == null
         ? Collections.emptySet()
         : stageTypes.stream().map(StageType::getId).collect(toSet());
 
-    Collection<PolicyEvaluation> evaluations = loadEvaluations(applicationIds, stageTypeIds, minDate);
+    Collection<PolicyEvaluation> evaluations = loadEvaluations(ownerIds, stageTypeIds, minDate);
 
     final int maxApplications = configuration.getMaxApplicationsToQueryOnDashboard();
     if (maxApplications > 0) {
-      // find most recent evaluations and put out appIds until limit
-      applicationIds = evaluations.stream()
+      // find most recent evaluations and put out owner ids until limit
+      ownerIds = evaluations.stream()
           .sorted(Comparator.comparing(PolicyEvaluation::getTime).reversed())
-          .map(PolicyEvaluation::getApplicationId)
+          .map(PolicyEvaluation::getOwnerId)
           .distinct()
           .limit(maxApplications)
           .collect(toSet());
     }
     else {
-      applicationIds = evaluations.stream().map(PolicyEvaluation::getApplicationId).collect(toSet());
+      ownerIds = evaluations.stream().map(PolicyEvaluation::getOwnerId).collect(toSet());
     }
 
     CompletableFuture<Map<String, ApplicationView>> appViewsByAppIdFuture = CompletableFuture.supplyAsync(() -> {
@@ -150,7 +150,7 @@ public class PolicyViolationLoader
       }
 
       for (PolicyEvaluation evaluation : evaluations) {
-        ApplicationView appView = appViewsByAppId.get(evaluation.getApplicationId());
+        ApplicationView appView = appViewsByAppId.get(evaluation.getOwnerId());
         ApplicationStageView appStageView = appView.stageViewsByStageTypeId.get(evaluation.getStageTypeId());
         appStageView.lastEvaluation = evaluation;
         appStageView.filteredViolations = new ArrayList<>();
@@ -195,14 +195,14 @@ public class PolicyViolationLoader
     }
 
     Collection<PolicyViolation> violations = minDate != null
-        ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly, minimumThreatLevel,
+        ? loadViolationsAfter(ownerIds, stageTypeIds, minDate, activeViolationsOnly, minimumThreatLevel,
             maximumThreatLevel, policyThreatCategories, violationStateOpen, violationStateWaived,
             violationStateLegacyViolation)
-        : loadViolations(applicationIds, stageTypeIds, activeViolationsOnly, minimumThreatLevel, maximumThreatLevel,
+        : loadViolations(ownerIds, stageTypeIds, activeViolationsOnly, minimumThreatLevel, maximumThreatLevel,
             policyThreatCategories, violationStateOpen, violationStateWaived, violationStateLegacyViolation);
     if (DashboardUtils.shouldOnlyShowWaivedViolations(policyViolationStateFilter)) {
       violations = violations.stream()
-          .filter(violation -> !dashboardUtils.hasExistingAutoWaiverExclusion(violation.getApplicationId(),
+          .filter(violation -> !dashboardUtils.hasExistingAutoWaiverExclusion(violation.getOwnerId(),
               violation.getAutoPolicyWaiverId(), violation.getId()))
           .toList();
     }
@@ -235,20 +235,20 @@ public class PolicyViolationLoader
   }
 
   private Collection<PolicyEvaluation> loadEvaluations(
-      Set<String> applicationIds,
+      Set<String> ownerIds,
       Set<String> stageTypeIds,
       Date minDate)
   {
     long start = System.currentTimeMillis();
     Collection<PolicyEvaluation> evaluations;
     if (stageTypeIds.isEmpty()) {
-      evaluations = policyEvaluationDAO.getLastByApplicationIds(applicationIds);
+      evaluations = policyEvaluationDAO.getLastByOwnerIds(ownerIds);
     }
     else {
-      evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds, stageTypeIds);
+      evaluations = policyEvaluationDAO.getLastByOwnerIdsAndStageIds(ownerIds, stageTypeIds);
     }
     log.debug("Loaded {} policy evaluations for {} applications across {} stages in {} ms", evaluations.size(),
-        applicationIds.size(), stageTypeIds.isEmpty() ? "all" : stageTypeIds.size(),
+        ownerIds.size(), stageTypeIds.isEmpty() ? "all" : stageTypeIds.size(),
         System.currentTimeMillis() - start);
 
     if (minDate != null) {
@@ -264,7 +264,7 @@ public class PolicyViolationLoader
   }
 
   private Collection<PolicyViolation> loadViolations(
-      Set<String> applicationIds,
+      Set<String> ownerIds,
       Set<String> stageTypeIds,
       boolean activeViolationsOnly,
       Integer minThreatLevel,
@@ -278,20 +278,20 @@ public class PolicyViolationLoader
     Collection<PolicyViolation> violations;
     if (stageTypeIds.isEmpty()) {
       if (activeViolationsOnly) {
-        violations = policyViolationDAO.getActiveByApplicationIds(applicationIds);
+        violations = policyViolationDAO.getActiveByOwnerIds(ownerIds);
       }
       else {
-        violations = policyViolationDAO.getUnfixedByApplicationIds(applicationIds);
+        violations = policyViolationDAO.getUnfixedByOwnerIds(ownerIds);
       }
     }
     else {
       if (activeViolationsOnly) {
         violations =
-            policyViolationDAO.getActiveByApplicationIdsAndStageIds(applicationIds, stageTypeIds, minThreatLevel,
+            policyViolationDAO.getActiveByOwnerIdsAndStageIds(ownerIds, stageTypeIds, minThreatLevel,
                 maxThreatLevel, policyThreatCategories);
       }
       else {
-        violations = policyViolationDAO.getUnfixedBy(applicationIds, stageTypeIds, minThreatLevel, maxThreatLevel,
+        violations = policyViolationDAO.getUnfixedBy(ownerIds, stageTypeIds, minThreatLevel, maxThreatLevel,
             policyThreatCategories, violationStateOpen, violationStateWaived, violationStateLegacyViolation);
       }
     }
@@ -300,7 +300,7 @@ public class PolicyViolationLoader
   }
 
   private Collection<PolicyViolation> loadViolationsAfter(
-      Set<String> applicationIds,
+      Set<String> ownerIds,
       Set<String> stageTypeIds,
       Date minDate,
       boolean activeViolationsOnly,
@@ -316,23 +316,23 @@ public class PolicyViolationLoader
     if (stageTypeIds.isEmpty()) {
       if (activeViolationsOnly) {
         violations =
-            policyViolationDAO.getActiveByApplicationIdsOpenedAfterDate(applicationIds, minDate, minThreatLevel,
+            policyViolationDAO.getActiveByOwnerIdsOpenedAfterDate(ownerIds, minDate, minThreatLevel,
                 maxThreatLevel, policyThreatCategories);
       }
       else {
         violations =
-            policyViolationDAO.getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, minThreatLevel,
+            policyViolationDAO.getUnfixedByOwnerIdsOpenedAfterDate(ownerIds, minDate, minThreatLevel,
                 maxThreatLevel, policyThreatCategories);
       }
     }
     else {
       if (activeViolationsOnly) {
-        violations = policyViolationDAO.getActiveByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds,
+        violations = policyViolationDAO.getActiveByOwnerIdsAndStageIdsOpenedAfterDate(ownerIds,
             stageTypeIds, minDate, minThreatLevel, maxThreatLevel, policyThreatCategories);
       }
       else {
         violations =
-            policyViolationDAO.getUnfixedBy(applicationIds, stageTypeIds, minDate, minThreatLevel,
+            policyViolationDAO.getUnfixedBy(ownerIds, stageTypeIds, minDate, minThreatLevel,
                 maxThreatLevel, policyThreatCategories, violationStateOpen, violationStateWaived,
                 violationStateLegacyViolation);
       }
@@ -350,7 +350,7 @@ public class PolicyViolationLoader
     int filtered = 0;
     for (PolicyViolation violation : violations) {
       if (violationFilter == null || violationFilter.test(violation)) {
-        ApplicationView appView = appViewsByAppId.get(violation.getApplicationId());
+        ApplicationView appView = appViewsByAppId.get(violation.getOwnerId());
         ApplicationStageView appStageView = appView.stageViewsByStageTypeId.get(violation.getStageTypeId());
         appStageView.filteredViolations.add(violation);
         filtered++;

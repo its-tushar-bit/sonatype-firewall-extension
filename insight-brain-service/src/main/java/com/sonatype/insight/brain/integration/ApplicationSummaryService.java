@@ -246,7 +246,7 @@ public class ApplicationSummaryService
         sendApplicationCreatedTelemetryData(application, true, clientUserAgent);
       }
       else {
-        if (policyEvaluationDAO.getCountByApplicationId(application.getId()) == 0) {
+        if (policyEvaluationDAO.getCountByOwnerId(application.getId()) == 0) {
           sendApplicationCreatedTelemetryData(application, false, clientUserAgent);
         }
       }

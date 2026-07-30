@@ -11,8 +11,8 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTOV2;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+import com.sonatype.insight.brain.model.OwnerComponent;
+import com.sonatype.insight.brain.model.OwnerComponentLicensesDTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -22,7 +22,7 @@ public class ApiLicenseLegalComponentDashboardDTO
     // for Jackson
   }
 
-  public ApiLicenseLegalComponentDashboardDTO(ApplicationComponent applicationComponent) {
+  public ApiLicenseLegalComponentDashboardDTO(OwnerComponent applicationComponent) {
     this.hash = applicationComponent.getHash();
     this.componentIdentifier = applicationComponent.getComponentIdentifier();
     this.displayName = componentIdentifier != null
@@ -30,7 +30,7 @@ public class ApiLicenseLegalComponentDashboardDTO
         : applicationComponent.getPathnames().get(0);
   }
 
-  public ApiLicenseLegalComponentDashboardDTO(ApplicationComponentLicensesDTO applicationComponentLicensesDTO) {
+  public ApiLicenseLegalComponentDashboardDTO(OwnerComponentLicensesDTO applicationComponentLicensesDTO) {
     this.hash = applicationComponentLicensesDTO.getHash();
     this.componentIdentifier = applicationComponentLicensesDTO.getComponentIdentifier();
     this.displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();

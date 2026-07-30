@@ -41,11 +41,11 @@ public class IntegrationStatusDAO
 {
   private static final String QUERY_TEMPLATE =
       "WITH latest_policy_eval AS (" +
-          "  SELECT DISTINCT ON (pe1.application_id) pe1.application_id, pe1.time, pe1.scan_id " +
+          "  SELECT DISTINCT ON (pe1.owner_id) pe1.owner_id, pe1.time, pe1.scan_id " +
           "  FROM %1$s.policy_evaluation pe1 " +
           "  INNER JOIN %1$s.last_policy_evaluation lpe ON pe1.policy_evaluation_id = lpe.policy_evaluation_id " +
           "  WHERE lpe.stage_type_id = ? AND pe1.for_monitoring = false AND pe1.reevaluation = false " +
-          "  ORDER BY pe1.application_id, pe1.time DESC" +
+          "  ORDER BY pe1.owner_id, pe1.time DESC" +
           "), " +
           "latest_commit AS (" +
           "  SELECT DISTINCT ON (sc1.application_id) sc1.application_id, sc1.commit_time " +
@@ -53,7 +53,7 @@ public class IntegrationStatusDAO
           "  ORDER BY sc1.application_id, sc1.commit_time DESC" +
           "), " +
           "ci_eval AS (" +
-          "  SELECT DISTINCT pe3.application_id " +
+          "  SELECT DISTINCT pe3.owner_id " +
           "  FROM %1$s.policy_evaluation pe3 " +
           "  WHERE pe3.stage_type_id = ? AND pe3.reevaluation = false " +
           "    AND pe3.for_monitoring = false AND pe3.time >= ?" +
@@ -61,11 +61,11 @@ public class IntegrationStatusDAO
           "SELECT " +
           "  a.application_id, a.name, a.public_id, a.organization_id, " +
           "  pe.time, pe.scan_id, sc.commit_time, " +
-          "  CASE WHEN ci.application_id IS NOT NULL THEN true ELSE false END " +
+          "  CASE WHEN ci.owner_id IS NOT NULL THEN true ELSE false END " +
           "FROM %1$s.application a " +
-          "LEFT JOIN latest_policy_eval pe ON a.application_id = pe.application_id " +
+          "LEFT JOIN latest_policy_eval pe ON a.application_id = pe.owner_id " +
           "LEFT JOIN latest_commit sc      ON a.application_id = sc.application_id " +
-          "LEFT JOIN ci_eval ci            ON a.application_id = ci.application_id " +
+          "LEFT JOIN ci_eval ci            ON a.application_id = ci.owner_id " +
           "WHERE a.application_id IN (%2$s) " +
           "ORDER BY a.application_id";
 

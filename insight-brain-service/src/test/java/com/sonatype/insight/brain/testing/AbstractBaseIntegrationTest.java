@@ -687,7 +687,7 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   protected void mockReport(PolicyEvaluation evaluation, String classSimpleName) {
-    mockReport(evaluation.getApplicationId(), evaluation.getScanId(), classSimpleName);
+    mockReport(evaluation.getOwnerId(), evaluation.getScanId(), classSimpleName);
   }
 
   protected void mockReport(String applicationId, String scanId, String classSimpleName) {

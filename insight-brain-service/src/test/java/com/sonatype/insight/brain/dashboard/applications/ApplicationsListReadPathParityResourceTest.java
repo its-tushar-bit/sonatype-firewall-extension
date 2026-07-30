@@ -67,9 +67,9 @@ public class ApplicationsListReadPathParityResourceTest
     PolicyEvaluation evalA = tempEntity.newPolicyEvaluation(appA.getId(), Stage.ID_BUILD, "parity-scan-a");
     PolicyEvaluation evalB = tempEntity.newPolicyEvaluation(appB.getId(), Stage.ID_BUILD, "parity-scan-b");
     InsightWork insightWork = lookup(InsightWork.class);
-    ReportTestUtils.createReportFile(evalA.getApplicationId(), evalA.getScanId(),
+    ReportTestUtils.createReportFile(evalA.getOwnerId(), evalA.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), insightWork);
-    ReportTestUtils.createReportFile(evalB.getApplicationId(), evalB.getScanId(),
+    ReportTestUtils.createReportFile(evalB.getOwnerId(), evalB.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), insightWork);
     tempEntity.newPolicyViolation(evalA, policyA);
     tempEntity.newPolicyViolation(evalB, policyB);

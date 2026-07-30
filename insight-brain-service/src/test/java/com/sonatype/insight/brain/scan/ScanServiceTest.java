@@ -179,7 +179,7 @@ public class ScanServiceTest
 
     waitForScanResults();
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanTicket.scanId);
+        policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanTicket.scanId);
     assertThat(policyEvaluation.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
     assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.WEB_UI);
@@ -196,7 +196,7 @@ public class ScanServiceTest
 
     waitForScanResults();
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanTicket.scanId);
+        policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanTicket.scanId);
     assertThat(policyEvaluation.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
     assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.WEB_UI);

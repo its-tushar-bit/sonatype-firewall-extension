@@ -57,7 +57,7 @@ public class PostgresApplicationRiskServiceTest
                       constraint_facts_id,is_remediated_by_version_change
               FROM    insight_brain_ods.policy_violation pv
               JOIN    insight_brain_ods.application a ON (1=1)
-              WHERE   pv.application_id = '%s'
+              WHERE   pv.owner_id = '%s'
           ) x
           WHERE application_id NOT IN ('%s','%s')""".formatted(app2.getId(), app1.getId(), app2.getId());
       connection.createStatement().execute(insertPolicyViolations);
@@ -65,7 +65,7 @@ public class PostgresApplicationRiskServiceTest
       String insertPolicyEvaluation = """
           WITH insert_policy_evaluation AS (
             INSERT INTO insight_brain_ods.policy_evaluation(
-              policy_evaluation_id, application_id, stage_type_id, scan_id, time, initiator, scan_trigger_type
+              policy_evaluation_id, owner_id, stage_type_id, scan_id, time, initiator, scan_trigger_type
             )
             SELECT
               'pe-' || application_id as policy_evaluation_id,
@@ -77,7 +77,7 @@ public class PostgresApplicationRiskServiceTest
               'CLI'
             FROM insight_brain_ods.application
             WHERE public_id like 'application-%'
-            RETURNING policy_evaluation_id, application_id, stage_type_id
+            RETURNING policy_evaluation_id, owner_id, stage_type_id
           )
           INSERT INTO insight_brain_ods.last_policy_evaluation
           SELECT *
@@ -93,6 +93,7 @@ public class PostgresApplicationRiskServiceTest
       assertThat(result.hasNextPage).isEqualTo(false);
 
       // manually delete all test data (otherwise deletion via the TemporaryEntity tear-down will take forever)
+      connection.createStatement().execute("DELETE FROM insight_brain_ods.policy_violation");
       connection.createStatement().execute("DELETE FROM insight_brain_ods.last_policy_evaluation");
       connection.createStatement().execute("DELETE FROM insight_brain_ods.policy_evaluation");
       connection.createStatement().execute(TemporaryTableHelperTest.getCleanupApplicationsSql());

@@ -43,7 +43,7 @@ public class ApiReportResultsDTO
       final PolicyEvaluationResult policyEvaluationResult,
       final String scannerVersion)
   {
-    this.applicationId = policyEvaluation.getApplicationId();
+    this.applicationId = policyEvaluation.getOwnerId();
     this.stage = policyEvaluation.getStageTypeId();
     this.scanId = policyEvaluation.getScanId();
     this.isReevaluation = policyEvaluation.isReevaluation();

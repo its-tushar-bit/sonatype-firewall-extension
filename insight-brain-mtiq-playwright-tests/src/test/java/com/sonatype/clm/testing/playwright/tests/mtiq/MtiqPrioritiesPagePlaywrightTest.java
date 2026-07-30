@@ -379,7 +379,7 @@ public class MtiqPrioritiesPagePlaywrightTest
 
   private PolicyViolation firstSeedableViolation() {
     PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
-    return dao.getByApplicationId(app.getId())
+    return dao.getByOwnerId(app.getId())
         .stream()
         .filter(v -> v.getHash() != null && v.getPolicyId() != null
             && v.getComponentIdentifier() != null
@@ -396,7 +396,7 @@ public class MtiqPrioritiesPagePlaywrightTest
    */
   private List<PolicyViolation> uniqueViolationsForHash(String hash) {
     Map<String, PolicyViolation> uniqueByPolicyId = lookup(PolicyViolationDAO.class)
-        .getByApplicationId(app.getId())
+        .getByOwnerId(app.getId())
         .stream()
         .filter(v -> hash.equals(v.getHash()) && v.getPolicyId() != null)
         .collect(Collectors.toMap(PolicyViolation::getPolicyId, v -> v, (a, b) -> a));

@@ -226,7 +226,7 @@ public class ApplicationEvaluationResourceTest
       assertThat(policyAlert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_FAIL);
     }
 
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation.isReevaluation()).isFalse();
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
 
@@ -331,7 +331,7 @@ public class ApplicationEvaluationResourceTest
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
     assertThat(policyAlerts).hasSize(36);
 
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation.isReevaluation()).isFalse();
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
 

@@ -187,9 +187,9 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION);
     assertThat(telemetryData.getAttributes()).containsEntry("count", 1);
     assertThat(telemetryData.getAttributes()).containsEntry("application_id",
-        HdsClientAnalytics.obfuscate(securityPolicyViolation.getApplicationId()));
+        HdsClientAnalytics.obfuscate(securityPolicyViolation.getOwnerId()));
     assertThat(telemetryData.getAttributes()).containsEntry("real_application_id",
-        securityPolicyViolation.getApplicationId());
+        securityPolicyViolation.getOwnerId());
     assertThat(telemetryData.getAttributes()).containsEntry("component_identifier",
         "maven: {artifactId=Artifact1, groupId=Group1, version=Version1}");
     assertThat(telemetryData.getAttributes()).containsEntry("ecosystem", "maven");
@@ -217,9 +217,9 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION);
     assertThat(telemetryData.getAttributes()).containsEntry("count", 1);
     assertThat(telemetryData.getAttributes()).containsEntry("application_id",
-        HdsClientAnalytics.obfuscate(nonSecurityPolicyViolation.getApplicationId()));
+        HdsClientAnalytics.obfuscate(nonSecurityPolicyViolation.getOwnerId()));
     assertThat(telemetryData.getAttributes()).containsEntry("real_application_id",
-        nonSecurityPolicyViolation.getApplicationId());
+        nonSecurityPolicyViolation.getOwnerId());
     assertThat(telemetryData.getAttributes()).containsEntry("component_identifier",
         "maven: {artifactId=Artifact1, groupId=Group1, version=Version1}");
     assertThat(telemetryData.getAttributes()).containsEntry("ecosystem", "maven");

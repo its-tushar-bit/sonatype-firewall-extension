@@ -174,9 +174,9 @@ public interface DAOFactory
 {
   AggregateFileDAO createAggregateFileDAO();
 
-  ApplicationComponentDAO createApplicationComponentDAO();
+  OwnerComponentDAO createOwnerComponentDAO();
 
-  ApplicationComponentLicenseDAO createApplicationComponentLicenseDAO();
+  OwnerComponentLicenseDAO createOwnerComponentLicenseDAO();
 
   ApplicationDAO createApplicationDAO();
 

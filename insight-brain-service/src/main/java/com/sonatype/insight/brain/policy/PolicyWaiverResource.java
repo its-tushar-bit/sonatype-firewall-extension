@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dashboard.PolicyWaiverService;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -69,7 +69,7 @@ public class PolicyWaiverResource
 
   private final RepositoryComponentDAO repositoryComponentDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final PolicyWaiverService policyWaiverService;
 
@@ -85,7 +85,7 @@ public class PolicyWaiverResource
   public PolicyWaiverResource(
       final OwnerDAO ownerDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final PolicyWaiverService policyWaiverService,
       final PolicyWaiverDAO policyWaiverDAO,
       final PolicyDAO policyDAO,
@@ -118,7 +118,7 @@ public class PolicyWaiverResource
     }
     else if (owner.getType().equals(OwnerType.APPLICATION)) {
       return getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,
-          applicationComponentDAO::getByApplicationIdAndHash);
+          applicationComponentDAO::getByOwnerIdAndHash);
     }
     return null;
   }

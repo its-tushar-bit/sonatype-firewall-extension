@@ -130,7 +130,7 @@ public class SloViolationEnricherWaiverTest
     // Waived (waiveTime set) but references a waiver id that has no corresponding PolicyWaiver row.
     PolicyViolation violation = new PolicyViolation();
     violation.setId("pv-unresolvable-" + System.nanoTime());
-    violation.setApplicationId(application.getId());
+    violation.setOwnerId(application.getId());
     violation.setStageTypeId(Stage.ID_RELEASE);
     violation.setPolicyId("policy-1");
     violation.setPolicyName("Unresolvable waiver policy");

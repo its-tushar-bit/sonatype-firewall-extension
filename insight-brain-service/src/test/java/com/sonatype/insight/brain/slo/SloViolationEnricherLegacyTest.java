@@ -72,7 +72,7 @@ public class SloViolationEnricherLegacyTest
   private static PolicyViolation newBaseViolation(final Application application, final String idPrefix) {
     PolicyViolation violation = new PolicyViolation();
     violation.setId(idPrefix + System.nanoTime());
-    violation.setApplicationId(application.getId());
+    violation.setOwnerId(application.getId());
     violation.setStageTypeId(Stage.ID_RELEASE);
     violation.setPolicyId("policy-1");
     violation.setPolicyName("Legacy test policy");

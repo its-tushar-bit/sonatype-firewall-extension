@@ -176,11 +176,11 @@ public class ApplicationManagementService
     for (StageType stageType : StageTypes.getAll()) {
       stageTypeIds.add(stageType.getId());
     }
-    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIds(summariesByAppId
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByOwnerIds(summariesByAppId
         .keySet());
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       if (stageTypeIds.contains(policyEvaluation.getStageTypeId())) {
-        ApplicationManagementSummaryDTO summary = summariesByAppId.get(policyEvaluation.getApplicationId());
+        ApplicationManagementSummaryDTO summary = summariesByAppId.get(policyEvaluation.getOwnerId());
         summary.getPolicyEvaluations().put(policyEvaluation.getStageTypeId(), policyEvaluation);
       }
     }

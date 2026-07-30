@@ -48,19 +48,26 @@ public class LastPolicyEvaluationDAO
       final PolicyEvaluation newestPolicyEvaluation)
   {
     if (newestPolicyEvaluation != null) {
-      insert(tx, new LastPolicyEvaluation(newestPolicyEvaluation.getId(), newestPolicyEvaluation.getApplicationId(),
+      insert(tx, new LastPolicyEvaluation(newestPolicyEvaluation.getId(), newestPolicyEvaluation.getOwnerId(),
           newestPolicyEvaluation.getStageTypeId()));
     }
   }
 
-  public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final String applicationId, final String stageTypeId) {
+  public LastPolicyEvaluation getByOwnerIdAndStageTypeId(final String ownerId, final String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()
           .selectFrom(LAST_POLICY_EVALUATION)
-          .where(LAST_POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .where(LAST_POLICY_EVALUATION.OWNER_ID.eq(ownerId))
           .and(LAST_POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
           .fetchOne());
     }
+  }
+
+  public void deleteByOwnerId(final TransactionContext tx, final String ownerId) {
+    tx.dsl()
+        .deleteFrom(LAST_POLICY_EVALUATION)
+        .where(LAST_POLICY_EVALUATION.OWNER_ID.eq(ownerId))
+        .execute();
   }
 
   @Override
@@ -74,7 +81,7 @@ public class LastPolicyEvaluationDAO
       return null;
     }
     return new SearchIndexChange(ChangeType.LAST_POLICY_EVALUATION,
-        entity.getApplicationId() + ':' + entity.getStageTypeId());
+        entity.getOwnerId() + ':' + entity.getStageTypeId());
   }
 
   @Override

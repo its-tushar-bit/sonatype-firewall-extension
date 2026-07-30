@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.ComponentRiskDTO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 
 import org.junit.Test;
@@ -29,9 +29,9 @@ public class ComponentsListServiceTest
 
   @Test
   public void clampThreatLevel_mapsUnboundedMaxToTenNotNegativeShort() {
-    assertThat(ApplicationComponentDAO.clampThreatLevel(Integer.MAX_VALUE)).isEqualTo((short) 10);
-    assertThat(ApplicationComponentDAO.clampThreatLevel(Integer.MIN_VALUE)).isEqualTo((short) 0);
-    assertThat(ApplicationComponentDAO.clampThreatLevel(8)).isEqualTo((short) 8);
+    assertThat(OwnerComponentDAO.clampThreatLevel(Integer.MAX_VALUE)).isEqualTo((short) 10);
+    assertThat(OwnerComponentDAO.clampThreatLevel(Integer.MIN_VALUE)).isEqualTo((short) 0);
+    assertThat(OwnerComponentDAO.clampThreatLevel(8)).isEqualTo((short) 8);
   }
 
   @Test

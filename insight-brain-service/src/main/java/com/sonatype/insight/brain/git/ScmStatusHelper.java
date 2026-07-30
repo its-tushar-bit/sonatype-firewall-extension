@@ -78,7 +78,7 @@ public class ScmStatusHelper
         getState(evaluationOutcome, gitApiClient),
         IQ_POLICY_EVALUATION,
         createStatusMessage(criticalCount, severeCount, moderateCount),
-        getReportUrl(policyEvaluation.getApplicationId(), policyEvaluation.getScanId(), provider));
+        getReportUrl(policyEvaluation.getOwnerId(), policyEvaluation.getScanId(), provider));
   }
 
   public StatusRequest createStatusRequestFromSourceControlEvent(

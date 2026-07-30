@@ -19,14 +19,14 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -101,7 +101,7 @@ public class SuccessMetricsReportDataServiceTest
 
   private void fixViolations(PolicyEvaluation evaluation, Predicate<PolicyViolation> exclude) {
     List<PolicyViolation> policyViolations = policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId());
+        .getUnfixedByOwnerIdAndStageId(evaluation.getOwnerId(), evaluation.getStageTypeId());
     policyViolationDAO.loadConstraintFacts(policyViolations);
     for (PolicyViolation fixedViolation : policyViolations) {
       if (exclude == null || !exclude.test(fixedViolation)) {
@@ -1924,7 +1924,7 @@ public class SuccessMetricsReportDataServiceTest
 
     // app1 has the component without any policy violations
     Application app1 = tempEntity.newApplicationWithParent("app1");
-    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+    OwnerComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
         date);
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2, null, null, MatchState.EXACT, false,
@@ -1981,7 +1981,7 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newApplicationComponent(app1.getId(), DevelopStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
-    ApplicationComponent buildComponent = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
+    OwnerComponent buildComponent = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
         ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"));
 
     Policy policy1 = tempEntity.newPolicy(app1);
@@ -2059,13 +2059,13 @@ public class SuccessMetricsReportDataServiceTest
     Date date = new Date();
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
-    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+    OwnerComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
         date);
-    ApplicationComponent component2 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
+    OwnerComponent component2 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash2,
         ComponentIdentifier.createMavenCoordinates("Z2", "artifactId2", "version2"), null, MatchState.EXACT, false,
         date);
-    ApplicationComponent component3 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash3,
+    OwnerComponent component3 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash3,
         ComponentIdentifier.createMavenCoordinates("groupId3", "artifactId3", "version3"), null, MatchState.EXACT,
         false, date);
 
@@ -2111,7 +2111,7 @@ public class SuccessMetricsReportDataServiceTest
     Policy policy1 = tempEntity.newPolicy(app1);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
 
-    List<ApplicationComponent> components = new ArrayList<>();
+    List<OwnerComponent> components = new ArrayList<>();
 
     // Create 6 components and 6 violations
     for (int i = 1; i < 7; i++) {
@@ -2152,7 +2152,7 @@ public class SuccessMetricsReportDataServiceTest
     Application app1 = tempEntity.newApplicationWithParent("app1");
 
     // Create some application components
-    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+    OwnerComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
         newerDate);
     // Same component, different stage. Components in applications count will not count this twice. However, policy
@@ -2160,7 +2160,7 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), null, MatchState.EXACT, false,
         newerDate);
-    ApplicationComponent component2 = tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, hash2,
+    OwnerComponent component2 = tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, hash2,
         ComponentIdentifier.createMavenCoordinates("groupId2", "artifactId2", "version2"), null, MatchState.EXACT,
         false, olderDate);
 
@@ -2179,7 +2179,7 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId", "artifactId", "version", hash, "reason1");
 
     Application app2 = tempEntity.newApplicationWithParent("app2");
-    ApplicationComponent component3 = tempEntity.newApplicationComponent(app2.getId(), OperateStageType.ID, hash3,
+    OwnerComponent component3 = tempEntity.newApplicationComponent(app2.getId(), OperateStageType.ID, hash3,
         ComponentIdentifier.createMavenCoordinates("groupId3", "artifactId3", "version3"), null, MatchState.EXACT,
         false, olderDate);
 
@@ -2340,7 +2340,7 @@ public class SuccessMetricsReportDataServiceTest
     doThrow(new DataAccessException("insert failed", psqlEx)).when(mockDAO).insert(any());
 
     SuccessMetricsReportDataService service = new SuccessMetricsReportDataService(lookup(ApplicationService.class),
-        lookup(ApplicationComponentDAO.class), lookup(StageTypeService.class),
+        lookup(OwnerComponentDAO.class), lookup(StageTypeService.class),
         lookup(PolicyViolationAggregationService.class), lookup(SuccessMetricsReportService.class), mockDAO,
         lookup(PolicyViolationAggregationDAO.class), policyViolationDAO, policyEvaluationDAO);
 

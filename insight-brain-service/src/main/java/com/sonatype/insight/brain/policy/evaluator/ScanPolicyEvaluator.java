@@ -40,8 +40,8 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
@@ -62,8 +62,8 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.OwnerComponent;
+import com.sonatype.insight.brain.model.OwnerComponentLicense;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -157,9 +157,9 @@ public class ScanPolicyEvaluator
 
   private final AggregateFileDAO aggregateFileDAO;
 
-  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+  private final OwnerComponentLicenseDAO applicationComponentLicenseDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -229,8 +229,8 @@ public class ScanPolicyEvaluator
       final PolicyDAO policyDAO,
       final PolicyViolationDAO policyViolationDAO,
       final AggregateFileDAO aggregateFileDAO,
-      final ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentLicenseDAO applicationComponentLicenseDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final SourceControlEventDAO sourceControlEventDAO,
@@ -468,7 +468,7 @@ public class ScanPolicyEvaluator
       boolean forMonitoring,
       List<Component> components) throws IOException
   {
-    List<PolicyAlert> alerts = createPolicyAlerts(scanPolicyEvaluatorResults.evaluation.getApplicationId(),
+    List<PolicyAlert> alerts = createPolicyAlerts(scanPolicyEvaluatorResults.evaluation.getOwnerId(),
         scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId(), forMonitoring,
         components, scanPolicyEvaluatorResults.activeViolations);
     applicationReport.putEntry(POLICY_ALERTS.getName(), JsonUtils.generate(JsonUtils.aaData(alerts)));
@@ -538,7 +538,7 @@ public class ScanPolicyEvaluator
       boolean isLegacyViolationEnabled = legacyViolationService.isLegacyViolationEnabled(tx, app.getId(),
           stage.getStageTypeId());
       // Persist the policy evaluation
-      boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
+      boolean isReevaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, appId, scanId) != null;
       AuditData.get().setIsReevaluation(isReevaluation);
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
           forMonitoring, currentUser.getUsernameOrSystem(), scanTriggerType, clientScanType);
@@ -552,7 +552,7 @@ public class ScanPolicyEvaluator
       policyEvaluation
           .setScmRepositoryUrlSource(parseMetadataSource(extractField(dataJsonEntry, "scmRepositoryUrlSource")));
 
-      PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
+      PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(tx,
           appId, stage.getStageTypeId());
       boolean isForLatestScan = true;
       if (isReevaluation) {
@@ -583,7 +583,7 @@ public class ScanPolicyEvaluator
       final Map<String, AutoPolicyWaiver> autoWaiversByIdForReevaluation;
       if (skipAutoWaiversForReevaluation) {
         autoWaivedPolicyViolations =
-            policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(appId,
+            policyViolationDAO.getAutoWaivedByOwnerIdAndStageId(appId,
                 stage.getStageTypeId());
         policyViolationDAO.loadConstraintFacts(autoWaivedPolicyViolations);
         Set<String> waiverIds = autoWaivedPolicyViolations.stream()
@@ -646,7 +646,7 @@ public class ScanPolicyEvaluator
       if ((isReevaluation || forMonitoring) && reachablePurlIdentifiersWithVulnerabilities == null) {
         // CLM-38947: Load existing violations during re-evaluation OR continuous monitoring
         // to preserve reachability status ONLY when there is no new reachability data.
-        existingViolationsForReachability = policyViolationDAO.getUnfixedByApplicationIdAndStageId(tx, appId,
+        existingViolationsForReachability = policyViolationDAO.getUnfixedByOwnerIdAndStageId(tx, appId,
             stage.getStageTypeId());
         policyViolationDAO.loadConstraintFacts(existingViolationsForReachability);
       }
@@ -765,7 +765,7 @@ public class ScanPolicyEvaluator
       // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
       // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
       if (isForLatestScan) {
-        List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(tx, appId,
+        List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getUnfixedByOwnerIdAndStageId(tx, appId,
             stage.getStageTypeId());
         policyViolationDAO.loadConstraintFacts(oldPolicyViolations);
         PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
@@ -1148,7 +1148,7 @@ public class ScanPolicyEvaluator
     }
     else {
       List<PolicyViolation> legacyViolations =
-          policyViolationDAO.getUnfixedLegacyViolationByApplicationId(tx, app.getId());
+          policyViolationDAO.getUnfixedLegacyViolationByOwnerId(tx, app.getId());
       policyViolationDAO.loadConstraintFacts(legacyViolations);
       if (!legacyViolations.isEmpty()) {
         PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
@@ -1170,7 +1170,7 @@ public class ScanPolicyEvaluator
 
   private boolean isFirstEvaluation(TransactionContext tx, Application app) {
     // The record for the current policy evaluation was already created, so we have to check with 1, not 0.
-    return policyEvaluationDAO.getCountByApplicationId(tx, app.getId()) == 1;
+    return policyEvaluationDAO.getCountByOwnerId(tx, app.getId()) == 1;
   }
 
   private String getFilename(ComponentFact componentFact) {
@@ -1224,12 +1224,12 @@ public class ScanPolicyEvaluator
       List<Component> components)
   {
     // Delete all app->component associations for the specified stage
-    applicationComponentDAO.deleteByApplicationIdAndStageTypeId(tx, appId, stage.getStageTypeId());
+    applicationComponentDAO.deleteByOwnerIdAndStageTypeId(tx, appId, stage.getStageTypeId());
 
     // Collect all entities in memory first to enable batch inserts by table
-    List<ApplicationComponent> newApplicationComponents = new ArrayList<>();
+    List<OwnerComponent> newApplicationComponents = new ArrayList<>();
     List<AggregateFile> newAggregateFiles = new ArrayList<>();
-    List<ApplicationComponentLicense> newLicenses = new ArrayList<>();
+    List<OwnerComponentLicense> newLicenses = new ArrayList<>();
 
     // Build all entities
     for (Component component : components) {
@@ -1237,7 +1237,7 @@ public class ScanPolicyEvaluator
         continue;
       }
 
-      ApplicationComponent applicationComponent = new ApplicationComponent(appId, stage.getStageTypeId(), time,
+      OwnerComponent applicationComponent = new OwnerComponent(appId, stage.getStageTypeId(), time,
           component.getHash(), component.getComponentIdentifier(), component.getMatchState().getId(), component
               .getIdentificationSource()
               .getId(),
@@ -1255,7 +1255,7 @@ public class ScanPolicyEvaluator
           component.getObservedMultiLicenseIds(),
           component.getLicenseOverrideIds());
       for (String effectiveLicenseId : effectiveLicenseIds) {
-        newLicenses.add(new ApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId));
+        newLicenses.add(new OwnerComponentLicense(applicationComponent.getId(), effectiveLicenseId));
       }
     }
 
@@ -1342,7 +1342,7 @@ public class ScanPolicyEvaluator
 
   public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation, boolean createAlerts) {
     List<PolicyViolation> policyViolations = policyViolationDAO
-        .getActiveByApplicationIdAndStageId(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
+        .getActiveByOwnerIdAndStageId(policyEvaluation.getOwnerId(), policyEvaluation.getStageTypeId());
     return createPolicyEvaluationResult(policyEvaluation, policyViolations, createAlerts);
   }
 
@@ -1361,7 +1361,7 @@ public class ScanPolicyEvaluator
       boolean loadTotalComponentCount)
   {
     List<PolicyViolation> policyViolations = policyViolationDAO
-        .getActiveByApplicationIdAndStageId(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
+        .getActiveByOwnerIdAndStageId(policyEvaluation.getOwnerId(), policyEvaluation.getStageTypeId());
     return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts,
         null, loadTotalComponentCount);
   }
@@ -1429,7 +1429,7 @@ public class ScanPolicyEvaluator
     if (createAlerts) {
       List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations,
           policyEvaluation.getStageTypeId());
-      List<PolicyAlert> policyAlerts = createPolicyAlerts(policyEvaluation.getApplicationId(),
+      List<PolicyAlert> policyAlerts = createPolicyAlerts(policyEvaluation.getOwnerId(),
           policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
           components, activePolicyViolations);
       policyEvaluationResult.setAlerts(policyAlerts);
@@ -1478,11 +1478,11 @@ public class ScanPolicyEvaluator
     PolicyEvaluationResult policyEvaluationResult =
         createPolicyEvaluationResult(policyEvaluation, components, activeViolations, true);
 
-    List<PolicyAlert> waivedAlerts = createPolicyAlerts(policyEvaluation.getApplicationId(),
+    List<PolicyAlert> waivedAlerts = createPolicyAlerts(policyEvaluation.getOwnerId(),
         policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
         components, waivedViolations);
 
-    List<PolicyAlert> fixedAlerts = createPolicyAlerts(policyEvaluation.getApplicationId(),
+    List<PolicyAlert> fixedAlerts = createPolicyAlerts(policyEvaluation.getOwnerId(),
         policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
         components, fixedViolations);
 
@@ -1496,7 +1496,7 @@ public class ScanPolicyEvaluator
       ReportEntry summaryEntry = summaryReportEntry;
       if (summaryEntry == null) {
         LifecycleReport applicationReport =
-            reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+            reportService.getReport(policyEvaluation.getOwnerId(), policyEvaluation.getScanId());
         summaryEntry = applicationReport.getEntry(SUMMARY_JSON.getName());
       }
       if (summaryEntry != null) {
@@ -1508,7 +1508,7 @@ public class ScanPolicyEvaluator
       }
     }
     catch (IOException | NotFoundException e) {
-      log.error("Could not get report for applicationId={} and scanId={}", policyEvaluation.getApplicationId(),
+      log.error("Could not get report for ownerId={} and scanId={}", policyEvaluation.getOwnerId(),
           policyEvaluation.getScanId(), e);
     }
     return 0;
@@ -1691,10 +1691,10 @@ public class ScanPolicyEvaluator
       final String stageTypeId)
   {
     final boolean isReevaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndScanId(privateAppId, scanId) != null;
+        policyEvaluationDAO.getLastByOwnerIdAndScanId(privateAppId, scanId) != null;
 
     if (isReevaluation) {
-      final PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
+      final PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(
           privateAppId, stageTypeId);
       final boolean isNotForLatestScan = !lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
 

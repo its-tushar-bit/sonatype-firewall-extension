@@ -18,7 +18,7 @@ import com.sonatype.clm.testing.playwright.pages.LegalDashboardPageAssertions;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -423,7 +423,7 @@ public class LegalDashboardPlaywrightTest
     String hash = TemporaryEntity.uuid().replace("-", "").substring(0, 20);
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
-    ApplicationComponent component = tempEntity.newApplicationComponent(
+    OwnerComponent component = tempEntity.newApplicationComponent(
         application.getId(),
         BuildStageType.ID,
         hash,

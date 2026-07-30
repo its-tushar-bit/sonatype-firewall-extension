@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
 /**
  * Creates the policy_violation SLO feed index using CONCURRENTLY outside of the migration lock. The index is on
- * (application_id, stage_type_id, GREATEST(COALESCE(open_time,ε), COALESCE(waive_time,ε), COALESCE(fix_time,ε),
+ * (owner_id, stage_type_id, GREATEST(COALESCE(open_time,ε), COALESCE(waive_time,ε), COALESCE(fix_time,ε),
  * COALESCE(legacy_violation_time,ε)), policy_violation_id). This supports the SLO violation feed (CLM-42077),
  * whose all-states, per
  * application-and-stage query ordered by update time would otherwise bitmap-scan and sort the whole
@@ -57,12 +57,13 @@ public class SloViolationIndexAsyncDbMigration
       conn.setAutoCommit(true);
       dropInvalidIndexConcurrentlyIfPresent(conn, schema, "policy_violation_app_stage_updated_idx");
 
+      String table = resolveBaseTable(conn, schema, "policy_violation");
       try (Statement stmt = conn.createStatement()) {
         log.info("Creating policy_violation_app_stage_updated_idx CONCURRENTLY for schema: {}", schema);
         stmt.execute(
             "CREATE INDEX CONCURRENTLY IF NOT EXISTS policy_violation_app_stage_updated_idx "
-                + "ON " + schema + ".policy_violation "
-                + "(application_id, stage_type_id, "
+                + "ON " + schema + "." + table + " "
+                + "(owner_id, stage_type_id, "
                 + "GREATEST(COALESCE(open_time, TIMESTAMP '1970-01-01 00:00:00'), "
                 + "COALESCE(waive_time, TIMESTAMP '1970-01-01 00:00:00'), "
                 + "COALESCE(fix_time, TIMESTAMP '1970-01-01 00:00:00'), "

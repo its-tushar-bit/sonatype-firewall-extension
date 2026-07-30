@@ -579,7 +579,7 @@ public class CopyStorageService
       final PolicyEvaluation eval,
       final CopyStorageResult copyStorageResult)
   {
-    String appId = eval.getApplicationId();
+    String appId = eval.getOwnerId();
     String scanId = eval.getScanId();
 
     String fromLocation = from.getReportLocation(appId, scanId);
@@ -735,7 +735,7 @@ public class CopyStorageService
 
   private Iterator<PolicyEvaluation> createPolicyEvaluationIterator(final String applicationId) {
     return new PageIterator<>(1, DEFAULT_PAGE_SIZE,
-        (page, pageSize) -> policyEvaluationDAO.getByApplicationId(applicationId, page, pageSize));
+        (page, pageSize) -> policyEvaluationDAO.getByOwnerId(applicationId, page, pageSize));
   }
 
   private Iterator<ThirdPartySbomMetadata> createThirdPartySbomMetadataIterator(final String applicationId) {

@@ -48,7 +48,7 @@ public class ReportPurgerTest
   @Override
   void mockReport(PolicyEvaluation evaluation) {
     try {
-      Path reportDir = work.getReportDir(evaluation.getApplicationId(), evaluation.getScanId()).toPath();
+      Path reportDir = work.getReportDir(evaluation.getOwnerId(), evaluation.getScanId()).toPath();
       Files.createDirectories(reportDir);
       Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
       Files.write(reportDir.resolve("report.pdf"), Collections.singletonList("report.pdf"));

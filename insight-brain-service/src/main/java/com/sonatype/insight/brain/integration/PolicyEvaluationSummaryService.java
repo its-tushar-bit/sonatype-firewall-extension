@@ -59,7 +59,7 @@ public class PolicyEvaluationSummaryService
 
     Application application = applicationDAO.getByIdNotNull(applicationId);
 
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
         stage.getStageTypeId());
     if (policyEvaluation == null) {
       return null;

@@ -76,7 +76,7 @@ public class PolicyViolationReachabilityService
     }
 
     List<PolicyViolation> policyViolations =
-        policyViolationDAO.getUnfixedByApplicationIdAndStageId(applicationId, stageId);
+        policyViolationDAO.getUnfixedByOwnerIdAndStageId(applicationId, stageId);
     policyViolationDAO.loadConstraintFacts(policyViolations);
     logger.debug("Retrieved {} unfixed policy violations for applicationId: {}, stageId: {}", policyViolations.size(),
         applicationId, stageId);
@@ -91,7 +91,7 @@ public class PolicyViolationReachabilityService
   }
 
   private String getStageIdFromReportId(String applicationId, String reportId) {
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, reportId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(applicationId, reportId);
     if (policyEvaluation != null) {
       return policyEvaluation.getStageTypeId();
     }

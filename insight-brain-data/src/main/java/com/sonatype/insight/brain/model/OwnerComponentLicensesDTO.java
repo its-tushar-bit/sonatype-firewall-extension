@@ -15,14 +15,14 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 
 import org.apache.commons.lang3.StringUtils;
 
-public class ApplicationComponentLicensesDTO
+public class OwnerComponentLicensesDTO
 {
   private static final char LICENSES_DELIMITER_CHAR = '\n';
 
   /** The licenses delimiter character escaped for regular expressions. */
   private static final String LICENSES_DELIMITER_REGEX = "\\" + LICENSES_DELIMITER_CHAR;
 
-  private String applicationId;
+  private String ownerId;
 
   private String hash;
 
@@ -34,22 +34,22 @@ public class ApplicationComponentLicensesDTO
 
   private ComponentIdentifier componentIdentifier;
 
-  public ApplicationComponentLicensesDTO(
-      String applicationId,
+  public OwnerComponentLicensesDTO(
+      String ownerId,
       String hash,
       String componentIdFormat,
       String componentIdCoordinatesJson,
       String licensesString)
   {
-    this.applicationId = applicationId;
+    this.ownerId = ownerId;
     this.hash = hash;
     this.componentIdFormat = componentIdFormat;
     this.componentIdCoordinatesJson = componentIdCoordinatesJson;
     this.licensesString = licensesString;
   }
 
-  public String getApplicationId() {
-    return applicationId;
+  public String getOwnerId() {
+    return ownerId;
   }
 
   public String getHash() {

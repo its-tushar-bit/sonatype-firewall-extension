@@ -46,7 +46,7 @@ import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -179,7 +179,7 @@ public class PolicyEvaluateServiceTest
   private PolicyDAO policyDAO;
 
   @Inject
-  private ApplicationComponentDAO appComponentDAO;
+  private OwnerComponentDAO appComponentDAO;
 
   @Inject
   private MailConfigurationDAO mailConfigurationDAO;
@@ -299,7 +299,7 @@ public class PolicyEvaluateServiceTest
       boolean isForObsoleteScan)
   {
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
-        .getLastByApplicationIdAndScanId(applicationId, scanId);
+        .getLastByOwnerIdAndScanId(applicationId, scanId);
     assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(scanTriggerType);
     assertThat(policyEvaluation.isReevaluation()).isEqualTo(isReevaluation);
     assertThat(policyEvaluation.isForObsoleteScan()).isEqualTo(isForObsoleteScan);
@@ -337,7 +337,7 @@ public class PolicyEvaluateServiceTest
     String scanId = simulateReportIsAvailable();
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
+    assertThat(appComponentDAO.getByOwnerIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     // evaluate policy
     PolicyEvaluationResult policyEvaluationResult =
@@ -440,7 +440,7 @@ public class PolicyEvaluateServiceTest
 
     // One legacy violation
     PolicyViolation policyViolation = policyViolationDAO
-        .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId())
+        .getActiveByOwnerIdAndStageId(app.getId(), stage.getStageTypeId())
         .get(0);
     policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
     policyViolation.setLegacyViolationTime(new Date());
@@ -619,7 +619,7 @@ public class PolicyEvaluateServiceTest
 
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
 
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
+    assertThat(appComponentDAO.getByOwnerIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
@@ -695,7 +695,7 @@ public class PolicyEvaluateServiceTest
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
+    assertThat(appComponentDAO.getByOwnerIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("scanId");
@@ -1124,7 +1124,7 @@ public class PolicyEvaluateServiceTest
       PolicyEvaluationResult policyEvaluationResult,
       Policy policy1,
       JiraClient mockJiraClient,
-      ApplicationComponentDAO appComponentDAO,
+      OwnerComponentDAO appComponentDAO,
       String mailboxA,
       String mailboxB) throws Exception
   {
@@ -1141,7 +1141,7 @@ public class PolicyEvaluateServiceTest
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
     assertPolicyEvaluation(app.getId(), scanId, scanTriggerType, false /* isReevaluation */);
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId()))
     {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
@@ -1160,7 +1160,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyThreats.get(0).get("policyThreatLevel").asInt()).isEqualTo(8);
 
     // check components are associated with the application and stage
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
+    assertThat(appComponentDAO.getByOwnerIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
 
     // notification message should also have been sent
     assertNotifications(messagesA, 1, 5000);
@@ -1190,7 +1190,7 @@ public class PolicyEvaluateServiceTest
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
     assertPolicyEvaluation(app.getId(), scanId, scanTriggerType, true /* isReevaluation */);
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId()))
     {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
@@ -1225,7 +1225,7 @@ public class PolicyEvaluateServiceTest
     String scanId = simulateReportIsAvailable();
     Path scanPath = ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId).toPath();
     ScanEntity scanEntity = new FileScanEntity(scanPath, app.getId());
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
+    assertThat(appComponentDAO.getByOwnerIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
@@ -1237,7 +1237,7 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluation policyEvaluation = policyEvaluateService.evaluateSynchronousNoAuth(app, ClientScanType.SONATYPE,
         scanEntity, stage, scanTriggerType, testClientUserAgent);
 
-    assertThat(policyEvaluation.getApplicationId()).isEqualTo(app.getId());
+    assertThat(policyEvaluation.getOwnerId()).isEqualTo(app.getId());
     assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(stage.getStageTypeId());
     assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(scanTriggerType);
@@ -1246,7 +1246,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
 
     List<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId());
+        policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(), stage.getStageTypeId());
     assertThat(policyViolations).hasSize(36);
     for (PolicyViolation policyViolation : policyViolations) {
       assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
@@ -1254,7 +1254,7 @@ public class PolicyEvaluateServiceTest
     }
 
     // check components are associated with the application and stage
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
+    assertThat(appComponentDAO.getByOwnerIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
 
     // notification message should also have been sent
     List<Message> notifications = MailboxTestUtil.get(mail);

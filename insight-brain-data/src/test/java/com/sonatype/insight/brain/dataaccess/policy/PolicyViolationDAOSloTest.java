@@ -51,10 +51,10 @@ public class PolicyViolationDAOSloTest
     seedOtherApplicationReleaseViolation();
     seedTargetApplicationBuildStageViolation();
 
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, null)).isEqualTo(3L);
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, null)).isEqualTo(3L);
 
     List<PolicyViolation> page =
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
     assertThat(page).extracting(PolicyViolation::getId).containsExactlyInAnyOrderElementsOf(targetIds);
   }
 
@@ -63,14 +63,14 @@ public class PolicyViolationDAOSloTest
     seedThreeReleaseViolationsInDifferentStates();
 
     List<PolicyViolation> allViolations =
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
     Set<String> allIds = allViolations.stream().map(PolicyViolation::getId).collect(toSet());
     assertThat(allIds).hasSize(3);
 
     List<PolicyViolation> page1 =
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
     PolicyViolation cursor = page1.get(1);
-    List<PolicyViolation> page2 = dao.getByApplicationIdAndStageAfterCursor(
+    List<PolicyViolation> page2 = dao.getByOwnerIdAndStageAfterCursor(
         application.getId(), ReleaseStageType.ID,
         SloFeedSortKey.of(cursor), cursor.getId(), 2);
 
@@ -97,7 +97,7 @@ public class PolicyViolationDAOSloTest
     }
 
     List<PolicyViolation> firstPage =
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
     assertThat(firstPage).hasSize(2);
 
     // Freeze the continuation cursor at the last row the caller saw before any concurrent mutation.
@@ -109,7 +109,7 @@ public class PolicyViolationDAOSloTest
     moved.setFixTime(DateUtils.addHours(base, 24));
     dao.update(moved);
 
-    List<PolicyViolation> secondPage = dao.getByApplicationIdAndStageAfterCursor(
+    List<PolicyViolation> secondPage = dao.getByOwnerIdAndStageAfterCursor(
         application.getId(), ReleaseStageType.ID, cursorUpdateTime, cursorRow.getId(), 10);
 
     Set<String> collected = Sets.union(
@@ -138,7 +138,7 @@ public class PolicyViolationDAOSloTest
     }
 
     List<PolicyViolation> firstPage =
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
     assertThat(firstPage).hasSize(2);
 
     // Freeze the cursor at the last row of page 1 (this is the row we will then move forward).
@@ -149,7 +149,7 @@ public class PolicyViolationDAOSloTest
     cursorRow.setFixTime(DateUtils.addHours(base, 48));
     dao.update(cursorRow);
 
-    List<PolicyViolation> secondPage = dao.getByApplicationIdAndStageAfterCursor(
+    List<PolicyViolation> secondPage = dao.getByOwnerIdAndStageAfterCursor(
         application.getId(), ReleaseStageType.ID, cursorUpdateTime, cursorRow.getId(), 10);
 
     Set<String> secondPageIds = secondPage.stream().map(PolicyViolation::getId).collect(toSet());
@@ -187,7 +187,7 @@ public class PolicyViolationDAOSloTest
     }
 
     List<PolicyViolation> all =
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 100);
     assertThat(all).hasSize(5);
     assertThat(all.stream().map(v -> SloFeedSortKey.of(v).getTime()).collect(toSet()))
         .as("all rows share one sort key so the walk exercises the id tiebreaker")
@@ -198,7 +198,7 @@ public class PolicyViolationDAOSloTest
     Date updatedSince = null;
     String afterViolationId = null;
     for (int page = 0; page < 20; page++) {
-      List<PolicyViolation> slice = dao.getByApplicationIdAndStageAfterCursor(
+      List<PolicyViolation> slice = dao.getByOwnerIdAndStageAfterCursor(
           application.getId(), ReleaseStageType.ID, updatedSince, afterViolationId, 2);
       if (slice.isEmpty()) {
         break;
@@ -223,7 +223,7 @@ public class PolicyViolationDAOSloTest
     Set<String> targetIds = seedThreeReleaseViolationsInDifferentStates();
     seedOtherApplicationReleaseViolation();
 
-    List<PolicyViolation> page = dao.getByApplicationIdAndStageAfterCursor(
+    List<PolicyViolation> page = dao.getByOwnerIdAndStageAfterCursor(
         application.getId(), ReleaseStageType.ID, new Date(0L), "some-foreign-application-violation-id", 100);
 
     assertThat(page).extracting(PolicyViolation::getId).containsExactlyInAnyOrderElementsOf(targetIds);
@@ -245,10 +245,10 @@ public class PolicyViolationDAOSloTest
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "slo-scan-new", now);
     tempEntity.newPolicyViolation(newerEvaluation, policy);
 
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, null)).isEqualTo(2L);
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, null)).isEqualTo(2L);
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
     assertThat(
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
             .hasSize(1);
   }
 
@@ -268,9 +268,9 @@ public class PolicyViolationDAOSloTest
 
     assertThat(fixedViolation.getOpenTime()).isBefore(cutoff);
 
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
     assertThat(
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
             .extracting(PolicyViolation::getId)
             .containsExactly(fixedViolation.getId());
   }
@@ -291,9 +291,9 @@ public class PolicyViolationDAOSloTest
 
     assertThat(waivedViolation.getOpenTime()).isBefore(cutoff);
 
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, cutoff)).isEqualTo(1L);
     assertThat(
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, cutoff, null, 10))
             .extracting(PolicyViolation::getId)
             .containsExactly(waivedViolation.getId());
   }
@@ -315,14 +315,14 @@ public class PolicyViolationDAOSloTest
 
     Date boundary = newerViolation.getOpenTime();
 
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, boundary)).isEqualTo(1L);
-    assertThat(dao.getByApplicationIdAndStageAfterCursor(
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, boundary)).isEqualTo(1L);
+    assertThat(dao.getByOwnerIdAndStageAfterCursor(
         application.getId(), ReleaseStageType.ID, boundary, null, 10))
             .extracting(PolicyViolation::getId)
             .containsExactly(newerViolation.getId());
 
     Date afterNewest = new Date(boundary.getTime() + 1000L);
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, afterNewest)).isEqualTo(0L);
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, afterNewest)).isEqualTo(0L);
   }
 
   @Test
@@ -342,13 +342,13 @@ public class PolicyViolationDAOSloTest
     dao.update(legacyViolation);
 
     assertThat(
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 10))
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 10))
             .extracting(PolicyViolation::getId)
             .contains(legacyViolation.getId());
 
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, beforeLegacyMark))
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, beforeLegacyMark))
         .isEqualTo(1L);
-    assertThat(dao.countByApplicationIdAndStage(application.getId(), ReleaseStageType.ID, afterLegacyMark))
+    assertThat(dao.countByOwnerIdAndStage(application.getId(), ReleaseStageType.ID, afterLegacyMark))
         .isEqualTo(0L);
   }
 
@@ -366,9 +366,9 @@ public class PolicyViolationDAOSloTest
     Set<String> allIds = Sets.union(targetIds, Set.of(legacyViolation.getId()));
 
     List<PolicyViolation> page1 =
-        dao.getByApplicationIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
+        dao.getByOwnerIdAndStageAfterCursor(application.getId(), ReleaseStageType.ID, null, null, 2);
     PolicyViolation cursor = page1.get(1);
-    List<PolicyViolation> page2 = dao.getByApplicationIdAndStageAfterCursor(
+    List<PolicyViolation> page2 = dao.getByOwnerIdAndStageAfterCursor(
         application.getId(), ReleaseStageType.ID,
         SloFeedSortKey.of(cursor), cursor.getId(), 2);
 

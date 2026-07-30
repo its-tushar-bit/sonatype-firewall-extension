@@ -32,8 +32,8 @@ public class PolicyEvaluation
   @Column(name = "policy_evaluation_id")
   private String id;
 
-  @Column(name = "application_id")
-  private String applicationId;
+  @Column(name = "owner_id")
+  private String ownerId;
 
   @Column(name = "stage_type_id")
   private String stageTypeId;
@@ -100,13 +100,13 @@ public class PolicyEvaluation
   }
 
   public PolicyEvaluation(
-      String applicationId,
+      String ownerId,
       String stageTypeId,
       String scanId,
       String initiator,
       ScanTriggerType scanTriggerType)
   {
-    this.applicationId = applicationId;
+    this.ownerId = ownerId;
     this.stageTypeId = stageTypeId;
     this.scanId = scanId;
     this.initiator = initiator;
@@ -114,7 +114,7 @@ public class PolicyEvaluation
   }
 
   public PolicyEvaluation(
-      String applicationId,
+      String ownerId,
       String stageTypeId,
       String scanId,
       boolean isReevaluation,
@@ -123,7 +123,7 @@ public class PolicyEvaluation
       ScanTriggerType scanTriggerType,
       ClientScanType clientScanType)
   {
-    this.applicationId = applicationId;
+    this.ownerId = ownerId;
     this.stageTypeId = stageTypeId;
     this.scanId = scanId;
     this.isReevaluation = isReevaluation;
@@ -138,12 +138,12 @@ public class PolicyEvaluation
    * {@code HostedComponentScanQueueConsumer.createPolicyEvaluationRecord}.
    */
   public static PolicyEvaluation createForHostedComponent(
-      final String applicationId,
+      final String ownerId,
       final String stageTypeId,
       final String scanId,
       final boolean isReevaluation)
   {
-    return new PolicyEvaluation(applicationId, stageTypeId.toLowerCase(), scanId, isReevaluation, false, "system",
+    return new PolicyEvaluation(ownerId, stageTypeId.toLowerCase(), scanId, isReevaluation, false, "system",
         ScanTriggerType.HOSTED_REPOSITORY_SCANNING, null);
   }
 
@@ -181,12 +181,12 @@ public class PolicyEvaluation
     this.isForMonitoring = isForMonitoring;
   }
 
-  public String getApplicationId() {
-    return applicationId;
+  public String getOwnerId() {
+    return ownerId;
   }
 
-  public void setApplicationId(String applicationId) {
-    this.applicationId = applicationId;
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
   }
 
   public String getStageTypeId() {
@@ -295,7 +295,7 @@ public class PolicyEvaluation
   public String toString() {
     return "PolicyEvaluation{" +
         "id='" + id + '\'' +
-        ", applicationId='" + applicationId + '\'' +
+        ", ownerId='" + ownerId + '\'' +
         ", stageTypeId='" + stageTypeId + '\'' +
         ", scanId='" + scanId + '\'' +
         ", isForObsoleteScan=" + isForObsoleteScan +

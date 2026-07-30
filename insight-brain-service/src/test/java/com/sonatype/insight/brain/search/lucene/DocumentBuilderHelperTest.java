@@ -165,8 +165,8 @@ public class DocumentBuilderHelperTest
     Organization org = tempEntity.newOrganization();
     PolicyEvaluation eval = new PolicyEvaluation();
     eval.setScanId("scan-id");
-    eval.setApplicationId(app.getId());
-    when(policyEvaluationDAOMock.getLastByApplicationIdAndStageId(app.getId(), StageTypes.BUILD.getId())).thenReturn(
+    eval.setOwnerId(app.getId());
+    when(policyEvaluationDAOMock.getLastByOwnerIdAndStageId(app.getId(), StageTypes.BUILD.getId())).thenReturn(
         eval);
     LifecycleReport mockLifecycleReport = mock(LifecycleReport.class);
     doThrow(new IOException("IO error")).when(mockLifecycleReport).exists();
@@ -182,7 +182,7 @@ public class DocumentBuilderHelperTest
     Organization org = tempEntity.newOrganization();
     PolicyEvaluation eval = new PolicyEvaluation();
     eval.setScanId("scan-id");
-    when(policyEvaluationDAOMock.getLastByApplicationIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
         .thenReturn(eval);
     when(reportServiceMock.getReport(anyString(), anyString()))
         .thenThrow(new NotFoundException("Not found"));
@@ -197,7 +197,7 @@ public class DocumentBuilderHelperTest
     Organization org = tempEntity.newOrganization();
     PolicyEvaluation eval = new PolicyEvaluation();
     eval.setScanId("scan-id");
-    when(policyEvaluationDAOMock.getLastByApplicationIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
         .thenReturn(eval);
     when(reportServiceMock.getReport(anyString(), anyString()))
         .thenThrow(new UncheckedIOException(new IOException("IO error")));
@@ -212,7 +212,7 @@ public class DocumentBuilderHelperTest
     Organization org = tempEntity.newOrganization();
     PolicyEvaluation eval = new PolicyEvaluation();
     eval.setScanId("scan-id");
-    when(policyEvaluationDAOMock.getLastByApplicationIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
         .thenReturn(eval);
     when(reportServiceMock.getReport(anyString(), anyString()))
         .thenThrow(new RuntimeException("Wrapped", new IOException("IO error")));
@@ -227,7 +227,7 @@ public class DocumentBuilderHelperTest
     Organization org = tempEntity.newOrganization();
     PolicyEvaluation eval = new PolicyEvaluation();
     eval.setScanId("scan-id");
-    when(policyEvaluationDAOMock.getLastByApplicationIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
         .thenReturn(eval);
     when(reportServiceMock.getReport(anyString(), anyString()))
         .thenThrow(new RuntimeException("Wrapped", new NotFoundException("Not found")));
@@ -242,7 +242,7 @@ public class DocumentBuilderHelperTest
     Organization org = tempEntity.newOrganization();
     PolicyEvaluation eval = new PolicyEvaluation();
     eval.setScanId("scan-id");
-    when(policyEvaluationDAOMock.getLastByApplicationIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdAndStageId(app.getId(), StageTypes.BUILD.getId()))
         .thenReturn(eval);
     when(reportServiceMock.getReport(anyString(), anyString()))
         .thenThrow(new IllegalStateException("Unexpected error"));
@@ -277,14 +277,14 @@ public class DocumentBuilderHelperTest
     long buildMs = 1_700_000_000_000L;
     long releaseMs = 1_800_000_000_000L;
     PolicyEvaluation buildEval = new PolicyEvaluation();
-    buildEval.setApplicationId(app.getId());
+    buildEval.setOwnerId(app.getId());
     buildEval.setTime(new Date(buildMs));
     PolicyEvaluation releaseEval = new PolicyEvaluation();
-    releaseEval.setApplicationId(app.getId());
+    releaseEval.setOwnerId(app.getId());
     releaseEval.setTime(new Date(releaseMs));
     // The rollup loader batch-loads the per-app latest evaluations in one query and takes the max
     // time per app across the returned rows (release > build).
-    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(eq(Set.of(app.getId())), anySet()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdsAndStageIds(eq(Set.of(app.getId())), anySet()))
         .thenReturn(List.of(buildEval, releaseEval));
 
     Document doc = documentBuilderHelper.buildDocument(indexingContextMock, app);
@@ -389,7 +389,7 @@ public class DocumentBuilderHelperTest
 
   private void stubNoEvaluationsByDefault(final String applicationId) {
     lenient()
-        .when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(eq(Set.of(applicationId)), anySet()))
+        .when(policyEvaluationDAOMock.getLastByOwnerIdsAndStageIds(eq(Set.of(applicationId)), anySet()))
         .thenReturn(Collections.emptyList());
   }
 
@@ -411,12 +411,12 @@ public class DocumentBuilderHelperTest
     long msA = 1_700_000_000_000L;
     long msB = 1_650_000_000_000L;
     PolicyEvaluation evalA = new PolicyEvaluation();
-    evalA.setApplicationId(appA.getId());
+    evalA.setOwnerId(appA.getId());
     evalA.setTime(new Date(msA));
     PolicyEvaluation evalB = new PolicyEvaluation();
-    evalB.setApplicationId(appB.getId());
+    evalB.setOwnerId(appB.getId());
     evalB.setTime(new Date(msB));
-    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(anySet(), anySet()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdsAndStageIds(anySet(), anySet()))
         .thenReturn(List.of(evalA, evalB));
 
     // appA gets a CRITICAL BUILD violation; appB gets a SEVERE BUILD violation. The batched
@@ -482,7 +482,7 @@ public class DocumentBuilderHelperTest
       }
     };
     // No evaluations/violations so those fields are simply omitted; we only assert categories here.
-    lenient().when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(anySet(), anySet()))
+    lenient().when(policyEvaluationDAOMock.getLastByOwnerIdsAndStageIds(anySet(), anySet()))
         .thenReturn(Collections.emptyList());
 
     List<Document> docs =
@@ -521,7 +521,7 @@ public class DocumentBuilderHelperTest
     tempEntity.newApplicationTag(app.getId(), tag.getId());
 
     when(indexingContextMock.getOwner(org.getId())).thenReturn(org);
-    lenient().when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(anySet(), anySet()))
+    lenient().when(policyEvaluationDAOMock.getLastByOwnerIdsAndStageIds(anySet(), anySet()))
         .thenReturn(Collections.emptyList());
 
     Document batchedDoc = documentBuilderHelper.buildApplicationDocs(indexingContextMock, List.of(app))
@@ -765,14 +765,14 @@ public class DocumentBuilderHelperTest
     long msA = 1_700_000_000_000L;
     long msB = 1_650_000_000_000L;
     PolicyEvaluation evalA = new PolicyEvaluation();
-    evalA.setApplicationId(appA.getId());
+    evalA.setOwnerId(appA.getId());
     evalA.setTime(new Date(msA));
     PolicyEvaluation evalB = new PolicyEvaluation();
-    evalB.setApplicationId(appB.getId());
+    evalB.setOwnerId(appB.getId());
     evalB.setTime(new Date(msB));
-    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(eq(Set.of(appA.getId())), anySet()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdsAndStageIds(eq(Set.of(appA.getId())), anySet()))
         .thenReturn(List.of(evalA));
-    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(eq(Set.of(appB.getId())), anySet()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdsAndStageIds(eq(Set.of(appB.getId())), anySet()))
         .thenReturn(List.of(evalB));
 
     // Real H2-backed violations: appA a CRITICAL BUILD violation, appB a SEVERE BUILD violation.
@@ -838,9 +838,9 @@ public class DocumentBuilderHelperTest
 
     long evalMs = 1_700_000_000_000L;
     PolicyEvaluation latestEval = new PolicyEvaluation();
-    latestEval.setApplicationId(app.getId());
+    latestEval.setOwnerId(app.getId());
     latestEval.setTime(new Date(evalMs));
-    when(policyEvaluationDAOMock.getLastByApplicationIdsAndStageIds(anySet(), anySet()))
+    when(policyEvaluationDAOMock.getLastByOwnerIdsAndStageIds(anySet(), anySet()))
         .thenReturn(List.of(latestEval));
 
     PolicyEvaluation seedEval = tempEntity.newPolicyEvaluation(
@@ -1050,8 +1050,8 @@ public class DocumentBuilderHelperTest
 
   /**
    * The wider aggregate fetch must remain ONE bounded query for the whole app batch — no N+1. Asserts the
-   * violations DAO is hit exactly once via {@code getUnfixedByApplicationIds} across a two-app batch, and
-   * the active-only stage-severity query {@code getActiveByApplicationIds} is NOT used anymore.
+   * violations DAO is hit exactly once via {@code getUnfixedByOwnerIds} across a two-app batch, and
+   * the active-only stage-severity query {@code getActiveByOwnerIds} is NOT used anymore.
    */
   @Test
   public void testBuildApplicationDocs_violationRollup_singleQueryNoNPlusOne() {
@@ -1090,8 +1090,8 @@ public class DocumentBuilderHelperTest
 
       // One widened violations query for the whole two-app batch (no N+1), and the active-only
       // stage-severity query is no longer used — the wider fetch backs both pills and aggregates.
-      verify(spyViolationDAO, times(1)).getUnfixedByApplicationIds(anySet());
-      verify(spyViolationDAO, never()).getActiveByApplicationIds(anySet());
+      verify(spyViolationDAO, times(1)).getUnfixedByOwnerIds(anySet());
+      verify(spyViolationDAO, never()).getActiveByOwnerIds(anySet());
     }
     finally {
       swapViolationDAO(documentBuilderHelper, policyViolationDAO);
@@ -2223,7 +2223,7 @@ public class DocumentBuilderHelperTest
   private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
 
   private List<PolicyViolation> loadUnfixedViolationsForStage(final Application app, final StageType stage) {
-    return policyViolationDAO.getUnfixedByApplicationIdAndStageId(app.getId(), stage.getId());
+    return policyViolationDAO.getUnfixedByOwnerIdAndStageId(app.getId(), stage.getId());
   }
 
   /**

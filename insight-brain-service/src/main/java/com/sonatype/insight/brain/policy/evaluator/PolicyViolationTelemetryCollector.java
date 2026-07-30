@@ -235,7 +235,7 @@ public class PolicyViolationTelemetryCollector
 
         var remediationPullRequestEvents =
             sourceControlEventDAO.getCompletedRemediationPullRequestEventsForAppComponent(
-                fixedPolicyViolation.getApplicationId(),
+                fixedPolicyViolation.getOwnerId(),
                 fixedPolicyViolation.getComponentIdentifier(),
                 minCutoffTime,
                 fixedPolicyViolation.getFixTime());
@@ -251,7 +251,7 @@ public class PolicyViolationTelemetryCollector
             telemetryData.put(PULL_REQUEST_REMEDIATION_VERSION, eventRemediationVersion);
             var isGolden = componentHelper.isGoldenVersion(
                 newComponent.getComponentIdentifier(),
-                fixedPolicyViolation.getApplicationId());
+                fixedPolicyViolation.getOwnerId());
             telemetryData.put(PULL_REQUEST_IS_GOLDEN, isGolden);
           }
           else {

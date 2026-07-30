@@ -20,7 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentRisk;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -33,7 +33,7 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponent.APPLICATION_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerComponent.OWNER_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentObligation.COMPONENT_OBLIGATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolation.POLICY_VIOLATION;
 
@@ -42,13 +42,13 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolati
  */
 @Named
 @Singleton
-public class ApplicationComponentDAO
-    extends AbstractOperationalSqlDAO<ApplicationComponent>
+public class OwnerComponentDAO
+    extends AbstractOperationalSqlDAO<OwnerComponent>
 {
   /**
-   * Compound key for looking up ApplicationComponent by application, stage, and hash.
+   * Compound key for looking up OwnerComponent by owner, stage, and hash.
    */
-  public record ApplicationComponentKey(String applicationId, String stageTypeId, String hash)
+  public record OwnerComponentKey(String ownerId, String stageTypeId, String hash)
   {
   }
 
@@ -57,7 +57,7 @@ public class ApplicationComponentDAO
   private final TemporaryTableHelper temporaryTableHelper;
 
   @Inject
-  public ApplicationComponentDAO(
+  public OwnerComponentDAO(
       final OperationalDataStore operationalDataStore,
       final TemporaryTableHelper temporaryTableHelper)
   {
@@ -66,60 +66,60 @@ public class ApplicationComponentDAO
   }
 
   @Override
-  public int update(TransactionContext tx, ApplicationComponent entity) {
-    throw new UnsupportedOperationException("ApplicationComponent does not support update operations");
+  public int update(TransactionContext tx, OwnerComponent entity) {
+    throw new UnsupportedOperationException("OwnerComponent does not support update operations");
   }
 
-  public List<ApplicationComponent> getByApplicationId(TransactionContext tx, String appId) {
+  public List<OwnerComponent> getByOwnerId(TransactionContext tx, String ownerId) {
     return tx.dsl()
-        .selectFrom(APPLICATION_COMPONENT)
-        .where(APPLICATION_COMPONENT.APPLICATION_ID.eq(appId))
+        .selectFrom(OWNER_COMPONENT)
+        .where(OWNER_COMPONENT.OWNER_ID.eq(ownerId))
         .fetch(this::toEntity);
   }
 
-  public List<ApplicationComponent> getByApplicationId(String appId) {
+  public List<OwnerComponent> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationId(tx, appId);
+      return getByOwnerId(tx, ownerId);
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
+  public List<OwnerComponent> getByOwnerIdAndStageTypeId(String ownerId, String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationIdAndStageTypeId(tx, appId, stageTypeId);
+      return getByOwnerIdAndStageTypeId(tx, ownerId, stageTypeId);
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndStageTypeId(
+  public List<OwnerComponent> getByOwnerIdAndStageTypeId(
       TransactionContext tx,
-      String appId,
+      String ownerId,
       String stageTypeId)
   {
     return tx.dsl()
-        .selectFrom(APPLICATION_COMPONENT)
-        .where(APPLICATION_COMPONENT.APPLICATION_ID.eq(appId))
-        .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
+        .selectFrom(OWNER_COMPONENT)
+        .where(OWNER_COMPONENT.OWNER_ID.eq(ownerId))
+        .and(OWNER_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
         .fetch(this::toEntity);
   }
 
   /**
-   * Batch variant of {@link #getByApplicationIdAndStageTypeId(String, String)} that fetches the components for many
-   * applications at once, avoiding a per-application query. Callers group the result by application id.
+   * Batch variant of {@link #getByOwnerIdAndStageTypeId(String, String)} that fetches the components for many
+   * owners at once, avoiding a per-owner query. Callers group the result by owner id.
    */
-  public List<ApplicationComponent> getByApplicationIdsAndStageTypeId(
-      Set<String> applicationIds,
+  public List<OwnerComponent> getByOwnerIdsAndStageTypeId(
+      Set<String> ownerIds,
       String stageTypeId)
   {
-    if (CollectionUtils.isEmpty(applicationIds)) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
       return List.of();
     }
     return getListWithSqlInClause(
-        applicationIds,
-        appIdChunk -> {
+        ownerIds,
+        ownerIdChunk -> {
           try (TransactionContext tx = createTransactionContext()) {
             return tx.dsl()
-                .selectFrom(APPLICATION_COMPONENT)
-                .where(APPLICATION_COMPONENT.APPLICATION_ID.in(appIdChunk))
-                .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
+                .selectFrom(OWNER_COMPONENT)
+                .where(OWNER_COMPONENT.OWNER_ID.in(ownerIdChunk))
+                .and(OWNER_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
                 .fetch(this::toEntity);
           }
         },
@@ -128,234 +128,241 @@ public class ApplicationComponentDAO
 
   // Bypasses per-entity delete() for performance. This DAO does not use a SearchIndexManager,
   // so no search index side effects are lost.
-  public void deleteByApplicationIdAndStageTypeId(TransactionContext tx, String appId, String stageTypeId) {
+  public void deleteByOwnerIdAndStageTypeId(TransactionContext tx, String ownerId, String stageTypeId) {
     tx.dsl()
-        .deleteFrom(APPLICATION_COMPONENT)
-        .where(APPLICATION_COMPONENT.APPLICATION_ID.eq(appId))
-        .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
+        .deleteFrom(OWNER_COMPONENT)
+        .where(OWNER_COMPONENT.OWNER_ID.eq(ownerId))
+        .and(OWNER_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
         .execute();
   }
 
-  public ApplicationComponent getByApplicationIdAndStageTypeIdAndHash(String appId, String stageTypeId, String hash) {
+  public void deleteByOwnerId(TransactionContext tx, String ownerId) {
+    tx.dsl()
+        .deleteFrom(OWNER_COMPONENT)
+        .where(OWNER_COMPONENT.OWNER_ID.eq(ownerId))
+        .execute();
+  }
+
+  public OwnerComponent getByOwnerIdAndStageTypeIdAndHash(String ownerId, String stageTypeId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()
-          .selectFrom(APPLICATION_COMPONENT)
-          .where(APPLICATION_COMPONENT.APPLICATION_ID.eq(appId))
-          .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
-          .and(APPLICATION_COMPONENT.HASH.eq(hash))
+          .selectFrom(OWNER_COMPONENT)
+          .where(OWNER_COMPONENT.OWNER_ID.eq(ownerId))
+          .and(OWNER_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
+          .and(OWNER_COMPONENT.HASH.eq(hash))
           .fetchOne());
     }
   }
 
-  public Map<ApplicationComponentKey, ApplicationComponent> getMapByApplicationIdsAndStageTypeIdsAndHashes(
-      Set<String> applicationIds,
+  public Map<OwnerComponentKey, OwnerComponent> getMapByOwnerIdsAndStageTypeIdsAndHashes(
+      Set<String> ownerIds,
       Set<String> stageTypeIds,
       Set<String> hashes)
   {
-    if (CollectionUtils.isEmpty(applicationIds) || CollectionUtils.isEmpty(stageTypeIds)
+    if (CollectionUtils.isEmpty(ownerIds) || CollectionUtils.isEmpty(stageTypeIds)
         || CollectionUtils.isEmpty(hashes))
     {
       return Map.of();
     }
     return getStreamWithSqlInClause(
-        applicationIds,
-        appIdChunk -> getStreamWithSqlInClause(
+        ownerIds,
+        ownerIdChunk -> getStreamWithSqlInClause(
             hashes,
             hashChunk -> {
               try (TransactionContext tx = createTransactionContext()) {
                 return tx.dsl()
-                    .selectFrom(APPLICATION_COMPONENT)
-                    .where(APPLICATION_COMPONENT.APPLICATION_ID.in(appIdChunk))
-                    .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
-                    .and(APPLICATION_COMPONENT.HASH.in(hashChunk))
+                    .selectFrom(OWNER_COMPONENT)
+                    .where(OWNER_COMPONENT.OWNER_ID.in(ownerIdChunk))
+                    .and(OWNER_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
+                    .and(OWNER_COMPONENT.HASH.in(hashChunk))
                     .fetch(this::toEntity)
                     .stream();
               }
             },
             getDataStore(),
             1,
-            appIdChunk.size() + stageTypeIds.size()),
+            ownerIdChunk.size() + stageTypeIds.size()),
         getDataStore(),
         1,
         stageTypeIds.size() + 1) // +1 for minimum 1 hash in each inner IN-clause
             .collect(Collectors.toMap(
-                component -> new ApplicationComponentKey(
-                    component.getApplicationId(),
+                component -> new OwnerComponentKey(
+                    component.getOwnerId(),
                     component.getStageTypeId(),
                     component.getHash()),
                 component -> component));
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndHash(String appId, String hash) {
+  public List<OwnerComponent> getByOwnerIdAndHash(String ownerId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationIdAndHash(tx, appId, hash);
+      return getByOwnerIdAndHash(tx, ownerId, hash);
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndHash(TransactionContext tx, String appId, String hash) {
+  public List<OwnerComponent> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
     return tx.dsl()
-        .selectFrom(APPLICATION_COMPONENT)
-        .where(APPLICATION_COMPONENT.APPLICATION_ID.eq(appId))
-        .and(APPLICATION_COMPONENT.HASH.eq(hash))
+        .selectFrom(OWNER_COMPONENT)
+        .where(OWNER_COMPONENT.OWNER_ID.eq(ownerId))
+        .and(OWNER_COMPONENT.HASH.eq(hash))
         .fetch(this::toEntity);
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndComponentIdentifier(
-      String appId,
+  public List<OwnerComponent> getByOwnerIdAndComponentIdentifier(
+      String ownerId,
       ComponentIdentifier componentIdentifier)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationIdAndComponentIdentifier(tx, appId, componentIdentifier);
+      return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndComponentIdentifier(
+  public List<OwnerComponent> getByOwnerIdAndComponentIdentifier(
       TransactionContext tx,
-      String appId,
+      String ownerId,
       ComponentIdentifier componentIdentifier)
   {
     return tx.dsl()
-        .selectFrom(APPLICATION_COMPONENT)
-        .where(APPLICATION_COMPONENT.APPLICATION_ID.eq(appId))
-        .and(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
-        .and(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON.eq(
+        .selectFrom(OWNER_COMPONENT)
+        .where(OWNER_COMPONENT.OWNER_ID.eq(ownerId))
+        .and(OWNER_COMPONENT.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(OWNER_COMPONENT.COMPONENT_ID_COORDINATES_JSON.eq(
             ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
         .fetch(this::toEntity);
   }
 
-  public ApplicationComponent getLastByHash(String hash) {
+  public OwnerComponent getLastByHash(String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()
-          .selectFrom(APPLICATION_COMPONENT)
-          .where(APPLICATION_COMPONENT.HASH.eq(hash))
-          .orderBy(APPLICATION_COMPONENT.TIME.desc())
+          .selectFrom(OWNER_COMPONENT)
+          .where(OWNER_COMPONENT.HASH.eq(hash))
+          .orderBy(OWNER_COMPONENT.TIME.desc())
           .limit(1)
           .fetchOne());
     }
   }
 
-  public ApplicationComponent getLastByComponentIdentifier(ComponentIdentifier componentIdentifier) {
+  public OwnerComponent getLastByComponentIdentifier(ComponentIdentifier componentIdentifier) {
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()
-          .selectFrom(APPLICATION_COMPONENT)
-          .where(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
-          .and(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON.eq(
+          .selectFrom(OWNER_COMPONENT)
+          .where(OWNER_COMPONENT.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+          .and(OWNER_COMPONENT.COMPONENT_ID_COORDINATES_JSON.eq(
               ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
-          .orderBy(APPLICATION_COMPONENT.TIME.desc())
+          .orderBy(OWNER_COMPONENT.TIME.desc())
           .limit(1)
           .fetchOne());
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(
-      Set<String> applicationIds,
+  public List<OwnerComponent> getByOwnerIdsAndStageTypeIdsSince(
+      Set<String> ownerIds,
       Set<String> stageTypeIds,
       Date date)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      if (applicationIds != null && applicationIds.size() >= getInOperatorThreshold()) {
-        List<ApplicationComponent> applicationComponents = tx.dsl()
-            .selectFrom(APPLICATION_COMPONENT)
-            .where(APPLICATION_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
-            .and(APPLICATION_COMPONENT.TIME.greaterOrEqual(date))
-            .orderBy(APPLICATION_COMPONENT.TIME.asc())
+      if (ownerIds != null && ownerIds.size() >= getInOperatorThreshold()) {
+        List<OwnerComponent> ownerComponents = tx.dsl()
+            .selectFrom(OWNER_COMPONENT)
+            .where(OWNER_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
+            .and(OWNER_COMPONENT.TIME.greaterOrEqual(date))
+            .orderBy(OWNER_COMPONENT.TIME.asc())
             .fetch(this::toEntity);
 
-        List<ApplicationComponent> retval = new ArrayList<>();
-        for (ApplicationComponent applicationComponent : applicationComponents) {
-          if (applicationIds.contains(applicationComponent.getApplicationId())) {
-            retval.add(applicationComponent);
+        List<OwnerComponent> retval = new ArrayList<>();
+        for (OwnerComponent ownerComponent : ownerComponents) {
+          if (ownerIds.contains(ownerComponent.getOwnerId())) {
+            retval.add(ownerComponent);
           }
         }
         return retval;
       }
       else {
         return tx.dsl()
-            .selectFrom(APPLICATION_COMPONENT)
-            .where(APPLICATION_COMPONENT.APPLICATION_ID.in(applicationIds))
-            .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
-            .and(APPLICATION_COMPONENT.TIME.greaterOrEqual(date))
-            .orderBy(APPLICATION_COMPONENT.TIME.asc())
+            .selectFrom(OWNER_COMPONENT)
+            .where(OWNER_COMPONENT.OWNER_ID.in(ownerIds))
+            .and(OWNER_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
+            .and(OWNER_COMPONENT.TIME.greaterOrEqual(date))
+            .orderBy(OWNER_COMPONENT.TIME.asc())
             .fetch(this::toEntity);
       }
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdsAndStageTypeIds(
-      Set<String> applicationIds,
+  public List<OwnerComponent> getByOwnerIdsAndStageTypeIds(
+      Set<String> ownerIds,
       Set<String> stageTypeIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      if (applicationIds != null && applicationIds.size() >= getInOperatorThreshold()) {
-        List<ApplicationComponent> applicationComponents = tx.dsl()
-            .selectFrom(APPLICATION_COMPONENT)
-            .where(APPLICATION_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
+      if (ownerIds != null && ownerIds.size() >= getInOperatorThreshold()) {
+        List<OwnerComponent> ownerComponents = tx.dsl()
+            .selectFrom(OWNER_COMPONENT)
+            .where(OWNER_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
             .fetch(this::toEntity);
 
-        List<ApplicationComponent> retval = new ArrayList<>();
-        for (ApplicationComponent applicationComponent : applicationComponents) {
-          if (applicationIds.contains(applicationComponent.getApplicationId())) {
-            retval.add(applicationComponent);
+        List<OwnerComponent> retval = new ArrayList<>();
+        for (OwnerComponent ownerComponent : ownerComponents) {
+          if (ownerIds.contains(ownerComponent.getOwnerId())) {
+            retval.add(ownerComponent);
           }
         }
         return retval;
       }
       else {
         return tx.dsl()
-            .selectFrom(APPLICATION_COMPONENT)
-            .where(APPLICATION_COMPONENT.APPLICATION_ID.in(applicationIds))
-            .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
+            .selectFrom(OWNER_COMPONENT)
+            .where(OWNER_COMPONENT.OWNER_ID.in(ownerIds))
+            .and(OWNER_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
             .fetch(this::toEntity);
       }
     }
   }
 
   /**
-   * Queries the combination of applications IDs and stage type IDs where the components found in the last evaluation
+   * Queries the combination of owner IDs and stage type IDs where the components found in the last evaluation
    * have a review of the license legal obligations already started or not.
    * <p>
-   * A license legal obligations review is considered started in an application and stage type when there is a least one
+   * A license legal obligations review is considered started for an owner and stage type when there is at least one
    * entry for a component in {@ComponentObligation} whether at the application, organization or root organization scope
    * while a not started review is when there is not a single entry.
    *
-   * @param applicationIds Applications IDs where the query can be made.
+   * @param ownerIds Owner IDs where the query can be made.
    * @param stageTypeIds Stage type IDs where the query can be made.
-   * @param isReviewStarted {@code true} to query the applications and stage types where the review already started,
+   * @param isReviewStarted {@code true} to query the owners and stage types where the review already started,
    *          {@code false} to query the ones where the review hasn't started.
-   * @return A list of Object arrays with 2 positions: the application ID and the stage type ID.
+   * @return A list of Object arrays with 2 positions: the owner ID and the stage type ID.
    */
-  public List<Object[]> getApplicationIdsAndStageTypeIdsByReviewStatus(
-      Set<String> applicationIds,
+  public List<Object[]> getOwnerIdsAndStageTypeIdsByReviewStatus(
+      Set<String> ownerIds,
       Set<String> stageTypeIds,
       boolean isReviewStarted)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      var ac = APPLICATION_COMPONENT.as("ac");
+      var oc = OWNER_COMPONENT.as("oc");
       var a = APPLICATION.as("a");
 
       // Build EXISTS condition for application level
       Condition appExists = DSL.exists(
           DSL.selectOne()
               .from(COMPONENT_OBLIGATION)
-              .where(COMPONENT_OBLIGATION.OWNER_ID.eq(ac.APPLICATION_ID))
-              .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(ac.COMPONENT_ID_FORMAT))
-              .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(ac.COMPONENT_ID_COORDINATES_JSON)));
+              .where(COMPONENT_OBLIGATION.OWNER_ID.eq(oc.OWNER_ID))
+              .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(oc.COMPONENT_ID_FORMAT))
+              .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(oc.COMPONENT_ID_COORDINATES_JSON)));
 
       // Build EXISTS condition for organization level
       Condition orgExists = DSL.exists(
           DSL.selectOne()
               .from(COMPONENT_OBLIGATION)
               .where(COMPONENT_OBLIGATION.OWNER_ID.eq(a.ORGANIZATION_ID))
-              .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(ac.COMPONENT_ID_FORMAT))
-              .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(ac.COMPONENT_ID_COORDINATES_JSON)));
+              .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(oc.COMPONENT_ID_FORMAT))
+              .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(oc.COMPONENT_ID_COORDINATES_JSON)));
 
       // Build EXISTS condition for root organization level
       Condition rootExists = DSL.exists(
           DSL.selectOne()
               .from(COMPONENT_OBLIGATION)
               .where(COMPONENT_OBLIGATION.OWNER_ID.eq(Organization.ROOT_ORGANIZATION_ID))
-              .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(ac.COMPONENT_ID_FORMAT))
-              .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(ac.COMPONENT_ID_COORDINATES_JSON)));
+              .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(oc.COMPONENT_ID_FORMAT))
+              .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(oc.COMPONENT_ID_COORDINATES_JSON)));
 
       // Combine conditions based on isReviewStarted
       Condition reviewCondition;
@@ -366,25 +373,25 @@ public class ApplicationComponentDAO
         reviewCondition = DSL.not(appExists).and(DSL.not(orgExists)).and(DSL.not(rootExists));
       }
 
-      boolean requiresManualFilter = requiresManualFilter(applicationIds);
+      boolean requiresManualFilter = requiresManualFilter(ownerIds);
 
-      Condition baseCondition = a.APPLICATION_ID.eq(ac.APPLICATION_ID)
-          .and(ac.STAGE_TYPE_ID.in(stageTypeIds))
+      Condition baseCondition = a.APPLICATION_ID.eq(oc.OWNER_ID)
+          .and(oc.STAGE_TYPE_ID.in(stageTypeIds))
           .and(reviewCondition);
 
       if (!requiresManualFilter) {
-        baseCondition = baseCondition.and(ac.APPLICATION_ID.in(applicationIds));
+        baseCondition = baseCondition.and(oc.OWNER_ID.in(ownerIds));
       }
 
       List<Object[]> results = tx.dsl()
-          .selectDistinct(ac.APPLICATION_ID, ac.STAGE_TYPE_ID)
-          .from(ac, a)
+          .selectDistinct(oc.OWNER_ID, oc.STAGE_TYPE_ID)
+          .from(oc, a)
           .where(baseCondition)
           .fetch(r -> new Object[]{r.value1(), r.value2()});
 
       if (requiresManualFilter) {
         return results.stream()
-            .filter(array -> applicationIds.contains(array[0].toString()))
+            .filter(array -> ownerIds.contains(array[0].toString()))
             .collect(Collectors.toList());
       }
 
@@ -393,7 +400,7 @@ public class ApplicationComponentDAO
   }
 
   public List<ApplicationComponentRisk> getComponentsRiskFiltered(
-      Set<String> applicationIds,
+      Set<String> ownerIds,
       Set<String> stageTypes,
       Set<String> policyThreatCategoryFilter,
       Entry<Integer, Integer> policyThreatLevelFilter,
@@ -403,7 +410,7 @@ public class ApplicationComponentDAO
       int pageSize)
   {
     return getComponentsRiskFiltered(
-        applicationIds,
+        ownerIds,
         stageTypes,
         policyThreatCategoryFilter,
         policyThreatLevelFilter == null ? null : List.of(policyThreatLevelFilter),
@@ -423,7 +430,7 @@ public class ApplicationComponentDAO
    * page-card enrichment so SQL cost stays proportional to the visible page (≤100 hashes).
    */
   public List<ApplicationComponentRisk> getComponentsRiskFiltered(
-      Set<String> applicationIds,
+      Set<String> ownerIds,
       Set<String> stageTypes,
       Set<String> policyThreatCategoryFilter,
       List<Entry<Integer, Integer>> policyThreatLevelRanges,
@@ -437,7 +444,7 @@ public class ApplicationComponentDAO
       throw new UnsupportedOperationException("This operation is only supported for PostgreSQL databases");
     }
 
-    if (applicationIds.isEmpty()) {
+    if (ownerIds.isEmpty()) {
       return Collections.emptyList();
     }
     if (componentHashes != null && componentHashes.isEmpty()) {
@@ -446,7 +453,7 @@ public class ApplicationComponentDAO
 
     try (TransactionContext tx = createTransactionContext()) {
       boolean useTemporaryTable =
-          temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, applicationIds);
+          temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, ownerIds);
 
       var pv = POLICY_VIOLATION.as("pv");
 
@@ -454,7 +461,7 @@ public class ApplicationComponentDAO
       Condition whereCondition = pv.FIX_TIME.isNull();
 
       if (!useTemporaryTable) {
-        whereCondition = whereCondition.and(pv.APPLICATION_ID.in(applicationIds));
+        whereCondition = whereCondition.and(pv.OWNER_ID.in(ownerIds));
       }
       if (componentHashes != null && !componentHashes.isEmpty()) {
         whereCondition = whereCondition.and(pv.HASH.in(componentHashes));
@@ -499,23 +506,23 @@ public class ApplicationComponentDAO
       // Build the inner subquery using ROW_NUMBER() to simulate DISTINCT ON (PostgreSQL-specific pattern)
       var rowNum = DSL.rowNumber()
           .over(
-              DSL.partitionBy(pv.APPLICATION_ID, pv.POLICY_ID, pv.CONSTRAINT_FACTS_ID,
+              DSL.partitionBy(pv.OWNER_ID, pv.POLICY_ID, pv.CONSTRAINT_FACTS_ID,
                   pv.HASH, pv.COMPONENT_ID_FORMAT, pv.COMPONENT_ID_COORDINATES_JSON)
                   .orderBy(pv.OPEN_TIME.desc()))
           .as("rn");
 
       var subquery = useTemporaryTable
           ? tx.dsl()
-              .select(pv.APPLICATION_ID, pv.POLICY_ID, pv.CONSTRAINT_FACTS_ID, pv.OPEN_TIME,
+              .select(pv.OWNER_ID, pv.POLICY_ID, pv.CONSTRAINT_FACTS_ID, pv.OPEN_TIME,
                   pv.THREAT_LEVEL, pv.HASH, pv.FILENAME, pv.COMPONENT_ID_FORMAT, pv.COMPONENT_ID_COORDINATES_JSON,
                   rowNum)
               .from(pv)
               .join(DSL.table("temporary_ids").as("ti"))
-              .on(pv.APPLICATION_ID.eq(DSL.field("ti.id", String.class)))
+              .on(pv.OWNER_ID.eq(DSL.field("ti.id", String.class)))
               .where(whereCondition)
               .asTable("sub")
           : tx.dsl()
-              .select(pv.APPLICATION_ID, pv.POLICY_ID, pv.CONSTRAINT_FACTS_ID, pv.OPEN_TIME,
+              .select(pv.OWNER_ID, pv.POLICY_ID, pv.CONSTRAINT_FACTS_ID, pv.OPEN_TIME,
                   pv.THREAT_LEVEL, pv.HASH, pv.FILENAME, pv.COMPONENT_ID_FORMAT, pv.COMPONENT_ID_COORDINATES_JSON,
                   rowNum)
               .from(pv)
@@ -524,7 +531,7 @@ public class ApplicationComponentDAO
 
       var innerQuery = tx.dsl()
           .select(
-              DSL.field("sub.application_id", String.class).as("application_id"),
+              DSL.field("sub.owner_id", String.class).as("owner_id"),
               DSL.field("sub.policy_id", String.class).as("policy_id"),
               DSL.field("sub.constraint_facts_id", String.class).as("constraint_facts_id"),
               DSL.field("sub.open_time").as("open_time"),
@@ -541,7 +548,7 @@ public class ApplicationComponentDAO
       var filename = DSL.field("filename", String.class);
       var componentIdFormat = DSL.field("component_id_format", String.class);
       var componentIdCoordinatesJson = DSL.field("component_id_coordinates_json", String.class);
-      var applicationId = DSL.field("application_id", String.class);
+      var ownerId = DSL.field("owner_id", String.class);
       var threatLevel = DSL.field("threat_level", Short.class);
 
       // Parse orderBy string (e.g., "score DESC") into field and direction
@@ -552,14 +559,13 @@ public class ApplicationComponentDAO
       // PostgreSQL lowercases identifiers, which won't match quoted aliases like "affectedApplications"
       var orderField = orderDesc ? DSL.field(DSL.name(orderColumn)).desc() : DSL.field(DSL.name(orderColumn)).asc();
 
-      // Build outer query with aggregations
       var query = tx.dsl()
           .select(
               hash,
               filename,
               componentIdFormat,
               componentIdCoordinatesJson,
-              DSL.countDistinct(applicationId).as("affectedApplications"),
+              DSL.countDistinct(ownerId).as("affectedApplications"),
               DSL.sum(threatLevel).as("score"),
               DSL.sum(DSL.when(threatLevel.ge((short) 8), threatLevel).otherwise((short) 0)).as("scoreCritical"),
               DSL.sum(DSL.when(threatLevel.ge((short) 4).and(threatLevel.lt((short) 8)), threatLevel)
@@ -603,11 +609,11 @@ public class ApplicationComponentDAO
 
   @Override
   public Table<?> getJooqTable() {
-    return APPLICATION_COMPONENT;
+    return OWNER_COMPONENT;
   }
 
   @Override
-  public Class<ApplicationComponent> getEntityClass() {
-    return ApplicationComponent.class;
+  public Class<OwnerComponent> getEntityClass() {
+    return OwnerComponent.class;
   }
 }

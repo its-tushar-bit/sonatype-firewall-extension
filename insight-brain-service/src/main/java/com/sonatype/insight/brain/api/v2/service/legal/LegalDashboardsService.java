@@ -18,7 +18,7 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
-import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+import com.sonatype.insight.brain.model.OwnerComponentLicensesDTO;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.License;
@@ -116,7 +116,7 @@ public class LegalDashboardsService
     return isEmpty(licenseIds) || licenseIds.stream().allMatch(License::isEffectivelyUnspecified);
   }
 
-  public Set<String> getLicenseIds(List<ApplicationComponentLicensesDTO> applicationComponents) {
+  public Set<String> getLicenseIds(List<OwnerComponentLicensesDTO> applicationComponents) {
     return applicationComponents.stream()
         .filter(applicationComponent -> isNotEmpty(applicationComponent.getLicenses()))
         .flatMap(applicationComponent -> applicationComponent.getLicenses().stream())

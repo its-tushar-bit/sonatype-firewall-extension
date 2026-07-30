@@ -110,7 +110,7 @@ public class PdfGeneratorService
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     ReportPdfEntity reportPdf = generateReport(app, scanId);
 
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
     String filename = app.getName() + "-" + stageName + "-" +
         new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
@@ -140,7 +140,7 @@ public class PdfGeneratorService
     ReportPdfEntity sbomReportPdf = generateSbomReport(application, thirdPartyScan.getScanId(), sbomVersion);
 
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), thirdPartyScan.getScanId());
+        policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(), thirdPartyScan.getScanId());
     String filename = application.getName() + "-" + sbomVersion + ".pdf";
     return buildPdfResponse(sbomReportPdf, policyEvaluation.getTime(), filename);
   }

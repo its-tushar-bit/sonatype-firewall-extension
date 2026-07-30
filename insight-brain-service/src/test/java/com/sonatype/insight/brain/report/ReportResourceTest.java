@@ -714,7 +714,7 @@ public class ReportResourceTest
     createScanFile(app.getId(), scanId);
 
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
-        .getLastByApplicationIdAndScanId(app.getId(), scanId);
+        .getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNull();
 
     final Constraint constraint = new Constraint("C1", "testReevaluateReport constraint 1", LogicalOperator.AND);
@@ -738,7 +738,7 @@ public class ReportResourceTest
         .post();
     assertResponseStatus(200, response);
 
-    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNotNull();
     assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
@@ -756,7 +756,7 @@ public class ReportResourceTest
     response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
-    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(),
         scanId);
     assertThat(policyReEvaluation).isNotNull();
     assertThat(policyReEvaluation.getScanId()).isEqualTo(scanId);
@@ -778,7 +778,7 @@ public class ReportResourceTest
         .post();
     assertResponseStatus(200, response);
 
-    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNotNull();
     assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
@@ -822,7 +822,7 @@ public class ReportResourceTest
         .post();
     assertResponseStatus(200, response);
 
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNotNull();
     assertThat(policyEvaluation.isReevaluation()).isFalse();
 
@@ -852,7 +852,7 @@ public class ReportResourceTest
     assertThat(pollingResult.result).isNotNull();
 
     // The re-evaluation actually ran on the background thread and was persisted.
-    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyReEvaluation.isReevaluation()).isTrue();
     assertThat(policyReEvaluation.getTime().getTime())
         .isGreaterThanOrEqualTo(policyEvaluation.getTime().getTime());
@@ -892,7 +892,7 @@ public class ReportResourceTest
     assertThat(pollingResult.reason).isNotBlank();
 
     // The failed re-evaluation must not have persisted a policy evaluation for the scan.
-    assertThat(policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId)).isNull();
+    assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId)).isNull();
   }
 
   @Test
@@ -921,7 +921,7 @@ public class ReportResourceTest
       assertResponseStatus(402, response);
 
       // No polling-result row should have been created for a rejected trigger.
-      assertThat(policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId)).isNull();
+      assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId)).isNull();
     }
     finally {
       SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(originalEnabled);
@@ -968,7 +968,7 @@ public class ReportResourceTest
       response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy").post();
       assertResponseStatus(200, response);
 
-      PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+      PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
       assertThat(policyReEvaluation.isReevaluation()).isTrue();
     }
     finally {
@@ -1084,7 +1084,7 @@ public class ReportResourceTest
       assertThat(pollingResult.status).isEqualTo(PolicyEvaluationStatus.COMPLETED);
       assertThat(pollingResult.result).isNotNull();
 
-      PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+      PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
       assertThat(policyReEvaluation.isReevaluation()).isTrue();
     }
     finally {
@@ -1155,7 +1155,7 @@ public class ReportResourceTest
     createScanFile(app.getId(), scanId);
 
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
-        .getLastByApplicationIdAndScanId(app.getId(), scanId);
+        .getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNull();
 
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getId(), 8, false, true);
@@ -1177,7 +1177,7 @@ public class ReportResourceTest
         .post();
     assertResponseStatus(200, response);
 
-    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNotNull();
     assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
@@ -1185,7 +1185,7 @@ public class ReportResourceTest
     assertThat(policyEvaluation.isReevaluation()).isFalse();
 
     List<PolicyViolation> autoWaivedPolicyViolations =
-        policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
+        policyViolationDAO.getAutoWaivedByOwnerIdAndStageId(app.getId(),
             Stage.ID_BUILD);
 
     Thread.sleep(1);
@@ -1203,7 +1203,7 @@ public class ReportResourceTest
     response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
-    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(),
         scanId);
     assertThat(policyReEvaluation).isNotNull();
     assertThat(policyReEvaluation.getScanId()).isEqualTo(scanId);
@@ -1212,7 +1212,7 @@ public class ReportResourceTest
     assertThat(policyReEvaluation.isReevaluation()).isTrue();
 
     autoWaivedPolicyViolations =
-        policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
+        policyViolationDAO.getAutoWaivedByOwnerIdAndStageId(app.getId(),
             Stage.ID_BUILD);
     /*
      * Because auto-waivers were not skipped then auto-waived violations should not be present
@@ -1231,7 +1231,7 @@ public class ReportResourceTest
     createScanFile(app.getId(), scanId);
 
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
-        .getLastByApplicationIdAndScanId(app.getId(), scanId);
+        .getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNull();
 
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getId(), 8, false, true);
@@ -1253,7 +1253,7 @@ public class ReportResourceTest
         .post();
     assertResponseStatus(200, response);
 
-    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation).isNotNull();
     assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_BUILD);
@@ -1261,7 +1261,7 @@ public class ReportResourceTest
     assertThat(policyEvaluation.isReevaluation()).isFalse();
 
     List<PolicyViolation> autoWaivedPolicyViolations =
-        policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
+        policyViolationDAO.getAutoWaivedByOwnerIdAndStageId(app.getId(),
             Stage.ID_BUILD);
 
     Thread.sleep(1);
@@ -1282,7 +1282,7 @@ public class ReportResourceTest
             .post();
     assertResponseStatus(200, response);
 
-    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(),
         scanId);
     assertThat(policyReEvaluation).isNotNull();
     assertThat(policyReEvaluation.getScanId()).isEqualTo(scanId);
@@ -1291,7 +1291,7 @@ public class ReportResourceTest
     assertThat(policyReEvaluation.isReevaluation()).isTrue();
 
     List<PolicyViolation> reevaluatedAutoPolicyViolations =
-        policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
+        policyViolationDAO.getAutoWaivedByOwnerIdAndStageId(app.getId(),
             Stage.ID_BUILD);
 
     /*

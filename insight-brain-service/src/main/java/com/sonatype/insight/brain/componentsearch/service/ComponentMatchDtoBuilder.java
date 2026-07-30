@@ -16,7 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.componentsearch.dto.ApplicationComponentMatchDTO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -41,7 +41,7 @@ public class ComponentMatchDtoBuilder
   public ApplicationComponentMatchDTO buildMatch(
       final Application application,
       final PolicyEvaluation evaluation,
-      final ApplicationComponent component,
+      final OwnerComponent component,
       final String cveId,
       final List<PolicyViolation> componentViolations)
   {

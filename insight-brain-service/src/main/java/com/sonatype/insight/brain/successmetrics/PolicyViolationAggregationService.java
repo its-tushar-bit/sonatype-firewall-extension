@@ -280,7 +280,7 @@ public class PolicyViolationAggregationService
     // start the next new aggregation at the beginning of the time period after the last aggregation, or at the
     // beginning of the time period of the first evaluation if there aren't any aggregations for this app yet
     Optional<PolicyEvaluation> oldestEvaluation =
-        Optional.ofNullable(policyEvaluationDAO.getOldestByApplicationId(applicationId));
+        Optional.ofNullable(policyEvaluationDAO.getOldestByOwnerId(applicationId));
 
     Optional<LocalDate> startOfMostRecentPriorAggregation =
         Optional.ofNullable(mostRecentPriorAggregation).map(agg -> new LocalDate(agg.getTimePeriodStart()));
@@ -396,13 +396,13 @@ public class PolicyViolationAggregationService
       Date from,
       Date upTo)
   {
-    List<PolicyEvaluation> evaluations = policyEvaluationDAO.getBetweenDatesByApplicationIdAndStageIds(from, upTo,
+    List<PolicyEvaluation> evaluations = policyEvaluationDAO.getBetweenDatesByOwnerIdAndStageIds(from, upTo,
         applicationId, stageTypeIds);
     if (evaluations.isEmpty()) {
       return Collections.emptyList();
     }
 
-    List<PolicyViolation> violations = policyViolationDAO.getActiveByApplicationIdAndStageIdsAndTimeRange(applicationId,
+    List<PolicyViolation> violations = policyViolationDAO.getActiveByOwnerIdAndStageIdsAndTimeRange(applicationId,
         stageTypeIds, from, upTo);
     policyViolationDAO.loadConstraintFacts(violations);
 

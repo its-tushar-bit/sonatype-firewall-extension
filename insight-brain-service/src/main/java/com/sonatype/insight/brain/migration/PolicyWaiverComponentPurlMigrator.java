@@ -14,14 +14,14 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -54,7 +54,7 @@ public class PolicyWaiverComponentPurlMigrator
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final RepositoryComponentDAO repositoryComponentDAO;
 
@@ -65,7 +65,7 @@ public class PolicyWaiverComponentPurlMigrator
       final ApplicationDAO applicationDAO,
       final RepositoryDAO repositoryDAO,
       final PolicyWaiverDAO policyWaiverDAO,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final RepositoryComponentDAO repositoryComponentDAO)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
@@ -120,7 +120,7 @@ public class PolicyWaiverComponentPurlMigrator
     }
 
     if (OwnerType.APPLICATION.equals(ownerType) || OwnerType.ORGANIZATION.equals(ownerType)) {
-      ApplicationComponent possibleComponent = applicationComponentDAO.getLastByHash(policyWaiver.getHash());
+      OwnerComponent possibleComponent = applicationComponentDAO.getLastByHash(policyWaiver.getHash());
       if (possibleComponent != null) {
         return PackageUrlIdentifier.toPackageUrl(possibleComponent.getComponentIdentifier());
       }

@@ -998,7 +998,7 @@ public abstract class AbstractSearchServiceTest
       String reportResourceName) throws Exception
   {
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
-    ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
+    ReportTestUtils.createReportFile(policyEval.getOwnerId(), policyEval.getScanId(),
         ReportTestUtils.zipReportDir(reportResourceName, tempDir), insightWork);
     return policyEval;
   }

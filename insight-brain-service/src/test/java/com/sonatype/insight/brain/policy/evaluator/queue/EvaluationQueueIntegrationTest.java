@@ -82,7 +82,7 @@ public class EvaluationQueueIntegrationTest
 
     PolicyEvaluationDAO policyEvaluationDAO = getCLMServer().getInstance(PolicyEvaluationDAO.class);
     PolicyEvaluation evaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(app1.getId(), ComplianceStageType.ID);
+        policyEvaluationDAO.getLastByOwnerIdAndStageId(app1.getId(), ComplianceStageType.ID);
     assertThat(evaluation).isNotNull();
     assertThat(evaluation.getScanId()).isNotNull();
   }

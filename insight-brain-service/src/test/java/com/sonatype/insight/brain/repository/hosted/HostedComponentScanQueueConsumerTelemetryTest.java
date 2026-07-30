@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -100,7 +100,7 @@ public class HostedComponentScanQueueConsumerTelemetryTest
   private PolicyViolationDAO policyViolationDAO;
 
   @Mock
-  private ApplicationComponentDAO applicationComponentDAO;
+  private OwnerComponentDAO applicationComponentDAO;
 
   @Mock
   private TelemetryUtils telemetryUtils;

@@ -906,14 +906,15 @@ public class ApplicationDAO
 
     // The following entity deletions are cascaded via foreign key ON DELETE CASCADE:
     // - ApplicationTag
-    // - PolicyEvaluation
-    // - PolicyViolation
     // - SourceControlDefaultBranchCommitHistory
     // - SourceControlEvent
     // - SourceControlPullRequestComment
     // - SourceControlPullRequestResult
     // - SourceControlUser
     // - VersionEvaluationWindow
+    //
+    // PolicyEvaluation, PolicyViolation, OwnerComponent and LastPolicyEvaluation are cascaded via
+    // OwnerDAO.cascadeDelete.
 
     // Cascade to source control config
     sourceControlDAOProvider.get().deleteByOwnerId(tx, application.getId());
@@ -1045,8 +1046,8 @@ public class ApplicationDAO
       boolean useTemporaryTable =
           temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, applicationIds);
 
-      String applicationWhereClause =
-          useTemporaryTable ? "" : "application_id IN (?" + StringUtils.repeat(",?", applicationIds.size() - 1) + ")";
+      String ownerWhereClause =
+          useTemporaryTable ? "" : "owner_id IN (?" + StringUtils.repeat(",?", applicationIds.size() - 1) + ")";
       String stageTypeWhereClause = "stage_type_id IN (?" + StringUtils.repeat(",?", stageTypes.size() - 1) + ")";
       String threatCategoryWhereClause = policyThreatCategoryFilter.isEmpty()
           ? ""
@@ -1067,7 +1068,7 @@ public class ApplicationDAO
       }
 
       String whereClause = StringUtils.joinWith(" AND ",
-          Stream.of(applicationWhereClause, stageTypeWhereClause, threatCategoryWhereClause, violationStateWhereClause)
+          Stream.of(ownerWhereClause, stageTypeWhereClause, threatCategoryWhereClause, violationStateWhereClause)
               .filter(StringUtils::isNotBlank)
               .toArray());
 
@@ -1077,119 +1078,121 @@ public class ApplicationDAO
 
       String databaseSchema = getDatabaseSchema();
 
-      String sQuery = """
-          SELECT o.organization_id,
-                 o.name      AS organization_name,
-                 x.application_name,
-                 x.application_public_id,
-                 pe.scan_id,
-                 x.stage_type_id,
-                 x.application_id,
-                 x.rank,
-                 x.total_risk_per_stage_unique,
-                 x.critical_per_stage_unique,
-                 x.severe_per_stage_unique,
-                 x.moderate_per_stage_unique,
-                 x.low_per_stage_unique,
-                 x.total_risk_per_stage,
-                 x.critical_per_stage,
-                 x.severe_per_stage,
-                 x.moderate_per_stage,
-                 x.low_per_stage
-          FROM (
-                   -- The paging of this cannot use traditional limit/offset
-                   -- because there can be multiple rows per application.
-                   -- So DENSE_RANK is added to give the ranking and page on that ranking.
-                   SELECT DENSE_RANK() OVER (ORDER BY sort_column %s, application_id) AS rank,
-                          *
-                   FROM (
-                            -- PARTITION is added to sum the risks for an application, then the result is used to sort
-                            -- the risks is not only one specific column, this value depends on the sortColumn parameter
-                            SELECT stage_type_id,
-                                   a.organization_id,
-                                   a.application_id,
-                                   a.name AS application_name,
-                                   a.public_id AS application_public_id,
-                                   %s AS sort_column,
-                                   total_risk_per_stage_unique,
-                                   critical_per_stage_unique,
-                                   severe_per_stage_unique,
-                                   moderate_per_stage_unique,
-                                   low_per_stage_unique,
-                                   total_risk_per_stage,
-                                   critical_per_stage,
-                                   severe_per_stage,
-                                   moderate_per_stage,
-                                   low_per_stage
-                            FROM (SELECT application_id,
-                                         stage_type_id,
-                                         SUM(CASE
-                                                 WHEN first_policy_violation = policy_violation_id
-                                                     THEN threat_level
-                                                 ELSE 0 END) total_risk_per_stage_unique,
-                                         SUM(CASE
-                                                 WHEN first_policy_violation = policy_violation_id
-                                                     AND threat_level >= 8 THEN threat_level
-                                                 ELSE 0 END) AS critical_per_stage_unique,
-                                         SUM(CASE
-                                                 WHEN first_policy_violation = policy_violation_id AND threat_level >= 4
-                                                     AND threat_level < 8 THEN threat_level
-                                                 ELSE 0 END) AS severe_per_stage_unique,
-                                         SUM(CASE
-                                                 WHEN first_policy_violation = policy_violation_id AND threat_level >= 2
-                                                     AND threat_level < 4 THEN threat_level
-                                                 ELSE 0 END) AS moderate_per_stage_unique,
-                                         SUM(CASE
-                                                 WHEN first_policy_violation = policy_violation_id AND threat_level < 2
-                                                     THEN threat_level
-                                                 ELSE 0 END) AS low_per_stage_unique,
-                                         SUM(threat_level) AS total_risk_per_stage,
-                                         SUM(CASE
-                                                 WHEN threat_level >= 8
-                                                     THEN threat_level ELSE 0 END) AS critical_per_stage,
-                                         SUM(CASE
-                                                 WHEN threat_level >= 4 AND threat_level < 8
-                                                     THEN threat_level ELSE 0 END) AS severe_per_stage,
-                                         SUM(CASE
-                                                 WHEN threat_level >= 2 AND threat_level < 4
-                                                     THEN threat_level ELSE 0 END) AS moderate_per_stage,
-                                         SUM(CASE
-                                                 WHEN threat_level < 2 THEN threat_level ELSE 0 END) AS low_per_stage
-                                  FROM (
-                                  -- FIRST_VALUE is added to get the first policy_violation_id,
-                                  -- then this value is used to sum the risks for application
-                                  SELECT application_id,
-                                               policy_id,
-                                               stage_type_id,
-                                               threat_level,
-                                               hash,
-                                               FIRST_VALUE(policy_violation_id) OVER (PARTITION BY hash,
-                                                   application_id,
-                                                   policy_name,
+      String sQuery =
+          """
+              SELECT o.organization_id,
+                     o.name      AS organization_name,
+                     x.application_name,
+                     x.application_public_id,
+                     pe.scan_id,
+                     x.stage_type_id,
+                     x.application_id,
+                     x.rank,
+                     x.total_risk_per_stage_unique,
+                     x.critical_per_stage_unique,
+                     x.severe_per_stage_unique,
+                     x.moderate_per_stage_unique,
+                     x.low_per_stage_unique,
+                     x.total_risk_per_stage,
+                     x.critical_per_stage,
+                     x.severe_per_stage,
+                     x.moderate_per_stage,
+                     x.low_per_stage
+              FROM (
+                       -- The paging of this cannot use traditional limit/offset
+                       -- because there can be multiple rows per application.
+                       -- So DENSE_RANK is added to give the ranking and page on that ranking.
+                       SELECT DENSE_RANK() OVER (ORDER BY sort_column %s, application_id) AS rank,
+                              *
+                       FROM (
+                                -- PARTITION is added to sum the risks for an application, then the result is used to sort
+                                -- the risks is not only one specific column, this value depends on the sortColumn parameter
+                                SELECT stage_type_id,
+                                       a.organization_id,
+                                       a.application_id,
+                                       a.name AS application_name,
+                                       a.public_id AS application_public_id,
+                                       %s AS sort_column,
+                                       total_risk_per_stage_unique,
+                                       critical_per_stage_unique,
+                                       severe_per_stage_unique,
+                                       moderate_per_stage_unique,
+                                       low_per_stage_unique,
+                                       total_risk_per_stage,
+                                       critical_per_stage,
+                                       severe_per_stage,
+                                       moderate_per_stage,
+                                       low_per_stage
+                                FROM (SELECT owner_id,
+                                             stage_type_id,
+                                             SUM(CASE
+                                                     WHEN first_policy_violation = policy_violation_id
+                                                         THEN threat_level
+                                                     ELSE 0 END) total_risk_per_stage_unique,
+                                             SUM(CASE
+                                                     WHEN first_policy_violation = policy_violation_id
+                                                         AND threat_level >= 8 THEN threat_level
+                                                     ELSE 0 END) AS critical_per_stage_unique,
+                                             SUM(CASE
+                                                     WHEN first_policy_violation = policy_violation_id AND threat_level >= 4
+                                                         AND threat_level < 8 THEN threat_level
+                                                     ELSE 0 END) AS severe_per_stage_unique,
+                                             SUM(CASE
+                                                     WHEN first_policy_violation = policy_violation_id AND threat_level >= 2
+                                                         AND threat_level < 4 THEN threat_level
+                                                     ELSE 0 END) AS moderate_per_stage_unique,
+                                             SUM(CASE
+                                                     WHEN first_policy_violation = policy_violation_id AND threat_level < 2
+                                                         THEN threat_level
+                                                     ELSE 0 END) AS low_per_stage_unique,
+                                             SUM(threat_level) AS total_risk_per_stage,
+                                             SUM(CASE
+                                                     WHEN threat_level >= 8
+                                                         THEN threat_level ELSE 0 END) AS critical_per_stage,
+                                             SUM(CASE
+                                                     WHEN threat_level >= 4 AND threat_level < 8
+                                                         THEN threat_level ELSE 0 END) AS severe_per_stage,
+                                             SUM(CASE
+                                                     WHEN threat_level >= 2 AND threat_level < 4
+                                                         THEN threat_level ELSE 0 END) AS moderate_per_stage,
+                                             SUM(CASE
+                                                     WHEN threat_level < 2 THEN threat_level ELSE 0 END) AS low_per_stage
+                                      FROM (
+                                      -- FIRST_VALUE is added to get the first policy_violation_id,
+                                      -- then this value is used to sum the risks for application
+                                      SELECT owner_id,
+                                                   policy_id,
+                                                   stage_type_id,
                                                    threat_level,
                                                    hash,
-                                                   component_id_format,
-                                                   component_id_coordinates_json,
-                                                   constraint_facts_id
-                                                   ) AS first_policy_violation,
-                                               policy_violation_id,
-                                               component_id_coordinates_json
-                                        FROM %s.policy_violation
-                                        %s
-                                        WHERE fix_time IS null AND threat_level BETWEEN ? AND ? AND %s
-                                  ) pv_first_value
-                                  GROUP BY application_id, stage_type_id
-                            ) pv_risk_per_stage
-                            JOIN %s.application a USING (application_id)
-                  ) pv_risk_per_app
-          ) x
-          JOIN %s.last_policy_evaluation lpe USING (application_id, stage_type_id)
-          JOIN %s.policy_evaluation pe USING (policy_evaluation_id)
-          JOIN %s.organization o USING (organization_id)
-          WHERE rank BETWEEN ? AND ?
-          ORDER BY sort_column %s, lower(application_name)""".formatted(direction, sortClause, databaseSchema,
-          useTemporaryTable ? "JOIN temporary_ids ti ON (policy_violation.application_id = ti.id)" : "",
-          whereClause, databaseSchema, databaseSchema, databaseSchema, databaseSchema, direction);
+                                                   FIRST_VALUE(policy_violation_id) OVER (PARTITION BY hash,
+                                                       owner_id,
+                                                       policy_name,
+                                                       threat_level,
+                                                       hash,
+                                                       component_id_format,
+                                                       component_id_coordinates_json,
+                                                       constraint_facts_id
+                                                       ) AS first_policy_violation,
+                                                   policy_violation_id,
+                                                   component_id_coordinates_json
+                                            FROM %s.policy_violation
+                                            %s
+                                            WHERE fix_time IS null AND threat_level BETWEEN ? AND ? AND %s
+                                      ) pv_first_value
+                                      GROUP BY owner_id, stage_type_id
+                                ) pv_risk_per_stage
+                                JOIN %s.application a ON (pv_risk_per_stage.owner_id = a.application_id)
+                      ) pv_risk_per_app
+              ) x
+              JOIN %s.last_policy_evaluation lpe ON (x.application_id = lpe.owner_id AND x.stage_type_id = lpe.stage_type_id)
+              JOIN %s.policy_evaluation pe USING (policy_evaluation_id)
+              JOIN %s.organization o USING (organization_id)
+              WHERE rank BETWEEN ? AND ?
+              ORDER BY sort_column %s, lower(application_name)"""
+              .formatted(direction, sortClause, databaseSchema,
+                  useTemporaryTable ? "JOIN temporary_ids ti ON (policy_violation.owner_id = ti.id)" : "",
+                  whereClause, databaseSchema, databaseSchema, databaseSchema, databaseSchema, direction);
 
       List<Object> params = new ArrayList<>();
       params.add(minPolicyThreatLevel);

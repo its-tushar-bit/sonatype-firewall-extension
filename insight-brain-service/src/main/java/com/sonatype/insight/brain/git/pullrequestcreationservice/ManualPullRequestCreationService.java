@@ -148,9 +148,9 @@ public class ManualPullRequestCreationService
     }
 
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndScanIdNotNull(app.getId(), scanId);
+        policyEvaluationDAO.getLastByOwnerIdAndScanIdNotNull(app.getId(), scanId);
     PolicyEvaluation latestEvaluationByStage =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), policyEvaluation.getStageTypeId());
+        policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(), policyEvaluation.getStageTypeId());
     Stage stage = new Stage(policyEvaluation.getStageTypeId());
 
     if (!latestEvaluationByStage.getScanId().equals(scanId)) {
@@ -209,7 +209,7 @@ public class ManualPullRequestCreationService
           policyEvaluation);
 
       // Get policy violations for current component
-      List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
+      List<PolicyViolation> policyViolations = policyViolationDAO.getByOwnerId(app.getId());
       List<PolicyViolation> componentPolicyViolations = policyViolations.stream()
           .filter(v -> v.getComponentIdentifier() != null && v.getComponentIdentifier().equals(componentIdentifier))
           .toList();

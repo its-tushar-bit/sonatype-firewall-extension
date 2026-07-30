@@ -24,14 +24,14 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -74,7 +74,7 @@ public class ApiSearchServiceV2
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
 
@@ -87,7 +87,7 @@ public class ApiSearchServiceV2
       final BaseUrl baseUrl,
       final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final PolicyViolationDAO policyViolationDAO,
       final ReportService reportService,
       final ComponentLoaderFactory componentLoaderFactory)
@@ -158,7 +158,7 @@ public class ApiSearchServiceV2
     // Batch-fetch the last primary evaluation per application for the stage, avoiding a per-application query.
     Set<String> appIds = apps.stream().map(Application::getId).collect(Collectors.toSet());
     Map<String, PolicyEvaluation> evalByAppId =
-        policyEvaluationDAO.getLastPrimaryByApplicationIdsAndStageId(appIds, stageId);
+        policyEvaluationDAO.getLastPrimaryByOwnerIdsAndStageId(appIds, stageId);
 
     // Collect the components matching the search criteria, preserving the original application iteration order and
     // remembering which hashes matched. The component fetch is bounded so a search across a large organization does
@@ -183,10 +183,10 @@ public class ApiSearchServiceV2
     Map<ViolationKey, List<PolicyViolation>> violationsByAppAndHash = (matches.isEmpty() || matchedHashes.isEmpty())
         ? Map.of()
         : policyViolationDAO
-            .getActiveByApplicationIdsAndStageIdAndHashes(
+            .getActiveByOwnerIdsAndStageIdAndHashes(
                 matches.stream().map(m -> m.app().getId()).collect(Collectors.toSet()), stageId, matchedHashes)
             .stream()
-            .collect(Collectors.groupingBy(v -> new ViolationKey(v.getApplicationId(), v.getHash())));
+            .collect(Collectors.groupingBy(v -> new ViolationKey(v.getOwnerId(), v.getHash())));
 
     // Per-request cache so each matched application's report is loaded and parsed at most once.
     Map<String, Map<String, Component>> componentsByHashByAppId = new HashMap<>();
@@ -242,11 +242,11 @@ public class ApiSearchServiceV2
     // (application_id, stage_type_id, hash) is unique, so the only way an application yields more than one row here is
     // the (vanishingly unlikely) case of the same hex hash stored under different letter-casing; keep the first to
     // mirror the previous first-match-wins behavior rather than failing the merge.
-    Map<String, ApplicationComponent> matchedComponentByAppId = applicationComponentDAO
-        .getMapByApplicationIdsAndStageTypeIdsAndHashes(evalByAppId.keySet(), Set.of(stageId), hashVariants)
+    Map<String, OwnerComponent> matchedComponentByAppId = applicationComponentDAO
+        .getMapByOwnerIdsAndStageTypeIdsAndHashes(evalByAppId.keySet(), Set.of(stageId), hashVariants)
         .values()
         .stream()
-        .collect(Collectors.toMap(ApplicationComponent::getApplicationId, component -> component,
+        .collect(Collectors.toMap(OwnerComponent::getOwnerId, component -> component,
             (existing, replacement) -> existing));
 
     for (Application app : apps) {
@@ -254,7 +254,7 @@ public class ApiSearchServiceV2
       if (eval == null) {
         continue;
       }
-      ApplicationComponent applicationComponent = matchedComponentByAppId.get(app.getId());
+      OwnerComponent applicationComponent = matchedComponentByAppId.get(app.getId());
       if (applicationComponent != null) {
         addMatchIfCoordinatesMatch(coords, app, eval, applicationComponent, matches, matchedHashes);
       }
@@ -277,13 +277,13 @@ public class ApiSearchServiceV2
     List<Application> evaluatedApps = apps.stream().filter(app -> evalByAppId.containsKey(app.getId())).toList();
     for (List<Application> appBatch : Lists.partition(evaluatedApps, COMPONENT_SCAN_BATCH_SIZE)) {
       Set<String> batchAppIds = appBatch.stream().map(Application::getId).collect(Collectors.toSet());
-      Map<String, List<ApplicationComponent>> componentsByAppId = applicationComponentDAO
-          .getByApplicationIdsAndStageTypeId(batchAppIds, stageId)
+      Map<String, List<OwnerComponent>> componentsByAppId = applicationComponentDAO
+          .getByOwnerIdsAndStageTypeId(batchAppIds, stageId)
           .stream()
-          .collect(Collectors.groupingBy(ApplicationComponent::getApplicationId));
+          .collect(Collectors.groupingBy(OwnerComponent::getOwnerId));
       for (Application app : appBatch) {
         PolicyEvaluation eval = evalByAppId.get(app.getId());
-        for (ApplicationComponent applicationComponent : componentsByAppId.getOrDefault(app.getId(), List.of())) {
+        for (OwnerComponent applicationComponent : componentsByAppId.getOrDefault(app.getId(), List.of())) {
           addMatchIfCoordinatesMatch(coords, app, eval, applicationComponent, matches, matchedHashes);
         }
       }
@@ -294,7 +294,7 @@ public class ApiSearchServiceV2
       final ArtifactCoordinate coords,
       final Application app,
       final PolicyEvaluation eval,
-      final ApplicationComponent applicationComponent,
+      final OwnerComponent applicationComponent,
       final List<MatchedComponent> matches,
       final Set<String> matchedHashes)
   {

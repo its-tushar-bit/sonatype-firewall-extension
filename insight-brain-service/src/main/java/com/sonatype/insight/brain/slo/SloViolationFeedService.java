@@ -92,16 +92,16 @@ public class SloViolationFeedService
     validateCursor(updatedSince, cursorId);
 
     final PolicyEvaluation evaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageId);
+        policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), stageId);
     if (evaluation == null) {
       throw new NotFoundException(
           "No policy evaluation found for application " + applicationPublicId + " at stage " + stageId + ".");
     }
     final String scanId = evaluation.getScanId();
 
-    final long total = policyViolationDAO.countByApplicationIdAndStage(application.getId(), stageId, updatedSince);
+    final long total = policyViolationDAO.countByOwnerIdAndStage(application.getId(), stageId, updatedSince);
 
-    final List<PolicyViolation> violations = policyViolationDAO.getByApplicationIdAndStageAfterCursor(
+    final List<PolicyViolation> violations = policyViolationDAO.getByOwnerIdAndStageAfterCursor(
         application.getId(), stageId, updatedSince, cursorId, pageSize);
 
     final List<SloViolation> mapped = enricher.enrich(application, stageId, scanId, violations);

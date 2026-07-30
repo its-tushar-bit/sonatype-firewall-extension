@@ -99,7 +99,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
     boolean staleInternal = false;
     if (policyEvaluation.wasInternallyTriggered()) {
       // stale by means of not being for the latest default branch commit
-      String latestCommit = gitCommitHistoryService.getLatestCommitForApplication(policyEvaluation.getApplicationId());
+      String latestCommit = gitCommitHistoryService.getLatestCommitForApplication(policyEvaluation.getOwnerId());
       staleInternal = !StringUtils.equalsIgnoreCase(policyEvaluation.getCommitHash(), latestCommit);
     }
 

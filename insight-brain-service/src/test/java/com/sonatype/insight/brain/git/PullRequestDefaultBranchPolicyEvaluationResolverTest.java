@@ -364,11 +364,11 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
           .getLatestPolicyEvaluationForApplicationBaseBranch(any(), anyBoolean());
 
       doReturn(buildStagePolicyEvaluation).when(mockPolicyEvaluationDAO)
-          .getLastByApplicationIdCommitHashAndStageId(any(), any(), eq(Stage.ID_BUILD));
+          .getLastByOwnerIdCommitHashAndStageId(any(), any(), eq(Stage.ID_BUILD));
       doReturn(sourceStagePolicyEvaluation).when(mockPolicyEvaluationDAO)
-          .getLastByApplicationIdCommitHashAndStageId(any(), any(), eq(Stage.ID_SOURCE));
+          .getLastByOwnerIdCommitHashAndStageId(any(), any(), eq(Stage.ID_SOURCE));
       doReturn(releaseStagePolicyEvaluation).when(mockPolicyEvaluationDAO)
-          .getLastByApplicationIdCommitHashAndStageId(any(), any(), eq(Stage.ID_RELEASE));
+          .getLastByOwnerIdCommitHashAndStageId(any(), any(), eq(Stage.ID_RELEASE));
       doReturn(hasExternalPolicyEvaluations).when(mockPolicyEvaluationDAO)
           .hasExternalPolicyEvaluations(any(), any());
 

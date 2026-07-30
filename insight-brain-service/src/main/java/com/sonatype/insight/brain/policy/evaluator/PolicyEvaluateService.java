@@ -1059,13 +1059,13 @@ public class PolicyEvaluateService
 
     @VisibleForTesting
     PolicyEvaluation getLastPolicyEvaluationForContainer(PolicyEvaluationPollingResult policyEvaluationPollingResult) {
-      return policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), getScanId(policyEvaluationPollingResult));
+      return policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), getScanId(policyEvaluationPollingResult));
     }
 
     @VisibleForTesting
     List<PolicyViolation> getPolicyViolationsForContainer() {
       List<PolicyViolation> policyViolations =
-          policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId());
+          policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(), stage.getStageTypeId());
       policyViolationDAO.loadConstraintFacts(policyViolations);
       return policyViolations;
     }

@@ -206,7 +206,7 @@ public class PolicyViolationDAOTest
     {
       PolicyViolation persistedPolicyViolation = dao.getById(policyViolation.getId());
       assertThat(persistedPolicyViolation).isNotNull();
-      assertPolicyViolation(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId(), policy.getId(),
+      assertPolicyViolation(policyEvaluation.getOwnerId(), policyEvaluation.getStageTypeId(), policy.getId(),
           policy.getName(), 5, PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, "filename",
           policyEvaluation.getTime(), null /* actionTypeId */, persistedPolicyViolation);
       assertThatExceptionOfType(IllegalStateException.class)
@@ -221,7 +221,7 @@ public class PolicyViolationDAOTest
     // Read
     PolicyViolation persistedPolicyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation).isNotNull();
-    assertPolicyViolation(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId(), policy.getId(),
+    assertPolicyViolation(policyEvaluation.getOwnerId(), policyEvaluation.getStageTypeId(), policy.getId(),
         policy.getName(), 5, PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, "filename",
         policyEvaluation.getTime(), Action.ID_FAIL, persistedPolicyViolation);
 
@@ -571,7 +571,7 @@ public class PolicyViolationDAOTest
       String actionTypeId,
       PolicyViolation actual)
   {
-    assertThat(actual.getApplicationId()).isEqualTo(applicationId);
+    assertThat(actual.getOwnerId()).isEqualTo(applicationId);
     assertThat(actual.getStageTypeId()).isEqualTo(stageTypeId);
     assertThat(actual.getPolicyId()).isEqualTo(policyId);
     assertThat(actual.getPolicyName()).isEqualTo(policyName);
@@ -585,7 +585,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetByApplicationId() {
+  public void testGetByOwnerId() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1",
@@ -610,7 +610,7 @@ public class PolicyViolationDAOTest
         "scan-4");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    List<PolicyViolation> violations = dao.getByApplicationId(application.getId());
+    List<PolicyViolation> violations = dao.getByOwnerId(application.getId());
 
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolation1.getId(),
@@ -619,7 +619,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdAndPolicyAndHash() {
+  public void testGetByOwnerIdAndPolicyAndHash() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1",
@@ -650,7 +650,7 @@ public class PolicyViolationDAOTest
     tempEntity.newPolicyViolation(policyEvaluation2, tempEntity.newPolicy(application));
     tempEntity.newPolicyViolation(policyEvaluation2, tempEntity.newPolicy(application));
 
-    List<PolicyViolation> violations = dao.getByApplicationIdAndPolicyIdAndHash(application.getId(),
+    List<PolicyViolation> violations = dao.getByOwnerIdAndPolicyIdAndHash(application.getId(),
         policy.getId(), openViolation1.getHash());
 
     assertThat(violations).extracting(PolicyViolation::getId)
@@ -660,7 +660,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdAndPolicyAndHash_NullHash() {
+  public void testGetByOwnerIdAndPolicyAndHash_NullHash() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
@@ -694,7 +694,7 @@ public class PolicyViolationDAOTest
     tempEntity.newPolicyViolation(policyEvaluation2, tempEntity.newPolicy(application));
     tempEntity.newPolicyViolation(policyEvaluation2, tempEntity.newPolicy(application));
 
-    List<PolicyViolation> violations = dao.getByApplicationIdAndPolicyIdAndHash(application.getId(),
+    List<PolicyViolation> violations = dao.getByOwnerIdAndPolicyIdAndHash(application.getId(),
         policy.getId(), null);
 
     assertThat(violations).extracting(PolicyViolation::getId)
@@ -704,7 +704,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetUnfixedByApplicationIdAndStageId() {
+  public void testGetUnfixedByOwnerIdAndStageId() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
@@ -726,7 +726,7 @@ public class PolicyViolationDAOTest
         "scan-3");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    List<PolicyViolation> violations = dao.getUnfixedByApplicationIdAndStageId(application.getId(), BuildStageType.ID);
+    List<PolicyViolation> violations = dao.getUnfixedByOwnerIdAndStageId(application.getId(), BuildStageType.ID);
 
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolation.getId(),
@@ -734,7 +734,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdAndStageId() {
+  public void testGetActiveByOwnerIdAndStageId() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
@@ -756,13 +756,13 @@ public class PolicyViolationDAOTest
         "scan-3");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageId(application.getId(), BuildStageType.ID);
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageId(application.getId(), BuildStageType.ID);
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation.getId());
   }
 
   @Test
-  public void testActiveByApplicationIdAndStageIdAndActionId() {
+  public void testActiveByOwnerIdAndStageIdAndActionId() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation1 =
@@ -788,7 +788,7 @@ public class PolicyViolationDAOTest
 
     tempEntity.newPolicyViolation(policyEvaluation1, policy);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndActionId(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageIdAndActionId(
         application.getId(), ProxyStageType.ID, Action.ID_FAIL);
 
     assertThat(violations).hasSize(1);
@@ -797,7 +797,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testActiveByApplicationIdAndStageIdAndActionId_ProxyStage_IncludesAllLegacy() {
+  public void testActiveByOwnerIdAndStageIdAndActionId_ProxyStage_IncludesAllLegacy() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         ProxyStageType.ID, "scan-1");
@@ -816,7 +816,7 @@ public class PolicyViolationDAOTest
     lowSeverityLegacy.setLegacyViolationTime(new Date());
     dao.update(lowSeverityLegacy);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndActionId(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageIdAndActionId(
         application.getId(), ProxyStageType.ID, Action.ID_FAIL);
 
     // Firewall includes ALL legacy violations regardless of severity
@@ -826,7 +826,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testActiveByApplicationIdAndStageIdAndActionId_ProxyStage_ExcludesFixedAndWaived() {
+  public void testActiveByOwnerIdAndStageIdAndActionId_ProxyStage_ExcludesFixedAndWaived() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         ProxyStageType.ID, "scan-1");
@@ -851,7 +851,7 @@ public class PolicyViolationDAOTest
     waivedLegacy.setWaiveTime(new Date());
     dao.update(waivedLegacy);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndActionId(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageIdAndActionId(
         application.getId(), ProxyStageType.ID, Action.ID_FAIL);
 
     // Firewall only excludes fixed/waived, includes legacy
@@ -860,7 +860,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testActiveByApplicationIdAndStageIdAndActionId_BuildStage_ExcludesAllLegacy() {
+  public void testActiveByOwnerIdAndStageIdAndActionId_BuildStage_ExcludesAllLegacy() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         BuildStageType.ID, "scan-1");
@@ -872,7 +872,7 @@ public class PolicyViolationDAOTest
     legacyViolation.setLegacyViolationTime(new Date());
     dao.update(legacyViolation);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndActionId(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageIdAndActionId(
         application.getId(), BuildStageType.ID, Action.ID_FAIL);
 
     // Lifecycle excludes ALL legacy violations
@@ -880,7 +880,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdAndStageId_ProxyStage_IncludesLegacy() {
+  public void testGetActiveByOwnerIdAndStageId_ProxyStage_IncludesLegacy() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         ProxyStageType.ID, "scan-1");
@@ -896,7 +896,7 @@ public class PolicyViolationDAOTest
     regularViolation.setThreatLevel(8);
     dao.update(regularViolation);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageId(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageId(
         application.getId(), ProxyStageType.ID);
 
     // Firewall includes ALL violations (legacy and regular)
@@ -906,7 +906,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdAndStageId_BuildStage_ExcludesLegacy() {
+  public void testGetActiveByOwnerIdAndStageId_BuildStage_ExcludesLegacy() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         BuildStageType.ID, "scan-1");
@@ -922,7 +922,7 @@ public class PolicyViolationDAOTest
     regularViolation.setThreatLevel(8);
     dao.update(regularViolation);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageId(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageId(
         application.getId(), BuildStageType.ID);
 
     // Lifecycle excludes legacy violations
@@ -931,7 +931,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdAndStageIdAndHash_ProxyStage_IncludesLegacy() {
+  public void testGetActiveByOwnerIdAndStageIdAndHash_ProxyStage_IncludesLegacy() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         ProxyStageType.ID, "scan-1");
@@ -951,7 +951,7 @@ public class PolicyViolationDAOTest
     regularViolation.setThreatLevel(8);
     dao.update(regularViolation);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndHash(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageIdAndHash(
         application.getId(), ProxyStageType.ID, testHash);
 
     // Firewall includes ALL violations for this hash (legacy and regular)
@@ -961,7 +961,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdAndStageIdAndHash_BuildStage_ExcludesLegacy() {
+  public void testGetActiveByOwnerIdAndStageIdAndHash_BuildStage_ExcludesLegacy() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         BuildStageType.ID, "scan-1");
@@ -981,7 +981,7 @@ public class PolicyViolationDAOTest
     regularViolation.setThreatLevel(8);
     dao.update(regularViolation);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndHash(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageIdAndHash(
         application.getId(), BuildStageType.ID, testHash);
 
     // Lifecycle excludes legacy violations
@@ -990,7 +990,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdAndStageIdAndHash() {
+  public void testGetActiveByOwnerIdAndStageIdAndHash() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
@@ -1015,14 +1015,14 @@ public class PolicyViolationDAOTest
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     List<PolicyViolation> violations =
-        dao.getActiveByApplicationIdAndStageIdAndHash(application.getId(), BuildStageType.ID,
+        dao.getActiveByOwnerIdAndStageIdAndHash(application.getId(), BuildStageType.ID,
             openViolation.getHash());
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation.getId());
   }
 
   @Test
-  public void testGetActiveByApplicationIdsAndStageIdAndHashes() {
+  public void testGetActiveByOwnerIdsAndStageIdAndHashes() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1");
 
@@ -1057,21 +1057,21 @@ public class PolicyViolationDAOTest
     app2HashB.setHash("hash-b");
     dao.update(app2HashB);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdsAndStageIdAndHashes(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdsAndStageIdAndHashes(
         Set.of(application.getId(), application2.getId()), BuildStageType.ID, Set.of("hash-a", "hash-b"));
 
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(app1HashA.getId(), app2HashB.getId());
 
     // empty inputs short-circuit to an empty result
-    assertThat(dao.getActiveByApplicationIdsAndStageIdAndHashes(Collections.emptySet(), BuildStageType.ID,
+    assertThat(dao.getActiveByOwnerIdsAndStageIdAndHashes(Collections.emptySet(), BuildStageType.ID,
         Set.of("hash-a"))).isEmpty();
-    assertThat(dao.getActiveByApplicationIdsAndStageIdAndHashes(Set.of(application.getId()), BuildStageType.ID,
+    assertThat(dao.getActiveByOwnerIdsAndStageIdAndHashes(Set.of(application.getId()), BuildStageType.ID,
         Collections.emptySet())).isEmpty();
   }
 
   @Test
-  public void testGetActiveByApplicationIdsAndStageIdAndHashes_ProxyStage_IncludesLegacy() {
+  public void testGetActiveByOwnerIdsAndStageIdAndHashes_ProxyStage_IncludesLegacy() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         ProxyStageType.ID, "scan-1");
@@ -1091,7 +1091,7 @@ public class PolicyViolationDAOTest
     regularViolation.setThreatLevel(8);
     dao.update(regularViolation);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdsAndStageIdAndHashes(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdsAndStageIdAndHashes(
         Set.of(application.getId()), ProxyStageType.ID, Set.of(testHash));
 
     // Firewall includes ALL violations for this hash (legacy and regular)
@@ -1100,7 +1100,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdsAndStageIdAndHashes_chunksAcrossPartitions() {
+  public void testGetActiveByOwnerIdsAndStageIdAndHashes_chunksAcrossPartitions() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1");
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy);
@@ -1124,13 +1124,13 @@ public class PolicyViolationDAOTest
     }
 
     List<PolicyViolation> violations =
-        dao.getActiveByApplicationIdsAndStageIdAndHashes(manyAppIds, BuildStageType.ID, manyHashes);
+        dao.getActiveByOwnerIdsAndStageIdAndHashes(manyAppIds, BuildStageType.ID, manyHashes);
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(violation.getId());
   }
 
   @Test
-  public void testGetUnfixedByApplicationIds() {
+  public void testGetUnfixedByOwnerIds() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
@@ -1152,7 +1152,7 @@ public class PolicyViolationDAOTest
         "scan-3");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    List<PolicyViolation> violations = dao.getUnfixedByApplicationIds(Collections.singletonList(application.getId()));
+    List<PolicyViolation> violations = dao.getUnfixedByOwnerIds(Collections.singletonList(application.getId()));
 
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolation1.getId(),
@@ -1160,7 +1160,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIds() {
+  public void testGetActiveByOwnerIds() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
@@ -1182,7 +1182,7 @@ public class PolicyViolationDAOTest
         "scan-3");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIds(Collections.singletonList(application.getId()));
+    List<PolicyViolation> violations = dao.getActiveByOwnerIds(Collections.singletonList(application.getId()));
 
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolation1.getId(),
@@ -1190,7 +1190,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetUnfixedByApplicationIdsAndStageIds() {
+  public void testGetUnfixedByOwnerIdsAndStageIds() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
@@ -1341,7 +1341,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetUnfixedByApplicationIdsAndStageIds_policyViolationState() {
+  public void testGetUnfixedByOwnerIdsAndStageIds_policyViolationState() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1");
@@ -1399,7 +1399,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdsAndStageIds() {
+  public void testGetActiveByOwnerIdsAndStageIds() {
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
@@ -1421,7 +1421,7 @@ public class PolicyViolationDAOTest
         "scan-3");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdsAndStageIds(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdsAndStageIds(
         Collections.singletonList(application.getId()),
         Collections.singletonList(BuildStageType.ID), null, null, null);
 
@@ -1429,7 +1429,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdsAndPolicyIds() {
+  public void testGetActiveByOwnerIdsAndPolicyIds() {
     Policy policy1 = tempEntity.newPolicy(application);
     Policy policy2 = tempEntity.newPolicy(application);
 
@@ -1453,14 +1453,14 @@ public class PolicyViolationDAOTest
     tempEntity.newPolicyViolation(policyEvaluation, policy1);
 
     List<PolicyViolation> violations =
-        dao.getActiveByApplicationIdsAndPolicyIds(Collections.singleton(application.getId()),
+        dao.getActiveByOwnerIdsAndPolicyIds(Collections.singleton(application.getId()),
             Collections.singleton(policy1.getId()), null, null);
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation.getId());
   }
 
   @Test
-  public void testGetActiveByApplicationIdsAndPolicyIds_BeforeDate() {
+  public void testGetActiveByOwnerIdsAndPolicyIds_BeforeDate() {
     String appId = application.getId();
     Policy policy = tempEntity.newPolicy(application);
 
@@ -1477,46 +1477,46 @@ public class PolicyViolationDAOTest
     Set<String> policyId = Collections.singleton(policy.getId());
 
     // Test openTimeAfter and openTimeBefore both null
-    List<PolicyViolation> result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, null);
+    List<PolicyViolation> result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, null, null);
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01, jan15);
 
     // Test openTimeAfter
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), null);
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), null);
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01, jan15);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), null);
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), null);
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan15);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-15"), null);
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, asDate("2023-01-15"), null);
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan15);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-16"), null);
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, asDate("2023-01-16"), null);
     assertThat(result).isEmpty();
 
     // Test openTimeBefore
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, asDate("2023-01-15"));
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, null, asDate("2023-01-15"));
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01, jan15);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, asDate("2023-01-14"));
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, null, asDate("2023-01-14"));
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, asDate("2023-01-01"));
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, null, asDate("2023-01-01"));
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, null, asDate("2022-12-31"));
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, null, asDate("2022-12-31"));
     assertThat(result).extracting(PolicyViolation::getId).isEmpty();
 
     // Test openTimeAfter AND openTimeBefore
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), asDate("2023-01-15"));
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), asDate("2023-01-15"));
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01, jan15);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), asDate("2023-01-15"));
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), asDate("2023-01-15"));
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan15);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), asDate("2023-01-14"));
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, asDate("2023-01-01"), asDate("2023-01-14"));
     assertThat(result).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(jan01);
 
-    result = dao.getActiveByApplicationIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), asDate("2023-01-14"));
+    result = dao.getActiveByOwnerIdsAndPolicyIds(app, policyId, asDate("2023-01-02"), asDate("2023-01-14"));
     assertThat(result).isEmpty();
   }
 
@@ -1589,7 +1589,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdsOpenedAfterDate() {
+  public void testGetActiveByOwnerIdsOpenedAfterDate() {
     Instant reference = Instant.now();
     Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
     Date cutoff = new Date(reference.toEpochMilli());
@@ -1616,7 +1616,7 @@ public class PolicyViolationDAOTest
     addViolation(dao, BuildStageType.ID, openAfter, notLegacyViolation, waiveTime, notFixed);
     addViolation(dao, BuildStageType.ID, openBefore, notLegacyViolation, notWaived, notFixed);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdsOpenedAfterDate(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdsOpenedAfterDate(
         Collections.singletonList(application.getId()),
         cutoff, null, null, null);
 
@@ -1624,7 +1624,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdsOpenedAfterDate_ThreatLevel() {
+  public void testGetActiveByOwnerIdsOpenedAfterDate_ThreatLevel() {
     Instant reference = Instant.now();
     Date cutoff = new Date(reference.toEpochMilli());
     Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
@@ -1641,7 +1641,7 @@ public class PolicyViolationDAOTest
     addViolation(dao, BuildStageType.ID, cutoff, legacyViolationTime, null, null, 10, null);
     // matches neither by date nor by threat level
     addViolation(dao, BuildStageType.ID, cutoff, null, null, fixTime, 2, null);
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdsOpenedAfterDate(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdsOpenedAfterDate(
         Collections.singletonList(application.getId()),
         cutoff, 8, 10, null);
 
@@ -1649,7 +1649,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdsOpenedAfterDate_ThreatCategory() {
+  public void testGetActiveByOwnerIdsOpenedAfterDate_ThreatCategory() {
     Instant reference = Instant.now();
     Date cutoff = new Date(reference.toEpochMilli());
     Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
@@ -1672,14 +1672,14 @@ public class PolicyViolationDAOTest
     Set<PolicyThreatCategory> policyThreatCategories = new HashSet<>();
     policyThreatCategories.add(PolicyThreatCategory.SECURITY);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdsOpenedAfterDate(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdsOpenedAfterDate(
         Collections.singletonList(application.getId()),
         cutoff, null, null, policyThreatCategories);
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrderElementsOf(expectedIds);
   }
 
   @Test
-  public void getUnfixedByApplicationIdsOpenedAfterDate() {
+  public void getUnfixedByOwnerIdsOpenedAfterDate() {
     Instant reference = Instant.now();
     Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
     Date cutoff = new Date(reference.toEpochMilli());
@@ -1711,7 +1711,7 @@ public class PolicyViolationDAOTest
     addViolation(dao, BuildStageType.ID, openAfter, notLegacyViolation, waiveTime, fixTime);
     addViolation(dao, BuildStageType.ID, openBefore, notLegacyViolation, notWaived, notFixed);
 
-    List<PolicyViolation> violations = dao.getUnfixedByApplicationIdsOpenedAfterDate(
+    List<PolicyViolation> violations = dao.getUnfixedByOwnerIdsOpenedAfterDate(
         Collections.singletonList(application.getId()),
         cutoff, null, null, null);
 
@@ -1719,7 +1719,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdsAndStageIdsOpenedAfterDate() {
+  public void testGetActiveByOwnerIdsAndStageIdsOpenedAfterDate() {
     Instant reference = Instant.now();
     Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
     Date cutoff = new Date(reference.toEpochMilli());
@@ -1746,7 +1746,7 @@ public class PolicyViolationDAOTest
     addViolation(dao, BuildStageType.ID, openBefore, notLegacyViolation, notWaived, notFixed);
     addViolation(dao, ReleaseStageType.ID, openAfter, notLegacyViolation, notWaived, notFixed);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdsAndStageIdsOpenedAfterDate(
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdsAndStageIdsOpenedAfterDate(
         Collections.singletonList(application.getId()), Collections.singletonList(BuildStageType.ID), cutoff, null,
         null, null);
 
@@ -1754,7 +1754,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationIdAndStageIdsAndTimeRange() {
+  public void testGetActiveByOwnerIdAndStageIdsAndTimeRange() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver waiver = tempEntity.newWaiver(policy.getId(), application.getId());
     Date to = new Date(System.currentTimeMillis() - 10 * 1000);
@@ -1843,7 +1843,7 @@ public class PolicyViolationDAOTest
     // matching stage and time range but wrong app
     tempEntity.newPolicyViolation(policyEvalOnStartDateRangeOtherApp, policy);
 
-    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdsAndTimeRange(application.getId(),
+    List<PolicyViolation> violations = dao.getActiveByOwnerIdAndStageIdsAndTimeRange(application.getId(),
         Collections.singletonList(BuildStageType.ID), from, to);
 
     assertThat(violations).extracting(PolicyViolation::getId)
@@ -1856,7 +1856,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testgetUnfixedLegacyViolationByApplicationId() {
+  public void testgetUnfixedLegacyViolationByOwnerId() {
     Policy policy1 = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation1 =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1");
@@ -1883,18 +1883,18 @@ public class PolicyViolationDAOTest
     dao.update(fixedLegacyViolation2);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<PolicyViolation> violations1 = dao.getUnfixedLegacyViolationByApplicationId(tx, application.getId());
+      List<PolicyViolation> violations1 = dao.getUnfixedLegacyViolationByOwnerId(tx, application.getId());
       assertThat(violations1).extracting(PolicyViolation::getId)
           .containsExactly(unfixedLegacyViolation1.getId());
 
-      List<PolicyViolation> violations2 = dao.getUnfixedLegacyViolationByApplicationId(tx, application2.getId());
+      List<PolicyViolation> violations2 = dao.getUnfixedLegacyViolationByOwnerId(tx, application2.getId());
       assertThat(violations2).extracting(PolicyViolation::getId)
           .containsExactly(unfixedLegacyViolation2.getId());
     }
   }
 
   @Test
-  public void testgetUnfixedLegacyViolationByApplicationId_stringOverload() {
+  public void testgetUnfixedLegacyViolationByOwnerId_stringOverload() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation evaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-str-overload");
@@ -1912,15 +1912,15 @@ public class PolicyViolationDAOTest
     unfixed2.setLegacyViolationTime(evaluation2.getTime());
     dao.update(unfixed2);
 
-    List<PolicyViolation> violations = dao.getUnfixedLegacyViolationByApplicationId(application.getId());
+    List<PolicyViolation> violations = dao.getUnfixedLegacyViolationByOwnerId(application.getId());
     assertThat(violations).extracting(PolicyViolation::getId).containsExactly(unfixed.getId());
 
-    List<PolicyViolation> violations2 = dao.getUnfixedLegacyViolationByApplicationId(application2.getId());
+    List<PolicyViolation> violations2 = dao.getUnfixedLegacyViolationByOwnerId(application2.getId());
     assertThat(violations2).extracting(PolicyViolation::getId).containsExactly(unfixed2.getId());
   }
 
   @Test
-  public void testGetUnfixedByApplicationId() {
+  public void testGetUnfixedByOwnerId() {
     Policy policy1 = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation1 =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1");
@@ -1939,10 +1939,10 @@ public class PolicyViolationDAOTest
     dao.update(fixedViolation2);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<PolicyViolation> violations1 = dao.getUnfixedByApplicationId(tx, application.getId());
+      List<PolicyViolation> violations1 = dao.getUnfixedByOwnerId(tx, application.getId());
       assertThat(violations1).extracting(PolicyViolation::getId).containsExactly(unfixedViolation1.getId());
 
-      List<PolicyViolation> violations2 = dao.getUnfixedByApplicationId(tx, application2.getId());
+      List<PolicyViolation> violations2 = dao.getUnfixedByOwnerId(tx, application2.getId());
       assertThat(violations2).extracting(PolicyViolation::getId).containsExactly(unfixedViolation2.getId());
     }
   }
@@ -1995,18 +1995,18 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testDeleteFixedByApplicationIdAndDate_H2() {
-    testDeleteFixedByApplicationIdAndDate(true);
+  public void testDeleteFixedByOwnerIdAndDate_H2() {
+    testDeleteFixedByOwnerIdAndDate(true);
   }
 
   @Test
   @Category(PostgresTestCategory.class)
   @PostgresTest
-  public void testDeleteFixedByApplicationIdAndDate_Postgres() {
-    testDeleteFixedByApplicationIdAndDate(false);
+  public void testDeleteFixedByOwnerIdAndDate_Postgres() {
+    testDeleteFixedByOwnerIdAndDate(false);
   }
 
-  private void testDeleteFixedByApplicationIdAndDate(boolean isDatabaseEmbedded) {
+  private void testDeleteFixedByOwnerIdAndDate(boolean isDatabaseEmbedded) {
     assertThat(dao.isDatabaseEmbedded()).isEqualTo(isDatabaseEmbedded);
 
     Application app = tempEntity.newApplicationWithParent();
@@ -2032,10 +2032,10 @@ public class PolicyViolationDAOTest
     violation2.setFixTime(evaluation3.getTime());
     dao.update(violation2);
 
-    int deletedRows = dao.deleteFixedByApplicationIdAndDate(app.getId(), evaluation3.getTime());
+    int deletedRows = dao.deleteFixedByOwnerIdAndDate(app.getId(), evaluation3.getTime());
 
     assertThat(deletedRows).isEqualTo(PolicyViolationDAO.DELETE_BATCH_SIZE + 2);
-    assertThat(dao.getByApplicationId(app.getId()))
+    assertThat(dao.getByOwnerId(app.getId()))
         .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
         .containsExactlyInAnyOrder(violation1, violation2);
     assertThat(dao.getById(violation0.getId())).isNotNull();
@@ -2286,7 +2286,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdsAndPolicyIdsAndTypes() {
+  public void testGetByOwnerIdsAndPolicyIdsAndTypes() {
     Policy policy1 = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
@@ -2303,7 +2303,7 @@ public class PolicyViolationDAOTest
     Set<String> policyIds = Collections.singleton(policy1.getId());
 
     // active
-    Collection<PolicyViolation> violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+    Collection<PolicyViolation> violations = dao.getByOwnerIdsAndPolicyIdsAndTypes(
         applicationIds,
         policyIds,
         null,
@@ -2315,7 +2315,7 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(openViolation.getId());
 
     // waived
-    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+    violations = dao.getByOwnerIdsAndPolicyIdsAndTypes(
         applicationIds,
         policyIds,
         null,
@@ -2327,7 +2327,7 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(waivedViolation.getId());
 
     // legacy
-    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+    violations = dao.getByOwnerIdsAndPolicyIdsAndTypes(
         applicationIds,
         policyIds,
         null,
@@ -2339,7 +2339,7 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(legacyViolation.getId());
 
     // active and waived
-    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+    violations = dao.getByOwnerIdsAndPolicyIdsAndTypes(
         applicationIds,
         policyIds,
         null,
@@ -2351,7 +2351,7 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(openViolation.getId(), waivedViolation.getId());
 
     // active and legacy
-    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+    violations = dao.getByOwnerIdsAndPolicyIdsAndTypes(
         applicationIds,
         policyIds,
         null,
@@ -2363,7 +2363,7 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(openViolation.getId(), legacyViolation.getId());
 
     // legacy and waived
-    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+    violations = dao.getByOwnerIdsAndPolicyIdsAndTypes(
         applicationIds,
         policyIds,
         null,
@@ -2375,7 +2375,7 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(legacyViolation.getId(), waivedViolation.getId());
 
     // all types
-    violations = dao.getByApplicationIdsAndPolicyIdsAndTypes(
+    violations = dao.getByOwnerIdsAndPolicyIdsAndTypes(
         applicationIds,
         policyIds,
         null,
@@ -2623,7 +2623,7 @@ public class PolicyViolationDAOTest
 
     // Firewall should include legacy violations in quarantine list
     assertThat(results).hasSize(1);
-    assertThat(results.get(0).applicationId()).isEqualTo(app1.getId());
+    assertThat(results.get(0).ownerId()).isEqualTo(app1.getId());
     assertThat(results.get(0).policyViolationCount()).isEqualTo(1);
   }
 

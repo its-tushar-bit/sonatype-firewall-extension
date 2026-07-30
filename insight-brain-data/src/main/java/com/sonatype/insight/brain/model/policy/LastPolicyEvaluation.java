@@ -24,8 +24,8 @@ public class LastPolicyEvaluation
   @Column(name = "policy_evaluation_id")
   private String policyEvaluationId;
 
-  @Column(name = "application_id")
-  private String applicationId;
+  @Column(name = "owner_id")
+  private String ownerId;
 
   @Column(name = "stage_type_id")
   private String stageTypeId;
@@ -33,9 +33,9 @@ public class LastPolicyEvaluation
   public LastPolicyEvaluation() {
   }
 
-  public LastPolicyEvaluation(final String policyEvaluationId, final String applicationId, final String stageTypeId) {
+  public LastPolicyEvaluation(final String policyEvaluationId, final String ownerId, final String stageTypeId) {
     this.policyEvaluationId = policyEvaluationId;
-    this.applicationId = applicationId;
+    this.ownerId = ownerId;
     this.stageTypeId = stageTypeId;
   }
 
@@ -49,12 +49,12 @@ public class LastPolicyEvaluation
     policyEvaluationId = id;
   }
 
-  public String getApplicationId() {
-    return applicationId;
+  public String getOwnerId() {
+    return ownerId;
   }
 
-  public void setApplicationId(String applicationId) {
-    this.applicationId = applicationId;
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
   }
 
   public String getStageTypeId() {
@@ -67,7 +67,7 @@ public class LastPolicyEvaluation
 
   @Override
   public String toString() {
-    return "LastPolicyEvaluation{" + "policyEvaluationId='" + policyEvaluationId + '\'' + ", applicationId='"
-        + applicationId + '\'' + ", stageTypeId='" + stageTypeId + '\'' + '}';
+    return "LastPolicyEvaluation{" + "policyEvaluationId='" + policyEvaluationId + '\'' + ", ownerId='"
+        + ownerId + '\'' + ", stageTypeId='" + stageTypeId + '\'' + '}';
   }
 }

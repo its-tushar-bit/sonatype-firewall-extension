@@ -21,8 +21,8 @@ import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.OwnerComponent;
+import com.sonatype.insight.brain.model.OwnerComponentLicense;
 import com.sonatype.insight.brain.model.ApplicationComponentRisk;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -45,29 +45,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.experimental.categories.Category;
 
-public class ApplicationComponentDAOTest
+public class OwnerComponentDAOTest
     extends AbstractDbDAOTest
 {
-  private ApplicationComponentDAO dao;
+  private OwnerComponentDAO dao;
 
   private AggregateFileDAO aggregateFileDAO;
 
-  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+  private OwnerComponentLicenseDAO applicationComponentLicenseDAO;
 
   @Before
   @Override
   public void setup() {
     super.setup();
-    dao = daoFactory.createApplicationComponentDAO();
+    dao = daoFactory.createOwnerComponentDAO();
     aggregateFileDAO = daoFactory.createAggregateFileDAO();
-    applicationComponentLicenseDAO = daoFactory.createApplicationComponentLicenseDAO();
+    applicationComponentLicenseDAO = daoFactory.createOwnerComponentLicenseDAO();
   }
 
   @Test
   public void testCRUD() {
     // Create
     Date now = new Date();
-    ApplicationComponent appComponent = new ApplicationComponent(application.getId(), BuildStageType.ID, now, "hash",
+    OwnerComponent appComponent = new OwnerComponent(application.getId(), BuildStageType.ID, now, "hash",
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */);
     dao.insert(appComponent);
@@ -81,7 +81,7 @@ public class ApplicationComponentDAOTest
         IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */, appComponent);
 
     // Update
-    ApplicationComponent appComponentToUpdate = appComponent;
+    OwnerComponent appComponentToUpdate = appComponent;
     assertThatThrownBy(() -> dao.update(appComponentToUpdate)).isInstanceOf(UnsupportedOperationException.class);
 
     // Delete
@@ -102,9 +102,9 @@ public class ApplicationComponentDAOTest
       String identificationSourceId,
       boolean proprietary,
       String pathnames,
-      ApplicationComponent actual)
+      OwnerComponent actual)
   {
-    assertThat(actual.getApplicationId()).isEqualTo(applicationId);
+    assertThat(actual.getOwnerId()).isEqualTo(applicationId);
     assertThat(actual.getStageTypeId()).isEqualTo(stageTypeId);
     assertThat(actual.getHash()).isEqualTo(hash);
     assertThat(actual.getTime()).isEqualTo(time);
@@ -116,10 +116,10 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdAndStageTypeIdAndHash() {
+  public void testGetByOwnerIdAndStageTypeIdAndHash() {
     String app1 = application.getId();
     String app2 = tempEntity.newApplication(organization.getId()).getId();
-    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-1",
+    OwnerComponent component1 = tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-1",
         MatchState.EXACT, false);
     tempEntity.newApplicationComponent(app1, ReleaseStageType.ID, "hash-1", MatchState.EXACT, true);
     tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-3",
@@ -128,13 +128,13 @@ public class ApplicationComponentDAOTest
     tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-2", MatchState.EXACT, true);
     tempEntity.newApplicationComponent(app2, BuildStageType.ID, "hash-1", MatchState.EXACT, false);
 
-    ApplicationComponent retrievedComponent = dao.getByApplicationIdAndStageTypeIdAndHash(app1, BuildStageType.ID,
+    OwnerComponent retrievedComponent = dao.getByOwnerIdAndStageTypeIdAndHash(app1, BuildStageType.ID,
         "hash-1");
     assertApplicationComponent(component1, retrievedComponent);
   }
 
   @Test
-  public void testGetByApplicationIdsAndStageTypeId() {
+  public void testGetByOwnerIdsAndStageTypeId() {
     String app1 = application.getId();
     String app2 = tempEntity.newApplication(organization.getId()).getId();
 
@@ -144,43 +144,43 @@ public class ApplicationComponentDAOTest
     tempEntity.newApplicationComponent(app1, ReleaseStageType.ID, "hash-3", MatchState.EXACT, false);
     tempEntity.newApplicationComponent(app2, BuildStageType.ID, "hash-4", MatchState.EXACT, false);
 
-    List<ApplicationComponent> components =
-        dao.getByApplicationIdsAndStageTypeId(Sets.newHashSet(app1, app2), BuildStageType.ID);
-    assertThat(components).extracting(ApplicationComponent::getHash)
+    List<OwnerComponent> components =
+        dao.getByOwnerIdsAndStageTypeId(Sets.newHashSet(app1, app2), BuildStageType.ID);
+    assertThat(components).extracting(OwnerComponent::getHash)
         .containsExactlyInAnyOrder("hash-1", "hash-2", "hash-4");
 
-    assertThat(dao.getByApplicationIdsAndStageTypeId(Collections.emptySet(), BuildStageType.ID)).isEmpty();
+    assertThat(dao.getByOwnerIdsAndStageTypeId(Collections.emptySet(), BuildStageType.ID)).isEmpty();
   }
 
   @Test
-  public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering_H2() {
-    testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(true);
-  }
-
-  @Test
-  @Category(PostgresTestCategory.class)
-  @PostgresTest
-  public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering_Postgres() {
-    testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(false);
-  }
-
-  @Test
-  public void testGetByApplicationIdsAndStageTypeIds_AppFiltering_H2() {
-    testGetByApplicationIdsAndStageTypeIds_AppFiltering(true, null);
+  public void testGetByOwnerIdsAndStageTypeIdsSince_AppFiltering_H2() {
+    testGetByOwnerIdsAndStageTypeIdsSince_AppFiltering(true);
   }
 
   @Test
   @Category(PostgresTestCategory.class)
   @PostgresTest
-  public void testGetByApplicationIdsAndStageTypeIds_AppFiltering_Postgres() {
-    testGetByApplicationIdsAndStageTypeIds_AppFiltering(false, null);
+  public void testGetByOwnerIdsAndStageTypeIdsSince_AppFiltering_Postgres() {
+    testGetByOwnerIdsAndStageTypeIdsSince_AppFiltering(false);
   }
 
-  private void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(boolean isDatabaseEmbedded) {
-    testGetByApplicationIdsAndStageTypeIds_AppFiltering(isDatabaseEmbedded, new Date());
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIds_AppFiltering_H2() {
+    testGetByOwnerIdsAndStageTypeIds_AppFiltering(true, null);
   }
 
-  private void testGetByApplicationIdsAndStageTypeIds_AppFiltering(boolean isDatabaseEmbedded, Date date) {
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetByOwnerIdsAndStageTypeIds_AppFiltering_Postgres() {
+    testGetByOwnerIdsAndStageTypeIds_AppFiltering(false, null);
+  }
+
+  private void testGetByOwnerIdsAndStageTypeIdsSince_AppFiltering(boolean isDatabaseEmbedded) {
+    testGetByOwnerIdsAndStageTypeIds_AppFiltering(isDatabaseEmbedded, new Date());
+  }
+
+  private void testGetByOwnerIdsAndStageTypeIds_AppFiltering(boolean isDatabaseEmbedded, Date date) {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     String appId1 = application.getId();
@@ -188,8 +188,8 @@ public class ApplicationComponentDAOTest
     Set<String> largeIdList = new HashSet<>();
 
     int threshold = isDatabaseEmbedded
-        ? ApplicationComponentDAO.H2_IN_OPERATOR_THRESHOLD
-        : ApplicationComponentDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
+        ? OwnerComponentDAO.H2_IN_OPERATOR_THRESHOLD
+        : OwnerComponentDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
     // make a collection of over 2000 ids.
     largeIdList.add(appId1);
     largeIdList.add(appId2);
@@ -215,52 +215,52 @@ public class ApplicationComponentDAOTest
     Set<String> stageTypeIds = Collections.singleton(ReleaseStageType.ID);
 
     if (date != null) {
-      List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(null, stageTypeIds, date);
+      List<OwnerComponent> components = dao.getByOwnerIdsAndStageTypeIdsSince(null, stageTypeIds, date);
       assertThat(components).isEmpty();
-      components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.emptySet(), stageTypeIds, date);
+      components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.emptySet(), stageTypeIds, date);
       assertThat(components).isEmpty();
-      components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"), stageTypeIds, date);
+      components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton("missing"), stageTypeIds, date);
       assertThat(components).isEmpty();
-      components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
-      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2);
-      components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId2), stageTypeIds, date);
-      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId3);
+      components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
+      assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId1, componentId2);
+      components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton(appId2), stageTypeIds, date);
+      assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId3);
       components =
-          dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds, date);
-      assertThat(components).extracting(ApplicationComponent::getId)
+          dao.getByOwnerIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds, date);
+      assertThat(components).extracting(OwnerComponent::getId)
           .containsExactly(componentId1, componentId2,
               componentId3);
-      components = dao.getByApplicationIdsAndStageTypeIdsSince(largeIdList, stageTypeIds, date);
-      assertThat(components).extracting(ApplicationComponent::getId)
+      components = dao.getByOwnerIdsAndStageTypeIdsSince(largeIdList, stageTypeIds, date);
+      assertThat(components).extracting(OwnerComponent::getId)
           .containsExactly(componentId1, componentId2,
               componentId3);
     }
     else {
-      List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIds(null, stageTypeIds);
+      List<OwnerComponent> components = dao.getByOwnerIdsAndStageTypeIds(null, stageTypeIds);
       assertThat(components).isEmpty();
-      components = dao.getByApplicationIdsAndStageTypeIds(Collections.emptySet(), stageTypeIds);
+      components = dao.getByOwnerIdsAndStageTypeIds(Collections.emptySet(), stageTypeIds);
       assertThat(components).isEmpty();
-      components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton("missing"), stageTypeIds);
+      components = dao.getByOwnerIdsAndStageTypeIds(Collections.singleton("missing"), stageTypeIds);
       assertThat(components).isEmpty();
-      components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId1), stageTypeIds);
-      assertThat(components).extracting(ApplicationComponent::getId)
+      components = dao.getByOwnerIdsAndStageTypeIds(Collections.singleton(appId1), stageTypeIds);
+      assertThat(components).extracting(OwnerComponent::getId)
           .containsExactlyInAnyOrder(componentId1,
               componentId2);
-      components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId2), stageTypeIds);
-      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId3);
-      components = dao.getByApplicationIdsAndStageTypeIds(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds);
-      assertThat(components).extracting(ApplicationComponent::getId)
+      components = dao.getByOwnerIdsAndStageTypeIds(Collections.singleton(appId2), stageTypeIds);
+      assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId3);
+      components = dao.getByOwnerIdsAndStageTypeIds(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds);
+      assertThat(components).extracting(OwnerComponent::getId)
           .containsExactlyInAnyOrder(componentId1,
               componentId2, componentId3);
-      components = dao.getByApplicationIdsAndStageTypeIds(largeIdList, stageTypeIds);
-      assertThat(components).extracting(ApplicationComponent::getId)
+      components = dao.getByOwnerIdsAndStageTypeIds(largeIdList, stageTypeIds);
+      assertThat(components).extracting(OwnerComponent::getId)
           .containsExactlyInAnyOrder(componentId1,
               componentId2, componentId3);
     }
   }
 
   @Test
-  public void testGetByApplicationIdsAndStageTypeIdsSince_StageFiltering() {
+  public void testGetByOwnerIdsAndStageTypeIdsSince_StageFiltering() {
     String appId1 = application.getId();
     String appId2 = tempEntity.newApplication(organization.getId()).getId();
 
@@ -280,28 +280,28 @@ public class ApplicationComponentDAOTest
         .getId();
 
     Set<String> appIds = Collections.singleton(application.getId());
-    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, null, date);
+    List<OwnerComponent> components = dao.getByOwnerIdsAndStageTypeIdsSince(appIds, null, date);
     assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.emptySet(), Collections.emptySet(), date);
+    components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.emptySet(), Collections.emptySet(), date);
     assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"),
+    components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton("missing"),
         Collections.singleton("missing"), date);
     assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1),
+    components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton(appId1),
         Collections.singleton(BuildStageType.ID), date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1);
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1),
+    assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId1);
+    components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton(appId1),
         Collections.singleton(ReleaseStageType.ID), date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId2);
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)),
+    assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId2);
+    components = dao.getByOwnerIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)),
         new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), date);
-    assertThat(components).extracting(ApplicationComponent::getId)
+    assertThat(components).extracting(OwnerComponent::getId)
         .containsExactly(componentId1, componentId2,
             componentId3);
   }
 
   @Test
-  public void testGetByApplicationIdsAndStageTypeIds_StageFiltering() {
+  public void testGetByOwnerIdsAndStageTypeIds_StageFiltering() {
     String appId1 = application.getId();
     String appId2 = tempEntity.newApplication(organization.getId()).getId();
 
@@ -320,28 +320,28 @@ public class ApplicationComponentDAOTest
         .getId();
 
     Set<String> appIds = Collections.singleton(application.getId());
-    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIds(appIds, null);
+    List<OwnerComponent> components = dao.getByOwnerIdsAndStageTypeIds(appIds, null);
     assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIds(Collections.emptySet(), Collections.emptySet());
-    assertThat(components).isEmpty();
-    components =
-        dao.getByApplicationIdsAndStageTypeIds(Collections.singleton("missing"), Collections.singleton("missing"));
+    components = dao.getByOwnerIdsAndStageTypeIds(Collections.emptySet(), Collections.emptySet());
     assertThat(components).isEmpty();
     components =
-        dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId1), Collections.singleton(BuildStageType.ID));
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1);
-    components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId1),
+        dao.getByOwnerIdsAndStageTypeIds(Collections.singleton("missing"), Collections.singleton("missing"));
+    assertThat(components).isEmpty();
+    components =
+        dao.getByOwnerIdsAndStageTypeIds(Collections.singleton(appId1), Collections.singleton(BuildStageType.ID));
+    assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId1);
+    components = dao.getByOwnerIdsAndStageTypeIds(Collections.singleton(appId1),
         Collections.singleton(ReleaseStageType.ID));
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId2);
-    components = dao.getByApplicationIdsAndStageTypeIds(new HashSet<>(Arrays.asList(appId1, appId2)),
+    assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId2);
+    components = dao.getByOwnerIdsAndStageTypeIds(new HashSet<>(Arrays.asList(appId1, appId2)),
         new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)));
-    assertThat(components).extracting(ApplicationComponent::getId)
+    assertThat(components).extracting(OwnerComponent::getId)
         .containsExactlyInAnyOrder(componentId1, componentId2,
             componentId3);
   }
 
   @Test
-  public void testGetByApplicationIdsAndStageTypeIdsSince_DateFiltering() {
+  public void testGetByOwnerIdsAndStageTypeIdsSince_DateFiltering() {
     String appId1 = application.getId();
 
     Date date = new Date();
@@ -354,20 +354,20 @@ public class ApplicationComponentDAOTest
 
     Set<String> stageTypeIds = Collections.singleton(ReleaseStageType.ID);
     Set<String> appIds = Collections.singleton(application.getId());
-    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageTypeIds, null);
+    List<OwnerComponent> components = dao.getByOwnerIdsAndStageTypeIdsSince(appIds, stageTypeIds, null);
     assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds,
+    components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds,
         new Date(date.getTime() + 3000));
     assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2);
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds,
+    components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
+    assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId1, componentId2);
+    components = dao.getByOwnerIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds,
         new DateTime(date).minusDays(1).toDate());
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2);
+    assertThat(components).extracting(OwnerComponent::getId).containsExactly(componentId1, componentId2);
   }
 
   @Test
-  public void testGetByApplicationIdsAndStageTypeIdsSince_MultipleStages() {
+  public void testGetByOwnerIdsAndStageTypeIdsSince_MultipleStages() {
     String appId1 = application.getId();
     String appId2 = tempEntity.newApplication(organization.getId()).getId();
 
@@ -385,14 +385,14 @@ public class ApplicationComponentDAOTest
 
     Set<String> appIds = new HashSet<>(Arrays.asList(appId1, appId2));
     Set<String> stageIds = new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
-    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageIds, date);
-    assertThat(components).extracting(ApplicationComponent::getId)
+    List<OwnerComponent> components = dao.getByOwnerIdsAndStageTypeIdsSince(appIds, stageIds, date);
+    assertThat(components).extracting(OwnerComponent::getId)
         .containsExactly(componentId1, componentId2,
             componentId3);
   }
 
   @Test
-  public void testGetByApplicationIdsAndStageTypeIds_MultipleStages() {
+  public void testGetByOwnerIdsAndStageTypeIds_MultipleStages() {
     String appId1 = application.getId();
     String appId2 = tempEntity.newApplication(organization.getId()).getId();
 
@@ -410,8 +410,8 @@ public class ApplicationComponentDAOTest
 
     Set<String> appIds = new HashSet<>(Arrays.asList(appId1, appId2));
     Set<String> stageIds = new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
-    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIds(appIds, stageIds);
-    assertThat(components).extracting(ApplicationComponent::getId)
+    List<OwnerComponent> components = dao.getByOwnerIdsAndStageTypeIds(appIds, stageIds);
+    assertThat(components).extracting(OwnerComponent::getId)
         .containsExactlyInAnyOrder(componentId1, componentId2,
             componentId3);
   }
@@ -433,9 +433,9 @@ public class ApplicationComponentDAOTest
 
   @Test
   public void testCascadeDeleteToAggregateFiles() {
-    ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    ApplicationComponent applicationComponent2 = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent2 = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     tempEntity.newAggregateFile(applicationComponent1.getId(), "hash3", null);
     tempEntity.newAggregateFile(applicationComponent1.getId(), "hash4",
@@ -446,62 +446,62 @@ public class ApplicationComponentDAOTest
 
     dao.delete(applicationComponent1);
 
-    assertThat(aggregateFileDAO.getByApplicationComponentId(applicationComponent1.getId())).isEmpty();
-    assertThat(aggregateFileDAO.getByApplicationComponentId(applicationComponent2.getId()))
+    assertThat(aggregateFileDAO.getByOwnerComponentId(applicationComponent1.getId())).isEmpty();
+    assertThat(aggregateFileDAO.getByOwnerComponentId(applicationComponent2.getId()))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(aggregateFile3, aggregateFile4);
   }
 
   @Test
-  public void testCascadeDeleteToApplicationComponentLicense() {
-    ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
+  public void testCascadeDeleteToOwnerComponentLicense() {
+    OwnerComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    ApplicationComponent applicationComponent2 = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent2 = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
 
     tempEntity.newApplicationComponentLicense(applicationComponent1.getId(), "license-1");
     tempEntity.newApplicationComponentLicense(applicationComponent1.getId(), "license-2");
 
-    ApplicationComponentLicense applicationComponentLicense3 =
+    OwnerComponentLicense applicationComponentLicense3 =
         tempEntity.newApplicationComponentLicense(applicationComponent2.getId(), "license-3");
-    ApplicationComponentLicense applicationComponentLicense4 =
+    OwnerComponentLicense applicationComponentLicense4 =
         tempEntity.newApplicationComponentLicense(applicationComponent2.getId(), "license-4");
 
     dao.delete(applicationComponent1);
 
-    assertThat(applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent1.getId())).isEmpty();
-    assertThat(applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent2.getId()))
+    assertThat(applicationComponentLicenseDAO.getByOwnerComponentId(applicationComponent1.getId())).isEmpty();
+    assertThat(applicationComponentLicenseDAO.getByOwnerComponentId(applicationComponent2.getId()))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(applicationComponentLicense3, applicationComponentLicense4);
   }
 
   @Test
   public void testGetApplicationIdsAndStageTypeIdsByReviewStatus() {
-    ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     tempEntity.newComponentObligation(applicationComponent1.getComponentIdentifier(),
-        applicationComponent1.getApplicationId(), "obligation1", "comment1", ObligationStatus.FULFILLED, "hash1");
+        applicationComponent1.getOwnerId(), "obligation1", "comment1", ObligationStatus.FULFILLED, "hash1");
 
     Application otherApplication = tempEntity.newApplication(organization.getId());
 
-    ApplicationComponent applicationComponent2 = tempEntity.newApplicationComponent(otherApplication.getId(),
+    OwnerComponent applicationComponent2 = tempEntity.newApplicationComponent(otherApplication.getId(),
         BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
     tempEntity.newComponentObligation(applicationComponent2.getComponentIdentifier(),
-        applicationComponent2.getApplicationId(), "obligation2", "comment2", ObligationStatus.IGNORED, "hash2");
+        applicationComponent2.getOwnerId(), "obligation2", "comment2", ObligationStatus.IGNORED, "hash2");
 
-    ApplicationComponent applicationComponent3 = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent3 = tempEntity.newApplicationComponent(application.getId(),
         DevelopStageType.ID, "hash3", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
     tempEntity.newComponentObligation(applicationComponent3.getComponentIdentifier(),
-        applicationComponent3.getApplicationId(), "obligation3", "comment3", ObligationStatus.OPEN, "hash3");
+        applicationComponent3.getOwnerId(), "obligation3", "comment3", ObligationStatus.OPEN, "hash3");
 
-    ApplicationComponent applicationComponent4 = tempEntity.newApplicationComponent(otherApplication.getId(),
+    OwnerComponent applicationComponent4 = tempEntity.newApplicationComponent(otherApplication.getId(),
         DevelopStageType.ID, "hash4", ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
     tempEntity.newComponentObligation(applicationComponent4.getComponentIdentifier(),
-        applicationComponent4.getApplicationId(), "obligation4", "comment4", ObligationStatus.FLAGGED, "hash4");
+        applicationComponent4.getOwnerId(), "obligation4", "comment4", ObligationStatus.FLAGGED, "hash4");
 
     Application applicationNewParent = tempEntity.newApplicationWithParent();
 
-    ApplicationComponent applicationComponent5 = tempEntity.newApplicationComponent(applicationNewParent.getId(),
+    OwnerComponent applicationComponent5 = tempEntity.newApplicationComponent(applicationNewParent.getId(),
         BuildStageType.ID, "hash5", ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"));
     tempEntity.newComponentObligation(applicationComponent5.getComponentIdentifier(),
         applicationNewParent.getOrganizationId(),
@@ -509,27 +509,27 @@ public class ApplicationComponentDAOTest
 
     Application applicationForRoot = tempEntity.newApplicationWithParent();
 
-    ApplicationComponent applicationComponent6 = tempEntity.newApplicationComponent(applicationForRoot.getId(),
+    OwnerComponent applicationComponent6 = tempEntity.newApplicationComponent(applicationForRoot.getId(),
         DevelopStageType.ID, "hash6", ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"));
     tempEntity.newComponentObligation(applicationComponent6.getComponentIdentifier(), Organization.ROOT_ORGANIZATION_ID,
         "obligation6", "comment6", ObligationStatus.IGNORED, "hash6");
 
     Application oneMoreApplication = tempEntity.newApplication(organization.getId());
-    ApplicationComponent applicationComponent7 = tempEntity.newApplicationComponent(oneMoreApplication.getId(),
+    OwnerComponent applicationComponent7 = tempEntity.newApplicationComponent(oneMoreApplication.getId(),
         BuildStageType.ID, "hash7", ComponentIdentifier.createMavenCoordinates("g7", "a7", "v7"));
     tempEntity.newComponentObligation(applicationComponent7.getComponentIdentifier(),
-        applicationComponent7.getApplicationId(), "obligation7", "comment7", ObligationStatus.IGNORED, "hash7");
+        applicationComponent7.getOwnerId(), "obligation7", "comment7", ObligationStatus.IGNORED, "hash7");
 
-    ApplicationComponent applicationComponent8 = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent8 = tempEntity.newApplicationComponent(application.getId(),
         ReleaseStageType.ID, "hash8", ComponentIdentifier.createMavenCoordinates("g8", "a8", "v8"));
     tempEntity.newComponentObligation(applicationComponent7.getComponentIdentifier(),
-        applicationComponent8.getApplicationId(), "obligation8", "comment8", ObligationStatus.FULFILLED, "hash8");
+        applicationComponent8.getOwnerId(), "obligation8", "comment8", ObligationStatus.FULFILLED, "hash8");
 
     Application applicationWithoutReview = tempEntity.newApplication(organization.getId());
     tempEntity.newApplicationComponent(applicationWithoutReview.getId(), DevelopStageType.ID, "hash9",
         ComponentIdentifier.createMavenCoordinates("g9", "a9", "v9"));
 
-    List<Object[]> result = dao.getApplicationIdsAndStageTypeIdsByReviewStatus(
+    List<Object[]> result = dao.getOwnerIdsAndStageTypeIdsByReviewStatus(
         Sets.newHashSet(application.getId(), otherApplication.getId(), applicationNewParent.getId(),
             applicationForRoot.getId(), applicationWithoutReview.getId()),
         Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID),
@@ -544,7 +544,7 @@ public class ApplicationComponentDAOTest
             new Object[]{applicationNewParent.getId(), BuildStageType.ID},
             new Object[]{applicationForRoot.getId(), DevelopStageType.ID});
 
-    result = dao.getApplicationIdsAndStageTypeIdsByReviewStatus(
+    result = dao.getOwnerIdsAndStageTypeIdsByReviewStatus(
         Sets.newHashSet(application.getId(), otherApplication.getId(), applicationNewParent.getId(),
             applicationForRoot.getId(), applicationWithoutReview.getId()),
         Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID),
@@ -556,21 +556,21 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdAndComponentIdentifier() {
+  public void testGetByOwnerIdAndComponentIdentifier() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     Application app1 = tempEntity.newApplicationWithParent();
     Application app2 = tempEntity.newApplicationWithParent();
-    ApplicationComponent applicationComponent1 =
+    OwnerComponent applicationComponent1 =
         tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash1", componentIdentifier);
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash1", componentIdentifier);
-    ApplicationComponent applicationComponent3 =
+    OwnerComponent applicationComponent3 =
         tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash1", componentIdentifier);
-    ApplicationComponent applicationComponent4 =
+    OwnerComponent applicationComponent4 =
         tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash2", componentIdentifier);
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash3",
         componentIdentifier.createAlternativeVersion("v2"));
 
-    assertThat(dao.getByApplicationIdAndComponentIdentifier(app1.getId(), componentIdentifier))
+    assertThat(dao.getByOwnerIdAndComponentIdentifier(app1.getId(), componentIdentifier))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(applicationComponent1, applicationComponent3, applicationComponent4);
   }
@@ -584,21 +584,21 @@ public class ApplicationComponentDAOTest
         MatchState.EXACT, IdentificationSource.SONATYPE, false, new Date(1));
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash1", componentIdentifier, null,
         MatchState.EXACT, IdentificationSource.SONATYPE, false, new Date(100));
-    ApplicationComponent applicationComponent3 =
+    OwnerComponent applicationComponent3 =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier, null,
             MatchState.EXACT, IdentificationSource.SONATYPE, false, new Date(1000));
 
-    ApplicationComponent appComponent = dao.getLastByComponentIdentifier(componentIdentifier);
+    OwnerComponent appComponent = dao.getLastByComponentIdentifier(componentIdentifier);
 
     assertApplicationComponent(applicationComponent3, appComponent);
   }
 
   @Test
-  public void testGetByApplicationIdAndComponentIdentifier_Empty() {
+  public void testGetByOwnerIdAndComponentIdentifier_Empty() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     Application app = tempEntity.newApplicationWithParent();
 
-    assertThat(dao.getByApplicationIdAndComponentIdentifier(app.getId(), componentIdentifier)).isEmpty();
+    assertThat(dao.getByOwnerIdAndComponentIdentifier(app.getId(), componentIdentifier)).isEmpty();
   }
 
   @Test
@@ -1012,15 +1012,15 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetMapByApplicationIdsAndStageTypeIdsAndHashes() {
+  public void testGetMapByOwnerIdsAndStageTypeIdsAndHashes() {
     Date now = new Date();
-    ApplicationComponent comp1 = new ApplicationComponent(application.getId(), BuildStageType.ID, now, "hash1",
+    OwnerComponent comp1 = new OwnerComponent(application.getId(), BuildStageType.ID, now, "hash1",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), true, null);
-    ApplicationComponent comp2 = new ApplicationComponent(application.getId(), BuildStageType.ID, now, "hash2",
+    OwnerComponent comp2 = new OwnerComponent(application.getId(), BuildStageType.ID, now, "hash2",
         ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), false, null);
-    ApplicationComponent comp3 = new ApplicationComponent(application.getId(), ReleaseStageType.ID, now, "hash3",
+    OwnerComponent comp3 = new OwnerComponent(application.getId(), ReleaseStageType.ID, now, "hash3",
         ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), false, null);
     dao.insert(comp1);
@@ -1030,49 +1030,49 @@ public class ApplicationComponentDAOTest
     Set<String> appIds = Set.of(application.getId());
     Set<String> stageTypeIds = Set.of(BuildStageType.ID, ReleaseStageType.ID);
 
-    Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> results =
-        dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Set.of("hash1", "hash3"));
+    Map<OwnerComponentDAO.OwnerComponentKey, OwnerComponent> results =
+        dao.getMapByOwnerIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Set.of("hash1", "hash3"));
     assertThat(results).hasSize(2);
-    assertThat(results.values()).extracting(ApplicationComponent::getHash).containsExactlyInAnyOrder("hash1", "hash3");
+    assertThat(results.values()).extracting(OwnerComponent::getHash).containsExactlyInAnyOrder("hash1", "hash3");
 
-    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Set.of("nonexistent"));
+    results = dao.getMapByOwnerIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Set.of("nonexistent"));
     assertThat(results).isEmpty();
 
-    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Collections.emptySet());
+    results = dao.getMapByOwnerIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Collections.emptySet());
     assertThat(results).isEmpty();
 
-    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(Collections.emptySet(), stageTypeIds, Set.of("hash1"));
+    results = dao.getMapByOwnerIdsAndStageTypeIdsAndHashes(Collections.emptySet(), stageTypeIds, Set.of("hash1"));
     assertThat(results).isEmpty();
 
-    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(appIds, Collections.emptySet(), Set.of("hash1"));
+    results = dao.getMapByOwnerIdsAndStageTypeIdsAndHashes(appIds, Collections.emptySet(), Set.of("hash1"));
     assertThat(results).isEmpty();
 
     // Multi-app: same hash exists in two different applications
     String app2Id = tempEntity.newApplication(organization.getId()).getId();
-    ApplicationComponent comp4 = new ApplicationComponent(app2Id, BuildStageType.ID, now, "hash1",
+    OwnerComponent comp4 = new OwnerComponent(app2Id, BuildStageType.ID, now, "hash1",
         ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), false, null);
     dao.insert(comp4);
 
-    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(
+    results = dao.getMapByOwnerIdsAndStageTypeIdsAndHashes(
         Set.of(application.getId(), app2Id), stageTypeIds, Set.of("hash1"));
     assertThat(results).hasSize(2);
-    assertThat(results.values()).extracting(ApplicationComponent::getApplicationId)
+    assertThat(results.values()).extracting(OwnerComponent::getOwnerId)
         .containsExactlyInAnyOrder(application.getId(), app2Id);
-    assertThat(results.values()).extracting(ApplicationComponent::getHash).containsOnly("hash1");
+    assertThat(results.values()).extracting(OwnerComponent::getHash).containsOnly("hash1");
 
     // Only one app requested — should only get that app's component
-    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(
+    results = dao.getMapByOwnerIdsAndStageTypeIdsAndHashes(
         Set.of(app2Id), stageTypeIds, Set.of("hash1"));
     assertThat(results).hasSize(1);
-    ApplicationComponentDAO.ApplicationComponentKey key = results.keySet().iterator().next();
-    assertThat(key.applicationId()).isEqualTo(app2Id);
+    OwnerComponentDAO.OwnerComponentKey key = results.keySet().iterator().next();
+    assertThat(key.ownerId()).isEqualTo(app2Id);
     assertThat(key.hash()).isEqualTo("hash1");
   }
 
-  public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {
+  public void assertApplicationComponent(OwnerComponent expected, OwnerComponent actual) {
     assertThat(actual).isNotNull();
-    assertThat(actual.getApplicationId()).isEqualTo(expected.getApplicationId());
+    assertThat(actual.getOwnerId()).isEqualTo(expected.getOwnerId());
     assertThat(actual.getHash()).isEqualTo(expected.getHash());
     assertThat(actual.getId()).isEqualTo(expected.getId());
     assertThat(actual.getIdentificationSourceId()).isEqualTo(expected.getIdentificationSourceId());

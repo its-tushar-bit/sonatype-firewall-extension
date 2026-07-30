@@ -234,7 +234,7 @@ public class ScmStatusHelperTest
 
   private PolicyEvaluation buildPolicyEvaluation(String applicationId, String scanId) {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-    policyEvaluation.setApplicationId(applicationId);
+    policyEvaluation.setOwnerId(applicationId);
     policyEvaluation.setScanId(scanId);
     return policyEvaluation;
   }

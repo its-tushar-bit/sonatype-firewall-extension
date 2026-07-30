@@ -339,7 +339,7 @@ public class PolicyEvaluationMatchStateLifecyclePlaywrightTest
 
   private PolicyViolation firstViolationForJetty(SeededEvaluation seeded) {
     PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
-    List<PolicyViolation> violations = dao.getByApplicationId(seeded.app().getId());
+    List<PolicyViolation> violations = dao.getByOwnerId(seeded.app().getId());
     PolicyViolation target = violations.stream()
         .filter(v -> v.getPolicyId() != null
             && v.getPolicyId().equals(seeded.policy().getId())

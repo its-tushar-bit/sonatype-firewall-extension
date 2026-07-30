@@ -87,7 +87,7 @@ public class PolicyViolationReachabilityHelper
     }
 
     logger.debug("Updating policy violation with reachability data for applicationId: {}, policyId: {}",
-        policyViolation.getApplicationId(), policyViolation.getId());
+        policyViolation.getOwnerId(), policyViolation.getId());
 
     if (supportsReachabilityAnalysis(policyViolation)) {
       ReachabilityStatus isReachable = isVulnerabilityReachable(policyViolation, purlIdentifiers);
@@ -95,7 +95,7 @@ public class PolicyViolationReachabilityHelper
     }
 
     logger.debug("Finished updating policy violations with reachability data for applicationId: {}, policyId: {}",
-        policyViolation.getApplicationId(), policyViolation.getId());
+        policyViolation.getOwnerId(), policyViolation.getId());
   }
 
   /**

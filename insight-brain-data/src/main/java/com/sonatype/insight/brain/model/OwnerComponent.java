@@ -26,8 +26,8 @@ import org.apache.commons.lang3.StringUtils;
  * @since 1.11
  */
 @Entity
-@Table(name = "application_component")
-public class ApplicationComponent
+@Table(name = "owner_component")
+public class OwnerComponent
     extends HasComponentId
     implements HasStringId
 {
@@ -37,11 +37,11 @@ public class ApplicationComponent
   private static final String PATHNAMES_DELIMITER_REGEX = "\\" + PATHNAMES_DELIMITER_CHAR;
 
   @Id
-  @Column(name = "application_component_id")
+  @Column(name = "owner_component_id")
   private String id;
 
-  @Column(name = "application_id")
-  private String applicationId;
+  @Column(name = "owner_id")
+  private String ownerId;
 
   @Column(name = "stage_type_id")
   private String stageTypeId;
@@ -64,11 +64,11 @@ public class ApplicationComponent
   @Column(name = "pathnames")
   private String pathnamesString;
 
-  public ApplicationComponent() {
+  public OwnerComponent() {
   }
 
-  public ApplicationComponent(
-      String applicationId,
+  public OwnerComponent(
+      String ownerId,
       String stageTypeId,
       Date time,
       String hash,
@@ -78,7 +78,7 @@ public class ApplicationComponent
       boolean proprietary,
       List<String> pathnames)
   {
-    this.applicationId = applicationId;
+    this.ownerId = ownerId;
     this.stageTypeId = stageTypeId;
     this.time = time;
     this.hash = hash;
@@ -99,12 +99,12 @@ public class ApplicationComponent
     this.id = id;
   }
 
-  public String getApplicationId() {
-    return applicationId;
+  public String getOwnerId() {
+    return ownerId;
   }
 
-  public void setApplicationId(String applicationId) {
-    this.applicationId = applicationId;
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
   }
 
   public String getStageTypeId() {
@@ -175,7 +175,7 @@ public class ApplicationComponent
 
   @Override
   public String toString() {
-    return "ApplicationComponent [applicationId=" + applicationId + ", stageTypeId=" + stageTypeId + ", hash=" + hash
+    return "OwnerComponent [ownerId=" + ownerId + ", stageTypeId=" + stageTypeId + ", hash=" + hash
         + ", componentIdentifier=" + getComponentIdentifier() + ", matchStateId=" + matchStateId + "]";
   }
 

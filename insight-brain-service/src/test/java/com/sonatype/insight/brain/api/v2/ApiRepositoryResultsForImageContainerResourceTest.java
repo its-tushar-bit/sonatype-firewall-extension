@@ -76,8 +76,8 @@ public class ApiRepositoryResultsForImageContainerResourceTest
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
 
     // last policy evaluation
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application1.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application2.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application1.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application2.getId(), "proxy");
 
     // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");

@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.AggregateFile;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import com.google.common.collect.Sets;
@@ -34,7 +34,7 @@ public class AggregateFileDAOTest
   @Test
   public void testCRUD() {
     // Create
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     AggregateFile aggregateFile = new AggregateFile(applicationComponent.getId(), "hash2", null);
     dao.insert(aggregateFile);
@@ -56,7 +56,7 @@ public class AggregateFileDAOTest
 
   @Test
   public void testCreate_Pathnames() {
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     AggregateFile aggregateFile = new AggregateFile(applicationComponent.getId(), "hash2",
         Sets.newLinkedHashSet(Arrays.asList("pathname1", "pathname2")));
@@ -68,9 +68,9 @@ public class AggregateFileDAOTest
 
   @Test
   public void testGetByApplicationComponentId() {
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    ApplicationComponent otherApplicationComponent = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent otherApplicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     AggregateFile aggregateFile1 = tempEntity.newAggregateFile(applicationComponent.getId(), "hash3", null);
     AggregateFile aggregateFile2 = tempEntity.newAggregateFile(applicationComponent.getId(), "hash4",
@@ -78,10 +78,10 @@ public class AggregateFileDAOTest
     AggregateFile otherAggregateFile = tempEntity.newAggregateFile(otherApplicationComponent.getId(), "hash5",
         Sets.newLinkedHashSet(Arrays.asList("pathname3", "pathname4")));
 
-    assertThat(dao.getByApplicationComponentId(applicationComponent.getId()))
+    assertThat(dao.getByOwnerComponentId(applicationComponent.getId()))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(aggregateFile1, aggregateFile2);
-    assertThat(dao.getByApplicationComponentId(otherApplicationComponent.getId()))
+    assertThat(dao.getByOwnerComponentId(otherApplicationComponent.getId()))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactly(otherAggregateFile);
   }

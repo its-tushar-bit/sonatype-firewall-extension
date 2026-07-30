@@ -63,7 +63,7 @@ public class ApiReportMetadataServiceV2
     // Build data object
     ApiReportMetadataDto data = new ApiReportMetadataDto();
     data.setScanId(evaluation.getScanId());
-    data.setApplicationId(evaluation.getApplicationId());
+    data.setApplicationId(evaluation.getOwnerId());
     data.setApplicationPublicId(application.getPublicId());
     data.setStage(evaluation.getStageTypeId());
     data.setScanDate(evaluation.getTime());

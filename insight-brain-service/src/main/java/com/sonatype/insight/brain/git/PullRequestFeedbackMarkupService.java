@@ -79,7 +79,7 @@ public class PullRequestFeedbackMarkupService
       final boolean scmImprovementsEnabled,
       final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService) throws IOException
   {
-    Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
+    Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getOwnerId());
     boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(application.getId());
     PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,

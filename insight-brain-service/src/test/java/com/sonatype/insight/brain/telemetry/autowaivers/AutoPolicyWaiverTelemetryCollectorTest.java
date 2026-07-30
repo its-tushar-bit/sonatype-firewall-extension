@@ -339,7 +339,7 @@ public class AutoPolicyWaiverTelemetryCollectorTest
     policyViolation.setAutoPolicyWaiverId(autoPolicyWaiverId);
     policyViolation.setId(policyViolationId);
     policyViolation.setFilename("filename");
-    policyViolation.setApplicationId(applicationId);
+    policyViolation.setOwnerId(applicationId);
     policyViolation.setLegacyViolationApplied(false);
     policyViolation.setFixTime(null);
     policyViolation.setLegacyViolationTime(null);

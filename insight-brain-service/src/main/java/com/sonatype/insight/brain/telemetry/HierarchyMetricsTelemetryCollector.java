@@ -15,7 +15,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -45,7 +45,7 @@ public class HierarchyMetricsTelemetryCollector
 
   private final RepositoryComponentDAO repositoryComponentDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
@@ -81,7 +81,7 @@ public class HierarchyMetricsTelemetryCollector
       OrganizationDAO organizationDAO,
       RepositoryDAO repositoryDAO,
       RepositoryComponentDAO repositoryComponentDAO,
-      ApplicationComponentDAO applicationComponentDAO,
+      OwnerComponentDAO applicationComponentDAO,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       PolicyViolationDAO policyViolationDAO,
       PolicyEvaluationDAO policyEvaluationDAO)

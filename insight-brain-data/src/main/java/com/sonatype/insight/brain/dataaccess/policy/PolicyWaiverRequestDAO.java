@@ -284,7 +284,7 @@ public class PolicyWaiverRequestDAO
               .join(POLICY_VIOLATION)
               .on(POLICY_VIOLATION.POLICY_VIOLATION_ID.eq(POLICY_WAIVER_REQUEST.POLICY_VIOLATION_ID))
               .where(POLICY_WAIVER_REQUEST.OWNER_ID.eq(ownerId))
-              .and(POLICY_VIOLATION.APPLICATION_ID.in(chunk))
+              .and(POLICY_VIOLATION.OWNER_ID.in(chunk))
               .fetch(r -> toEntity(r.into(POLICY_WAIVER_REQUEST))));
     }
   }

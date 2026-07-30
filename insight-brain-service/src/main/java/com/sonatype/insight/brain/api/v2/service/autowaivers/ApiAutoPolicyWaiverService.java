@@ -333,14 +333,14 @@ public class ApiAutoPolicyWaiverService
       throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
     }
 
-    checkReadPermission(policyViolation.getApplicationId());
+    checkReadPermission(policyViolation.getOwnerId());
 
     if (policyViolation.getAutoPolicyWaiverId() == null) {
       return null;
     }
 
     AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiverByAppOwnerHierarchy(
-        policyViolation.getAutoPolicyWaiverId(), policyViolation.getApplicationId());
+        policyViolation.getAutoPolicyWaiverId(), policyViolation.getOwnerId());
 
     if (autoPolicyWaiver != null) {
       String autoPolicyWaiverOwnerId = autoPolicyWaiver.getOwnerId();

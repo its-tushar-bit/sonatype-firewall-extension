@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
@@ -70,7 +70,7 @@ public class AllObligationsTest
     app = tempEntity.newApplicationWithParent(AllObligationsTest.class.getSimpleName(), "app", "org");
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
 
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
+    OwnerComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
         "033e7a20b23ea284d474", componentId);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
 

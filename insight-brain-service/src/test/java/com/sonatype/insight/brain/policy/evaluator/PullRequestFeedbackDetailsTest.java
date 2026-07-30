@@ -329,7 +329,7 @@ public class PullRequestFeedbackDetailsTest
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
 
     // when
@@ -353,7 +353,7 @@ public class PullRequestFeedbackDetailsTest
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
 
     // when
@@ -378,7 +378,7 @@ public class PullRequestFeedbackDetailsTest
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
 
     // when
@@ -620,7 +620,7 @@ public class PullRequestFeedbackDetailsTest
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
 
     // when
@@ -655,7 +655,7 @@ public class PullRequestFeedbackDetailsTest
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
 
     // when
@@ -683,7 +683,7 @@ public class PullRequestFeedbackDetailsTest
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
 
     // when
@@ -773,7 +773,7 @@ public class PullRequestFeedbackDetailsTest
     // setup source control component details
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
 
     // when
     final PullRequestFeedbackDetails details =
@@ -801,7 +801,7 @@ public class PullRequestFeedbackDetailsTest
     // setup source control component details
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(sourceControlComponentDetails, diff.getCleared());
 
     // when
@@ -1079,7 +1079,7 @@ public class PullRequestFeedbackDetailsTest
             SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, true, false, null);
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
-            featureBranchPolicyEvaluation.getApplicationId(), defaultBranchPolicyEvaluation.getScanId());
+            featureBranchPolicyEvaluation.getOwnerId(), defaultBranchPolicyEvaluation.getScanId());
     PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff, remediationVersionMap, pullRequestLineComments,
@@ -1180,7 +1180,7 @@ public class PullRequestFeedbackDetailsTest
 
     // setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
-        featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+        featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
 
     if (forAdded) {
       // add some dependency info manually
@@ -1218,7 +1218,7 @@ public class PullRequestFeedbackDetailsTest
       clearedPolicyViolation1.setHash(originalPolicyViolation.getHash());
     }
 
-    clearedPolicyViolation1.setApplicationId(originalPolicyViolation.getApplicationId());
+    clearedPolicyViolation1.setOwnerId(originalPolicyViolation.getOwnerId());
     clearedPolicyViolation1.setStageTypeId(originalPolicyViolation.getStageTypeId());
 
     clearedPolicyViolation1.setPolicyId(originalPolicyViolation.getPolicyId() + postfix);
@@ -1260,7 +1260,7 @@ public class PullRequestFeedbackDetailsTest
 
     policyViolation.setComponentIdentifier(componentIdentifier);
     policyViolation.setHash(hash);
-    policyViolation.setApplicationId(applicationId);
+    policyViolation.setOwnerId(applicationId);
     policyViolation.setStageTypeId(stageTypeId);
     policyViolation.setPolicyId(policyId);
     policyViolation.setPolicyName(policyName);

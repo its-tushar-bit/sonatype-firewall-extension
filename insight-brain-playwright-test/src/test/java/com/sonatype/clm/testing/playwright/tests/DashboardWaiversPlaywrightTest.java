@@ -210,7 +210,7 @@ public class DashboardWaiversPlaywrightTest
         work, Stage.ID_BUILD).evaluatePolicy();
 
     PolicyViolationDAO violationDAO = lookup(PolicyViolationDAO.class);
-    PolicyViolation firstViolation = violationDAO.getByApplicationId(waiverTestApp.getId())
+    PolicyViolation firstViolation = violationDAO.getByOwnerId(waiverTestApp.getId())
         .stream()
         .filter(v -> v.getId() != null)
         .findFirst()

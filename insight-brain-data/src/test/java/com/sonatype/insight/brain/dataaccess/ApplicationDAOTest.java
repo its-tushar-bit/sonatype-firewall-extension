@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationD
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.LastPolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -66,7 +67,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCw
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.ApplicationRiskDTO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -1039,6 +1040,18 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testDelete_CascadesToLastPolicyEvaluations() {
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        "testDelete_CascadesToLastPolicyEvaluations");
+    LastPolicyEvaluationDAO lastPolicyEvaluationDAO = daoFactory.createLastPolicyEvaluationDAO();
+    assertThat(lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application.getId(), BuildStageType.ID)).isNotNull();
+
+    applicationDAO.delete(application);
+
+    assertThat(lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application.getId(), BuildStageType.ID)).isNull();
+  }
+
+  @Test
   public void testDelete_CascadesToPolicyViolations() {
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
         "testDelete_CascadesToPolicyEvaluations");
@@ -1047,7 +1060,7 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     PolicyViolationDAO policyViolationDAO = daoFactory.createPolicyViolationDAO();
-    assertThat(policyViolationDAO.getByApplicationId(application.getId())).isEmpty();
+    assertThat(policyViolationDAO.getByOwnerId(application.getId())).isEmpty();
   }
 
   @Test
@@ -1138,13 +1151,13 @@ public class ApplicationDAOTest
 
   @Test
   public void testDelete_CascadesToApplicationComponents() {
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
     applicationDAO.delete(application);
 
-    ApplicationComponentDAO applicationComponentDAO = daoFactory.createApplicationComponentDAO();
-    assertThat(applicationComponentDAO.getById(applicationComponent.getId())).isNull();
+    OwnerComponentDAO ownerComponentDAO = daoFactory.createOwnerComponentDAO();
+    assertThat(ownerComponentDAO.getById(applicationComponent.getId())).isNull();
   }
 
   @Test

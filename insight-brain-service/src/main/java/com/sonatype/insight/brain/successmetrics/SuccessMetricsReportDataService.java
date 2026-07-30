@@ -27,7 +27,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggre
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO.MttrMonth;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -80,7 +80,7 @@ public class SuccessMetricsReportDataService
 
   private final ApplicationService applicationService;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final StageTypeService stageTypeService;
 
@@ -101,7 +101,7 @@ public class SuccessMetricsReportDataService
   @Inject
   public SuccessMetricsReportDataService(
       ApplicationService applicationService,
-      ApplicationComponentDAO applicationComponentDAO,
+      OwnerComponentDAO applicationComponentDAO,
       StageTypeService stageTypeService,
       PolicyViolationAggregationService policyViolationAggregationService,
       SuccessMetricsReportService successMetricsReportService,
@@ -622,17 +622,17 @@ public class SuccessMetricsReportDataService
       Set<String> stageTypeIds,
       Date date)
   {
-    List<ApplicationComponent> applicationComponents =
-        applicationComponentDAO.getByApplicationIdsAndStageTypeIdsSince(applicationIds, stageTypeIds, date);
+    List<OwnerComponent> applicationComponents =
+        applicationComponentDAO.getByOwnerIdsAndStageTypeIdsSince(applicationIds, stageTypeIds, date);
 
     Multimap<String, String> seenAppIdsByComponentHash = HashMultimap.create();
     Map<String, ComponentInfo> retval = new HashMap<>();
 
-    for (ApplicationComponent applicationComponent : applicationComponents) {
+    for (OwnerComponent applicationComponent : applicationComponents) {
       String hash = applicationComponent.getHash();
-      String applicationId = applicationComponent.getApplicationId();
+      String ownerId = applicationComponent.getOwnerId();
 
-      if (seenAppIdsByComponentHash.containsEntry(hash, applicationId)) {
+      if (seenAppIdsByComponentHash.containsEntry(hash, ownerId)) {
         // avoid double-counting multiple stages for the same app
         continue;
       }
@@ -649,7 +649,7 @@ public class SuccessMetricsReportDataService
 
       componentInfo.addPathnames(applicationComponent.getPathnames());
 
-      seenAppIdsByComponentHash.put(hash, applicationId);
+      seenAppIdsByComponentHash.put(hash, ownerId);
     }
 
     return retval;
@@ -683,14 +683,14 @@ public class SuccessMetricsReportDataService
     Map<String, ComponentInfo> retval = new HashMap<>();
 
     for (PolicyEvaluation evaluation : policyEvaluationDAO
-        .getLastByApplicationIdsAndStageIds(applicationIds, stageTypeIds))
+        .getLastByOwnerIdsAndStageIds(applicationIds, stageTypeIds))
     {
       if (evaluation == null || evaluation.getTime().compareTo(date) < 0) {
         continue;
       }
 
       Collection<PolicyViolation> violations = policyViolationDAO
-          .getActiveByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId());
+          .getActiveByOwnerIdAndStageId(evaluation.getOwnerId(), evaluation.getStageTypeId());
 
       for (PolicyViolation violation : violations) {
         String hash = violation.getHash();

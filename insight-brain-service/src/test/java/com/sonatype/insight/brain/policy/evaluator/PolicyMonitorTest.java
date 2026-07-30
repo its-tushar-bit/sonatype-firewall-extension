@@ -176,7 +176,7 @@ public class PolicyMonitorTest
 
     Map<StageType, Date> lastRun = new HashMap<>();
     for (StageType stageType : stageTypes) {
-      PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId());
+      PolicyEvaluation eval = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(), stageType.getId());
       lastRun.put(stageType, eval == null ? null : eval.getTime());
     }
 
@@ -186,7 +186,7 @@ public class PolicyMonitorTest
 
     // There should be no new policy evaluations
     for (StageType stageType : stageTypes) {
-      PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId());
+      PolicyEvaluation eval = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(), stageType.getId());
       Date val = lastRun.get(stageType);
       if (val == null) {
         assertThat(eval).isNull();
@@ -221,7 +221,7 @@ public class PolicyMonitorTest
     // There should be no new policy evaluations
     for (StageType stageType : StageTypes.getAll()) {
       assertThat(
-          policyEvaluationDAO.getLastByApplicationIdAndStageId(notMonitoredApp.getId(), stageType.getId()).getTime())
+          policyEvaluationDAO.getLastByOwnerIdAndStageId(notMonitoredApp.getId(), stageType.getId()).getTime())
               .isEqualTo(policyEvaluations.get(stageType).getTime());
     }
     assertShutdownHandler();
@@ -237,7 +237,7 @@ public class PolicyMonitorTest
 
     // There should be no policy evaluations
     for (StageType stageType : StageTypes.getAll()) {
-      assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId())).isNull();
+      assertThat(policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(), stageType.getId())).isNull();
     }
     assertShutdownHandler();
   }
@@ -365,9 +365,9 @@ public class PolicyMonitorTest
     assertNotifications(notificationsMonitor3, 0, 0);
     assertNotifications(notificationsDeveloper, 1, 0);
     notificationsDeveloper.clear();
-    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId()))
     {
       assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
@@ -378,12 +378,12 @@ public class PolicyMonitorTest
     String scanId2 = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(scanId2);
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation2.getId()).isNotEqualTo(policyEvaluation1.getId());
     assertThat(policyEvaluation2.getScanId()).isEqualTo(scanId2);
     assertThat(policyEvaluation2.getTime()).isAfter(policyEvaluation1.getTime());
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId()))
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
@@ -403,12 +403,12 @@ public class PolicyMonitorTest
     String scanId3 = "PolicyMonitorTest_scanId3";
     mockScanReceiptAndReport(scanId3);
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation3 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+    PolicyEvaluation policyEvaluation3 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation3.getId()).isNotEqualTo(policyEvaluation2.getId());
     assertThat(policyEvaluation3.getScanId()).isEqualTo(scanId3);
     assertThat(policyEvaluation3.getTime()).isAfter(policyEvaluation2.getTime());
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId()))
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
@@ -427,12 +427,12 @@ public class PolicyMonitorTest
     String scanId4 = "PolicyMonitorTest_scanId4";
     mockScanReceiptAndReport(scanId4);
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation4 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+    PolicyEvaluation policyEvaluation4 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation4.getId()).isNotEqualTo(policyEvaluation3.getId());
     assertThat(policyEvaluation4.getScanId()).isEqualTo(scanId4);
     assertThat(policyEvaluation4.getTime()).isAfter(policyEvaluation3.getTime());
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId()))
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
@@ -452,12 +452,12 @@ public class PolicyMonitorTest
     String scanId5 = "PolicyMonitorTest_scanId5";
     mockScanReceiptAndReport(scanId5);
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation5 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+    PolicyEvaluation policyEvaluation5 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation5.getId()).isNotEqualTo(policyEvaluation4.getId());
     assertThat(policyEvaluation5.getScanId()).isEqualTo(scanId5);
     assertThat(policyEvaluation5.getTime()).isAfter(policyEvaluation4.getTime());
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId()))
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
@@ -477,12 +477,12 @@ public class PolicyMonitorTest
     String scanId6 = "PolicyMonitorTest_scanId6";
     mockScanReceiptAndReport(scanId6);
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation6 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+    PolicyEvaluation policyEvaluation6 = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation6.getId()).isNotEqualTo(policyEvaluation5.getId());
     assertThat(policyEvaluation6.getScanId()).isEqualTo(scanId6);
     assertThat(policyEvaluation6.getTime()).isAfter(policyEvaluation5.getTime());
-    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId()))
     {
       assertThat(policyViolation.getActionTypeId()).isNull();
@@ -619,7 +619,7 @@ public class PolicyMonitorTest
 
     // Verify the retry recovered: last evaluation is for monitoring, uses the new scanId3, and the
     // uploaded scan file carries the content from scanFile2 (not scanFile1).
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation.isForMonitoring()).isTrue();
     assertThat(policyEvaluation.getScanId()).isEqualTo(scanId3);

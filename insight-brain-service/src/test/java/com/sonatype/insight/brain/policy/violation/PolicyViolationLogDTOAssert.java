@@ -226,7 +226,7 @@ public class PolicyViolationLogDTOAssert
   }
 
   private static Predicate<PolicyViolationLogDTO> matchingDTO(PolicyViolation violation) {
-    return dto -> violation.getApplicationId().equals(dto.applicationId) && isMatching(violation, dto);
+    return dto -> violation.getOwnerId().equals(dto.applicationId) && isMatching(violation, dto);
   }
 
   private static Predicate<PolicyViolationLogDTO> matchingDTO(RepositoryPolicyViolation violation) {

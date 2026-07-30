@@ -78,7 +78,7 @@ public class PolicyEvaluateResourceTest
       AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlert);
     }
 
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.UNKNOWN);
     assertThat(policyEvaluation.isReevaluation()).isFalse();
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();

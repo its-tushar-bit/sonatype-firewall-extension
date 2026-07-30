@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.hds.AffectedComponentDTO;
 import com.sonatype.insight.brain.hds.AffectedComponentList;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -238,7 +238,7 @@ public class CveAffectedComponentSearchServiceTest
           "scan-" + app.getPublicId(),
           new Date());
 
-      ApplicationComponent component = tempEntity.newApplicationComponent(
+      OwnerComponent component = tempEntity.newApplicationComponent(
           app.getId(),
           StageTypes.STAGE_RELEASE.getId(),
           "hash-" + app.getPublicId(),
@@ -430,7 +430,7 @@ public class CveAffectedComponentSearchServiceTest
         "vulnerable-lib",
         "1.0.0");
 
-    ApplicationComponent component = tempEntity.newApplicationComponent(
+    OwnerComponent component = tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
@@ -606,7 +606,7 @@ public class CveAffectedComponentSearchServiceTest
         "vulnerable-lib",
         "1.0.0");
 
-    ApplicationComponent component = tempEntity.newApplicationComponent(
+    OwnerComponent component = tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",

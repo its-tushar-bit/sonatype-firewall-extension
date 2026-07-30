@@ -22,9 +22,9 @@ public class AggregateFileTest
 {
   @Test
   public void testCreate() {
-    String applicationComponentId = TemporaryEntity.uuid();
-    assertThat(new AggregateFile(applicationComponentId, null, null).getApplicationComponentId())
-        .isEqualTo(applicationComponentId);
+    String ownerComponentId = TemporaryEntity.uuid();
+    assertThat(new AggregateFile(ownerComponentId, null, null).getOwnerComponentId())
+        .isEqualTo(ownerComponentId);
     String hash = "hash";
     assertThat(new AggregateFile(null, hash, null).getHash()).isEqualTo(hash);
     assertThat(createWithPathnames(null).getPathnames()).isEmpty();

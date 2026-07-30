@@ -82,7 +82,7 @@ public class PolicyViolationReachabilityServiceTest
         reportZip);
 
     List<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+        policyViolationDAO.getActiveByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
     ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS.getName());
@@ -117,7 +117,7 @@ public class PolicyViolationReachabilityServiceTest
         reportZip);
 
     List<PolicyViolation> policyViolations =
-        policyViolationDAO.getUnfixedByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+        policyViolationDAO.getUnfixedByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(2);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.UNKNOWN);
     assertThat(policyViolations.get(0).isWaived()).isTrue();
@@ -148,7 +148,7 @@ public class PolicyViolationReachabilityServiceTest
         map, reportFile);
 
     List<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+        policyViolationDAO.getActiveByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.NON_REACHABLE);
   }
@@ -172,7 +172,7 @@ public class PolicyViolationReachabilityServiceTest
         reachableVulnerabilitiesByPurlIdentifiers, reportFile);
 
     List<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+        policyViolationDAO.getActiveByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.UNKNOWN);
   }

@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashb
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -112,7 +112,7 @@ public class ApiLicenseLegalServiceAuthzTest
   }
 
   private void setupResultForDashboard() {
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
+    OwnerComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
         "hash", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date());

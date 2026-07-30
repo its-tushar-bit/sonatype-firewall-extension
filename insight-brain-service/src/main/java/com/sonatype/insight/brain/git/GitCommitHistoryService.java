@@ -78,7 +78,7 @@ public class GitCommitHistoryService
       return;
     }
     SourceControlDefaultBranchCommitHistory commitHistory = commitHistoryDAO
-        .getByApplicationIdAndCommitHash(policyEvaluation.getApplicationId(), policyEvaluation.getCommitHash());
+        .getByApplicationIdAndCommitHash(policyEvaluation.getOwnerId(), policyEvaluation.getCommitHash());
     if (null != commitHistory) {
       if (commitHistory.getPolicyEvaluationId() == null) { // no policy eval. associated with the commit
         recordCommitHistoryUpdate(commitHistory, policyEvaluation.getId());

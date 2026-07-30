@@ -348,7 +348,7 @@ public class DashboardMetricsServiceAuthzTest
 
   private void seedComponentsReport(Application app, String scanId) throws Exception {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+    ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/componentsMetricReport", tempDir), lookup(InsightWork.class));
   }
 
@@ -359,7 +359,7 @@ public class DashboardMetricsServiceAuthzTest
       int threatLevel) throws Exception
   {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+    ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
     tempEntity.newPolicyViolation(evaluation, policy, threatLevel, PolicyThreatCategory.SECURITY,
         "com.example", "artifact", "1.0", DashboardMetricsTestSupport.violationComponentHash(scanId));

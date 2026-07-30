@@ -16,7 +16,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentLicensesDetailsPage.Co
 import com.sonatype.clm.testing.functional.pages.ComponentLicensesDetailsPage.LicenseList;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.apache.commons.io.IOUtils;
@@ -42,7 +42,7 @@ public class LicenseDetailsTest
   @Before
   public void init() throws IOException {
     app = tempEntity.newApplicationWithParent(LicenseDetailsTest.class.getSimpleName(), "app", "org");
-    final ApplicationComponent applicationComponent =
+    final OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474", componentId);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
 

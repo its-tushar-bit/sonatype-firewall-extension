@@ -37,19 +37,19 @@ public class AggregateFileDAO
     throw new UnsupportedOperationException("AggregateFile does not support update operations");
   }
 
-  public List<AggregateFile> getByApplicationComponentId(TransactionContext tx, String applicationComponentId) {
+  public List<AggregateFile> getByOwnerComponentId(TransactionContext tx, String ownerComponentId) {
     return tx.dsl()
         .selectFrom(AGGREGATE_FILE)
-        .where(AGGREGATE_FILE.APPLICATION_COMPONENT_ID.eq(applicationComponentId))
+        .where(AGGREGATE_FILE.OWNER_COMPONENT_ID.eq(ownerComponentId))
         .fetch()
         .stream()
         .map(this::toEntity)
         .collect(Collectors.toList());
   }
 
-  public List<AggregateFile> getByApplicationComponentId(String applicationComponentId) {
+  public List<AggregateFile> getByOwnerComponentId(String ownerComponentId) {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationComponentId(tx, applicationComponentId);
+      return getByOwnerComponentId(tx, ownerComponentId);
     }
   }
 

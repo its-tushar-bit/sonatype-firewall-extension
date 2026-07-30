@@ -155,13 +155,13 @@ public class SourceControlPullRequestCommentDAO
   private void validateOwnership(TransactionContext tx, SourceControlPullRequestComment pullRequestComment) {
     PolicyEvaluation sourcePolicyEvaluation =
         policyEvaluationDAO.getByIdNotNull(tx, pullRequestComment.getSourcePolicyEvaluationId());
-    if (!sourcePolicyEvaluation.getApplicationId().equals(pullRequestComment.getApplicationId())) {
+    if (!sourcePolicyEvaluation.getOwnerId().equals(pullRequestComment.getApplicationId())) {
       throw new DataAccessException(
           "The source policy evaluation app ID does not match the pull request comment app ID.");
     }
     PolicyEvaluation targetPolicyEvaluation =
         policyEvaluationDAO.getByIdNotNull(tx, pullRequestComment.getTargetPolicyEvaluationId());
-    if (!targetPolicyEvaluation.getApplicationId().equals(pullRequestComment.getApplicationId())) {
+    if (!targetPolicyEvaluation.getOwnerId().equals(pullRequestComment.getApplicationId())) {
       throw new DataAccessException(
           "The target policy evaluation app ID does not match the pull request comment app ID.");
     }

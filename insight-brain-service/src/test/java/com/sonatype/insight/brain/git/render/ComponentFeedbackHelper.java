@@ -129,7 +129,7 @@ public final class ComponentFeedbackHelper
       final ConstraintFact... constraintFacts)
   {
     final PolicyViolation pv = new PolicyViolation();
-    pv.setApplicationId(UUID.randomUUID().toString());
+    pv.setOwnerId(UUID.randomUUID().toString());
     pv.setComponentIdentifier(componentIdentifier);
     pv.setThreatLevel(threatLevel <= 0
         ? RANDOM_GENERATOR.randomInt(MIN_THREAT_LEVEL, MAX_THREAT_LEVEL + 1)

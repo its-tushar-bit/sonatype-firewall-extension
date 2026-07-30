@@ -128,7 +128,7 @@ public class SuccessMetricsPurgerTest
 
     successMetricsPurger.purgeSuccessMetrics();
 
-    assertThat(policyViolationDAO.getByApplicationId(app1.getId()))
+    assertThat(policyViolationDAO.getByOwnerId(app1.getId()))
         .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
         .containsExactlyInAnyOrder( //
             namedViolations.get(app1.getId() + "-open"), //
@@ -139,7 +139,7 @@ public class SuccessMetricsPurgerTest
             namedViolations.get(app1.getId() + "-fixed3"), //
             namedViolations.get(app1.getId() + "-fixed4"));
 
-    assertThat(policyViolationDAO.getByApplicationId(app2.getId()))
+    assertThat(policyViolationDAO.getByOwnerId(app2.getId()))
         .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
         .containsExactlyInAnyOrder( //
             namedViolations.get(app2.getId() + "-open"), //
@@ -148,7 +148,7 @@ public class SuccessMetricsPurgerTest
             namedViolations.get(app2.getId() + "-fixed3"), //
             namedViolations.get(app2.getId() + "-fixed4"));
 
-    assertThat(policyViolationDAO.getByApplicationId(app3.getId()))
+    assertThat(policyViolationDAO.getByOwnerId(app3.getId()))
         .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
         .containsExactlyInAnyOrder( //
             namedViolations.get(app3.getId() + "-open"), //
@@ -177,7 +177,7 @@ public class SuccessMetricsPurgerTest
         throw lockTimeout;
       }
       return invocation.callRealMethod();
-    }).when(spyPolicyViolationDAO).deleteFixedByApplicationIdAndDate(eq(app.getId()), any(Date.class));
+    }).when(spyPolicyViolationDAO).deleteFixedByOwnerIdAndDate(eq(app.getId()), any(Date.class));
     applyBeanFieldOverride(SuccessMetricsPurger.class, "policyViolationDAO", spyPolicyViolationDAO);
 
     successMetricsPurger = spy(successMetricsPurger);
@@ -185,9 +185,9 @@ public class SuccessMetricsPurgerTest
 
     successMetricsPurger.purgeSuccessMetrics();
 
-    assertThat(policyViolationDAO.getByApplicationId(app.getId())).hasSize(1);
+    assertThat(policyViolationDAO.getByOwnerId(app.getId())).hasSize(1);
     verify(successMetricsPurger).getDelayForRetry(0);
-    verify(spyPolicyViolationDAO, times(2)).deleteFixedByApplicationIdAndDate(eq(app.getId()), any(Date.class));
+    verify(spyPolicyViolationDAO, times(2)).deleteFixedByOwnerIdAndDate(eq(app.getId()), any(Date.class));
   }
 
   @Test

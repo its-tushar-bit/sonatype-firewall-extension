@@ -59,7 +59,7 @@ public class PostgresComponentRiskServiceTest
                       constraint_facts_id,is_remediated_by_version_change
               FROM    insight_brain_ods.policy_violation pv
               JOIN    insight_brain_ods.application a ON (1=1)
-              WHERE   pv.application_id = '%s'
+              WHERE   pv.owner_id = '%s'
           ) x
           WHERE application_id NOT IN ('%s','%s')""".formatted(app2.getId(), app1.getId(), app2.getId());
       connection.createStatement().execute(duplicatePolicyViolation);
@@ -71,7 +71,9 @@ public class PostgresComponentRiskServiceTest
       assertThat(result.dashboardResults).hasSize(65536); // 65,535 + 1 unique component hash from `setup()`
       assertThat(result.hasNextPage).isEqualTo(false);
 
-      // manually delete all test apps (otherwise deletion via the TemporaryEntity tear-down will take forever)
+      // manually delete all test data (otherwise deletion via the TemporaryEntity tear-down will take forever)
+      connection.createStatement()
+          .execute("DELETE FROM insight_brain_ods.policy_violation WHERE policy_violation_id LIKE 'pv-%'");
       connection.createStatement().execute(TemporaryTableHelperTest.getCleanupApplicationsSql());
     }
   }

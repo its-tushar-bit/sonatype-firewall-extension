@@ -362,7 +362,7 @@ public class ReportServiceHostedComponentTest
     PolicyEvaluation evaluation = org.mockito.Mockito.mock(PolicyEvaluation.class);
     when(evaluation.getStageTypeId()).thenReturn(BuildStageType.ID);
     when(evaluation.getScanTriggerType()).thenReturn(ScanTriggerType.REPOSITORY_MANAGER);
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId("app-id", scanId)).thenReturn(evaluation);
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId("app-id", scanId)).thenReturn(evaluation);
 
     RepositoryComponent comp = newComponent(repoId, outerPath, "file_sha1");
     when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
@@ -419,7 +419,7 @@ public class ReportServiceHostedComponentTest
     PolicyEvaluation evaluation = Mockito.mock(PolicyEvaluation.class);
     lenient().when(evaluation.getStageTypeId()).thenReturn(BuildStageType.ID);
     when(evaluation.getScanTriggerType()).thenReturn(ScanTriggerType.REPOSITORY_MANAGER);
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId("app-id", scanId)).thenReturn(evaluation);
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId("app-id", scanId)).thenReturn(evaluation);
 
     RepositoryComponent comp = newComponent(repoId, outerPath, "file_sha1");
     when(repositoryComponentDAO.getByScanId(scanId)).thenReturn(comp);
@@ -498,7 +498,7 @@ public class ReportServiceHostedComponentTest
 
     when(repositoryComponentDAO.getByScanId("scan1")).thenReturn(component);
     when(repositoryDAO.getById("repo1")).thenReturn(repository);
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId("app1", "scan1"))
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId("app1", "scan1"))
         .thenReturn(policyEvaluation);
     when(applicationDAO.getByIdNotNull("app1")).thenReturn(application);
     when(repositoryPolicyEvaluatorProvider.get()).thenReturn(repositoryPolicyEvaluator);
@@ -523,7 +523,7 @@ public class ReportServiceHostedComponentTest
 
   @Test
   public void reevaluateHostedComponent_usesComplianceStageWhenNoPriorPolicyEvaluation() {
-    // Regression guard: if getLastByApplicationIdAndScanId returns null (no prior primary eval
+    // Regression guard: if getLastByOwnerIdAndScanId returns null (no prior primary eval
     // recorded — e.g. Re-Evaluate clicked on a scan whose policy_evaluation row hasn't landed
     // yet), reevaluateHostedComponent falls back to ComplianceStageType.ID. The mirror must
     // receive the same fallback so its ScanPolicyEvaluator.evaluate runs on the correct stage.
@@ -535,7 +535,7 @@ public class ReportServiceHostedComponentTest
 
     when(repositoryComponentDAO.getByScanId("scanX")).thenReturn(component);
     when(repositoryDAO.getById("repoX")).thenReturn(repository);
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId("appX", "scanX")).thenReturn(null);
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId("appX", "scanX")).thenReturn(null);
     when(applicationDAO.getByIdNotNull("appX")).thenReturn(application);
     when(repositoryPolicyEvaluatorProvider.get()).thenReturn(repositoryPolicyEvaluator);
 
@@ -570,7 +570,7 @@ public class ReportServiceHostedComponentTest
 
     when(repositoryComponentDAO.getByScanId("scanY")).thenReturn(component);
     when(repositoryDAO.getById("repoY")).thenReturn(repository);
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId("appY", "scanY"))
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId("appY", "scanY"))
         .thenReturn(policyEvaluation);
     when(applicationDAO.getByIdNotNull("appY")).thenReturn(application);
     when(repositoryPolicyEvaluatorProvider.get()).thenReturn(repositoryPolicyEvaluator);
@@ -693,7 +693,7 @@ public class ReportServiceHostedComponentTest
   @Test
   public void persistHostedComponentReevaluation_firstTimeCall_insertsRowWithReevaluationFalse() {
     TransactionContext tx = stubPersistPlumbing();
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "scan-1")).thenReturn(null);
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, "app-1", "scan-1")).thenReturn(null);
 
     reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
 
@@ -709,9 +709,9 @@ public class ReportServiceHostedComponentTest
   @Test
   public void persistHostedComponentReevaluation_priorFirstTimeRowExists_insertsReevaluationRow() {
     TransactionContext tx = stubPersistPlumbing();
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "scan-1"))
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, "app-1", "scan-1"))
         .thenReturn(firstTimeHostedRow("app-1", "release", "scan-1"));
-    when(policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx, "app-1", "release"))
+    when(policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(tx, "app-1", "release"))
         .thenReturn(firstTimeHostedRow("app-1", "release", "scan-1"));
 
     reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
@@ -719,7 +719,7 @@ public class ReportServiceHostedComponentTest
     ArgumentCaptor<PolicyEvaluation> captor = ArgumentCaptor.forClass(PolicyEvaluation.class);
     verify(policyEvaluationDAO).insert(any(TransactionContext.class), captor.capture());
     PolicyEvaluation inserted = captor.getValue();
-    assertThat(inserted.getApplicationId()).isEqualTo("app-1");
+    assertThat(inserted.getOwnerId()).isEqualTo("app-1");
     assertThat(inserted.getScanId()).isEqualTo("scan-1");
     assertThat(inserted.getStageTypeId()).isEqualTo("release");
     assertThat(inserted.isReevaluation()).isTrue();
@@ -733,9 +733,9 @@ public class ReportServiceHostedComponentTest
   @Test
   public void persistHostedComponentReevaluation_repeatedReeval_insertsAnotherRow() {
     TransactionContext tx = stubPersistPlumbing();
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "scan-1"))
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, "app-1", "scan-1"))
         .thenReturn(firstTimeHostedRow("app-1", "release", "scan-1"));
-    when(policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx, "app-1", "release"))
+    when(policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(tx, "app-1", "release"))
         .thenReturn(firstTimeHostedRow("app-1", "release", "scan-1"));
 
     reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
@@ -748,10 +748,10 @@ public class ReportServiceHostedComponentTest
   @Test
   public void persistHostedComponentReevaluation_marksNewRowObsoleteWhenReEvalIsForOlderScan() {
     TransactionContext tx = stubPersistPlumbing();
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "older-scan"))
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, "app-1", "older-scan"))
         .thenReturn(firstTimeHostedRow("app-1", "release", "older-scan"));
     PolicyEvaluation priorPrimary = firstTimeHostedRow("app-1", "release", "current-latest-scan");
-    when(policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx, "app-1", "release"))
+    when(policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(tx, "app-1", "release"))
         .thenReturn(priorPrimary);
 
     reportService.persistHostedComponentReevaluation("app-1", "older-scan", "release");
@@ -767,11 +767,11 @@ public class ReportServiceHostedComponentTest
   @Test
   public void persistHostedComponentReevaluation_firstTimeCall_doesNotQueryLastPrimary() {
     TransactionContext tx = stubPersistPlumbing();
-    when(policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, "app-1", "scan-1")).thenReturn(null);
+    when(policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, "app-1", "scan-1")).thenReturn(null);
 
     reportService.persistHostedComponentReevaluation("app-1", "scan-1", "release");
 
-    verify(policyEvaluationDAO, never()).getLastPrimaryByApplicationIdAndStageId(
+    verify(policyEvaluationDAO, never()).getLastPrimaryByOwnerIdAndStageId(
         any(TransactionContext.class), any(String.class), any(String.class));
   }
 
@@ -909,7 +909,7 @@ public class ReportServiceHostedComponentTest
 
     reportService.reevaluateHostedComponent("app-1", "scan-1");
 
-    // stubReevaluatePlumbing leaves getLastByApplicationIdAndScanId unstubbed → null →
+    // stubReevaluatePlumbing leaves getLastByOwnerIdAndScanId unstubbed → null →
     // ReportService falls back to ComplianceStageType.ID ("compliance"), same as the sibling
     // reevaluateHostedComponent_usesComplianceStageWhenNoPriorPolicyEvaluation test.
     org.mockito.InOrder inOrder = org.mockito.Mockito.inOrder(hostedComponentScanQueueConsumer, lock);

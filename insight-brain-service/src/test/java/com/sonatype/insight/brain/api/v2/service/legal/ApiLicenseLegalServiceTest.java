@@ -85,7 +85,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVul
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -519,9 +519,9 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
     ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
 
-    ApplicationComponent innerSourceComponent1 = tempEntity.newApplicationComponent(app.getId(),
+    OwnerComponent innerSourceComponent1 = tempEntity.newApplicationComponent(app.getId(),
         BuildStageType.ID, "hash1", componentIdentifier1);
-    ApplicationComponent innerSourceComponent2 = tempEntity.newApplicationComponent(app.getId(),
+    OwnerComponent innerSourceComponent2 = tempEntity.newApplicationComponent(app.getId(),
         BuildStageType.ID, "hash3", componentIdentifier3);
 
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier2);
@@ -887,7 +887,7 @@ public class ApiLicenseLegalServiceTest
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date());
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+    OwnerComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash", componentIdentifier);
     for (String effectiveLicenseId : effectiveLicenseIds) {
       tempEntity.newApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId);
@@ -1950,7 +1950,7 @@ public class ApiLicenseLegalServiceTest
     resultDTO.setComments(ImmutableSet.of(comment));
 
     Application app = tempEntity.newApplicationWithParent();
-    ApplicationComponent appComp =
+    OwnerComponent appComp =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "compHash", componentIdentifier);
     tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash", Sets.newHashSet("some/path"));
 
@@ -1989,7 +1989,7 @@ public class ApiLicenseLegalServiceTest
     resultDTO.setComments(ImmutableSet.of(comment));
 
     Application app = tempEntity.newApplicationWithParent();
-    ApplicationComponent appComp =
+    OwnerComponent appComp =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "compHash", componentIdentifier);
     tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash", Sets.newHashSet("some/path"));
 
@@ -3474,16 +3474,16 @@ public class ApiLicenseLegalServiceTest
           insightWork,
           tempDir,
           "/" + getClass().getSimpleName() + "/report/",
-          evaluation.getApplicationId(),
+          evaluation.getOwnerId(),
           evaluation.getScanId());
     }
     catch (IOException e) {
       throw new RuntimeException(e);
     }
 
-    if (innerSourceApplicationDAO.getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
+    if (innerSourceApplicationDAO.getByApplicationId(evaluation.getOwnerId()).isEmpty()) {
       tempEntity.newInnerSourceApplication(InnerSourceUtils.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
-          .getPackageUrl(), applicationDAO.getById(evaluation.getApplicationId()));
+          .getPackageUrl(), applicationDAO.getById(evaluation.getOwnerId()));
     }
   }
 
@@ -3599,7 +3599,7 @@ public class ApiLicenseLegalServiceTest
     Tag tag = tempEntity.newTag(app.getOrganizationId(), tagName);
     tempEntity.newApplicationTag(app.getId(), tag.getId());
 
-    ApplicationComponent applicationComponent =
+    OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), stageTypeId, hash, componentIdentifier);
 
     for (String effectiveLicenseId : effectiveLicenseIds) {

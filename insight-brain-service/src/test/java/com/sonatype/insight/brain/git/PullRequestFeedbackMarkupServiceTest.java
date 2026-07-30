@@ -230,7 +230,7 @@ public class PullRequestFeedbackMarkupServiceTest
 
     // setup source control component details
     SourceControlComponentDetails componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
-        featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+        featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
 
     // add some dependency info manually
     ComponentInfo componentInfo = componentDetails.getComponentInfo("df71536d44e3b07f0c15");
@@ -292,7 +292,7 @@ public class PullRequestFeedbackMarkupServiceTest
 
     List<ConstraintFact> constraintFactList = Collections.singletonList(constraintFact);
     PolicyEvaluation evaluation = new PolicyEvaluation();
-    evaluation.setApplicationId(app.getId());
+    evaluation.setOwnerId(app.getId());
     evaluation.setScanId(SCAN_ID);
     PolicyViolation policyViolation =
         new PolicyViolation(evaluation, "policy1", "Policy 1", 1,
@@ -313,7 +313,7 @@ public class PullRequestFeedbackMarkupServiceTest
         Optional.ofNullable(null),
         provider,
         scmUrl,
-        evaluation.getApplicationId(),
+        evaluation.getOwnerId(),
         evaluation.getScanId(),
         scmUxImprovementFeatureEnabled);
 

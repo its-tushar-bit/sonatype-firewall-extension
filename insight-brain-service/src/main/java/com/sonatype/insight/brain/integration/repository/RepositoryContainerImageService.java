@@ -125,7 +125,7 @@ public class RepositoryContainerImageService
     log.debug("Finding out if the container image {} is in quarantine", containerImagePublicId);
 
     List<PolicyViolation> activeFailingViolations = policyViolationDAO
-        .getActiveByApplicationIdAndStageIdAndActionId(application.getId(), Stage.ID_PROXY, Action.ID_FAIL);
+        .getActiveByOwnerIdAndStageIdAndActionId(application.getId(), Stage.ID_PROXY, Action.ID_FAIL);
 
     boolean isInQuarantine = !activeFailingViolations.isEmpty();
 
@@ -216,7 +216,7 @@ public class RepositoryContainerImageService
     Application application = getApplicationForContainerImage(repository, containerImageIdOrPublicId);
 
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), Stage.ID_PROXY);
+        policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), Stage.ID_PROXY);
 
     if (policyEvaluation == null) {
       throw new NotFoundException(

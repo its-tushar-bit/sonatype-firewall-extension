@@ -238,11 +238,11 @@ public class ApiPolicyWaiverService
     final String ownerId;
     switch (ownerType) {
       case APPLICATION:
-        ownerId = policyViolation.getApplicationId();
+        ownerId = policyViolation.getOwnerId();
         AuditData.get().setData("applicationId", ownerId).setApplication(applicationDAO.getById(ownerId));
         break;
       case ORGANIZATION:
-        ownerId = applicationDAO.getByIdNotNull(policyViolation.getApplicationId()).getOrganizationId();
+        ownerId = applicationDAO.getByIdNotNull(policyViolation.getOwnerId()).getOrganizationId();
         AuditData.get().setData("organizationId", ownerId).setOrganization(organizationDAO.getById(ownerId));
         break;
       default:
@@ -584,7 +584,7 @@ public class ApiPolicyWaiverService
     }
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     checkOwnerReadAuthz(owner);
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(owner.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
     if (policyEvaluation == null) {
       throw new NotFoundException("scanId " + scanId + " not found for application " + owner.getPublicId() + ".");
     }
@@ -973,7 +973,7 @@ public class ApiPolicyWaiverService
     if (!Stage.isValidStageTypeId(stageIdLowercase)) {
       throw new InvalidStageException(stageId);
     }
-    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByOwnerIdsAndStageIds(
         ownerDAO.getDescendantOrSelfApplicationIds(owner), Collections.singleton(stageIdLowercase));
     Pair<Component, List<Pair<PolicyViolation, Component>>> pair = apiPolicyViolationServiceV2
         .getTransitivePolicyViolationsByComponent(stageId, componentIdentifier, packageUrl, hash, policyEvaluations);
@@ -1468,7 +1468,7 @@ public class ApiPolicyWaiverService
     validateContainerImageId(containerImageApplicationId);
 
     Application application = applicationDAO.getById(containerImageApplicationId);
-    List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(
+    List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByOwnerIdAndStageIdAndActionId(
         application.getId(), Stage.ID_PROXY, Action.ID_FAIL);
 
     if (policyViolations.isEmpty()) {

@@ -134,7 +134,7 @@ public class SuccessMetricsPurger
     if (cutoffDate == null) {
       return false;
     }
-    int deletedRows = policyViolationDAO.deleteFixedByApplicationIdAndDate(application.getId(), cutoffDate);
+    int deletedRows = policyViolationDAO.deleteFixedByOwnerIdAndDate(application.getId(), cutoffDate);
     if (deletedRows > 0) {
       log.info("Purged {} obsolete records older than {} from violation history of application {}", deletedRows,
           cutoffDate, application.getName());

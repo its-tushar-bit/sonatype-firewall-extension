@@ -305,7 +305,7 @@ public class PolicyMonitor
     log.info("Policy monitoring is enabled for application '{}' and stage '{}'", app.getName(),
         policyMonitoring.getStageTypeId());
 
-    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
+    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(
         app.getId(), policyMonitoring.getStageTypeId());
     if (lastPrimaryPolicyEvaluation == null) {
       AuditData.get().setEvent(null);
@@ -322,7 +322,7 @@ public class PolicyMonitor
     String newScanId = null;
     try {
       cloneScanFile(tempScanEntity, app, lastPrimaryPolicyEvaluation);
-      boolean hasThirdPartyContent = hasThirdPartyScanContent(lastPrimaryPolicyEvaluation.getApplicationId(),
+      boolean hasThirdPartyContent = hasThirdPartyScanContent(lastPrimaryPolicyEvaluation.getOwnerId(),
           lastPrimaryPolicyEvaluation.getScanId());
       newScanId = uploadScan(tempScanEntity, app, policyMonitoring.getStageTypeId(), hasThirdPartyContent);
     }
@@ -390,7 +390,7 @@ public class PolicyMonitor
 
     // Evaluate policies and send notifications
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    PolicyEvaluation lastPolicyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
+    PolicyEvaluation lastPolicyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(),
         latestSbomVersionScan.getPreviousScanId());
     ScanTriggerType scanTriggerType;
     ClientScanType clientScanType;
@@ -428,7 +428,7 @@ public class PolicyMonitor
         // Each policy evaluation deletes the scan file for the previous evaluation, which may cause this exception.
         // If there is a newer scan file, try again.
         PolicyEvaluation newLastPrimaryPolicyEvaluation = policyEvaluationDAO
-            .getLastPrimaryByApplicationIdAndStageId(app.getId(), lastPrimaryPolicyEvaluation.getStageTypeId());
+            .getLastPrimaryByOwnerIdAndStageId(app.getId(), lastPrimaryPolicyEvaluation.getStageTypeId());
         if (lastScanId.equals(newLastPrimaryPolicyEvaluation.getScanId())) {
           // There's no newer scan file.
           throw e;

@@ -54,7 +54,7 @@ public class H2ComponentRiskServiceTest
 
   private void fixViolations(PolicyEvaluation evaluation) {
     List<PolicyViolation> policyViolations =
-        violationDAO.getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId());
+        violationDAO.getUnfixedByOwnerIdAndStageId(evaluation.getOwnerId(), evaluation.getStageTypeId());
     violationDAO.loadConstraintFacts(policyViolations);
     for (PolicyViolation fixedViolation : policyViolations) {
       fixedViolation.setFixTime(evaluation.getTime());

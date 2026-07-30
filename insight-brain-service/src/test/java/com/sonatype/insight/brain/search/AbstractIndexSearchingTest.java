@@ -254,7 +254,7 @@ public abstract class AbstractIndexSearchingTest
 
   private PolicyEvaluation newAppReport(String appId, String stageId, String reportId) throws Exception {
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
-    ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
+    ReportTestUtils.createReportFile(policyEval.getOwnerId(), policyEval.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/report", tempDir), insightWork);
     return policyEval;
   }
@@ -266,7 +266,7 @@ public abstract class AbstractIndexSearchingTest
       String reportResourceName) throws Exception
   {
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
-    ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
+    ReportTestUtils.createReportFile(policyEval.getOwnerId(), policyEval.getScanId(),
         ReportTestUtils.zipReportDir(reportResourceName, tempDir), insightWork);
     return policyEval;
   }
@@ -379,7 +379,7 @@ public abstract class AbstractIndexSearchingTest
     assertThat(result.componentIdentifier.toComponentIdentifier()).isEqualTo(componentIdentifier);
     assertThat(result.componentName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
     assertThat(result.policyEvaluationStage).isEqualTo(StageTypes.getById(evaluation.getStageTypeId()).getName());
-    assertApplicationData(result, applicationDAO.getById(evaluation.getApplicationId()));
+    assertApplicationData(result, applicationDAO.getById(evaluation.getOwnerId()));
   }
 
   private void assertSbomVulnerability(
@@ -1040,7 +1040,7 @@ public abstract class AbstractIndexSearchingTest
 
   @Test
   public void testSearchByDefaultFieldAndOther() throws Exception {
-    String appId = newAppReport(Stage.ID_BUILD, "report-0").getApplicationId();
+    String appId = newAppReport(Stage.ID_BUILD, "report-0").getOwnerId();
     newAppReport(Stage.ID_BUILD, "report-1");
     index();
     assertThat(search("CVE-8765-1234 AND " + FieldIdentifier.APPLICATION_ID + ":" + appId))
@@ -1068,8 +1068,8 @@ public abstract class AbstractIndexSearchingTest
     assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, eval.getStageTypeId())).extracting(dto -> dto.reportId)
         .containsOnly(eval.getScanId());
 
-    PolicyEvaluation newEval1 = newAppReport(eval.getApplicationId(), eval.getStageTypeId(), "new-report-id-1");
-    PolicyEvaluation newEval2 = newAppReport(eval.getApplicationId(), Stage.ID_RELEASE, "new-report-id-2");
+    PolicyEvaluation newEval1 = newAppReport(eval.getOwnerId(), eval.getStageTypeId(), "new-report-id-1");
+    PolicyEvaluation newEval2 = newAppReport(eval.getOwnerId(), Stage.ID_RELEASE, "new-report-id-2");
     indexChanges();
     assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, newEval1.getStageTypeId()))
         .extracting(dto -> dto.reportId)
@@ -2035,7 +2035,7 @@ public abstract class AbstractIndexSearchingTest
       Thread.sleep(200);
       threads.add(Thread.currentThread());
       return invocationOnMock.callRealMethod();
-    }).when(spyPolicyEvaluationDAO).getLastByApplicationIdAndStageId(anyString(), anyString());
+    }).when(spyPolicyEvaluationDAO).getLastByOwnerIdAndStageId(anyString(), anyString());
 
     index();
 

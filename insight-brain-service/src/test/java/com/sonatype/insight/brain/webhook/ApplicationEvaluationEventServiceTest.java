@@ -45,7 +45,7 @@ public class ApplicationEvaluationEventServiceTest
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     policyEvaluation.setId("policyEvaluationId");
     policyEvaluation.setStageTypeId("stageTypeId");
-    policyEvaluation.setApplicationId(application.getId());
+    policyEvaluation.setOwnerId(application.getId());
     policyEvaluation.setScanId("reportId");
     policyEvaluation.setTime(time);
     policyEvaluation.setCommitHash("commitHash");
@@ -66,7 +66,7 @@ public class ApplicationEvaluationEventServiceTest
     assertThat(event).isNotNull();
     assertThat(event.policyEvaluationId).isEqualTo(policyEvaluation.getId());
     assertThat(event.stageTypeId).isEqualTo(policyEvaluation.getStageTypeId());
-    assertThat(event.ownerId).isEqualTo(policyEvaluation.getApplicationId());
+    assertThat(event.ownerId).isEqualTo(policyEvaluation.getOwnerId());
     assertThat(event.isForLatestScan).isEqualTo(!policyEvaluation.isForObsoleteScan());
     assertThat(event.evaluationDate).isEqualTo(time);
     assertThat(event.affectedComponentCount).isEqualTo(1);
@@ -89,7 +89,7 @@ public class ApplicationEvaluationEventServiceTest
   public void testPostEvent_CalculateNoneOutcome() throws InterruptedException {
     final Application application = tempEntity.newApplicationWithParent();
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-    policyEvaluation.setApplicationId(application.getId());
+    policyEvaluation.setOwnerId(application.getId());
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
 
     // No action provides a ACTION_ID_NONE outcome
@@ -108,7 +108,7 @@ public class ApplicationEvaluationEventServiceTest
   public void testPostEvent_CalculateWarnOutcome() throws InterruptedException {
     final Application application = tempEntity.newApplicationWithParent();
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-    policyEvaluation.setApplicationId(application.getId());
+    policyEvaluation.setOwnerId(application.getId());
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
 
     // Warn provides a ID_WARN outcome
@@ -130,7 +130,7 @@ public class ApplicationEvaluationEventServiceTest
   public void testPostEvent_CalculateFailOutcome() throws InterruptedException {
     final Application application = tempEntity.newApplicationWithParent();
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-    policyEvaluation.setApplicationId(application.getId());
+    policyEvaluation.setOwnerId(application.getId());
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
 
     // Fail and warn provides a ID_FAIL outcome

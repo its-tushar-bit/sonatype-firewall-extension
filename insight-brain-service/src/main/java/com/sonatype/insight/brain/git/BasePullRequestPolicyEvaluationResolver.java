@@ -64,8 +64,8 @@ public abstract class BasePullRequestPolicyEvaluationResolver
   private PolicyEvaluation resolveForStage(PolicyEvaluation policyEvaluation, String stageTypeId) {
     if (!policyEvaluation.getStageTypeId().equalsIgnoreCase(stageTypeId)) {
       final PolicyEvaluation policyEvaluationCandidate =
-          policyEvaluationDAO.getLastByApplicationIdCommitHashAndStageId(
-              policyEvaluation.getApplicationId(),
+          policyEvaluationDAO.getLastByOwnerIdCommitHashAndStageId(
+              policyEvaluation.getOwnerId(),
               policyEvaluation.getCommitHash(),
               stageTypeId);
       if (policyEvaluationCandidate != null &&

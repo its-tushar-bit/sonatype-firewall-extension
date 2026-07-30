@@ -101,7 +101,7 @@ public class LegacyViolationService
       clusterLock.lock();
       tx.begin();
       List<PolicyViolation> legacyViolations =
-          policyViolationDAO.getUnfixedLegacyViolationByApplicationId(tx, app.getId());
+          policyViolationDAO.getUnfixedLegacyViolationByOwnerId(tx, app.getId());
       policyViolationDAO.loadConstraintFacts(legacyViolations);
       for (PolicyViolation legacyViolation : legacyViolations) {
         legacyViolation.setLegacyViolationTime(null);
@@ -141,7 +141,7 @@ public class LegacyViolationService
     {
       clusterLock.lock();
       tx.begin();
-      List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
+      List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByOwnerId(tx, app.getId());
       policyViolationDAO.loadConstraintFacts(policyViolations);
       int changedPolicyViolationCount = 0;
       for (PolicyViolation policyViolation : policyViolations) {

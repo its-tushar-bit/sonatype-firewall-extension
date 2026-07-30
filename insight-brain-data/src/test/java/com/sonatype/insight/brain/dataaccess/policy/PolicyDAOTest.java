@@ -572,10 +572,10 @@ public class PolicyDAOTest
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanid");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getByApplicationId(policyEvaluation.getApplicationId())).hasSize(1);
+    assertThat(policyViolationDAO.getByOwnerId(policyEvaluation.getOwnerId())).hasSize(1);
 
     policyDAO.delete(policy);
-    assertThat(policyViolationDAO.getByApplicationId(policyEvaluation.getApplicationId())).hasSize(1);
+    assertThat(policyViolationDAO.getByOwnerId(policyEvaluation.getOwnerId())).hasSize(1);
   }
 
   @Test

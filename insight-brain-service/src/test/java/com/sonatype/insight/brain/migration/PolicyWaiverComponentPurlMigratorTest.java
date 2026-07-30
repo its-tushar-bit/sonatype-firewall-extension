@@ -11,7 +11,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -50,12 +50,12 @@ public class PolicyWaiverComponentPurlMigratorTest
   @Inject
   private PolicyWaiverComponentPurlMigrator policyWaiverComponentPurlMigrator;
 
-  private ApplicationComponentDAO applicationComponentDAO;
+  private OwnerComponentDAO applicationComponentDAO;
 
   @Before
   public void beforeEach() {
     migrationTrackerDAO.deleteById(PolicyWaiverComponentPurlMigrator.MIGRATION_ID);
-    applicationComponentDAO = spy(lookup(ApplicationComponentDAO.class));
+    applicationComponentDAO = spy(lookup(OwnerComponentDAO.class));
     applyBeanFieldOverride(PolicyWaiverComponentPurlMigrator.class, "applicationComponentDAO", applicationComponentDAO);
   }
 

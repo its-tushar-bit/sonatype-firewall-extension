@@ -123,9 +123,9 @@ public class PolicyAlertEventService
   }
 
   private ApplicationSummary populateApplicationSummary(PolicyEvaluation policyEvaluation) {
-    final Application application = applicationDAO.getByIdNotNull(policyEvaluation.getApplicationId());
+    final Application application = applicationDAO.getByIdNotNull(policyEvaluation.getOwnerId());
     final ApplicationSummary applicationSummary = new ApplicationSummary();
-    applicationSummary.id = policyEvaluation.getApplicationId();
+    applicationSummary.id = policyEvaluation.getOwnerId();
     applicationSummary.publicId = application.getPublicId();
     applicationSummary.name = application.getName();
     applicationSummary.organizationId = application.getOrganizationId();

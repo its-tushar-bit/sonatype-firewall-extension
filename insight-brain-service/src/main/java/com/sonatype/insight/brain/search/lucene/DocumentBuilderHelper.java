@@ -630,7 +630,7 @@ public class DocumentBuilderHelper
 
   /**
    * Latest-evaluation epoch-millis per app, memoized on {@code indexingContext} and warmed once per
-   * run by a single grouped {@link PolicyEvaluationDAO#getLastByApplicationIdsAndStageIds} query
+   * run by a single grouped {@link PolicyEvaluationDAO#getLastByOwnerIdsAndStageIds} query
    * (which itself handles large app sets). The returned map's values are the max
    * {@link PolicyEvaluation#getTime} across each app's per-stage latest evaluations; apps with no
    * evaluation rows are absent (so the doc omits the field and reads as "never evaluated").
@@ -647,20 +647,20 @@ public class DocumentBuilderHelper
       return Collections.emptyMap();
     }
     Map<String, Long> latestByApp = new HashMap<>();
-    for (PolicyEvaluation evaluation : policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds,
+    for (PolicyEvaluation evaluation : policyEvaluationDAO.getLastByOwnerIdsAndStageIds(applicationIds,
         ALL_STAGE_IDS))
     {
-      if (evaluation == null || evaluation.getApplicationId() == null || evaluation.getTime() == null) {
+      if (evaluation == null || evaluation.getOwnerId() == null || evaluation.getTime() == null) {
         continue;
       }
-      latestByApp.merge(evaluation.getApplicationId(), evaluation.getTime().getTime(), Math::max);
+      latestByApp.merge(evaluation.getOwnerId(), evaluation.getTime().getTime(), Math::max);
     }
     return latestByApp;
   }
 
   /**
    * Per-app combined {@link IndexingContext.ViolationRollup}, memoized on {@code indexingContext} and
-   * warmed once per run by a SINGLE chunked IN-clause {@link PolicyViolationDAO#getUnfixedByApplicationIds}
+   * warmed once per run by a SINGLE chunked IN-clause {@link PolicyViolationDAO#getUnfixedByOwnerIds}
    * query (which auto-chunks large collections). One widened fetch backs both the active-only display
    * pills and the denormalized filter/sort aggregates — no extra query, no N+1.
    */
@@ -673,7 +673,7 @@ public class DocumentBuilderHelper
 
   /**
    * Builds every app's {@link IndexingContext.ViolationRollup} from ONE widened
-   * {@link PolicyViolationDAO#getUnfixedByApplicationIds} fetch (unfixed = active + waived + legacy),
+   * {@link PolicyViolationDAO#getUnfixedByOwnerIds} fetch (unfixed = active + waived + legacy),
    * classifying each violation once:
    * <ul>
    * <li>the ACTIVE-only stage:severity:count pills, max threat level, stages and policy-type sets are
@@ -690,13 +690,13 @@ public class DocumentBuilderHelper
     if (CollectionUtils.isEmpty(applicationIds)) {
       return Collections.emptyMap();
     }
-    List<PolicyViolation> violations = policyViolationDAO.getUnfixedByApplicationIds(applicationIds);
+    List<PolicyViolation> violations = policyViolationDAO.getUnfixedByOwnerIds(applicationIds);
     if (CollectionUtils.isEmpty(violations)) {
       return Collections.emptyMap();
     }
     Map<String, RollupAccumulator> accumulators = new HashMap<>();
     for (PolicyViolation violation : violations) {
-      String appId = violation.getApplicationId();
+      String appId = violation.getOwnerId();
       if (appId == null) {
         continue;
       }
@@ -1537,7 +1537,7 @@ public class DocumentBuilderHelper
       return Collections.emptyList();
     }
     PolicyEvaluation latestPolicyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageType.getId());
+        policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), stageType.getId());
     if (latestPolicyEvaluation == null) {
       return Collections.emptyList();
     }
@@ -1569,7 +1569,7 @@ public class DocumentBuilderHelper
       // POLICY_VIOLATION docs below AND the per-component violation rollup denormalized onto each
       // NON_VULNERABLE_COMPONENT doc (Components leg policyTypes/violationStates/policyThreatLevel
       // filters + sort). No extra query — the same list is reused.
-      List<PolicyViolation> violations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(
+      List<PolicyViolation> violations = policyViolationDAO.getUnfixedByOwnerIdAndStageId(
           application.getId(), stageType.getId());
       Map<String, ComponentViolationRollup> violationRollupByHash = componentViolationRollupByHash(violations);
       // Load the violations' constraint facts once (single batch getByIds): they feed BOTH the

@@ -15,11 +15,11 @@ import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class ApplicationComponentLicensesDTOTest
+public class OwnerComponentLicensesDTOTest
 {
   @Test
   public void testGetComponentIdentifier_Null() {
-    ApplicationComponentLicensesDTO dto = new ApplicationComponentLicensesDTO(
+    OwnerComponentLicensesDTO dto = new OwnerComponentLicensesDTO(
         null,
         null,
         null,
@@ -37,7 +37,7 @@ public class ApplicationComponentLicensesDTOTest
     coordinates.put(ComponentIdentifier.CONAN_NAME, "bzip2");
     coordinates.put(ComponentIdentifier.VERSION, "1.0.8");
 
-    ApplicationComponentLicensesDTO dto = new ApplicationComponentLicensesDTO(
+    OwnerComponentLicensesDTO dto = new OwnerComponentLicensesDTO(
         null,
         null,
         ComponentIdentifier.FORMAT_CONAN,
@@ -60,7 +60,7 @@ public class ApplicationComponentLicensesDTOTest
         ComponentIdentifier.CONAN_NAME, "bzip2",
         ComponentIdentifier.VERSION, "1.0.8");
 
-    ApplicationComponentLicensesDTO dto = new ApplicationComponentLicensesDTO(
+    OwnerComponentLicensesDTO dto = new OwnerComponentLicensesDTO(
         null,
         null,
         ComponentIdentifier.FORMAT_CONAN,
@@ -83,7 +83,7 @@ public class ApplicationComponentLicensesDTOTest
     coordinates.put(ComponentIdentifier.CONAN_NAME, "bzip2");
     coordinates.put(ComponentIdentifier.VERSION, "1.0.8");
 
-    ApplicationComponentLicensesDTO dto = new ApplicationComponentLicensesDTO(
+    OwnerComponentLicensesDTO dto = new OwnerComponentLicensesDTO(
         null,
         null,
         ComponentIdentifier.FORMAT_CONAN,
@@ -107,7 +107,7 @@ public class ApplicationComponentLicensesDTOTest
         ComponentIdentifier.ANAME_QUALIFIER, "",
         ComponentIdentifier.VERSION, "v");
 
-    ApplicationComponentLicensesDTO dto = new ApplicationComponentLicensesDTO(
+    OwnerComponentLicensesDTO dto = new OwnerComponentLicensesDTO(
         null,
         null,
         ComponentIdentifier.FORMAT_ANAME,

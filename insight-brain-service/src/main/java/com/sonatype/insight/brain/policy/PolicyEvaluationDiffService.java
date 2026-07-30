@@ -111,7 +111,7 @@ public class PolicyEvaluationDiffService
       log.debug(
           "Could not find report file for 'from' scan report with commit {}, " +
               "policy evaluation id {} and application id {}",
-          fromEvaluation.getCommitHash(), fromEvaluation.getId(), fromEvaluation.getApplicationId());
+          fromEvaluation.getCommitHash(), fromEvaluation.getId(), fromEvaluation.getOwnerId());
       return Optional.empty();
     }
 
@@ -120,7 +120,7 @@ public class PolicyEvaluationDiffService
       log.debug(
           "Could not find report file for 'to' scan report with commit {}, " +
               "policy evaluation id {} and application id {}",
-          toEvaluation.getCommitHash(), toEvaluation.getId(), toEvaluation.getApplicationId());
+          toEvaluation.getCommitHash(), toEvaluation.getId(), toEvaluation.getOwnerId());
       return Optional.empty();
     }
 
@@ -130,7 +130,7 @@ public class PolicyEvaluationDiffService
         log.debug(
             "Could not find policy alerts for 'from' scan report with commit {}, " +
                 "policy evaluation id {}, application id {} and scan report {}",
-            fromEvaluation.getCommitHash(), fromEvaluation.getId(), fromEvaluation.getApplicationId(),
+            fromEvaluation.getCommitHash(), fromEvaluation.getId(), fromEvaluation.getOwnerId(),
             fromLifecycleReport.getLocation());
         return Optional.empty();
       }
@@ -139,7 +139,7 @@ public class PolicyEvaluationDiffService
         log.debug(
             "Could not find policy alerts for 'to' scan report with commit {}, " +
                 "policy evaluation id {}, application id {} and scan report {}",
-            toEvaluation.getCommitHash(), toEvaluation.getId(), toEvaluation.getApplicationId(),
+            toEvaluation.getCommitHash(), toEvaluation.getId(), toEvaluation.getOwnerId(),
             toLifecycleReport.getLocation());
         return Optional.empty();
       }
@@ -176,7 +176,7 @@ public class PolicyEvaluationDiffService
     if (policyEvaluation != null) {
       try {
         LifecycleReport applicationReport =
-            reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+            reportService.getReport(policyEvaluation.getOwnerId(), policyEvaluation.getScanId());
         if (applicationReport.exists()) {
           return applicationReport;
         }

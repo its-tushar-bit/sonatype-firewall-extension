@@ -19,7 +19,7 @@ import com.sonatype.clm.testing.playwright.utils.HdsStubs;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
@@ -96,7 +96,7 @@ public class AllObligationsPlaywrightTest
 
     componentIdentifier = ComponentIdentifier.createMavenCoordinates(
         COMPONENT_GROUP_ID, COMPONENT_ARTIFACT_ID, COMPONENT_VERSION, "", "jar");
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(
+    OwnerComponent applicationComponent = tempEntity.newApplicationComponent(
         app.getId(), BuildStageType.ID, COMPONENT_HASH, componentIdentifier);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), COMPONENT_LICENSE_ID);
   }

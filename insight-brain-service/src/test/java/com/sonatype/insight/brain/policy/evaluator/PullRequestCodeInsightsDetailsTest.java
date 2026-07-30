@@ -497,7 +497,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     // setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
-        featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
+        featureBranchPolicyEvaluation.getOwnerId(), featureBranchPolicyEvaluation.getScanId());
 
     bomTimestamp = DATE_TIME_FORMATTER.format(
         ZonedDateTime.ofInstant(featureBranchPolicyEvaluation.getTime().toInstant(), ZoneId.systemDefault()));

@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
@@ -1378,6 +1378,6 @@ public class ApiPolicyViolationServiceV2Test
 
     public PolicyViolation policyViolation2;
 
-    public ApplicationComponent applicationComponent;
+    public OwnerComponent applicationComponent;
   }
 }

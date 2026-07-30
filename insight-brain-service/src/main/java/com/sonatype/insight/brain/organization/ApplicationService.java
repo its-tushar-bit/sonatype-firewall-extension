@@ -151,7 +151,7 @@ public class ApplicationService
       final String stageTypeId)
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    final PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
+    final PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(
         application.getId(),
         stageTypeId);
 

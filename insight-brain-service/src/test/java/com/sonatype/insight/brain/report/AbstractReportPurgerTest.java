@@ -244,7 +244,7 @@ public abstract class AbstractReportPurgerTest
         throw lockTimeout;
       }
       return invocation.callRealMethod();
-    }).when(spyPolicyEvaluationDAO).getPrimaryNonMonitoringByApplicationIdAndStageId(anyString(), anyString());
+    }).when(spyPolicyEvaluationDAO).getPrimaryNonMonitoringByOwnerIdAndStageId(anyString(), anyString());
     applyBeanFieldOverride(ReportPurger.class, "policyEvaluationDAO", spyPolicyEvaluationDAO);
 
     reportPurger = spy(reportPurger);
@@ -272,7 +272,7 @@ public abstract class AbstractReportPurgerTest
         throw lockTimeout;
       }
       return invocation.callRealMethod();
-    }).when(spyPolicyEvaluationDAO).getPrimaryNonMonitoringByApplicationIdAndStageId(anyString(), anyString());
+    }).when(spyPolicyEvaluationDAO).getPrimaryNonMonitoringByOwnerIdAndStageId(anyString(), anyString());
     applyBeanFieldOverride(ReportPurger.class, "policyEvaluationDAO", spyPolicyEvaluationDAO);
 
     reportPurger = spy(reportPurger);

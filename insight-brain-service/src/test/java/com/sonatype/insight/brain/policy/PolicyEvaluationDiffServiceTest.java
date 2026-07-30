@@ -150,7 +150,7 @@ public class PolicyEvaluationDiffServiceTest
     assertLogDebug(String.format(
         "Could not find report file for 'from' scan report with commit %s, " +
             "policy evaluation id %s and application id %s",
-        from.getCommitHash(), from.getId(), from.getApplicationId()));
+        from.getCommitHash(), from.getId(), from.getOwnerId()));
   }
 
   @Test
@@ -172,7 +172,7 @@ public class PolicyEvaluationDiffServiceTest
     assertLogDebug(String.format(
         "Could not find report file for 'to' scan report with commit %s, " +
             "policy evaluation id %s and application id %s",
-        to.getCommitHash(), to.getId(), to.getApplicationId()));
+        to.getCommitHash(), to.getId(), to.getOwnerId()));
   }
 
   @Test
@@ -196,7 +196,7 @@ public class PolicyEvaluationDiffServiceTest
     assertLogDebug(String.format(
         "Could not find policy alerts for 'from' scan report with commit %s, " +
             "policy evaluation id %s, application id %s and scan report",
-        from.getCommitHash(), from.getId(), from.getApplicationId()));
+        from.getCommitHash(), from.getId(), from.getOwnerId()));
   }
 
   @Test
@@ -220,7 +220,7 @@ public class PolicyEvaluationDiffServiceTest
     assertLogDebug(String.format(
         "Could not find policy alerts for 'to' scan report with commit %s, " +
             "policy evaluation id %s, application id %s and scan report",
-        to.getCommitHash(), to.getId(), to.getApplicationId()));
+        to.getCommitHash(), to.getId(), to.getOwnerId()));
   }
 
   private void assertLogDebug(String debugLog) {

@@ -264,7 +264,7 @@ public class ApiPolicyWaiverRequestService
     String internalApplicationOwnerId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, containerImageId);
 
     List<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(internalApplicationOwnerId, Stage.ID_PROXY,
+        policyViolationDAO.getActiveByOwnerIdAndStageIdAndActionId(internalApplicationOwnerId, Stage.ID_PROXY,
             Action.ID_FAIL);
 
     if (policyViolations.isEmpty()) {

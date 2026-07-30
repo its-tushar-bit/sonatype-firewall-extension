@@ -110,8 +110,8 @@ public class RequestPolicyWaiverEventServiceTest
       var attributes = actualTelemetryData.getAttributes();
       assertThat(attributes)
           .containsKey("application_id")
-          .doesNotContainEntry("application_id", policyViolation.getApplicationId())
-          .containsEntry("real_application_id", policyViolation.getApplicationId())
+          .doesNotContainEntry("application_id", policyViolation.getOwnerId())
+          .containsEntry("real_application_id", policyViolation.getOwnerId())
           .containsEntry("count", 1)
           .containsEntry("open_time", policyViolation.getOpenTime().getTime())
           .containsEntry("policy_name", policyViolation.getPolicyName())

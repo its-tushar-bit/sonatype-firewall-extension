@@ -141,7 +141,7 @@ public class DashboardMetricsServiceTest
     Application app = tempEntity.newApplication(org.getId());
     PolicyEvaluation evaluation =
         tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "violationsMetricsReport");
-    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+    ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
 
     Policy pCrit = tempEntity.newPolicy(org.getId(), "Security - Critical");
@@ -1537,7 +1537,7 @@ public class DashboardMetricsServiceTest
 
   private void seedComponentsReport(Application app, String stageId, String scanId) throws Exception {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageId, scanId);
-    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+    ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/componentsMetricReport", tempDir), lookup(InsightWork.class));
   }
 
@@ -1548,7 +1548,7 @@ public class DashboardMetricsServiceTest
       int threatLevel) throws Exception
   {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+    ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
     Policy policy = tempEntity.newPolicy(org.getId(), "Security - Critical " + scanId);
     tempEntity.newPolicyViolation(evaluation, policy, threatLevel, PolicyThreatCategory.SECURITY,

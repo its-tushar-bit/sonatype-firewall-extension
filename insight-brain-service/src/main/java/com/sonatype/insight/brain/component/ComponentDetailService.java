@@ -19,11 +19,11 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -49,7 +49,7 @@ public class ComponentDetailService
 
   private final ApplicationService appService;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final StageTypeService stageTypeService;
 
@@ -64,7 +64,7 @@ public class ComponentDetailService
   @Inject
   public ComponentDetailService(
       ApplicationService appService,
-      ApplicationComponentDAO applicationComponentDAO,
+      OwnerComponentDAO applicationComponentDAO,
       StageTypeService stageTypeService,
       ProductLicense productLicense,
       PolicyEvaluationDAO policyEvaluationDAO,
@@ -111,14 +111,14 @@ public class ComponentDetailService
         StageDetailDTO appStageDetailDTO = new StageDetailDTO(stageType.getId(), stageType.getName());
         applicationComponentDetails.stageDetails.add(appStageDetailDTO);
 
-        PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+        PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
             stageType.getId());
         if (policyEvaluation == null) {
           continue;
         }
 
         List<PolicyViolation> policyViolations = policyViolationDAO
-            .getActiveByApplicationIdAndStageIdAndHash(application.getId(), stageType.getId(), hash);
+            .getActiveByOwnerIdAndStageIdAndHash(application.getId(), stageType.getId(), hash);
         if (policyViolations.isEmpty()) {
           continue;
         }
@@ -178,12 +178,12 @@ public class ComponentDetailService
   }
 
   private String computeUniqueAppPolicyConstraintId(PolicyViolation policyViolation) {
-    return PolicyViolationComparator.computeUniqueAppPolicyConstraintId(policyViolation.getApplicationId(),
+    return PolicyViolationComparator.computeUniqueAppPolicyConstraintId(policyViolation.getOwnerId(),
         policyViolation.getPolicyId(), policyViolation.getConstraintFacts());
   }
 
   private void auditApplicationComponentDetails(String hash, int inspectedApplicationCount, int resultRecordCount) {
-    ApplicationComponent applicationComponent = getLastByHash(hash);
+    OwnerComponent applicationComponent = getLastByHash(hash);
     if (applicationComponent != null) {
       if (applicationComponent.getComponentIdentifier() != null) {
         AuditData.get().setComponentIdentifier(applicationComponent.getComponentIdentifier());
@@ -209,9 +209,9 @@ public class ComponentDetailService
   }
 
   private boolean isComponentPartOfApplication(Application application, String hash) {
-    List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndHash(application.getId(),
+    List<OwnerComponent> appComponents = applicationComponentDAO.getByOwnerIdAndHash(application.getId(),
         hash);
-    for (ApplicationComponent appComponent : appComponents) {
+    for (OwnerComponent appComponent : appComponents) {
       if (!StageTypes.isIgnoredForDashboard(appComponent.getStageTypeId())) {
         return true;
       }
@@ -222,7 +222,7 @@ public class ComponentDetailService
   public ComponentDisplayName getComponentNameByHash(String hash) {
     validateDashboardLicensed();
 
-    ApplicationComponent applicationComponent = getLastByHash(hash);
+    OwnerComponent applicationComponent = getLastByHash(hash);
     if (applicationComponent == null) {
       throw new BadRequestException("Unknown component with hash " + hash + ".");
     }
@@ -238,7 +238,7 @@ public class ComponentDetailService
     return componentNameDTO;
   }
 
-  private ApplicationComponent getLastByHash(String hash) {
+  private OwnerComponent getLastByHash(String hash) {
     return applicationComponentDAO.getLastByHash(hash);
   }
 

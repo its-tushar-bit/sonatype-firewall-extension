@@ -44,8 +44,8 @@ import org.jooq.SelectFieldOrAsterisk;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationAncestor.APPLICATION_ANCESTOR;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponent.APPLICATION_COMPONENT;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponentLicense.APPLICATION_COMPONENT_LICENSE;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerComponent.OWNER_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerComponentLicense.OWNER_COMPONENT_LICENSE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentObligation.COMPONENT_OBLIGATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroup.LICENSE_THREAT_GROUP;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroupLicense.LICENSE_THREAT_GROUP_LICENSE;
@@ -71,11 +71,11 @@ public class LicenseThreatGroupDAO
         LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID,
         LICENSE_THREAT_GROUP.NAME,
         LICENSE_THREAT_GROUP.THREAT_LEVEL,
-        APPLICATION_COMPONENT.APPLICATION_ID,
-        APPLICATION_COMPONENT.HASH,
-        APPLICATION_COMPONENT.COMPONENT_ID_FORMAT,
-        APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON,
-        APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
+        OWNER_COMPONENT.OWNER_ID,
+        OWNER_COMPONENT.HASH,
+        OWNER_COMPONENT.COMPONENT_ID_FORMAT,
+        OWNER_COMPONENT.COMPONENT_ID_COORDINATES_JSON,
+        OWNER_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
     Collections.addAll(fields, COMPONENT_OBLIGATION.fields());
     return List.copyOf(fields);
   }
@@ -538,24 +538,24 @@ public class LicenseThreatGroupDAO
         .join(LICENSE_THREAT_GROUP_LICENSE)
         .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID
             .eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
-        .join(APPLICATION_COMPONENT_LICENSE)
-        .on(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID))
-        .join(APPLICATION_COMPONENT)
-        .on(APPLICATION_COMPONENT.APPLICATION_COMPONENT_ID
-            .eq(APPLICATION_COMPONENT_LICENSE.APPLICATION_COMPONENT_ID)
+        .join(OWNER_COMPONENT_LICENSE)
+        .on(OWNER_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID))
+        .join(OWNER_COMPONENT)
+        .on(OWNER_COMPONENT.OWNER_COMPONENT_ID
+            .eq(OWNER_COMPONENT_LICENSE.OWNER_COMPONENT_ID)
             .and(ownerType == OwnerType.APPLICATION
-                ? APPLICATION_COMPONENT.APPLICATION_ID.eq(ownerId)
-                : APPLICATION_COMPONENT.APPLICATION_ID.in(tx.dsl()
+                ? OWNER_COMPONENT.OWNER_ID.eq(ownerId)
+                : OWNER_COMPONENT.OWNER_ID.in(tx.dsl()
                     .select(APPLICATION_ANCESTOR.APPLICATION_ID)
                     .from(APPLICATION_ANCESTOR)
                     .where(APPLICATION_ANCESTOR.ANCESTOR_ID.eq(ownerId)))))
         .leftJoin(COMPONENT_OBLIGATION)
-        .on(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT)
+        .on(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(OWNER_COMPONENT.COMPONENT_ID_FORMAT)
             .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON
-                .eq(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON))
+                .eq(OWNER_COMPONENT.COMPONENT_ID_COORDINATES_JSON))
             .and(COMPONENT_OBLIGATION.OWNER_ID.eq(Organization.ROOT_ORGANIZATION_ID)))
         .where(LICENSE_THREAT_GROUP.OWNER_ID.in(hierarchyOwnerIdsSubquery))
-        .and(APPLICATION_COMPONENT.HASH.isNotNull())
+        .and(OWNER_COMPONENT.HASH.isNotNull())
         .fetch();
 
     return accumulateCandidateObligations(rows);
@@ -603,18 +603,18 @@ public class LicenseThreatGroupDAO
             .join(LICENSE_THREAT_GROUP_LICENSE)
             .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID
                 .eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
-            .join(APPLICATION_COMPONENT_LICENSE)
-            .on(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID))
-            .join(APPLICATION_COMPONENT)
-            .on(APPLICATION_COMPONENT.APPLICATION_COMPONENT_ID
-                .eq(APPLICATION_COMPONENT_LICENSE.APPLICATION_COMPONENT_ID)
-                .and(APPLICATION_COMPONENT.APPLICATION_ID.in(chunk)))
+            .join(OWNER_COMPONENT_LICENSE)
+            .on(OWNER_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID))
+            .join(OWNER_COMPONENT)
+            .on(OWNER_COMPONENT.OWNER_COMPONENT_ID
+                .eq(OWNER_COMPONENT_LICENSE.OWNER_COMPONENT_ID)
+                .and(OWNER_COMPONENT.OWNER_ID.in(chunk)))
             .leftJoin(COMPONENT_OBLIGATION)
-            .on(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT)
+            .on(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(OWNER_COMPONENT.COMPONENT_ID_FORMAT)
                 .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON
-                    .eq(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON))
+                    .eq(OWNER_COMPONENT.COMPONENT_ID_COORDINATES_JSON))
                 .and(COMPONENT_OBLIGATION.OWNER_ID.eq(Organization.ROOT_ORGANIZATION_ID)))
-            .where(APPLICATION_COMPONENT.HASH.isNotNull())
+            .where(OWNER_COMPONENT.HASH.isNotNull())
             .fetch());
 
     return accumulateCandidateObligations(rows);
@@ -647,11 +647,11 @@ public class LicenseThreatGroupDAO
     for (Record row : rows) {
       CandidateKey candidateKey = new CandidateKey(
           row.get(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID),
-          row.get(APPLICATION_COMPONENT.APPLICATION_ID),
-          row.get(APPLICATION_COMPONENT.HASH),
-          row.get(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT),
-          row.get(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON),
-          row.get(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
+          row.get(OWNER_COMPONENT.OWNER_ID),
+          row.get(OWNER_COMPONENT.HASH),
+          row.get(OWNER_COMPONENT.COMPONENT_ID_FORMAT),
+          row.get(OWNER_COMPONENT.COMPONENT_ID_COORDINATES_JSON),
+          row.get(OWNER_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
       if (seenCandidates.add(candidateKey)) {
         candidates.add(toComponentCandidate(row));
       }
@@ -708,11 +708,11 @@ public class LicenseThreatGroupDAO
         row.get(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID),
         row.get(LICENSE_THREAT_GROUP.NAME),
         row.get(LICENSE_THREAT_GROUP.THREAT_LEVEL),
-        row.get(APPLICATION_COMPONENT.APPLICATION_ID),
-        row.get(APPLICATION_COMPONENT.HASH),
-        row.get(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT),
-        row.get(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON),
-        row.get(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
+        row.get(OWNER_COMPONENT.OWNER_ID),
+        row.get(OWNER_COMPONENT.HASH),
+        row.get(OWNER_COMPONENT.COMPONENT_ID_FORMAT),
+        row.get(OWNER_COMPONENT.COMPONENT_ID_COORDINATES_JSON),
+        row.get(OWNER_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
   }
 
   @Override

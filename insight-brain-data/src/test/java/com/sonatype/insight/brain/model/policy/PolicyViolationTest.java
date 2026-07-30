@@ -41,7 +41,7 @@ public class PolicyViolationTest
   public void testConstructor_InitializeFromEvaluation() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
-    assertThat(policyViolation.getApplicationId()).isEqualTo(evaluation.getApplicationId());
+    assertThat(policyViolation.getOwnerId()).isEqualTo(evaluation.getOwnerId());
     assertThat(policyViolation.getStageTypeId()).isEqualTo(evaluation.getStageTypeId());
     assertThat(policyViolation.getOpenTime()).isEqualTo(evaluation.getTime());
   }
@@ -279,7 +279,7 @@ public class PolicyViolationTest
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
 
-    assertThat(policyViolation.getOwnerId()).isEqualTo(policyViolation.getApplicationId());
+    assertThat(policyViolation.getOwnerId()).isEqualTo(evaluation.getOwnerId());
   }
 
   @Test

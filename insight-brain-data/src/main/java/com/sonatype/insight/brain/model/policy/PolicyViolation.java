@@ -32,8 +32,8 @@ public class PolicyViolation
   @Column(name = "policy_violation_id")
   private String id;
 
-  @Column(name = "application_id")
-  private String applicationId;
+  @Column(name = "owner_id")
+  private String ownerId;
 
   @Column(name = "stage_type_id")
   private String stageTypeId;
@@ -99,7 +99,7 @@ public class PolicyViolation
       String filename)
   {
     super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);
-    applicationId = evaluation.getApplicationId();
+    ownerId = evaluation.getOwnerId();
     stageTypeId = evaluation.getStageTypeId();
     openTime = evaluation.getTime();
     this.filename = filename;
@@ -115,12 +115,8 @@ public class PolicyViolation
     this.id = id;
   }
 
-  public String getApplicationId() {
-    return applicationId;
-  }
-
-  public void setApplicationId(String applicationId) {
-    this.applicationId = applicationId;
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
   }
 
   @Override
@@ -276,15 +272,14 @@ public class PolicyViolation
     this.lastTelemetryEmittedDate = lastTelemetryEmittedDate;
   }
 
-  @Transient
   @Override
   public String getOwnerId() {
-    return getApplicationId();
+    return ownerId;
   }
 
   @Override
   public String toString() {
-    return "PolicyViolation [id=" + id + ", applicationId=" + getApplicationId() + ", stageTypeId=" + getStageTypeId()
+    return "PolicyViolation [id=" + id + ", ownerId=" + getOwnerId() + ", stageTypeId=" + getStageTypeId()
         + ", openTime=" + getOpenTime() + "(" + getOpenTime().getTime() + "), waiveTime=" + getWaiveTime()
         + ", fixTime=" + getFixTime() + ", policyId=" + getPolicyId() + ", policyName=" + getPolicyName()
         + ", threatLevel=" + getThreatLevel() + ", threatCategory=" + getThreatCategory() + ", hash=" + getHash()

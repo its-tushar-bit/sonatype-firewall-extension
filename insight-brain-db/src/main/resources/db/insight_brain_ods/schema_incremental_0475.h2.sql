@@ -1,0 +1,37 @@
+-- SaaS Compatible
+-- CLM-42785 H2 variant: plain in-place renames (single maintenance window, no compat view or _t base table).
+
+ALTER TABLE application_component RENAME TO owner_component;
+ALTER TABLE owner_component ALTER COLUMN application_component_id RENAME TO owner_component_id;
+ALTER TABLE owner_component ALTER COLUMN application_id RENAME TO owner_id;
+ALTER TABLE owner_component RENAME CONSTRAINT application_component_pk TO owner_component_pk;
+ALTER TABLE owner_component RENAME CONSTRAINT application_component_uk TO owner_component_uk;
+ALTER TABLE owner_component DROP CONSTRAINT application_component_application_fk;
+ALTER INDEX application_component_hash_idx RENAME TO owner_component_hash_idx;
+ALTER INDEX application_component_time_idx RENAME TO owner_component_time_idx;
+
+ALTER TABLE application_component_license RENAME TO owner_component_license;
+ALTER TABLE owner_component_license ALTER COLUMN application_component_license_id RENAME TO owner_component_license_id;
+ALTER TABLE owner_component_license ALTER COLUMN application_component_id RENAME TO owner_component_id;
+ALTER TABLE owner_component_license RENAME CONSTRAINT application_component_license_pk TO owner_component_license_pk;
+ALTER TABLE owner_component_license RENAME CONSTRAINT application_component_license_uk TO owner_component_license_uk;
+ALTER TABLE owner_component_license RENAME CONSTRAINT application_component_license_application_component_fk TO owner_component_license_owner_component_fk;
+ALTER INDEX application_component_license_effective_license_id_idx RENAME TO owner_component_license_effective_license_id_idx;
+
+ALTER TABLE aggregate_file ALTER COLUMN application_component_id RENAME TO owner_component_id;
+ALTER TABLE aggregate_file RENAME CONSTRAINT aggregate_file_application_component_fk TO aggregate_file_owner_component_fk;
+ALTER INDEX aggregate_file_application_component_id_idx RENAME TO aggregate_file_owner_component_id_idx;
+
+ALTER TABLE policy_evaluation ALTER COLUMN application_id RENAME TO owner_id;
+ALTER TABLE policy_evaluation DROP CONSTRAINT policy_evaluation_app_fk;
+ALTER INDEX policy_evaluation_app_monitoring_stage_idx RENAME TO policy_evaluation_owner_monitoring_stage_idx;
+ALTER INDEX policy_evaluation_app_time_idx RENAME TO policy_evaluation_owner_time_idx;
+ALTER INDEX policy_evaluation_scan_app_idx RENAME TO policy_evaluation_scan_owner_idx;
+
+ALTER TABLE policy_violation ALTER COLUMN application_id RENAME TO owner_id;
+ALTER TABLE policy_violation DROP CONSTRAINT policy_violation_app_fk;
+ALTER INDEX policy_violation_app_fix_time_stage_idx RENAME TO policy_violation_owner_fix_time_stage_idx;
+ALTER INDEX policy_violation_policy_app_idx RENAME TO policy_violation_policy_owner_idx;
+
+ALTER TABLE last_policy_evaluation ALTER COLUMN application_id RENAME TO owner_id;
+ALTER TABLE last_policy_evaluation DROP CONSTRAINT last_policy_evaluation_app_fk;

@@ -13,14 +13,14 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -67,7 +67,7 @@ public class ApiSearchServiceV2Test
   private PolicyEvaluationDAO policyEvaluationDAO;
 
   @Inject
-  private ApplicationComponentDAO applicationComponentDAO;
+  private OwnerComponentDAO applicationComponentDAO;
 
   @Inject
   private PolicyViolationDAO policyViolationDAO;
@@ -86,10 +86,10 @@ public class ApiSearchServiceV2Test
   @Test
   public void testSearchComponent_InnerSourceData_WithEnabledComponentSearchApiWithInnerSource() throws URISyntaxException, IOException {
     Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
-    ApplicationComponent appComponent1 = tempEntity
+    OwnerComponent appComponent1 = tempEntity
         .newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",
             ComponentIdentifier.createMavenCoordinates("xmlpull", "xmlpull", "1.1.3.1"));
-    ApplicationComponent appComponent2 = tempEntity
+    OwnerComponent appComponent2 = tempEntity
         .newApplicationComponent(application.getId(), BuildStageType.ID, "e3fd8ced1f52c7574af9",
             ComponentIdentifier.createMavenCoordinates("org.apache.httpcomponents", "httpcore", "4.4.6"));
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
@@ -125,7 +125,7 @@ public class ApiSearchServiceV2Test
   @Test
   public void testSearchComponent_InnerSourceData_WithEnabledComponentSearchApiWithInnerSource_MultipleParentPurls() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    ApplicationComponent appComponent = tempEntity
+    OwnerComponent appComponent = tempEntity
         .newApplicationComponent(application.getId(), BuildStageType.ID, "0f5a654e4675769c716e",
             ComponentIdentifier.createMavenCoordinates("com.fasterxml.jackson.core", "jackson-core", "2.9.8"));
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
@@ -148,7 +148,7 @@ public class ApiSearchServiceV2Test
   public void testSearchComponent_InnerSourceData_WithDisabledComponentSearchApiWithInnerSource() throws URISyntaxException, IOException {
     SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(false);
     Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
-    ApplicationComponent appComponent = tempEntity
+    OwnerComponent appComponent = tempEntity
         .newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",
             ComponentIdentifier.createMavenCoordinates("xmlpull", "xmlpull", "1.1.3.1"));
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
@@ -182,14 +182,14 @@ public class ApiSearchServiceV2Test
       newAppWithTwoComponentsAndReport();
 
       PolicyEvaluationDAO spyPolicyEvaluationDAO = spy(policyEvaluationDAO);
-      ApplicationComponentDAO spyApplicationComponentDAO = spy(applicationComponentDAO);
+      OwnerComponentDAO spyOwnerComponentDAO = spy(applicationComponentDAO);
       PolicyViolationDAO spyPolicyViolationDAO = spy(policyViolationDAO);
       ReportService spyReportService = spy(reportService);
 
       // Constructed directly (bypassing the @AuthzFilter proxy) so the spied DAOs can observe the query pattern;
       // authorization behavior is covered by ApiSearchServiceV2AuthzTest.
       ApiSearchServiceV2 service = new ApiSearchServiceV2(baseUrl, applicationDAO, spyPolicyEvaluationDAO,
-          spyApplicationComponentDAO, spyPolicyViolationDAO, spyReportService, componentLoaderFactory);
+          spyOwnerComponentDAO, spyPolicyViolationDAO, spyReportService, componentLoaderFactory);
 
       ApiSearchResultsDTOV2 result = service.searchComponent(BuildStageType.ID, null,
           ComponentIdentifier.createMavenCoordinates("", "", ""), null);
@@ -197,17 +197,17 @@ public class ApiSearchServiceV2Test
       assertThat(result.results).hasSize(4);
 
       // Batched: one query each regardless of the number of applications/components.
-      verify(spyPolicyEvaluationDAO, times(1)).getLastPrimaryByApplicationIdsAndStageId(anySet(),
+      verify(spyPolicyEvaluationDAO, times(1)).getLastPrimaryByOwnerIdsAndStageId(anySet(),
           eq(BuildStageType.ID));
-      verify(spyApplicationComponentDAO, times(1)).getByApplicationIdsAndStageTypeId(anySet(), eq(BuildStageType.ID));
+      verify(spyOwnerComponentDAO, times(1)).getByOwnerIdsAndStageTypeId(anySet(), eq(BuildStageType.ID));
       verify(spyPolicyViolationDAO, times(1))
-          .getActiveByApplicationIdsAndStageIdAndHashes(anySet(), eq(BuildStageType.ID), anySet());
+          .getActiveByOwnerIdsAndStageIdAndHashes(anySet(), eq(BuildStageType.ID), anySet());
 
       // The per-application / per-component query variants must not be used.
-      verify(spyPolicyEvaluationDAO, never()).getLastPrimaryByApplicationIdAndStageId(anyString(), anyString());
-      verify(spyApplicationComponentDAO, never()).getByApplicationIdAndStageTypeId(anyString(), anyString());
+      verify(spyPolicyEvaluationDAO, never()).getLastPrimaryByOwnerIdAndStageId(anyString(), anyString());
+      verify(spyOwnerComponentDAO, never()).getByOwnerIdAndStageTypeId(anyString(), anyString());
       verify(spyPolicyViolationDAO, never())
-          .getActiveByApplicationIdAndStageIdAndHash(anyString(), anyString(), anyString());
+          .getActiveByOwnerIdAndStageIdAndHash(anyString(), anyString(), anyString());
 
       // Each application's report is loaded exactly once even though two of its components matched, via the
       // no-recovery getReportIfPresent path; neither recovery getReport overload is used (CLM-41473).
@@ -363,8 +363,8 @@ public class ApiSearchServiceV2Test
 
   /**
    * Guards the CLM-40023 memory fix: a hash search must filter the components in SQL (loading only the matching rows)
-   * via {@code getMapByApplicationIdsAndStageTypeIdsAndHashes} rather than materialising every inspected application's
-   * components through the full {@code getByApplicationIdsAndStageTypeId} scan. An upper-case hash is used to confirm
+   * via {@code getMapByOwnerIdsAndStageTypeIdsAndHashes} rather than materialising every inspected application's
+   * components through the full {@code getByOwnerIdsAndStageTypeId} scan. An upper-case hash is used to confirm
    * matching stays case-insensitive after moving the filter into SQL.
    */
   @Test
@@ -373,12 +373,12 @@ public class ApiSearchServiceV2Test
     newAppWithTwoComponentsAndReport();
     newAppWithTwoComponentsAndReport();
 
-    ApplicationComponentDAO spyApplicationComponentDAO = spy(applicationComponentDAO);
+    OwnerComponentDAO spyOwnerComponentDAO = spy(applicationComponentDAO);
     PolicyEvaluationDAO spyPolicyEvaluationDAO = spy(policyEvaluationDAO);
     PolicyViolationDAO spyPolicyViolationDAO = spy(policyViolationDAO);
 
     ApiSearchServiceV2 service = new ApiSearchServiceV2(baseUrl, applicationDAO, spyPolicyEvaluationDAO,
-        spyApplicationComponentDAO, spyPolicyViolationDAO, reportService, componentLoaderFactory);
+        spyOwnerComponentDAO, spyPolicyViolationDAO, reportService, componentLoaderFactory);
 
     ApiSearchResultsDTOV2 result = service.searchComponent(BuildStageType.ID, "2B8E230D2AB644E4ECAA", null, null);
 
@@ -386,15 +386,15 @@ public class ApiSearchServiceV2Test
     assertThat(result.results).allSatisfy(r -> assertThat(r.hash).isEqualTo("2b8e230d2ab644e4ecaa"));
 
     // Hash searches filter in SQL: only the matching rows are loaded, so the full component scan must not be used.
-    verify(spyApplicationComponentDAO, times(1))
-        .getMapByApplicationIdsAndStageTypeIdsAndHashes(anySet(), anySet(), anySet());
-    verify(spyApplicationComponentDAO, never()).getByApplicationIdsAndStageTypeId(anySet(), anyString());
+    verify(spyOwnerComponentDAO, times(1))
+        .getMapByOwnerIdsAndStageTypeIdsAndHashes(anySet(), anySet(), anySet());
+    verify(spyOwnerComponentDAO, never()).getByOwnerIdsAndStageTypeId(anySet(), anyString());
 
     // The evaluation and violation queries stay batched (no per-application variants).
-    verify(spyPolicyEvaluationDAO, times(1)).getLastPrimaryByApplicationIdsAndStageId(anySet(), eq(BuildStageType.ID));
-    verify(spyPolicyEvaluationDAO, never()).getLastPrimaryByApplicationIdAndStageId(anyString(), anyString());
+    verify(spyPolicyEvaluationDAO, times(1)).getLastPrimaryByOwnerIdsAndStageId(anySet(), eq(BuildStageType.ID));
+    verify(spyPolicyEvaluationDAO, never()).getLastPrimaryByOwnerIdAndStageId(anyString(), anyString());
     verify(spyPolicyViolationDAO, times(1))
-        .getActiveByApplicationIdsAndStageIdAndHashes(anySet(), eq(BuildStageType.ID), anySet());
+        .getActiveByOwnerIdsAndStageIdAndHashes(anySet(), eq(BuildStageType.ID), anySet());
   }
 
   private Application newAppWithTwoComponentsAndReport() throws URISyntaxException, IOException {

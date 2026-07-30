@@ -188,7 +188,7 @@ public class ApiSpdxService
     }
 
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageId);
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), stageId);
     if (evaluation == null) {
       throw new NotFoundException("Unable to locate a policy evaluation for " + applicationId + " in stage " + stageId);
     }
@@ -829,7 +829,7 @@ public class ApiSpdxService
 
   private String createFileName(Application application, String scanId, String suffix) {
     String appId = application.getId();
-    String stageId = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId).getStageTypeId();
+    String stageId = policyEvaluationDAO.getLastByOwnerIdAndScanId(appId, scanId).getStageTypeId();
     return String.format("%s-%s-%s%s", application.getPublicId(), stageId, scanId, suffix);
   }
 

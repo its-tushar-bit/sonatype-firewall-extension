@@ -169,7 +169,7 @@ public class ApiCycloneDxServiceV2
       Version version)
   {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageId);
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), stageId);
     if (evaluation == null) {
       throw new NotFoundException("Unable to locate a scan for " + applicationId + " in stage " + stageId);
     }
@@ -242,7 +242,7 @@ public class ApiCycloneDxServiceV2
 
     if (version.compareTo(Version.VERSION_12) >= 0) {
       PolicyEvaluation policyEvaluation =
-          policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
+          policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(), scanId);
       ApiDependencyTreeNodeDTO dependenciesData =
           apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
       addMetadata(policyEvaluation, dependenciesData, bom, version, components, data);
@@ -355,7 +355,7 @@ public class ApiCycloneDxServiceV2
       return dependenciesData.getPackageUrl();
     }
     else {
-      Application app = applicationHelper.getApplicationByIdNotNull(policyEvaluation.getApplicationId());
+      Application app = applicationHelper.getApplicationByIdNotNull(policyEvaluation.getOwnerId());
       return buildFakeParentPackageUrl(dependenciesData, app.getName(), policyEvaluation.getScanId());
     }
   }

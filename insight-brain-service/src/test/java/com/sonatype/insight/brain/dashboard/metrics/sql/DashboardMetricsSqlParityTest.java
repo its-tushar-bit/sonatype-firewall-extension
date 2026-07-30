@@ -82,9 +82,9 @@ public class DashboardMetricsSqlParityTest
         tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "sqlParityViolationPopulationBuild");
     PolicyEvaluation releaseEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_RELEASE, "sqlParityViolationPopulationRelease");
-    ReportTestUtils.createReportFile(buildEvaluation.getApplicationId(), buildEvaluation.getScanId(),
+    ReportTestUtils.createReportFile(buildEvaluation.getOwnerId(), buildEvaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
-    ReportTestUtils.createReportFile(releaseEvaluation.getApplicationId(), releaseEvaluation.getScanId(),
+    ReportTestUtils.createReportFile(releaseEvaluation.getOwnerId(), releaseEvaluation.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/policyViolationReport", tempDir), lookup(InsightWork.class));
 
     unfixedOpenViolation(buildEvaluation, policy, 0, "sql-parity-open-0");

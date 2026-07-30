@@ -81,7 +81,7 @@ public class PolicyAlertEventServiceTest
     assertThat(event).isNotNull();
     assertThat(event.applicationEvaluation.policyEvaluationId).isEqualTo(policyEvaluation.getId());
     assertThat(event.applicationEvaluation.stageTypeId).isEqualTo(policyEvaluation.getStageTypeId());
-    assertThat(event.applicationEvaluation.ownerId).isEqualTo(policyEvaluation.getApplicationId());
+    assertThat(event.applicationEvaluation.ownerId).isEqualTo(policyEvaluation.getOwnerId());
     assertThat(event.applicationEvaluation.isForLatestScan).isEqualTo(!policyEvaluation.isForObsoleteScan());
     assertThat(event.applicationEvaluation.evaluationDate).isEqualTo(time);
     assertThat(event.applicationEvaluation.affectedComponentCount).isEqualTo(1);
@@ -91,7 +91,7 @@ public class PolicyAlertEventServiceTest
     assertThat(event.applicationEvaluation.outcome).isEqualTo(Action.ID_FAIL);
     assertThat(event.applicationEvaluation.commitHash).isEqualTo("commitHash");
     assertThat(event.initiator).isEqualTo(USERNAME);
-    assertThat(event.application.id).isEqualTo(policyEvaluation.getApplicationId());
+    assertThat(event.application.id).isEqualTo(policyEvaluation.getOwnerId());
     assertThat(event.application.publicId).isEqualTo(application.getPublicId());
     assertThat(event.application.name).isEqualTo(application.getName());
     assertThat(event.application.organizationId).isEqualTo(application.getOrganizationId());
@@ -220,7 +220,7 @@ public class PolicyAlertEventServiceTest
     final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     policyEvaluation.setId("policyEvaluationId");
     policyEvaluation.setStageTypeId("stageTypeId");
-    policyEvaluation.setApplicationId(application.getId());
+    policyEvaluation.setOwnerId(application.getId());
     policyEvaluation.setTime(time);
     policyEvaluation.setCommitHash("commitHash");
     return policyEvaluation;

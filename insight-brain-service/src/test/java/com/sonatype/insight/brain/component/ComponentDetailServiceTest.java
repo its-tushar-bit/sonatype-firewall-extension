@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -255,7 +255,7 @@ public class ComponentDetailServiceTest
     String hash = "ababababab";
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
-    ApplicationComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+    OwnerComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     Policy policy1 = tempEntity.newPolicy(app1);
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", new Date(
@@ -284,7 +284,7 @@ public class ComponentDetailServiceTest
     String hash = "ababababab";
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
-    ApplicationComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+    OwnerComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, component.getHash(),
         component.getComponentIdentifier());

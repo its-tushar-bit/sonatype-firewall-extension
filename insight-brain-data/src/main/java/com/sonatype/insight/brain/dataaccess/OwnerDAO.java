@@ -36,7 +36,9 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributio
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -153,6 +155,12 @@ public class OwnerDAO
 
   private final Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider;
 
+  private final Provider<PolicyEvaluationDAO> policyEvaluationDAOProvider;
+
+  private final Provider<PolicyViolationDAO> policyViolationDAOProvider;
+
+  private final Provider<OwnerComponentDAO> ownerComponentDAOProvider;
+
   @Inject
   public OwnerDAO(
       final OperationalDataStore operationalDataStore,
@@ -177,7 +185,10 @@ public class OwnerDAO
       final Provider<VulnerabilityCustomCweDAO> vulnerabilityCustomCweDAOProvider,
       final Provider<VulnerabilityCustomCvssVectorDAO> vulnerabilityCustomCvssVectorDAOProvider,
       final Provider<VulnerabilityCustomCvssSeverityDAO> vulnerabilityCustomCvssSeverityDAOProvider,
-      final Provider<CallFlowAnalysisConfigDAO> callFlowAnalysisConfigDAOProvider)
+      final Provider<CallFlowAnalysisConfigDAO> callFlowAnalysisConfigDAOProvider,
+      final Provider<PolicyEvaluationDAO> policyEvaluationDAOProvider,
+      final Provider<PolicyViolationDAO> policyViolationDAOProvider,
+      final Provider<OwnerComponentDAO> ownerComponentDAOProvider)
   {
     super(operationalDataStore, searchIndexManager);
     this.appDAO = appDAO;
@@ -201,6 +212,9 @@ public class OwnerDAO
     this.vulnerabilityCustomCvssVectorDAOProvider = vulnerabilityCustomCvssVectorDAOProvider;
     this.vulnerabilityCustomCvssSeverityDAOProvider = vulnerabilityCustomCvssSeverityDAOProvider;
     this.callFlowAnalysisConfigDAOProvider = callFlowAnalysisConfigDAOProvider;
+    this.policyEvaluationDAOProvider = policyEvaluationDAOProvider;
+    this.policyViolationDAOProvider = policyViolationDAOProvider;
+    this.ownerComponentDAOProvider = ownerComponentDAOProvider;
   }
 
   @Override
@@ -1023,6 +1037,8 @@ public class OwnerDAO
    * <li>Custom vulnerability CVSS vector data owned by this owner</li>
    * <li>Custom vulnerability CVSS severity data owned by this owner</li>
    * <li>Call flow analysis configuration owned by this owner</li>
+   * <li>Scan output scoped to this owner: policy evaluations, policy violations, owner components,
+   * and last policy evaluations</li>
    * </ul>
    * <p>
    * <b>Note:</b> This method is called from cascade delete operations in {@code ApplicationDAO},
@@ -1166,6 +1182,10 @@ public class OwnerDAO
     if (callFlowAnalysisConfig != null) {
       callFlowAnalysisConfigDAO.delete(tx, callFlowAnalysisConfig);
     }
+
+    policyEvaluationDAOProvider.get().deleteByOwnerId(tx, owner.getId());
+    policyViolationDAOProvider.get().deleteByOwnerId(tx, owner.getId());
+    ownerComponentDAOProvider.get().deleteByOwnerId(tx, owner.getId());
   }
 
   /**

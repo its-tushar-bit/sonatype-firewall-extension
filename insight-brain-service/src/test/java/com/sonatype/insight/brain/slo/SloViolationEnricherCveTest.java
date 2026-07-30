@@ -90,7 +90,7 @@ public class SloViolationEnricherCveTest
 
     PolicyViolation violation = new PolicyViolation();
     violation.setId("pv-nofacts-" + System.nanoTime());
-    violation.setApplicationId(application.getId());
+    violation.setOwnerId(application.getId());
     violation.setStageTypeId(Stage.ID_RELEASE);
     violation.setPolicyId("policy-1");
     violation.setPolicyName("No facts policy");

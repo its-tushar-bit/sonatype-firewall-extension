@@ -130,17 +130,17 @@ public class ApiCrossStageViolationService
     }
 
     ReachabilityStatus reachabilityStatus = constituentViolation.getReachabilityStatus();
-    Application app = applicationService.getApplicationByIdForRead(constituentViolation.getApplicationId());
+    Application app = applicationService.getApplicationByIdForRead(constituentViolation.getOwnerId());
     Organization org = organizationDAO.getById(app.getOrganizationId());
     Policy policy = policyDAO.getById(constituentViolation.getPolicyId());
     Owner policyOwner = policy == null ? null : ownerDAO.getById(policy.getOwnerId());
 
-    String applicationId = constituentViolation.getApplicationId();
+    String ownerId = constituentViolation.getOwnerId();
     String policyId = constituentViolation.getPolicyId();
     String hash = constituentViolation.getHash();
 
     List<PolicyViolation> allApplicableViolations = policyViolationDAO
-        .getByApplicationIdAndPolicyIdAndHash(applicationId, policyId, hash)
+        .getByOwnerIdAndPolicyIdAndHash(ownerId, policyId, hash)
         .stream()
         .sorted(Comparator.comparing(PolicyViolation::getOpenTime))
         .collect(Collectors.toList());
@@ -163,14 +163,14 @@ public class ApiCrossStageViolationService
       return Collections.emptyList();
     }
 
-    // all violations share an applicationId: they originate from getByApplicationIdAndPolicyIdAndHash
-    String applicationId = violations.iterator().next().getApplicationId();
+    // all violations share an ownerId: they originate from getByOwnerIdAndPolicyIdAndHash
+    String ownerId = violations.iterator().next().getOwnerId();
     List<StageEvaluationWindow> windows = violations.stream()
         .map(violation -> new StageEvaluationWindow(violation.getStageTypeId(), violation.getOpenTime(),
             getEvaluationMaxDate(violation)))
         .collect(Collectors.toList());
 
-    return policyEvaluationDAO.getLatestEvaluationPerWindow(applicationId, windows);
+    return policyEvaluationDAO.getLatestEvaluationPerWindow(ownerId, windows);
   }
 
   private Collection<PolicyViolation> getViolationsToMerge(

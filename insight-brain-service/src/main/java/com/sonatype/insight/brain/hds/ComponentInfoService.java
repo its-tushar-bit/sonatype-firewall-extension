@@ -757,7 +757,7 @@ public class ComponentInfoService
     if (scanId == null) {
       return null;
     }
-    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(ownerId, scanId);
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(ownerId, scanId);
     return evaluation != null ? evaluation.getBranchName() : null;
   }
 

@@ -159,7 +159,7 @@ public class DiagnosticsCli
   private void logRowCounts(Connection connection) throws Exception {
     log.info("Row counts:");
     String[] tables = {"organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
-      "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "application_component",
+      "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "owner_component",
       "repository_manager", "repository", "repository_component", "repository_policy_violation",
       "proprietary_component_name_pattern"};
     for (String table : tables) {
@@ -182,7 +182,7 @@ public class DiagnosticsCli
   private void logTableSizes(Connection connection) throws Exception {
     log.info("Table sizes:");
     String[] tables = {"organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
-      "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "application_component",
+      "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "owner_component",
       "repository_manager", "repository", "repository_component", "repository_policy_violation",
       "proprietary_component_name_pattern"};
     for (String table : tables) {
@@ -214,7 +214,7 @@ public class DiagnosticsCli
 
   private void logUniqueCoordinates(Connection connection) throws Exception {
     log.info("Unique coordinates:");
-    String[] tables = {"policy_violation", "application_component"};
+    String[] tables = {"policy_violation", "owner_component"};
     for (String table : tables) {
       try (Statement statement = connection.createStatement();
           ResultSet result = query(statement, "SELECT COUNT(DISTINCT component_id_coordinates_json) FROM " + table,

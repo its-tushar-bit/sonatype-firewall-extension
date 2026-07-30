@@ -166,10 +166,10 @@ public class ApiReportServiceV2
 
     Map<String, Application> appsById =
         apps.stream().collect(Collectors.toMap(Application::getId, Function.identity()));
-    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIds(appsById.keySet());
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByOwnerIds(appsById.keySet());
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       ApiApplicationReportDTOV2 apiApplicationReportDTOV2 = new ApiApplicationReportDTOV2();
-      populateReportDTO(apiApplicationReportDTOV2, appsById.get(policyEvaluation.getApplicationId()), policyEvaluation);
+      populateReportDTO(apiApplicationReportDTOV2, appsById.get(policyEvaluation.getOwnerId()), policyEvaluation);
       reports.add(apiApplicationReportDTOV2);
     }
 
@@ -198,7 +198,7 @@ public class ApiReportServiceV2
   {
     int maxResultsToReturn = limit != null ? limit : MAX_POLICY_EVALUATIONS_TO_RETURN;
     List<PolicyEvaluation> policyEvaluations =
-        policyEvaluationDAO.getLimitedAmountByApplicationId(apiReportHistoryDTO.applicationId, maxResultsToReturn,
+        policyEvaluationDAO.getLimitedAmountByOwnerId(apiReportHistoryDTO.applicationId, maxResultsToReturn,
             stage);
 
     List<PolicyEvaluation> uniquePolicyEvaluations = policyEvaluations.stream()
@@ -246,11 +246,11 @@ public class ApiReportServiceV2
     }
     catch (IOException | NullPointerException e) {
       log.debug("Could not load violations from report file for application {} scan {}, report is not available",
-          policyEvaluation.getApplicationId(), policyEvaluation.getScanId(), e);
+          policyEvaluation.getOwnerId(), policyEvaluation.getScanId(), e);
     }
     catch (NotFoundException e) {
       log.debug("Could not load violations from report file for application {} scan {}, report is not available.",
-          policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+          policyEvaluation.getOwnerId(), policyEvaluation.getScanId());
     }
   }
 

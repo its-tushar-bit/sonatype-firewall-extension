@@ -206,16 +206,16 @@ public class TestDAOFactory
   }
 
   @Override
-  public ApplicationComponentDAO createApplicationComponentDAO() {
+  public OwnerComponentDAO createOwnerComponentDAO() {
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
-    return new ApplicationComponentDAO(dataStoreProvider.getOperationalDataStore(), temporaryTableHelper);
+    return new OwnerComponentDAO(dataStoreProvider.getOperationalDataStore(), temporaryTableHelper);
   }
 
   @Override
-  public ApplicationComponentLicenseDAO createApplicationComponentLicenseDAO() {
+  public OwnerComponentLicenseDAO createOwnerComponentLicenseDAO() {
     LicenseOverrideDAO licenseOverrideDAO = createLicenseOverrideDAO();
     OwnerDAO ownerDAO = createOwnerDAO();
-    return new ApplicationComponentLicenseDAO(dataStoreProvider.getOperationalDataStore(), licenseOverrideDAO,
+    return new OwnerComponentLicenseDAO(dataStoreProvider.getOperationalDataStore(), licenseOverrideDAO,
         ownerDAO);
   }
 
@@ -639,6 +639,9 @@ public class TestDAOFactory
     DataRetentionPolicyDAO dataRetentionPolicyDAO = createDataRetentionPolicyDAO();
     PolicyMonitoringDAO policyMonitoringDAO = createPolicyMonitoringDAO();
     SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = createSecurityVulnerabilityOverrideDAO();
+    Provider<PolicyEvaluationDAO> policyEvaluationDAOProvider = this::createPolicyEvaluationDAO;
+    Provider<PolicyViolationDAO> policyViolationDAOProvider = this::createPolicyViolationDAO;
+    Provider<OwnerComponentDAO> ownerComponentDAOProvider = this::createOwnerComponentDAO;
 
     return new OwnerDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, appDAO, orgDAO, repoDAO,
         repoManagerDAO, policyWaiverDAOProvider, policyWaiverRequestDAOProvider, licenseOverrideDAOProvider,
@@ -647,7 +650,8 @@ public class TestDAOFactory
         componentObligationAttributionDAOProvider, vulnerabilityGroupDAOProvider,
         vulnerabilityCustomRemediationDAOProvider, vulnerabilityCustomCweDAOProvider,
         vulnerabilityCustomCvssVectorDAOProvider, vulnerabilityCustomCvssSeverityDAOProvider,
-        callFlowAnalysisConfigDAOProvider);
+        callFlowAnalysisConfigDAOProvider, policyEvaluationDAOProvider, policyViolationDAOProvider,
+        ownerComponentDAOProvider);
   }
 
   @Override

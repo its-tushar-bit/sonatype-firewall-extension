@@ -42,7 +42,7 @@ public class ActivePolicyViolationsWithActionFailService
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(
+    List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByOwnerIdAndStageIdAndActionId(
         app.getId(), stageId, Action.ID_FAIL);
 
     return policyViolations.stream()

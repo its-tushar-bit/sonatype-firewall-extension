@@ -419,7 +419,7 @@ public class ReportService
     // Cross-check that the (appId, scanId) pair is linked in policy_evaluation with a hosted
     // trigger type. CLM-41693: both REPOSITORY_MANAGER (pre-v1.206) and HOSTED_REPOSITORY_SCANNING
     // (v1.206+) are recognised as hosted.
-    PolicyEvaluation pe = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    PolicyEvaluation pe = policyEvaluationDAO.getLastByOwnerIdAndScanId(appId, scanId);
     return pe != null && isHostedScanTriggerType(pe.getScanTriggerType());
   }
 
@@ -465,7 +465,7 @@ public class ReportService
       throw new NotFoundException("Repository not found for component scanId: " + scanId);
     }
     Application application = applicationDAO.getByIdNotNull(appId);
-    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByOwnerIdAndScanId(appId, scanId);
     String rawStage = lastEval != null ? lastEval.getStageTypeId() : null;
     String stageTypeId = rawStage != null ? rawStage : ComplianceStageType.ID;
     String format = component.getComponentIdentifier() != null
@@ -575,14 +575,14 @@ public class ReportService
   void persistHostedComponentReevaluation(final String appId, final String scanId, final String stageTypeId) {
     try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       tx.begin();
-      boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
+      boolean isReevaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, appId, scanId) != null;
       AuditData.get().setIsReevaluation(isReevaluation);
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(
           appId, stageTypeId.toLowerCase(), scanId, isReevaluation, false, "system",
           ScanTriggerType.REPOSITORY_MANAGER, null);
       if (isReevaluation) {
         PolicyEvaluation lastPrimary =
-            policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx, appId, stageTypeId);
+            policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(tx, appId, stageTypeId);
         policyEvaluation.setForObsoleteScan(!lastPrimary.getScanId().equals(scanId));
       }
       policyEvaluationDAO.insert(tx, policyEvaluation);
@@ -721,7 +721,7 @@ public class ReportService
       return applicationReport;
     }
 
-    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
     if (lastEval != null) {
       // Report zip missing — consumer failed before downloading it. Download now as recovery.
       if (isHostedScan(scanId, app.getId())) {
@@ -889,7 +889,7 @@ public class ReportService
           "Expanded Coverage (XC) is no longer supported. " +
               "We have incorporated support for all languages that were maintained in XC in Lifecycle");
     }
-    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(),
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(),
         scanId);
     if (evaluation == null) {
       return metadata;
@@ -1033,7 +1033,7 @@ public class ReportService
     if (policyEvaluation == null) {
       return null;
     }
-    LifecycleReport applicationReport = getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+    LifecycleReport applicationReport = getReport(policyEvaluation.getOwnerId(), policyEvaluation.getScanId());
 
     return applicationReport.getEntry(BOM_JSON.getName());
   }
@@ -1351,7 +1351,7 @@ public class ReportService
             ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
     try {
       PolicyEvaluation evaluation =
-          policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
+          policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(), scanId);
       String scannedBranchName = evaluation != null ? evaluation.getBranchName() : null;
       automatedPullRequestCreationService.createAutomatedRemediationPullRequest(application, scanId,
           new Stage(stageTypeId, StageTypes.getById(stageTypeId).getName()),
@@ -1924,7 +1924,7 @@ public class ReportService
     // First call to ensure the scanId is audited even on failure.
     AuditData.get().setScanId(scanId);
     Application application = applicationDAO.getById(appId);
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(appId, scanId);
 
     if (policyEvaluation == null) {
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");

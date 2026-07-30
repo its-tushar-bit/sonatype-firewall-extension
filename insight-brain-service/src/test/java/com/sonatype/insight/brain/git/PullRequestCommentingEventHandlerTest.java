@@ -574,7 +574,7 @@ public class PullRequestCommentingEventHandlerTest
 
   private PolicyEvaluation createPolicyEvaluation(String applicationId) {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-    policyEvaluation.setApplicationId(applicationId);
+    policyEvaluation.setOwnerId(applicationId);
     policyEvaluation.setId(UUID.randomUUID().toString());
     return policyEvaluation;
   }

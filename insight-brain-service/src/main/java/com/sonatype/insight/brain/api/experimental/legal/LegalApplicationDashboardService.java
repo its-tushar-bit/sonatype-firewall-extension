@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationCompon
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.legal.LegalDashboardsService;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+import com.sonatype.insight.brain.model.OwnerComponentLicensesDTO;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.license.License;
@@ -82,7 +82,7 @@ public class LegalApplicationDashboardService
 
   private final ApplicationDAO applicationDAO;
 
-  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+  private final OwnerComponentLicenseDAO applicationComponentLicenseDAO;
 
   private final ComponentObligationDAO componentObligationDAO;
 
@@ -101,7 +101,7 @@ public class LegalApplicationDashboardService
       ProductLicense productLicense,
       ApiLicenseLegalHdsService apiLicenseLegalHdsService,
       ApplicationDAO applicationDAO,
-      ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
+      OwnerComponentLicenseDAO applicationComponentLicenseDAO,
       ComponentObligationDAO componentObligationDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       MultiLicenseDAO multiLicenseDAO,
@@ -139,7 +139,7 @@ public class LegalApplicationDashboardService
             ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
             : stageTypeIds;
 
-    List<ApplicationComponentLicensesDTO> applicationComponentLicensesDTOS = applicationComponentLicenseDAO
+    List<OwnerComponentLicensesDTO> applicationComponentLicensesDTOS = applicationComponentLicenseDAO
         .getApplicationComponentEffectiveLicenses(application.getId(), stageTypeIdsToCheck);
     if (isEmpty(applicationComponentLicensesDTOS)) {
       return Collections.emptyList();
@@ -166,7 +166,7 @@ public class LegalApplicationDashboardService
     List<String> ownerIds = ownerDAO.getOwnerIds(application.getId());
 
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
-      for (ApplicationComponentLicensesDTO componentLicensesDTO : applicationComponentLicensesDTOS) {
+      for (OwnerComponentLicensesDTO componentLicensesDTO : applicationComponentLicensesDTOS) {
         if (componentLicensesDTO.getComponentIdentifier() == null) {
           continue;
         }

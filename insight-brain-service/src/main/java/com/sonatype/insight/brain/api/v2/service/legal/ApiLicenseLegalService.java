@@ -76,8 +76,8 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
@@ -100,8 +100,8 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+import com.sonatype.insight.brain.model.OwnerComponent;
+import com.sonatype.insight.brain.model.OwnerComponentLicensesDTO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -184,7 +184,7 @@ public class ApiLicenseLegalService
 
   private final TelemetrySender telemetrySender;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
@@ -200,7 +200,7 @@ public class ApiLicenseLegalService
 
   private final TagDAO tagDAO;
 
-  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+  private final OwnerComponentLicenseDAO applicationComponentLicenseDAO;
 
   private final AggregateFileDAO aggregateFileDAO;
 
@@ -253,14 +253,14 @@ public class ApiLicenseLegalService
       ApiReportDataServiceV2 apiReportDataServiceV2,
       LegalReportBuilder legalReportBuilder,
       TelemetrySender telemetrySender,
-      ApplicationComponentDAO applicationComponentDAO,
+      OwnerComponentDAO applicationComponentDAO,
       HashComponentIdentifierDAO hashComponentIdentifierDAO,
       ComponentInfoService componentInfoService,
       ApiLicenseDataAdapter apiLicenseDataAdapter,
       ProductLicense productLicense,
       ApplicationService applicationService,
       TagDAO tagDAO,
-      ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
+      OwnerComponentLicenseDAO applicationComponentLicenseDAO,
       ComponentObligationDAO componentObligationDAO,
       AggregateFileDAO aggregateFileDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
@@ -351,7 +351,7 @@ public class ApiLicenseLegalService
         .containsAll(Sets.newHashSet(LicenseLegalReviewStatus.OPEN, LicenseLegalReviewStatus.NOT_STARTED)))
     {
       List<Object[]> applicationIdsAndStageTypeIds =
-          applicationComponentDAO.getApplicationIdsAndStageTypeIdsByReviewStatus(applicationIdsToCheck,
+          applicationComponentDAO.getOwnerIdsAndStageTypeIdsByReviewStatus(applicationIdsToCheck,
               stageTypeIdsToCheck, reviewStatus.contains(LicenseLegalReviewStatus.OPEN));
 
       recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
@@ -363,7 +363,7 @@ public class ApiLicenseLegalService
     }
 
     List<PolicyEvaluation> policyEvaluations =
-        policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIdsToCheck, stageTypeIdsToCheck);
+        policyEvaluationDAO.getLastByOwnerIdsAndStageIds(applicationIdsToCheck, stageTypeIdsToCheck);
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto = new ApiLicenseLegalApplicationDashboardResultDTO();
     resultDto.totalResultsCount = policyEvaluations.size();
@@ -375,7 +375,7 @@ public class ApiLicenseLegalService
 
     List<ApiLicenseLegalApplicationDashboardDTO> results = new ArrayList<>(policyEvaluations.size());
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-      Application application = mapApplicationIds.get(policyEvaluation.getApplicationId());
+      Application application = mapApplicationIds.get(policyEvaluation.getOwnerId());
 
       ApiLicenseLegalApplicationDashboardDTO dto = new ApiLicenseLegalApplicationDashboardDTO();
       dto.applicationId = application.getId();
@@ -466,7 +466,7 @@ public class ApiLicenseLegalService
       return new ApiLicenseLegalComponentDashboardResultDTO();
     }
 
-    List<ApplicationComponentLicensesDTO> applicationComponentLicenses =
+    List<OwnerComponentLicensesDTO> applicationComponentLicenses =
         applicationComponentLicenseDAO.getApplicationComponentEffectiveLicensesWithOverridesAtRootOrganization(
             applicationIdsToCheck, stageTypeIdsToCheck);
 
@@ -484,7 +484,7 @@ public class ApiLicenseLegalService
     Map<String, Set<String>> obligationNamesByLicenseId =
         legalDashboardService.getLicenseObligationsFromHds(singleLicenseIdsFound);
 
-    for (ApplicationComponentLicensesDTO applicationComponent : applicationComponentLicenses) {
+    for (OwnerComponentLicensesDTO applicationComponent : applicationComponentLicenses) {
       if (applicationComponent.getComponentIdentifier() == null || isEmpty(applicationComponent.getLicenses())) {
         continue;
       }
@@ -905,8 +905,8 @@ public class ApiLicenseLegalService
             multiLicenseToSingleLicense).entrySet().iterator().next().getValue();
 
     // We prefer hash over component.getHash() to get the stage scans since
-    // hash should always equal ApplicationComponent.getHash()
-    // component.getHash() may not equal ApplicationComponent.getHash()
+    // hash should always equal OwnerComponent.getHash()
+    // component.getHash() may not equal OwnerComponent.getHash()
     componentIdentifierLegalData.setStageScans(getStageScans(owner, hash, compIdentifier));
 
     // Get sourceLinks
@@ -1084,14 +1084,14 @@ public class ApiLicenseLegalService
 
     List<ApiLicenseLegalStageScanDTO> results = new ArrayList<>();
     try (TransactionContext tx = applicationComponentDAO.createTransactionContext()) {
-      List<ApplicationComponent> applicationComponents;
+      List<OwnerComponent> applicationComponents;
       if (applicationComponentHash != null) {
         applicationComponents =
-            applicationComponentDAO.getByApplicationIdAndHash(tx, owner.getId(), applicationComponentHash);
+            applicationComponentDAO.getByOwnerIdAndHash(tx, owner.getId(), applicationComponentHash);
       }
       else {
         applicationComponents =
-            applicationComponentDAO.getByApplicationIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
+            applicationComponentDAO.getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
       }
       // Route through the licensed-stages enumeration so this respects every stage filter
       // documented on StageTypeService (DASHBOARD_CONTEXT excludes DEVELOP/PROXY/COMPLIANCE
@@ -1102,13 +1102,13 @@ public class ApiLicenseLegalService
       for (StageType stageType : stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)) {
         ApiLicenseLegalStageScanDTO apiLicenseLegalStageScanDTO = new ApiLicenseLegalStageScanDTO();
         apiLicenseLegalStageScanDTO.setStageName(stageType.getName());
-        ApplicationComponent applicationComponentForStage = applicationComponents.stream()
+        OwnerComponent applicationComponentForStage = applicationComponents.stream()
             .filter(applicationComponent -> stageType.getId().equals(applicationComponent.getStageTypeId()))
             .findFirst()
             .orElse(null);
         if (applicationComponentForStage != null) {
           PolicyEvaluation policyEvaluation =
-              policyEvaluationDAO.getLastByApplicationIdAndStageId(tx, owner.getId(), stageType.getId());
+              policyEvaluationDAO.getLastByOwnerIdAndStageId(tx, owner.getId(), stageType.getId());
           if (policyEvaluation != null) {
             apiLicenseLegalStageScanDTO.setScanId(policyEvaluation.getScanId());
             apiLicenseLegalStageScanDTO.setScanDate(policyEvaluation.getTime());
@@ -1145,12 +1145,12 @@ public class ApiLicenseLegalService
     if (componentIdentifier == null) {
       return Collections.emptyList();
     }
-    final ApplicationComponent lastByComponentIdentifier =
+    final OwnerComponent lastByComponentIdentifier =
         applicationComponentDAO.getLastByComponentIdentifier(componentIdentifier);
     if (lastByComponentIdentifier == null) {
       return Collections.emptyList();
     }
-    return aggregateFileDAO.getByApplicationComponentId(lastByComponentIdentifier.getId())
+    return aggregateFileDAO.getByOwnerComponentId(lastByComponentIdentifier.getId())
         .stream()
         .map(AggregateFile::getHash)
         .collect(Collectors.toList());
@@ -1176,7 +1176,7 @@ public class ApiLicenseLegalService
     if (hashComponentIdentifier != null) {
       return hashComponentIdentifier.getComponentIdentifier();
     }
-    ApplicationComponent applicationComponent = applicationComponentDAO.getLastByHash(truncatedHash);
+    OwnerComponent applicationComponent = applicationComponentDAO.getLastByHash(truncatedHash);
     if (applicationComponent != null) {
       ComponentIdentifier applicationComponentIdentifier = applicationComponent.getComponentIdentifier();
       if (applicationComponentIdentifier != null) {
@@ -1386,7 +1386,7 @@ public class ApiLicenseLegalService
     return Optional.ofNullable(applicationDAO.getByPublicId(applicationPublicId))
         .flatMap(
             application -> policyEvaluationDAO
-                .getLastByApplicationIds(Collections.singleton(application.getId()))
+                .getLastByOwnerIds(Collections.singleton(application.getId()))
                 .stream()
                 .max(Comparator.comparing(PolicyEvaluation::getTime))
                 .map(policyEvaluation -> getLastRawApplicationReport(application.getPublicId(), policyEvaluation)));
@@ -1396,7 +1396,7 @@ public class ApiLicenseLegalService
   Optional<ApiReportRawDataDTOV2> getLastRawApplicationReportByStageId(String applicationPublicId, String stageId) {
     return Optional.ofNullable(applicationDAO.getByPublicId(applicationPublicId))
         .flatMap(
-            application -> policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
+            application -> policyEvaluationDAO.getLastByOwnerIdsAndStageIds(
                 Collections.singleton(application.getId()),
                 Collections.singleton(stageId))
                 .stream()
@@ -1477,14 +1477,14 @@ public class ApiLicenseLegalService
   }
 
   private void calculateComponentsReviewed(List<ApiLicenseLegalApplicationDashboardDTO> result) {
-    MultiKeyMap<String, List<ApplicationComponentLicensesDTO>> applicationIdStageTypeIdComponentLicensesMap =
+    MultiKeyMap<String, List<OwnerComponentLicensesDTO>> applicationIdStageTypeIdComponentLicensesMap =
         new MultiKeyMap<>();
     Set<String> licenseIdsFound = new HashSet<>();
     Map<String, Map<ComponentIdentifier, Set<String>>> applicationIdAddressedObligationsMap = new HashMap<>();
 
     for (ApiLicenseLegalApplicationDashboardDTO dto : result) {
 
-      List<ApplicationComponentLicensesDTO> applicationComponentLicensesDTOS = applicationComponentLicenseDAO
+      List<OwnerComponentLicensesDTO> applicationComponentLicensesDTOS = applicationComponentLicenseDAO
           .getApplicationComponentEffectiveLicenses(dto.applicationId, Sets.newHashSet(dto.stageTypeId));
 
       filterInnerSourceComponents(applicationComponentLicensesDTOS);
@@ -1512,7 +1512,7 @@ public class ApiLicenseLegalService
                     .collect(Collectors.toSet())));
 
     for (ApiLicenseLegalApplicationDashboardDTO dto : result) {
-      List<ApplicationComponentLicensesDTO> componentLicenses =
+      List<OwnerComponentLicensesDTO> componentLicenses =
           applicationIdStageTypeIdComponentLicensesMap.get(dto.applicationId, dto.stageTypeId);
       dto.componentsTotalCount = componentLicenses.size();
       dto.componentsReviewedCount = getComponentsReviewedCount(componentLicenses, licenseIdObligationNamesMap,
@@ -1521,7 +1521,7 @@ public class ApiLicenseLegalService
   }
 
   private void filterInnerSourceComponents(
-      final List<ApplicationComponentLicensesDTO> applicationComponentLicensesDTOS)
+      final List<OwnerComponentLicensesDTO> applicationComponentLicensesDTOS)
   {
     Set<PackageUrlIdentifier> componentPurls = applicationComponentLicensesDTOS.stream()
         .map(ac -> InnerSourceUtils.getVersionlessPackageUrl(ac.getComponentIdentifier()))
@@ -1538,13 +1538,13 @@ public class ApiLicenseLegalService
   }
 
   private int getComponentsReviewedCount(
-      List<ApplicationComponentLicensesDTO> componentLicenses,
+      List<OwnerComponentLicensesDTO> componentLicenses,
       Map<String, Set<String>> licenseIdObligationNamesMap,
       Map<ComponentIdentifier, Set<String>> componentObligationsAddressed)
   {
     int componentsFullyReviewed = 0;
 
-    for (ApplicationComponentLicensesDTO componentLicensesDTO : componentLicenses) {
+    for (OwnerComponentLicensesDTO componentLicensesDTO : componentLicenses) {
       Set<String> allObligationNames = componentLicensesDTO.getLicenses()
           .stream()
           .filter(licenseIdObligationNamesMap::containsKey)

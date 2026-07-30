@@ -535,7 +535,7 @@ public class PullRequestPolicyEvaluationResolverTest
         boolean internallyTriggered) throws GitException, IOException
     {
       PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-      policyEvaluation.setApplicationId(applicationId);
+      policyEvaluation.setOwnerId(applicationId);
       policyEvaluation.setId(policyEvaluationId);
       policyEvaluation.setCommitHash(commitHash);
       policyEvaluation.setScanTriggerType(
@@ -559,7 +559,7 @@ public class PullRequestPolicyEvaluationResolverTest
         boolean internallyTriggered)
     {
       PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-      policyEvaluation.setApplicationId(applicationId);
+      policyEvaluation.setOwnerId(applicationId);
       policyEvaluation.setId(policyEvaluationId);
       policyEvaluation.setScanTriggerType(
           internallyTriggered ? ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST : ScanTriggerType.CLI);
@@ -574,7 +574,7 @@ public class PullRequestPolicyEvaluationResolverTest
         boolean internallyTriggered)
     {
       PolicyEvaluation policyEvaluation = new PolicyEvaluation();
-      policyEvaluation.setApplicationId(applicationId);
+      policyEvaluation.setOwnerId(applicationId);
       policyEvaluation.setId(policyEvaluationId);
       policyEvaluation.setCommitHash(commitHash);
       policyEvaluation.setScanTriggerType(

@@ -230,7 +230,7 @@ public class IntegrationService
         // Set last policy evaluation time (build stage), priorities report status and scan ID
         .map(statusDTO -> {
           final PolicyEvaluation latestBuildStageEvaluation =
-              policyEvaluationDAO.getLastByApplicationIdAndStageIdNoMonitoringNoReeval(statusDTO.getApplicationId(),
+              policyEvaluationDAO.getLastByOwnerIdAndStageIdNoMonitoringNoReeval(statusDTO.getApplicationId(),
                   Stage.ID_BUILD);
           if (Objects.isNull(latestBuildStageEvaluation)) {
             return statusDTO.setHasPrioritiesReport(false);

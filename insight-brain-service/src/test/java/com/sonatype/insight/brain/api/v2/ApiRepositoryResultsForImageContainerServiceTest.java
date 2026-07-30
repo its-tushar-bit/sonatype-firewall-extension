@@ -127,8 +127,8 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
 
     // last policy evaluation
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application1.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application2.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application1.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application2.getId(), "proxy");
   }
 
   @Test
@@ -1767,18 +1767,18 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     PolicyEvaluation policyEvaluation12 = tempEntity.newPolicyEvaluation(application12.getId(), "proxy", "scanId2");
 
     // last policy evaluation
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application1.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application2.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application3.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application4.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application5.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application6.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application7.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application8.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application9.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application10.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application11.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application12.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application1.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application2.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application3.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application4.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application5.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application6.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application7.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application8.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application9.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application10.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application11.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application12.getId(), "proxy");
 
     // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");

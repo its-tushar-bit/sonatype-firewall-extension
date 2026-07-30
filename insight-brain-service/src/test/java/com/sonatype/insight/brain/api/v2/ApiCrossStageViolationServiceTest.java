@@ -562,7 +562,7 @@ public class ApiCrossStageViolationServiceTest
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     PolicyWaiver waiver1 = tempEntity.newWaiver(policy.getId(), policy.getOwnerId());
 
-    violation1.setApplicationId(app.getId());
+    violation1.setOwnerId(app.getId());
     violation1.setPolicyWaiverId(waiver1.getId());
     violation1.setOpenTime(time1);
     violation1.setWaiveTime(time1);

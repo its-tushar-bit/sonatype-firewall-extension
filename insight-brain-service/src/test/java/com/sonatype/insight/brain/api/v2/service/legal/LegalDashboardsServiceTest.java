@@ -14,7 +14,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+import com.sonatype.insight.brain.model.OwnerComponentLicensesDTO;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -155,11 +155,11 @@ public class LegalDashboardsServiceTest
 
   @Test
   public void testgetLicenseIds() {
-    List<ApplicationComponentLicensesDTO> componentList = new ArrayList<>();
-    ApplicationComponentLicensesDTO comp1 =
-        new ApplicationComponentLicensesDTO("app", "hash", "format", "idJson", "Apache 1.1\nApache 1.0\nBSD");
-    ApplicationComponentLicensesDTO comp2 =
-        new ApplicationComponentLicensesDTO("app", "hash2", "format2", "idJson2", "MIT\nApache 2.0\nBSD");
+    List<OwnerComponentLicensesDTO> componentList = new ArrayList<>();
+    OwnerComponentLicensesDTO comp1 =
+        new OwnerComponentLicensesDTO("app", "hash", "format", "idJson", "Apache 1.1\nApache 1.0\nBSD");
+    OwnerComponentLicensesDTO comp2 =
+        new OwnerComponentLicensesDTO("app", "hash2", "format2", "idJson2", "MIT\nApache 2.0\nBSD");
     componentList.add(comp1);
     componentList.add(comp2);
     Set<String> result = legalDashboardService.getLicenseIds(componentList);

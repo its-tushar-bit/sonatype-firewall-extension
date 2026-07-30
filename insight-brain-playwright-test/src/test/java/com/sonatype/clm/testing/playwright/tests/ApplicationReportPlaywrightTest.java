@@ -368,7 +368,7 @@ public class ApplicationReportPlaywrightTest
     evaluator2.evaluatePolicy();
 
     PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
-    List<PolicyViolation> violations = dao.getByApplicationId(app.getId());
+    List<PolicyViolation> violations = dao.getByOwnerId(app.getId());
     PolicyViolation target = violations.stream()
         .filter(v -> v.getHash() != null && v.getPolicyId() != null)
         .findFirst()
@@ -579,7 +579,7 @@ public class ApplicationReportPlaywrightTest
 
   private PolicyViolation seedWaiverForFirstViolationAndReevaluate() throws IOException {
     PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
-    List<PolicyViolation> violations = dao.getByApplicationId(app.getId());
+    List<PolicyViolation> violations = dao.getByOwnerId(app.getId());
     PolicyViolation target = violations.stream()
         .filter(v -> v.getHash() != null && v.getPolicyId() != null)
         .findFirst()

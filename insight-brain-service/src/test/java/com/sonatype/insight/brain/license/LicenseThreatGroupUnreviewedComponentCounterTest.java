@@ -161,8 +161,8 @@ public class LicenseThreatGroupUnreviewedComponentCounterTest
   private void seedComponent(Application application, String hash, String licenseId) {
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g", "a-" + hash, "1.0.0");
     tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, hash, identifier);
-    String acId = daoFactory.createApplicationComponentDAO()
-        .getByApplicationIdAndStageTypeIdAndHash(application.getId(), BuildStageType.ID, hash)
+    String acId = daoFactory.createOwnerComponentDAO()
+        .getByOwnerIdAndStageTypeIdAndHash(application.getId(), BuildStageType.ID, hash)
         .getId();
     tempEntity.newApplicationComponentLicense(acId, licenseId);
   }

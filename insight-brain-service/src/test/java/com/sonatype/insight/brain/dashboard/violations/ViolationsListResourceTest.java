@@ -800,7 +800,7 @@ public class ViolationsListResourceTest
   {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD,
         "violations-scan-" + hashPrefix);
-    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+    ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir(VIOLATION_REPORT_RESOURCE, tempDir), lookup(InsightWork.class));
 
     Policy security = tempEntity.newPolicy(org.getId(), "Security - Critical " + hashPrefix);
@@ -831,7 +831,7 @@ public class ViolationsListResourceTest
   {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD,
         "violations-waiver-" + hashPrefix);
-    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+    ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir(VIOLATION_REPORT_RESOURCE, tempDir), lookup(InsightWork.class));
 
     Policy security = tempEntity.newPolicy(org.getId(), "Security - Critical " + hashPrefix);
@@ -873,7 +873,7 @@ public class ViolationsListResourceTest
   {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD,
         "violations-legacy-" + hashPrefix);
-    ReportTestUtils.createReportFile(evaluation.getApplicationId(), evaluation.getScanId(),
+    ReportTestUtils.createReportFile(evaluation.getOwnerId(), evaluation.getScanId(),
         ReportTestUtils.zipReportDir(VIOLATION_REPORT_RESOURCE, tempDir), lookup(InsightWork.class));
 
     Policy openPolicy = tempEntity.newPolicy(org.getId(), "Security - Critical " + hashPrefix);

@@ -767,7 +767,7 @@ public class ConsumptionEventDAOTest
   public void historyByStageByWindows_scanIdSharedAcrossApplications_doesNotDoubleCount() {
     // `policy_evaluation.scan_id` is unique only within an application, so a
     // pair of (applicationId, scanId) is the actual identifier (see
-    // `PolicyEvaluationDAO.getLastByApplicationIdAndScanId`). Without an
+    // `PolicyEvaluationDAO.getLastByOwnerIdAndScanId`). Without an
     // applicationId match in the JOIN, a consumption event whose scan_id
     // happens to also exist for a different application would fan out and
     // multiply SUM(component_count).

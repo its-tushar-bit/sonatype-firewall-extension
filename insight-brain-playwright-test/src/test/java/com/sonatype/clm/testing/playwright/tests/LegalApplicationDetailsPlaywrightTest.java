@@ -14,7 +14,7 @@ import com.sonatype.clm.testing.playwright.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.LegalApplicationDetailsPageAssertions;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
@@ -178,7 +178,7 @@ public class LegalApplicationDetailsPlaywrightTest
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
 
-    ApplicationComponent component = tempEntity.newApplicationComponent(
+    OwnerComponent component = tempEntity.newApplicationComponent(
         application.getId(),
         BuildStageType.ID,
         hash,

@@ -78,8 +78,8 @@ public class FirewallContainerRepositoryResultsPageTest
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
 
     // Last Policy Evaluation
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application1.getId(), "proxy");
-    lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application2.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application1.getId(), "proxy");
+    lastPolicyEvaluationDAO.getByOwnerIdAndStageTypeId(application2.getId(), "proxy");
 
     // Policy for Policy Violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");

@@ -211,8 +211,8 @@ import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.OwnerComponent;
+import com.sonatype.insight.brain.model.OwnerComponentLicense;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.ComponentChangeDetectionConfiguration;
@@ -475,7 +475,7 @@ public class TemporaryEntity
 
   private TagDAO tagDAO;
 
-  private ApplicationComponentDAO appComponentDAO;
+  private OwnerComponentDAO appComponentDAO;
 
   private ApplicationTagDAO appTagDAO;
 
@@ -627,7 +627,7 @@ public class TemporaryEntity
 
   private AggregateFileDAO aggregateFileDAO;
 
-  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+  private OwnerComponentLicenseDAO ownerComponentLicenseDAO;
 
   private ComponentCopyrightDAO componentCopyrightDAO;
 
@@ -3436,7 +3436,7 @@ public class TemporaryEntity
     return repositoryPolicyViolation;
   }
 
-  public ApplicationComponent newApplicationComponent(
+  public OwnerComponent newApplicationComponent(
       String applicationId,
       String stageTypeId,
       String hash,
@@ -3445,7 +3445,7 @@ public class TemporaryEntity
     return newApplicationComponent(applicationId, stageTypeId, hash, componentIdentifier, null /* pathnames */);
   }
 
-  public ApplicationComponent newApplicationComponent(
+  public OwnerComponent newApplicationComponent(
       String applicationId,
       String stageTypeId,
       String hash,
@@ -3457,7 +3457,7 @@ public class TemporaryEntity
         new Date());
   }
 
-  public ApplicationComponent newApplicationComponent(
+  public OwnerComponent newApplicationComponent(
       String applicationId,
       String stageTypeId,
       String hash,
@@ -3468,7 +3468,7 @@ public class TemporaryEntity
         MatchState.EXACT, false, new Date());
   }
 
-  public ApplicationComponent newApplicationComponent(
+  public OwnerComponent newApplicationComponent(
       String applicationId,
       String stageTypeId,
       String hash,
@@ -3482,7 +3482,7 @@ public class TemporaryEntity
         IdentificationSource.SONATYPE, proprietary, time);
   }
 
-  public ApplicationComponent newApplicationComponent(
+  public OwnerComponent newApplicationComponent(
       String applicationId,
       String stageTypeId,
       String hash,
@@ -3494,7 +3494,7 @@ public class TemporaryEntity
       Date time)
   {
     List<String> pathnames = StringUtils.isBlank(pathnamesString) ? null : Collections.singletonList(pathnamesString);
-    ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, time, hash,
+    OwnerComponent applicationComponent = new OwnerComponent(applicationId, stageTypeId, time, hash,
         componentIdentifier, matchState.getId(), identificationSource.getId(), proprietary, pathnames);
     appComponentDAO.insert(applicationComponent);
     return applicationComponent;
@@ -5765,14 +5765,14 @@ public class TemporaryEntity
     return aggregateFile;
   }
 
-  public ApplicationComponentLicense newApplicationComponentLicense(
-      String applicationComponentId,
+  public OwnerComponentLicense newApplicationComponentLicense(
+      String ownerComponentId,
       String effectiveLicenseId)
   {
-    ApplicationComponentLicense applicationComponentLicense =
-        new ApplicationComponentLicense(applicationComponentId, effectiveLicenseId);
-    applicationComponentLicenseDAO.insert(applicationComponentLicense);
-    return applicationComponentLicense;
+    OwnerComponentLicense ownerComponentLicense =
+        new OwnerComponentLicense(ownerComponentId, effectiveLicenseId);
+    ownerComponentLicenseDAO.insert(ownerComponentLicense);
+    return ownerComponentLicense;
   }
 
   public ComponentCopyright newComponentCopyright(
@@ -6804,7 +6804,7 @@ public class TemporaryEntity
     membershipMappingDAO = daoFactory.createMembershipMappingDAO();
     labelDAO = daoFactory.createLabelDAO();
     tagDAO = daoFactory.createTagDAO();
-    appComponentDAO = daoFactory.createApplicationComponentDAO();
+    appComponentDAO = daoFactory.createOwnerComponentDAO();
     appTagDAO = daoFactory.createApplicationTagDAO();
     policyTagDAO = daoFactory.createPolicyTagDAO();
     policyDAO = daoFactory.createPolicyDAO();
@@ -6877,7 +6877,7 @@ public class TemporaryEntity
     persistedScanTicketDAO = daoFactory.createPersistedScanTicketDAO();
     repositoryMigrationDAO = daoFactory.createRepositoryMigrationDAO();
     aggregateFileDAO = daoFactory.createAggregateFileDAO();
-    applicationComponentLicenseDAO = daoFactory.createApplicationComponentLicenseDAO();
+    ownerComponentLicenseDAO = daoFactory.createOwnerComponentLicenseDAO();
     componentCopyrightDAO = daoFactory.createComponentCopyrightDAO();
     copyrightOverrideDAO = daoFactory.createCopyrightOverrideDAO();
     componentLegalFileDAO = daoFactory.createComponentLegalFileDAO();

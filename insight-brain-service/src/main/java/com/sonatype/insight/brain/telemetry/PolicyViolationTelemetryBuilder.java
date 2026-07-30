@@ -168,7 +168,7 @@ public class PolicyViolationTelemetryBuilder
     ReachabilityStatus reachabilityStatus = policyViolation.getReachabilityStatus();
 
     telemetryData
-        .put(APPLICATION_ID, HdsClientAnalytics.obfuscate(policyViolation.getApplicationId()))
+        .put(APPLICATION_ID, HdsClientAnalytics.obfuscate(policyViolation.getOwnerId()))
         .put(COUNT, 1)
         .put(OPEN_TIME, policyViolation.getOpenTime().getTime())
         .put(POLICY_NAME, policyViolation.getPolicyName())
@@ -178,7 +178,7 @@ public class PolicyViolationTelemetryBuilder
         .put(THREAT_LEVEL, policyViolation.getThreatLevel())
         .put(REACHABILITY_STATUS, reachabilityStatus == null ? null : reachabilityStatus.getName());
 
-    telemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getApplicationId());
+    telemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getOwnerId());
     addVulnerabilityMetadataIfNeeded(telemetryData, policyViolation);
 
     return telemetryData;

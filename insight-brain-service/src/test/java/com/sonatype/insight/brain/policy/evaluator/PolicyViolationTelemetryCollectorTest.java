@@ -703,7 +703,7 @@ public class PolicyViolationTelemetryCollectorTest
   @Test
   public void testAddTelemetryForUnwaivedViolation() {
     // given a policy violation that was unwaived and the new open violation created for it
-    var policyWaiver = tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
+    var policyWaiver = tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getOwnerId());
 
     var replacementPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
         .openedHoursAgo(0)
@@ -736,7 +736,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForWaivedViolation() {
     // given a policy violation and a waiver for it
     PolicyWaiver policyWaiver =
-        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
+        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getOwnerId());
 
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
@@ -761,7 +761,7 @@ public class PolicyViolationTelemetryCollectorTest
   @Test
   public void testAddTelemetryForAutoWaivedViolation() {
     // given a policy violation and a waiver for it
-    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getOwnerId());
 
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
@@ -786,7 +786,7 @@ public class PolicyViolationTelemetryCollectorTest
   @Test
   public void testAddTelemetryForUnwaivedViolation_wasAutoWaived() {
     // given an uwaived policy violation and the new open violation that replaces it
-    var autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
+    var autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getOwnerId());
 
     var replacementPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
         .openedHoursAgo(0)
@@ -1027,7 +1027,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForConditionTypeViolationAudit_WaivedViolation() {
     // given: A waived policy violation
     PolicyWaiver policyWaiver =
-        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
+        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getOwnerId());
 
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
@@ -1463,7 +1463,7 @@ public class PolicyViolationTelemetryCollectorTest
       policyViolation.setComponentIdentifier(componentIdentifier);
       policyViolation.setPolicyName(policyName);
       policyViolation.setPolicyId(createPolicyId(policyName));
-      policyViolation.setApplicationId(policyEvaluation.getApplicationId());
+      policyViolation.setOwnerId(policyEvaluation.getOwnerId());
       policyViolation.setStageTypeId(policyEvaluation.getStageTypeId());
       policyViolation.setOpenTime(policyEvaluation.getTime());
     }
@@ -1785,7 +1785,7 @@ public class PolicyViolationTelemetryCollectorTest
       Map<String, Object> attributes = telemetryData.getAttributes();
 
       // the application ID is obfuscated
-      assertThat(attributes).doesNotContainEntry(APPLICATION_ID, policyEvaluation.getApplicationId());
+      assertThat(attributes).doesNotContainEntry(APPLICATION_ID, policyEvaluation.getOwnerId());
 
       assertThat(attributes).containsEntry(COUNT, count);
       validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.CVE_NUMBER, cveIdentifier);
@@ -1800,7 +1800,7 @@ public class PolicyViolationTelemetryCollectorTest
       assertThat(attributes).containsEntry(IS_SCM_ENABLED, isScmEnabled);
       assertThat(attributes).containsEntry(OPEN_TIME, getOpenTime());
       assertThat(attributes).containsEntry(POLICY_VIOLATION_ID, policyViolation.getId());
-      assertThat(attributes).containsEntry(REAL_APPLICATION_ID, policyEvaluation.getApplicationId());
+      assertThat(attributes).containsEntry(REAL_APPLICATION_ID, policyEvaluation.getOwnerId());
       assertThat(attributes).containsEntry(STAGE, policyEvaluation.getStageTypeId());
       assertThat(attributes).containsEntry(THREAT_LEVEL, policyViolation.getThreatLevel());
       assertThat(attributes).containsEntry(THREAT_CATEGORY, policyViolation.getThreatCategory().getName());
@@ -2155,7 +2155,7 @@ public class PolicyViolationTelemetryCollectorTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver(
         null, // hash
         policy.getId(),
-        policyEvaluation.getApplicationId(),
+        policyEvaluation.getOwnerId(),
         "Manual waiver comment for testing",
         null, // expiryTime
         null, // constraintFacts
@@ -2205,7 +2205,7 @@ public class PolicyViolationTelemetryCollectorTest
   @Test
   public void testAddTelemetryForUnwaivedViolation_PreviousWaiverInfoWithNullsForAutoWaiver() {
     // given: A policy violation that was auto-waived and then unwaived
-    var autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
+    var autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getOwnerId());
 
     var replacementPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
         .openedHoursAgo(0)
@@ -2291,7 +2291,7 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForWaivedViolation_DoesNotIncludeUnwaiveFields() {
     // given: A regular waived policy violation (not unwaived)
     PolicyWaiver policyWaiver =
-        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
+        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getOwnerId());
 
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
@@ -2322,7 +2322,7 @@ public class PolicyViolationTelemetryCollectorTest
   @Test
   public void testAddTelemetryForAutoWaivedViolation_DoesNotIncludeUnwaiveFields() {
     // given: A regular auto-waived policy violation (not unwaived)
-    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getOwnerId());
 
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
@@ -2359,7 +2359,7 @@ public class PolicyViolationTelemetryCollectorTest
     static PolicyViolation copyPolicyViolation(PolicyViolation original) {
       PolicyViolation copy = new PolicyViolation();
 
-      copy.setApplicationId(original.getApplicationId());
+      copy.setOwnerId(original.getOwnerId());
       copy.setAutoPolicyWaiverId(original.getAutoPolicyWaiverId());
       copy.setComponentIdentifier(original.getComponentIdentifier());
       copy.setConstraintFacts(

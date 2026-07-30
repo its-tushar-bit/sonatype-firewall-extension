@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -109,7 +109,7 @@ public class PolicyAlertEmailerAuditTest
 
   private PolicyNotification createPolicyNotification(Policy policy, String hash) {
     PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
-    ApplicationComponent component = tempEntity
+    OwnerComponent component = tempEntity
         .newApplicationComponent(application.getId(), STAGE_ID, hash, MatchState.EXACT, false);
     policyFact.addComponentFact(new ComponentFact(component.getComponentIdentifier(), component.getHash()));
     return new PolicyNotification(policyFact, policy.getNotifications());

@@ -106,7 +106,7 @@ public class ApplicationReportTest
   @Test
   public void testSummary() throws Exception {
     mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
@@ -144,7 +144,7 @@ public class ApplicationReportTest
     legacyViolationsIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
 
     // The activateLegacyViolations above re-evals and refreshes the page
-    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), SCAN_ID);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
         DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());

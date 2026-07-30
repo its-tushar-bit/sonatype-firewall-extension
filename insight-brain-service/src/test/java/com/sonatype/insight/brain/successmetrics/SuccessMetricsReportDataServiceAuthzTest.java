@@ -17,7 +17,7 @@ import jakarta.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -61,7 +61,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
 
   @Before
   public void before() {
-    ApplicationComponent buildComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
+    OwnerComponent buildComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
         "ababababab", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     Policy licensePolicy =
         tempEntity.newPolicy(org, 5, LogicalOperator.AND, new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));

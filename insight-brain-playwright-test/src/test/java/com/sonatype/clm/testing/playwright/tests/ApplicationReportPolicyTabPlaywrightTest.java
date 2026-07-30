@@ -120,7 +120,7 @@ public class ApplicationReportPolicyTabPlaywrightTest
     Policy legacyPolicy = tempEntity.newPolicy(
         app.getOrganizationId(), LEGACY_TEST_POLICY_NAME, LEGACY_TEST_POLICY_THREAT_LEVEL);
     List<PolicyEvaluation> evaluations =
-        lookup(PolicyEvaluationDAO.class).getByApplicationId(app.getId(), 1, 10);
+        lookup(PolicyEvaluationDAO.class).getByOwnerId(app.getId(), 1, 10);
     PolicyEvaluation evaluation = evaluations.stream()
         .filter(e -> scanId.equals(e.getScanId()))
         .findFirst()

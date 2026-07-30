@@ -407,7 +407,7 @@ public class EvaluationQueueConsumer
     thirdPartyScan.setScanId(scanReceipt.getScanId());
     thirdPartyScanDAO.update(thirdPartyScan);
 
-    PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndScanId(
+    PolicyEvaluation eval = policyEvaluationDAO.getLastByOwnerIdAndScanId(
         app.getId(),
         thirdPartyScan.getPreviousScanId());
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluateForMonitoring(

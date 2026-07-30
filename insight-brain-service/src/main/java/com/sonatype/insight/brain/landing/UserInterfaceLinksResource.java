@@ -231,7 +231,7 @@ public class UserInterfaceLinksResource
       @PathParam("stageId") String stageId)
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageId);
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), stageId);
     if (evaluation == null) {
       throw new NotFoundException("The application " + applicationPublicId + " has no report at stage " + stageId);
     }

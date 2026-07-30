@@ -18,7 +18,7 @@ import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathsDTO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -226,7 +226,7 @@ public class ApiLegalCopyrightServiceTest
     final String componentHash = "compHash";
 
     final Application app = tempEntity.newApplicationWithParent();
-    final ApplicationComponent appComp =
+    final OwnerComponent appComp =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, componentHash, anameIdentifier);
     tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash1",
         ImmutableSet.of("some/path", "other/path", "z/path"));
@@ -310,7 +310,7 @@ public class ApiLegalCopyrightServiceTest
     final String componentHash = "compHash";
 
     final Application app = tempEntity.newApplicationWithParent();
-    final ApplicationComponent appComp =
+    final OwnerComponent appComp =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, componentHash, anameIdentifier);
     tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash1",
         ImmutableSet.of("some/path", "other/path", "z/path"));
@@ -403,7 +403,7 @@ public class ApiLegalCopyrightServiceTest
     final String componentHash = "compHash";
 
     final Application app = tempEntity.newApplicationWithParent();
-    final ApplicationComponent appComp =
+    final OwnerComponent appComp =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, componentHash, anameIdentifier);
     tempEntity.newAggregateFile(appComp.getId(), "aggregate_file_hash1",
         ImmutableSet.of("some/path", "other/path", "z/path"));

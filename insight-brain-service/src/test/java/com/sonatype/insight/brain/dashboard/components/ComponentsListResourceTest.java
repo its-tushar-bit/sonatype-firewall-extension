@@ -133,7 +133,7 @@ public class ComponentsListResourceTest
   private void seedComponentReport(final Application app, final String scanId) throws Exception {
     var evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
     ReportTestUtils.createReportFile(
-        evaluation.getApplicationId(),
+        evaluation.getOwnerId(),
         evaluation.getScanId(),
         ReportTestUtils.zipReportDir(COMPONENT_REPORT_RESOURCE, tempDir),
         lookup(InsightWork.class));

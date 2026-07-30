@@ -61,8 +61,8 @@ import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabili
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -79,8 +79,8 @@ import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.OwnerComponent;
+import com.sonatype.insight.brain.model.OwnerComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
@@ -261,10 +261,10 @@ public class ScanPolicyEvaluatorTest
   private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
 
   @Inject
-  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
+  private OwnerComponentLicenseDAO applicationComponentLicenseDAO;
 
   @Inject
-  private ApplicationComponentDAO applicationComponentDAO;
+  private OwnerComponentDAO applicationComponentDAO;
 
   @Inject
   private ThirdPartySbomMetadataDAO sbomMetadataDAO;
@@ -351,7 +351,7 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
 
     assertThat(results.evaluation).isNotNull();
-    assertThat(results.evaluation.getApplicationId()).isEqualTo(application.getId());
+    assertThat(results.evaluation.getOwnerId()).isEqualTo(application.getId());
     assertThat(results.evaluation.getStageTypeId()).isEqualTo(stage.getStageTypeId());
     assertThat(results.evaluation.getScanId()).isEqualTo(scanId);
     assertThat(results.evaluation.getCommitHash()).isEqualTo("testCommitHash");
@@ -373,7 +373,7 @@ public class ScanPolicyEvaluatorTest
         scanPolicyEvaluator.evaluate(application, scanId, stage, scanTriggerType, ClientScanType.SONATYPE, false);
 
     assertThat(results.evaluation).isNotNull();
-    assertThat(results.evaluation.getApplicationId()).isEqualTo(application.getId());
+    assertThat(results.evaluation.getOwnerId()).isEqualTo(application.getId());
     assertThat(results.evaluation.getStageTypeId()).isEqualTo(stage.getStageTypeId());
     assertThat(results.evaluation.getScanId()).isEqualTo(scanId);
     assertThat(results.evaluation.getCommitHash()).isEqualTo("testCommitHash");
@@ -443,7 +443,7 @@ public class ScanPolicyEvaluatorTest
     for (PolicyViolation violation : results1.activeViolations) {
       assertThat(violation.getPolicyName()).isEqualTo(policy.getName());
     }
-    List<PolicyViolation> persistedViolations1 = policyViolationDAO.getByApplicationId(application.getId());
+    List<PolicyViolation> persistedViolations1 = policyViolationDAO.getByOwnerId(application.getId());
     assertThat(persistedViolations1)
         .allSatisfy(violation -> assertThat(violation.getPolicyName()).isEqualTo(policy.getName()));
 
@@ -456,7 +456,7 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
     assertThat(results2.activeViolations)
         .allSatisfy(violation -> assertThat(violation.getPolicyName()).isEqualTo(policy.getName()));
-    List<PolicyViolation> persistedViolations2 = policyViolationDAO.getByApplicationId(application.getId());
+    List<PolicyViolation> persistedViolations2 = policyViolationDAO.getByOwnerId(application.getId());
     assertThat(persistedViolations2)
         .allSatisfy(violation -> assertThat(violation.getPolicyName()).isEqualTo(policy.getName()));
   }
@@ -2169,7 +2169,7 @@ public class ScanPolicyEvaluatorTest
             ClientScanType.SONATYPE, false);
 
     assertThat(results2.allViolations).isEmpty();
-    List<PolicyViolation> allViolations = policyViolationDAO.getByApplicationId(application.getId());
+    List<PolicyViolation> allViolations = policyViolationDAO.getByOwnerId(application.getId());
     assertThat(allViolations).hasSize(36);
     List<PolicyViolation> fixedViolations = allViolations.stream().filter(PolicyViolation::isFixed).toList();
     assertThat(fixedViolations).hasSize(36)
@@ -2245,7 +2245,7 @@ public class ScanPolicyEvaluatorTest
     });
     assertThat(results3.autoWaivedViolations).isEmpty();
     // 36 waived violations + 72 unwaived violations = 108
-    assertThat(policyViolationDAO.getByApplicationId(application.getId())).hasSize(108);
+    assertThat(policyViolationDAO.getByOwnerId(application.getId())).hasSize(108);
   }
 
   @Test
@@ -2797,7 +2797,7 @@ public class ScanPolicyEvaluatorTest
       assertThat(unwaivedViolation.getAutoPolicyWaiverId()).isNull();
     });
     assertThat(results3.autoWaivedViolations).isEmpty();
-    assertThat(policyViolationDAO.getByApplicationId(application.getId())).hasSize(72);
+    assertThat(policyViolationDAO.getByOwnerId(application.getId())).hasSize(72);
   }
 
   @Test
@@ -2821,7 +2821,7 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results2.activeViolations).hasSize(33);
     List<PolicyViolation> waivedViolations = policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId())
+        .getUnfixedByOwnerIdAndStageId(application.getId(), stage.getStageTypeId())
         .stream()
         .filter(PolicyViolation::isWaived)
         .toList();
@@ -2842,7 +2842,7 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results3.activeViolations).hasSize(36);
     List<PolicyViolation> unfixedViolations = policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId());
+        .getUnfixedByOwnerIdAndStageId(application.getId(), stage.getStageTypeId());
     assertThat(unfixedViolations.stream().filter(PolicyViolation::isWaived).toList()).isEmpty();
     List<PolicyViolation> unwaivedViolations = unfixedViolations.stream()
         .filter(violation -> violation.getHash().equals(waiver.getHash()))
@@ -2856,7 +2856,7 @@ public class ScanPolicyEvaluatorTest
       assertThat(unwaivedViolation.getPolicyWaiverComment()).isNull();
     });
 
-    assertThat(policyViolationDAO.getByApplicationId(application.getId())).hasSize(39);
+    assertThat(policyViolationDAO.getByOwnerId(application.getId())).hasSize(39);
   }
 
   /**
@@ -2884,7 +2884,7 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results2.activeViolations).hasSize(33);
     List<PolicyViolation> waivedViolations = policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId())
+        .getUnfixedByOwnerIdAndStageId(application.getId(), stage.getStageTypeId())
         .stream()
         .filter(PolicyViolation::isWaived)
         .toList();
@@ -2906,7 +2906,7 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results3.activeViolations).hasSize(33);
     waivedViolations = policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId())
+        .getUnfixedByOwnerIdAndStageId(application.getId(), stage.getStageTypeId())
         .stream()
         .filter(PolicyViolation::isWaived)
         .toList();
@@ -3183,7 +3183,7 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
 
     // There should be only one policy violation (the existing one).
-    List<PolicyViolation> policyViolationsAfter = policyViolationDAO.getByApplicationId(application.getId());
+    List<PolicyViolation> policyViolationsAfter = policyViolationDAO.getByOwnerId(application.getId());
     policyViolationDAO.loadConstraintFacts(policyViolationsAfter);
     assertThat(policyViolationsAfter).hasSize(1);
     PolicyViolation policyViolationAfter = policyViolationsAfter.get(0);
@@ -3415,7 +3415,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(scanPolicyEvaluatorResults.allViolations).hasSize(3);
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
 
-    List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(application.getId(),
+    List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByOwnerIdAndStageId(application.getId(),
         stage.getStageTypeId());
     assertThat(policyViolations).hasSize(3);
     assertThat(policyViolations).filteredOn(violation -> componentHash.equals(violation.getHash()))
@@ -3445,7 +3445,7 @@ public class ScanPolicyEvaluatorTest
                 ClientScanType.SONATYPE, false))
         .withMessage("Could not download the report for scan ID scanId");
 
-    PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+    PolicyEvaluation eval = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
         Stage.ID_BUILD);
     assertThat(eval).isNull();
   }
@@ -3460,7 +3460,7 @@ public class ScanPolicyEvaluatorTest
                 ClientScanType.SONATYPE, false))
         .withMessage("Unable to fetch report data, the scan " + scanId + " could not be processed.");
 
-    PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+    PolicyEvaluation eval = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
         Stage.ID_BUILD);
     assertThat(eval).isNull();
   }
@@ -3636,9 +3636,9 @@ public class ScanPolicyEvaluatorTest
     // Evaluate policy
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
-    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
         stage.getStageTypeId());
-    List<PolicyViolation> policyViolations1 = policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(),
+    List<PolicyViolation> policyViolations1 = policyViolationDAO.getActiveByOwnerIdAndStageId(application.getId(),
         stage.getStageTypeId());
     assertThat(policyViolations1).hasSize(2);
     policyViolations1 = sort(policyViolations1);
@@ -3656,10 +3656,10 @@ public class ScanPolicyEvaluatorTest
     // Evaluate policy again for the same scan
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
-    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation1.getId()).isNotEqualTo(policyEvaluation2.getId());
-    List<PolicyViolation> policyViolations2 = policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(),
+    List<PolicyViolation> policyViolations2 = policyViolationDAO.getActiveByOwnerIdAndStageId(application.getId(),
         stage.getStageTypeId());
     assertThat(policyViolations2).hasSize(2);
     policyViolations2 = sort(policyViolations2);
@@ -3680,9 +3680,9 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application, scanBuildId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
     PolicyEvaluation policyEvaluationBuild = policyEvaluationDAO
-        .getLastByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+        .getLastByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     List<PolicyViolation> policyViolationsBuild = policyViolationDAO
-        .getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+        .getActiveByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolationsBuild).hasSize(1);
     assertThat(policyViolationsBuild.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID))
         .isEqualTo("commons-pool");
@@ -3693,15 +3693,15 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application, scanReleaseId, new Stage(Stage.ID_RELEASE),
         ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
     PolicyEvaluation policyEvaluationRelease = policyEvaluationDAO
-        .getLastByApplicationIdAndStageId(application.getId(), Stage.ID_RELEASE);
+        .getLastByOwnerIdAndStageId(application.getId(), Stage.ID_RELEASE);
     List<PolicyViolation> policyViolationsRelease = policyViolationDAO
-        .getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_RELEASE);
+        .getActiveByOwnerIdAndStageId(application.getId(), Stage.ID_RELEASE);
     assertThat(policyViolationsRelease).hasSize(1);
     assertThat(policyViolationsRelease.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID))
         .isEqualTo("commons-pool");
     assertThat(policyViolationsRelease.get(0).getOpenTime()).isEqualTo(policyEvaluationRelease.getTime());
 
-    policyViolationsBuild = policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+    policyViolationsBuild = policyViolationDAO.getActiveByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolationsBuild).hasSize(1);
     assertThat(policyViolationsBuild.get(0).getOpenTime()).isEqualTo(policyEvaluationBuild.getTime());
   }
@@ -3712,40 +3712,40 @@ public class ScanPolicyEvaluatorTest
     Stage stage2 = new Stage(Stage.ID_RELEASE);
 
     // Evaluate policy
-    assertThat(applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage1.getStageTypeId()))
+    assertThat(applicationComponentDAO.getByOwnerIdAndStageTypeId(application.getId(), stage1.getStageTypeId()))
         .isEmpty();
     String scanId1 = simulateReportIsAvailable("PersistApplicationComponents/report1");
     scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
-    List<ApplicationComponent> appComponents1 =
-        applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
+    List<OwnerComponent> appComponents1 =
+        applicationComponentDAO.getByOwnerIdAndStageTypeId(application.getId(),
             stage1.getStageTypeId());
     assertThat(appComponents1).hasSize(1);
-    ApplicationComponent appComponent1 = appComponents1.get(0);
-    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+    OwnerComponent appComponent1 = appComponents1.get(0);
+    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
         stage1.getStageTypeId());
     ComponentIdentifier commonsDbcpComponentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-dbcp",
         "commons-dbcp", "1.4");
     assertApplicationComponent(commonsDbcpComponentIdentifier, policyEvaluation1.getTime(), appComponent1);
 
     // Evaluate policy for a different stage. It should not touch the app<->component assocs for the first stage.
-    assertThat(applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage2.getStageTypeId()))
+    assertThat(applicationComponentDAO.getByOwnerIdAndStageTypeId(application.getId(), stage2.getStageTypeId()))
         .isEmpty();
     String scanId2 = simulateReportIsAvailable("PersistApplicationComponents/report2");
     scanPolicyEvaluator.evaluate(application, scanId2, stage2, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
-    List<ApplicationComponent> appComponents2 =
-        applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
+    List<OwnerComponent> appComponents2 =
+        applicationComponentDAO.getByOwnerIdAndStageTypeId(application.getId(),
             stage2.getStageTypeId());
     assertThat(appComponents2).hasSize(1);
-    ApplicationComponent appComponent2 = appComponents2.get(0);
-    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+    OwnerComponent appComponent2 = appComponents2.get(0);
+    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
         stage2.getStageTypeId());
     ComponentIdentifier geronimoTomcatComponentIdentifier = ComponentIdentifier.createMavenCoordinates("geronimo",
         "geronimo-tomcat", "1.0");
     assertApplicationComponent(geronimoTomcatComponentIdentifier, policyEvaluation2.getTime(), appComponent2);
     appComponents1 =
-        applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage1.getStageTypeId());
+        applicationComponentDAO.getByOwnerIdAndStageTypeId(application.getId(), stage1.getStageTypeId());
     assertThat(appComponents1).hasSize(1);
     assertApplicationComponent(commonsDbcpComponentIdentifier, policyEvaluation1.getTime(), appComponents1.get(0));
     assertThat(appComponents1.get(0).getId()).isEqualTo(appComponent1.getId());
@@ -3755,18 +3755,18 @@ public class ScanPolicyEvaluatorTest
     String scanId3 = simulateReportIsAvailable("PersistApplicationComponents/report3");
     scanPolicyEvaluator.evaluate(application, scanId3, stage1, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
-    List<ApplicationComponent> appComponents3 =
-        applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(),
+    List<OwnerComponent> appComponents3 =
+        applicationComponentDAO.getByOwnerIdAndStageTypeId(application.getId(),
             stage1.getStageTypeId());
     assertThat(appComponents3).hasSize(1);
-    ApplicationComponent appComponent3 = appComponents3.get(0);
-    policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+    OwnerComponent appComponent3 = appComponents3.get(0);
+    policyEvaluation1 = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(),
         stage1.getStageTypeId());
     ComponentIdentifier tomcatUtilCOmponentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat",
         "tomcat-util", "5.5.23");
     assertApplicationComponent(tomcatUtilCOmponentIdentifier, policyEvaluation1.getTime(), appComponent3);
     appComponents2 =
-        applicationComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage2.getStageTypeId());
+        applicationComponentDAO.getByOwnerIdAndStageTypeId(application.getId(), stage2.getStageTypeId());
     assertThat(appComponents2).hasSize(1);
     assertApplicationComponent(geronimoTomcatComponentIdentifier, policyEvaluation2.getTime(), appComponents2.get(0));
     assertThat(appComponents2.get(0).getId()).isEqualTo(appComponent2.getId());
@@ -4020,7 +4020,7 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, results.evaluation.getTime(),
-        policyViolationDAO.getByApplicationId(application.getId()), currentUser.getUsernameOrSystem());
+        policyViolationDAO.getByOwnerId(application.getId()), currentUser.getUsernameOrSystem());
   }
 
   @Test
@@ -4476,15 +4476,15 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
 
-    List<ApplicationComponent> applicationComponents =
-        applicationComponentDAO.getByApplicationId(application.getId());
+    List<OwnerComponent> applicationComponents =
+        applicationComponentDAO.getByOwnerId(application.getId());
     assertThat(applicationComponents).hasSize(2);
-    ApplicationComponent aggregateComponent = applicationComponents.stream()
+    OwnerComponent aggregateComponent = applicationComponents.stream()
         .filter(applicationComponent -> applicationComponent.getHash().equals("a567564b25bb307a55ef"))
         .findFirst()
         .orElse(null);
     assertThat(aggregateComponent).isNotNull();
-    List<AggregateFile> aggregateFiles = aggregateFileDAO.getByApplicationComponentId(aggregateComponent.getId());
+    List<AggregateFile> aggregateFiles = aggregateFileDAO.getByOwnerComponentId(aggregateComponent.getId());
     assertThat(aggregateFiles).hasSize(2);
     assertThat(findAggregateFileByHash(aggregateFiles, "b688552e098a688d71ed").getPathnames())
         .containsExactlyInAnyOrder("hawkTest.zip/duplicate/index.js", "hawkTest.zip/index.js",
@@ -4492,38 +4492,38 @@ public class ScanPolicyEvaluatorTest
     assertThat(findAggregateFileByHash(aggregateFiles, "d19dcac7f0ce105e3369").getPathnames())
         .containsExactlyInAnyOrder("hawkTest.zip/duplicate/server.js", "hawkTest.zip/nested/server/server.js",
             "hawkTest.zip/reversed/index.js", "hawkTest.zip/server.js");
-    ApplicationComponent nonAggregateComponent = applicationComponents.stream()
+    OwnerComponent nonAggregateComponent = applicationComponents.stream()
         .filter(applicationComponent -> applicationComponent.getHash().equals("ab4e6f3b97ec4831f018"))
         .findFirst()
         .orElse(null);
     assertThat(nonAggregateComponent).isNotNull();
-    assertThat(aggregateFileDAO.getByApplicationComponentId(nonAggregateComponent.getId())).isEmpty();
+    assertThat(aggregateFileDAO.getByOwnerComponentId(nonAggregateComponent.getId())).isEmpty();
   }
 
   @Test
-  public void testEvaluate_StoresApplicationComponentLicenses() throws Exception {
+  public void testEvaluate_StoresOwnerComponentLicenses() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
-    String scanId = simulateReportIsAvailable("testEvaluate_StoresApplicationComponentLicenses");
+    String scanId = simulateReportIsAvailable("testEvaluate_StoresOwnerComponentLicenses");
 
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
 
-    List<ApplicationComponent> applicationComponents =
-        applicationComponentDAO.getByApplicationId(application.getId());
+    List<OwnerComponent> applicationComponents =
+        applicationComponentDAO.getByOwnerId(application.getId());
     assertThat(applicationComponents).hasSize(1);
 
-    ApplicationComponent applicationComponent = applicationComponents.get(0);
+    OwnerComponent applicationComponent = applicationComponents.get(0);
 
-    List<ApplicationComponentLicense> applicationComponentLicenses =
-        applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent.getId());
+    List<OwnerComponentLicense> applicationComponentLicenses =
+        applicationComponentLicenseDAO.getByOwnerComponentId(applicationComponent.getId());
     assertThat(applicationComponentLicenses).hasSize(3);
 
-    ApplicationComponentLicense applicationComponentLicense1 =
-        new ApplicationComponentLicense(applicationComponent.getId(), "EPL-1.0");
-    ApplicationComponentLicense applicationComponentLicense2 =
-        new ApplicationComponentLicense(applicationComponent.getId(), "LGPL-2.1");
-    ApplicationComponentLicense applicationComponentLicense3 =
-        new ApplicationComponentLicense(applicationComponent.getId(), "EPL-1.0-LGPL-2.1");
+    OwnerComponentLicense applicationComponentLicense1 =
+        new OwnerComponentLicense(applicationComponent.getId(), "EPL-1.0");
+    OwnerComponentLicense applicationComponentLicense2 =
+        new OwnerComponentLicense(applicationComponent.getId(), "LGPL-2.1");
+    OwnerComponentLicense applicationComponentLicense3 =
+        new OwnerComponentLicense(applicationComponent.getId(), "EPL-1.0-LGPL-2.1");
 
     assertThat(applicationComponentLicenses)
         .usingRecursiveFieldByFieldElementComparatorIgnoringFields(ArrayUtils.add(JPA.IGNORE_FIELDS, "id"))
@@ -4815,7 +4815,7 @@ public class ScanPolicyEvaluatorTest
     // This is what disabling legacy violations performs for an application
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
-      policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+      policyViolationDAO.getByOwnerId(application.getId()).forEach(policyViolation -> {
         policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
         policyViolation.setLegacyViolationTime(null);
         policyViolationDAO.update(tx, policyViolation);
@@ -4826,7 +4826,7 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
 
-    policyViolationDAO.getByApplicationId(application.getId())
+    policyViolationDAO.getByOwnerId(application.getId())
         .forEach(policyViolation -> assertThat(policyViolation.isLegacyViolationApplied()).isFalse());
   }
 
@@ -5401,7 +5401,7 @@ public class ScanPolicyEvaluatorTest
     Date currentDate = new Date();
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
-      policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+      policyViolationDAO.getByOwnerId(application.getId()).forEach(policyViolation -> {
         policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
         policyViolation.setLegacyViolationTime(currentDate);
         policyViolationDAO.update(tx, policyViolation);
@@ -5431,7 +5431,7 @@ public class ScanPolicyEvaluatorTest
       assertThat(telemetryData.getAttributes().get(LEGACY_VIOLATION_TIME)).isNotNull();
     }
 
-    policyViolationDAO.getByApplicationId(application.getId())
+    policyViolationDAO.getByOwnerId(application.getId())
         .forEach(policyViolation -> assertThat(policyViolation.isLegacyViolationApplied()).isTrue());
   }
 
@@ -6040,7 +6040,7 @@ public class ScanPolicyEvaluatorTest
   private void assertApplicationComponent(
       ComponentIdentifier componentIdentifier,
       Date time,
-      ApplicationComponent actual)
+      OwnerComponent actual)
   {
     assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
     assertThat(actual.getTime()).isEqualTo(time);
@@ -6287,7 +6287,7 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
 
     // Get the created policy violation IDs from database
-    List<PolicyViolation> createdViolations = policyViolationDAO.getByApplicationId(application.getId());
+    List<PolicyViolation> createdViolations = policyViolationDAO.getByOwnerId(application.getId());
     assertThat(createdViolations).isNotEmpty();
 
     ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
@@ -6608,7 +6608,7 @@ public class ScanPolicyEvaluatorTest
     Date legacyTime = new Date();
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
-      policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+      policyViolationDAO.getByOwnerId(application.getId()).forEach(policyViolation -> {
         policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
         policyViolation.setLegacyViolationTime(legacyTime);
         policyViolationDAO.update(tx, policyViolation);

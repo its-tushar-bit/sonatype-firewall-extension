@@ -19,8 +19,8 @@ import jakarta.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.ApplicationComponentLicense;
-import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+import com.sonatype.insight.brain.model.OwnerComponentLicense;
+import com.sonatype.insight.brain.model.OwnerComponentLicensesDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -31,8 +31,8 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponent.APPLICATION_COMPONENT;
-import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponentLicense.APPLICATION_COMPONENT_LICENSE;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerComponent.OWNER_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerComponentLicense.OWNER_COMPONENT_LICENSE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseOverride.LICENSE_OVERRIDE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseOverrideLicense.LICENSE_OVERRIDE_LICENSE;
 
@@ -41,8 +41,8 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseOverri
  */
 @Named
 @Singleton
-public class ApplicationComponentLicenseDAO
-    extends AbstractOperationalSqlDAO<ApplicationComponentLicense>
+public class OwnerComponentLicenseDAO
+    extends AbstractOperationalSqlDAO<OwnerComponentLicense>
 {
   private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
 
@@ -51,7 +51,7 @@ public class ApplicationComponentLicenseDAO
   private final OwnerDAO ownerDAO;
 
   @Inject
-  public ApplicationComponentLicenseDAO(
+  public OwnerComponentLicenseDAO(
       final OperationalDataStore operationalDataStore,
       final LicenseOverrideDAO licenseOverrideDAO,
       final OwnerDAO ownerDAO)
@@ -62,23 +62,23 @@ public class ApplicationComponentLicenseDAO
   }
 
   @Override
-  public int update(TransactionContext tx, ApplicationComponentLicense entity) {
-    throw new UnsupportedOperationException("ApplicationComponentLicense does not support update operations");
+  public int update(TransactionContext tx, OwnerComponentLicense entity) {
+    throw new UnsupportedOperationException("OwnerComponentLicense does not support update operations");
   }
 
-  public List<ApplicationComponentLicense> getByApplicationComponentId(
+  public List<OwnerComponentLicense> getByOwnerComponentId(
       TransactionContext tx,
-      String applicationComponentId)
+      String ownerComponentId)
   {
     return tx.dsl()
-        .selectFrom(APPLICATION_COMPONENT_LICENSE)
-        .where(APPLICATION_COMPONENT_LICENSE.APPLICATION_COMPONENT_ID.eq(applicationComponentId))
-        .fetchInto(ApplicationComponentLicense.class);
+        .selectFrom(OWNER_COMPONENT_LICENSE)
+        .where(OWNER_COMPONENT_LICENSE.OWNER_COMPONENT_ID.eq(ownerComponentId))
+        .fetchInto(OwnerComponentLicense.class);
   }
 
-  public List<ApplicationComponentLicense> getByApplicationComponentId(String applicationComponentId) {
+  public List<OwnerComponentLicense> getByOwnerComponentId(String ownerComponentId) {
     try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationComponentId(tx, applicationComponentId);
+      return getByOwnerComponentId(tx, ownerComponentId);
     }
   }
 
@@ -86,23 +86,23 @@ public class ApplicationComponentLicenseDAO
    * Gets the effective licenses for components from an evaluation made for an application in a give state type, grouped
    * by {@link ComponentIdentifier}.
    * An effective license may come from an override made at root organization scope or an existing record in the table
-   * application_component_license (found during evaluation).
+   * owner_component_license (found during evaluation).
    *
-   * @param applicationIds Application IDs to query.
+   * @param ownerIds Owner IDs to query.
    * @param stageTypeIds Stage type IDs to query.
-   * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
+   * @return A list of {@link OwnerComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
    *         licenses.
    */
-  public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicensesWithOverridesAtRootOrganization(
-      Set<String> applicationIds,
+  public List<OwnerComponentLicensesDTO> getApplicationComponentEffectiveLicensesWithOverridesAtRootOrganization(
+      Set<String> ownerIds,
       Set<String> stageTypeIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      boolean requiresManualFilter = requiresManualFilter(applicationIds);
+      boolean requiresManualFilter = requiresManualFilter(ownerIds);
 
-      var ac = APPLICATION_COMPONENT.as("ac");
+      var oc = OWNER_COMPONENT.as("oc");
       var a = APPLICATION.as("a");
-      var acl = APPLICATION_COMPONENT_LICENSE.as("acl");
+      var ocl = OWNER_COMPONENT_LICENSE.as("ocl");
       var lo = LICENSE_OVERRIDE.as("lo");
       var lol = LICENSE_OVERRIDE_LICENSE.as("lol");
 
@@ -122,41 +122,41 @@ public class ApplicationComponentLicenseDAO
       var liLicenseId = licenseOverrideSubquery.field("license_id", String.class);
 
       // Build the WHERE condition
-      var whereCondition = ac.STAGE_TYPE_ID.in(stageTypeIds);
+      var whereCondition = oc.STAGE_TYPE_ID.in(stageTypeIds);
       if (!requiresManualFilter) {
-        whereCondition = whereCondition.and(ac.APPLICATION_ID.in(applicationIds));
+        whereCondition = whereCondition.and(oc.OWNER_ID.in(ownerIds));
       }
 
       // Use CASE expression instead of filterWhere for aggregate (listAgg ignores NULLs)
-      var licenseValue = DSL.coalesce(liLicenseId, acl.EFFECTIVE_LICENSE_ID);
+      var licenseValue = DSL.coalesce(liLicenseId, ocl.EFFECTIVE_LICENSE_ID);
       var licenseField = DSL.when(licenseValue.isNotNull(), licenseValue).otherwise((String) null);
       var query = tx.dsl()
           .select(
-              ac.APPLICATION_ID,
-              ac.HASH,
-              ac.COMPONENT_ID_FORMAT,
-              ac.COMPONENT_ID_COORDINATES_JSON,
+              oc.OWNER_ID,
+              oc.HASH,
+              oc.COMPONENT_ID_FORMAT,
+              oc.COMPONENT_ID_COORDINATES_JSON,
               DSL.listAgg(licenseField, "\n").withinGroupOrderBy(licenseField).as("licenses"))
-          .from(ac)
+          .from(oc)
           .join(a)
-          .on(a.APPLICATION_ID.eq(ac.APPLICATION_ID))
+          .on(a.APPLICATION_ID.eq(oc.OWNER_ID))
           .leftJoin(licenseOverrideSubquery)
           .on(liOwnerId.eq(Organization.ROOT_ORGANIZATION_ID)
-              .and(liComponentIdFormat.eq(ac.COMPONENT_ID_FORMAT))
-              .and(liComponentIdCoordinatesJson.eq(ac.COMPONENT_ID_COORDINATES_JSON)))
-          .leftJoin(acl)
-          .on(acl.APPLICATION_COMPONENT_ID.eq(ac.APPLICATION_COMPONENT_ID))
+              .and(liComponentIdFormat.eq(oc.COMPONENT_ID_FORMAT))
+              .and(liComponentIdCoordinatesJson.eq(oc.COMPONENT_ID_COORDINATES_JSON)))
+          .leftJoin(ocl)
+          .on(ocl.OWNER_COMPONENT_ID.eq(oc.OWNER_COMPONENT_ID))
           .where(whereCondition)
-          .groupBy(ac.APPLICATION_ID, ac.HASH, ac.COMPONENT_ID_FORMAT, ac.COMPONENT_ID_COORDINATES_JSON);
+          .groupBy(oc.OWNER_ID, oc.HASH, oc.COMPONENT_ID_FORMAT, oc.COMPONENT_ID_COORDINATES_JSON);
 
       try (var stream = query.fetchStream()
-          .filter(r -> !requiresManualFilter || applicationIds.contains(r.get(ac.APPLICATION_ID)))
-          .filter(r -> r.get(ac.HASH) != null && r.get(ac.COMPONENT_ID_FORMAT) != null)
-          .map(r -> new ApplicationComponentLicensesDTO(
-              r.get(ac.APPLICATION_ID),
-              r.get(ac.HASH),
-              r.get(ac.COMPONENT_ID_FORMAT),
-              r.get(ac.COMPONENT_ID_COORDINATES_JSON),
+          .filter(r -> !requiresManualFilter || ownerIds.contains(r.get(oc.OWNER_ID)))
+          .filter(r -> r.get(oc.HASH) != null && r.get(oc.COMPONENT_ID_FORMAT) != null)
+          .map(r -> new OwnerComponentLicensesDTO(
+              r.get(oc.OWNER_ID),
+              r.get(oc.HASH),
+              r.get(oc.COMPONENT_ID_FORMAT),
+              r.get(oc.COMPONENT_ID_COORDINATES_JSON),
               r.get("licenses", String.class))))
       {
         return stream.collect(Collectors.toList());
@@ -168,47 +168,47 @@ public class ApplicationComponentLicenseDAO
    * Gets the effective licenses for components from an evaluation made for an application in a give state type, grouped
    * by {@link ComponentIdentifier}.
    * An effective license may come from an override (made by application, organization or root organization scope) or an
-   * existing record in the table application_component_license (found during evaluation).
+   * existing record in the table owner_component_license (found during evaluation).
    *
-   * @param applicationId Application ID to query.
+   * @param ownerId Owner ID to query.
    * @param stageTypeIds Stage type IDs to query.
-   * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
+   * @return A list of {@link OwnerComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
    *         licenses.
    */
-  public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
-      String applicationId,
+  public List<OwnerComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
+      String ownerId,
       Set<String> stageTypeIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
 
       // Query original effective licenses
 
-      var ac = APPLICATION_COMPONENT.as("ac");
-      var acl = APPLICATION_COMPONENT_LICENSE.as("acl");
+      var oc = OWNER_COMPONENT.as("oc");
+      var ocl = OWNER_COMPONENT_LICENSE.as("ocl");
 
       // Use CASE expression instead of filterWhere for aggregate (listAgg ignores NULLs)
       var effectiveLicenseField =
-          DSL.when(acl.EFFECTIVE_LICENSE_ID.isNotNull(), acl.EFFECTIVE_LICENSE_ID).otherwise((String) null);
-      List<ApplicationComponentLicensesDTO> componentLicenses;
+          DSL.when(ocl.EFFECTIVE_LICENSE_ID.isNotNull(), ocl.EFFECTIVE_LICENSE_ID).otherwise((String) null);
+      List<OwnerComponentLicensesDTO> componentLicenses;
       try (var stream = tx.dsl()
           .select(
-              ac.HASH,
-              ac.COMPONENT_ID_FORMAT,
-              ac.COMPONENT_ID_COORDINATES_JSON,
+              oc.HASH,
+              oc.COMPONENT_ID_FORMAT,
+              oc.COMPONENT_ID_COORDINATES_JSON,
               DSL.listAgg(effectiveLicenseField, "\n").withinGroupOrderBy(effectiveLicenseField).as("licenses"))
-          .from(ac)
-          .leftJoin(acl)
-          .on(acl.APPLICATION_COMPONENT_ID.eq(ac.APPLICATION_COMPONENT_ID))
-          .where(ac.APPLICATION_ID.eq(applicationId))
-          .and(ac.STAGE_TYPE_ID.in(stageTypeIds))
-          .groupBy(ac.HASH, ac.COMPONENT_ID_FORMAT, ac.COMPONENT_ID_COORDINATES_JSON)
+          .from(oc)
+          .leftJoin(ocl)
+          .on(ocl.OWNER_COMPONENT_ID.eq(oc.OWNER_COMPONENT_ID))
+          .where(oc.OWNER_ID.eq(ownerId))
+          .and(oc.STAGE_TYPE_ID.in(stageTypeIds))
+          .groupBy(oc.HASH, oc.COMPONENT_ID_FORMAT, oc.COMPONENT_ID_COORDINATES_JSON)
           .fetchStream()
-          .filter(r -> r.get(ac.HASH) != null && r.get(ac.COMPONENT_ID_FORMAT) != null)
-          .map(r -> new ApplicationComponentLicensesDTO(
-              applicationId,
-              r.get(ac.HASH),
-              r.get(ac.COMPONENT_ID_FORMAT),
-              r.get(ac.COMPONENT_ID_COORDINATES_JSON),
+          .filter(r -> r.get(oc.HASH) != null && r.get(oc.COMPONENT_ID_FORMAT) != null)
+          .map(r -> new OwnerComponentLicensesDTO(
+              ownerId,
+              r.get(oc.HASH),
+              r.get(oc.COMPONENT_ID_FORMAT),
+              r.get(oc.COMPONENT_ID_COORDINATES_JSON),
               r.get("licenses", String.class))))
       {
         componentLicenses = stream.collect(Collectors.toList());
@@ -216,14 +216,14 @@ public class ApplicationComponentLicenseDAO
 
       // Query and replace by license overrides, if any
 
-      Map<ComponentIdentifier, List<ApplicationComponentLicensesDTO>> componentByComponentIdentifier = componentLicenses
+      Map<ComponentIdentifier, List<OwnerComponentLicensesDTO>> componentByComponentIdentifier = componentLicenses
           .stream()
-          .collect(Collectors.groupingBy(ApplicationComponentLicensesDTO::getComponentIdentifier));
+          .collect(Collectors.groupingBy(OwnerComponentLicensesDTO::getComponentIdentifier));
 
       Set<ComponentIdentifier> componentsWithOverrides = new HashSet<>();
 
-      for (LicenseOverride licenseOverride : licenseOverrideDAO.getByOwnerIdWithHierarchy(tx, applicationId)) {
-        List<ApplicationComponentLicensesDTO> componentsWithLicenseOverride =
+      for (LicenseOverride licenseOverride : licenseOverrideDAO.getByOwnerIdWithHierarchy(tx, ownerId)) {
+        List<OwnerComponentLicensesDTO> componentsWithLicenseOverride =
             componentByComponentIdentifier.get(licenseOverride.getComponentIdentifier());
 
         if (componentsWithLicenseOverride != null
@@ -248,11 +248,11 @@ public class ApplicationComponentLicenseDAO
 
   @Override
   public Table<?> getJooqTable() {
-    return APPLICATION_COMPONENT_LICENSE;
+    return OWNER_COMPONENT_LICENSE;
   }
 
   @Override
-  public Class<ApplicationComponentLicense> getEntityClass() {
-    return ApplicationComponentLicense.class;
+  public Class<OwnerComponentLicense> getEntityClass() {
+    return OwnerComponentLicense.class;
   }
 }

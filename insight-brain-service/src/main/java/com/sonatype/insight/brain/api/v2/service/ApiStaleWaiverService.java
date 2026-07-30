@@ -166,7 +166,7 @@ public class ApiStaleWaiverService
     lastEvaluations.sort(policyEvalTimeComparator);
 
     Map<String, List<PolicyEvaluation>> lastEvaluationsByAppId =
-        lastEvaluations.stream().collect(Collectors.groupingBy(PolicyEvaluation::getApplicationId));
+        lastEvaluations.stream().collect(Collectors.groupingBy(PolicyEvaluation::getOwnerId));
 
     Map<String, String> policyIdToNameMap = policyDAO.getAll()
         .stream()
@@ -302,14 +302,14 @@ public class ApiStaleWaiverService
     Map<String, ApiStaleApplicationEvaluationDTO> staleEvaluationsMap = new HashMap<>();
 
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-      Application application = allApplications.get(policyEvaluation.getApplicationId());
+      Application application = allApplications.get(policyEvaluation.getOwnerId());
       if (authorizedApplicationIds.contains(application.getId())) {
-        if (!staleEvaluationsMap.containsKey(policyEvaluation.getApplicationId())) {
+        if (!staleEvaluationsMap.containsKey(policyEvaluation.getOwnerId())) {
           ApiStaleApplicationEvaluationDTO applicationEvaluationDTO = new ApiStaleApplicationEvaluationDTO();
           applicationEvaluationDTO.application = buildApiApplicationBaseDTO(application);
-          staleEvaluationsMap.put(policyEvaluation.getApplicationId(), applicationEvaluationDTO);
+          staleEvaluationsMap.put(policyEvaluation.getOwnerId(), applicationEvaluationDTO);
         }
-        staleEvaluationsMap.get(policyEvaluation.getApplicationId()).stages
+        staleEvaluationsMap.get(policyEvaluation.getOwnerId()).stages
             .add(buildApiStaleEvaluationStageDTO(policyEvaluation));
       }
     }

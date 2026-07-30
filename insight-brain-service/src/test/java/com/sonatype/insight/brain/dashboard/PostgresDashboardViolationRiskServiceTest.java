@@ -50,7 +50,7 @@ public class PostgresDashboardViolationRiskServiceTest
                       constraint_facts_id,is_remediated_by_version_change
               FROM    insight_brain_ods.policy_violation pv
               JOIN    insight_brain_ods.application a ON (1=1)
-              WHERE   pv.application_id = '%s'
+              WHERE   pv.owner_id = '%s'
           ) x
           WHERE application_id != '%s'""".formatted(app2.getId(), app2.getId());
       connection.createStatement().execute(duplicatePolicyViolation);

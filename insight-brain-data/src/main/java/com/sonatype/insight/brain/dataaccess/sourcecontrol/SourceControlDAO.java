@@ -78,11 +78,11 @@ public class SourceControlDAO
           "FROM _SCHEMA_.source_control sc " +
           "JOIN _SCHEMA_.application a ON sc.owner_id = a.application_id " +
           "LEFT JOIN ( " +
-          "   SELECT pe.application_id, pe.time, pe.scan_trigger_type " +
+          "   SELECT pe.owner_id, pe.time, pe.scan_trigger_type " +
           "     FROM _SCHEMA_.last_policy_evaluation lpe " +
           "     JOIN _SCHEMA_.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
           "     WHERE lpe.stage_type_id='source' " +
-          ") lpe ON lpe.application_id = sc.owner_id " +
+          ") lpe ON lpe.owner_id = sc.owner_id " +
           "WHERE " +
           // Either: last source stage PE is internally triggered, but not by DBM, and it's older than the DBM run
           // window
@@ -94,7 +94,7 @@ public class SourceControlDAO
           "      OR lpe.scan_trigger_type = 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING' " +
           // Or: we don't have any source-stage PE
           // This case happens if the user manually creates the application with source control information
-          "      OR lpe.application_id IS NULL ";
+          "      OR lpe.owner_id IS NULL ";
 
   private static final String BUILD_COMPOSITE_SOURCE_CONTROL =
       "SELECT " +
@@ -218,12 +218,12 @@ public class SourceControlDAO
           "       ELSE ?" +
           "       END" +
           " FROM (" +
-          "     SELECT application_id, min(time) AS first_commit_time" +
+          "     SELECT owner_id, min(time) AS first_commit_time" +
           "     FROM " + getDatabaseSchema() + ".policy_evaluation" +
           "     WHERE commit_hash IS NOT NULL" +
-          "     GROUP BY application_id" +
+          "     GROUP BY owner_id" +
           "     ) AS first_policy_eval_commit" +
-          " WHERE sc.owner_id = first_policy_eval_commit.application_id)" +
+          " WHERE sc.owner_id = first_policy_eval_commit.owner_id)" +
           " WHERE sc.pull_request_poll_time IS NULL;";
       txn.dsl()
           .execute(sql,

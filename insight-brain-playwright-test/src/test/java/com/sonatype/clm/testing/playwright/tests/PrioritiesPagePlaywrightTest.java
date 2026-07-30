@@ -287,7 +287,7 @@ public class PrioritiesPagePlaywrightTest
 
   private PolicyViolation firstSeedableViolation() {
     PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
-    List<PolicyViolation> violations = dao.getByApplicationId(app.getId());
+    List<PolicyViolation> violations = dao.getByOwnerId(app.getId());
     return violations.stream()
         .filter(v -> v.getHash() != null && v.getPolicyId() != null
             && v.getComponentIdentifier() != null
@@ -304,7 +304,7 @@ public class PrioritiesPagePlaywrightTest
    */
   private List<PolicyViolation> uniqueViolationsForHash(String hash) {
     PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
-    Map<String, PolicyViolation> uniqueByPolicyId = dao.getByApplicationId(app.getId())
+    Map<String, PolicyViolation> uniqueByPolicyId = dao.getByOwnerId(app.getId())
         .stream()
         .filter(v -> hash.equals(v.getHash()) && v.getPolicyId() != null)
         .collect(Collectors.toMap(PolicyViolation::getPolicyId, v -> v, (a, b) -> a));

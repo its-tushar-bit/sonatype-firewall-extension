@@ -999,7 +999,7 @@ public class ReportServiceTest
 
     assertThat(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).isFalse();
     assertThat(sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()).isFalse();
-    assertThat(policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId).getStageTypeId()).isNotEqualTo(
+    assertThat(policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId).getStageTypeId()).isNotEqualTo(
         ComplianceStageType.ID);
     verify(thirdPartyDataServiceSpy, times(1)).deleteByScanId(scanId);
   }

@@ -166,7 +166,7 @@ public class DevelopmentPrioritiesService
       throw new NotFoundException("Application not found: " + applicationPublicId);
     }
     final PolicyEvaluation mainPolicyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+        policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
 
     final String scanIdFromLatestBuildStageEvaluation =
         mainPolicyEvaluation != null ? mainPolicyEvaluation.getScanId() : "";
@@ -217,7 +217,7 @@ public class DevelopmentPrioritiesService
       throw new NotFoundException("Application not found: " + applicationPublicId);
     }
     final PolicyEvaluation mainPolicyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+        policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), Stage.ID_BUILD);
     return computePrioritizedFindings(application, scanId, remediationSkip, remediationLimit, mainPolicyEvaluation);
   }
 
@@ -239,7 +239,7 @@ public class DevelopmentPrioritiesService
     final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
 
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, scanId);
+        policyEvaluationDAO.getLastByOwnerIdAndScanId(applicationId, scanId);
 
     String policyEvaluationStage = policyEvaluation != null ? policyEvaluation.getStageTypeId() : null;
 

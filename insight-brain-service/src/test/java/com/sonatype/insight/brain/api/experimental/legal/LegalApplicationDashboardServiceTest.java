@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.License;
@@ -334,7 +334,7 @@ public class LegalApplicationDashboardServiceTest
     setupLicenseObligations(app, componentIdentifier1, licenseIds, compontent1ObligationStatus,
         compontent1ObligationStatusExtra);
 
-    ApplicationComponent applicationComponent =
+    OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier2);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), licenseIds.get(1));
     tempEntity.newComponentObligation(componentIdentifier2, app.getId(), "obligation0", "comment",
@@ -359,7 +359,7 @@ public class LegalApplicationDashboardServiceTest
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
-    ApplicationComponent applicationComponent =
+    OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier2);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "Beerware-Pizzaware");
 
@@ -431,7 +431,7 @@ public class LegalApplicationDashboardServiceTest
   public void testGetLicenseLegalApplicationDashboard_HasObligationsButNoneSaved() {
     Application app = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    ApplicationComponent applicationComponent =
+    OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash", componentIdentifier);
     String effectiveLicenseId = "MIT";
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId);
@@ -573,7 +573,7 @@ public class LegalApplicationDashboardServiceTest
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, TemporaryEntity.uuid(), new Date());
-    ApplicationComponent applicationComponent =
+    OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash", componentIdentifier);
     for (String effectiveLicenseId : effectiveLicenseIds) {
       tempEntity.newApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId);

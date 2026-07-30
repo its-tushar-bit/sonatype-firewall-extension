@@ -63,7 +63,7 @@ public class ApplicationEvaluationEventService
     ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
     event.policyEvaluationId = policyEvaluation.getId();
     event.stageTypeId = policyEvaluation.getStageTypeId();
-    event.ownerId = policyEvaluation.getApplicationId();
+    event.ownerId = policyEvaluation.getOwnerId();
     event.evaluationDate = policyEvaluation.getTime();
     event.initiator = currentUser.getUsernameOrSystem();
     event.reportId = policyEvaluation.getScanId();

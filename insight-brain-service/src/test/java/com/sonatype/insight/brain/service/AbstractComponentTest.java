@@ -656,7 +656,7 @@ public class AbstractComponentTest
     }
     // Create report.zip
     try (InputStream inputStream = new FileInputStream(zipPath.toFile())) {
-      service.saveOriginalReport(eval.getApplicationId(), eval.getScanId(), inputStream);
+      service.saveOriginalReport(eval.getOwnerId(), eval.getScanId(), inputStream);
     }
     for (ReportFile reportFile : ReportFile.values()) {
       // Create report.cache
@@ -664,19 +664,19 @@ public class AbstractComponentTest
           reportFile.getLocationTypes().contains(ReportFileLocationType.CACHE))
       {
         try (InputStream content = createRandomInputStream(prefix, contentSizeInBytes, suffix)) {
-          service.saveReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
+          service.saveReportFile(eval.getOwnerId(), eval.getScanId(), reportFile.getName(), content);
         }
       }
       // Create additional.files
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
         try (InputStream content = createRandomInputStream(prefix, contentSizeInBytes, suffix)) {
-          service.saveAdditionalReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
+          service.saveAdditionalReportFile(eval.getOwnerId(), eval.getScanId(), reportFile.getName(), content);
         }
       }
     }
     // Create report.pdf
     try (InputStream inputStream = createRandomInputStream(prefix, contentSizeInBytes, suffix);
-        OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
+        OutputStream outputStream = service.getPdfEntity(eval.getOwnerId(), eval.getScanId())
             .getOutputStream())
     {
       inputStream.transferTo(outputStream);

@@ -80,7 +80,7 @@ public class PolicyViolationLoaderTest
     ApplicationStageView appStageView = appView.getStageViews().iterator().next();
     assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
     assertThat(appStageView.getLastEvaluation()).isNotNull();
-    assertThat(appStageView.getLastEvaluation().getApplicationId()).isEqualTo(app.getId());
+    assertThat(appStageView.getLastEvaluation().getOwnerId()).isEqualTo(app.getId());
     assertThat(appStageView.getLastEvaluation().getStageTypeId()).isEqualTo(StageTypes.BUILD.getId());
     assertThat(appStageView.getLastEvaluation().getScanId()).isEqualTo("build-latest-scan-id");
     assertThat(appStageView.getFilteredViolations()).hasSize(2);

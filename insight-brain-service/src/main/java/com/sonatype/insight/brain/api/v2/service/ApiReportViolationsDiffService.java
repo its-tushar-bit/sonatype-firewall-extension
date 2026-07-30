@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDiffDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationForDiffDTO;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
-import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -75,7 +75,7 @@ public class ApiReportViolationsDiffService
 
   private final ApplicationDAO applicationDAO;
 
-  private final ApplicationComponentDAO applicationComponentDAO;
+  private final OwnerComponentDAO applicationComponentDAO;
 
   private final ApplicationTagDAO applicationTagDAO;
 
@@ -94,7 +94,7 @@ public class ApiReportViolationsDiffService
   public ApiReportViolationsDiffService(
       final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final ApplicationComponentDAO applicationComponentDAO,
+      final OwnerComponentDAO applicationComponentDAO,
       final ApplicationTagDAO applicationTagDAO,
       final PolicyViolationDAO policyViolationDAO,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
@@ -178,25 +178,25 @@ public class ApiReportViolationsDiffService
     }
   }
 
-  private PolicyEvaluation getPolicyEvaluationForInput(String applicationId, String commitHash, String evaluationId) {
+  private PolicyEvaluation getPolicyEvaluationForInput(String ownerId, String commitHash, String evaluationId) {
     if (!Strings.isNullOrEmpty(commitHash)) {
-      return getPolicyEvaluationForApplicationAndHash(applicationId, commitHash);
+      return getPolicyEvaluationForApplicationAndHash(ownerId, commitHash);
     }
     final PolicyEvaluation policyEvaluation = policyEvaluationDAO.getById(evaluationId);
-    if (policyEvaluation == null || !policyEvaluation.getApplicationId().equals(applicationId)) {
+    if (policyEvaluation == null || !policyEvaluation.getOwnerId().equals(ownerId)) {
       throw new NotFoundException(CANT_CALCULATE_DIFF_MESSAGE);
     }
     return policyEvaluation;
   }
 
-  private PolicyEvaluation getPolicyEvaluationForApplicationAndHash(String applicationId, String commitHash) {
+  private PolicyEvaluation getPolicyEvaluationForApplicationAndHash(String ownerId, String commitHash) {
 
     PolicyEvaluation policyEvaluation;
     if (commitHash.matches(COMMIT_HASH_REGEX)) {
-      policyEvaluation = policyEvaluationDAO.getLastByApplicationAndCommitHash(applicationId, commitHash);
+      policyEvaluation = policyEvaluationDAO.getLastByApplicationAndCommitHash(ownerId, commitHash);
     }
     else if (commitHash.matches(ABBREVIATED_COMMIT_HASH_REGEX)) {
-      policyEvaluation = policyEvaluationDAO.getLastByApplicationAndAbbreviatedCommitHash(applicationId, commitHash);
+      policyEvaluation = policyEvaluationDAO.getLastByApplicationAndAbbreviatedCommitHash(ownerId, commitHash);
     }
     else {
       throw new BadRequestException(
@@ -258,10 +258,10 @@ public class ApiReportViolationsDiffService
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
-    Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByKey =
+    Map<OwnerComponentDAO.OwnerComponentKey, OwnerComponent> componentsByKey =
         allHashes.isEmpty()
             ? Map.of()
-            : applicationComponentDAO.getMapByApplicationIdsAndStageTypeIdsAndHashes(
+            : applicationComponentDAO.getMapByOwnerIdsAndStageTypeIdsAndHashes(
                 Set.of(application.getId()), stageTypeIds, allHashes);
 
     dto.addedViolations = buildPolicyViolationsDtos(policyViolationDiff.getAppeared(), application.getId(),
@@ -280,34 +280,34 @@ public class ApiReportViolationsDiffService
 
   private Set<ApiPolicyViolationForDiffDTO> buildPolicyViolationsDtos(
       final Collection<PolicyViolation> policyViolations,
-      final String applicationId,
+      final String ownerId,
       final String stageTypeId,
       final Map<String, String> componentNamesMap,
-      final Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByKey)
+      final Map<OwnerComponentDAO.OwnerComponentKey, OwnerComponent> componentsByKey)
   {
     final Set<ApiPolicyViolationForDiffDTO> set = new HashSet<>(policyViolations.size());
     policyViolations.forEach(violation -> {
       if (violation.isActive()) {
-        set.add(buildDiffPolicyViolationDTO(applicationId, stageTypeId, violation, componentNamesMap, componentsByKey));
+        set.add(buildDiffPolicyViolationDTO(ownerId, stageTypeId, violation, componentNamesMap, componentsByKey));
       }
     });
     return set;
   }
 
   private ApiPolicyViolationForDiffDTO buildDiffPolicyViolationDTO(
-      String applicationId,
+      String ownerId,
       String stageTypeId,
       PolicyViolation policyViolation,
       final Map<String, String> componentNamesMap,
-      final Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByKey)
+      final Map<OwnerComponentDAO.OwnerComponentKey, OwnerComponent> componentsByKey)
   {
     final ApiPolicyViolationForDiffDTO apiPolicyViolationForDiffDTO = new ApiPolicyViolationForDiffDTO();
     apiPolicyViolationForDiffDTO.policyId = policyViolation.getPolicyId();
     apiPolicyViolationForDiffDTO.policyName = policyViolation.getPolicyName();
     apiPolicyViolationForDiffDTO.policyViolationId = policyViolation.getId();
     apiPolicyViolationForDiffDTO.threatLevel = policyViolation.getThreatLevel();
-    final ApplicationComponent applicationComponent = componentsByKey.get(
-        new ApplicationComponentDAO.ApplicationComponentKey(applicationId, stageTypeId, policyViolation.getHash()));
+    final OwnerComponent applicationComponent = componentsByKey.get(
+        new OwnerComponentDAO.OwnerComponentKey(ownerId, stageTypeId, policyViolation.getHash()));
     apiPolicyViolationForDiffDTO.component = new ApiComponentDTOV2();
     apiPolicyViolationForDiffDTO.component.hash = policyViolation.getHash();
     apiPolicyViolationForDiffDTO.component.proprietary = applicationComponent != null

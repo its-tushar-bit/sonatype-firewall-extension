@@ -111,7 +111,7 @@ public class BitbucketCodeInsightsService
     }
 
     try {
-      Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
+      Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getOwnerId());
       boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(application.getId());
       PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
           gitRepositoryInfo.normalizedRepositoryUrl,

@@ -362,7 +362,7 @@ public class LegalListResourceTest
     PolicyEvaluation evaluation =
         tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "legal-scan-" + scanSuffix);
     ReportTestUtils.createReportFile(
-        evaluation.getApplicationId(),
+        evaluation.getOwnerId(),
         evaluation.getScanId(),
         ReportTestUtils.zipReportDir(LEGAL_REPORT, tempDir),
         lookup(InsightWork.class));

@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -202,7 +202,7 @@ public class SuccessMetricsReportResourceTest
     Application app2 = tempEntity.newApplicationWithParent("appId2", "app 2", "test org 2");
 
     // an evaluation for each app, with one violation each
-    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "scan1",
+    OwnerComponent component1 = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "scan1",
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "scan2",
         ComponentIdentifier.createMavenCoordinates("groupId2", "artifactId2", "version2"));
@@ -225,7 +225,7 @@ public class SuccessMetricsReportResourceTest
     assertGetComponentCountResponse(response, component1);
   }
 
-  private void assertGetComponentCountResponse(HttpResponse response, ApplicationComponent expectedComponent) {
+  private void assertGetComponentCountResponse(HttpResponse response, OwnerComponent expectedComponent) {
     ComponentCountsDTO componentCountsDTO = response.getBody(ComponentCountsDTO.class);
 
     assertThat(componentCountsDTO).isNotNull();

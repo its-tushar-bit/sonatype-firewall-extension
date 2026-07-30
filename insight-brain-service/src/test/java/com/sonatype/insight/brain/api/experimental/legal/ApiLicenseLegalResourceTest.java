@@ -40,7 +40,7 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -177,7 +177,7 @@ public class ApiLicenseLegalResourceTest
     mockReport(policyEvaluation, getClass().getSimpleName());
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    ApplicationComponent applicationComponent =
+    OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash1", componentIdentifier);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
 
@@ -244,7 +244,7 @@ public class ApiLicenseLegalResourceTest
   {
     Application application = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    ApplicationComponent applicationComponent =
+    OwnerComponent applicationComponent =
         tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash", componentIdentifier);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
 

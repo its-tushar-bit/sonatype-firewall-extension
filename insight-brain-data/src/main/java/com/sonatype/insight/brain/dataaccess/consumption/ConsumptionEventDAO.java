@@ -388,7 +388,7 @@ public class ConsumptionEventDAO
           .from(CONSUMPTION_EVENTS)
           // Match to the canonical policy_evaluation row for each consumption event:
           // 1. APPLICATION_ID match — `scan_id` is unique only within an application
-          // (PolicyEvaluationDAO.getLastByApplicationIdAndScanId always pairs
+          // (PolicyEvaluationDAO.getLastByOwnerIdAndScanId always pairs
           // scan_id with applicationId), so cross-application scan_id collisions
           // would otherwise multiply SUM(component_count).
           // 2. REEVALUATION=false — re-evaluation reuses an existing scan_id, producing
@@ -403,7 +403,7 @@ public class ConsumptionEventDAO
           // belt-and-suspenders today, but cheap insurance if validate is relaxed.
           .leftJoin(POLICY_EVALUATION)
           .on(POLICY_EVALUATION.SCAN_ID.eq(CONSUMPTION_EVENTS.SCAN_ID)
-              .and(POLICY_EVALUATION.APPLICATION_ID.eq(CONSUMPTION_EVENTS.APP_ID))
+              .and(POLICY_EVALUATION.OWNER_ID.eq(CONSUMPTION_EVENTS.APP_ID))
               .and(POLICY_EVALUATION.REEVALUATION.isFalse())
               .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.isFalse()))
           .where(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.greaterOrEqual(Date.from(oldestStart)))
@@ -689,7 +689,7 @@ public class ConsumptionEventDAO
           .from(CONSUMPTION_EVENTS)
           .leftJoin(POLICY_EVALUATION)
           .on(POLICY_EVALUATION.SCAN_ID.eq(CONSUMPTION_EVENTS.SCAN_ID)
-              .and(POLICY_EVALUATION.APPLICATION_ID.eq(CONSUMPTION_EVENTS.APP_ID))
+              .and(POLICY_EVALUATION.OWNER_ID.eq(CONSUMPTION_EVENTS.APP_ID))
               .and(POLICY_EVALUATION.REEVALUATION.isFalse())
               .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.isFalse()))
           .where(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.greaterOrEqual(Date.from(start)))

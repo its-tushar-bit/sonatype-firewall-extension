@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import org.junit.Before;
@@ -76,7 +76,7 @@ public class ComponentLegalCopyrightPlaywrightTest
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
         COMPONENT_GROUP_ID, COMPONENT_ARTIFACT_ID, COMPONENT_VERSION, "", "jar");
-    ApplicationComponent appComponent = tempEntity.newApplicationComponent(
+    OwnerComponent appComponent = tempEntity.newApplicationComponent(
         app.getId(), BuildStageType.ID, COMPONENT_HASH, componentId);
     tempEntity.newApplicationComponentLicense(appComponent.getId(), COMPONENT_LICENSE_ID);
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());

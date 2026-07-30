@@ -17,10 +17,11 @@ import org.apache.shiro.authc.credential.PasswordMatcher;
  * For tokens hashed with the new {@code $sha256$} format, verification is performed directly
  * via {@link UserTokenHashService} (single SHA-256 pass, sub-microsecond).
  * For legacy hashes (Argon2id, iterated SHA-256), delegates to Shiro's built-in {@link PasswordMatcher}.
+ * Extends {@link CheapSimulatedCredentialsMatcher} so declined tokens do not pay an Argon2id verify.
  * </p>
  */
 class UserTokenCredentialsMatcher
-    extends PasswordMatcher
+    extends CheapSimulatedCredentialsMatcher
 {
   private final UserTokenHashService userTokenHashService;
 

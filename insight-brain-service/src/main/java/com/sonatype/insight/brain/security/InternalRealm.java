@@ -45,7 +45,8 @@ public class InternalRealm
     setName("CLMRealm");
 
     // Create and set a password matcher. It will be used by shiro to match hashed passwords.
-    PasswordMatcher passwordMatcher = new PasswordMatcher();
+    // CheapSimulatedCredentialsMatcher avoids paying an Argon2id verify on every declined authentication.
+    PasswordMatcher passwordMatcher = new CheapSimulatedCredentialsMatcher();
     passwordMatcher.setPasswordService(passwordService);
     setCredentialsMatcher(passwordMatcher);
   }

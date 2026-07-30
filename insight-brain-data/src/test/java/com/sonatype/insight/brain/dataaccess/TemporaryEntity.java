@@ -207,6 +207,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVul
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.AggregateFile;
@@ -319,6 +320,7 @@ import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgress;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequest;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequestStatus;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
@@ -757,6 +759,8 @@ public class TemporaryEntity
 
   private HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
 
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
   private ConsumptionEventDAO consumptionEventDAO;
 
   private ConsumptionLimitConfigDAO consumptionLimitConfigDAO;
@@ -1032,6 +1036,11 @@ public class TemporaryEntity
       delete(hostedComponentScanQueueDAO.getAll(), hostedComponentScanQueueDAO);
       // Satellite rows cascade via ON DELETE CASCADE on the FK; only the parent table needs explicit cleanup.
       delete(continuousMonitoringQueueItemDAO.getAll(), continuousMonitoringQueueItemDAO);
+      // In production, hosted_repository_component rows cascade via RepositoryDAO.cascadeDelete for
+      // hosted repositories. Tests may attach HRCs to any repository (including proxy defaults from
+      // AbstractDbDAOTest), so explicit cleanup here catches those before the FK-restricted
+      // repository delete below.
+      delete(hostedRepositoryComponentDAO.getAll(), hostedRepositoryComponentDAO);
       delete(repositoryDAO.getAll(), repositoryDAO);
       delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
       delete(webhookDAO.getAll(), webhookDAO);
@@ -3658,6 +3667,20 @@ public class TemporaryEntity
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repositoryDAO.insert(repository);
     return repository;
+  }
+
+  public HostedRepositoryComponent newHostedRepositoryComponent(Repository repository) {
+    return newHostedRepositoryComponent(repository, "path/" + uuid() + ".jar", newRandomHash());
+  }
+
+  public HostedRepositoryComponent newHostedRepositoryComponent(
+      Repository repository,
+      String pathname,
+      String hash)
+  {
+    HostedRepositoryComponent hrc = new HostedRepositoryComponent(repository.getId(), pathname, hash);
+    hostedRepositoryComponentDAO.insert(hrc);
+    return hrc;
   }
 
   public Repository newRepository(RepositoryManager repositoryManager) {
@@ -6951,6 +6974,7 @@ public class TemporaryEntity
     keyValueDAO = daoFactory.createKeyValueDAO();
     evaluationQueueDAO = daoFactory.createEvaluationQueueDAO();
     hostedComponentScanQueueDAO = daoFactory.createHostedComponentScanQueueDAO();
+    hostedRepositoryComponentDAO = daoFactory.createHostedRepositoryComponentDAO();
     consumptionEventDAO = daoFactory.createConsumptionEventDAO();
     consumptionLimitConfigDAO = daoFactory.createConsumptionLimitConfigDAO();
     continuousMonitoringQueueItemDAO = daoFactory.createContinuousMonitoringQueueItemDAO();

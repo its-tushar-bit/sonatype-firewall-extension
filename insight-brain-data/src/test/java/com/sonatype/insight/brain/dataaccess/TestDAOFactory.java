@@ -92,6 +92,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
@@ -642,6 +643,8 @@ public class TestDAOFactory
     Provider<PolicyEvaluationDAO> policyEvaluationDAOProvider = this::createPolicyEvaluationDAO;
     Provider<PolicyViolationDAO> policyViolationDAOProvider = this::createPolicyViolationDAO;
     Provider<OwnerComponentDAO> ownerComponentDAOProvider = this::createOwnerComponentDAO;
+    Provider<HostedRepositoryComponentDAO> hostedRepositoryComponentDAOProvider =
+        this::createHostedRepositoryComponentDAO;
 
     return new OwnerDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, appDAO, orgDAO, repoDAO,
         repoManagerDAO, policyWaiverDAOProvider, policyWaiverRequestDAOProvider, licenseOverrideDAOProvider,
@@ -651,7 +654,7 @@ public class TestDAOFactory
         vulnerabilityCustomRemediationDAOProvider, vulnerabilityCustomCweDAOProvider,
         vulnerabilityCustomCvssVectorDAOProvider, vulnerabilityCustomCvssSeverityDAOProvider,
         callFlowAnalysisConfigDAOProvider, policyEvaluationDAOProvider, policyViolationDAOProvider,
-        ownerComponentDAOProvider);
+        ownerComponentDAOProvider, hostedRepositoryComponentDAOProvider);
   }
 
   @Override
@@ -778,9 +781,16 @@ public class TestDAOFactory
     Provider<OwnerDAO> ownerDAOProvider = this::createOwnerDAO;
     RepositoryMigrationDAO repositoryMigrationDAO = createRepositoryMigrationDAO();
     HostedComponentScanQueueDAO hostedComponentScanQueueDAO = createHostedComponentScanQueueDAO();
+    HostedRepositoryComponentDAO hostedRepositoryComponentDAO = createHostedRepositoryComponentDAO();
     return new RepositoryDAO(dataStoreProvider.getOperationalDataStore(), proprietaryComponentNamePatternDAO,
         proxyRepositoryPolicyViolationDAO, proxyRepositoryComponentDAO, ownerDAOProvider, repositoryMigrationDAO,
-        hostedComponentScanQueueDAO);
+        hostedComponentScanQueueDAO, hostedRepositoryComponentDAO);
+  }
+
+  @Override
+  public HostedRepositoryComponentDAO createHostedRepositoryComponentDAO() {
+    Provider<OwnerDAO> ownerDAOProvider = this::createOwnerDAO;
+    return new HostedRepositoryComponentDAO(dataStoreProvider.getOperationalDataStore(), ownerDAOProvider);
   }
 
   @Override

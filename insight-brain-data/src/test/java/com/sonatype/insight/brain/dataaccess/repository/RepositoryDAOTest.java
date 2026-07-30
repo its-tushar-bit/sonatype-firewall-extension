@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -79,6 +80,8 @@ public class RepositoryDAOTest
 
   private RepositoryDAO dao;
 
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
   @Before
   @Override
   public void setup() {
@@ -94,6 +97,7 @@ public class RepositoryDAOTest
     securityVulnerabilityOverrideDAO = daoFactory.createSecurityVulnerabilityOverrideDAO();
     licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
     organizationDAO = daoFactory.createOrganizationDAO();
+    hostedRepositoryComponentDAO = daoFactory.createHostedRepositoryComponentDAO();
   }
 
   @Test
@@ -107,7 +111,7 @@ public class RepositoryDAOTest
     assertThat(repository.getPublicId()).isEqualTo("My Repo Public Id");
     assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.getParentOwnerId()).isEqualTo(repositorymanagerId);
-    assertThat(repository.canHaveChildren()).isFalse();
+    assertThat(repository.canHaveChildren()).isTrue();
     assertThat(repository.getType()).isEqualTo(OwnerType.REPOSITORY);
     assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
     assertThat(repository.getLastManualConfigureTime()).isNull();
@@ -198,6 +202,18 @@ public class RepositoryDAOTest
     dao.delete(repository);
 
     assertThat(proxyRepositoryPolicyViolationDAO.getById(policyViolation.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToHostedRepositoryComponents() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository hostedRepo = tempEntity.newRepository(repoManager, "hostedRepoWithHrc",
+        RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(hostedRepo);
+
+    dao.delete(hostedRepo);
+
+    assertThat(hostedRepositoryComponentDAO.getById(hrc.getId())).isNull();
   }
 
   @Test

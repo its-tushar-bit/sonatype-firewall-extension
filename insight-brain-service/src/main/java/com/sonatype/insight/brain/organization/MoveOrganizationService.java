@@ -695,8 +695,7 @@ public class MoveOrganizationService
       }
 
       // recursively prepare children validation data for each child
-      ownerDAO.getChildOwners(owner)
-          .forEach(this::prepareChildrenValidationDataByOwner);
+      ownerDAO.getChildOwners(owner).forEach(this::prepareChildrenValidationDataByOwner);
     }
 
     private void storeParentOrganizationsConfig(

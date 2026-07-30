@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
@@ -421,9 +422,21 @@ public abstract class AuditData
           return setRepositoryManager((RepositoryManager) owner);
         case REPOSITORY_CONTAINER:
           return setRepositoryContainer();
+        case HOSTED_REPOSITORY_COMPONENT:
+          return setHostedRepositoryComponent((HostedRepositoryComponent) owner);
         default:
           throw new IllegalArgumentException("unsupported owner type " + owner.getType());
       }
+    }
+    return this;
+  }
+
+  public AuditData setHostedRepositoryComponent(HostedRepositoryComponent hrc) {
+    if (hrc != null) {
+      setData("hostedRepositoryComponentId", hrc.getId());
+      setData("repositoryId", hrc.getRepositoryId());
+      setData("pathname", hrc.getPathname());
+      setData("hash", hrc.getHash());
     }
     return this;
   }

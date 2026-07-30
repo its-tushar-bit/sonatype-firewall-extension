@@ -11,6 +11,7 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -33,17 +34,21 @@ public class IdUtils
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
   @Inject
   public IdUtils(
       final ApplicationDAO applicationDAO,
       final OrganizationDAO organizationDAO,
       final RepositoryDAO repositoryDAO,
-      final RepositoryManagerDAO repositoryManagerDAO)
+      final RepositoryManagerDAO repositoryManagerDAO,
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.repositoryDAO = repositoryDAO;
     this.repositoryManagerDAO = repositoryManagerDAO;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
   }
 
   public Owner getOwnerNotNull(final OwnerType ownerType, final String ownerId) {
@@ -62,6 +67,8 @@ public class IdUtils
         return repositoryManagerDAO.getByIdNotNull(ownerId);
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.SINGLETON;
+      case HOSTED_REPOSITORY_COMPONENT:
+        return hostedRepositoryComponentDAO.getByIdNotNull(ownerId);
       case GLOBAL:
         throw new IllegalArgumentException(MSG_PREFIX_NO_OWNER_INSTANCE + ownerType);
       default:
@@ -85,6 +92,8 @@ public class IdUtils
         return repositoryManagerDAO.getByIdNotNull(ownerId).getId();
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.REPOSITORY_CONTAINER_ID;
+      case HOSTED_REPOSITORY_COMPONENT:
+        return hostedRepositoryComponentDAO.getByIdNotNull(ownerId).getId();
       case GLOBAL:
         return MembershipMapping.GLOBAL_CONTEXT_ID;
       default:
@@ -108,6 +117,8 @@ public class IdUtils
         return repositoryManagerDAO.getByIdNotNull(ownerId).getPublicId();
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.REPOSITORY_CONTAINER_ID;
+      case HOSTED_REPOSITORY_COMPONENT:
+        return hostedRepositoryComponentDAO.getByIdNotNull(ownerId).getPublicId();
       case GLOBAL:
         return MembershipMapping.GLOBAL_CONTEXT_ID;
       default:

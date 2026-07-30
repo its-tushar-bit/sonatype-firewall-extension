@@ -1945,6 +1945,43 @@ FROM
   repository r
   INNER JOIN repository_manager_ancestor rma ON rma.repository_manager_id = r.repository_manager_id;
 
+-- Since 1.207 (CLM-42787)
+-- SaaS Compatible
+CREATE TABLE hosted_repository_component (
+  hosted_repository_component_id varchar(50) NOT NULL,
+  repository_id                  varchar(50) NOT NULL,
+  pathname                       varchar(1000) NOT NULL,
+  hash                           varchar(20) NOT NULL,
+  component_id                   varchar(255),
+  owner_component_id             varchar(50),
+  CONSTRAINT hosted_repository_component_pk PRIMARY KEY (hosted_repository_component_id),
+  CONSTRAINT hosted_repository_component_repository_fk
+    FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
+  CONSTRAINT hosted_repository_component_owner_component_fk
+    FOREIGN KEY (owner_component_id) REFERENCES owner_component(owner_component_id) ON DELETE SET NULL,
+  CONSTRAINT hosted_repository_component_uk UNIQUE (repository_id, pathname)
+);
+CREATE INDEX hosted_repository_component_component_id_idx ON hosted_repository_component(component_id);
+CREATE INDEX hosted_repository_component_repository_id_idx ON hosted_repository_component(repository_id);
+
+CREATE VIEW hosted_repository_component_ancestor (
+    hosted_repository_component_id, ancestor_id, ancestor_type, ancestor_distance
+) AS
+SELECT
+  hrc.hosted_repository_component_id,
+  hrc.hosted_repository_component_id AS ancestor_id,
+  'HOSTED_REPOSITORY_COMPONENT' AS ancestor_type,
+  0 AS ancestor_distance
+FROM hosted_repository_component hrc
+UNION ALL
+SELECT
+  hrc.hosted_repository_component_id,
+  ra.ancestor_id,
+  ra.ancestor_type,
+  ra.ancestor_distance + 1
+FROM hosted_repository_component hrc
+INNER JOIN repository_ancestor ra ON ra.repository_id = hrc.repository_id;
+
 CREATE VIEW owner_ancestor (owner_id, ancestor_id, ancestor_type, ancestor_distance, owner_type) AS
 SELECT organization_id, ancestor_id, 'ORGANIZATION', ancestor_distance, 'ORGANIZATION' FROM organization_ancestor
 UNION ALL
@@ -1954,7 +1991,9 @@ SELECT *, 'REPOSITORY_CONTAINER' FROM repository_container_ancestor
 UNION ALL
 SELECT *, 'REPOSITORY_MANAGER' FROM repository_manager_ancestor
 UNION ALL
-SELECT *, 'REPOSITORY' FROM repository_ancestor;
+SELECT *, 'REPOSITORY' FROM repository_ancestor
+UNION ALL
+SELECT *, 'HOSTED_REPOSITORY_COMPONENT' FROM hosted_repository_component_ancestor;
 
 -- To help with performance of the above views
 CREATE INDEX application_organization_idx ON application (organization_id);

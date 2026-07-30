@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
@@ -61,6 +62,8 @@ public class RepositoryDAO
 
   private final HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
 
+  private final HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
   @Inject
   public RepositoryDAO(
       final OperationalDataStore operationalDataStore,
@@ -69,7 +72,8 @@ public class RepositoryDAO
       final ProxyRepositoryComponentDAO proxyRepositoryComponentDAO,
       final Provider<OwnerDAO> ownerDAOProvider,
       final RepositoryMigrationDAO repositoryMigrationDAO,
-      final HostedComponentScanQueueDAO hostedComponentScanQueueDAO)
+      final HostedComponentScanQueueDAO hostedComponentScanQueueDAO,
+      final HostedRepositoryComponentDAO hostedRepositoryComponentDAO)
   {
     super(operationalDataStore);
     this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
@@ -78,6 +82,7 @@ public class RepositoryDAO
     this.ownerDAOProvider = ownerDAOProvider;
     this.repositoryMigrationDAO = repositoryMigrationDAO;
     this.hostedComponentScanQueueDAO = hostedComponentScanQueueDAO;
+    this.hostedRepositoryComponentDAO = hostedRepositoryComponentDAO;
   }
 
   @Override
@@ -375,6 +380,12 @@ public class RepositoryDAO
         }
         break;
       case hosted:
+        // Cascade to hosted repository components first — each carries its own scan-based rows in
+        // policy_evaluation / policy_violation / owner_component keyed by owner_id, so the per-HRC
+        // cascadeDelete inside HostedRepositoryComponentDAO.delete cleans up before the FK-restricted
+        // hosted_repository_component_repository_fk would block the parent repository delete below.
+        cascadeDeleteHostedRepositoryComponents(tx, repository);
+
         proxyRepositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
 
         // Cascade to scan queue entries (must precede component delete — no DB-level FK exists)
@@ -394,6 +405,12 @@ public class RepositoryDAO
     if (duration > 1000) {
       log.debug("Deleted owned entities of repository {} with id {} in {} ms.", repository.getName(),
           repository.getId(), duration);
+    }
+  }
+
+  private void cascadeDeleteHostedRepositoryComponents(TransactionContext tx, Repository repository) {
+    for (HostedRepositoryComponent hrc : hostedRepositoryComponentDAO.getByRepositoryId(tx, repository.getId())) {
+      hostedRepositoryComponentDAO.delete(tx, hrc);
     }
   }
 

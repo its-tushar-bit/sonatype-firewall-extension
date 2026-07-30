@@ -19,6 +19,7 @@ public enum OwnerType
   REPOSITORY_CONTAINER,
   REPOSITORY_MANAGER,
   REPOSITORY,
+  HOSTED_REPOSITORY_COMPONENT,
   GLOBAL;
 
   @Override
@@ -46,6 +47,8 @@ public enum OwnerType
         return REPOSITORY_MANAGER;
       case REPOSITORY_MANAGER:
         return REPOSITORY_CONTAINER;
+      case HOSTED_REPOSITORY_COMPONENT:
+        return REPOSITORY;
       default:
         return ORGANIZATION;
     }

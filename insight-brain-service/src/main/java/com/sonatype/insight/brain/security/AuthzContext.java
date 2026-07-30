@@ -102,6 +102,11 @@ public @interface AuthzContext
     REPOSITORY_MANAGER_ID,
 
     /**
+     * The ID of an existing hosted repository component.
+     */
+    HOSTED_REPOSITORY_COMPONENT_ID,
+
+    /**
      * An {@link Owner} entity.
      */
     OWNER

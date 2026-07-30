@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -112,6 +113,12 @@ public class OwnerDAOTest
   @Test
   public void testGetOwnersInHierarchy_RepositoryContainer_matchesWalkHierarchy() {
     assertOwnersInHierarchyMatchesWalk(RepositoryContainer.REPOSITORY_CONTAINER_ID, OwnerType.REPOSITORY_CONTAINER);
+  }
+
+  @Test
+  public void testGetOwnersInHierarchy_hostedRepositoryComponent_matchesWalkHierarchy() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    assertOwnersInHierarchyMatchesWalk(hrc.getId(), OwnerType.HOSTED_REPOSITORY_COMPONENT);
   }
 
   @Test
@@ -818,6 +825,124 @@ public class OwnerDAOTest
     Set<String> result = ownerDAO.getPermittedProxyRepositoryIds(Permission.READ, "bob", Set.of());
 
     assertThat(result).containsExactly(permitted.getId());
+  }
+
+  @Test
+  public void testGetById_returnsHrc() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Owner owner = ownerDAO.getById(hrc.getId());
+    assertThat(owner)
+        .isNotNull()
+        .isInstanceOf(HostedRepositoryComponent.class);
+    assertThat(owner.getId()).isEqualTo(hrc.getId());
+    assertThat(owner.getType()).isEqualTo(OwnerType.HOSTED_REPOSITORY_COMPONENT);
+  }
+
+  @Test
+  public void testGetParentOwner_hrcReturnsRepository() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Owner parent = ownerDAO.getParentOwner(hrc);
+    assertThat(parent).isNotNull();
+    assertThat(parent.getId()).isEqualTo(repository.getId());
+    assertThat(parent.getType()).isEqualTo(OwnerType.REPOSITORY);
+  }
+
+  @Test
+  public void testWalkHierarchy_hrcYieldsFullChain() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    List<Owner> chain = new ArrayList<>();
+    for (Owner o : ownerDAO.walkHierarchy(hrc)) {
+      chain.add(o);
+    }
+    // Order: HRC self, Repository, RepositoryManager, RepositoryContainer, root Organization.
+    assertThat(chain).extracting(Owner::getType)
+        .containsExactly(
+            OwnerType.HOSTED_REPOSITORY_COMPONENT,
+            OwnerType.REPOSITORY,
+            OwnerType.REPOSITORY_MANAGER,
+            OwnerType.REPOSITORY_CONTAINER,
+            OwnerType.ORGANIZATION);
+    assertThat(chain).extracting(Owner::getId)
+        .containsExactly(
+            hrc.getId(),
+            repository.getId(),
+            repositoryManager.getId(),
+            RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testGetPermittedOwnerIds_hrcRespectsAncestorPermission() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(repository.getId(), role.getId(), "alice");
+
+    Set<String> permitted = ownerDAO.getPermittedOwnerIds(
+        List.of(hrc.getId()),
+        OwnerType.HOSTED_REPOSITORY_COMPONENT,
+        Permission.READ,
+        "alice",
+        Set.of());
+    assertThat(permitted).containsExactly(hrc.getId());
+  }
+
+  @Test
+  public void testGetPermittedOwnerIds_hrcExcludedWhenNoAncestorPermission() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    Set<String> permitted = ownerDAO.getPermittedOwnerIds(
+        List.of(hrc.getId()),
+        OwnerType.HOSTED_REPOSITORY_COMPONENT,
+        Permission.READ,
+        "nobody",
+        Set.of());
+    assertThat(permitted).isEmpty();
+  }
+
+  @Test
+  public void testGetChildOwners_repositoryReturnsHrcs() {
+    Repository hostedRepo = newHostedRepository();
+    HostedRepositoryComponent hrc1 = tempEntity.newHostedRepositoryComponent(hostedRepo);
+    HostedRepositoryComponent hrc2 = tempEntity.newHostedRepositoryComponent(hostedRepo);
+
+    List<Owner> children = ownerDAO.getChildOwners(hostedRepo);
+
+    assertThat(children).extracting(Owner::getId).containsExactlyInAnyOrder(hrc1.getId(), hrc2.getId());
+    assertThat(children).extracting(Owner::getType).containsOnly(OwnerType.HOSTED_REPOSITORY_COMPONENT);
+  }
+
+  @Test
+  public void testWalkChildren_repositoryYieldsHrcs() {
+    Repository hostedRepo = newHostedRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(hostedRepo);
+
+    List<Owner> descendants;
+    try (TransactionContext tx = ownerDAO.createTransactionContext()) {
+      descendants = ownerDAO.walkChildren(tx, hostedRepo);
+    }
+    assertThat(descendants)
+        .extracting(Owner::getId)
+        .contains(hrc.getId());
+  }
+
+  @Test
+  public void testWalkChildren_repositoryManagerYieldsHrcs() {
+    Repository hostedRepo = newHostedRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(hostedRepo);
+
+    List<Owner> descendants;
+    try (TransactionContext tx = ownerDAO.createTransactionContext()) {
+      descendants = ownerDAO.walkChildren(tx, repositoryManagerDAO.getById(hostedRepo.getRepositoryManagerId()));
+    }
+    assertThat(descendants)
+        .extracting(Owner::getId)
+        .contains(hostedRepo.getId(), hrc.getId());
+  }
+
+  private Repository newHostedRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    return tempEntity.newRepository(repoManager, "hostedRepo-" + System.nanoTime(),
+        com.sonatype.clm.dto.model.repository.RepositoryType.hosted,
+        com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN);
   }
 
   private void assertOwnersEqualInAnyOrder(final List<Owner> actual, final Owner... expected) {

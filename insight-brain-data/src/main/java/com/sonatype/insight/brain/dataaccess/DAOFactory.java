@@ -91,6 +91,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.ProxyRepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
@@ -331,6 +332,8 @@ public interface DAOFactory
   RepositoryConnectionDAO createRepositoryConnectionDAO();
 
   RepositoryDAO createRepositoryDAO();
+
+  HostedRepositoryComponentDAO createHostedRepositoryComponentDAO();
 
   RepositoryContainerDAO createRepositoryContainerDAO();
 

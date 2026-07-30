@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -67,6 +68,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -94,6 +97,8 @@ import org.jooq.impl.DSL;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationTag.APPLICATION_TAG;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationAncestor.APPLICATION_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedRepositoryComponent.HOSTED_REPOSITORY_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedRepositoryComponentAncestor.HOSTED_REPOSITORY_COMPONENT_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.MembershipMapping.MEMBERSHIP_MAPPING;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RolePermission.ROLE_PERMISSION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION;
@@ -161,6 +166,8 @@ public class OwnerDAO
 
   private final Provider<OwnerComponentDAO> ownerComponentDAOProvider;
 
+  private final Provider<HostedRepositoryComponentDAO> hostedRepositoryComponentDAOProvider;
+
   @Inject
   public OwnerDAO(
       final OperationalDataStore operationalDataStore,
@@ -188,7 +195,8 @@ public class OwnerDAO
       final Provider<CallFlowAnalysisConfigDAO> callFlowAnalysisConfigDAOProvider,
       final Provider<PolicyEvaluationDAO> policyEvaluationDAOProvider,
       final Provider<PolicyViolationDAO> policyViolationDAOProvider,
-      final Provider<OwnerComponentDAO> ownerComponentDAOProvider)
+      final Provider<OwnerComponentDAO> ownerComponentDAOProvider,
+      final Provider<HostedRepositoryComponentDAO> hostedRepositoryComponentDAOProvider)
   {
     super(operationalDataStore, searchIndexManager);
     this.appDAO = appDAO;
@@ -215,6 +223,7 @@ public class OwnerDAO
     this.policyEvaluationDAOProvider = policyEvaluationDAOProvider;
     this.policyViolationDAOProvider = policyViolationDAOProvider;
     this.ownerComponentDAOProvider = ownerComponentDAOProvider;
+    this.hostedRepositoryComponentDAOProvider = hostedRepositoryComponentDAOProvider;
   }
 
   @Override
@@ -239,7 +248,12 @@ public class OwnerDAO
       return repo;
     }
 
-    return repoManagerDAO.getById(tx, id);
+    RepositoryManager repoManager = repoManagerDAO.getById(tx, id);
+    if (repoManager != null) {
+      return repoManager;
+    }
+
+    return hostedRepositoryComponentDAOProvider.get().getById(tx, id);
   }
 
   @Override
@@ -300,6 +314,12 @@ public class OwnerDAO
         break;
       case REPOSITORY_MANAGER:
         result.addAll(repoDAO.getByRepositoryManagerId(tx, owner.getId()));
+        break;
+      case REPOSITORY:
+        // HRC rows are attached to hosted repositories only; skip the query for proxy repositories.
+        if (owner instanceof Repository && ((Repository) owner).getRepositoryType() == RepositoryType.hosted) {
+          result.addAll(hostedRepositoryComponentDAOProvider.get().getByRepositoryId(tx, owner.getId()));
+        }
         break;
       default:
         throw new IllegalStateException("Unhandled owner type: " + owner.getType());
@@ -380,6 +400,11 @@ public class OwnerDAO
           case REPOSITORY_CONTAINER:
             return getPermittedOwnerIdsSpecific(tx, ownerIds, REPOSITORY_CONTAINER_ANCESTOR,
                 REPOSITORY_CONTAINER_ANCESTOR.REPOSITORY_CONTAINER_ID, REPOSITORY_CONTAINER_ANCESTOR.ANCESTOR_ID,
+                permission, username, groupNames);
+          case HOSTED_REPOSITORY_COMPONENT:
+            return getPermittedOwnerIdsSpecific(tx, ownerIds, HOSTED_REPOSITORY_COMPONENT_ANCESTOR,
+                HOSTED_REPOSITORY_COMPONENT_ANCESTOR.HOSTED_REPOSITORY_COMPONENT_ID,
+                HOSTED_REPOSITORY_COMPONENT_ANCESTOR.ANCESTOR_ID,
                 permission, username, groupNames);
           default:
             return getPermittedOwnerIdsSpecific(tx, ownerIds, OWNER_ANCESTOR,
@@ -554,6 +579,11 @@ public class OwnerDAO
           return checkPermissionForOwnerSpecific(tx, ownerId, REPOSITORY_CONTAINER_ANCESTOR,
               REPOSITORY_CONTAINER_ANCESTOR.REPOSITORY_CONTAINER_ID, REPOSITORY_CONTAINER_ANCESTOR.ANCESTOR_ID,
               permission, username, groupNames);
+        case HOSTED_REPOSITORY_COMPONENT:
+          return checkPermissionForOwnerSpecific(tx, ownerId, HOSTED_REPOSITORY_COMPONENT_ANCESTOR,
+              HOSTED_REPOSITORY_COMPONENT_ANCESTOR.HOSTED_REPOSITORY_COMPONENT_ID,
+              HOSTED_REPOSITORY_COMPONENT_ANCESTOR.ANCESTOR_ID,
+              permission, username, groupNames);
         default:
           return checkPermissionForOwnerSpecific(tx, ownerId, OWNER_ANCESTOR,
               OWNER_ANCESTOR.OWNER_ID, OWNER_ANCESTOR.ANCESTOR_ID, permission, username, groupNames);
@@ -700,6 +730,7 @@ public class OwnerDAO
     // logic
     return () -> {
       boolean fetchApp = type == null || type == OwnerType.APPLICATION;
+      boolean fetchHrc = type == null || type == OwnerType.HOSTED_REPOSITORY_COMPONENT;
       boolean fetchRepo = type == null || type == OwnerType.REPOSITORY;
       boolean fetchRepoManager = type == null || type == OwnerType.REPOSITORY || type == OwnerType.REPOSITORY_MANAGER;
 
@@ -712,6 +743,32 @@ public class OwnerDAO
       Stream.Builder<Stream<Owner>> hierarchyBuilder = Stream.builder();
       if (fetchApp) {
         hierarchyBuilder.accept(lazy(() -> tx == null ? appDAO.getById(ownerId) : appDAO.getById(tx, ownerId)));
+      }
+      if (fetchHrc) {
+        // Fetch the HRC and — if found — its full parent chain (Repository, RepositoryManager,
+        // RepositoryContainer) keyed on the HRC's repositoryId, not on ownerId.
+        Supplier<HostedRepositoryComponent> hrcSupplier = () -> tx == null
+            ? hostedRepositoryComponentDAOProvider.get().getById(ownerId)
+            : hostedRepositoryComponentDAOProvider.get().getById(tx, ownerId);
+
+        hierarchyBuilder.accept(
+            lazy(hrcSupplier)
+                .filter(Objects::nonNull)
+                .flatMap(hrc -> {
+                  Repository parentRepo = tx == null
+                      ? repoDAO.getById(hrc.getRepositoryId())
+                      : repoDAO.getById(tx, hrc.getRepositoryId());
+                  if (parentRepo == null) {
+                    return Stream.of((Owner) hrc);
+                  }
+                  RepositoryManager parentRepoManager = tx == null
+                      ? repoManagerDAO.getByIdOrRepositoryId(parentRepo.getId())
+                      : repoManagerDAO.getByIdOrRepositoryId(tx, parentRepo.getId());
+                  if (parentRepoManager == null) {
+                    return Stream.of(hrc, parentRepo, RepositoryContainer.SINGLETON);
+                  }
+                  return Stream.of(hrc, parentRepo, parentRepoManager, RepositoryContainer.SINGLETON);
+                }));
       }
       if (fetchRepo) {
         hierarchyBuilder.accept(lazy(() -> tx == null ? repoDAO.getById(ownerId) : repoDAO.getById(tx, ownerId)));
@@ -817,7 +874,7 @@ public class OwnerDAO
             REPOSITORY.PUBLIC_ID.as(name),
             REPOSITORY.REPOSITORY_MANAGER_ID.as(parentOwnerId),
             REPOSITORY.REPOSITORY_ID.as(id),
-            DSL.inline(false).as(haveChildren),
+            DSL.inline(true).as(haveChildren),
             DSL.inline(OwnerType.REPOSITORY.name()).as(type),
             OWNER_ANCESTOR.ANCESTOR_DISTANCE.as(ancestorDistance))
         .from(OWNER_ANCESTOR)
@@ -857,6 +914,21 @@ public class OwnerDAO
         .where(ownerCondition)
         .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.REPOSITORY_CONTAINER.name()));
 
+    var hostedRepositoryComponentQuery = tx.dsl()
+        .select(
+            HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID.as(publicId),
+            HOSTED_REPOSITORY_COMPONENT.PATHNAME.as(name),
+            HOSTED_REPOSITORY_COMPONENT.REPOSITORY_ID.as(parentOwnerId),
+            HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID.as(id),
+            DSL.inline(false).as(haveChildren),
+            DSL.inline(OwnerType.HOSTED_REPOSITORY_COMPONENT.name()).as(type),
+            OWNER_ANCESTOR.ANCESTOR_DISTANCE.as(ancestorDistance))
+        .from(OWNER_ANCESTOR)
+        .join(HOSTED_REPOSITORY_COMPONENT)
+        .on(HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(ownerCondition)
+        .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.HOSTED_REPOSITORY_COMPONENT.name()));
+
     final SelectOrderByStep<?> combined;
     if (ownerType == OwnerType.ORGANIZATION) {
       combined = orgQuery;
@@ -873,13 +945,20 @@ public class OwnerDAO
     else if (ownerType == OwnerType.REPOSITORY) {
       combined = repoQuery.unionAll(repoManagerQuery).unionAll(repoContainerQuery).unionAll(orgQuery);
     }
+    else if (ownerType == OwnerType.HOSTED_REPOSITORY_COMPONENT) {
+      combined = hostedRepositoryComponentQuery.unionAll(repoQuery)
+          .unionAll(repoManagerQuery)
+          .unionAll(repoContainerQuery)
+          .unionAll(orgQuery);
+    }
     else {
       // ownerType == null, GLOBAL, or unexpected: include all ancestor kinds.
       // GLOBAL is a permission-system concept and is not stored in owner_ancestor, so this returns empty for GLOBAL.
       combined = appQuery.unionAll(orgQuery)
           .unionAll(repoQuery)
           .unionAll(repoManagerQuery)
-          .unionAll(repoContainerQuery);
+          .unionAll(repoContainerQuery)
+          .unionAll(hostedRepositoryComponentQuery);
     }
 
     try (var stream = combined.orderBy(ancestorDistance)
@@ -940,6 +1019,11 @@ public class OwnerDAO
         type == OwnerType.REPOSITORY_MANAGER;
     boolean fetchRepoManager = isRootOrg || type == OwnerType.REPOSITORY_CONTAINER;
     boolean fetchRepoContainer = isRootOrg;
+    // Fetch HRCs when walking above the repository level (org / repo container / repo manager). When
+    // walking a single REPOSITORY, skip the query for proxy repos — HRCs only attach to hosted ones.
+    boolean fetchHostedRepositoryComponent = fetchRepo
+        || (type == OwnerType.REPOSITORY && owner instanceof Repository
+            && ((Repository) owner).getRepositoryType() == RepositoryType.hosted);
 
     // Because the returned list will contain objects of multiple different types, we have to fetch them in multiple
     // JPA queries
@@ -960,6 +1044,11 @@ public class OwnerDAO
     }
     if (fetchApp) {
       children.addAll(appDAO.getByAncestorId(tx, ownerId));
+    }
+    if (fetchHostedRepositoryComponent) {
+      // HRC has canHaveChildren=false, so this is the terminal fetch: gather HRCs whose repository
+      // is (or is a descendant of) the walked owner. Fetches via the owner_ancestor view leg.
+      children.addAll(hostedRepositoryComponentDAOProvider.get().getByAncestorId(tx, ownerId));
     }
 
     return children;
@@ -1400,6 +1489,7 @@ public class OwnerDAO
     allOwners.addAll(repoDAO.getAll(tx));
     allOwners.addAll(repoManagerDAO.getAll(tx));
     allOwners.add(RepositoryContainer.SINGLETON);
+    allOwners.addAll(hostedRepositoryComponentDAOProvider.get().getAll(tx));
     return allOwners;
   }
 
@@ -1418,6 +1508,8 @@ public class OwnerDAO
       case REPOSITORY_CONTAINER:
         // RepositoryContainer.SINGLETON is immutable and cannot be inserted
         throw new UnsupportedOperationException("RepositoryContainer cannot be inserted");
+      case HOSTED_REPOSITORY_COMPONENT:
+        return hostedRepositoryComponentDAOProvider.get().insert(tx, (HostedRepositoryComponent) entity);
       default:
         throw new IllegalStateException("Unhandled owner type: " + entity.getType());
     }
@@ -1438,6 +1530,8 @@ public class OwnerDAO
       case REPOSITORY_CONTAINER:
         // RepositoryContainer.SINGLETON is immutable and cannot be updated
         throw new UnsupportedOperationException("RepositoryContainer cannot be updated");
+      case HOSTED_REPOSITORY_COMPONENT:
+        return hostedRepositoryComponentDAOProvider.get().update(tx, (HostedRepositoryComponent) entity);
       default:
         throw new IllegalStateException("Unhandled owner type: " + entity.getType());
     }
@@ -1462,6 +1556,9 @@ public class OwnerDAO
       case REPOSITORY_CONTAINER:
         // RepositoryContainer.SINGLETON is immutable and cannot be deleted
         throw new UnsupportedOperationException("RepositoryContainer cannot be deleted");
+      case HOSTED_REPOSITORY_COMPONENT:
+        hostedRepositoryComponentDAOProvider.get().delete(tx, (HostedRepositoryComponent) entity);
+        break;
       default:
         throw new IllegalStateException("Unhandled owner type: " + entity.getType());
     }

@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -29,7 +30,8 @@ public class IdUtilsTest
   @Before
   public void before() {
     idUtils = new IdUtils(daoFactory.createApplicationDAO(), daoFactory.createOrganizationDAO(),
-        daoFactory.createRepositoryDAO(), daoFactory.createRepositoryManagerDAO());
+        daoFactory.createRepositoryDAO(), daoFactory.createRepositoryManagerDAO(),
+        daoFactory.createHostedRepositoryComponentDAO());
   }
 
   @Test
@@ -165,5 +167,27 @@ public class IdUtilsTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> idUtils.getPublicOwnerId(OwnerType.APPLICATION, "no-such-app-public-id"))
         .withMessage("Application with ID no-such-app-public-id does not exist.");
+  }
+
+  @Test
+  public void testGetOwnerNotNull_hostedRepositoryComponent() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(tempEntity.newRepository());
+    final Owner actual = idUtils.getOwnerNotNull(OwnerType.HOSTED_REPOSITORY_COMPONENT, hrc.getId());
+    assertOwnerEqual(hrc, actual);
+  }
+
+  @Test
+  public void testGetInternalOwnerId_hostedRepositoryComponent() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(tempEntity.newRepository());
+    String id = idUtils.getInternalOwnerId(OwnerType.HOSTED_REPOSITORY_COMPONENT, hrc.getId());
+    assertThat(id).isEqualTo(hrc.getId());
+  }
+
+  @Test
+  public void testGetPublicOwnerId_hostedRepositoryComponent() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(tempEntity.newRepository());
+    String id = idUtils.getPublicOwnerId(OwnerType.HOSTED_REPOSITORY_COMPONENT, hrc.getId());
+    // HRC has no separate publicId; getPublicId returns the same value as getId.
+    assertThat(id).isEqualTo(hrc.getId());
   }
 }

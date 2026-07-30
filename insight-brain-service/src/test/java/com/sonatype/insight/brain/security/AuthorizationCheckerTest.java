@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -611,6 +612,35 @@ public class AuthorizationCheckerTest
     ctx.put(Key.TYPE, OwnerType.APPLICATION);
     UserPrincipal userPrincipal = newPrincipal(user);
     assertThat(checker.isPermitted(userPrincipal, Permission.READ, ctx)).isTrue();
+  }
+
+  @Test
+  public void testIsPermitted_WithHostedRepositoryComponentContext() {
+    Repository repo = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repo);
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    newMembershipMapping(user, repo.getId(), role.getId());
+
+    Map<Key, Object> ctx = new HashMap<>();
+    ctx.put(Key.HOSTED_REPOSITORY_COMPONENT_ID, hrc.getId());
+    UserPrincipal userPrincipal = newPrincipal(user);
+    assertThat(checker.isPermitted(userPrincipal, Permission.READ, ctx)).isTrue();
+  }
+
+  @Test
+  public void testIsPermitted_WithMissingHostedRepositoryComponentId_ThrowsNotFound() {
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    newMembershipMapping(user, Organization.ROOT_ORGANIZATION_ID, role.getId());
+
+    Map<Key, Object> ctx = new HashMap<>();
+    ctx.put(Key.HOSTED_REPOSITORY_COMPONENT_ID, "missing-hrc");
+    UserPrincipal userPrincipal = newPrincipal(user);
+
+    assertThatThrownBy(() -> checker.isPermitted(userPrincipal, Permission.READ, ctx))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageContaining("missing-hrc");
   }
 
   @Test

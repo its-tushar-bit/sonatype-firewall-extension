@@ -793,6 +793,10 @@ public class MembershipMappingService
           return relatedOrgsByRepo.get(0).getId();
         }
         break;
+      case HOSTED_REPOSITORY_COMPONENT:
+        // Role memberships are not granted at the hosted-repository-component scope; there is no
+        // related organization to mirror grants to.
+        return null;
       default:
         return null;
     }

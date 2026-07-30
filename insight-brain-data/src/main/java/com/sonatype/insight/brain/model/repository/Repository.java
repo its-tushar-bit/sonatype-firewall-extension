@@ -135,7 +135,7 @@ public class Repository
   @Override
   @JsonIgnore
   public boolean canHaveChildren() {
-    return false;
+    return true;
   }
 
   @Override

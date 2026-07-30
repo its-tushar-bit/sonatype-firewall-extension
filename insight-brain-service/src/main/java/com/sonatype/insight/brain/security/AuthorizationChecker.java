@@ -270,6 +270,7 @@ public class AuthorizationChecker
       case ORGANIZATION_ID:
       case REPOSITORY_MANAGER_ID:
       case REPOSITORY_ID:
+      case HOSTED_REPOSITORY_COMPONENT_ID:
         String stringId = (String) value;
         OwnerType type = typeFromIdKey(key);
         return new ResolvedContext(stringId, type,
@@ -304,6 +305,8 @@ public class AuthorizationChecker
         return OwnerType.REPOSITORY_MANAGER;
       case REPOSITORY_ID:
         return OwnerType.REPOSITORY;
+      case HOSTED_REPOSITORY_COMPONENT_ID:
+        return OwnerType.HOSTED_REPOSITORY_COMPONENT;
       default:
         throw new IllegalArgumentException("Unexpected ID key: " + key);
     }
@@ -319,6 +322,8 @@ public class AuthorizationChecker
         return "Repository Manager";
       case REPOSITORY_ID:
         return "Repository";
+      case HOSTED_REPOSITORY_COMPONENT_ID:
+        return "Hosted repository component";
       default:
         return key.name();
     }

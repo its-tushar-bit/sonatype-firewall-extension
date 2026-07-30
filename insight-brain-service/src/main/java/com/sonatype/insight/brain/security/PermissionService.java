@@ -91,6 +91,9 @@ public class PermissionService
       case REPOSITORY:
         contextParameters.put(AuthzContext.Key.REPOSITORY_ID, ownerId);
         break;
+      case HOSTED_REPOSITORY_COMPONENT:
+        contextParameters.put(AuthzContext.Key.HOSTED_REPOSITORY_COMPONENT_ID, ownerId);
+        break;
       case GLOBAL:
         break;
       default:

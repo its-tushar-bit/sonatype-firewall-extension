@@ -14,6 +14,7 @@ import {
   getOwnerContextHierarchyUrl,
   getPermissionContextTestUrl,
   getViewOrUpdatePolicyWaiverRequestUrl,
+  getReviewPolicyWaiverRequestUrl,
 } from 'MainRoot/util/CLMLocation';
 import { fetchCrossStageViolation } from 'MainRoot/violation/violationActions';
 import { clone } from 'ramda';
@@ -415,5 +416,65 @@ describe('RequestWaiverReviewPage', function () {
     await waitFor(() => expect(screen.queryByText('Loading…')).not.toBeInTheDocument());
 
     assertElementsDisabled();
+  });
+
+  describe('waiver expiration with expireWhenRemediationAvailable flag', () => {
+    it('preserves expireWhenRemediationAvailable=true on approve when the loaded request has the flag set', async () => {
+      const user = userEvent.setup();
+      const remediationState = clone(defaultPreloadedState);
+      remediationState.requestWaiverDetails.waiverRequestDetails.expireWhenRemediationAvailable = true;
+      remediationState.requestWaiverDetails.waiverRequestDetails.expiryTime = null;
+
+      mock
+        .onGet(getViewOrUpdatePolicyWaiverRequestUrl('application', 'applicationId', 'policyWaiverRequestId'))
+        .reply(200, remediationState.requestWaiverDetails.waiverRequestDetails);
+
+      const reviewUrl = getReviewPolicyWaiverRequestUrl('application', internalApplicationId, 'policyWaiverRequestId');
+      mock.onPost(reviewUrl).reply(200, {});
+
+      renderComponent(remediationState);
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).not.toBeInTheDocument());
+
+      const approveButton = screen.getByRole('button', { name: 'Approve' });
+      expect(approveButton).toBeVisible();
+      await user.click(approveButton);
+
+      await waitFor(() => {
+        expect(mock.history.post.length).toBe(1);
+        const body = JSON.parse(mock.history.post[0].data);
+        expect(body.status).toBe('APPROVED');
+        expect(body.expireWhenRemediationAvailable).toBe(true);
+        expect(body.expiryTime).toBeNull();
+      });
+    });
+
+    it('preserves expiryTime=null on approve when the loaded request was submitted as Never', async () => {
+      const user = userEvent.setup();
+      const neverState = clone(defaultPreloadedState);
+      neverState.requestWaiverDetails.waiverRequestDetails.expireWhenRemediationAvailable = false;
+      neverState.requestWaiverDetails.waiverRequestDetails.expiryTime = null;
+
+      mock
+        .onGet(getViewOrUpdatePolicyWaiverRequestUrl('application', 'applicationId', 'policyWaiverRequestId'))
+        .reply(200, neverState.requestWaiverDetails.waiverRequestDetails);
+
+      const reviewUrl = getReviewPolicyWaiverRequestUrl('application', internalApplicationId, 'policyWaiverRequestId');
+      mock.onPost(reviewUrl).reply(200, {});
+
+      renderComponent(neverState);
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).not.toBeInTheDocument());
+
+      await user.click(screen.getByRole('button', { name: 'Approve' }));
+
+      await waitFor(() => {
+        expect(mock.history.post.length).toBe(1);
+        const body = JSON.parse(mock.history.post[0].data);
+        expect(body.status).toBe('APPROVED');
+        expect(body.expiryTime).toBeNull();
+        expect(body.expireWhenRemediationAvailable).toBe(false);
+      });
+    });
   });
 });

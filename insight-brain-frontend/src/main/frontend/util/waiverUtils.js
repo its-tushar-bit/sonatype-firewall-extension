@@ -110,8 +110,13 @@ const waiverExpirations = [
   { name: 'Custom', value: 'custom' },
 ];
 
-export const useWaiverExpirations = (isExpireWhenRemediationAvailableWaiversEnabled) => {
-  return isExpireWhenRemediationAvailableWaiversEnabled
+export const useWaiverExpirations = (isExpireWhenRemediationAvailableWaiversEnabled, currentValue) => {
+  // Also include the option when the loaded value needs it, so an uncontrolled <select>
+  // whose defaultValue is 'remediationAvailable' doesn't silently fall back to option
+  // index 0 ('Never') while Redux state / submitted payload still say the flag is set.
+  const includeRemediationAvailable =
+    isExpireWhenRemediationAvailableWaiversEnabled || currentValue === 'remediationAvailable';
+  return includeRemediationAvailable
     ? waiverExpirations.concat([{ name: 'When Remediation Available', value: 'remediationAvailable' }])
     : waiverExpirations;
 };

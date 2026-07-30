@@ -12,6 +12,7 @@ import {
   getExpirationDaysMessage,
   isWaiverExpired,
   getWaiverDaysRemaining,
+  useWaiverExpirations,
 } from 'MainRoot/util/waiverUtils';
 import { WAIVER_CREATE_TIME, WAIVER_EXPIRATION_TIME } from 'TestRoot/SpecUtil';
 import moment from 'moment';
@@ -572,6 +573,28 @@ describe('waiverUtils', function () {
       } finally {
         jest.useRealTimers();
       }
+    });
+  });
+
+  describe('useWaiverExpirations', () => {
+    const hasRemediationAvailable = (options) => options.some((o) => o.value === 'remediationAvailable');
+
+    it('includes the "When Remediation Available" option when the feature is enabled', () => {
+      expect(hasRemediationAvailable(useWaiverExpirations(true))).toBe(true);
+    });
+
+    it('excludes it when the feature is disabled and no loaded value needs it', () => {
+      expect(hasRemediationAvailable(useWaiverExpirations(false))).toBe(false);
+      expect(hasRemediationAvailable(useWaiverExpirations(false, null))).toBe(false);
+      expect(hasRemediationAvailable(useWaiverExpirations(false, 'custom'))).toBe(false);
+      expect(hasRemediationAvailable(useWaiverExpirations(false, 'never'))).toBe(false);
+    });
+
+    it('still includes it when the feature is disabled but the loaded value is remediationAvailable', () => {
+      // Without this branch, an uncontrolled <select defaultValue="remediationAvailable">
+      // falls back to option index 0 ("Never") while Redux state and the submitted payload
+      // still say 'remediationAvailable' — a silent UI/payload disagreement.
+      expect(hasRemediationAvailable(useWaiverExpirations(false, 'remediationAvailable'))).toBe(true);
     });
   });
 });

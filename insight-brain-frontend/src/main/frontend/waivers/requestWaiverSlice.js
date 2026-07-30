@@ -64,7 +64,14 @@ const initializeStateFromDetails = (state, { payload }) => {
     name: waiverRequestDetails.scopeOwnerName,
   };
   state.componentMatcherStrategy = waiverRequestDetails.matcherStrategy || null;
-  state.expiryTime = state.expiryTime = waiverRequestDetails.expiryTime == null ? null : 'custom'; //since the expiry time is saved as a custom date
+  // Flag wins over expiryTime so an unmodified re-save preserves the auto-clear intent.
+  if (waiverRequestDetails.expireWhenRemediationAvailable) {
+    state.expiryTime = 'remediationAvailable';
+  } else if (waiverRequestDetails.expiryTime != null) {
+    state.expiryTime = 'custom';
+  } else {
+    state.expiryTime = null;
+  }
   const customDate = nxDateInputStateHelpers.userInput(
     customDateValidator,
     formatCustomDate(waiverRequestDetails.expiryTime)

@@ -114,7 +114,7 @@ export default function FirewallReviewWaiverRequestPage() {
   const [availableScopes, setAvailableScopes] = useState([]);
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
 
-  const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable);
+  const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable, expiryTime);
 
   // Initialize form state from loaded waiver request
   useEffect(() => {
@@ -133,12 +133,18 @@ export default function FirewallReviewWaiverRequestPage() {
       };
       setAvailableScopes([currentScope]);
 
-      // Set expiry time based on existing value
-      if (waiverRequest.expiryTime) {
+      // Flag wins over expiryTime so an unmodified re-save preserves the auto-clear intent.
+      // The final 'never' branch is load-bearing: initial useState is '30', so without it a
+      // Never request re-opens as 30 Days and approve-as-is silently issues a 30-day waiver.
+      if (waiverRequest.expireWhenRemediationAvailable) {
+        setExpiryTime('remediationAvailable');
+      } else if (waiverRequest.expiryTime) {
         setExpiryTime('custom');
         const d = new Date(waiverRequest.expiryTime);
         const dateStr = d.toISOString().split('T')[0];
         setCustomExpiryTime(nxDateInputStateHelpers.userInput(customDateValidator, dateStr));
+      } else {
+        setExpiryTime('never');
       }
     }
   }, [waiverRequest]);

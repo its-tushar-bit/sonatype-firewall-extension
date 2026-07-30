@@ -318,7 +318,7 @@ const RequestWaiversPage = () => {
     setExpiryTime(value === 'never' ? null : value);
   };
 
-  const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable);
+  const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable, expiryTime);
 
   const customExpiryTimeSelected = isCustomExpiryTimeSelected(expiryTime);
 

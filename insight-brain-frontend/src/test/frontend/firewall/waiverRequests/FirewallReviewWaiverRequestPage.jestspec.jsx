@@ -153,6 +153,78 @@ describe('FirewallReviewWaiverRequestPage', () => {
     });
   });
 
+  it('preserves expireWhenRemediationAvailable=true on approve when the loaded request has the flag set', async () => {
+    const remediationWaiverRequest = { ...waiverRequest, expireWhenRemediationAvailable: true, expiryTime: null };
+    axiosMock
+      .onGet(getViewOrUpdatePolicyWaiverRequestUrl('repository', 'npm-central', 'req-1'))
+      .reply(200, { ...remediationWaiverRequest, canReview: true });
+
+    const user = userEvent.setup();
+    render(<FirewallReviewWaiverRequestPage />, {
+      preloadedState: {
+        ...baseState,
+        firewallWaiverRequests: {
+          ...baseState.firewallWaiverRequests,
+          reviewPage: { ...baseState.firewallWaiverRequests.reviewPage, waiverRequest: remediationWaiverRequest },
+        },
+      },
+    });
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument());
+
+    // Verify dropdown displays "When Remediation Available" (not "Never")
+    const expiryDropdown = screen.getByRole('combobox', { name: /waiver expiration/i });
+    const selectedOption = Array.from(expiryDropdown.options).find((option) => option.selected);
+    expect(selectedOption.value).toBe('remediationAvailable');
+
+    await user.click(screen.getByRole('button', { name: /approve/i }));
+
+    await waitFor(() => {
+      expect(axiosMock.history.post.length).toBe(1);
+      const body = JSON.parse(axiosMock.history.post[0].data);
+      expect(body.status).toBe('APPROVED');
+      expect(body.expireWhenRemediationAvailable).toBe(true);
+      expect(body.expiryTime).toBeNull();
+    });
+  });
+
+  it('preserves expiryTime=null on approve when the loaded request was submitted as Never', async () => {
+    // useState('30') initial + no else branch = a Never request re-opens showing "30 Days" and
+    // approve-as-is silently issues a 30-day waiver. The load useEffect must reset to 'never'.
+    const neverWaiverRequest = { ...waiverRequest, expireWhenRemediationAvailable: false, expiryTime: null };
+    axiosMock
+      .onGet(getViewOrUpdatePolicyWaiverRequestUrl('repository', 'npm-central', 'req-1'))
+      .reply(200, { ...neverWaiverRequest, canReview: true });
+
+    const user = userEvent.setup();
+    render(<FirewallReviewWaiverRequestPage />, {
+      preloadedState: {
+        ...baseState,
+        firewallWaiverRequests: {
+          ...baseState.firewallWaiverRequests,
+          reviewPage: { ...baseState.firewallWaiverRequests.reviewPage, waiverRequest: neverWaiverRequest },
+        },
+      },
+    });
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument());
+
+    // Verify dropdown displays "Never" (not "30 Days")
+    const expiryDropdown = screen.getByRole('combobox', { name: /waiver expiration/i });
+    const selectedOption = Array.from(expiryDropdown.options).find((option) => option.selected);
+    expect(selectedOption.value).toBe('never');
+
+    await user.click(screen.getByRole('button', { name: /approve/i }));
+
+    await waitFor(() => {
+      expect(axiosMock.history.post.length).toBe(1);
+      const body = JSON.parse(axiosMock.history.post[0].data);
+      expect(body.status).toBe('APPROVED');
+      expect(body.expiryTime).toBeNull();
+      expect(body.expireWhenRemediationAvailable).toBe(false);
+    });
+  });
+
   it('shows rejection reason field when Reject is clicked', async () => {
     const user = userEvent.setup();
     render(<FirewallReviewWaiverRequestPage />, { preloadedState: baseState });

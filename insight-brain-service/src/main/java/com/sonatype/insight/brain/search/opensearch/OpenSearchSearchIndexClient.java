@@ -384,7 +384,7 @@ public class OpenSearchSearchIndexClient
       long totalNumberOfHits;
       boolean isExactTotalNumberOfHits;
 
-      List<String> currentSearchAfter = searchAfter;
+      List<String> currentSearchAfter = (searchAfter == null || searchAfter.isEmpty()) ? null : searchAfter;
       int desiredStartIndex = currentSearchAfter == null ? (finalPage - 1) * pageSize : 0;
 
       int maxResultWindow = getMaxResultWindow();

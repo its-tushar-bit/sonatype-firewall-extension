@@ -59,6 +59,9 @@ import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.core.search.HitsMetadata;
 import org.opensearch.client.opensearch.core.search.TotalHits;
 import org.opensearch.client.opensearch.core.search.TotalHitsRelation;
+import org.opensearch.client.opensearch.indices.GetIndicesSettingsRequest;
+import org.opensearch.client.opensearch.indices.GetIndicesSettingsResponse;
+import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OpenSearchSearchIndexClientTest
@@ -282,6 +285,70 @@ public class OpenSearchSearchIndexClientTest
     assertThat(terms.include().isTerms()).isTrue();
     assertThat(terms.include().terms())
         .containsExactlyInAnyOrder("cve-2021-44228", "cve-2021-33813");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void searchIndex_emptySearchAfter_doesNotSetSearchAfterOnRequest() throws Exception {
+    // The default violations/vulnerabilities/applications read path passes List.of() (empty, not
+    // null). OpenSearch rejects search_after:[] with illegal_argument_exception, 500ing every
+    // first-page request; the empty cursor must be treated as "no cursor".
+    Hit<Map> hit = mock(Hit.class);
+    when(hit.source()).thenReturn(Map.of("itemType", "POLICY_VIOLATION"));
+    stubSearchResponse(List.of(hit), 1L);
+
+    stubMaxResultWindow();
+    client.searchIndex("itemType:policy_violation", 10, 0, false, false, List.of());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    assertThat(captor.getValue().searchAfter()).isEmpty();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void searchIndex_populatedSearchAfter_setsSearchAfterOnRequest() throws Exception {
+    Hit<Map> hit = mock(Hit.class);
+    when(hit.source()).thenReturn(Map.of("itemType", "POLICY_VIOLATION"));
+    stubSearchResponse(List.of(hit), 1L);
+
+    stubMaxResultWindow();
+    client.searchIndex("itemType:policy_violation", 10, 0, false, false, List.of("1.5", "doc-1"));
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    assertThat(captor.getValue().searchAfter()).containsExactly("1.5", "doc-1");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void searchIndex_emptySearchAfter_pageTwo_offsetsToSecondWindow() throws Exception {
+    // An empty cursor on page >= 2 must be treated as "no cursor" so the offset falls back to
+    // (page-1)*pageSize. Before normalize-at-entry the empty list was treated as a cursor, forcing
+    // desiredStartIndex=0 on every page, so page 2 re-requested the first window (page-1 rows) and
+    // the vulnerabilities list truncated on first render.
+    // A page-2 request offsets past the single stub hit, so its source is never read; only the
+    // built SearchRequest matters here.
+    Hit<Map> hit = mock(Hit.class);
+    stubSearchResponse(List.of(hit), 1L);
+
+    stubMaxResultWindow();
+    client.searchIndex("itemType:policy_violation", 10, 2, false, false, List.of());
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    // desiredStartIndex=(2-1)*10=10, so size=desiredStartIndex+pageSize=20 (the SECOND window),
+    // not 10 (a repeat of the first page).
+    assertThat(captor.getValue().size()).isEqualTo(20);
+  }
+
+  private void stubMaxResultWindow() throws Exception {
+    OpenSearchIndicesClient indicesClient = mock(OpenSearchIndicesClient.class);
+    GetIndicesSettingsResponse settingsResponse = mock(GetIndicesSettingsResponse.class);
+    when(settingsResponse.result()).thenReturn(Map.of());
+    when(indicesClient.getSettings(any(GetIndicesSettingsRequest.class))).thenReturn(settingsResponse);
+    when(openSearchClient.indices()).thenReturn(indicesClient);
+    doReturn(INDEX_NAME).when(client).getRealIndexName();
   }
 
   @SuppressWarnings("unchecked")

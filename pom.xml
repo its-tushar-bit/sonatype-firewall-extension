@@ -77,7 +77,7 @@
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>10.1.0</drools.version>
-    <selenium.version>4.44.0</selenium.version>
+    <selenium.version>4.46.0</selenium.version>
     <httpcomponents.version>4.5.14</httpcomponents.version>
     <nexus-scm-client.version>3.2.8-01</nexus-scm-client.version>
     <nexus-dependency-management.version>2.2.13-01</nexus-dependency-management.version>

@@ -24,7 +24,6 @@ import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 import { validateUrlIsHttp } from 'MainRoot/configuration/webhook/webhookActions';
-import routerInstance from 'MainRoot/router/routerInstance';
 
 function EditWebhook({
   isLoading,
@@ -66,9 +65,10 @@ function EditWebhook({
 
   const { url, description, secretKey } = inputFields;
 
-  // Determine if we're in Firewall context
-  const currentStateName = routerInstance.stateService.current.name || '';
-  const isFirewallContext = currentStateName.startsWith('firewall.');
+  // Derive Firewall context from product features set by fetchProductFeatures.
+  // State-name detection (startsWith 'firewall.') fails for NOUX routes where
+  // the state is 'editWebhook', not 'firewall.editWebhook'.
+  const isFirewallContext = !isAppWebhooksSupported;
 
   // Helper function to normalize event type for comparison
   // Converts Firewall display names back to stored names for matching
@@ -91,19 +91,8 @@ function EditWebhook({
     const normalizedEventType = normalizeEventTypeForComparison(eventType);
     const isSelected = includes(normalizedEventType, selectedEventTypes);
 
-    // Only disable "Application Evaluation" in Lifecycle context when license is missing.
-    // In Firewall context, isAppWebhooksSupported is false (to indicate context), but checkboxes should NOT be disabled.
-    // Firewall event types ("Container Evaluation", "Organization and Repository Management") should never be disabled here.
-    const isDisabled = eventType === 'Application Evaluation' && !isAppWebhooksSupported && !isFirewallContext;
-
     return (
-      <NxCheckbox
-        key={id}
-        checkboxId={id}
-        isChecked={isSelected}
-        onChange={() => toggleEventType(normalizedEventType)}
-        disabled={isDisabled}
-      >
+      <NxCheckbox key={id} checkboxId={id} isChecked={isSelected} onChange={() => toggleEventType(normalizedEventType)}>
         {eventType}
       </NxCheckbox>
     );
@@ -200,11 +189,6 @@ function EditWebhook({
                   inputAttributes={{ maxLength: '512', autoComplete: 'new-password' }}
                 />
               </NxFormGroup>
-              {!isAppWebhooksSupported && !isFirewallContext && (
-                <NxInfoAlert id="application-evaluation-disabled-message">
-                  Webhooks with Application Evaluation event types are not supported by your license.
-                </NxInfoAlert>
-              )}
               <NxFieldset id="event-types" label="Event Types" sublabel="which trigger this Webhook">
                 {availableEventTypes.sort().map(renderCheckbox)}
               </NxFieldset>

@@ -840,4 +840,75 @@ describe('nexusOneClassicEmbedRoutes', () => {
       expectIsDirtyPathResolvesToBoolean(state()?.data?.isDirty);
     });
   });
+
+  // CLM-42961: Webhooks list page (read-only, no form, no dirty guard)
+  describe('listWebhooks Classic-embed admin route', () => {
+    const state = () => router.stateRegistry.get('listWebhooks');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /webhooks/list', () => {
+      expect(state()?.url).toBe('/webhooks/list');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('omits isDirty data property (list page with no form)', () => {
+      expect(state()?.data?.isDirty).toBeUndefined();
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // CLM-42961: Create / edit webhook pages the Webhooks list navigates to via stateGo(...).
+  describe.each<[string, string]>([
+    ['addWebhook', '/webhooks/create'],
+    ['editWebhook', '/webhooks/{webhookId}'],
+  ])('%s Classic-embed sub-route', (stateName, expectedUrl) => {
+    const state = () => router.stateRegistry.get(stateName);
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it(`is registered at ${expectedUrl}`, () => {
+      expect(state()?.url).toBe(expectedUrl);
+    });
+
+    it('carries the webhooks dirty path so the shell dirty guard fires on nav', () => {
+      expect(state()?.data?.isDirty).toEqual(['webhooks', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when authorization fails', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      const rootState = rootReducer(undefined, { type: '@@INIT' });
+      const [slice, field] = state()?.data?.isDirty ?? [];
+      expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
+    });
+  });
 });

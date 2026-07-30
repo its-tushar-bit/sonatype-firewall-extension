@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import com.microsoft.playwright.TimeoutError;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
@@ -51,6 +52,8 @@ import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.pages.UserManagementPage;
 import com.sonatype.clm.testing.playwright.pages.UserTokenConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.UserTokenConfigurationPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.WebhookEditorPage;
+import com.sonatype.clm.testing.playwright.pages.WebhookListPage;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.clm.testing.playwright.utils.HdsStubs;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -1488,5 +1491,148 @@ public class NexusOneClassicEmbedPlaywrightTest
         waitForSubmitMask();
       }
     }
+  }
+
+  // ===================================================================================
+  // Webhooks embed tests (CLM-42961)
+  // ===================================================================================
+
+  /**
+   * CLM-42961: Webhooks list page mounts natively at {@code /webhooks/list}
+   * on the Nexus One bundle, rendering the Classic list as-is inside the
+   * Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedWebhooksList_rendersClassicListInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/list"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    WebhookListPage webhooksPage = new WebhookListPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(webhooksPage.container()).isVisible();
+    assertThat(webhooksPage.heading()).isVisible();
+    assertThat(webhooksPage.tileHeading()).isVisible();
+  }
+
+  /**
+   * CLM-42961 dirty-guard cancel path: editing the URL field dirties the form;
+   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user on
+   * the edit page with the dirty state intact.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedWebhookEditor_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/create"));
+
+    WebhookEditorPage editorPage = new WebhookEditorPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    editorPage.container().waitFor();
+    // Dirty value is client-only; no server-side cleanup needed.
+    editorPage.urlInput().fill("https://dirty-webhook-test.invalid");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/list"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(editorPage.container()).isVisible();
+    assertThat(editorPage.urlInput()).hasValue("https://dirty-webhook-test.invalid");
+  }
+
+  /**
+   * CLM-42961 dirty-guard continue path: Continue closes the modal and lets
+   * the transition proceed; the edit page unmounts and the user lands on
+   * another Classic-embedded page.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedWebhookEditor_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/create"));
+
+    WebhookEditorPage editorPage = new WebhookEditorPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    editorPage.container().waitFor();
+    editorPage.urlInput().fill("https://dirty-webhook-test.invalid");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(editorPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42961 auth gate: a user without CONFIGURE_SYSTEM navigating to
+   * /webhooks/list is redirected to the Nexus One violations dashboard before
+   * the webhooks list ever mounts. Covers the redirectTo function on the route.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedWebhooksList_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/list"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    WebhookListPage webhooksPage = new WebhookListPage();
+    assertThat(webhooksPage.container()).isHidden();
+  }
+
+  /**
+   * CLM-42961 save-through-shell: creating a webhook through the embedded editor
+   * persists to the database; reloading the list shows the persisted webhook.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedWebhookEditor_saveThroughShellPersists() {
+    String webhookUrl = "https://pw-webhook-test-" + TemporaryEntity.uuid().substring(0, 8) + ".invalid";
+
+    // Create a new webhook
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/create"));
+
+    WebhookEditorPage editorPage = new WebhookEditorPage();
+    WebhookListPage listPage = new WebhookListPage();
+
+    editorPage.container().waitFor();
+    editorPage.urlInput().fill(webhookUrl);
+    // Select an event type to make the webhook valid
+    editorPage.eventTypeCheckbox("Policy Evaluation").click();
+
+    editorPage.submitButton().click();
+    editorPage.pageTitle()
+        .waitFor(
+            new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN));
+
+    // Verify the webhook appears in the list
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/list"));
+    assertThat(listPage.webhookItemByUrl(webhookUrl)).isVisible();
+
+    // Cleanup: delete the webhook
+    listPage.webhookItemByUrl(webhookUrl).click();
+    editorPage.container().waitFor();
+    editorPage.deleteButton().click();
+    assertThat(editorPage.deleteModal()).isVisible();
+    editorPage.deleteModalContinueButton().click();
+    editorPage.deleteModal()
+        .waitFor(
+            new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN));
+
+    // Verify deletion
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/webhooks/list"));
+    assertThat(listPage.webhookItemByUrl(webhookUrl)).not().isVisible();
   }
 }

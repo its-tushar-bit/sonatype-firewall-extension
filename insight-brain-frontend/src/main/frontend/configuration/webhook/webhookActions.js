@@ -60,24 +60,13 @@ function fetchProductFeatures() {
         const isAppWebhooksSupported = productFeatures.includes('webhooks-for-applications');
         const isRepoWebhooksSupported = productFeatures.includes('webhooks-for-repositories');
 
-        // Detect current product context from URL path and document title
-        // Note: This detection mechanism is intentionally separate from WebhookListItem's router-based detection.
-        // Actions layer uses URL/title checking as it executes outside the React component lifecycle.
-        // Firewall URLs contain '/firewall/' or '/malware-defense/' or 'repository firewall' in title
-        const isFirewallContext =
-          (window.location.pathname && window.location.pathname.includes('/firewall/')) ||
-          (window.location.pathname && window.location.pathname.includes('/malware-defense/')) ||
-          (window.location.hash && window.location.hash.includes('/firewall/')) ||
-          (window.location.hash && window.location.hash.includes('/malware-defense/')) ||
-          (document.title && document.title.toLowerCase().includes('repository firewall'));
-
-        // Check if user has the appropriate license for the current context
-        if (isFirewallContext && !isRepoWebhooksSupported) {
-          throw 'Webhooks feature is not supported for Repository Firewall by your license.';
+        // Derive context from product features, not URL/title detection.
+        // URL/title detection fails for NOUX flat routes (e.g. #/webhooks/list has no '/firewall/').
+        // Firewall-only customers have 'webhooks-for-repositories' but not 'webhooks-for-applications'.
+        if (!isAppWebhooksSupported && !isRepoWebhooksSupported) {
+          throw 'Webhooks feature is not supported by your license.';
         }
-        if (!isFirewallContext && !isAppWebhooksSupported) {
-          throw 'Webhooks feature is not supported for Lifecycle by your license.';
-        }
+        const isFirewallContext = !isAppWebhooksSupported;
 
         // Return true for Lifecycle context (app webhooks), false for Firewall context (repo webhooks)
         return !isFirewallContext;

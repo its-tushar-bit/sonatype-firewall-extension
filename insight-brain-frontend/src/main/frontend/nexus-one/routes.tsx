@@ -34,6 +34,8 @@ import UserTokensConfiguration from 'MainRoot/configuration/userTokensConfigurat
 import AuthorizedAdvancedSearchConfig from 'MainRoot/nexus-one/AuthorizedAdvancedSearchConfig';
 import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
+import ListWebhooksContainer from 'MainRoot/configuration/webhook/listWebhooks/ListWebhooksContainer';
+import EditWebhookContainer from 'MainRoot/configuration/webhook/editWebhook/EditWebhookContainer';
 import ApiPage from 'MainRoot/api/ApiPage';
 import HostedReposPage from 'MainRoot/hostedRepos/HostedReposPage';
 import HostedReposListPage from 'MainRoot/hostedRepos/HostedReposListPage';
@@ -846,6 +848,41 @@ router.stateRegistry.register({
   data: {
     title: 'Administrator Edit',
     isDirty: ['administratorsConfig', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+// Webhooks list + create/edit sub-pages the list navigates to via stateGo(...).
+// State names match the Classic states + gear-menu `hrefFromStateName('listWebhooks')`.
+// mountClassicComponent applies shell offsets on each — see successMetricsConfiguration above.
+router.stateRegistry.register({
+  name: 'listWebhooks',
+  url: '/webhooks/list',
+  component: mountClassicComponent(ListWebhooksContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Webhooks',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'addWebhook',
+  url: '/webhooks/create',
+  component: mountClassicComponent(EditWebhookContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Create Webhook',
+    isDirty: ['webhooks', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'editWebhook',
+  url: '/webhooks/{webhookId}',
+  component: mountClassicComponent(EditWebhookContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Edit Webhook',
+    isDirty: ['webhooks', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

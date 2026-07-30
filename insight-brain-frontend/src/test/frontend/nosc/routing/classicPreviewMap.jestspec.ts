@@ -164,6 +164,10 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/advancedSearchConfig')).toBe('/advancedSearchConfig');
     });
 
+    it('keeps the Webhooks list path identical on both bundles (CLM-42961)', () => {
+      expect(toNexusOneEquivalent('/webhooks/list')).toBe('/webhooks/list');
+    });
+
     it('falls back to NEXUS_ONE_DEFAULT_PATH for unmapped Classic URLs', () => {
       // `/orgsAndPolicies` (with the typo'd lowercase first letter)
       // and a fake nonsense path are both genuinely unmapped — they
@@ -302,6 +306,15 @@ describe('classicPreviewMap', () => {
 
     it('maps Advanced Search admin back to the same Classic path (CLM-42963)', () => {
       expect(toClassicEquivalent('/advancedSearchConfig')).toBe('/advancedSearchConfig');
+    });
+
+    it('maps Webhooks list admin back to the same Classic path (CLM-42961)', () => {
+      expect(toClassicEquivalent('/webhooks/list')).toBe('/webhooks/list');
+    });
+
+    it('preserves /webhooks sub-paths when toggling to Classic (CLM-42961)', () => {
+      expect(toClassicEquivalent('/webhooks/create')).toBe('/webhooks/create');
+      expect(toClassicEquivalent('/webhooks/some-webhook-id')).toBe('/webhooks/some-webhook-id');
     });
 
     it('falls back to CLASSIC_DEFAULT_PATH for unmapped Preview URLs', () => {
@@ -478,6 +491,9 @@ describe('classicPreviewMap', () => {
       ['/saml'],
       ['/userTokensConfiguration'],
       ['/advancedSearchConfig'],
+      ['/webhooks/list'],
+      ['/webhooks/create'],
+      ['/webhooks/some-webhook-id'],
     ])('nexus-one %s -> classic -> nexus-one returns to a path that maps back', (previewPath) => {
       const classicEquivalent = toClassicEquivalent(previewPath);
       const backToPreview = toNexusOneEquivalent(classicEquivalent);

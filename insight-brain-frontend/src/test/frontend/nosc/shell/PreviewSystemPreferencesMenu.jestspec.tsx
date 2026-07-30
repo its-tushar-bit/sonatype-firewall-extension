@@ -18,15 +18,12 @@ import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 // all spies with jest.restoreAllMocks() in its afterEach — otherwise the spy
 // survives only the first test in the file.
 const mockHref = jest.fn(() => '#');
-beforeEach(() => {
-  mockHref.mockClear();
-  jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue({ href: mockHref } as ReturnType<
-    typeof RouterStateContext.useRouterState
-  >);
-});
 
 beforeAll(installRadixJsdomShims);
-beforeEach(() => mockHref.mockClear());
+beforeEach(() => {
+  mockHref.mockClear();
+  jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue({ href: mockHref });
+});
 
 function renderInTheme(preloadedState: object) {
   return render(
@@ -95,13 +92,6 @@ describe('PreviewSystemPreferencesMenu', () => {
   });
 
   it('calls href with plain "advancedSearchConfig" state, never firewall-prefixed - CLM-42963', async () => {
-    // Regression guard for the sibling bug pattern (firewall-prefixed href resolving
-    // to a NOUX state that doesn't exist). Advanced Search's `showIf` explicitly
-    // excludes firewall-only-license and standalone-firewall modes, so the item
-    // is only rendered under non-firewall licenses where `firewallPrefix === ''`.
-    // Under those conditions, `prefix: firewallPrefix` would still produce the
-    // plain state name — so the effective guard is "the entry must not hardcode
-    // `firewall.advancedSearchConfig` as its stateName". This test enforces that.
     const user = userEvent.setup();
 
     renderInTheme({
@@ -122,10 +112,6 @@ describe('PreviewSystemPreferencesMenu', () => {
   });
 
   it('hides Advanced Search entry entirely under firewall-only license - CLM-42963', async () => {
-    // Advanced Search is not part of the Firewall product feature set, so the entry
-    // must be hidden under a firewall-only license. This is the actual mechanism
-    // that prevents the sibling gear-menu prefix bug for this page — the item is
-    // never rendered in the license mode that would trigger the broken href.
     const user = userEvent.setup();
 
     renderInTheme({
@@ -138,6 +124,35 @@ describe('PreviewSystemPreferencesMenu', () => {
     expect(
       within(menu).queryByTestId('nexus-one-top-nav-settings-item-advanced-search')
     ).not.toBeInTheDocument();
+  });
+
+  // Regression guard: Webhooks gear-menu entry must call href with bare
+  // 'listWebhooks', never 'firewall.listWebhooks'. The prefix was dropped
+  // because listWebhooks is embedded in the NOUX shell, not a Classic
+  // firewall-prefixed state. CLM-42961.
+  it('calls href with listWebhooks (not firewall.listWebhooks) for Webhooks gear-menu entry', async () => {
+    const user = userEvent.setup();
+
+    renderInTheme({
+      mainHeader: { permissions: { CONFIGURE_SYSTEM: true } },
+      productFeatures: {
+        productFeatures: {
+          'webhooks-for-applications': true,
+          'webhook-configuration': true,
+        },
+      },
+      productLicense: {
+        license: {
+          products: ['Sonatype Repository Firewall'],
+        },
+      },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    const menu = await screen.findByRole('menu');
+    within(menu).getByTestId('nexus-one-top-nav-settings-item-webhooks');
+    expect(mockHref).toHaveBeenCalledWith('listWebhooks');
+    expect(mockHref).not.toHaveBeenCalledWith('firewall.listWebhooks');
   });
 
   it('Waived Components links to the unprefixed state even under a firewall-only license', async () => {

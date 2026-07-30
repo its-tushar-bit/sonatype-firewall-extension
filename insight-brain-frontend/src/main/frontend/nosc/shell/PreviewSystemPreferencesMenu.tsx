@@ -132,7 +132,7 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
   // mainHeader/MenuBar/SystemPreferencesMenu/SystemPreferencesMenu.jsx.
   // Keep these two lists in lock-step until the Classic menu is retired.
   // Exception: pages embedded in the NOUX shell (e.g. Administrators, Product
-  // License, Advanced Search, Waived Components, LDAP, User Tokens, SAML) intentionally omit `prefix` —
+  // License, Advanced Search, Waived Components, LDAP, User Tokens, SAML, Webhooks) intentionally omit `prefix` —
   // they target the in-shell NOUX state directly, which does not use the
   // firewall-prefix routing Classic requires.
   const items: ItemSpec[] = [
@@ -246,8 +246,8 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     },
     {
       label: 'Webhooks',
+      // No prefix: listWebhooks is embedded in NOUX, not a Classic firewall-prefixed state.
       stateName: 'listWebhooks',
-      prefix: firewallPrefix,
       // Classic wraps this in an outer CONFIGURE_SYSTEM check and a
       // not-supported tooltip; we fold both into showIf — if not
       // supported, the item is hidden (rather than disabled with a

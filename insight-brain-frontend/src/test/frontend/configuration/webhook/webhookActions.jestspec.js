@@ -293,7 +293,7 @@ describe('webhookActions', () => {
             lastAction = actions[actions.length - 1];
           expect(lastAction).toEqual({
             type: EDIT_WEBHOOK_LOAD_FAILED,
-            payload: 'Webhooks feature is not supported for Lifecycle by your license.',
+            payload: 'Webhooks feature is not supported by your license.',
           });
           done();
         });
@@ -438,7 +438,7 @@ describe('webhookActions', () => {
             lastAction = actions[actions.length - 1];
           expect(lastAction).toEqual({
             type: EDIT_WEBHOOK_LOAD_FAILED,
-            payload: 'Webhooks feature is not supported for Lifecycle by your license.',
+            payload: 'Webhooks feature is not supported by your license.',
           });
           done();
         });

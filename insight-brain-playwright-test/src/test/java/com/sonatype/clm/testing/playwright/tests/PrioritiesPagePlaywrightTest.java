@@ -247,11 +247,12 @@ public class PrioritiesPagePlaywrightTest
   @Category(RegressionTest.class)
   public void testPrioritiesPage_recommendationCellShowsWaiveViolationsForUnknownReachability() throws IOException {
     evaluator.evaluatePolicy();
+    PrioritiesPage prioritiesPage = new PrioritiesPage();
+    prioritiesPage.stubNoUpgradeRecommendations();
     openPrioritiesPage();
 
     PolicyViolation violation = firstSeedableViolation();
     String artifactId = violation.getComponentIdentifier().getCoordinates().get("artifactId");
-    PrioritiesPage prioritiesPage = new PrioritiesPage();
     PrioritiesPageAssertions assertions = reopenPrioritiesPageFilteredBy(artifactId);
     assertions.shouldShowWaiveViolationsRecommendationOnRow(prioritiesPage.rowByArtifactId(artifactId));
   }

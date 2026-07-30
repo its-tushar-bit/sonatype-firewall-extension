@@ -115,6 +115,8 @@ public class MtiqPrioritiesPagePlaywrightTest
   public void resetTestState() {
     // Clear clipboard grants so they don't leak into sibling tests in the same BrowserContext fork.
     context.clearPermissions();
+    // Drop any page.route intercepts so they don't leak into sibling tests in the same fork.
+    page.unrouteAll();
     // Reset the developer product mock to prevent state bleed into subsequent test classes.
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
   }
@@ -245,6 +247,7 @@ public class MtiqPrioritiesPagePlaywrightTest
   @Test
   public void testPrioritiesPage_recommendationCellShowsWaiveViolationsForUnknownReachability() throws IOException {
     evaluator.evaluatePolicy();
+    prioritiesPage.stubNoUpgradeRecommendations();
     openPrioritiesPage();
 
     PolicyViolation violation = firstSeedableViolation();

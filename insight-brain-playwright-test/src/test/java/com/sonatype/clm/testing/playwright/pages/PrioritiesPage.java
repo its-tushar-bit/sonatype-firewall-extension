@@ -7,8 +7,10 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Route;
 import com.microsoft.playwright.options.AriaRole;
 
 public class PrioritiesPage
@@ -59,6 +61,21 @@ public class PrioritiesPage
 
   public Locator recommendationCell(Locator row) {
     return row.locator("div.iq-priorities-table__recommendation");
+  }
+
+  /**
+   * Stubs the per-row recommendation fetch with a no-upgrade payload so the recommendation cell
+   * deterministically resolves to the "Waive violations" branch. In non-bulk mode every row fetches
+   * {@code allVersions}, but the embedded HdsMockServer only stubs the bulk version-scoring path, so
+   * the per-row fetch otherwise 404s and the cell falls through to "Investigate". Call before opening
+   * the page; callers unroute in {@code @After} via {@code page.unrouteAll()}.
+   */
+  public void stubNoUpgradeRecommendations() {
+    page.route(Pattern.compile(".*/allVersions(\\?.*)?$"),
+        route -> route.fulfill(new Route.FulfillOptions()
+            .setStatus(200)
+            .setContentType("application/json")
+            .setBody("{\"allVersions\":[],\"remediation\":{}}")));
   }
 
   /** Button that opens the Create Pull Request modal for a component row. */

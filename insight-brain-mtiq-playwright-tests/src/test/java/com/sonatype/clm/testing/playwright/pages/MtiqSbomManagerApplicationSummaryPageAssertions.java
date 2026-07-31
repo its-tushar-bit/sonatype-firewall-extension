@@ -21,7 +21,7 @@ public class MtiqSbomManagerApplicationSummaryPageAssertions
   public void shouldShowSbomsTileWithHeader() {
     assertThat(page.sbomsTile()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
     assertThat(page.sbomsTileHeader()).containsText("SBOMs");
-    assertThat(page.sbomsTileImportButton()).isVisible();
+    assertThat(page.sbomsTileImportButton()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
   }
 
   public void shouldShowSbomsTableColumns() {

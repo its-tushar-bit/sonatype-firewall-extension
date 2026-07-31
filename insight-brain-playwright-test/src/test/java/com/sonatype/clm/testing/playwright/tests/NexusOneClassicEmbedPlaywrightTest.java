@@ -1599,6 +1599,8 @@ public class NexusOneClassicEmbedPlaywrightTest
   @Test
   @Category(RegressionTest.class)
   public void testEmbeddedWebhookEditor_saveThroughShellPersists() {
+    setFeatures(LicensedFeature.values());
+
     String webhookUrl = "https://pw-webhook-test-" + TemporaryEntity.uuid().substring(0, 8) + ".invalid";
 
     // Create a new webhook

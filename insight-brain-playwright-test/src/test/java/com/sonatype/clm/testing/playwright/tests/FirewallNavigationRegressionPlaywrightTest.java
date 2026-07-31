@@ -81,7 +81,7 @@ public class FirewallNavigationRegressionPlaywrightTest
     navigateAndWaitForUrl(WebhookEditorPage.firewallCreateUrl(), routeOf(WebhookEditorPage.firewallCreateUrl()));
     WebhookEditorPage webhookEditor = new WebhookEditorPage();
     assertThat(webhookEditor.eventTypesFieldset()).isVisible(PlaywrightTiming.VISIBLE_OPTS);
-    assertThat(webhookEditor.eventTypeCheckbox("Container Evaluation")).isVisible();
+    assertThat(webhookEditor.eventTypeCheckbox("Policy Evaluation")).isVisible();
   }
 
   private static String routeOf(String pageUrl) {

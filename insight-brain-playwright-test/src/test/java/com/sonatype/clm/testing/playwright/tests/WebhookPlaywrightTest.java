@@ -117,7 +117,7 @@ public class WebhookPlaywrightTest
     playwrightRefreshOrOpen(WebhookEditorPage.createUrl());
 
     editorAssertions.shouldShowLoadErrorContaining(
-        "Webhooks feature is not supported for Lifecycle by your license");
+        "Webhooks feature is not supported by your license");
   }
 
   @Test

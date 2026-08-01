@@ -13,7 +13,7 @@ import {
 } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 
 describe('nativeClassicEmbedSlugs', () => {
-  it('embeds Success Metrics, API, Repositories, Legal, Orgs and Policies, and Enterprise/Operational Reporting', () => {
+  it('embeds Success Metrics, API, Repositories, Legal, Orgs and Policies, Reporting, and App Detail Quick Action targets', () => {
     expect(NATIVE_CLASSIC_EMBED_SLUGS).toEqual([
       'success-metrics',
       'api',
@@ -21,6 +21,9 @@ describe('nativeClassicEmbedSlugs', () => {
       'legal',
       'orgs-and-policies',
       'reports',
+      'policies',
+      'source-control',
+      'waiver-requests',
     ]);
   });
 
@@ -31,11 +34,19 @@ describe('nativeClassicEmbedSlugs', () => {
     expect(isNativeClassicEmbedSlug('legal')).toBe(true);
     expect(isNativeClassicEmbedSlug('orgs-and-policies')).toBe(true);
     expect(isNativeClassicEmbedSlug('reports')).toBe(true);
+    expect(isNativeClassicEmbedSlug('policies')).toBe(true);
+    expect(isNativeClassicEmbedSlug('source-control')).toBe(true);
+    expect(isNativeClassicEmbedSlug('waiver-requests')).toBe(true);
     expect(isNativeClassicEmbedSlug('organizations')).toBe(false);
   });
 
-  it('CLEAN_PATH_OWNED_ELSEWHERE lists repositories and legal', () => {
-    expect([...CLEAN_PATH_OWNED_ELSEWHERE].sort()).toEqual(['legal', 'repositories']);
+  it('CLEAN_PATH_OWNED_ELSEWHERE lists repositories, legal, policies, and waiver-requests', () => {
+    expect([...CLEAN_PATH_OWNED_ELSEWHERE].sort()).toEqual([
+      'legal',
+      'policies',
+      'repositories',
+      'waiver-requests',
+    ]);
   });
 
   it('usesEmbeddedHrefPrimary is true for every embed except CLEAN_PATH_OWNED_ELSEWHERE', () => {

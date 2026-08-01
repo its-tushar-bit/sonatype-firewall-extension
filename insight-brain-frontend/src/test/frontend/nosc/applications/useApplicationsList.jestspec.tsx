@@ -9,6 +9,7 @@ import {
   APPLICATIONS_INDEX_NOT_READY_MESSAGE,
   useApplicationsList,
 } from 'MainRoot/nosc/applications/useApplicationsList';
+import { EMPTY_APPLICATIONS_LIST_FILTERS } from 'MainRoot/nosc/applications/applicationsListFilters';
 import { getApplicationsListUrl } from 'MainRoot/util/CLMLocation';
 
 const OK_BODY = {
@@ -211,10 +212,8 @@ describe('useApplicationsList', () => {
           orderBy: 'lastEvaluationTime',
           page: 1,
           filters: {
+            ...EMPTY_APPLICATIONS_LIST_FILTERS,
             stageIds: new Set(['build']),
-            organizationIds: new Set(),
-            applicationIds: new Set(),
-            threatRange: [0, 10],
           },
         },
       }),
@@ -247,10 +246,11 @@ describe('useApplicationsList', () => {
         orderBy: 'lastEvaluationTime',
         page: 1,
         filters: {
+          ...EMPTY_APPLICATIONS_LIST_FILTERS,
           stageIds: new Set(['build']),
           organizationIds: new Set(['org-java']),
-          applicationIds: new Set(),
-          threatRange: [0, 10],
+          policyTypes: new Set(['security']),
+          violationStates: new Set(['OPEN']),
         },
       }),
     );
@@ -259,6 +259,8 @@ describe('useApplicationsList', () => {
     expect(result.current.orderBy).toBe('lastEvaluationTime');
     expect(result.current.filters.stageIds.has('build')).toBe(true);
     expect(result.current.filters.organizationIds.has('org-java')).toBe(true);
+    expect(result.current.filters.policyTypes.has('security')).toBe(true);
+    expect(result.current.filters.violationStates.has('OPEN')).toBe(true);
   });
 
   it('resetFilters clears active selections and resets page', async () => {

@@ -15,6 +15,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.IndexGroupedCountKeys;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -40,11 +41,15 @@ import org.slf4j.LoggerFactory;
  * {@code countDistinct(componentHash)} so counts stay in distinct-component units. Friendly
  * display names for those keys are resolved from ODS owner tables for the filter rail.
  * <p>
- * Round trips are constant with respect to estate size: two {@code termsAggregation} calls for
- * key discovery plus one {@link IndexReadSession#countDistinctGroupedBy} call per facet group
- * (organizations, applications, stages) on a single shared session. The per-key
- * {@code countDistinct} loop is only a fallback for backends that do not implement grouped
- * distinct counting, and stays bounded by the entry caps below.
+ * On backends that implement {@link IndexReadSession#countDistinctGroupedBy}, round trips are
+ * constant with respect to estate size: two {@code termsAggregation} calls for key discovery plus
+ * one grouped call per facet group (organizations, applications, stages) on a single shared
+ * session. Backends without grouped distinct counting fall back to the per-key
+ * {@code countDistinct} loop, which issues one query per key and so scales with the entry caps
+ * below rather than staying constant.
+ * <p>
+ * Grouped results are keyed by the lowercased group value on every backend (see
+ * {@link IndexGroupedCountKeys}), so counts are read back with that key rather than the verbatim id.
  */
 @Named
 @Singleton
@@ -110,6 +115,7 @@ final class ComponentsListFacetsBuilder
             facets.applications == null ? Set.of() : facets.applications.keySet());
       }
       facets.stages = countLicensedStages(session, componentQuery);
+      facets.stageNames = resolveStageNames(facets.stages == null ? Set.of() : facets.stages.keySet());
       return facets;
     }
   }
@@ -174,7 +180,8 @@ final class ComponentsListFacetsBuilder
 
     Map<String, Long> counts = new LinkedHashMap<>();
     for (String groupValue : groupValues) {
-      counts.put(groupValue, grouped == null ? 0L : grouped.getOrDefault(groupValue, 0L));
+      counts.put(groupValue,
+          grouped == null ? 0L : grouped.getOrDefault(IndexGroupedCountKeys.lookupKey(groupValue), 0L));
     }
     return counts.isEmpty() ? null : counts;
   }
@@ -270,7 +277,7 @@ final class ComponentsListFacetsBuilder
 
     Map<String, Long> counts = new LinkedHashMap<>();
     for (String stageId : licensedStageIds) {
-      long count = grouped == null ? 0L : grouped.getOrDefault(stageId, 0L);
+      long count = grouped == null ? 0L : grouped.getOrDefault(IndexGroupedCountKeys.lookupKey(stageId), 0L);
       if (count > 0) {
         counts.put(stageId, count);
       }
@@ -278,11 +285,26 @@ final class ComponentsListFacetsBuilder
     return counts.isEmpty() ? null : counts;
   }
 
+  private Map<String, String> resolveStageNames(final Set<String> stageIds) {
+    if (stageIds.isEmpty()) {
+      return null;
+    }
+    Map<String, String> names = new LinkedHashMap<>();
+    for (StageType stageType : stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)) {
+      if (stageType != null && stageIds.contains(stageType.getId())) {
+        String name = StringUtils.trimToNull(stageType.getName());
+        names.put(stageType.getId(), name != null ? name : stageType.getId());
+      }
+    }
+    return names.isEmpty() ? null : names;
+  }
+
+  /** Keyed like {@code countDistinctGroupedBy} so the caller reads both paths with one lookup key. */
   private Map<String, Long> countStagesPerKey(final String violationQuery, final List<String> stageIds) {
     Map<String, Long> counts = new LinkedHashMap<>();
     for (String stageId : stageIds) {
       String stageClause = ComponentsListViolationQuerySupport.buildStageFilterClause(Set.of(stageId));
-      counts.put(stageId, searchIndexClient.countDistinct(
+      counts.put(IndexGroupedCountKeys.lookupKey(stageId), searchIndexClient.countDistinct(
           violationQuery + " AND " + stageClause,
           List.of(FieldIdentifier.COMPONENT_HASH.label)));
     }

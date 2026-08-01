@@ -13,7 +13,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
-import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,12 +50,7 @@ final class ApplicationsListIndexQueryBuilder
     }
 
     String baseQuery = buildApplicationQueryWithoutViolationScope(request);
-    List<PolicyThreatLevelFilter> threatFilters =
-        ApplicationsListViolationQuerySupport.effectiveThreatFilters(request);
-    Set<String> scopedApplicationIds = violationScopeResolver.resolveApplicationIds(
-        baseQuery,
-        request.stageIds,
-        threatFilters);
+    Set<String> scopedApplicationIds = violationScopeResolver.resolveApplicationIds(baseQuery, request);
     Set<String> effectiveApplicationIds =
         effectiveApplicationIdsAfterViolationScope(request, scopedApplicationIds);
 
@@ -68,6 +62,8 @@ final class ApplicationsListIndexQueryBuilder
     scoped.applicationIds = effectiveApplicationIds;
     // Stage/threat are already applied via violation-scope discovery into applicationIds.
     // Keep them on the DTO for card enrichment only — buildBaseApplicationClauses ignores them.
+    // Policy type / violation state are applied via violation-scope discovery alongside stage and
+    // threat; they stay on the DTO for card enrichment only.
     scoped.stageIds = request.stageIds;
     scoped.tagIds = request.tagIds;
     scoped.policyThreatCategories = request.policyThreatCategories;

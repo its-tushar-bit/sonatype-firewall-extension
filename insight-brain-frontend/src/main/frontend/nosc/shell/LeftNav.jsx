@@ -71,11 +71,9 @@ const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
  *
  * Hrefs all land inside the Nexus One Preview surface (`/preview/*`).
  * Per CLM-39640 review: clicking a Nexus One nav entry should keep
- * the user inside Nexus One: either landing on a native Preview page,
- * a Classic page mounted in-shell (embedded Classic mount), or a
- * Coming Soon stub that has a "Continue in Classic" escape hatch on
- * the page itself. The escape hatch belongs to the page, not the nav
- * click.
+ * the user inside Nexus One: either landing on a native page,
+ * an RSC page mounted in-shell, or a Coming Soon stub. TopNav owns
+ * the only Classic shell toggle.
  *
  * Per CLM-42168: Advanced Search and Vulnerability Lookup are no
  * longer separate LeftNav entries — Global Search (the top-nav

@@ -88,6 +88,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopFieldCollectorManager;
 import org.apache.lucene.util.BytesRef;
@@ -399,13 +400,26 @@ public class LuceneSearchIndexClient
     }
     Object[] fieldValues = new Object[sortFields.length];
     for (int i = 0; i < sortFields.length; i++) {
-      fieldValues[i] = decodeSortValue(sortFields[i].getType(), searchAfter.get(i));
+      fieldValues[i] = decodeSortValue(sortFields[i], searchAfter.get(i));
     }
     // Sentinel docId: the DOCUMENT_KEY tuple slot is the tie-breaker, so Lucene never consults it.
     return new FieldDoc(Integer.MAX_VALUE, Float.NaN, fieldValues);
   }
 
-  private static Object decodeSortValue(final SortField.Type type, final String raw) {
+  /**
+   * {@link SortedNumericSortField#getType()} is always {@link SortField.Type#CUSTOM}; cursor
+   * encode/decode must use {@link SortedNumericSortField#getNumericType()} (LONG/FLOAT/…) so
+   * Ana/index-query sorts (created-at, threat level, latest evaluation) can mint {@code nextSearchAfter}.
+   */
+  static SortField.Type sortValueType(final SortField sortField) {
+    if (sortField instanceof SortedNumericSortField sortedNumeric) {
+      return sortedNumeric.getNumericType();
+    }
+    return sortField.getType();
+  }
+
+  private static Object decodeSortValue(final SortField sortField, final String raw) {
+    SortField.Type type = sortValueType(sortField);
     try {
       return switch (type) {
         case STRING, STRING_VAL -> new BytesRef(raw);
@@ -426,14 +440,15 @@ public class LuceneSearchIndexClient
     SortField[] sortFields = sort.getSort();
     if (last instanceof FieldDoc fieldDoc && fieldDoc.fields != null) {
       for (int i = 0; i < fieldDoc.fields.length; i++) {
-        out.add(encodeSortValue(sortFields[i].getType(), fieldDoc.fields[i]));
+        out.add(encodeSortValue(sortFields[i], fieldDoc.fields[i]));
       }
     }
     return out;
   }
 
   /** Encodes a sort-tuple slot; null encodes to a re-decodable sentinel so a null boundary round-trips. */
-  private static String encodeSortValue(final SortField.Type type, final Object v) {
+  static String encodeSortValue(final SortField sortField, final Object v) {
+    SortField.Type type = sortValueType(sortField);
     if (v == null) {
       return switch (type) {
         case LONG, INT -> "MIN";

@@ -39,4 +39,13 @@ public class ComponentsListFacetsDTO
   /** Internal application id → display name for {@link #applications} keys. */
   @JsonInclude(Include.NON_NULL)
   public Map<String, String> applicationNames;
+
+  /**
+   * Stage id → display name for {@link #stages} keys (CLM-43211).
+   * <p>
+   * Unlike the Applications list, a component row carries no stage risk breakdown, so the rail has
+   * no page-row fallback to label a stage with — the names have to come from here.
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Map<String, String> stageNames;
 }

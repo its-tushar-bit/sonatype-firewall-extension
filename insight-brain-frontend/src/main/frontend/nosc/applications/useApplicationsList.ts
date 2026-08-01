@@ -13,8 +13,11 @@ import {
   mapApplicationsListResponse,
 } from 'MainRoot/nosc/applications/applicationsListApi';
 import {
+  APPLICATIONS_POLICY_TYPES,
+  APPLICATIONS_VIOLATION_STATES,
   ApplicationRiskScore,
   ApplicationsFilterFacetCounts,
+  zeroCountFacetEntries,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import {
   ApplicationsListFilterSetField,
@@ -78,6 +81,8 @@ const EMPTY_FACETS: ApplicationsFilterFacetCounts = {
   stages: [],
   organizations: [],
   applications: [],
+  policyTypes: zeroCountFacetEntries(APPLICATIONS_POLICY_TYPES),
+  violationStates: zeroCountFacetEntries(APPLICATIONS_VIOLATION_STATES),
 };
 
 export const APPLICATIONS_INDEX_NOT_READY_MESSAGE =

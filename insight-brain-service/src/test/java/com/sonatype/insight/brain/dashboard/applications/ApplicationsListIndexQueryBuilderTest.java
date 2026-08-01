@@ -11,8 +11,12 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.PolicyViolationState;
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -25,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -135,12 +139,11 @@ public class ApplicationsListIndexQueryBuilderTest
   public void buildApplicationQuery_stageFilter_usesViolationScopedApplicationIdsOnly() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
-    when(violationScopeResolver.resolveApplicationIds(any(), eq(Set.of("build")), eq(List.of())))
-        .thenReturn(Set.of("build-app"));
-
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.stageIds = Set.of("build");
+    when(violationScopeResolver.resolveApplicationIds(any(), same(request)))
+        .thenReturn(Set.of("build-app"));
 
     String query = newBuilder().buildApplicationQuery(request);
 
@@ -153,12 +156,11 @@ public class ApplicationsListIndexQueryBuilderTest
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
     PolicyThreatLevelFilter threatFilter = new PolicyThreatLevelFilter(8, 10);
-    when(violationScopeResolver.resolveApplicationIds(any(), eq(null), eq(List.of(threatFilter))))
-        .thenReturn(Set.of("critical-app"));
-
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.policyThreatLevelRanges = List.of(threatFilter);
+    when(violationScopeResolver.resolveApplicationIds(any(), same(request)))
+        .thenReturn(Set.of("critical-app"));
 
     String query = newBuilder().buildApplicationQuery(request);
 
@@ -170,13 +172,12 @@ public class ApplicationsListIndexQueryBuilderTest
   public void buildApplicationQuery_orgAndApplicationAndStageFilter_keepsAllViolationScopedOrgApps() {
     when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
     when(organizationDAO.getAllChildOrganizationIds(Set.of("org-a"))).thenReturn(Set.of("org-a"));
-    when(violationScopeResolver.resolveApplicationIds(any(), eq(Set.of("build")), eq(List.of())))
-        .thenReturn(Set.of("org-app-1", "org-app-2", "app-b"));
-
     ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
     request.organizationIds = Set.of("org-a");
     request.applicationIds = Set.of("app-b");
     request.stageIds = Set.of("build");
+    when(violationScopeResolver.resolveApplicationIds(any(), same(request)))
+        .thenReturn(Set.of("org-app-1", "org-app-2", "app-b"));
 
     String query = newBuilder().buildApplicationQuery(request);
 
@@ -184,5 +185,19 @@ public class ApplicationsListIndexQueryBuilderTest
     assertThat(query).contains("org\\-app\\-2");
     assertThat(query).contains("app\\-b");
     assertThat(query).doesNotContain("organizationId:");
+  }
+
+  @Test
+  public void buildApplicationQuery_policyTypeAndStateFilter_usesViolationScopedApplicationIdsOnly() {
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(100);
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatCategories = new PolicyThreatCategoryFilter(Set.of(PolicyThreatCategory.SECURITY));
+    request.policyViolationStates = new PolicyViolationStateFilter(Set.of(PolicyViolationState.OPEN));
+    when(violationScopeResolver.resolveApplicationIds(any(), same(request)))
+        .thenReturn(Set.of("security-open-app"));
+
+    String query = newBuilder().buildApplicationQuery(request);
+
+    assertThat(query).isEqualTo("itemType:APPLICATION AND (applicationId:(security\\-open\\-app))");
   }
 }

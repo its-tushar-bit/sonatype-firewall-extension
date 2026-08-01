@@ -4,12 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { useState } from 'react';
-import { Box, Button, Flex, Link as RadixLink, Text } from '@radix-ui/themes';
+import { Box, Button, Flex, Text } from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import WaiversTable from 'MainRoot/nosc/waivers/WaiversTable';
 import { useWaiversList } from 'MainRoot/nosc/waivers/useWaivers';
 import { DEFAULT_WAIVERS_PAGE_SIZE } from 'MainRoot/nosc/waivers/noscWaiversSlice';
-import { classicHref } from './applicationDetailUtils';
 
 /**
  * Waivers tab inside the Application Detail page. Reads live waivers
@@ -47,26 +46,17 @@ export function AppWaiversTab({
 
   return (
     <Box pt="3" data-testid="nosc-app-detail-waivers-tab">
-      <Flex justify="between" align="center" mb="3" wrap="wrap" gap="3">
-        <Text size="2" color="gray">
-          Active waivers that apply to <strong>{publicId}</strong> — including
-          waivers inherited from parent organizations and the root.
-        </Text>
-        <RadixLink
-          size="2"
-          href={classicHref('/dashboard/waivers')}
-          data-testid="nosc-app-detail-waivers-classic-link"
-        >
-          Manage in Classic →
-        </RadixLink>
-      </Flex>
+      <Text size="2" color="gray" mb="3">
+        Active waivers that apply to <strong>{publicId}</strong> — including
+        waivers inherited from parent organizations and the root.
+      </Text>
       <WaiversTable
         waivers={waivers}
         loading={loading || !applicationInternalId}
         error={error}
         onRetry={refetch}
         emptyMessage="No waivers apply to this application"
-        emptySubMessage="Waivers created on this application or any parent organization will appear here. Use 'Manage in Classic' to add a new one from a violation."
+        emptySubMessage="Waivers created on this application or any parent organization will appear here."
         testId="nosc-app-detail-waivers-table"
       />
       {showPaginationBar && (

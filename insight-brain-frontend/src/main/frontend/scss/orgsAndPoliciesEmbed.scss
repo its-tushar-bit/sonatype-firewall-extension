@@ -87,3 +87,13 @@
     line-height: var(--nx-line-height);
   }
 }
+
+// Orgs embed uses ClassicComponentMount layout="page": #iq-content is a direct child of .nx-page
+// and is display:contents, so the owner sidebar + detail pane fill the shell content box's 1fr
+// grid row. Without a definite block size on the mount, that row collapses and the sidebar
+// renders as a short floating card (the broken layout that layout="page" fixes).
+.nosc-classic-mount[data-layout='page'] {
+  // top/bottom from the fixed shell offsets already size the box; keep overflow clipped like
+  // Classic .nx-page so the viewport-sized detail pane scrolls internally.
+  overflow: hidden;
+}

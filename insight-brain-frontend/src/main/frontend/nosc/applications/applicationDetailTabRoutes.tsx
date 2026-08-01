@@ -19,8 +19,6 @@ import {
   selectViolationCountByHash,
   selectViolationSummary,
 } from './applicationDetailSelectors';
-import { classicAppDetailHref, classicHref } from './applicationDetailUtils';
-import { InlineComingSoon } from './InlineComingSoon';
 import { OverviewTab } from './OverviewTab';
 import { PolicyFailuresTab } from './PolicyFailuresTab';
 import { ComponentsTab } from './ComponentsTab';
@@ -118,21 +116,6 @@ export function ApplicationDetailComponentsRoute(): JSX.Element {
   );
 }
 
-/** UI-Router child route: SBOMs coming-soon tab. */
-export function ApplicationDetailSbomsRoute(): JSX.Element {
-  const shell = useApplicationDetailShellContext();
-  return (
-    <InlineComingSoon
-      testId="nosc-app-detail-sboms-coming-soon"
-      label="SBOMs"
-      description="Generate, ingest, and download CycloneDX or SPDX SBOMs for this application. Coming to Nexus One soon."
-      classicHref={classicHref(
-        `/sbomManager/management/view/application/${encodeURIComponent(shell.publicId)}`,
-      )}
-    />
-  );
-}
-
 /** UI-Router child route: Waivers tab. */
 export function ApplicationDetailWaiversRoute(): JSX.Element {
   const shell = useApplicationDetailShellContext();
@@ -140,19 +123,6 @@ export function ApplicationDetailWaiversRoute(): JSX.Element {
     <AppWaiversTab
       applicationInternalId={shell.applicationInternalId}
       publicId={shell.publicId}
-    />
-  );
-}
-
-/** UI-Router child route: Team Members coming-soon tab. */
-export function ApplicationDetailTeamMembersRoute(): JSX.Element {
-  const shell = useApplicationDetailShellContext();
-  return (
-    <InlineComingSoon
-      testId="nosc-app-detail-team-members-coming-soon"
-      label="Team Members"
-      description="See who can access, scan, and waive policy violations for this application — and adjust their roles."
-      classicHref={classicAppDetailHref(shell.publicId)}
     />
   );
 }

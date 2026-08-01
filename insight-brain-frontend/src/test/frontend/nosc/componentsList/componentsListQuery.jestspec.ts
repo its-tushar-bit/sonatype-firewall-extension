@@ -7,6 +7,7 @@ import {
   buildComponentsListRouteParams,
   parseComponentsListParams,
 } from 'MainRoot/nosc/componentsList/componentsListQuery';
+import { EMPTY_COMPONENTS_LIST_FILTERS } from 'MainRoot/nosc/componentsList/componentsListFilters';
 
 describe('componentsListQuery (CLM-42214 catalog)', () => {
   it('parseComponentsListParams reads source, search, page, org names, and ecosystems', () => {
@@ -35,23 +36,23 @@ describe('componentsListQuery (CLM-42214 catalog)', () => {
         tab: 'myScanData',
         search: '',
         page: 0,
-        filters: {
-          organizations: new Set(),
-          ecosystems: new Set(),
-        },
+        filters: EMPTY_COMPONENTS_LIST_FILTERS,
       }),
     ).toEqual({});
   });
 
-  it('serializes catalog source and omits org filters on the catalog tab', () => {
+  it('serializes catalog source and omits estate scope filters on the catalog tab', () => {
     expect(
       buildComponentsListRouteParams({
         tab: 'catalog',
         search: 'lodash',
         page: 1,
         filters: {
+          ...EMPTY_COMPONENTS_LIST_FILTERS,
           organizations: new Set(['Java Team']),
           ecosystems: new Set(['npm']),
+          applications: new Set(['app-1']),
+          stages: new Set(['build']),
         },
       }),
     ).toEqual({
@@ -64,8 +65,11 @@ describe('componentsListQuery (CLM-42214 catalog)', () => {
 
   it('round-trips My Scan Data filter state', () => {
     const filters = {
+      ...EMPTY_COMPONENTS_LIST_FILTERS,
       organizations: new Set(['Java Team']),
       ecosystems: new Set(['maven']),
+      applications: new Set(['app-1']),
+      stages: new Set(['build', 'release']),
     };
     const params = buildComponentsListRouteParams({
       tab: 'myScanData',
@@ -78,10 +82,13 @@ describe('componentsListQuery (CLM-42214 catalog)', () => {
     expect(parsed.search).toBe('guava');
     expect(Array.from(parsed.filters.organizations)).toEqual(['Java Team']);
     expect(Array.from(parsed.filters.ecosystems)).toEqual(['maven']);
+    expect(Array.from(parsed.filters.applications)).toEqual(['app-1']);
+    expect(Array.from(parsed.filters.stages).sort()).toEqual(['build', 'release']);
   });
 
   it('round-trips organization names that contain commas', () => {
     const filters = {
+      ...EMPTY_COMPONENTS_LIST_FILTERS,
       organizations: new Set(['Widgets, Inc.', 'Research & Development, EMEA']),
       ecosystems: new Set(['maven']),
     };

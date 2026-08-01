@@ -17,12 +17,19 @@ export const DEFAULT_APPLICATIONS_THREAT_RANGE: ApplicationsThreatRange = [
 ];
 
 /** Set-valued sidebar filter groups (everything except {@link ApplicationsListFilterState.threatRange}). */
-export type ApplicationsListFilterSetField = 'stageIds' | 'organizationIds' | 'applicationIds';
+export type ApplicationsListFilterSetField =
+  | 'stageIds'
+  | 'organizationIds'
+  | 'applicationIds'
+  | 'policyTypes'
+  | 'violationStates';
 
 export type ApplicationsListFilterState = {
   readonly stageIds: ReadonlySet<string>;
   readonly organizationIds: ReadonlySet<string>;
   readonly applicationIds: ReadonlySet<string>;
+  readonly policyTypes: ReadonlySet<string>;
+  readonly violationStates: ReadonlySet<string>;
   readonly threatRange: ApplicationsThreatRange;
 };
 
@@ -30,6 +37,8 @@ export const EMPTY_APPLICATIONS_LIST_FILTERS: ApplicationsListFilterState = {
   stageIds: new Set(),
   organizationIds: new Set(),
   applicationIds: new Set(),
+  policyTypes: new Set(),
+  violationStates: new Set(),
   threatRange: DEFAULT_APPLICATIONS_THREAT_RANGE,
 };
 
@@ -63,6 +72,8 @@ export function hasActiveApplicationsListFilters(
     filters.stageIds.size > 0
     || filters.organizationIds.size > 0
     || filters.applicationIds.size > 0
+    || filters.policyTypes.size > 0
+    || filters.violationStates.size > 0
     || !isDefaultApplicationsThreatRange(filters.threatRange)
   );
 }
@@ -82,18 +93,35 @@ export function toggleApplicationsListFilterId(
   return { ...filters, [field]: next };
 }
 
-/** Maps Martha sidebar filter state into POST /rest/dashboard/applications/list body fields. */
+/**
+ * Maps Martha sidebar filter state into POST /rest/dashboard/applications/list body fields.
+ *
+ * Wire formats match the backend filter DTOs (same as the Violations list):
+ * {@code policyThreatCategories} is a comma-delimited string consumed by
+ * {@code PolicyThreatCategoryFilter}'s String constructor, while {@code policyViolationStates} is an
+ * array of enum names consumed by {@code PolicyViolationStateFilter}'s {@code @JsonCreator} Set
+ * constructor.
+ */
 export function applicationsListFiltersToRequest(
   filters: ApplicationsListFilterState,
 ): Pick<
   ApplicationsListRequest,
-  'stageIds' | 'organizationIds' | 'applicationIds' | 'policyThreatLevelRanges'
+  | 'stageIds'
+  | 'organizationIds'
+  | 'applicationIds'
+  | 'policyThreatLevelRanges'
+  | 'policyThreatCategories'
+  | 'policyViolationStates'
 > {
   const stageIds = filters.stageIds.size > 0 ? Array.from(filters.stageIds) : undefined;
   const organizationIds =
     filters.organizationIds.size > 0 ? Array.from(filters.organizationIds) : undefined;
   const applicationIds =
     filters.applicationIds.size > 0 ? Array.from(filters.applicationIds) : undefined;
+  const policyThreatCategories =
+    filters.policyTypes.size > 0 ? Array.from(filters.policyTypes).sort().join(',') : undefined;
+  const policyViolationStates =
+    filters.violationStates.size > 0 ? Array.from(filters.violationStates).sort() : undefined;
   const policyThreatLevelRanges = isDefaultApplicationsThreatRange(filters.threatRange)
     ? undefined
     : [{
@@ -105,6 +133,8 @@ export function applicationsListFiltersToRequest(
     ...(stageIds ? { stageIds } : {}),
     ...(organizationIds ? { organizationIds } : {}),
     ...(applicationIds ? { applicationIds } : {}),
+    ...(policyThreatCategories ? { policyThreatCategories } : {}),
+    ...(policyViolationStates ? { policyViolationStates } : {}),
     ...(policyThreatLevelRanges ? { policyThreatLevelRanges } : {}),
   };
 }

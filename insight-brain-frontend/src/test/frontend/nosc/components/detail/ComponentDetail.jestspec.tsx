@@ -9,7 +9,7 @@ import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { renderNexusOneComponentDetail } from 'TestRoot/nosc/components/detail/renderNexusOneComponentDetail';
 import { getApplicationReportRawUrl, getApplicationUrl } from 'MainRoot/util/CLMLocation';
 import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
-import { classicReportHrefForComponent } from 'MainRoot/nosc/applications/applicationDetailUtils';
+import { nouxApplicationReportHref } from 'MainRoot/nosc/routing/nouxNavigation';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
 
 const PUBLIC_ID = 'demo-app';
@@ -53,7 +53,7 @@ describe('ComponentDetail', () => {
     axiosMock.reset();
   });
 
-  it('renders identity, classic escape, and security issue links after load', async () => {
+  it('renders identity, full report, and security issue links after load', async () => {
     axiosMock.onGet(getApplicationUrl(PUBLIC_ID)).reply(200, { name: 'Demo App' });
     axiosMock.onGet(getApplicationReportRawUrl(PUBLIC_ID, SCAN_ID)).reply(200, {
       components: [COMPONENT_FIXTURE],
@@ -65,9 +65,13 @@ describe('ComponentDetail', () => {
       'log4j-core 2.14.1',
     );
     expect(screen.getByText(/Package URL:/)).toHaveTextContent(COMPONENT_FIXTURE.packageUrl);
-    expect(screen.getByRole('link', { name: 'View in Classic report →' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'View full report →' })).toHaveAttribute(
       'href',
-      classicReportHrefForComponent(PUBLIC_ID, SCAN_ID, COMPONENT_HASH),
+      nouxApplicationReportHref({
+        publicId: PUBLIC_ID,
+        scanId: SCAN_ID,
+        componentHash: COMPONENT_HASH,
+      }),
     );
     const expectedVulnHref = vulnerabilityDetailHref({
       vulnId: 'CVE-2021-44228',

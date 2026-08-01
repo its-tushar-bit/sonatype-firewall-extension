@@ -152,6 +152,9 @@ export function mapCatalogFacets(
     totalComponents,
     organizations: facetEntriesFromBuckets(facets.organization),
     ecosystems: facetEntriesFromBuckets(facets.ecosystem),
+    // Application and stage are estate dimensions the Sonatype Catalog source does not carry.
+    applications: [],
+    stages: [],
   };
 }
 
@@ -236,6 +239,7 @@ export type ComponentsDashboardApiResponse = {
     readonly stages?: Readonly<Record<string, number>> | null;
     readonly organizationNames?: Readonly<Record<string, string>> | null;
     readonly applicationNames?: Readonly<Record<string, string>> | null;
+    readonly stageNames?: Readonly<Record<string, string>> | null;
   } | null;
   readonly total?: number;
   readonly page?: number;
@@ -250,7 +254,13 @@ export type ComponentsDashboardRequest = {
   readonly includeFacets: boolean;
   readonly search?: string;
   readonly organizationIds?: ReadonlyArray<string>;
+  readonly applicationIds?: ReadonlyArray<string>;
+  readonly stageIds?: ReadonlyArray<string>;
 };
+
+function sortedIds(values: ReadonlySet<string> | undefined): ReadonlyArray<string> | undefined {
+  return values && values.size > 0 ? Array.from(values).sort() : undefined;
+}
 
 export function buildComponentsDashboardRequest(params: {
   readonly page: number;
@@ -259,16 +269,17 @@ export function buildComponentsDashboardRequest(params: {
   readonly includeFacets?: boolean;
   readonly filters?: ComponentsListFilterState;
 }): ComponentsDashboardRequest {
-  const organizationIds =
-    params.filters && params.filters.organizations.size > 0
-      ? Array.from(params.filters.organizations).sort()
-      : undefined;
+  const organizationIds = sortedIds(params.filters?.organizations);
+  const applicationIds = sortedIds(params.filters?.applications);
+  const stageIds = sortedIds(params.filters?.stages);
   return {
     page: Math.max(0, params.page),
     pageSize: params.pageSize ?? COMPONENTS_LIST_PAGE_SIZE,
     includeFacets: params.includeFacets ?? true,
     ...(params.search?.trim() ? { search: params.search.trim() } : {}),
     ...(organizationIds ? { organizationIds } : {}),
+    ...(applicationIds ? { applicationIds } : {}),
+    ...(stageIds ? { stageIds } : {}),
   };
 }
 
@@ -345,6 +356,8 @@ export function mapComponentsDashboardResponse(response: ComponentsDashboardApiR
       organizations: facetEntriesFromCountMap(facets?.organizations, facets?.organizationNames),
       // My Scan Data dashboard list has no ecosystem facet buckets yet (Catalog keeps them).
       ecosystems: [],
+      applications: facetEntriesFromCountMap(facets?.applications, facets?.applicationNames),
+      stages: facetEntriesFromCountMap(facets?.stages, facets?.stageNames),
     },
     total,
     exactTotalEstimate: true,

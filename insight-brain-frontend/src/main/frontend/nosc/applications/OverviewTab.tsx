@@ -5,15 +5,18 @@
  */
 import { Badge, Box, Button, Card, DataList, Flex, Grid, Text } from '@radix-ui/themes';
 import { SectionHeading } from '@sonatype/nexus-one-components';
-import { useRouter } from '@uirouter/react';
-
-import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
-import { comingSoonStateName } from 'MainRoot/nosc/comingSoon';
+import { DomainIcons } from 'MainRoot/nosc/icons';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { ButtonLink } from 'MainRoot/nosc/components/ButtonLink';
+import {
+  nouxApplicationPoliciesHref,
+  nouxApplicationReportHref,
+  nouxApplicationSourceControlHref,
+  nouxApplicationWaiversHref,
+  nouxReportsHref,
+} from 'MainRoot/nosc/routing/nouxNavigation';
 
 import { ApiApplicationReport, ApplicationDTO } from './applicationDetailTypes';
-import { classicAppDetailHref, classicHref, classicReportHref } from './applicationDetailUtils';
 import './OverviewTab.scss';
 
 type FetchStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -83,8 +86,6 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
     onRetryPolicy,
     onRetryReports,
   } = props;
-
-  const { stateService } = useRouter();
 
   return (
     <Box mt="4" style={{ overflow: 'hidden' }}>
@@ -292,16 +293,13 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                     {scanId && (
                       <Box>
                         <ButtonLink
-                          href={classicReportHref(publicId, scanId)}
+                          href={nouxApplicationReportHref({ publicId, scanId })}
                           size="2"
                           variant="soft"
                           color="blue"
-                          data-testid="nosc-app-detail-view-classic-report"
+                          data-testid="nosc-app-detail-view-full-report"
                         >
-                          <Flex align="center" gap="2">
-                            <ActionIcons.ExternalLink size={14} />
-                            View Full Report in Classic
-                          </Flex>
+                          View full report
                         </ButtonLink>
                       </Box>
                     )}
@@ -360,21 +358,6 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                     </DataList.Value>
                   </DataList.Item>
                 </DataList.Root>
-                <Box mt="3">
-                  <ButtonLink
-                    href={classicAppDetailHref(publicId)}
-                    size="2"
-                    variant="surface"
-                    color="blue"
-                    className="nosc-overview-full-width-link"
-                    data-testid="nosc-app-detail-view-classic-app"
-                  >
-                    <Flex align="center" gap="2" justify="center">
-                      <ActionIcons.ExternalLink size={14} />
-                      View in Classic
-                    </Flex>
-                  </ButtonLink>
-                </Box>
               </Box>
             </section>
           </Card>
@@ -388,7 +371,7 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                 </SectionHeading>
                 <Flex direction="column" gap="2">
                   <ButtonLink
-                    href={stateService.href(comingSoonStateName('policies'))}
+                    href={nouxApplicationPoliciesHref(publicId)}
                     size="2"
                     variant="soft"
                     color="gray"
@@ -400,7 +383,7 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                     </Flex>
                   </ButtonLink>
                   <ButtonLink
-                    href={stateService.href(comingSoonStateName('waiver-requests'))}
+                    href={nouxApplicationWaiversHref(publicId)}
                     size="2"
                     variant="soft"
                     color="gray"
@@ -412,9 +395,7 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                     </Flex>
                   </ButtonLink>
                   <ButtonLink
-                    href={classicHref(
-                      `/management/edit/application/${encodeURIComponent(publicId)}/source-control`,
-                    )}
+                    href={nouxApplicationSourceControlHref(publicId)}
                     size="2"
                     variant="soft"
                     color="gray"
@@ -426,7 +407,7 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                     </Flex>
                   </ButtonLink>
                   <ButtonLink
-                    href={stateService.href(comingSoonStateName('reports'))}
+                    href={nouxReportsHref()}
                     size="2"
                     variant="soft"
                     color="gray"
@@ -434,7 +415,7 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                   >
                     <Flex align="center" gap="2">
                       <DomainIcons.Reports size={14} />
-                      Reports
+                      Enterprise Reporting
                     </Flex>
                   </ButtonLink>
                 </Flex>

@@ -95,6 +95,11 @@ export function parseApplicationsListParams(
       stageIds: new Set(parseCsvParam(typeof params.stage === 'string' ? params.stage : null)),
       organizationIds: new Set(parseCsvParam(typeof params.org === 'string' ? params.org : null)),
       applicationIds: new Set(parseCsvParam(typeof params.app === 'string' ? params.app : null)),
+      policyTypes: new Set(parseCsvParam(typeof params.policyType === 'string' ? params.policyType : null)),
+      // Route declares violationState only (UI-Router drops undeclared params).
+      violationStates: new Set(
+        parseCsvParam(typeof params.violationState === 'string' ? params.violationState : null),
+      ),
       threatRange: parseApplicationsThreatRange(
         typeof params.threat === 'string' ? params.threat : null,
       ),
@@ -114,6 +119,8 @@ export function buildApplicationsListRouteParams(state: {
   const stage = serializeCsvParam(state.filters.stageIds);
   const org = serializeCsvParam(state.filters.organizationIds);
   const app = serializeCsvParam(state.filters.applicationIds);
+  const policyType = serializeCsvParam(state.filters.policyTypes);
+  const violationState = serializeCsvParam(state.filters.violationStates);
   const threat = serializeApplicationsThreatRange(state.filters.threatRange);
 
   return {
@@ -123,6 +130,8 @@ export function buildApplicationsListRouteParams(state: {
     stage,
     org,
     app,
+    policyType,
+    violationState,
     threat,
   };
 }
@@ -135,6 +144,8 @@ export function filtersEqual(
     'stageIds',
     'organizationIds',
     'applicationIds',
+    'policyTypes',
+    'violationStates',
   ];
   const setsEqual = setFields.every((field) => {
     const leftIds = left[field];

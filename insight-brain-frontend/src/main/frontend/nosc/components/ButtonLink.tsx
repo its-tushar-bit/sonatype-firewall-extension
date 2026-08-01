@@ -19,8 +19,8 @@ type ButtonLinkProps = Omit<ComponentPropsWithoutRef<'a'>, 'children'> & {
 
 /**
  * An anchor styled as a Radix Button — the "button link" pattern that recurred
- * across the application/waiver pages (Classic escape-hatch links, quick
- * actions, etc.). Extracted to one component per CLM-39709 review #18 so the
+ * across the application/waiver pages (capability CTAs, quick actions, etc.).
+ * Extracted to one component per CLM-39709 review #18 so the
  * `<Button asChild><a ...></a></Button>` boilerplate and its
  * target/rel/href wiring live in a single place.
  */

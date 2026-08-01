@@ -9,7 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.insight.brain.dashboard.PolicyViolationState;
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -82,6 +86,29 @@ public class ApplicationsListRequestValidatorTest
     assertThatThrownBy(() -> validator.validate(request))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("stageIds contains too many ids");
+  }
+
+  /**
+   * CLM-43211: these two were previously blanket-rejected. Both deserialize into EnumSets, so the
+   * indexed domain already bounds them and violation-scoped discovery can serve them.
+   */
+  @Test
+  public void validate_acceptsPolicyTypeAndViolationStateFilters() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.policyThreatCategories = new PolicyThreatCategoryFilter(Set.of(PolicyThreatCategory.SECURITY));
+    request.policyViolationStates = new PolicyViolationStateFilter(Set.of(PolicyViolationState.OPEN));
+
+    assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void validate_stillRejectsTagIdsAsUnsupported() {
+    ApplicationsListRequestDTO request = new ApplicationsListRequestDTO();
+    request.tagIds = Set.of("tag-a");
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("tagIds");
   }
 
   @Test

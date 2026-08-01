@@ -161,6 +161,11 @@ export function parseVulnerabilitiesListParams(
       ...createDefaultVulnerabilitiesFilterState(),
       severities: parseFilteredSet(params.severity, SUPPORTED_SEVERITIES),
       ecosystems: new Set(parseCsvParam(params.ecosystem).map((id) => id.toLowerCase())),
+      // Scope ids are opaque internal ids matched verbatim by the index, so unlike the
+      // ecosystem/severity vocabularies they must not be case-folded.
+      organizations: new Set(parseCsvParam(params.org)),
+      applications: new Set(parseCsvParam(params.app)),
+      stages: new Set(parseCsvParam(params.stage)),
       cvssRange: parseCvssRange(params.cvss),
     },
   };
@@ -181,6 +186,9 @@ export function buildVulnerabilitiesListRouteParams(
     severity: serializeCsvParam(state.filters.severities),
     cvss: serializeCvssRange(state.filters.cvssRange),
     ecosystem: serializeCsvParam(state.filters.ecosystems),
+    org: serializeCsvParam(state.filters.organizations),
+    app: serializeCsvParam(state.filters.applications),
+    stage: serializeCsvParam(state.filters.stages),
   };
 }
 
@@ -200,6 +208,9 @@ export function rawVulnerabilitiesListParamsSnapshot(
     severity: asString(params.severity),
     cvss: asString(params.cvss),
     ecosystem: asString(params.ecosystem),
+    org: asString(params.org),
+    app: asString(params.app),
+    stage: asString(params.stage),
   });
 }
 
@@ -218,6 +229,9 @@ export function vulnerabilitiesFiltersEqual(
   return (
     setsEqual(left.severities, right.severities) &&
     setsEqual(left.ecosystems, right.ecosystems) &&
+    setsEqual(left.organizations, right.organizations) &&
+    setsEqual(left.applications, right.applications) &&
+    setsEqual(left.stages, right.stages) &&
     left.cvssRange[0] === right.cvssRange[0] &&
     left.cvssRange[1] === right.cvssRange[1]
   );

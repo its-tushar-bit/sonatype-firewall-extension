@@ -59,6 +59,7 @@ import ArtifactoryRepositoryBaseConfigurations from 'MainRoot/artifactoryReposit
 import React2ShellPage from 'MainRoot/report/react2shell/React2ShellPage';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
 import { ReportingRoute } from 'MainRoot/nexus-one/ReportingRoute';
+import AutomaticSourceControlConfigurationContainer from 'MainRoot/configuration/automaticSourceControlConfiguration/AutomaticSourceControlConfigurationContainer';
 import { ClassicComponentMount, mountClassicComponent } from 'MainRoot/nexus-one/ClassicComponentMount';
 import {
   NATIVE_CLASSIC_EMBED_SLUGS,
@@ -170,7 +171,7 @@ nexusOneDashboardStates().forEach((state) => {
 
 router.stateRegistry.register({
   name: 'nexusOneApplications',
-  url: '/applications?q&sort&page&stage&org&app&threat',
+  url: '/applications?q&sort&page&stage&org&app&policyType&violationState&threat',
   component: PreviewApplicationsList,
   data: {
     title: 'Nexus One — Applications',
@@ -385,6 +386,10 @@ const NATIVE_CLASSIC_COMPONENTS: Partial<Record<ComingSoonModuleSlug, React.Comp
   'success-metrics': mountClassicComponent(SuccessMetricsRoute),
   api: mountClassicComponent(ApiPage),
   reports: mountClassicComponent(ReportingRoute),
+  // Global Automatic Source Control (Classic System Preferences). App Detail Quick Actions
+  // deep-link into management.edit.application.edit-source-control instead; this slug covers
+  // LeftNav / Coming Soon bookmarks that previously landed on a stub.
+  'source-control': mountClassicComponent(AutomaticSourceControlConfigurationContainer),
 };
 
 /**
@@ -414,6 +419,11 @@ const NATIVE_CLASSIC_EMBED_REDIRECTS: Partial<Record<ComingSoonModuleSlug, Class
   // the classicHref in comingSoonModules.ts (the legacy UI uses the literal, not the guide constant,
   // to avoid a guide <-> IQ-UI cross-import).
   'orgs-and-policies': { state: 'management.view.organization', params: { organizationId: 'ROOT_ORGANIZATION_ID' } },
+  // Policies Coming Soon slug (App Detail "Configure Policies" legacy path) shares the same
+  // management tree; App Detail Quick Actions deep-link to the application owner summary instead.
+  policies: { state: 'management.view.organization', params: { organizationId: 'ROOT_ORGANIZATION_ID' } },
+  // Waiver-requests stub → native Ana waivers list (App Detail "Manage Waivers" uses the app tab).
+  'waiver-requests': 'nexusOneWaivers',
 };
 
 NATIVE_CLASSIC_EMBED_SLUGS.forEach((slug) => {
@@ -926,6 +936,14 @@ router.stateRegistry.register({
   url: '/_classic-aliases/enterpriseReporting',
   redirectTo: comingSoonStateName('reports'),
   data: { title: 'Enterprise Reporting' },
+} as ReactStateDeclaration);
+
+// Classic System Preferences deep-link → in-shell Automatic Source Control embed.
+router.stateRegistry.register({
+  name: 'automaticSourceControlConfiguration',
+  url: '/automaticSourceControlConfiguration',
+  redirectTo: comingSoonStateName('source-control'),
+  data: { title: 'Automatic Source Control' },
 } as ReactStateDeclaration);
 
 

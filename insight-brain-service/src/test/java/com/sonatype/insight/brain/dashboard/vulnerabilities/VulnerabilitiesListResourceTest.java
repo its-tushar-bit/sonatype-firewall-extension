@@ -293,6 +293,119 @@ public class VulnerabilitiesListResourceTest
   }
 
   @Test
+  public void listVulnerabilities_scopeFacets_countDistinctVulnerabilitiesPerOrgAppAndStage() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("VulnScopeFacetTribe");
+    Application app = tempEntity.newApplication("Scope Facet App", "scope-facet-app", org.getId());
+    seedComponentsReport(app, "scopeFacetReport");
+    User reader = readerOn(org, "vuln-scope-facet-reader");
+    VulnerabilitiesListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    VulnerabilitiesListResponseDTO all = post(new VulnerabilitiesListRequestDTO(), reader)
+        .getBody(VulnerabilitiesListResponseDTO.class);
+
+    // Every vulnerability in this estate belongs to the one seeded app/org, so each scope facet
+    // must carry the full distinct total — not the per-hit count, which is larger.
+    assertThat(all.facets.organizations).containsEntry(org.getId(), all.total);
+    assertThat(all.facets.applications).containsEntry(app.getId(), all.total);
+    assertThat(all.facets.organizationNames).containsEntry(org.getId(), org.getName());
+    assertThat(all.facets.applicationNames).containsEntry(app.getId(), app.getName());
+    assertThat(all.facets.stages).isNotEmpty();
+    assertThat(all.facets.stages.values()).allMatch(count -> count > 0 && count <= all.total);
+    assertThat(all.facets.stageNames.keySet()).isEqualTo(all.facets.stages.keySet());
+  }
+
+  @Test
+  public void listVulnerabilities_organizationFilter_narrowsToThatOrgAndKeepsItsOwnFacet() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization matching = tempEntity.newOrganization("VulnOrgFilterMatch");
+    Organization other = tempEntity.newOrganization("VulnOrgFilterOther");
+    Application matchingApp = tempEntity.newApplication("Org Filter App", "org-filter-app", matching.getId());
+    Application otherApp = tempEntity.newApplication("Org Filter Other App", "org-filter-other-app", other.getId());
+    seedComponentsReport(matchingApp, "orgFilterReport");
+    seedComponentsReport(otherApp, "orgFilterOtherReport");
+    User reader = readerOn(List.of(matching, other), "vuln-org-filter-reader");
+    VulnerabilitiesListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    VulnerabilitiesListResponseDTO all = post(new VulnerabilitiesListRequestDTO(), reader)
+        .getBody(VulnerabilitiesListResponseDTO.class);
+    assertThat(all.facets.organizations).containsKeys(matching.getId(), other.getId());
+    long expected = all.facets.organizations.get(matching.getId());
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.organizationIds = java.util.Set.of(matching.getId());
+    VulnerabilitiesListResponseDTO body = post(request, reader).getBody(VulnerabilitiesListResponseDTO.class);
+
+    assertThat(body.total).isEqualTo(expected);
+    assertThat(body.vulnerabilities).isNotEmpty();
+    // The selected dimension is omitted from its own aggregation, so the unselected sibling org
+    // stays in the rail and remains selectable.
+    assertThat(body.facets.organizations).containsKeys(matching.getId(), other.getId());
+  }
+
+  @Test
+  public void listVulnerabilities_applicationFilter_narrowsResults() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("VulnAppFilterTribe");
+    Application matching = tempEntity.newApplication("App Filter Match", "app-filter-match", org.getId());
+    Application other = tempEntity.newApplication("App Filter Other", "app-filter-other", org.getId());
+    seedComponentsReport(matching, "appFilterReport");
+    seedComponentsReport(other, "appFilterOtherReport");
+    User reader = readerOn(org, "vuln-app-filter-reader");
+    VulnerabilitiesListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    VulnerabilitiesListResponseDTO all = post(new VulnerabilitiesListRequestDTO(), reader)
+        .getBody(VulnerabilitiesListResponseDTO.class);
+    assertThat(all.facets.applications).containsKeys(matching.getId(), other.getId());
+    long expected = all.facets.applications.get(matching.getId());
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.applicationIds = java.util.Set.of(matching.getId());
+    VulnerabilitiesListResponseDTO body = post(request, reader).getBody(VulnerabilitiesListResponseDTO.class);
+
+    assertThat(body.total).isEqualTo(expected);
+    assertThat(body.vulnerabilities).isNotEmpty();
+    assertThat(body.facets.applications).containsKeys(matching.getId(), other.getId());
+  }
+
+  @Test
+  public void listVulnerabilities_stageFilter_narrowsResults() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("VulnStageFilterTribe");
+    Application app = tempEntity.newApplication("Stage Filter App", "stage-filter-app", org.getId());
+    seedComponentsReport(app, "stageFilterReport");
+    User reader = readerOn(org, "vuln-stage-filter-reader");
+    VulnerabilitiesListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    VulnerabilitiesListResponseDTO all = post(new VulnerabilitiesListRequestDTO(), reader)
+        .getBody(VulnerabilitiesListResponseDTO.class);
+    assertThat(all.facets.stages).isNotEmpty();
+
+    java.util.Map.Entry<String, Long> stage = all.facets.stages.entrySet().iterator().next();
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.stageIds = java.util.Set.of(stage.getKey());
+    VulnerabilitiesListResponseDTO body = post(request, reader).getBody(VulnerabilitiesListResponseDTO.class);
+
+    assertThat(body.total).isEqualTo(stage.getValue());
+    assertThat(body.vulnerabilities).isNotEmpty();
+  }
+
+  @Test
+  public void listVulnerabilities_blankScopeId_returns400() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.organizationIds = java.util.Set.of("  ");
+
+    assertResponseStatus(400, post(request));
+  }
+
+  @Test
   public void exportVulnerabilities_myScanData_returnsBomCsvWithBlastRadiusRows() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
@@ -418,9 +531,15 @@ public class VulnerabilitiesListResourceTest
   }
 
   private User readerOn(Organization org, String username) {
+    return readerOn(List.of(org), username);
+  }
+
+  private User readerOn(List<Organization> orgs, String username) {
     User reader = tempEntity.newUser(username);
     Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
-    tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+    for (Organization org : orgs) {
+      tempEntity.newMembershipMapping(org.getId(), readRole.getId(), reader.getUsername());
+    }
     return reader;
   }
 

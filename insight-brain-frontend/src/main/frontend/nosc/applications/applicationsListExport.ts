@@ -32,10 +32,10 @@ export function toClassicExportOrderBy(orderBy: ApplicationsListOrderBy): string
  * evaluation-time ordering. Pagination fields are omitted — the export resource fetches all
  * matching rows via {@code getApplicationRisks(..., 0, Integer.MAX_VALUE)}.
  *
- * Stage parity caveat: Martha list stage filters are violation-scoped (apps with at least one
- * matching violation in the selected stage). Classic export applies {@code stageIds} through
- * {@code applicationRiskService.getApplicationRisks}, which uses Classic stage matching and may
- * return a different application set for the same sidebar selection.
+ * Parity caveat: Martha list stage, policy type, and violation state filters are violation-scoped
+ * (apps with at least one violation matching all of them at once). Classic export passes the same
+ * fields to {@code applicationRiskService.getApplicationRisks}, which applies them through the
+ * SQL dashboard path and may return a different application set for the same sidebar selection.
  */
 export function buildApplicationsListExportPayload(
   filters: ApplicationsListFilterState,
@@ -54,6 +54,12 @@ export function buildApplicationsListExportPayload(
   }
   if (requestFilters.stageIds?.length) {
     payload.stageIds = requestFilters.stageIds;
+  }
+  if (requestFilters.policyThreatCategories) {
+    payload.policyThreatCategories = requestFilters.policyThreatCategories;
+  }
+  if (requestFilters.policyViolationStates?.length) {
+    payload.policyViolationStates = requestFilters.policyViolationStates;
   }
   // Classic export accepts a single policyThreatLevelRange; Martha list may emit one range.
   if (requestFilters.policyThreatLevelRanges?.length) {

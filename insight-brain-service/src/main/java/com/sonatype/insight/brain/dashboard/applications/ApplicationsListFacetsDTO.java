@@ -46,4 +46,21 @@ public class ApplicationsListFacetsDTO
 
   @JsonInclude(Include.NON_NULL)
   public Map<String, Long> stages;
+
+  /**
+   * Policy type ({@code security}/{@code license}/{@code quality}/{@code other}) to the number of
+   * distinct applications holding at least one violation of that type (CLM-43211).
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Map<String, Long> policyTypes;
+
+  /**
+   * Violation state ({@code OPEN}/{@code WAIVED}/{@code LEGACY_VIOLATION}) to the number of distinct
+   * applications holding at least one violation in that state.
+   * <p>
+   * These buckets do not partition the estate: one application can hold violations in several states
+   * and is counted under each, so the values do not sum to {@link #totalApplications}.
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Map<String, Long> violationStates;
 }

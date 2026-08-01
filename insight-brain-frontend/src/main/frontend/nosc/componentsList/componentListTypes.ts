@@ -16,6 +16,9 @@ export type ComponentsFilterFacetCounts = {
   readonly totalComponents: number;
   readonly organizations: ReadonlyArray<ComponentsFilterFacetEntry>;
   readonly ecosystems: ReadonlyArray<ComponentsFilterFacetEntry>;
+  /** My Scan Data only — the Catalog source has no application or stage buckets. */
+  readonly applications: ReadonlyArray<ComponentsFilterFacetEntry>;
+  readonly stages: ReadonlyArray<ComponentsFilterFacetEntry>;
 };
 
 /**

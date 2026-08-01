@@ -10,7 +10,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -42,12 +45,27 @@ public class VulnerabilitiesListServiceAffectedApplicationsTest
   @Mock
   private VulnerabilitiesCatalogListService catalogListService;
 
+  @Mock
+  private VulnerabilitiesListScopeFacetsBuilder scopeFacetsBuilder;
+
+  @Mock
+  private OrganizationDAO organizationDAO;
+
+  @Mock
+  private Configuration configuration;
+
+  private VulnerabilitiesListIndexQueryBuilder indexQueryBuilder() {
+    return new VulnerabilitiesListIndexQueryBuilder(
+        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration));
+  }
+
   private VulnerabilitiesListService service() {
     return new VulnerabilitiesListService(
         searchIndexClient,
-        new VulnerabilitiesListIndexQueryBuilder(),
+        indexQueryBuilder(),
         requestValidator,
-        catalogListService);
+        catalogListService,
+        scopeFacetsBuilder);
   }
 
   @Test
@@ -67,8 +85,7 @@ public class VulnerabilitiesListServiceAffectedApplicationsTest
 
   @Test
   public void buildAffectedApplicationsQuery_escapesVulnerabilityId() {
-    VulnerabilitiesListIndexQueryBuilder builder = new VulnerabilitiesListIndexQueryBuilder();
-    String query = builder.buildAffectedApplicationsQuery("CVE-2021-44228");
+    String query = indexQueryBuilder().buildAffectedApplicationsQuery("CVE-2021-44228");
     assertThat(query).isEqualTo("itemType:SECURITY_VULNERABILITY AND vulnerabilityId:CVE\\-2021\\-44228");
   }
 
@@ -96,6 +113,19 @@ public class VulnerabilitiesListServiceAffectedApplicationsTest
 
     assertThat(response.total).isEqualTo(2);
     assertThat(response.truncated).isFalse();
+  }
+
+  @Test
+  public void listAffectedApplications_indexLookupFails_reportsTruncatedRatherThanAffectsNothing() {
+    when(searchIndexClient.searchIndex(anyString(), anyInt(), anyInt(), anyBoolean(), anyBoolean(), anyList()))
+        .thenReturn(null);
+
+    VulnerabilityAffectedApplicationsResponseDTO response = service().listAffectedApplications("CVE-2021-44228");
+
+    assertThat(response.total).isZero();
+    assertThat(response.truncated)
+        .as("a failed index lookup must not render as a complete, empty result")
+        .isTrue();
   }
 
   @Test

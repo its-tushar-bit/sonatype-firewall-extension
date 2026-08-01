@@ -85,6 +85,46 @@ describe('VulnerabilitiesPage', () => {
     expect(onTabChange).toHaveBeenCalledWith('catalog');
   });
 
+  it('renders scope sections with names and toggles by id (CLM-43211)', async () => {
+    const onFilterToggle = jest.fn();
+    renderPage({
+      onFilterToggle,
+      facets: {
+        totalVulnerabilities: 4,
+        severities: { critical: 4 },
+        ecosystems: { maven: 4 },
+        organizations: { 'org-1': 4 },
+        applications: { 'app-1': 3, 'app-2': 1 },
+        stages: { build: 4 },
+        organizationNames: { 'org-1': 'Platform' },
+        applicationNames: { 'app-1': 'Checkout' },
+        stageNames: { build: 'Build' },
+      },
+    });
+
+    expect(screen.getByTestId('vulnerabilities-filter-organizations-desktop')).toHaveTextContent(
+      'Platform',
+    );
+    expect(screen.getByTestId('vulnerabilities-filter-stages-desktop')).toHaveTextContent('Build');
+    // An application with no resolved name still renders, labelled by its id, so it stays pickable.
+    const applications = screen.getByTestId('vulnerabilities-filter-applications-desktop');
+    expect(applications).toHaveTextContent('Checkout');
+    expect(applications).toHaveTextContent('app-2');
+
+    await user.click(
+      screen.getByTestId('vulnerabilities-filter-applications-desktop-option-app-1'),
+    );
+    expect(onFilterToggle).toHaveBeenCalledWith('applications', 'app-1');
+  });
+
+  it('omits scope sections the backend could not aggregate', () => {
+    renderPage();
+    expect(
+      screen.queryByTestId('vulnerabilities-filter-organizations-desktop'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('vulnerabilities-filter-stages-desktop')).not.toBeInTheDocument();
+  });
+
   it('opens the mobile filter drawer with the same filter rail on demand', async () => {
     renderPage();
     expect(screen.queryByTestId('vulnerabilities-filters-mobile-drawer')).not.toBeInTheDocument();
@@ -114,6 +154,31 @@ describe('VulnerabilitiesPage', () => {
       'Sonatype Catalog export is not available',
     );
     expect(screen.queryByTestId('vulnerabilities-toolbar-sort')).not.toBeInTheDocument();
+  });
+
+  it('hides estate scope sections on Catalog even when facet maps are present', () => {
+    renderPage({
+      tab: 'catalog',
+      facets: {
+        totalVulnerabilities: 4,
+        severities: { critical: 4 },
+        ecosystems: { maven: 4 },
+        organizations: { 'org-1': 4 },
+        applications: { 'app-1': 3 },
+        stages: { build: 4 },
+        organizationNames: { 'org-1': 'Platform' },
+        applicationNames: { 'app-1': 'Checkout' },
+        stageNames: { build: 'Build' },
+      },
+    });
+    expect(
+      screen.queryByTestId('vulnerabilities-filter-organizations-desktop'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('vulnerabilities-filter-applications-desktop'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('vulnerabilities-filter-stages-desktop')).not.toBeInTheDocument();
+    expect(screen.getByTestId('vulnerabilities-filter-severity-desktop')).toBeInTheDocument();
   });
 
   it('disables CSV when My Scan Data has zero results', () => {

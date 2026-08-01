@@ -87,16 +87,8 @@ describe('WaiverDetailPage', () => {
       'Approved in CHG-12345',
     );
 
-    // Classic escapes. Must match the registered `waiver.details` route
-    // (`/waiver/{ownerType}/{ownerId}/{waiverId}`), not a spurious `details/`/`/waiver` shape.
-    const classicLink = screen.getByTestId('preview-waiver-detail-classic-link');
-    expect(classicLink).toHaveAttribute(
-      'href',
-      expect.stringContaining(`/waiver/${ROUTE.ownerType}/${ROUTE.ownerId}/${ROUTE.waiverId}`),
-    );
-    expect(classicLink.getAttribute('href')).not.toContain('/waiver/details/');
-    // Manual waivers must not carry the auto-waiver discriminator.
-    expect(classicLink).not.toHaveAttribute('href', expect.stringContaining('type=autoWaiver'));
+    // Wave C: Classic escapes live in TopNav only — no per-entity Classic CTA.
+    expect(screen.queryByTestId('preview-waiver-detail-classic-link')).not.toBeInTheDocument();
   });
 
   it('composes the Scope, Component and Expires meta strip from the v2 payload', async () => {
@@ -222,12 +214,8 @@ describe('WaiverDetailPage', () => {
         (r) => r.url === getWaiverDetailsUrl(ROUTE.ownerType, ROUTE.ownerId, ROUTE.waiverId),
       ),
     ).toBe(false);
-    // Manage-in-Classic hand-off must carry the same discriminator, or Classic's
-    // WaiverDetailsContainer renders the manual sub-view and 404s all over again.
-    expect(screen.getByTestId('preview-waiver-detail-classic-link')).toHaveAttribute(
-      'href',
-      expect.stringContaining('?type=autoWaiver'),
-    );
+    // Wave C: Classic escapes live in TopNav only — no per-entity Classic CTA.
+    expect(screen.queryByTestId('preview-waiver-detail-classic-link')).not.toBeInTheDocument();
   });
 
   it('loads a root-org auto-waiver from autoPolicyWaivers without 404ing (CLM-43502)', async () => {
@@ -392,7 +380,7 @@ describe('WaiverDetailPage', () => {
     );
   });
 
-  it('renders Overview as the only tab plus the Classic list escape', async () => {
+  it('renders Overview as the only tab without Classic escapes', async () => {
     reply({
       id: ROUTE.waiverId,
       threatLevel: 1,
@@ -412,9 +400,9 @@ describe('WaiverDetailPage', () => {
       expect(screen.getByTestId('preview-waiver-detail-header')).toBeInTheDocument();
     });
 
-    const classicList = screen.getByTestId('preview-waiver-detail-create-classic');
-    expect(classicList).toHaveTextContent('View Waivers in Classic');
-    expect(classicList).toHaveAttribute('href', expect.stringContaining('/dashboard/waivers'));
+    expect(screen.queryByTestId('preview-waiver-detail-create-classic')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('preview-waiver-detail-classic-link')).not.toBeInTheDocument();
+    expect(screen.queryByText(/classic/i)).not.toBeInTheDocument();
   });
 
   it('links vulnerability to native Nexus One vulnerability detail', async () => {

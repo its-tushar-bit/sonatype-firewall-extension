@@ -81,4 +81,29 @@ describe('ClassicComponentMount', () => {
     const mount = screen.getByTestId('nexus-one-classic-component-mount');
     expect(mount).toHaveStyle({ width: 'auto', minWidth: 0 });
   });
+
+  it('default scroll layout wraps children in nx-global-footer-2-container', () => {
+    render(
+      <ClassicComponentMount>
+        <TestPage />
+      </ClassicComponentMount>,
+    );
+    const mount = screen.getByTestId('nexus-one-classic-component-mount');
+    expect(mount).toHaveAttribute('data-layout', 'scroll');
+    expect(mount.querySelector(':scope > .nx-global-footer-2-container.nx-viewport-sized')).not.toBeNull();
+  });
+
+  it('page layout mounts children directly under .nx-page for Orgs & Policies grid participation', () => {
+    render(
+      <ClassicComponentMount layout="page">
+        <div id="iq-content" className="nx-page-content nx-page-content--full-width">
+          <TestPage />
+        </div>
+      </ClassicComponentMount>,
+    );
+    const mount = screen.getByTestId('nexus-one-classic-component-mount');
+    expect(mount).toHaveAttribute('data-layout', 'page');
+    expect(mount.querySelector(':scope > #iq-content')).not.toBeNull();
+    expect(mount.querySelector(':scope > .nx-global-footer-2-container')).toBeNull();
+  });
 });

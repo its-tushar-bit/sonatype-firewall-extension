@@ -9,6 +9,7 @@ import { ActionIcons } from 'MainRoot/nosc/icons';
 import {
   ecosystemLabel,
   hasActiveVulnerabilityFilters,
+  scopeLabel,
   SEVERITY_LABELS,
   severityLabel,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesListApi';
@@ -23,10 +24,12 @@ import {
   VULNERABILITY_CVSS_MIN,
   VULNERABILITY_CVSS_STEP,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
+import type { VulnerabilitiesTab } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesRoute';
 
 import './VulnerabilitiesFilterRail.scss';
 
 export interface VulnerabilitiesFilterRailProps {
+  readonly tab: VulnerabilitiesTab;
   readonly facets?: VulnerabilitiesListFacets | null;
   readonly selected: VulnerabilitiesFilterState;
   readonly onToggle: (group: VulnerabilityFilterSetGroup, id: string) => void;
@@ -252,10 +255,12 @@ function CvssRangeSection({
 }
 
 /**
- * Interactive filter sidebar for Martha V1 Vulnerabilities (severity, CVSS, ecosystem).
+ * Interactive filter sidebar for Martha V1 Vulnerabilities (severity, CVSS, ecosystem, and the
+ * organization / application / stage scope filters from CLM-43211).
  * KEV / malware / CWE / published / patch / policy remain deferred until index-backed.
  */
 export default function VulnerabilitiesFilterRail({
+  tab,
   facets,
   selected,
   onToggle,
@@ -263,6 +268,7 @@ export default function VulnerabilitiesFilterRail({
   onReset,
   idPrefix = 'desktop',
 }: VulnerabilitiesFilterRailProps): JSX.Element {
+  const showEstateScope = tab === 'myScanData';
   const severityOrder = Object.keys(SEVERITY_LABELS);
   const severityEntries = toEntries(
     facets?.severities,
@@ -272,6 +278,15 @@ export default function VulnerabilitiesFilterRail({
     severityOrder,
   );
   const ecosystemEntries = toEntries(facets?.ecosystems, selected.ecosystems, ecosystemLabel);
+  const organizationEntries = toEntries(facets?.organizations, selected.organizations, (id) =>
+    scopeLabel(facets?.organizationNames, id),
+  );
+  const applicationEntries = toEntries(facets?.applications, selected.applications, (id) =>
+    scopeLabel(facets?.applicationNames, id),
+  );
+  const stageEntries = toEntries(facets?.stages, selected.stages, (id) =>
+    scopeLabel(facets?.stageNames, id),
+  );
   const filtersActive = hasActiveVulnerabilityFilters(selected);
 
   return (
@@ -319,6 +334,39 @@ export default function VulnerabilitiesFilterRail({
         selected={selected.ecosystems}
         onToggle={onToggle}
       />
+
+      {showEstateScope && (
+        <SearchableFilterSection
+          title="Organizations"
+          testId={`vulnerabilities-filter-organizations-${idPrefix}`}
+          group="organizations"
+          entries={organizationEntries}
+          selected={selected.organizations}
+          onToggle={onToggle}
+        />
+      )}
+
+      {showEstateScope && (
+        <SearchableFilterSection
+          title="Applications"
+          testId={`vulnerabilities-filter-applications-${idPrefix}`}
+          group="applications"
+          entries={applicationEntries}
+          selected={selected.applications}
+          onToggle={onToggle}
+        />
+      )}
+
+      {showEstateScope && (
+        <CheckboxFilterSection
+          title="Stages"
+          testId={`vulnerabilities-filter-stages-${idPrefix}`}
+          group="stages"
+          entries={stageEntries}
+          selected={selected.stages}
+          onToggle={onToggle}
+        />
+      )}
     </Flex>
   );
 }

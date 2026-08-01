@@ -21,9 +21,9 @@ import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import { RawReportComponent } from './applicationDetailTypes';
 import { LargeScanBanner } from './LargeScanBanner';
 import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
+import { nouxApplicationReportHref } from 'MainRoot/nosc/routing/nouxNavigation';
 import {
   COMPONENTS_PAGE_SIZE,
-  classicReportHrefForComponent,
   deriveComponentName,
   deriveComponentThreat,
   deriveLicense,
@@ -158,7 +158,7 @@ export function ComponentsTab({
       <LargeScanBanner
         itemCount={components.length}
         itemLabel="components"
-        guidance="Search and pagination run in your browser — use Classic for full export on very large inventories."
+        guidance="Search and pagination run in your browser on this page. Prefer filters for very large inventories."
         testId="nosc-app-detail-components-large-scan"
       />
       <Flex justify="between" align="center" mb="3" gap="3" wrap="wrap">
@@ -177,10 +177,10 @@ export function ComponentsTab({
           {scanId && (
             <RadixLink
               size="2"
-              href={classicReportHrefForComponent(publicId, scanId)}
-              data-testid="nosc-app-detail-components-classic-link"
+              href={nouxApplicationReportHref({ publicId, scanId })}
+              data-testid="nosc-app-detail-components-full-report-link"
             >
-              View in Classic →
+              View full report →
             </RadixLink>
           )}
         </Flex>

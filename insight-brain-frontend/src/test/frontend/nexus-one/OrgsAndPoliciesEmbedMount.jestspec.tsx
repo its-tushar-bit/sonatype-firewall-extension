@@ -8,10 +8,32 @@ import { render, screen } from 'TestRoot/SpecUtil';
 import { mountOrgsAndPoliciesChrome } from 'MainRoot/nexus-one/OrgsAndPoliciesEmbedMount';
 
 // The real ClassicComponentMount pulls in theme/offset hooks that need shell providers; this mount's
-// own contract (the #iq-sidebar-container host, the host-before-page gate, the viewport-sized class)
-// is independent of that wrapper, so stub it to a passthrough.
+// own contract (the #iq-sidebar-container host, the host-before-page gate, the viewport-sized class,
+// page layout) is independent of that wrapper's Theme chrome, so stub it to a passthrough that still
+// honors layout="page" (no scroll footer wrapper).
 jest.mock('MainRoot/nexus-one/ClassicComponentMount', () => ({
-  ClassicComponentMount: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ClassicComponentMount: ({
+    children,
+    layout = 'scroll',
+  }: {
+    children: React.ReactNode;
+    layout?: 'scroll' | 'page';
+  }) => (
+    <div data-testid="nexus-one-classic-component-mount" data-layout={layout} className="nosc-classic-mount nx-page">
+      {layout === 'page' ? (
+        children
+      ) : (
+        <div className="nx-global-footer-2-container nx-viewport-sized">{children}</div>
+      )}
+    </div>
+  ),
+}));
+
+jest.mock('MainRoot/react/Footer/Footer', () => ({
+  __esModule: true,
+  default: function MockFooter() {
+    return <div data-testid="orgs-embed-footer" />;
+  },
 }));
 
 describe('mountOrgsAndPoliciesChrome', () => {
@@ -56,5 +78,22 @@ describe('mountOrgsAndPoliciesChrome', () => {
     renderMount(false);
 
     expect(document.getElementById('iq-footer-container')).not.toHaveClass('nx-viewport-sized');
+  });
+
+  it('uses page layout so #iq-content is a direct child of .nx-page (owner sidebar grid)', () => {
+    renderMount();
+
+    const mount = screen.getByTestId('nexus-one-classic-component-mount');
+    expect(mount).toHaveAttribute('data-layout', 'page');
+    expect(mount.querySelector(':scope > #iq-content')).not.toBeNull();
+    expect(mount.querySelector(':scope > .nx-global-footer-2-container')).toBeNull();
+  });
+
+  it('places Footer inside #iq-footer-container like Classic App.jsx', () => {
+    renderMount();
+
+    const footerContainer = document.getElementById('iq-footer-container');
+    expect(footerContainer).not.toBeNull();
+    expect(footerContainer?.querySelector('[data-testid="orgs-embed-footer"]')).not.toBeNull();
   });
 });

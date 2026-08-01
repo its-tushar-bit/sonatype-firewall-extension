@@ -122,18 +122,17 @@ const URL_TO_TAB: Readonly<Record<string, TabId>> = {
   violations: 'policy-failures',
   'policy-failures': 'policy-failures', // tolerate the internal name in URLs too
   components: 'components',
-  sboms: 'sboms',
   waivers: 'waivers',
-  'team-members': 'team-members',
+  // V1 removed Coming Soon tabs — old bookmarks land on Overview
+  sboms: 'overview',
+  'team-members': 'overview',
 };
 
 export const TAB_TO_URL: Readonly<Record<TabId, string>> = {
   overview: 'overview',
   'policy-failures': 'violations',
   components: 'components',
-  sboms: 'sboms',
   waivers: 'waivers',
-  'team-members': 'team-members',
 };
 
 const DEFAULT_TAB: TabId = 'overview';
@@ -259,9 +258,8 @@ export function threatColorFor(level: number): 'red' | 'orange' | 'yellow' | 'in
  * - Per-row link (hash supplied) goes to the component detail page on
  *   the Overview tab, the same destination the Classic Application
  *   Composition Report sidebar opens when the user clicks a component.
- * - Page-level "View in Classic" (no hash) goes to the overall policy
- *   report at /policy, which is what Classic's Application Detail
- *   button uses too.
+ * Prefer {@link nouxApplicationReportHref} for NOUX entity CTAs — Classic
+ * bundle report links are for TopNav shell-toggle mapping only.
  */
 export function classicReportHrefForComponent(publicId: string, scanId: string, hash?: string): string {
   const base = classicHref(

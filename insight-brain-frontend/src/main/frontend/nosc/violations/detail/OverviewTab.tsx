@@ -22,7 +22,6 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { fetchViolationWaiverPermission } from 'MainRoot/nosc/violations/detail/violationDetailSlice';
 import {
-  classicViolationHref,
   componentDisplayNameLabel,
   getMostRecentScanId,
 } from 'MainRoot/nosc/violations/detail/violationDetailUtils';
@@ -196,12 +195,6 @@ export function OverviewTab(): ReactElement {
                 </Badge>
               </Box>
             )}
-            <Box>
-              <Text as="p" size="1" color="gray" weight="medium">
-                Classic
-              </Text>
-              <RadixLink href={classicViolationHref(violationId)}>View in Classic</RadixLink>
-            </Box>
           </Grid>
         </Flex>
       </Card>

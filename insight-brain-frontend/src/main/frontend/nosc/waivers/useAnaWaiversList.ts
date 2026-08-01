@@ -41,7 +41,7 @@ export const WAIVERS_INDEX_FORBIDDEN_MESSAGE =
 
 /** GLOBAL_SEARCH off (or index-query route unavailable) — page hard-depends on Ana after cutover. */
 export const WAIVERS_INDEX_UNAVAILABLE_MESSAGE =
-  'Waiver search is not available in this environment. Ask an administrator to enable Global Search, or use Classic Waivers.';
+  'Waiver search is not available in this environment. Ask an administrator to enable Global Search.';
 
 const EMPTY_FACETS: WaiversFilterFacetCounts = {
   totalWaivers: 0,

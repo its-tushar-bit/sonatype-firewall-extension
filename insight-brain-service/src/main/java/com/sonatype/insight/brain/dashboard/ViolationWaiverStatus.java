@@ -3,9 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dashboard.violations;
+package com.sonatype.insight.brain.dashboard;
 
-import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 
 /**
@@ -22,46 +21,49 @@ import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
  * as {@link PolicyViolationState#WAIVED} and appears under WAIVED, not LEGACY — a deliberate divergence
  * from the SQL read path (where it is a member of both states). Only pure-legacy (non-waived)
  * violations map to {@link PolicyViolationState#LEGACY_VIOLATION}.
+ * <p>
+ * Lives in the shared {@code dashboard} package rather than a single list package because the
+ * Violations and Applications lists both derive violation-state queries from this vocabulary; see
+ * {@link PolicyViolationIndexClauses}.
  */
-final class ViolationWaiverStatus
+public final class ViolationWaiverStatus
 {
-  static final String ACTIVE = DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_ACTIVE;
+  public static final String ACTIVE = DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_ACTIVE;
 
-  static final String WAIVED = DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_WAIVED;
+  public static final String WAIVED = DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_WAIVED;
 
-  static final String AUTO_WAIVED = DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_AUTO_WAIVED;
+  public static final String AUTO_WAIVED = DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_AUTO_WAIVED;
 
-  static final String LEGACY = DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_LEGACY;
+  public static final String LEGACY = DocumentBuilderHelper.POLICY_VIOLATION_WAIVER_STATUS_LEGACY;
 
   private ViolationWaiverStatus() {
   }
 
   /** Maps an indexed waiver status to the API violation state. */
-  static PolicyViolationState toState(final String waiverStatus) {
+  public static PolicyViolationState toState(final String waiverStatus) {
     if (WAIVED.equals(waiverStatus) || AUTO_WAIVED.equals(waiverStatus)) {
       return PolicyViolationState.WAIVED;
     }
     if (LEGACY.equals(waiverStatus)) {
       return PolicyViolationState.LEGACY_VIOLATION;
     }
-    // ACTIVE — and any absent/unknown status — is OPEN. ViolationsListIndexQueryBuilder.buildStateClause
+    // ACTIVE — and any absent/unknown status — is OPEN. PolicyViolationIndexClauses.stateClause
     // expresses the OPEN filter as "NOT (Waived AutoWaived Legacy)" for exactly this reason, so filter,
     // facet count, and row state stay in agreement (OPEN must exclude Legacy too, or Legacy leaks in).
     return PolicyViolationState.OPEN;
   }
 
-  static boolean isAutoWaived(final String waiverStatus) {
+  public static boolean isAutoWaived(final String waiverStatus) {
     return AUTO_WAIVED.equals(waiverStatus);
   }
 
   /**
    * The set of indexed waiver statuses that are excluded from OPEN, as a Lucene clause body
-   * ({@code Waived AutoWaived Legacy}). Shared by the state filter
-   * ({@link ViolationsListIndexQueryBuilder}) and the OPEN facet count
-   * ({@link ViolationsListFacetsBuilder}) so the two cannot drift: OPEN is {@code NOT (<this>)} on both
+   * ({@code Waived AutoWaived Legacy}). Shared by every state filter and OPEN facet count via
+   * {@link PolicyViolationIndexClauses} so they cannot drift: OPEN is {@code NOT (<this>)} on all
    * paths. Any status added here must also be added to {@link #toState} above.
    */
-  static String openExclusionStatuses() {
+  public static String openExclusionStatuses() {
     return WAIVED + " " + AUTO_WAIVED + " " + LEGACY;
   }
 }

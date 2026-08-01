@@ -8,8 +8,6 @@ import ApplicationDetail from 'MainRoot/nosc/applications/ApplicationDetail';
 import {
   ApplicationDetailComponentsRoute,
   ApplicationDetailOverviewRoute,
-  ApplicationDetailSbomsRoute,
-  ApplicationDetailTeamMembersRoute,
   ApplicationDetailViolationsRoute,
   ApplicationDetailWaiversRoute,
 } from 'MainRoot/nosc/applications/applicationDetailTabRoutes';
@@ -62,24 +60,13 @@ export function nexusOneApplicationDetailStates(): ReactStateDeclaration[] {
       data: { title: APPLICATION_DETAIL_TITLE },
     },
     {
-      name: childState('sboms'),
-      url: '/sboms',
-      component: ApplicationDetailSbomsRoute,
-      data: { title: APPLICATION_DETAIL_TITLE },
-    },
-    {
       name: childState('waivers'),
       url: '/waivers',
       component: ApplicationDetailWaiversRoute,
       data: { title: APPLICATION_DETAIL_TITLE },
     },
-    {
-      name: childState('team-members'),
-      url: '/team-members',
-      component: ApplicationDetailTeamMembersRoute,
-      data: { title: APPLICATION_DETAIL_TITLE },
-    },
     // Legacy flat tab state from CLM-39709 — redirect bookmarks to child states.
+    // Removed V1 Coming Soon tabs (sboms, team-members) map to Overview via tabFromSlug.
     {
       name: 'nexusOneApplicationsDetailTab',
       url: '/applications/{publicId}/{tab}',

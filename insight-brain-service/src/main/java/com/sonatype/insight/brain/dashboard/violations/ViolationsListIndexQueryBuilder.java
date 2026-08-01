@@ -13,11 +13,11 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
-import com.sonatype.insight.brain.dashboard.PolicyViolationState;
+import com.sonatype.insight.brain.dashboard.PolicyViolationIndexClauses;
+import com.sonatype.insight.brain.dashboard.ViolationWaiverStatus;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
-import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 
@@ -162,83 +162,26 @@ final class ViolationsListIndexQueryBuilder
   }
 
   private static String buildThreatCategoryClause(final PolicyThreatCategoryFilter filter) {
-    if (filter == null || filter.getPolicyThreatCategories().isEmpty()) {
-      return null;
-    }
-    List<String> names = new ArrayList<>();
-    for (PolicyThreatCategory category : filter.getPolicyThreatCategories()) {
-      names.add(DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(category.getName()));
-    }
-    return FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label + ":(" + String.join(" ", names) + ")";
+    return PolicyViolationIndexClauses.threatCategoryClause(filter);
   }
 
   private static String buildStateClause(final PolicyViolationStateFilter filter) {
-    if (filter == null || filter.getPolicyViolationStates().isEmpty()) {
-      return null;
-    }
-    Set<PolicyViolationState> states = filter.getPolicyViolationStates();
-    boolean wantsOpen = states.contains(PolicyViolationState.OPEN);
-    boolean wantsWaived = states.contains(PolicyViolationState.WAIVED);
-    boolean wantsLegacy = states.contains(PolicyViolationState.LEGACY_VIOLATION);
-    // Selecting all three states is the whole indexed domain, so no state narrowing is needed. (The
-    // filter's set can only contain OPEN/WAIVED/LEGACY_VIOLATION.)
-    if (wantsOpen && wantsWaived && wantsLegacy) {
-      return null;
-    }
-    // Each selected state contributes a positive clause; OPEN is the complement of the excluded set so
-    // the state FILTER agrees with the OPEN facet count (ViolationsListFacetsBuilder.countStates) and
-    // the row-state derivation (ViolationWaiverStatus.toState): a violation with an absent/unknown
-    // waiver status is OPEN on all three paths, and OPEN excludes Legacy on all three (or Legacy would
-    // leak into OPEN). The excluded set is the shared ViolationWaiverStatus.openExclusionStatuses().
-    List<String> stateClauses = new ArrayList<>();
-    boolean orCombined = numberOfSelectedStates(wantsOpen, wantsWaived, wantsLegacy) > 1;
-    if (wantsOpen) {
-      stateClauses.add(openClause(orCombined));
-    }
-    if (wantsWaived) {
-      stateClauses.add(waivedClause());
-    }
-    if (wantsLegacy) {
-      stateClauses.add(legacyClause());
-    }
-    if (stateClauses.size() == 1) {
-      return stateClauses.get(0);
-    }
-    return "(" + String.join(" OR ", stateClauses) + ")";
+    return PolicyViolationIndexClauses.stateClause(filter);
   }
 
-  private static int numberOfSelectedStates(final boolean open, final boolean waived, final boolean legacy) {
-    return (open ? 1 : 0) + (waived ? 1 : 0) + (legacy ? 1 : 0);
-  }
-
-  /**
-   * The OPEN state clause: the complement of the excluded set
-   * ({@link ViolationWaiverStatus#openExclusionStatuses()}). Shared with
-   * {@link ViolationsListFacetsBuilder} so filter, facet count and row-state derivation cannot drift.
-   * <p>
-   * A bare {@code NOT (...)} is a pure-negative query with no positive anchor. It resolves correctly
-   * only when AND-combined with a positive clause (the {@code itemType} base clause, or the OPEN facet's
-   * {@code violationQuery}). When OR-combined with another state clause it must carry its own anchor, or
-   * Lucene parses the OR into a BooleanQuery whose only positive term is the sibling SHOULD, yielding
-   * zero hits ({@code [OPEN, WAIVED]}/{@code [OPEN, LEGACY]} returned empty). {@code anchored=true}
-   * prepends {@code *:*} so the negation stands alone inside an OR.
-   */
+  /** @see PolicyViolationIndexClauses#openClause(boolean) */
   static String openClause(final boolean anchored) {
-    String negation =
-        "NOT (" + FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":("
-            + ViolationWaiverStatus.openExclusionStatuses() + "))";
-    return anchored ? "(*:* AND " + negation + ")" : negation;
+    return PolicyViolationIndexClauses.openClause(anchored);
   }
 
-  /** The WAIVED state clause ({@code :(Waived AutoWaived)}). Shared with {@link ViolationsListFacetsBuilder}. */
+  /** @see PolicyViolationIndexClauses#waivedClause() */
   static String waivedClause() {
-    return FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":("
-        + ViolationWaiverStatus.WAIVED + " " + ViolationWaiverStatus.AUTO_WAIVED + ")";
+    return PolicyViolationIndexClauses.waivedClause();
   }
 
-  /** The LEGACY state clause ({@code :(Legacy)}). Shared with {@link ViolationsListFacetsBuilder}. */
+  /** @see PolicyViolationIndexClauses#legacyClause() */
   static String legacyClause() {
-    return waiverStatusClause(ViolationWaiverStatus.LEGACY);
+    return PolicyViolationIndexClauses.legacyClause();
   }
 
   /**
@@ -255,17 +198,9 @@ final class ViolationsListIndexQueryBuilder
     return waiverStatusClause(status);
   }
 
-  /**
-   * Single-status waiver clause ({@code policyViolationWaiverStatus:(<status>)}). Shared with
-   * {@link ViolationsListFacetsBuilder} so the waiver-type filter query and the waiver-type facet-count
-   * queries cannot drift apart.
-   * <p>
-   * The status is a compile-time constant ("Waived"/"AutoWaived") with no Lucene-special characters, so
-   * it is intentionally inlined without escapeLuceneTerm — matching {@link #buildStateClause} (only the
-   * user-supplied threat-category terms in {@link #buildThreatCategoryClause} need escaping).
-   */
+  /** @see PolicyViolationIndexClauses#waiverStatusClause(String) */
   static String waiverStatusClause(final String waiverStatus) {
-    return FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label + ":(" + waiverStatus + ")";
+    return PolicyViolationIndexClauses.waiverStatusClause(waiverStatus);
   }
 
   private static void addIfPresent(final List<String> clauses, final String clause) {

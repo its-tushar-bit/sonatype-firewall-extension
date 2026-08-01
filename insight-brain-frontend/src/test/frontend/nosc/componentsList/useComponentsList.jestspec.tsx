@@ -9,6 +9,7 @@ import {
   COMPONENTS_INDEX_NOT_READY_MESSAGE,
   useComponentsList,
 } from 'MainRoot/nosc/componentsList/useComponentsList';
+import { EMPTY_COMPONENTS_LIST_FILTERS } from 'MainRoot/nosc/componentsList/componentsListFilters';
 import { MOCK_COMPONENTS_CATALOG_RESPONSE } from 'TestRoot/nosc/componentsList/mockComponentsListData';
 import { getComponentsListUrl, getSearchCatalogUrl } from 'MainRoot/util/CLMLocation';
 
@@ -194,7 +195,7 @@ describe('useComponentsList', () => {
       tab: 'catalog',
       search: '',
       page: 0,
-      filters: { organizations: new Set(), ecosystems: new Set() },
+      filters: EMPTY_COMPONENTS_LIST_FILTERS,
     } }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));

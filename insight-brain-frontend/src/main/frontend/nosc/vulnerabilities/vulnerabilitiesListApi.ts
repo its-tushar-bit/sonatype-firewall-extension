@@ -58,6 +58,9 @@ export function createDefaultVulnerabilitiesFilterState(): VulnerabilitiesFilter
   return {
     severities: new Set(),
     ecosystems: new Set(),
+    organizations: new Set(),
+    applications: new Set(),
+    stages: new Set(),
     cvssRange: DEFAULT_VULNERABILITY_CVSS_RANGE,
   };
 }
@@ -70,6 +73,9 @@ export function hasActiveVulnerabilityFilters(filters: VulnerabilitiesFilterStat
   return (
     filters.severities.size > 0 ||
     filters.ecosystems.size > 0 ||
+    filters.organizations.size > 0 ||
+    filters.applications.size > 0 ||
+    filters.stages.size > 0 ||
     !isDefaultCvssRange(filters.cvssRange)
   );
 }
@@ -80,6 +86,18 @@ export function severityLabel(id: string): string {
 
 export function ecosystemLabel(id: string): string {
   return ECOSYSTEM_LABELS[id.toLowerCase()] ?? id;
+}
+
+/**
+ * Scope facet ids are internal ids, so a missing name would render as an opaque hash. Falling
+ * back to the id keeps the option selectable rather than hiding it.
+ */
+export function scopeLabel(
+  names: Readonly<Record<string, string>> | undefined,
+  id: string,
+): string {
+  const name = names?.[id];
+  return name && name.trim() ? name : id;
 }
 
 export type VulnerabilitiesListRequest = {
@@ -93,6 +111,9 @@ export type VulnerabilitiesListRequest = {
   readonly minCvssScore?: number;
   readonly maxCvssScore?: number;
   readonly ecosystems?: ReadonlyArray<string>;
+  readonly organizationIds?: ReadonlyArray<string>;
+  readonly applicationIds?: ReadonlyArray<string>;
+  readonly stageIds?: ReadonlyArray<string>;
 };
 
 export function buildVulnerabilitiesListRequest(params: {
@@ -106,8 +127,11 @@ export function buildVulnerabilitiesListRequest(params: {
 }): VulnerabilitiesListRequest {
   const search = params.search?.trim();
   const filters = params.filters ?? createDefaultVulnerabilitiesFilterState();
+  const tab = params.tab ?? DEFAULT_VULNERABILITIES_TAB;
+  // Estate scope is My Scan Data only — Catalog/HDS has no org/app/stage dimension.
+  const includeEstateScope = tab === 'myScanData';
   return {
-    tab: params.tab ?? DEFAULT_VULNERABILITIES_TAB,
+    tab,
     page: params.page,
     pageSize: params.pageSize ?? VULNERABILITIES_PAGE_SIZE,
     includeFacets: params.includeFacets ?? true,
@@ -124,6 +148,15 @@ export function buildVulnerabilitiesListRequest(params: {
       : {}),
     ...(filters.ecosystems.size > 0
       ? { ecosystems: Array.from(filters.ecosystems).sort() }
+      : {}),
+    ...(includeEstateScope && filters.organizations.size > 0
+      ? { organizationIds: Array.from(filters.organizations).sort() }
+      : {}),
+    ...(includeEstateScope && filters.applications.size > 0
+      ? { applicationIds: Array.from(filters.applications).sort() }
+      : {}),
+    ...(includeEstateScope && filters.stages.size > 0
+      ? { stageIds: Array.from(filters.stages).sort() }
       : {}),
   };
 }

@@ -61,6 +61,20 @@ describe('applicationsListFilters', () => {
     });
   });
 
+  it('serializes policy types as a comma-delimited string and states as an array (CLM-43211)', () => {
+    const filters = {
+      ...EMPTY_APPLICATIONS_LIST_FILTERS,
+      policyTypes: new Set(['security', 'license']),
+      violationStates: new Set(['OPEN']),
+    };
+
+    expect(applicationsListFiltersToRequest(filters)).toEqual({
+      policyThreatCategories: 'license,security',
+      policyViolationStates: ['OPEN'],
+    });
+    expect(hasActiveApplicationsListFilters(filters)).toBe(true);
+  });
+
   it('toggles set-valued filter ids', () => {
     const filters = toggleApplicationsListFilterId(
       EMPTY_APPLICATIONS_LIST_FILTERS,

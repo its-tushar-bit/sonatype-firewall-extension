@@ -66,6 +66,8 @@ const EMPTY_FACETS: ComponentsFilterFacetCounts = {
   totalComponents: 0,
   organizations: [],
   ecosystems: [],
+  applications: [],
+  stages: [],
 };
 
 export const COMPONENTS_INDEX_NOT_READY_MESSAGE =
@@ -187,11 +189,19 @@ export function useComponentsList(
   const setTab = useCallback((nextTab: ComponentsTab) => {
     setTabState(nextTab);
     if (nextTab === 'catalog') {
-      // Organizations are My Scan Data–only; drop them when switching to Catalog.
+      // Estate scope (org/app/stage) is My Scan Data–only, and the Catalog source rejects those
+      // filter keys outright — carrying them over would 400 rather than narrow.
       setFilters((current) =>
         current.organizations.size === 0
+        && current.applications.size === 0
+        && current.stages.size === 0
           ? current
-          : { ...current, organizations: new Set<string>() },
+          : {
+              ...current,
+              organizations: new Set<string>(),
+              applications: new Set<string>(),
+              stages: new Set<string>(),
+            },
       );
     }
     else if (nextTab === 'myScanData') {

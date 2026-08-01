@@ -170,6 +170,24 @@ describe('ApplicationsList (CLM-42224)', () => {
     goSpy.mockRestore();
   });
 
+  it('does not replace the URL when violationState is already clean', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+    const goSpy = jest.spyOn(router.stateService, 'go');
+
+    renderNexusOneRoute(
+      <ApplicationsList />,
+      'nexusOneApplications',
+      { violationState: 'OPEN' },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-applications-page')).toBeInTheDocument();
+    });
+
+    expect(goSpy).not.toHaveBeenCalled();
+    goSpy.mockRestore();
+  });
+
   it('updates the list request when search is submitted from a deep-linked view', async () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
 

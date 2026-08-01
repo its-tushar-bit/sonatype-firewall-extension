@@ -10,14 +10,26 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.PolicyViolationIndexClauses;
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Shared Lucene helpers for Martha applications list violation-scoped filters (stages, threat levels).
+ * Shared Lucene helpers for Martha applications list violation-scoped filters (stages, threat levels,
+ * policy types, violation states).
+ * <p>
+ * Policy type and violation state are resolved through violation-scoped discovery rather than the
+ * denormalized {@code applicationViolationPolicyType} / {@code applicationViolationState} fields on
+ * APPLICATION documents. Those fields are cheaper but cannot express a conjunction across a single
+ * violation: an application holding a waived Security violation and an open Quality violation carries
+ * both {@code security} and {@code open} at the application level and would match
+ * "Security AND Open" even though no such violation exists. Scoping through POLICY_VIOLATION docs
+ * evaluates both predicates against the same document (CLM-43211).
  */
 final class ApplicationsListViolationQuerySupport
 {
@@ -64,6 +76,22 @@ final class ApplicationsListViolationQuerySupport
       return stageClauses.get(0);
     }
     return "(" + String.join(" OR ", stageClauses) + ")";
+  }
+
+  /**
+   * Policy-type clause over violation docs. Delegates to the shared builder so the Applications filter
+   * and the Violations list emit identical Lucene for the same selection.
+   */
+  static String buildPolicyTypeFilterClause(final PolicyThreatCategoryFilter categoryFilter) {
+    return PolicyViolationIndexClauses.threatCategoryClause(categoryFilter);
+  }
+
+  /**
+   * Violation-state clause over violation docs. Returns {@code null} when the selection covers the whole
+   * indexed domain and therefore narrows nothing.
+   */
+  static String buildViolationStateFilterClause(final PolicyViolationStateFilter stateFilter) {
+    return PolicyViolationIndexClauses.stateClause(stateFilter);
   }
 
   static String buildThreatFilterClause(final PolicyThreatLevelFilter threatFilter) {
@@ -137,6 +165,12 @@ final class ApplicationsListViolationQuerySupport
       return true;
     }
     if (buildThreatFilterClause(effectiveThreatFilters(request)) != null) {
+      return true;
+    }
+    if (buildPolicyTypeFilterClause(request.policyThreatCategories) != null) {
+      return true;
+    }
+    if (buildViolationStateFilterClause(request.policyViolationStates) != null) {
       return true;
     }
     return false;

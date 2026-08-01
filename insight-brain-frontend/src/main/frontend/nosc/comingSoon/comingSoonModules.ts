@@ -10,8 +10,8 @@
  * Each entry corresponds to a Classic IQ top-level concept that we haven't yet
  * built a native Nexus One module for. Until the native version ships, the
  * LeftNav surfaces the entry and clicking it lands the user on a
- * <ComingSoonPage>, which gives a one-click "Open in Classic IQ" escape hatch
- * to the working Classic equivalent.
+ * <ComingSoonPage>. {@code classicHref} is retained only for TopNav
+ * Classic↔NOUX path mapping — not shown as a user-facing escape hatch.
  *
  * Single source of truth — consumed by:
  *   - nosc/shell/LeftNav.jsx to render the nav entries
@@ -32,8 +32,8 @@ export interface ComingSoonModule {
    *  subtitle. */
   readonly description: string;
 
-  /** Classic IQ deep link that "Open in Classic IQ" jumps to. Must include
-   *  the leading `/assets/#` because the Classic UI is hash-routed. */
+  /** Classic IQ deep link used by TopNav shell-toggle mapping only. Must
+   *  include the leading `/assets/#` because the Classic UI is hash-routed. */
   readonly classicHref: string;
 }
 
@@ -74,8 +74,8 @@ export interface ComingSoonModule {
 //   api                   → /api
 export const COMING_SOON_MODULES = {
   reports: {
-    label: 'Reports',
-    description: 'View, schedule, and download policy and SBOM scan reports.',
+    label: 'Enterprise Reporting',
+    description: 'View, schedule, and download enterprise policy and SBOM reports.',
     classicHref: '/assets/#/operationalReporting',
   },
   'success-metrics': {

@@ -33,7 +33,7 @@ import '@radix-ui/themes/styles.css';
  * Native Nexus One Application Detail page.
  *
  * Mounted at /applications/{publicId}. Uses EntityDetailLayout for shared
- * detail chrome while preserving the existing six-tab content and data pipeline.
+ * detail chrome while preserving the existing four-tab content and data pipeline.
  */
 
 function tabLabel(label: string, count: ReactNode): ReactNode {
@@ -137,19 +137,9 @@ export default function ApplicationDetail(): ReactElement {
         testId: 'nosc-app-detail-tab-components',
       },
       {
-        value: 'sboms',
-        label: 'SBOMs',
-        testId: 'nosc-app-detail-tab-sboms',
-      },
-      {
         value: 'waivers',
         label: 'Waivers',
         testId: 'nosc-app-detail-tab-waivers',
-      },
-      {
-        value: 'team-members',
-        label: 'Team Members',
-        testId: 'nosc-app-detail-tab-team-members',
       },
     ],
     [componentCount, policyState.status, totalViolations],

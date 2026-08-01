@@ -147,7 +147,8 @@ function SearchableFilterSection({
 /**
  * Filter sidebar for the Martha V1 Components page (CLM-42214).
  * Ecosystems on Catalog only (My Scan Data dashboard list has no ecosystem facets yet).
- * Organizations (friendly names) on My Scan Data only.
+ * Organizations, Applications, and Stages (friendly names) on My Scan Data only — the Catalog
+ * source rejects those estate dimensions outright (CLM-43211).
  */
 export default function ComponentsFilterRail({
   tab,
@@ -158,7 +159,7 @@ export default function ComponentsFilterRail({
   onResetFilters,
 }: ComponentsFilterRailProps): JSX.Element {
   const showEcosystems = tab === 'catalog';
-  const showOrganizations = tab === 'myScanData';
+  const showEstateScope = tab === 'myScanData';
 
   return (
     <Box asChild className="nosc-components-filter-rail" data-testid="components-filter-rail">
@@ -188,15 +189,33 @@ export default function ComponentsFilterRail({
               onToggle={onToggleFilter}
             />
           )}
-          {showOrganizations && (
-            <SearchableFilterSection
-              title="Organizations"
-              testId="components-filter-organizations"
-              group="organizations"
-              entries={facets.organizations}
-              selected={filters.organizations}
-              onToggle={onToggleFilter}
-            />
+          {showEstateScope && (
+            <>
+              <SearchableFilterSection
+                title="Organizations"
+                testId="components-filter-organizations"
+                group="organizations"
+                entries={facets.organizations}
+                selected={filters.organizations}
+                onToggle={onToggleFilter}
+              />
+              <SearchableFilterSection
+                title="Applications"
+                testId="components-filter-applications"
+                group="applications"
+                entries={facets.applications}
+                selected={filters.applications}
+                onToggle={onToggleFilter}
+              />
+              <SearchableFilterSection
+                title="Stages"
+                testId="components-filter-stages"
+                group="stages"
+                entries={facets.stages}
+                selected={filters.stages}
+                onToggle={onToggleFilter}
+              />
+            </>
           )}
         </Flex>
       </aside>

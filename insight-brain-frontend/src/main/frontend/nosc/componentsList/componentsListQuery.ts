@@ -93,6 +93,8 @@ export function parseComponentsListParams(params: Record<string, unknown>): Comp
     filters: {
       organizations: new Set(parseCsvParam(params.org)),
       ecosystems: new Set(parseCsvParam(params.ecosystem)),
+      applications: new Set(parseCsvParam(params.app)),
+      stages: new Set(parseCsvParam(params.stage)),
     },
   };
 }
@@ -109,12 +111,15 @@ export function buildComponentsListRouteParams(state: {
   readonly filters: ComponentsListFilterState;
 }): Record<string, string | undefined> {
   const source = componentsTabToSource(state.tab);
+  const myScanData = state.tab === 'myScanData';
   return {
     source: source === 'local' ? undefined : source,
     q: state.search.trim() || undefined,
     page: state.page > 0 ? String(state.page + 1) : undefined,
-    org: state.tab === 'myScanData' ? serializeCsvParam(state.filters.organizations) : undefined,
+    org: myScanData ? serializeCsvParam(state.filters.organizations) : undefined,
     ecosystem: serializeCsvParam(state.filters.ecosystems),
+    app: myScanData ? serializeCsvParam(state.filters.applications) : undefined,
+    stage: myScanData ? serializeCsvParam(state.filters.stages) : undefined,
   };
 }
 
@@ -127,6 +132,8 @@ export function rawComponentsListParamsSnapshot(params: Record<string, unknown>)
     page: asString(params.page),
     org: asString(params.org),
     ecosystem: asString(params.ecosystem),
+    app: asString(params.app),
+    stage: asString(params.stage),
   });
 }
 

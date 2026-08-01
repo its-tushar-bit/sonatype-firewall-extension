@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard.components;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
@@ -14,6 +15,7 @@ import com.sonatype.insight.brain.dashboard.DashboardResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -130,12 +132,118 @@ public class ComponentsListResourceTest
         .anyMatch(name -> name.contains("log4j"));
   }
 
+  /**
+   * Wave C exposes application and stage facets on the rail (CLM-43211), so selecting one has to
+   * narrow the list while the sibling facet stays visible — otherwise the rail dead-ends after the
+   * first click.
+   */
+  @Test
+  public void listComponents_applicationFilter_narrowsResultsAndKeepsSiblingFacets() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("ScopeComponentsTribe");
+    Application first = tempEntity.newApplication("Scope Comp One", "scope-comp-one", org.getId());
+    Application second = tempEntity.newApplication("Scope Comp Two", "scope-comp-two", org.getId());
+    seedComponentReport(first, "scope-comp-scan-1");
+    seedComponentReport(second, "scope-comp-scan-2");
+    ComponentsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ComponentsListResponseDTO all = listComponents(request -> request.organizationIds = Set.of(org.getId()));
+    assertThat(all.facets.applications).containsKeys(first.getId(), second.getId());
+
+    ComponentsListResponseDTO filtered = listComponents(request -> {
+      request.organizationIds = Set.of(org.getId());
+      request.applicationIds = Set.of(first.getId());
+    });
+
+    assertThat(filtered.total).isGreaterThanOrEqualTo(1);
+    // The unselected sibling stays in the rail so the selection can be widened or swapped.
+    assertThat(filtered.facets.applications).containsKeys(first.getId(), second.getId());
+  }
+
+  /**
+   * Stage counts and names come from {@code POLICY_VIOLATION} docs, so the fixture needs a real
+   * violation — a component report alone leaves the stage facet absent. The rail has no other
+   * source for the label, since a component row carries no stage breakdown.
+   */
+  @Test
+  public void listComponents_stageFacet_carriesCountsAndDisplayNames() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("StageComponentsTribe");
+    Application app = tempEntity.newApplication("Stage Comp App", "stage-comp-app", org.getId());
+    seedViolatingComponent(app, Stage.ID_BUILD, "stage-comp-scan");
+    ComponentsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ComponentsListResponseDTO body = listComponents(request -> request.organizationIds = Set.of(org.getId()));
+
+    assertThat(body.facets.stages).containsKey(Stage.ID_BUILD);
+    assertThat(body.facets.stageNames).containsKey(Stage.ID_BUILD);
+  }
+
+  /**
+   * The stage filter is violation-scoped, so a stage with no violations must return nothing rather
+   * than silently drop the filter and show the unfiltered estate.
+   */
+  @Test
+  public void listComponents_stageWithNoViolations_returnsEmptyRatherThanIgnoringTheFilter() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("EmptyStageComponentsTribe");
+    Application app = tempEntity.newApplication("Empty Stage App", "empty-stage-app", org.getId());
+    seedViolatingComponent(app, Stage.ID_BUILD, "empty-stage-scan");
+    ComponentsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    assertThat(listComponents(request -> request.organizationIds = Set.of(org.getId())).total)
+        .isGreaterThan(0);
+
+    ComponentsListResponseDTO body = listComponents(request -> {
+      request.organizationIds = Set.of(org.getId());
+      request.stageIds = Set.of(Stage.ID_RELEASE);
+    });
+
+    assertThat(body.components).isEmpty();
+    assertThat(body.total).isZero();
+  }
+
+  private ComponentsListResponseDTO listComponents(
+      final Consumer<ComponentsListRequestDTO> customizer) throws Exception
+  {
+    ComponentsListRequestDTO request = new ComponentsListRequestDTO();
+    request.page = 0;
+    request.pageSize = 50;
+    customizer.accept(request);
+
+    HttpResponse response = restRequest()
+        .path(ComponentsListResource.COMPONENTS_LIST_PATH)
+        .body(request)
+        .post();
+
+    assertResponseStatus(200, response);
+    return response.getBody(ComponentsListResponseDTO.class);
+  }
+
   private void seedComponentReport(final Application app, final String scanId) throws Exception {
-    var evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
     ReportTestUtils.createReportFile(
         evaluation.getOwnerId(),
         evaluation.getScanId(),
         ReportTestUtils.zipReportDir(COMPONENT_REPORT_RESOURCE, tempDir),
         lookup(InsightWork.class));
+  }
+
+  /** Seeds a scanned component report plus a violation at {@code stageId}, which stage facets read. */
+  private void seedViolatingComponent(
+      final Application app,
+      final String stageId,
+      final String scanId) throws Exception
+  {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageId, scanId);
+    ReportTestUtils.createReportFile(
+        evaluation.getOwnerId(),
+        evaluation.getScanId(),
+        ReportTestUtils.zipReportDir(COMPONENT_REPORT_RESOURCE, tempDir),
+        lookup(InsightWork.class));
+    tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app));
   }
 }

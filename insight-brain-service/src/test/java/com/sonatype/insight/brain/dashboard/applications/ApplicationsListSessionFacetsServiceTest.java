@@ -100,7 +100,8 @@ public class ApplicationsListSessionFacetsServiceTest
         new ApplicationsListIndexQueryBuilder(new DashboardIndexDimensionQueryBuilder(null, configuration),
             violationScopeResolver),
         requestValidator,
-        new ApplicationsListFacetsBuilder(searchIndexClient, stageTypeService, organizationDAO, applicationDAO),
+        new ApplicationsListFacetsBuilder(searchIndexClient, stageTypeService, organizationDAO, applicationDAO,
+            conversionHelper),
         sessionFactory,
         conversionHelper);
   }

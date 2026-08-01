@@ -14,7 +14,6 @@ import {
   getViolationDetailsUrl,
 } from 'MainRoot/util/CLMLocation';
 import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
-import { classicViolationHref } from 'MainRoot/nosc/violations/detail/violationDetailUtils';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
 import type {
   ApplicableWaiversDTO,
@@ -115,7 +114,7 @@ describe('OverviewTab', () => {
     jest.restoreAllMocks();
   });
 
-  it('shows the policy decision core with constraints and Classic links', async () => {
+  it('shows the policy decision core with constraints and NOUX entity links', async () => {
     renderOverview();
 
     const overview = await screen.findByTestId('nosc-violation-detail-overview-tab');
@@ -131,10 +130,7 @@ describe('OverviewTab', () => {
       'href',
       componentDetailHref('demo-app', 'component-hash', 'scan-1'),
     );
-    expect(within(overview).getByRole('link', { name: 'View in Classic' })).toHaveAttribute(
-      'href',
-      classicViolationHref(VIOLATION_ID),
-    );
+    expect(within(overview).queryByRole('link', { name: /classic/i })).not.toBeInTheDocument();
     expect(overview).toHaveTextContent('Critical Security Risk');
     expect(overview).toHaveTextContent('CVSS score is greater than 9');
     expect(within(overview).getByText('reachable')).toBeInTheDocument();

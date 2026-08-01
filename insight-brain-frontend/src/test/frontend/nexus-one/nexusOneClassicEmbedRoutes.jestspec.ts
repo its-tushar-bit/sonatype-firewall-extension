@@ -61,8 +61,8 @@ describe('nexusOneClassicEmbedRoutes', () => {
         // Clean /legal is owned by nexusOneLegal (LEGAL_VIOLATION triage). Coming Soon entry redirects there.
         expect(state?.component).toBeUndefined();
         expect(state?.redirectTo).toBe('nexusOneLegal');
-      } else if (slug === 'orgs-and-policies') {
-        // Orgs and Policies' entry redirects into the embedded management tree - see below.
+      } else if (slug === 'orgs-and-policies' || slug === 'policies') {
+        // Orgs and Policies / Policies entries redirect into the embedded management tree.
         expect(state?.component).toBeUndefined();
         expect(state?.redirectTo).toEqual({
           state: 'management.view.organization',
@@ -71,6 +71,9 @@ describe('nexusOneClassicEmbedRoutes', () => {
       } else if (slug === 'repositories') {
         // Dedicated native route owns /repositories; Coming Soon entry stays the bookmark alias.
         expect(state?.redirectTo).toBe('nexusOneRepositories');
+      } else if (slug === 'waiver-requests') {
+        expect(state?.component).toBeUndefined();
+        expect(state?.redirectTo).toBe('nexusOneWaivers');
       } else {
         expect(state?.component).not.toBe(ComingSoonRoute);
       }

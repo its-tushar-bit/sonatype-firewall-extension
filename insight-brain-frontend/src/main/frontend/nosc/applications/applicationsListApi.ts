@@ -4,10 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  APPLICATIONS_POLICY_TYPES,
+  APPLICATIONS_VIOLATION_STATES,
   ApplicationRiskCounts,
   ApplicationRiskScore,
   ApplicationStageRisk,
+  ApplicationsFacetEntry,
   ApplicationsFilterFacetCounts,
+  fixedDomainFacetEntries,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { deriveFacetsFromPageRows } from 'MainRoot/nosc/applications/deriveFacetsFromPageRows';
 import type { ApplicationsListOrderBy } from 'MainRoot/nosc/applications/applicationsListQuery';
@@ -54,6 +58,10 @@ export type ApiApplicationsListFacets = {
   /** Display names keyed by internal application id. */
   readonly applicationNames?: Readonly<Record<string, string>> | null;
   readonly stages?: Readonly<Record<string, number>> | null;
+  /** Distinct applications per indexed {@code policyViolationThreatCategory} term. */
+  readonly policyTypes?: Readonly<Record<string, number>> | null;
+  /** Distinct applications per violation state enum name. */
+  readonly violationStates?: Readonly<Record<string, number>> | null;
 };
 
 export type ApplicationsListApiResponse = {
@@ -81,6 +89,10 @@ export type ApplicationsListRequest = {
     readonly minPolicyThreatLevel: number;
     readonly maxPolicyThreatLevel: number;
   }>;
+  /** Comma-delimited category names, e.g. {@code "license,security"}. */
+  readonly policyThreatCategories?: string;
+  /** Violation state enum names, e.g. {@code ['OPEN']}. */
+  readonly policyViolationStates?: ReadonlyArray<string>;
 };
 
 function toRiskCounts(risk?: ApiRiskCounts): ApplicationRiskCounts {
@@ -208,6 +220,11 @@ export function mapApiFacets(
     stages: stageFacets.length > 0 ? stageFacets : derived.stages,
     organizations: organizations.length > 0 ? organizations : derived.organizations,
     applications: appFacets.length > 0 ? appFacets : derived.applications,
+    policyTypes: fixedDomainFacetEntries(APPLICATIONS_POLICY_TYPES, apiFacets?.policyTypes),
+    violationStates: fixedDomainFacetEntries(
+      APPLICATIONS_VIOLATION_STATES,
+      apiFacets?.violationStates,
+    ),
   };
 }
 

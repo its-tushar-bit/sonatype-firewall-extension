@@ -30,6 +30,8 @@ function rawRouteParamsSnapshot(params: Record<string, unknown>): string {
     stage: asOptionalString(params.stage),
     org: asOptionalString(params.org),
     app: asOptionalString(params.app),
+    policyType: asOptionalString(params.policyType),
+    violationState: asOptionalString(params.violationState),
     threat: asOptionalString(params.threat),
   });
 }

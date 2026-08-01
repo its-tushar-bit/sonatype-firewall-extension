@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
@@ -36,6 +37,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -177,6 +179,66 @@ public class ComponentsListFacetsBuilderTest
         facetsBuilder.buildFacets(ComponentsListViolationQuerySupport.COMPONENT_ITEM_TYPE_CLAUSE, 42);
 
     assertThat(facets.organizations).containsEntry("org-1", 5L).containsEntry("org-2", 0L);
+  }
+
+  /**
+   * {@code countDistinctGroupedBy} keys its result map by the lowercased group value on both
+   * backends, so reading it with the verbatim id would silently report zero for any organization,
+   * application or stage whose id is not already lowercase.
+   */
+  @Test
+  public void buildFacets_mixedCaseGroupId_readsGroupedCountByLowercasedKey() {
+    discoverKeys(List.of("Org-Mixed-Case"), List.of());
+    when(indexReadSession.countDistinctGroupedBy(any(), eq(FieldIdentifier.ORGANIZATION_ID.label),
+        eq(FieldIdentifier.COMPONENT_HASH.label), anyCollection())).thenReturn(Map.of("org-mixed-case", 12L));
+
+    ComponentsListFacetsDTO facets =
+        facetsBuilder.buildFacets(ComponentsListViolationQuerySupport.COMPONENT_ITEM_TYPE_CLAUSE, 42);
+
+    assertThat(facets.organizations).containsEntry("Org-Mixed-Case", 12L);
+  }
+
+  /**
+   * A component row carries no stage breakdown, so the rail has nothing to label a stage with
+   * unless the facets supply the names (CLM-43211).
+   */
+  @Test
+  public void buildFacets_stagesWithCounts_returnsDisplayNamesForTheRail() {
+    discoverKeys(List.of(), List.of());
+    List<StageType> licensedStages = List.of(stageType("build", "Build"), stageType("release", "Release"));
+    when(stageTypeService.getLicensedStageTypes(any())).thenReturn(licensedStages);
+    when(indexReadSession.countDistinctGroupedBy(any(), eq(FieldIdentifier.POLICY_EVALUATION_STAGE.label),
+        eq(FieldIdentifier.COMPONENT_HASH.label), anyCollection()))
+            .thenReturn(Map.of("build", 9L));
+
+    ComponentsListFacetsDTO facets =
+        facetsBuilder.buildFacets(ComponentsListViolationQuerySupport.COMPONENT_ITEM_TYPE_CLAUSE, 42);
+
+    // Only stages with a non-zero count reach the rail, so only those need a name.
+    assertThat(facets.stages).containsExactly(Map.entry("build", 9L));
+    assertThat(facets.stageNames).containsExactly(Map.entry("build", "Build"));
+  }
+
+  @Test
+  public void buildFacets_noStageCounts_omitsStageNames() {
+    discoverKeys(List.of(), List.of());
+    List<StageType> licensedStages = List.of(stageType("build", "Build"));
+    when(stageTypeService.getLicensedStageTypes(any())).thenReturn(licensedStages);
+    when(indexReadSession.countDistinctGroupedBy(any(), eq(FieldIdentifier.POLICY_EVALUATION_STAGE.label),
+        eq(FieldIdentifier.COMPONENT_HASH.label), anyCollection())).thenReturn(Map.of());
+
+    ComponentsListFacetsDTO facets =
+        facetsBuilder.buildFacets(ComponentsListViolationQuerySupport.COMPONENT_ITEM_TYPE_CLAUSE, 42);
+
+    assertThat(facets.stages).isNull();
+    assertThat(facets.stageNames).isNull();
+  }
+
+  private static StageType stageType(final String id, final String name) {
+    StageType stageType = mock(StageType.class);
+    lenient().when(stageType.getId()).thenReturn(id);
+    lenient().when(stageType.getName()).thenReturn(name);
+    return stageType;
   }
 
   private void discoverKeys(final List<String> organizationIds, final List<String> applicationIds) {

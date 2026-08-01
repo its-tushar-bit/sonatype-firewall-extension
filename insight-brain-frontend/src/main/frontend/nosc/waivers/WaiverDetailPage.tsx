@@ -14,7 +14,6 @@ import { resolveEntityDetailContext } from 'MainRoot/nosc/entityDetail/resolveEn
 import { ViolationThreatBadge } from 'MainRoot/nosc/violations/ViolationThreatBadge';
 import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
-import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
 import { useWaiverDetail } from './useWaivers';
 import { WaiverSecurityDetailsTab } from './WaiverSecurityDetailsTab';
 import type { PolicyWaiverDetailDTO } from './waiverTypes';
@@ -62,23 +61,6 @@ function computeBackLink(from: string | null, hrefFor: (state: string) => string
     return { href: hrefFor('nexusOneDashboard.waivers'), label: 'Dashboard Waivers' };
   }
   return { href: hrefFor('nexusOneWaivers'), label: 'Waivers' };
-}
-
-function classicHref(path: string): string {
-  return bundleIndexUrl('classic', path);
-}
-
-function classicWaiverDetailHref(route: ParsedRoute): string {
-  if (!route.ownerType || !route.ownerId || !route.waiverId) {
-    return classicHref('/dashboard/waiverRequests');
-  }
-  // Path matches the registered `waiver.details` route
-  // (`/waiver/{ownerType}/{ownerId}/{waiverId}`), not a spurious `details/`/`/waiver` shape.
-  const path = `/waiver/${encodeURIComponent(route.ownerType)}/${encodeURIComponent(route.ownerId)}/${encodeURIComponent(route.waiverId)}`;
-  // Classic's WaiverDetailsContainer branches on ?type=autoWaiver to render
-  // AutoWaiverDetails instead of WaiverDetails; without it an auto-waiver
-  // hand-off lands on the manual sub-view, which 404s on the manual endpoint.
-  return classicHref(route.isAutoWaiver ? `${path}?type=autoWaiver` : path);
 }
 
 const OVERVIEW_TAB = {
@@ -424,28 +406,6 @@ export default function WaiverDetailPage(): ReactElement {
                 </Box>
               </EntityDetailRow>
 
-              <Flex
-                justify="end"
-                gap="4"
-                pt="3"
-                style={{ borderTop: '1px solid var(--gray-4)' }}
-                data-testid="preview-waiver-detail-actions"
-              >
-                <Link
-                  size="2"
-                  href={classicHref('/dashboard/waivers')}
-                  data-testid="preview-waiver-detail-create-classic"
-                >
-                  View Waivers in Classic →
-                </Link>
-                <Link
-                  size="2"
-                  href={classicWaiverDetailHref(route)}
-                  data-testid="preview-waiver-detail-classic-link"
-                >
-                  Manage in Classic →
-                </Link>
-              </Flex>
             </Flex>
           </Card>
         </Box>

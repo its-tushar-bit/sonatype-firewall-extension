@@ -79,6 +79,7 @@ export default function VulnerabilitiesPage({
   const filtersActive = hasActiveVulnerabilityFilters(filters);
 
   const railProps = {
+    tab,
     facets,
     selected: filters,
     onToggle: onFilterToggle,

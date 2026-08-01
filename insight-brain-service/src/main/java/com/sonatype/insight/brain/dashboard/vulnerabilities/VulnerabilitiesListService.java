@@ -17,6 +17,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.dashboard.vulnerabilities.VulnerabilitiesListIndexQueryBuilder.FacetDimension;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -50,12 +51,17 @@ import org.apache.commons.lang3.StringUtils;
  * collect runs with that dimension omitted so sibling buckets stay visible — never an N-query
  * fan-out per band.
  * <p>
+ * Organization, application, and stage facets cannot be bucketed that way, because they vary
+ * across the uncollapsed hits behind a single row; {@link VulnerabilitiesListScopeFacetsBuilder}
+ * aggregates them instead.
+ * <p>
  * Catalog tab delegates to {@link VulnerabilitiesCatalogListService} (HDS vulnerability search).
  * <p>
- * My Scan Data index reads go through {@link SearchIndexClient} so
- * {@code ReadableContextAuthzCache} (PR-0 / CLM-42705) applies automatically — do not fork a
- * parallel session/authz stack; {@code IndexReadSessionFactory.open()} is for searchAfter cutover
- * surfaces only.
+ * Row and count reads go through {@link SearchIndexClient} so {@code ReadableContextAuthzCache}
+ * (PR-0 / CLM-42705) applies automatically — do not fork a parallel session/authz stack for them.
+ * The scope facets builder is the one exception and opens its own short-lived read session for
+ * term aggregation, which {@link SearchIndexClient} does not expose; it applies RBAC through the
+ * session the same way {@code ComponentsListFacetsBuilder} does.
  */
 @Named
 @Singleton
@@ -97,17 +103,21 @@ public class VulnerabilitiesListService
 
   private final VulnerabilitiesCatalogListService catalogListService;
 
+  private final VulnerabilitiesListScopeFacetsBuilder scopeFacetsBuilder;
+
   @Inject
   public VulnerabilitiesListService(
       final SearchIndexClient searchIndexClient,
       final VulnerabilitiesListIndexQueryBuilder indexQueryBuilder,
       final VulnerabilitiesListRequestValidator requestValidator,
-      final VulnerabilitiesCatalogListService catalogListService)
+      final VulnerabilitiesCatalogListService catalogListService,
+      final VulnerabilitiesListScopeFacetsBuilder scopeFacetsBuilder)
   {
     this.searchIndexClient = searchIndexClient;
     this.indexQueryBuilder = indexQueryBuilder;
     this.requestValidator = requestValidator;
     this.catalogListService = catalogListService;
+    this.scopeFacetsBuilder = scopeFacetsBuilder;
   }
 
   /**
@@ -115,7 +125,8 @@ public class VulnerabilitiesListService
    * RBAC-scoped via {@link SearchIndexClient}. Caps at {@link #MAX_AFFECTED_APPLICATIONS}, and
    * scans at most {@link #MAX_AFFECTED_APP_INDEX_PAGES} index pages. The response is flagged
    * {@code truncated} whenever either cap stopped the scan, so the caller never reads a
-   * budget-limited list as a complete one.
+   * budget-limited list as a complete one. A failed index lookup is likewise reported as
+   * truncated rather than as an empty-but-complete result.
    */
   public VulnerabilityAffectedApplicationsResponseDTO listAffectedApplications(final String vulnerabilityId) {
     if (StringUtils.isBlank(vulnerabilityId)) {
@@ -140,9 +151,14 @@ public class VulnerabilitiesListService
           false,
           false,
           List.of());
+      if (searchResult == null) {
+        // A failed lookup is not evidence that the estate holds no more matches. Stop, but leave
+        // the scan flagged incomplete so the caller does not render "affects nothing" for an
+        // index outage.
+        break;
+      }
       mergeAffectedApplications(searchResult, byPublicId);
-      boolean exhaustedPage = searchResult == null
-          || searchResult.groupingByDTOS == null
+      boolean exhaustedPage = searchResult.groupingByDTOS == null
           || searchResult.groupingByDTOS.isEmpty()
           || countItems(searchResult) < INDEX_FETCH_PAGE_SIZE;
       if (exhaustedPage) {
@@ -268,15 +284,17 @@ public class VulnerabilitiesListService
     // Omit only the dimension being faceted so sibling buckets stay visible; reuse the main
     // collect when that dimension is not filtered (zero extra index walks).
     LinkedHashMap<String, SearchResultItemDTO> severitySource = hasSeverityFilter(request)
-        ? collectDistinct(indexQueryBuilder.buildMyScanDataQuery(request, false, true, true))
+        ? collectDistinct(indexQueryBuilder.buildMyScanDataQuery(request, FacetDimension.SEVERITY))
             .distinctByVulnerabilityId()
         : mainDistinct;
     LinkedHashMap<String, SearchResultItemDTO> ecosystemSource = hasEcosystemFilter(request)
-        ? collectDistinct(indexQueryBuilder.buildMyScanDataQuery(request, true, true, false))
+        ? collectDistinct(indexQueryBuilder.buildMyScanDataQuery(request, FacetDimension.ECOSYSTEM))
             .distinctByVulnerabilityId()
         : mainDistinct;
     facets.severities = bucketSeverityFacets(severitySource);
     facets.ecosystems = bucketEcosystemFacets(ecosystemSource);
+    // Scope facets take grouped aggregations rather than more collect walks — see the builder.
+    scopeFacetsBuilder.attachScopeFacets(facets, request);
     return facets;
   }
 

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
@@ -29,8 +30,29 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 final class VulnerabilitiesListIndexQueryBuilder
 {
+  /**
+   * A filter dimension that the facet builder can drop from the query so that dimension's own
+   * sibling buckets stay visible while every other active filter still applies.
+   */
+  enum FacetDimension
+  {
+    NONE,
+    SEVERITY,
+    ECOSYSTEM,
+    ORGANIZATION,
+    APPLICATION,
+    STAGE
+  }
+
+  private final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
+
+  @Inject
+  VulnerabilitiesListIndexQueryBuilder(final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder) {
+    this.dimensionQueryBuilder = dimensionQueryBuilder;
+  }
+
   String buildMyScanDataQuery(final VulnerabilitiesListRequestDTO request) {
-    return buildMyScanDataQuery(request, true, true, true);
+    return buildMyScanDataQuery(request, FacetDimension.NONE);
   }
 
   /**
@@ -43,33 +65,60 @@ final class VulnerabilitiesListIndexQueryBuilder
   }
 
   /**
-   * @param includeSeverity when false, omits severity-band OR clauses (for severity facet counts)
-   * @param includeCvss when false, omits min/max CVSS clamp
-   * @param includeEcosystems when false, omits ecosystem OR clauses (for ecosystem facet discovery)
+   * @param omitted the dimension to leave out, so a facet count for that dimension still reflects
+   *          every other active filter. The CVSS clamp travels with {@code SEVERITY} because both
+   *          narrow the same {@code vulnerabilitySeverity} field.
    */
   String buildMyScanDataQuery(
       final VulnerabilitiesListRequestDTO request,
-      final boolean includeSeverity,
-      final boolean includeCvss,
-      final boolean includeEcosystems)
+      final FacetDimension omitted)
   {
     List<String> clauses = new ArrayList<>();
     clauses.add(FieldIdentifier.ITEM_TYPE.label + ":" + ItemType.SECURITY_VULNERABILITY.name());
     addIfPresent(clauses, buildSearchClause(request == null ? null : request.search));
-    if (includeSeverity) {
+    if (omitted != FacetDimension.SEVERITY) {
       addIfPresent(clauses, buildSeverityClause(request == null ? null : request.severities));
-    }
-    if (includeCvss) {
       addIfPresent(
           clauses,
           buildCvssRangeClause(
               request == null ? null : request.minCvssScore,
               request == null ? null : request.maxCvssScore));
     }
-    if (includeEcosystems) {
+    if (omitted != FacetDimension.ECOSYSTEM) {
       addIfPresent(clauses, buildEcosystemClause(request == null ? null : request.ecosystems));
     }
+    if (omitted != FacetDimension.ORGANIZATION) {
+      addIfPresent(
+          clauses,
+          dimensionQueryBuilder.buildOrganizationFilterClause(request == null ? null : request.organizationIds));
+    }
+    if (omitted != FacetDimension.APPLICATION) {
+      addIfPresent(
+          clauses,
+          dimensionQueryBuilder.buildEscapedApplicationFilterClause(
+              request == null ? null : request.applicationIds));
+    }
+    if (omitted != FacetDimension.STAGE) {
+      addIfPresent(clauses, buildStageClause(request == null ? null : request.stageIds));
+    }
     return String.join(" AND ", clauses);
+  }
+
+  private static String buildStageClause(final Set<String> stageIds) {
+    if (stageIds == null || stageIds.isEmpty()) {
+      return null;
+    }
+    List<String> escapedIds = new ArrayList<>(stageIds.size());
+    for (String stageId : DashboardIndexDimensionQueryBuilder.sortedCopy(stageIds)) {
+      if (StringUtils.isBlank(stageId)) {
+        continue;
+      }
+      escapedIds.add(DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(stageId.trim()));
+    }
+    if (escapedIds.isEmpty()) {
+      return null;
+    }
+    return FieldIdentifier.POLICY_EVALUATION_STAGE.label + ":(" + String.join(" ", escapedIds) + ")";
   }
 
   private static String buildSearchClause(final String search) {

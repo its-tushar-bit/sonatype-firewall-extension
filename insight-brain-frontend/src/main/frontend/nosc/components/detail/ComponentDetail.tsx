@@ -12,7 +12,7 @@ import { ActionIcons } from 'MainRoot/nosc/icons';
 import { EntityDetailLayout } from 'MainRoot/nosc/entityDetail/EntityDetailLayout';
 import { resolveEntityDetailContext } from 'MainRoot/nosc/entityDetail/resolveEntityDetailContext';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
-import { classicReportHrefForComponent } from 'MainRoot/nosc/applications/applicationDetailUtils';
+import { nouxApplicationReportHref } from 'MainRoot/nosc/routing/nouxNavigation';
 import type { RawReportComponent, RawReportResponse } from 'MainRoot/nosc/applications/applicationDetailTypes';
 import { getApplicationReportRawUrl, getApplicationUrl } from 'MainRoot/util/CLMLocation';
 import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
@@ -211,8 +211,16 @@ export default function ComponentDetail(): ReactElement {
               <Text size="2">Package URL: {component?.packageUrl || '—'}</Text>
               <Text size="2">Format: {component?.componentIdentifier?.format || '—'}</Text>
               {scanId && (
-                <RadixLink size="2" href={classicReportHrefForComponent(publicId, scanId, componentHash)}>
-                  View in Classic report →
+                <RadixLink
+                  size="2"
+                  href={nouxApplicationReportHref({
+                    publicId,
+                    scanId,
+                    componentHash,
+                  })}
+                  data-testid="nosc-component-detail-full-report-link"
+                >
+                  View full report →
                 </RadixLink>
               )}
             </Flex>

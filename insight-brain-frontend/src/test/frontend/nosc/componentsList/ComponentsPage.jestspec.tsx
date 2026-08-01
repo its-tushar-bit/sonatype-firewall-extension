@@ -18,6 +18,8 @@ const EMPTY_FACETS = {
   totalComponents: 0,
   organizations: [],
   ecosystems: [],
+  applications: [],
+  stages: [],
 };
 
 function renderPage(overrides: Partial<React.ComponentProps<typeof ComponentsPage>> = {}) {

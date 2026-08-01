@@ -28,6 +28,14 @@ const FACETS = {
     { id: 'maven', label: 'maven', count: 4 },
     { id: 'npm', label: 'npm', count: 6 },
   ],
+  applications: [
+    { id: 'app-1', label: 'Checkout', count: 7 },
+    { id: 'app-2', label: 'app-2', count: 2 },
+  ],
+  stages: [
+    { id: 'build', label: 'Build', count: 9 },
+    { id: 'release', label: 'Release', count: 3 },
+  ],
 };
 
 function renderRail(overrides: Partial<React.ComponentProps<typeof ComponentsFilterRail>> = {}) {
@@ -70,6 +78,28 @@ describe('ComponentsFilterRail', () => {
     expect(screen.queryByTestId('components-filter-organizations')).not.toBeInTheDocument();
   });
 
+  it('renders applications and stages on My Scan Data and toggles by id (CLM-43211)', async () => {
+    const props = renderRail();
+
+    const applications = screen.getByTestId('components-filter-applications');
+    expect(applications).toHaveTextContent('Checkout');
+    // An application the backend could not name still renders, labelled by its id.
+    expect(applications).toHaveTextContent('app-2');
+    expect(screen.getByTestId('components-filter-stages')).toHaveTextContent('Build');
+
+    await user.click(screen.getByTestId('components-filter-applications-option-app-1'));
+    expect(props.onToggleFilter).toHaveBeenCalledWith('applications', 'app-1');
+
+    await user.click(screen.getByTestId('components-filter-stages-option-release'));
+    expect(props.onToggleFilter).toHaveBeenCalledWith('stages', 'release');
+  });
+
+  it('hides applications and stages on the Sonatype Catalog tab', () => {
+    renderRail({ tab: 'catalog' });
+    expect(screen.queryByTestId('components-filter-applications')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('components-filter-stages')).not.toBeInTheDocument();
+  });
+
   it('shows 8 organization options plus See more when facets exceed the collapse limit', () => {
     renderRail();
     const orgGroup = screen.getByTestId('components-filter-organizations');
@@ -106,8 +136,8 @@ describe('ComponentsFilterRail', () => {
     const props = renderRail({
       hasActiveFilters: true,
       filters: {
+        ...EMPTY_COMPONENTS_LIST_FILTERS,
         organizations: new Set(['Org 0']),
-        ecosystems: new Set(),
       },
     });
     const reset = screen.getByTestId('components-filter-reset');

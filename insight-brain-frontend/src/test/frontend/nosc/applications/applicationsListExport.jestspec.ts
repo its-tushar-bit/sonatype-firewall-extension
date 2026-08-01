@@ -9,6 +9,7 @@ import { buildApplicationsListExportPayload } from 'MainRoot/nosc/applications/a
 describe('applicationsListExport (CLM-42226)', () => {
   it('maps sidebar filters to the Classic export payload without search', () => {
     const payload = buildApplicationsListExportPayload({
+      ...EMPTY_APPLICATIONS_LIST_FILTERS,
       stageIds: new Set(['build']),
       organizationIds: new Set(['org-java']),
       applicationIds: new Set(['apple-java']),
@@ -24,6 +25,20 @@ describe('applicationsListExport (CLM-42226)', () => {
         minPolicyThreatLevel: 8,
         maxPolicyThreatLevel: 10,
       },
+    });
+  });
+
+  it('forwards violation-scoped policy type and state filters to the Classic export', () => {
+    const payload = buildApplicationsListExportPayload({
+      ...EMPTY_APPLICATIONS_LIST_FILTERS,
+      policyTypes: new Set(['security']),
+      violationStates: new Set(['OPEN']),
+    }, 'lastEvaluationTime');
+
+    expect(payload).toEqual({
+      orderBy: 'TOTAL_RISK',
+      policyThreatCategories: 'security',
+      policyViolationStates: ['OPEN'],
     });
   });
 

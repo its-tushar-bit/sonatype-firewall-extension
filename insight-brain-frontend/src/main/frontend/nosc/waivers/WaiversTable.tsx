@@ -25,10 +25,8 @@ import {
  *   Threat | Date Created | Expiration | Policy | Scope | Components
  *
  * Click-through goes to `/waivers/{ownerType}/{ownerId}/{waiverId}`,
- * the native Nexus One detail page. We do *not* deep-link to Classic's
- * waiver-details page from here — that would break the "stay in Nexus One"
- * UX promise. The detail page itself surfaces a "Continue in Classic"
- * action for users who want the full Classic feature set.
+ * the native Nexus One detail page. Entity CTAs stay in the NOUX shell;
+ * TopNav owns the only Classic shell toggle.
  *
  * Empty state is intentionally calm: this dev IQ legitimately has zero
  * waivers, and customers without waivers see the same message. We do not
@@ -57,7 +55,7 @@ export default function WaiversTable({
   error,
   onRetry,
   emptyMessage = 'No waivers in scope',
-  emptySubMessage = 'Waivers suppress matching policy violations. Create one from any violation in Classic IQ to see it here.',
+  emptySubMessage = 'Waivers suppress matching policy violations. Create one from a violation to see it here.',
   testId = 'nosc-waivers-table',
   linkFrom,
 }: WaiversTableProps) {

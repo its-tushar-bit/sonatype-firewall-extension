@@ -6,6 +6,8 @@
 import {
   collapseFacetEntries,
   componentsListFiltersToCatalogFilters,
+  type ComponentsListFilterState,
+  EMPTY_COMPONENTS_LIST_FILTERS,
   FACET_COLLAPSE_LIMIT,
   hasActiveComponentsListFilters,
 } from 'MainRoot/nosc/componentsList/componentsListFilters';
@@ -33,29 +35,24 @@ describe('componentsListFilters', () => {
     expect(collapseFacetEntries(short, new Set(), FACET_COLLAPSE_LIMIT, false)).toEqual(short);
   });
 
-  it('detects active org and ecosystem filters', () => {
-    expect(
-      hasActiveComponentsListFilters({
-        organizations: new Set(['Java Team']),
-        ecosystems: new Set(),
-      }),
-    ).toBe(true);
-    expect(
-      hasActiveComponentsListFilters({
-        organizations: new Set(),
-        ecosystems: new Set(['npm']),
-      }),
-    ).toBe(true);
-    expect(
-      hasActiveComponentsListFilters({
-        organizations: new Set(),
-        ecosystems: new Set(),
-      }),
-    ).toBe(false);
+  it('detects an active selection in any filter group', () => {
+    const active: ReadonlyArray<Partial<ComponentsListFilterState>> = [
+      { organizations: new Set(['Java Team']) },
+      { ecosystems: new Set(['npm']) },
+      { applications: new Set(['app-1']) },
+      { stages: new Set(['build']) },
+    ];
+    active.forEach((selection) => {
+      expect(
+        hasActiveComponentsListFilters({ ...EMPTY_COMPONENTS_LIST_FILTERS, ...selection }),
+      ).toBe(true);
+    });
+    expect(hasActiveComponentsListFilters(EMPTY_COMPONENTS_LIST_FILTERS)).toBe(false);
   });
 
   it('maps active filters into catalog filter fields and omits orgs when disabled', () => {
     const filters = {
+      ...EMPTY_COMPONENTS_LIST_FILTERS,
       organizations: new Set(['Java Team']),
       ecosystems: new Set(['maven']),
     };

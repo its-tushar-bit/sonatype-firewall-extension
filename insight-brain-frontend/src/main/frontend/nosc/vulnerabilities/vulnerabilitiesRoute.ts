@@ -11,7 +11,7 @@
 export const NEXUS_ONE_VULNERABILITIES_STATE_NAME = 'nexusOneVulnerabilities';
 
 export const NEXUS_ONE_VULNERABILITIES_URL =
-  '/vulnerabilities?tab&q&page&sort&severity&cvss&ecosystem';
+  '/vulnerabilities?tab&q&page&sort&severity&cvss&ecosystem&org&app&stage';
 
 export type VulnerabilitiesTab = 'myScanData' | 'catalog';
 

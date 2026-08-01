@@ -5,9 +5,13 @@
  */
 import {
   buildComponentsCatalogRequest,
+  buildComponentsDashboardRequest,
+  COMPONENTS_LIST_PAGE_SIZE,
   mapCatalogComponentRow,
   mapComponentsCatalogResponse,
+  mapComponentsDashboardResponse,
 } from 'MainRoot/nosc/componentsList/componentsListApi';
+import { EMPTY_COMPONENTS_LIST_FILTERS } from 'MainRoot/nosc/componentsList/componentsListFilters';
 
 describe('componentsListApi (catalog)', () => {
   it('builds a local My Scan Data catalog request with friendly org names', () => {
@@ -17,6 +21,7 @@ describe('componentsListApi (catalog)', () => {
         page: 0,
         search: 'guava',
         filters: {
+          ...EMPTY_COMPONENTS_LIST_FILTERS,
           organizations: new Set(['Java Team']),
           ecosystems: new Set(['maven']),
         },
@@ -40,6 +45,7 @@ describe('componentsListApi (catalog)', () => {
       tab: 'catalog',
       page: 2,
       filters: {
+        ...EMPTY_COMPONENTS_LIST_FILTERS,
         organizations: new Set(['Java Team']),
         ecosystems: new Set(['npm']),
       },
@@ -116,5 +122,63 @@ describe('componentsListApi (catalog)', () => {
     });
     expect(mapped.exactTotalEstimate).toBe(false);
     expect(mapped.total).toBe(10000);
+  });
+});
+
+describe('componentsListApi (My Scan Data dashboard)', () => {
+  it('serializes organization, application, and stage selections (CLM-43211)', () => {
+    expect(
+      buildComponentsDashboardRequest({
+        page: 0,
+        filters: {
+          ...EMPTY_COMPONENTS_LIST_FILTERS,
+          organizations: new Set(['org-1']),
+          applications: new Set(['app-2', 'app-1']),
+          stages: new Set(['release', 'build']),
+        },
+      }),
+    ).toEqual({
+      page: 0,
+      pageSize: COMPONENTS_LIST_PAGE_SIZE,
+      includeFacets: true,
+      organizationIds: ['org-1'],
+      applicationIds: ['app-1', 'app-2'],
+      stageIds: ['build', 'release'],
+    });
+  });
+
+  it('omits scope keys the user has not selected', () => {
+    const request = buildComponentsDashboardRequest({ page: 0 });
+    expect(request).not.toHaveProperty('applicationIds');
+    expect(request).not.toHaveProperty('stageIds');
+  });
+
+  it('maps application and stage facets, labelling by name where the backend resolved one', () => {
+    const mapped = mapComponentsDashboardResponse({
+      total: 9,
+      components: [],
+      facets: {
+        totalComponents: 9,
+        applications: { 'app-1': 7, 'app-2': 2 },
+        stages: { build: 9, release: 4 },
+        applicationNames: { 'app-1': 'Checkout' },
+        stageNames: { build: 'Build', release: 'Release' },
+      },
+    });
+
+    expect(mapped.facets.applications).toEqual([
+      { id: 'app-2', label: 'app-2', count: 2 },
+      { id: 'app-1', label: 'Checkout', count: 7 },
+    ]);
+    expect(mapped.facets.stages).toEqual([
+      { id: 'build', label: 'Build', count: 9 },
+      { id: 'release', label: 'Release', count: 4 },
+    ]);
+  });
+
+  it('leaves application and stage facets empty when the backend omitted them', () => {
+    const mapped = mapComponentsDashboardResponse({ total: 0, components: [] });
+    expect(mapped.facets.applications).toEqual([]);
+    expect(mapped.facets.stages).toEqual([]);
   });
 });

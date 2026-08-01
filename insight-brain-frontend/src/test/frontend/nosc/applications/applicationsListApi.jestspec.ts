@@ -175,4 +175,44 @@ describe('applicationsListApi', () => {
       { id: 'd1ec2c0e6c6848f98df0cdb889eeadae', label: 'Banana - Java', count: 1 },
     ]);
   });
+
+  it('renders the full policy type and violation state domains, zero-filling absent counts', () => {
+    const mapped = mapApplicationsListResponse({
+      applications: [],
+      facets: {
+        totalApplications: 9,
+        policyTypes: { security: 5, quality: 2 },
+        violationStates: { OPEN: 7 },
+      },
+      total: 9,
+    });
+
+    expect(mapped.facets.policyTypes).toEqual([
+      { id: 'security', label: 'Security', count: 5 },
+      { id: 'license', label: 'License', count: 0 },
+      { id: 'quality', label: 'Quality', count: 2 },
+      { id: 'other', label: 'Other', count: 0 },
+    ]);
+    expect(mapped.facets.violationStates).toEqual([
+      { id: 'OPEN', label: 'Open', count: 7 },
+      { id: 'WAIVED', label: 'Waived', count: 0 },
+    ]);
+  });
+
+  it('still renders both fixed domains when the API omits the facet maps entirely', () => {
+    const mapped = mapApplicationsListResponse({
+      applications: [],
+      facets: { totalApplications: 0 },
+      total: 0,
+    });
+
+    expect(mapped.facets.policyTypes.map((entry) => entry.id)).toEqual([
+      'security',
+      'license',
+      'quality',
+      'other',
+    ]);
+    expect(mapped.facets.policyTypes.every((entry) => entry.count === 0)).toBe(true);
+    expect(mapped.facets.violationStates.map((entry) => entry.id)).toEqual(['OPEN', 'WAIVED']);
+  });
 });

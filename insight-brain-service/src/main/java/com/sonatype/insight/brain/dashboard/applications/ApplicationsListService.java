@@ -218,9 +218,11 @@ public class ApplicationsListService
           buildResponse(request, page, pageSize, orderBy, total, pageItems);
       if (includeFacets) {
         try {
-          Query violationFacetQuery = conversionHelper.stringToQuery(toSessionQueryString(
-              ApplicationsListViolationQuerySupport.toViolationQuery(query)));
-          response.facets = facetsBuilder.buildFacets(session, sessionQuery, violationFacetQuery, total);
+          String violationQueryString = ApplicationsListViolationQuerySupport.toViolationQuery(query);
+          Query violationFacetQuery =
+              conversionHelper.stringToQuery(toSessionQueryString(violationQueryString));
+          response.facets = facetsBuilder.buildFacets(
+              session, sessionQuery, violationFacetQuery, violationQueryString, total);
         }
         catch (RuntimeException e) {
           log.warn("Applications list facet build failed; returning page without facets", e);

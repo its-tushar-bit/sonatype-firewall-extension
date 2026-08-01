@@ -59,9 +59,12 @@ describe('applicationsListQuery (CLM-42226)', () => {
 
   it('round-trips non-default toolbar and filter state', () => {
     const filters = {
+      ...EMPTY_APPLICATIONS_LIST_FILTERS,
       stageIds: new Set(['build']),
       organizationIds: new Set(['org-a']),
       applicationIds: new Set(['app-a']),
+      policyTypes: new Set(['security']),
+      violationStates: new Set(['OPEN']),
       threatRange: [4, 7] as const,
     };
     const params = buildApplicationsListRouteParams({
@@ -77,7 +80,11 @@ describe('applicationsListQuery (CLM-42226)', () => {
     expect(Array.from(parsed.filters.stageIds)).toEqual(['build']);
     expect(Array.from(parsed.filters.organizationIds)).toEqual(['org-a']);
     expect(Array.from(parsed.filters.applicationIds)).toEqual(['app-a']);
+    expect(Array.from(parsed.filters.policyTypes)).toEqual(['security']);
+    expect(Array.from(parsed.filters.violationStates)).toEqual(['OPEN']);
     expect(parsed.filters.threatRange).toEqual([4, 7]);
     expect(params.threat).toBe('4-7');
+    expect(params.policyType).toBe('security');
+    expect(params.violationState).toBe('OPEN');
   });
 });

@@ -142,5 +142,5 @@ export type ThreatColor = 'red' | 'orange' | 'yellow' | 'indigo' | 'gray';
  * Adding a new tab? Add its id here and wire both directions in
  * `applicationDetailUtils.ts` (`URL_TO_TAB` / `TAB_TO_URL`).
  */
-export const TAB_IDS = ['overview', 'policy-failures', 'components', 'sboms', 'waivers', 'team-members'] as const;
+export const TAB_IDS = ['overview', 'policy-failures', 'components', 'waivers'] as const;
 export type TabId = (typeof TAB_IDS)[number];

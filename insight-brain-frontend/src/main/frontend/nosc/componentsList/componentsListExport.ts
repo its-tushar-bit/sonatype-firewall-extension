@@ -10,14 +10,24 @@ import type { ComponentsListFilterState } from 'MainRoot/nosc/componentsList/com
  *
  * Uses POST /rest/dashboard/export/componentRisks. The catalog list UI has no Classic sort
  * control after the Ana catalog pivot, so export uses Classic's default
- * {@code APPLICATION_COUNT}. Organization/ecosystem/search filters are catalog/index-only and
- * are omitted until a name→id bridge exists for Classic {@code RisksFilterDTO}.
+ * {@code APPLICATION_COUNT}.
+ *
+ * Application and stage selections are internal ids, which is exactly what Classic
+ * {@code RisksFilterDTO} expects, so they carry over (CLM-43211). Organization and ecosystem
+ * selections are friendly names on this rail and stay omitted until a name→id bridge exists;
+ * free-text search is index-only and has no Classic equivalent.
  */
 export function buildComponentsListExportPayload(
   filters: ComponentsListFilterState,
 ): Record<string, unknown> {
-  void filters;
-  return {
+  const payload: Record<string, unknown> = {
     orderBy: 'APPLICATION_COUNT',
   };
+  if (filters.applications.size > 0) {
+    payload.applicationIds = Array.from(filters.applications).sort();
+  }
+  if (filters.stages.size > 0) {
+    payload.stageIds = Array.from(filters.stages).sort();
+  }
+  return payload;
 }

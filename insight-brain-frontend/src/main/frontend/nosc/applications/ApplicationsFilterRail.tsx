@@ -135,6 +135,44 @@ function ThreatLevelSection({
   );
 }
 
+/**
+ * Plain checkbox list for small, bounded option sets (stages, policy types, violation states).
+ * Always renders its fieldset even with no entries, so the rail keeps a stable shape while facets load.
+ */
+function CheckboxFilterSection({
+  title,
+  testId,
+  field,
+  entries,
+  selected,
+  onToggle,
+}: {
+  readonly title: string;
+  readonly testId: string;
+  readonly field: ApplicationsListFilterSetField;
+  readonly entries: ReadonlyArray<FacetEntry>;
+  readonly selected: ReadonlySet<string>;
+  readonly onToggle: (field: ApplicationsListFilterSetField, id: string) => void;
+}): JSX.Element {
+  return (
+    <fieldset className="nosc-applications-filter-group" data-testid={testId}>
+      <legend className="nosc-applications-filter-legend">{title}</legend>
+      <Flex direction="column" gap="1">
+        {entries.map(({ id, label, count }) => (
+          <FilterOption
+            key={id}
+            label={label}
+            count={count}
+            checked={selected.has(id)}
+            onToggle={() => onToggle(field, id)}
+            testId={`${testId}-option-${id}`}
+          />
+        ))}
+      </Flex>
+    </fieldset>
+  );
+}
+
 function collapseFacetEntries(
   entries: ReadonlyArray<FacetEntry>,
   selected: ReadonlySet<string>,
@@ -278,21 +316,32 @@ export default function ApplicationsFilterRail({
             onThreatRangeChange={onThreatRangeChange}
           />
 
-          <fieldset className="nosc-applications-filter-group" data-testid="applications-filter-stages">
-            <legend className="nosc-applications-filter-legend">Stages</legend>
-            <Flex direction="column" gap="1">
-              {facets.stages.map(({ id, label, count }) => (
-                <FilterOption
-                  key={id}
-                  label={label}
-                  count={count}
-                  checked={filters.stageIds.has(id)}
-                  onToggle={() => onToggleFilter('stageIds', id)}
-                  testId={`applications-filter-stages-option-${id}`}
-                />
-              ))}
-            </Flex>
-          </fieldset>
+          <CheckboxFilterSection
+            title="Policy Type"
+            testId="applications-filter-policy-types"
+            field="policyTypes"
+            entries={facets.policyTypes}
+            selected={filters.policyTypes}
+            onToggle={onToggleFilter}
+          />
+
+          <CheckboxFilterSection
+            title="Violation State"
+            testId="applications-filter-violation-states"
+            field="violationStates"
+            entries={facets.violationStates}
+            selected={filters.violationStates}
+            onToggle={onToggleFilter}
+          />
+
+          <CheckboxFilterSection
+            title="Stages"
+            testId="applications-filter-stages"
+            field="stageIds"
+            entries={facets.stages}
+            selected={filters.stageIds}
+            onToggle={onToggleFilter}
+          />
 
           <SearchableFilterSection
             title="Organizations"

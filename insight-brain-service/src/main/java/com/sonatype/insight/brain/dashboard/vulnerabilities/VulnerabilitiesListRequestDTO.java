@@ -53,6 +53,21 @@ public class VulnerabilitiesListRequestDTO
   /** Component format / ecosystem ids (e.g. {@code maven}, {@code npm}). OR semantics. */
   public Set<String> ecosystems;
 
+  /**
+   * Organization ids, expanded to child organizations. OR semantics (CLM-43211).
+   * <p>
+   * These three scope-filters read fields already carried by every uncollapsed
+   * SECURITY_VULNERABILITY doc, so they need no reindex: a vulnerability matches when any of its
+   * (application, stage, component) hits matches.
+   */
+  public Set<String> organizationIds;
+
+  /** Internal application ids. OR semantics (CLM-43211). */
+  public Set<String> applicationIds;
+
+  /** Stage type ids (e.g. {@code build}, {@code release}). OR semantics (CLM-43211). */
+  public Set<String> stageIds;
+
   // --- Reserved until index/enrichment lands; non-null/non-empty values → 400 ---
 
   public Boolean knownExploited;

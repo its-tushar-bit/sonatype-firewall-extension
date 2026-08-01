@@ -11,9 +11,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
-import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
-import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -79,12 +77,9 @@ final class ApplicationsListRequestValidator
     if (hasNonEmptyFilterSet(request.tagIds)) {
       throw new BadRequestException("tagIds filter is not yet supported on the applications list.");
     }
-    if (hasPolicyThreatCategoryFilter(request.policyThreatCategories)) {
-      throw new BadRequestException("policyThreatCategories filter is not yet supported on the applications list.");
-    }
-    if (hasPolicyViolationStateFilter(request.policyViolationStates)) {
-      throw new BadRequestException("policyViolationStates filter is not yet supported on the applications list.");
-    }
+    // policyThreatCategories and policyViolationStates are violation-scoped filters (CLM-43211). Both
+    // deserialize into EnumSets, so the indexed domain bounds their size and membership and there is
+    // nothing further to validate here — an unknown name already fails at deserialization.
     if (StringUtils.isNotBlank(request.orderBy)) {
       validateOrderBy(request.orderBy);
     }
@@ -134,13 +129,5 @@ final class ApplicationsListRequestValidator
 
   private static boolean hasNonEmptyFilterSet(final Set<String> ids) {
     return ids != null && !ids.isEmpty();
-  }
-
-  private static boolean hasPolicyThreatCategoryFilter(final PolicyThreatCategoryFilter filter) {
-    return filter != null && !filter.getPolicyThreatCategories().isEmpty();
-  }
-
-  private static boolean hasPolicyViolationStateFilter(final PolicyViolationStateFilter filter) {
-    return filter != null && !filter.getPolicyViolationStates().isEmpty();
   }
 }

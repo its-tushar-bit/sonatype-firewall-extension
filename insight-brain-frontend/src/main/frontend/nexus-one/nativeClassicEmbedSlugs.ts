@@ -18,6 +18,10 @@ export const NATIVE_CLASSIC_EMBED_SLUGS = [
   'legal',
   'orgs-and-policies',
   'reports',
+  // App Detail Quick Actions / Coming Soon bookmarks → in-shell RSC (not stubs).
+  'policies',
+  'source-control',
+  'waiver-requests',
 ] as const satisfies readonly ComingSoonModuleSlug[];
 
 export type NativeClassicEmbedSlug = (typeof NATIVE_CLASSIC_EMBED_SLUGS)[number];
@@ -30,8 +34,16 @@ export type NativeClassicEmbedSlug = (typeof NATIVE_CLASSIC_EMBED_SLUGS)[number]
  * {@code repositories} — owned by {@code nexusOneRepositories}.
  * {@code legal} — owned by {@code nexusOneLegal} (LEGAL_VIOLATION license-risk triage, CLM-43207).
  * Classic ALP dashboard remains at {@code /legal/applicationsDashboard}.
+ * {@code policies} — Classic href collides with {@code orgs-and-policies}; keep
+ * {@code /coming-soon/policies} as the entry so reverse-map prefers {@code /orgs-and-policies}.
+ * {@code waiver-requests} — redirects to {@code nexusOneWaivers} ({@code /waivers}).
  */
-const CLEAN_PATH_OWNED_ELSEWHERE_SLUGS = ['repositories', 'legal'] as const satisfies readonly NativeClassicEmbedSlug[];
+const CLEAN_PATH_OWNED_ELSEWHERE_SLUGS = [
+  'repositories',
+  'legal',
+  'policies',
+  'waiver-requests',
+] as const satisfies readonly NativeClassicEmbedSlug[];
 
 export const CLEAN_PATH_OWNED_ELSEWHERE: ReadonlySet<ComingSoonModuleSlug> = new Set(
   CLEAN_PATH_OWNED_ELSEWHERE_SLUGS,

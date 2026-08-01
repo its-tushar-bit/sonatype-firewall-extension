@@ -9,6 +9,7 @@ import classnames from 'classnames';
 import { ClassicComponentMount } from 'MainRoot/nexus-one/ClassicComponentMount';
 import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { IQ_SIDEBAR_CONTAINER_ID } from 'MainRoot/util/constants';
+import Footer from 'MainRoot/react/Footer/Footer';
 // The Classic bundle pulls every management.* stylesheet through scss/scss.scss; the Nexus One
 // bundle does not, so load them here so the embedded pages render with parity. CLM-42161.
 import 'MainRoot/scss/orgsAndPoliciesEmbed.scss';
@@ -24,6 +25,11 @@ import 'MainRoot/scss/orgsAndPoliciesEmbed.scss';
  * a null container and throws, blanking the whole page. So reproduce Classic's `#iq-content` subtree
  * here: the empty `#iq-sidebar-container` (`display: contents`, so its portaled `.nx-page-sidebar`
  * child participates directly in the grid) and the page in `#iq-footer-container` (grid-area: content).
+ *
+ * `#iq-content.nx-page-content--full-width` is `display: contents`, so the sidebar and footer
+ * containers must be descendants of `.nx-page` (not nested under another
+ * `.nx-global-footer-2-container`). Use {@link ClassicComponentMount} with {@code layout="page"}
+ * and place Footer inside `#iq-footer-container`, matching Classic App.jsx.
  *
  * OwnerSideNav / OwnerDetailSidebar resolve their portal host with `document.getElementById` during
  * render, so `#iq-sidebar-container` must already be in the committed DOM before the page component
@@ -47,7 +53,7 @@ export function mountOrgsAndPoliciesChrome(Component: React.ComponentType): Reac
     const viewportSized = Boolean(currentState?.data?.viewportSized);
 
     return (
-      <ClassicComponentMount>
+      <ClassicComponentMount layout="page">
         <div id="iq-content" className="nx-page-content nx-page-content--full-width">
           <div id={IQ_SIDEBAR_CONTAINER_ID} />
           <div
@@ -55,6 +61,7 @@ export function mountOrgsAndPoliciesChrome(Component: React.ComponentType): Reac
             className={classnames('nx-global-footer-2-container', { 'nx-viewport-sized': viewportSized })}
           >
             {hostReady && <Component />}
+            <Footer clmServerVersion={CLM_SERVER_VERSION} />
           </div>
         </div>
       </ClassicComponentMount>

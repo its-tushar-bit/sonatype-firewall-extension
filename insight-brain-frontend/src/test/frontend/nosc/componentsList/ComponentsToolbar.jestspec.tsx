@@ -75,8 +75,8 @@ describe('ComponentsToolbar', () => {
       totalCount: 3,
       searchValue: '',
       filters: {
+        ...EMPTY_COMPONENTS_LIST_FILTERS,
         organizations: new Set(['Java Team']),
-        ecosystems: new Set(),
       },
     });
     const hint = screen.getByTestId('components-toolbar-csv-filter-hint');

@@ -72,7 +72,6 @@ export function ComingSoonRoute(): JSX.Element {
     <ComingSoonPage
       moduleName={mod.label}
       description={mod.description}
-      classicHref={mod.classicHref}
     />
   );
 }

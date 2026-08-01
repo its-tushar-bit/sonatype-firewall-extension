@@ -49,6 +49,9 @@ describe('vulnerabilitiesListQuery', () => {
       severity: undefined,
       cvss: undefined,
       ecosystem: undefined,
+      org: undefined,
+      app: undefined,
+      stage: undefined,
     });
 
     expect(
@@ -58,8 +61,12 @@ describe('vulnerabilitiesListQuery', () => {
         page: 1,
         orderBy: 'cvssScore',
         filters: {
+          ...createDefaultVulnerabilitiesFilterState(),
           severities: new Set(['critical']),
           ecosystems: new Set(['maven']),
+          organizations: new Set(['org-1']),
+          applications: new Set(['app-1']),
+          stages: new Set(['build']),
           cvssRange: [7.5, 9.8],
         },
       }),
@@ -71,7 +78,23 @@ describe('vulnerabilitiesListQuery', () => {
       severity: 'critical',
       cvss: '7.5-9.8',
       ecosystem: 'maven',
+      org: 'org-1',
+      app: 'app-1',
+      stage: 'build',
     });
+  });
+
+  it('parses scope filters verbatim, since ids are opaque (CLM-43211)', () => {
+    const state = parseVulnerabilitiesListParams({
+      org: 'Org-A,org-b',
+      app: 'App-1',
+      stage: 'build,release',
+    });
+
+    // Unlike severity/ecosystem, these are not case-folded — the index matches the id verbatim.
+    expect(Array.from(state.filters.organizations).sort()).toEqual(['Org-A', 'org-b']);
+    expect(Array.from(state.filters.applications)).toEqual(['App-1']);
+    expect(Array.from(state.filters.stages).sort()).toEqual(['build', 'release']);
   });
 
   it('falls back to full CVSS range for malformed tokens', () => {
@@ -97,9 +120,8 @@ describe('vulnerabilitiesListQuery', () => {
       page: 0,
       orderBy: '-cvssScore',
       filters: {
-        severities: new Set(),
+        ...createDefaultVulnerabilitiesFilterState(),
         ecosystems: new Set(['acme,corp', 'npm']),
-        cvssRange: [0, 10],
       },
     });
 

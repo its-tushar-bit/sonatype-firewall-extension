@@ -13,7 +13,6 @@ import {
   getPermissionContextTestUrl,
   getViolationDetailsUrl,
 } from 'MainRoot/util/CLMLocation';
-import { classicViolationHref } from 'MainRoot/nosc/violations/detail/violationDetailUtils';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
 import type {
   ApplicableWaiversDTO,
@@ -106,10 +105,10 @@ describe('ViolationDetail', () => {
       within(screen.getByTestId('nosc-violation-detail-breadcrumb')).getByRole('link', { name: 'Violations' }),
     ).toHaveAttribute('href', '#/violations');
     expect(
-      within(screen.getByTestId('nosc-violation-detail-overview-tab')).getByRole('link', {
-        name: 'View in Classic',
+      within(screen.getByTestId('nosc-violation-detail-overview-tab')).queryByRole('link', {
+        name: /classic/i,
       }),
-    ).toHaveAttribute('href', classicViolationHref(VIOLATION_ID));
+    ).not.toBeInTheDocument();
     expect(router.globals.current.name).toBe('nexusOneViolationDetail.overview');
   });
 

@@ -228,7 +228,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     expect(screen.getAllByText('Tribbles').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders all 6 tabs in the correct order', async () => {
+  it('renders all 4 V1 tabs in the correct order', async () => {
     mockHappyPath(axiosMock);
     renderAppDetail();
 
@@ -238,9 +238,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       'nosc-app-detail-tab-overview',
       'nosc-app-detail-tab-policy-failures',
       'nosc-app-detail-tab-components',
-      'nosc-app-detail-tab-sboms',
       'nosc-app-detail-tab-waivers',
-      'nosc-app-detail-tab-team-members',
     ];
     const tabList = screen.getByTestId('nosc-app-detail-tabs');
     const triggers = within(tabList)
@@ -249,11 +247,13 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     expect(triggers).toEqual(expectedTestIds);
   });
 
-  it('does not render a Security Events tab (no IQ data source)', async () => {
+  it('does not render SBOMs, Team Members, or Security Events tabs (V1)', async () => {
     mockHappyPath(axiosMock);
     renderAppDetail();
 
     await screen.findByTestId('nosc-app-detail-page');
+    expect(screen.queryByRole('tab', { name: /sboms/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /team members/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: /security events/i })).not.toBeInTheDocument();
   });
 
@@ -270,21 +270,28 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     expect(screen.getByTestId('nosc-app-detail-quick-actions-card')).toBeInTheDocument();
   });
 
-  it('Source Control quick action links to the Classic source-control config for the application', async () => {
-    // publicId is user-supplied and lands in a Classic hash route, so a `/` (or other
-    // reserved char) must be percent-encoded or it breaks the destination.
-    const publicId = 'app/with/slashes';
-    axiosMock.onGet(getApplicationUrl(publicId)).reply(200, { ...APPLICATION_FIXTURE, publicId });
-
-    renderNexusOneApplicationDetail(publicId);
+  it('Quick Actions deep-link to in-shell RSC embeds / native routes (not Coming Soon)', async () => {
+    mockHappyPath(axiosMock);
+    renderAppDetail();
 
     const quickActions = await screen.findByTestId('nosc-app-detail-quick-actions-card');
-    const sourceControl = within(quickActions).getByTestId(
-      'nosc-app-detail-quick-action-source-control',
-    );
-    expect(sourceControl).toHaveAttribute(
+    expect(within(quickActions).getByTestId('nosc-app-detail-quick-action-policies')).toHaveAttribute(
       'href',
-      expect.stringContaining('/management/edit/application/app%2Fwith%2Fslashes/source-control'),
+      `#/management/view/application/${PUBLIC_ID}`,
+    );
+    expect(within(quickActions).getByTestId('nosc-app-detail-quick-action-waivers')).toHaveAttribute(
+      'href',
+      `#/applications/${PUBLIC_ID}/waivers`,
+    );
+    expect(
+      within(quickActions).getByTestId('nosc-app-detail-quick-action-source-control'),
+    ).toHaveAttribute('href', `#/management/edit/application/${PUBLIC_ID}/source-control`);
+    expect(within(quickActions).getByTestId('nosc-app-detail-quick-action-reports')).toHaveAttribute(
+      'href',
+      '#/reports',
+    );
+    expect(within(quickActions).getByTestId('nosc-app-detail-quick-action-reports')).toHaveTextContent(
+      'Enterprise Reporting',
     );
   });
 
@@ -316,15 +323,16 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       // in the "Stage" badge and in the "Stages Reporting" badge row.
       expect(within(card).getAllByText('release').length).toBeGreaterThanOrEqual(1);
     });
-    // The View Full Report button uses the parsed scanId
-    const viewClassic = within(card).getByTestId('nosc-app-detail-view-classic-report');
-    expect(viewClassic).toHaveAttribute(
+    // Full report stays in the NOUX application-report embed.
+    const viewReport = within(card).getByTestId('nosc-app-detail-view-full-report');
+    expect(viewReport).toHaveAttribute(
       'href',
-      expect.stringContaining(`/applicationReport/${PUBLIC_ID}/${SCAN_ID}/policy`),
+      `#/applications/${PUBLIC_ID}/report/${SCAN_ID}`,
     );
+    expect(viewReport).toHaveTextContent('View full report');
   });
 
-  it('Application Details card surfaces internal id + organization', async () => {
+  it('Application Details card surfaces internal id + organization without a Classic escape', async () => {
     mockHappyPath(axiosMock);
     renderAppDetail();
 
@@ -333,11 +341,8 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       expect(within(card).getByText(INTERNAL_ID)).toBeInTheDocument();
     });
     expect(within(card).getByText('Tribbles')).toBeInTheDocument();
-    const classicLink = within(card).getByTestId('nosc-app-detail-view-classic-app');
-    expect(classicLink).toHaveAttribute(
-      'href',
-      `http://localhost/assets/index.html#/management/view/application/${PUBLIC_ID}`,
-    );
+    expect(within(card).queryByTestId('nosc-app-detail-view-classic-app')).not.toBeInTheDocument();
+    expect(within(card).queryByText(/classic/i)).not.toBeInTheDocument();
   });
 
   it('Policy Failures tab renders a table with one row per violation (filters out null-hash components)', async () => {
@@ -449,52 +454,6 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     });
   });
 
-  it('every Coming Soon tab renders an inline Coming Soon panel with a Continue-in-Classic button', async () => {
-    mockHappyPath(axiosMock);
-    renderAppDetail();
-
-    await screen.findByTestId('nosc-app-detail-page');
-
-    // Select tabs/panels by accessible role + name rather than test-ids
-    // (Components + Waivers tabs now render live data — covered by their own tests).
-    const cases: ReadonlyArray<{
-      readonly tabName: RegExp;
-      readonly label: string;
-      readonly classicHrefContains: string;
-    }> = [
-      {
-        tabName: /sboms/i,
-        label: 'SBOMs',
-        classicHrefContains: `/sbomManager/management/view/application/${PUBLIC_ID}`,
-      },
-      {
-        tabName: /team members/i,
-        label: 'Team Members',
-        classicHrefContains: `/management/view/application/${PUBLIC_ID}`,
-      },
-    ];
-
-    // Wait for the policy data so the components-tab classic href has a scanId.
-    await screen.findByTestId('nosc-app-detail-policy-compliance-card');
-    await waitFor(() => {
-      expect(screen.getByRole('tab', { name: /violations/i })).toHaveTextContent('3');
-    });
-
-    for (const { tabName, label, classicHrefContains } of cases) {
-      await userEvent.click(screen.getByRole('tab', { name: tabName }));
-      // The inline Coming Soon panel is identified by its heading, and its
-      // Classic escape-hatch links by their aria-labels — no test-ids needed.
-      expect(await screen.findByRole('heading', { name: /coming soon/i })).toBeInTheDocument();
-      const newTab = screen.getByRole('link', { name: `Open ${label} in Classic IQ in a new tab` });
-      expect(newTab).toHaveAttribute('href', expect.stringContaining(classicHrefContains));
-      expect(newTab).toHaveAttribute('target', '_blank');
-      const sameTab = screen.getByRole('link', {
-        name: `Continue to ${label} in Classic IQ in this tab`,
-      });
-      expect(sameTab).toHaveAttribute('href', expect.stringContaining(classicHrefContains));
-    }
-  });
-
   it('Waivers tab renders live waivers scoped to this application via applicationIds filter (CLM-39545 / P1-F7d)', async () => {
     mockHappyPath(axiosMock);
 
@@ -534,10 +493,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     expect(await screen.findByText('Critical CVSS 9+')).toBeInTheDocument();
     // Backend was filtered to this application's internal id.
     expect(postedBody?.applicationIds).toEqual([INTERNAL_ID]);
-    // "Manage in Classic" link opens Classic's waivers dashboard (there is no
-    // per-application waivers route in Classic).
-    const classicLink = within(tab).getByTestId('nosc-app-detail-waivers-classic-link');
-    expect(classicLink).toHaveAttribute('href', expect.stringContaining('/dashboard/waivers'));
+    expect(within(tab).queryByTestId('nosc-app-detail-waivers-classic-link')).not.toBeInTheDocument();
     // Detail link uses the native /waivers/{type}/{id}/{wid} route.
     const detail = within(tab).getByTestId('nosc-app-detail-waivers-table-row-detail-link');
     expect(detail).toHaveAttribute(
@@ -922,16 +878,13 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       );
     });
 
-    it('page-level "View in Classic" link goes to the overall report (applicationReport.policy)', async () => {
+    it('page-level full report link stays in the NOUX application-report embed', async () => {
       mockHappyPath(axiosMock);
       renderAppDetail('components');
       await screen.findByTestId('nosc-app-detail-components-table');
-      const link = screen.getByTestId('nosc-app-detail-components-classic-link');
-      // No hash -> overall report page (`applicationReport.policy`).
-      expect(link).toHaveAttribute(
-        'href',
-        `http://localhost/assets/index.html#/applicationReport/${PUBLIC_ID}/${SCAN_ID}/policy`,
-      );
+      const link = screen.getByTestId('nosc-app-detail-components-full-report-link');
+      expect(link).toHaveAttribute('href', `#/applications/${PUBLIC_ID}/report/${SCAN_ID}`);
+      expect(link).toHaveTextContent('View full report');
     });
 
     it('shows a large-scan banner when the component inventory exceeds the threshold', async () => {

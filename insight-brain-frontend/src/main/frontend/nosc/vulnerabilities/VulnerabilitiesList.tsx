@@ -152,7 +152,22 @@ export default function VulnerabilitiesList(): JSX.Element {
     setTab(nextTab);
     setPage(1);
     setFacetCache(null);
-    writeUrl({ tab: nextTab, page: 0, search, orderBy, filters });
+    // Estate scope (org/app/stage) is My Scan Data–only; Catalog ignores those keys.
+    // Clear them on switch so a Catalog view cannot look filtered when it is not.
+    const nextFilters =
+      nextTab === 'catalog'
+        && (filters.organizations.size > 0 || filters.applications.size > 0 || filters.stages.size > 0)
+        ? {
+            ...filters,
+            organizations: new Set<string>(),
+            applications: new Set<string>(),
+            stages: new Set<string>(),
+          }
+        : filters;
+    if (nextFilters !== filters) {
+      setFilters(nextFilters);
+    }
+    writeUrl({ tab: nextTab, page: 0, search, orderBy, filters: nextFilters });
   };
 
   const handleSearchSubmit = (term: string) => {

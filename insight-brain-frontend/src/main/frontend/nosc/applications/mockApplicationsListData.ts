@@ -4,8 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  APPLICATIONS_POLICY_TYPES,
+  APPLICATIONS_VIOLATION_STATES,
   ApplicationRiskScore,
   ApplicationsFilterFacetCounts,
+  zeroCountFacetEntries,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { deriveFacetsFromPageRows } from 'MainRoot/nosc/applications/deriveFacetsFromPageRows';
 
@@ -114,6 +117,9 @@ export function deriveMockApplicationsFilterFacets(
     stages,
     organizations,
     applications: appFacets,
+    // Violation-scoped counts cannot be derived from card rows, so the fixed domains render at zero.
+    policyTypes: zeroCountFacetEntries(APPLICATIONS_POLICY_TYPES),
+    violationStates: zeroCountFacetEntries(APPLICATIONS_VIOLATION_STATES),
   };
 }
 

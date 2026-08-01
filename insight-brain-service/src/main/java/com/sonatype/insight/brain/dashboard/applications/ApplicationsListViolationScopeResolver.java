@@ -34,8 +34,8 @@ import org.apache.lucene.search.Query;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Resolves internal application ids matching violation-scoped filters (stage, threat level)
- * under the same RBAC-scoped base query as the Martha applications list.
+ * Resolves internal application ids matching violation-scoped filters (stage, threat level, policy
+ * type, violation state) under the same RBAC-scoped base query as the Martha applications list.
  * <p>
  * Discovery is capped at {@link Configuration#getMaxAdvancedSearchClauseCount()} unique ids.
  * On the legacy read path ({@code nexusOne.search.readPath.applications=old}), discovery pages via
@@ -99,10 +99,11 @@ final class ApplicationsListViolationScopeResolver
 
   Set<String> resolveApplicationIds(
       final String baseApplicationQuery,
-      final Set<String> stageIds,
-      final List<PolicyThreatLevelFilter> threatFilters)
+      final ApplicationsListRequestDTO request)
   {
-    String violationQuery = buildScopedViolationQuery(baseApplicationQuery, stageIds, threatFilters);
+    List<PolicyThreatLevelFilter> threatFilters =
+        ApplicationsListViolationQuerySupport.effectiveThreatFilters(request);
+    String violationQuery = buildScopedViolationQuery(baseApplicationQuery, request, threatFilters);
     int maxIds = configuration.getMaxAdvancedSearchClauseCount();
     if (maxIds <= 0) {
       // Misconfigured or zero clause cap — fall back to the product default.
@@ -237,26 +238,37 @@ final class ApplicationsListViolationScopeResolver
     return applicationIds;
   }
 
+  /**
+   * All scoped clauses are AND-combined onto a single violation query, so a request selecting
+   * "Security" and "Open" matches only applications that have a violation which is both — not
+   * applications that separately have some Security violation and some open violation.
+   */
   private String buildScopedViolationQuery(
       final String baseApplicationQuery,
-      final Set<String> stageIds,
+      final ApplicationsListRequestDTO request,
       final List<PolicyThreatLevelFilter> threatFilters)
   {
     String violationQuery = ApplicationsListViolationQuerySupport.toViolationQuery(baseApplicationQuery);
-    List<String> scopedClauses = new ArrayList<>(2);
+    List<String> scopedClauses = new ArrayList<>(4);
     int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
     if (maxClauseCount <= 0) {
       maxClauseCount = DEFAULT_MAX_DISCOVERY_IDS;
     }
-    String stageClause = ApplicationsListViolationQuerySupport.buildStageFilterClause(stageIds, maxClauseCount);
-    if (stageClause != null) {
-      scopedClauses.add(stageClause);
-    }
-    String threatClause = ApplicationsListViolationQuerySupport.buildThreatFilterClause(threatFilters);
-    if (threatClause != null) {
-      scopedClauses.add(threatClause);
-    }
+    addIfPresent(scopedClauses,
+        ApplicationsListViolationQuerySupport.buildStageFilterClause(request.stageIds, maxClauseCount));
+    addIfPresent(scopedClauses,
+        ApplicationsListViolationQuerySupport.buildThreatFilterClause(threatFilters));
+    addIfPresent(scopedClauses,
+        ApplicationsListViolationQuerySupport.buildPolicyTypeFilterClause(request.policyThreatCategories));
+    addIfPresent(scopedClauses,
+        ApplicationsListViolationQuerySupport.buildViolationStateFilterClause(request.policyViolationStates));
     return ApplicationsListViolationQuerySupport.appendClauses(violationQuery, scopedClauses);
+  }
+
+  private static void addIfPresent(final List<String> clauses, final String clause) {
+    if (clause != null) {
+      clauses.add(clause);
+    }
   }
 
   private static int countRawViolationHits(final SearchResultDTO searchResult) {

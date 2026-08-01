@@ -11,21 +11,36 @@ export const FACET_COLLAPSE_LIMIT = 8;
 /**
  * Sidebar filter selection for Components (Ana catalog schema).
  * {@code organizations} values are friendly org names (local source only).
+ * {@code applications} and {@code stages} are My Scan Data only (CLM-43211); the Catalog source
+ * rejects them, so switching tabs clears them rather than sending a request that would 400.
  */
 export type ComponentsListFilterState = {
   readonly organizations: ReadonlySet<string>;
   readonly ecosystems: ReadonlySet<string>;
+  readonly applications: ReadonlySet<string>;
+  readonly stages: ReadonlySet<string>;
 };
 
-export type ComponentsFilterSetGroup = 'organizations' | 'ecosystems';
+export type ComponentsFilterSetGroup =
+  | 'organizations'
+  | 'ecosystems'
+  | 'applications'
+  | 'stages';
 
 export const EMPTY_COMPONENTS_LIST_FILTERS: ComponentsListFilterState = {
   organizations: new Set(),
   ecosystems: new Set(),
+  applications: new Set(),
+  stages: new Set(),
 };
 
 export function hasActiveComponentsListFilters(filters: ComponentsListFilterState): boolean {
-  return filters.organizations.size > 0 || filters.ecosystems.size > 0;
+  return (
+    filters.organizations.size > 0
+    || filters.ecosystems.size > 0
+    || filters.applications.size > 0
+    || filters.stages.size > 0
+  );
 }
 
 export function toggleComponentsListFilterId(
@@ -71,6 +86,8 @@ export function filtersEqual(
   return (
     setEqual(left.organizations, right.organizations)
     && setEqual(left.ecosystems, right.ecosystems)
+    && setEqual(left.applications, right.applications)
+    && setEqual(left.stages, right.stages)
   );
 }
 

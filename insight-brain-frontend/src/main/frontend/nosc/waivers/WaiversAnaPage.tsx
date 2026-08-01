@@ -4,11 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { Box, Button, Flex, Heading, Link, Text } from '@radix-ui/themes';
+import { Box, Button, Flex, Heading, Text } from '@radix-ui/themes';
 import { AsyncPageState, AsyncPageStateInfoProps } from 'MainRoot/nosc/components/AsyncPageState';
 import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
-import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import WaiversFilterRail from 'MainRoot/nosc/waivers/WaiversFilterRail';
 import WaiversToolbar from 'MainRoot/nosc/waivers/WaiversToolbar';
@@ -78,7 +77,6 @@ export default function WaiversAnaPage({
   warnings = [],
 }: WaiversAnaPageProps): JSX.Element {
   const offsets = usePreviewShellOffsets();
-  const classicWaiverRequestsHref = bundleIndexUrl('classic', '/dashboard/waiverRequests');
 
   return (
     <Box
@@ -99,15 +97,6 @@ export default function WaiversAnaPage({
             <Flex align="center" gap="3">
               <DomainIcons.Waivers size={28} color="var(--accent-9)" />
               <Heading size="6">Waivers</Heading>
-            </Flex>
-            <Flex align="center" gap="4">
-              <Link
-                size="2"
-                href={classicWaiverRequestsHref}
-                data-testid="preview-waivers-classic-link"
-              >
-                Open in Classic
-              </Link>
             </Flex>
           </Flex>
           <Text size="2" color="gray">

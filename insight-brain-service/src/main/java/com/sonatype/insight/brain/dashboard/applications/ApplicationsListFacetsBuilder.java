@@ -20,13 +20,19 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardIndexDimensionQueryBuilder;
+import com.sonatype.insight.brain.dashboard.IndexGroupedCountKeys;
+import com.sonatype.insight.brain.dashboard.PolicyViolationIndexClauses;
+import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -69,17 +75,21 @@ final class ApplicationsListFacetsBuilder
 
   private final ApplicationDAO applicationDAO;
 
+  private final ConversionHelper conversionHelper;
+
   @Inject
   ApplicationsListFacetsBuilder(
       final SearchIndexClient searchIndexClient,
       final StageTypeService stageTypeService,
       final OrganizationDAO organizationDAO,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO,
+      final ConversionHelper conversionHelper)
   {
     this.searchIndexClient = searchIndexClient;
     this.stageTypeService = stageTypeService;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
+    this.conversionHelper = conversionHelper;
   }
 
   ApplicationsListFacetsDTO buildFacets(
@@ -94,9 +104,20 @@ final class ApplicationsListFacetsBuilder
       return facets;
     }
 
+    String violationFacetQuery = toViolationFacetQuery(applicationQuery);
     facets.organizations = countOrganizations(applicationQuery, discovered);
     facets.applications = applicationFacetCountsFromDiscovery(discovered);
     facets.stages = countLicensedStages(applicationQuery);
+    facets.policyTypes = countPolicyTypes(
+        categoryNames -> searchIndexClient.countDistinctGroupedBy(
+            violationFacetQuery,
+            FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label,
+            FieldIdentifier.APPLICATION_ID.label,
+            categoryNames));
+    facets.violationStates = countViolationStates(
+        stateClause -> searchIndexClient.countDistinct(
+            violationFacetQuery + " AND " + stateClause,
+            List.of(FieldIdentifier.APPLICATION_ID.label)));
     // Intentional on both read paths: Martha filter-rail labels need organizationNames /
     // applicationNames even when facet ids are not on the current page (otherwise the UI
     // falls back to raw internal ids). DAO fallback only runs for ids missing from discovery.
@@ -108,6 +129,7 @@ final class ApplicationsListFacetsBuilder
       final IndexReadSession session,
       final Query applicationQuery,
       final Query violationQuery,
+      final String violationFacetQuery,
       final long totalApplications)
   {
     ApplicationsListFacetsDTO facets = new ApplicationsListFacetsDTO();
@@ -121,9 +143,126 @@ final class ApplicationsListFacetsBuilder
     facets.organizations = countOrganizations(session, applicationQuery, discovered);
     facets.applications = applicationFacetCountsFromDiscovery(discovered);
     facets.stages = countLicensedStages(session, violationQuery);
+    facets.policyTypes = countPolicyTypes(
+        categoryNames -> session.countDistinctGroupedBy(
+            violationQuery,
+            FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label,
+            FieldIdentifier.APPLICATION_ID.label,
+            categoryNames));
+    facets.violationStates = countViolationStates(
+        stateClause -> countDistinctApplications(session, violationFacetQuery, stateClause));
     // See legacy overload: display-name maps are required for both read paths.
     attachDisplayNames(facets, discovered);
     return facets;
+  }
+
+  /**
+   * Policy-type buckets (CLM-43211) from one grouped pass over {@code policyViolationThreatCategory}.
+   * The field is single-valued per violation doc, so each bucket is already an exact
+   * distinct-application count. Like stage facets, this degrades to no facet on backends without
+   * grouped distinct counts rather than falling back to a per-category scan.
+   */
+  private Map<String, Long> countPolicyTypes(final GroupedDistinctCounter counter) {
+    List<String> categoryNames = new ArrayList<>();
+    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
+      categoryNames.add(category.getName());
+    }
+
+    Map<String, Long> grouped;
+    try {
+      grouped = counter.countDistinctGroupedBy(categoryNames);
+    }
+    catch (UnsupportedOperationException e) {
+      log.warn("Applications list policy-type facets unavailable on this index backend; omitting them", e);
+      return null;
+    }
+    if (grouped == null || grouped.isEmpty()) {
+      return null;
+    }
+
+    Map<String, Long> counts = new LinkedHashMap<>();
+    for (String categoryName : categoryNames) {
+      long count = grouped.getOrDefault(categoryName, 0L);
+      if (count > 0) {
+        counts.put(categoryName, count);
+      }
+    }
+    return counts.isEmpty() ? null : counts;
+  }
+
+  /**
+   * Violation-state buckets (CLM-43211): one distinct-application count per state, so three constant
+   * round trips regardless of estate size.
+   * <p>
+   * These cannot be folded into a single grouped pass over {@code policyViolationWaiverStatus}. WAIVED
+   * spans two indexed statuses (Waived and AutoWaived) and distinct-application counts from separate
+   * buckets cannot be summed - an application holding one manually-waived and one auto-waived violation
+   * appears in both buckets and would be double-counted. OPEN is the complement of the excluded
+   * statuses, so it has no bucket of its own at all.
+   */
+  private Map<String, Long> countViolationStates(final StateDistinctCounter counter) {
+    Map<String, Long> counts = new LinkedHashMap<>();
+    try {
+      // The violation query is the positive anchor for the OPEN negation, so the non-anchored clause is
+      // correct here - matching ViolationsListFacetsBuilder.countStates.
+      putWhenPositive(counts, PolicyViolationState.OPEN.name(),
+          counter.countDistinctApplications(PolicyViolationIndexClauses.openClause(false)));
+      putWhenPositive(counts, PolicyViolationState.WAIVED.name(),
+          counter.countDistinctApplications(PolicyViolationIndexClauses.waivedClause()));
+      // Pure-legacy only: a violation that is both waived and legacy indexes as Waived by precedence and
+      // is counted under WAIVED above (see ViolationWaiverStatus).
+      putWhenPositive(counts, PolicyViolationState.LEGACY_VIOLATION.name(),
+          counter.countDistinctApplications(PolicyViolationIndexClauses.legacyClause()));
+    }
+    catch (UnsupportedOperationException e) {
+      log.warn("Applications list violation-state facets unavailable on this index backend; omitting them", e);
+      return null;
+    }
+    return counts.isEmpty() ? null : counts;
+  }
+
+  /**
+   * Distinct applications matching one violation state on the session path.
+   * <p>
+   * {@link IndexReadSession} has no plain distinct count, so this groups by {@code itemType}: the query
+   * is already scoped to POLICY_VIOLATION docs, so every match lands in that single bucket and the
+   * bucket value is the distinct-application count for the state.
+   */
+  private long countDistinctApplications(
+      final IndexReadSession session,
+      final String violationFacetQuery,
+      final String stateClause)
+  {
+    Query stateQuery = conversionHelper.stringToQuery(
+        ApplicationsListService.toSessionQueryString(violationFacetQuery + " AND " + stateClause));
+    // Both backends key the grouped map by the lowercased group value - see IndexGroupedCountKeys.
+    String policyViolationBucket = IndexGroupedCountKeys.lookupKey(ItemType.POLICY_VIOLATION.name());
+    Map<String, Long> grouped = session.countDistinctGroupedBy(
+        stateQuery,
+        FieldIdentifier.ITEM_TYPE.label,
+        FieldIdentifier.APPLICATION_ID.label,
+        List.of(policyViolationBucket));
+    return grouped == null ? 0L : grouped.getOrDefault(policyViolationBucket, 0L);
+  }
+
+  private static void putWhenPositive(final Map<String, Long> counts, final String key, final long count) {
+    if (count > 0) {
+      counts.put(key, count);
+    }
+  }
+
+  /** Read-path-specific grouped distinct count, so facet shaping is written once for both paths. */
+  @FunctionalInterface
+  private interface GroupedDistinctCounter
+  {
+    Map<String, Long> countDistinctGroupedBy(List<String> groupValues);
+  }
+
+  /** Read-path-specific distinct-application count for one violation-state clause. */
+  @FunctionalInterface
+  private interface StateDistinctCounter
+  {
+    long countDistinctApplications(String stateClause);
   }
 
   private void attachDisplayNames(
@@ -323,7 +462,7 @@ final class ApplicationsListFacetsBuilder
     Map<String, Long> collectedCounts;
     try {
       // Stage sidebar is Lucene-only until Track B docValues cardinality; OpenSearch/hybrid
-      // sessions omit stages (org/app facets still return) — accepted V1 degradation.
+      // sessions omit stages (org/app facets still return) - accepted V1 degradation.
       collectedCounts = session.countDistinctGroupedBy(
           violationQuery,
           FieldIdentifier.POLICY_EVALUATION_STAGE.label,

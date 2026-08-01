@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.dashboard.vulnerabilities;
 
 import java.util.Locale;
 import java.util.Set;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -40,6 +42,13 @@ final class VulnerabilitiesListRequestValidator
   static final Set<String> SUPPORTED_SEVERITIES =
       Set.of("critical", "high", "medium", "low", "none");
 
+  private final Configuration configuration;
+
+  @Inject
+  VulnerabilitiesListRequestValidator(final Configuration configuration) {
+    this.configuration = configuration;
+  }
+
   void validate(final VulnerabilitiesListRequestDTO request) {
     if (request == null) {
       return;
@@ -50,6 +59,29 @@ final class VulnerabilitiesListRequestValidator
     validateSeverities(request.severities);
     validateCvssRange(request.minCvssScore, request.maxCvssScore);
     validateEcosystems(request.ecosystems);
+    validateScopeIds(request.organizationIds, "organizationIds");
+    validateScopeIds(request.applicationIds, "applicationIds");
+    validateScopeIds(request.stageIds, "stageIds");
+  }
+
+  /**
+   * Scope filters are free-form ids resolved against the index, so the only boundary check is that
+   * they are non-blank and within the clause budget. Oversized sets are rejected here rather than
+   * silently truncated, since a truncated OR clause would quietly widen the result set.
+   */
+  private void validateScopeIds(final Set<String> ids, final String fieldName) {
+    if (ids == null || ids.isEmpty()) {
+      return;
+    }
+    for (String id : ids) {
+      if (StringUtils.isBlank(id)) {
+        throw new BadRequestException(fieldName + " must not contain blank values.");
+      }
+    }
+    int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
+    if (maxClauseCount > 0 && ids.size() > maxClauseCount) {
+      throw new BadRequestException(fieldName + " contains too many ids (max " + maxClauseCount + ").");
+    }
   }
 
   static String normalizeTab(final String tab) {

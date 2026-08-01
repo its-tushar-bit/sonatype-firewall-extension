@@ -197,7 +197,7 @@ export function PolicyFailuresTab({
       <LargeScanBanner
         itemCount={violations.length}
         itemLabel="violations"
-        guidance="Filters and pagination run in your browser — use Classic for full export and advanced reporting on very large inventories."
+        guidance="Filters and pagination run in your browser on this page. Prefer filters for very large inventories."
         testId="nosc-app-detail-policy-failures-large-scan"
       />
       <Grid columns={{ initial: '1', md: '220px 1fr' }} gap="4">

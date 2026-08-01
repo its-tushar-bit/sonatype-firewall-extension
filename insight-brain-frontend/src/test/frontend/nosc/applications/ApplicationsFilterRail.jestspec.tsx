@@ -29,6 +29,16 @@ const FACETS = {
     { id: 'app-a', label: 'Alpha App', count: 2 },
     { id: 'app-b', label: 'Beta App', count: 1 },
   ],
+  policyTypes: [
+    { id: 'security', label: 'Security', count: 5 },
+    { id: 'license', label: 'License', count: 0 },
+    { id: 'quality', label: 'Quality', count: 2 },
+    { id: 'other', label: 'Other', count: 0 },
+  ],
+  violationStates: [
+    { id: 'OPEN', label: 'Open', count: 7 },
+    { id: 'WAIVED', label: 'Waived', count: 1 },
+  ],
 };
 
 function renderRail(
@@ -94,6 +104,32 @@ describe('ApplicationsFilterRail', () => {
     await user.click(screen.getByTestId('applications-filter-organizations-option-org-11'));
     expect(props.onToggleFilter).toHaveBeenCalledWith('organizationIds', 'org-11');
     expect(screen.getByTestId('applications-filter-organizations-search')).toHaveValue('Organization 11');
+  });
+
+  it('renders every policy type and violation state option, including zero counts', () => {
+    renderRail();
+    ['security', 'license', 'quality', 'other'].forEach((id) => {
+      expect(screen.getByTestId(`applications-filter-policy-types-option-${id}`)).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('applications-filter-violation-states-option-OPEN')).toBeInTheDocument();
+    expect(screen.getByTestId('applications-filter-violation-states-option-WAIVED')).toBeInTheDocument();
+  });
+
+  it('omits deferred Kitchen Sink vision filters from the rail (CLM-43211)', () => {
+    renderRail();
+    expect(screen.queryByTestId('applications-filter-violation-states-option-LEGACY_VIOLATION')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Coming Soon/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Age$/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Categories$/i)).not.toBeInTheDocument();
+  });
+
+  it('toggles policy type and violation state selections', async () => {
+    const props = renderRail();
+    await user.click(screen.getByTestId('applications-filter-policy-types-option-security'));
+    expect(props.onToggleFilter).toHaveBeenCalledWith('policyTypes', 'security');
+
+    await user.click(screen.getByTestId('applications-filter-violation-states-option-OPEN'));
+    expect(props.onToggleFilter).toHaveBeenCalledWith('violationStates', 'OPEN');
   });
 
   it('commits the threat slider range through onThreatRangeChange', async () => {

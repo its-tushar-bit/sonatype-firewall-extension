@@ -616,10 +616,6 @@
       <groupId>com.sonatype.licensing</groupId>
       <artifactId>license-bundle</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.sonatype.aether</groupId>
-      <artifactId>aether-util</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.apache.shiro</groupId>

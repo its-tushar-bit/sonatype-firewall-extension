@@ -75,7 +75,6 @@
     <!-- The jersey.version must match the jersey version -->
     <jersey.version>4.0.2</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
-    <aether-util.version>1.13.1</aether-util.version>
     <drools.version>10.1.0</drools.version>
     <selenium.version>4.46.0</selenium.version>
     <httpcomponents.version>4.5.14</httpcomponents.version>
@@ -951,12 +950,6 @@
             <artifactId>javax.servlet-api</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>org.sonatype.aether</groupId>
-        <artifactId>aether-util</artifactId>
-        <version>${aether-util.version}</version>
       </dependency>
 
       <dependency>

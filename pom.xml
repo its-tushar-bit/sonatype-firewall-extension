@@ -60,7 +60,7 @@
     <bc-fips-util.version>2.1.4</bc-fips-util.version>
     <bcpkix-fips.version>2.1.12</bcpkix-fips.version>
     <bctls-fips.version>2.1.20</bctls-fips.version>
-    <bouncycastle.version>1.84</bouncycastle.version>
+    <bouncycastle.version>1.85</bouncycastle.version>
 
     <!--
       This is intentionally pinned to the Sonatype-published milestone build.

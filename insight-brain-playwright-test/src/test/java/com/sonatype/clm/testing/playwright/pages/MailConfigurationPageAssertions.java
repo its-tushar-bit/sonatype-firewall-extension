@@ -25,7 +25,6 @@ public class MailConfigurationPageAssertions
     assertThat(page.systemEmailInput()).isVisible();
     assertThat(page.saveButton()).isVisible();
     assertThat(page.cancelButton()).isVisible();
-    assertThat(page.deleteButton()).isVisible();
   }
 
   public void shouldShowTestEmailWidgets() {

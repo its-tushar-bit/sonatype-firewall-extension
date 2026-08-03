@@ -152,6 +152,10 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/administrators')).toBe('/administrators');
     });
 
+    it('keeps the Email Configuration admin path identical on both bundles (CLM-42875)', () => {
+      expect(toNexusOneEquivalent('/mailConfig')).toBe('/mailConfig');
+    });
+
     it('keeps the Roles admin path identical on both bundles (CLM-42196)', () => {
       expect(toNexusOneEquivalent('/roles')).toBe('/roles');
     });
@@ -303,6 +307,10 @@ describe('classicPreviewMap', () => {
 
     it('maps Administrators admin back to the same Classic path (CLM-42464)', () => {
       expect(toClassicEquivalent('/administrators')).toBe('/administrators');
+    });
+
+    it('maps Email Configuration admin back to the same Classic path (CLM-42875)', () => {
+      expect(toClassicEquivalent('/mailConfig')).toBe('/mailConfig');
     });
 
     it('maps Roles admin back to the same Classic path (CLM-42196)', () => {
@@ -506,6 +514,7 @@ describe('classicPreviewMap', () => {
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
       ['/administrators'],
+      ['/mailConfig'],
       ['/roles'],
       ['/roles/_new_'],
       ['/roles/some-role-id'],

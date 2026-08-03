@@ -36,6 +36,7 @@ import UserTokensConfiguration from 'MainRoot/configuration/userTokensConfigurat
 import AuthorizedAdvancedSearchConfig from 'MainRoot/nexus-one/AuthorizedAdvancedSearchConfig';
 import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
+import MailConfigContainer from 'MainRoot/configuration/mail/MailConfigContainer';
 import ListWebhooksContainer from 'MainRoot/configuration/webhook/listWebhooks/ListWebhooksContainer';
 import EditWebhookContainer from 'MainRoot/configuration/webhook/editWebhook/EditWebhookContainer';
 import ApiPage from 'MainRoot/api/ApiPage';
@@ -133,8 +134,12 @@ import {
   WaiverDetailPage as PreviewWaiverDetail,
 } from 'MainRoot/nosc/waivers';
 import { isAuthorized } from 'MainRoot/util/permissionService';
-import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsHostedRepositoryEvaluationEnabled,
+  selectIsEmailConfigurationEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsLicensed } from 'MainRoot/productFeatures/productLicenseSelectors';
+import store from 'MainRoot/reduxConfig/store';
 
 router.stateRegistry.register({
   name: 'root',
@@ -783,6 +788,31 @@ router.stateRegistry.register({
   },
   data: {
     title: 'User Activity Details',
+  },
+} as ReactStateDeclaration);
+
+// MailConfig.jsx declares isAuthorized as a required prop, sourced from Classic's
+// ui-router `resolve.isAuthorized` (configuration/route.js). mountClassicComponent
+// does not inject ui-router resolve values, so mounting MailConfigContainer directly
+// would leave isAuthorized undefined and flip MailConfig into the auth-error branch.
+// requireConfigureSystem on the NOUX route already gates entry on CONFIGURE_SYSTEM,
+// so hard-coding isAuthorized={true} here is equivalent to the Classic behavior.
+const AuthorizedMailConfig = () => <MailConfigContainer isAuthorized={true} />;
+router.stateRegistry.register({
+  name: 'mailConfig',
+  url: '/mailConfig',
+  component: mountClassicComponent(AuthorizedMailConfig),
+  redirectTo: async () => {
+    const authorized = await isAuthorized(['CONFIGURE_SYSTEM']);
+    if (!authorized) {
+      return 'nexusOneDashboard.violations';
+    }
+    const isEmailConfigEnabled = selectIsEmailConfigurationEnabled(store.getState());
+    return isEmailConfigEnabled ? undefined : 'nexusOneDashboard.violations';
+  },
+  data: {
+    title: 'Email Configuration',
+    isDirty: ['mailConfig', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

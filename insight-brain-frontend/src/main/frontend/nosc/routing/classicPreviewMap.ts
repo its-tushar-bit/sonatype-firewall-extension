@@ -91,6 +91,7 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/baseUrl', '/baseUrl'],
   ['/systemNoticeConfiguration', '/systemNoticeConfiguration'],
   ['/administrators', '/administrators'],
+  ['/mailConfig', '/mailConfig'],
   ['/saml', '/saml'],
   ['/userTokensConfiguration', '/userTokensConfiguration'],
   ['/advancedSearchConfig', '/advancedSearchConfig'],

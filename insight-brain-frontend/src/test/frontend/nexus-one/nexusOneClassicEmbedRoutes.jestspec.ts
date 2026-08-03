@@ -7,6 +7,11 @@ jest.mock('MainRoot/util/permissionService', () => ({
   isAuthorized: jest.fn(),
 }));
 
+jest.mock('MainRoot/productFeatures/productFeaturesSelectors', () => ({
+  ...jest.requireActual('MainRoot/productFeatures/productFeaturesSelectors'),
+  selectIsEmailConfigurationEnabled: jest.fn(),
+}));
+
 import router from 'MainRoot/router/routerInstance';
 import {
   COMING_SOON_MODULE_ORDER,
@@ -29,6 +34,7 @@ import OwnersTreePage from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnersTreePa
 import PolicyEditor from 'MainRoot/OrgsAndPolicies/policyEditor/PolicyEditor';
 import { NEXUS_ONE_APPLICATION_REPORT_STATE } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { isAuthorized } from 'MainRoot/util/permissionService';
+import { selectIsEmailConfigurationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { NEXUS_ONE_VIOLATION_DETAIL_STATE } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
 import {
   NEXUS_ONE_VIOLATIONS_STATE_NAME,
@@ -841,6 +847,54 @@ describe('nexusOneClassicEmbedRoutes', () => {
 
     it('isDirty path resolves to a boolean in rootReducer initial state', () => {
       expectIsDirtyPathResolvesToBoolean(state()?.data?.isDirty);
+    });
+  });
+
+  describe('mailConfig Classic-embed admin route (CLM-42875)', () => {
+    const state = () => router.stateRegistry.get('mailConfig');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => {
+      (isAuthorized as jest.Mock).mockReset();
+      (selectIsEmailConfigurationEnabled as jest.Mock).mockReturnValue(true);
+    });
+
+    it('is registered at /mailConfig', () => {
+      expect(state()?.url).toBe('/mailConfig');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('carries the isDirty data path so the shell dirty guard fires on nav', () => {
+      expect(state()?.data?.isDirty).toEqual(['mailConfig', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM and email is enabled', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('redirects to nexusOneDashboard.violations when the email feature is disabled', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+      (selectIsEmailConfigurationEnabled as jest.Mock).mockReturnValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      const rootState = rootReducer(undefined, { type: '@@INIT' });
+      const [slice, field] = state()?.data?.isDirty ?? [];
+      expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
     });
   });
 

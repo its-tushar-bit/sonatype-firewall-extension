@@ -40,10 +40,7 @@ import {
   selectIsFirewallOnlyLicense,
   selectProductLicense,
 } from 'MainRoot/productFeatures/productLicenseSelectors';
-import {
-  selectIsSbomManager,
-  selectIsStandaloneFirewall,
-} from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectPermissions } from 'MainRoot/mainHeader/mainHeaderSelectors';
 
 /**
@@ -119,20 +116,17 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isZscalerEnabled = useSelector(selectIsZscalerEnabled);
-  const isSbomManager = useSelector(selectIsSbomManager);
   const productLicense = useSelector(selectProductLicense);
   const isUserManagementEnabled = useSelector(selectIsUserManagementPagesEnabled);
   const isUserActivityTrackingEnabled = useSelector(selectIsUserActivityTrackingEnabled);
   const isPreviewNexusOneUiEnabled = useSelector(selectIsPreviewNexusOneUiEnabled);
 
   const firewallPrefix = isFirewallOnlyLicense || isStandaloneFirewall ? 'firewall' : '';
-  const sbomManagerPrefix = isSbomManager ? 'sbomManager' : '';
-
   // Same items + same showIf conditions as
   // mainHeader/MenuBar/SystemPreferencesMenu/SystemPreferencesMenu.jsx.
   // Keep these two lists in lock-step until the Classic menu is retired.
   // Exception: pages embedded in the NOUX shell (e.g. Administrators, Product
-  // License, Advanced Search, Waived Components, LDAP, User Tokens, SAML, Webhooks, Roles) intentionally omit `prefix` —
+  // License, Advanced Search, Waived Components, LDAP, User Tokens, SAML, Webhooks, Roles, Email) intentionally omit `prefix` —
   // they target the in-shell NOUX state directly, which does not use the
   // firewall-prefix routing Classic requires.
   const items: ItemSpec[] = [
@@ -226,8 +220,8 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     },
     {
       label: 'Email',
+      // No prefix: mailConfig is embedded in NOUX, not a Classic firewall- or sbomManager-prefixed state.
       stateName: 'mailConfig',
-      prefix: firewallPrefix || sbomManagerPrefix,
       showIf: CONFIGURE_SYSTEM && isEmailConfigurationEnabled,
       testId: 'nexus-one-top-nav-settings-item-email',
     },

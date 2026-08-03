@@ -33,6 +33,8 @@ import com.sonatype.clm.testing.playwright.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.LegalDashboardPage;
 import com.sonatype.clm.testing.playwright.pages.LegalDashboardPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.LoginPage;
+import com.sonatype.clm.testing.playwright.pages.MailConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.MailConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.NexusOneClassicEmbedPage;
 import com.sonatype.clm.testing.playwright.pages.NexusOnePage;
 import com.sonatype.clm.testing.playwright.pages.NexusOnePageAssertions;
@@ -1063,6 +1065,111 @@ public class NexusOneClassicEmbedPlaywrightTest
     page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
     SystemNoticePage noticePage = new SystemNoticePage();
     assertThat(noticePage.container()).isHidden();
+  }
+
+  /**
+   * Mail configuration embed renders inside the Nexus One shell.
+   *
+   * <p>
+   * Verifies that navigating to the NOUX {@code /mailConfig} route renders the
+   * Classic {@link MailConfigurationPage} inside the Nexus One embed mount,
+   * with the NOUX left nav visible and the Classic global sidebar hidden.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedMailConfiguration_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    MailConfigurationPage mailPage = new MailConfigurationPage();
+    MailConfigurationPageAssertions mailAssertions = new MailConfigurationPageAssertions(mailPage);
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+    mailAssertions.shouldRenderPageLayout();
+  }
+
+  /**
+   * Mail configuration dirty guard blocks navigation on cancel.
+   *
+   * <p>
+   * Fills a mail hostname field to trigger the dirty state, then attempts to
+   * navigate away. The unsaved changes modal should appear and canceling should
+   * return to the mail config page with the unsaved data still visible.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedMailConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
+
+    MailConfigurationPage mailPage = new MailConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    mailPage.container().waitFor();
+    mailPage.hostnameInput().fill("dirty-test-mail.example.invalid");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(mailPage.container()).isVisible();
+  }
+
+  /**
+   * Mail configuration dirty guard allows navigation on continue.
+   *
+   * <p>
+   * Fills a mail hostname field to trigger the dirty state, then attempts to
+   * navigate away. The unsaved changes modal should appear and continuing should
+   * navigate to the target page (system notice configuration), discarding unsaved
+   * changes.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedMailConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
+
+    MailConfigurationPage mailPage = new MailConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    mailPage.container().waitFor();
+    mailPage.hostnameInput().fill("dirty-test-mail.example.invalid");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(mailPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * Mail configuration unauthorized user redirects to violations dashboard.
+   *
+   * <p>
+   * Logs in on Classic first so the shared session cookie is present when
+   * we navigate into Nexus One. A non-admin user who deep-links {@code /mailConfig}
+   * should be redirected to the violations dashboard by the route's
+   * {@code redirectTo} guard (which checks {@code CONFIGURE_SYSTEM} permission).
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedMailConfiguration_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/mailConfig"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    MailConfigurationPage mailPage = new MailConfigurationPage();
+    assertThat(mailPage.container()).isHidden();
   }
 
   /**

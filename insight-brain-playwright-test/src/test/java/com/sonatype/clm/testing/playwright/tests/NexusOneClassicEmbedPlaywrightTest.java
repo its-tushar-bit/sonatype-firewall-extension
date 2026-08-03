@@ -1612,7 +1612,7 @@ public class NexusOneClassicEmbedPlaywrightTest
     editorPage.container().waitFor();
     editorPage.urlInput().fill(webhookUrl);
     // Select an event type to make the webhook valid
-    editorPage.eventTypeCheckbox("Policy Evaluation").click();
+    editorPage.eventTypeCheckbox("Application Evaluation").click();
 
     editorPage.submitButton().click();
     editorPage.pageTitle()

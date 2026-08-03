@@ -113,7 +113,7 @@ public class WebhookPlaywrightTest
   @Test
   @Category(RegressionTest.class)
   public void testCreateWebhook_missingApplicationLicense_pageFailsToLoad() {
-    setMissingFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+    setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
     playwrightRefreshOrOpen(WebhookEditorPage.createUrl());
 
     editorAssertions.shouldShowLoadErrorContaining(

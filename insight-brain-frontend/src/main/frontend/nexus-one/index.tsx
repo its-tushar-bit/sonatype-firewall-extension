@@ -7,6 +7,10 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 // @ts-expect-error - classybrew ships no type declarations
 import ClassyBrew from 'classybrew/src/classybrew';
+// @ts-expect-error - jquery ships no type declarations
+import $ from 'jquery';
+// @ts-expect-error - protovis ships no type declarations
+import pv from 'MainRoot/lib/protovis/protovis.min';
 import { attachAxiosInterceptors } from 'MainRoot/utility/axiosConfig';
 import initDisplayTheme from 'MainRoot/configuration/displayTheme/initDisplayTheme';
 import { loadConfiguration as loadSuccessMetricsConfig } from 'MainRoot/configuration/successMetricsConfiguration/successMetricsConfigurationActions';
@@ -23,11 +27,18 @@ import App from './App';
 import { ensureNexusOneShellAccess } from './ensureNexusOneShellAccess';
 import './routes';
 
-// The ported Classic dashboard tabs (Applications/Components) reach into the Classic dashboard data
-// service, which instantiates `new window.classyBrew()` for risk heat-map color scaling. The Classic
-// bundle sets this global in index.jsx; the Nexus One bundle must mirror it or those tabs throw
-// "window.classyBrew is not a constructor".
-((window as unknown) as { classyBrew: unknown }).classyBrew = ClassyBrew;
+// Classic code reachable from this bundle reads these off `window` instead of importing them, so
+// the Nexus One bundle has to install them too. Classic sets classyBrew and pv directly in
+// index.jsx, and $/jQuery via the lib/jquery-loader import; this bundle assigns all four here.
+// - classyBrew: the Classic dashboard data service behind the ported Applications/Components tabs
+//   does `new window.classyBrew()` for risk heat-map color scaling.
+// - $/jQuery and pv: undeclared peer dependencies of @sonatype/version-graph, which drives the
+//   Version Graph on the Classic component details embedded in the report.
+const classicGlobals = (window as unknown) as Record<string, unknown>;
+classicGlobals.classyBrew = ClassyBrew;
+classicGlobals.$ = $;
+classicGlobals.jQuery = $;
+classicGlobals.pv = pv;
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!(await ensureNexusOneShellAccess())) {

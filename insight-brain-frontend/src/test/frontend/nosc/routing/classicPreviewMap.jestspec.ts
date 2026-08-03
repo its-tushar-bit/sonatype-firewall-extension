@@ -152,6 +152,15 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/administrators')).toBe('/administrators');
     });
 
+    it('keeps the Roles admin path identical on both bundles (CLM-42196)', () => {
+      expect(toNexusOneEquivalent('/roles')).toBe('/roles');
+    });
+
+    it('keeps /roles sub-paths identical on both bundles, preserving the tail (CLM-42196)', () => {
+      expect(toNexusOneEquivalent('/roles/_new_')).toBe('/roles/_new_');
+      expect(toNexusOneEquivalent('/roles/some-role-id')).toBe('/roles/some-role-id');
+    });
+
     it('keeps the SAML admin path identical on both bundles (CLM-42956)', () => {
       expect(toNexusOneEquivalent('/saml')).toBe('/saml');
     });
@@ -294,6 +303,15 @@ describe('classicPreviewMap', () => {
 
     it('maps Administrators admin back to the same Classic path (CLM-42464)', () => {
       expect(toClassicEquivalent('/administrators')).toBe('/administrators');
+    });
+
+    it('maps Roles admin back to the same Classic path (CLM-42196)', () => {
+      expect(toClassicEquivalent('/roles')).toBe('/roles');
+    });
+
+    it('preserves /roles sub-paths when toggling to Classic (CLM-42196)', () => {
+      expect(toClassicEquivalent('/roles/_new_')).toBe('/roles/_new_');
+      expect(toClassicEquivalent('/roles/some-role-id')).toBe('/roles/some-role-id');
     });
 
     it('maps SAML admin back to the same Classic path (CLM-42956)', () => {
@@ -488,6 +506,9 @@ describe('classicPreviewMap', () => {
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
       ['/administrators'],
+      ['/roles'],
+      ['/roles/_new_'],
+      ['/roles/some-role-id'],
       ['/saml'],
       ['/userTokensConfiguration'],
       ['/advancedSearchConfig'],
@@ -555,6 +576,7 @@ describe('classicPreviewMap', () => {
             backToPreview === '/legal' ||
             backToPreview === '/orgs-and-policies' ||
             backToPreview === '/repositories' ||
+            backToPreview === '/roles' ||
             // vulnerability-lookup Classic href collides with native Martha list
             backToPreview === '/vulnerabilities',
         ).toBe(true);

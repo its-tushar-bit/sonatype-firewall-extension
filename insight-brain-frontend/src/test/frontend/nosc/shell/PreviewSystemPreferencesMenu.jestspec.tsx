@@ -63,6 +63,30 @@ describe('PreviewSystemPreferencesMenu', () => {
     expect(within(menu).queryByText('No preferences available')).not.toBeInTheDocument();
   });
 
+  // CLM-42196: Regression guard — Roles must use the plain stateName 'rolesList'
+  // (embedded in NOUX), NOT the firewall-prefixed 'firewall.rolesList' that Classic
+  // uses. The `prefix: firewallPrefix` line was removed; this test ensures it
+  // doesn't come back — reintroducing `prefix: firewallPrefix` on the Roles entry
+  // would flip href() to be called with the prefixed name and fail the assertion below.
+  it('calls href with plain "rolesList" state, never firewall-prefixed', async () => {
+    const user = userEvent.setup();
+    renderInTheme({
+      mainHeader: { permissions: { VIEW_ROLES: true } },
+      // Roles gate is VIEW_ROLES && !!productLicense — supply a license so the item renders.
+      productLicense: { license: { products: ['Sonatype Lifecycle'] } },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    const menu = await screen.findByRole('menu');
+    const rolesItem = within(menu).getByTestId('nexus-one-top-nav-settings-item-roles');
+    expect(rolesItem).toBeInTheDocument();
+
+    // href() is called for each visible item during render.
+    expect(mockHref).toHaveBeenCalledWith('rolesList');
+    expect(mockHref).not.toHaveBeenCalledWith('firewall.rolesList');
+    expect(mockHref).not.toHaveBeenCalledWith('.rolesList');
+  });
+
   // Regression guard (CLM-42956): the SAML item must use the plain 'saml'
   // state name, never 'firewall.saml'. Reintroducing `prefix: firewallPrefix`
   // on the entry would flip href() to the prefixed name and break the

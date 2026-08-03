@@ -156,6 +156,7 @@ function isNexusOnePath(path: string): boolean {
   if (path === '/ui-settings' || path.startsWith('/ui-settings/')) return true;
   if (path === '/repositories' || path.startsWith('/repositories/')) return true;
   if (path === '/users' || path.startsWith('/users/')) return true;
+  if (path === '/roles' || path.startsWith('/roles/')) return true;
   if (path === '/webhooks' || path.startsWith('/webhooks/')) return true;
   if (path === '/ldap' || path.startsWith('/ldap/')) return true;
   if (path.startsWith('/coming-soon/')) return true;
@@ -240,6 +241,9 @@ const SUBTREE_MAPPINGS: ReadonlyArray<{ readonly nexusOne: string; readonly clas
   // Users shares identical sub-path structure in both bundles (/users/_new_,
   // /users/{id}, /users/activity/{user}), so sub-paths round-trip 1-1.
   { nexusOne: '/users', classic: '/users' },
+  // Roles shares identical sub-path structure in both bundles (/roles/_new_,
+  // /roles/{roleId}), so sub-paths round-trip 1-1.
+  { nexusOne: '/roles', classic: '/roles' },
   // Webhooks shares identical sub-path structure in both bundles (/webhooks/list,
   // /webhooks/create, /webhooks/{id}), so sub-paths round-trip 1-1. CLM-42961.
   { nexusOne: '/webhooks', classic: '/webhooks' },

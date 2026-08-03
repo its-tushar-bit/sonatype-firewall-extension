@@ -41,6 +41,8 @@ import com.sonatype.clm.testing.playwright.pages.OperationalReportingPageAsserti
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
+import com.sonatype.clm.testing.playwright.pages.RolesPage;
+import com.sonatype.clm.testing.playwright.pages.RolesPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsConfigurationPage;
@@ -1320,6 +1322,145 @@ public class NexusOneClassicEmbedPlaywrightTest
       userTokensPage.updateButton().click();
       waitForSubmitMask();
     }
+  }
+
+  // ===================================================================================
+  // Roles embed tests (CLM-42196)
+  // ===================================================================================
+
+  /**
+   * CLM-42196: Roles list page mounts natively at /roles on the Nexus One bundle,
+   * rendering the Classic list inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedRolesList_rendersClassicPageInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    RolesPage rolesPage = new RolesPage();
+    RolesPageAssertions rolesAssertions = new RolesPageAssertions(rolesPage);
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    rolesAssertions.shouldShowContainer();
+    rolesAssertions.shouldShowPageTitle("Roles");
+  }
+
+  /**
+   * CLM-42196: Roles editor dirty-guard cancel path — editing the role name
+   * dirties the form; navigation triggers the shell dirty-guard; Cancel keeps
+   * the user on the editor page with the dirty value intact.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedRoleEditor_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles/_new_"));
+
+    RolesPage rolesPage = new RolesPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    rolesPage.roleEditor().waitFor();
+    // Dirty value is client-only; no server-side cleanup needed.
+    rolesPage.roleNameInput().fill("dirty-role-name");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    // Cancel preserves the dirty value — hasValue, not just isVisible.
+    assertThat(rolesPage.roleNameInput()).hasValue("dirty-role-name");
+  }
+
+  /**
+   * CLM-42196: Roles editor dirty-guard continue path — Continue closes the modal
+   * and lets the transition proceed; the editor unmounts and the user lands on
+   * the roles list (another Classic-embedded page).
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedRoleEditor_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles/_new_"));
+
+    RolesPage rolesPage = new RolesPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    rolesPage.roleEditor().waitFor();
+    // Dirty value is client-only; no server-side cleanup needed.
+    rolesPage.roleNameInput().fill("dirty-role-name");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(rolesPage.roleEditor()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42196 auth gate: a user without VIEW_ROLES navigating to /roles
+   * is redirected to the Nexus One violations dashboard before the roles list
+   * ever mounts.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedRoles_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    RolesPage rolesPage = new RolesPage();
+    assertThat(rolesPage.container()).isHidden();
+  }
+
+  /**
+   * CLM-42196: Save-through-shell — fill the role form, save, reload, and
+   * verify the persisted values re-populate. Clean up by deleting the test role.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedRoleEditor_saveThroughShellPersistsData() {
+    String roleName = "pw-embed-role-" + TemporaryEntity.uuid();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles/_new_"));
+
+    RolesPage rolesPage = new RolesPage();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    rolesPage.roleEditor().waitFor();
+    rolesPage.roleNameInput().fill(roleName);
+    rolesPage.roleDescriptionInput().fill("Created via NOUX shell embed");
+    rolesPage.roleEditorSaveButton().click();
+
+    // Wait for save to complete and the list to re-render
+    rolesPage.container().waitFor();
+    assertThat(rolesPage.roleEditor()).isHidden();
+
+    // Reload the embed URL and verify the role appears in the list
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/roles"));
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(rolesPage.roleItem(roleName)).isVisible();
+
+    // Clean up: click the role, delete it
+    rolesPage.roleItem(roleName).click();
+    rolesPage.roleEditor().waitFor();
+    rolesPage.deleteRoleButton().click();
+    rolesPage.deleteModal().waitFor();
+    rolesPage.deleteModalSubmit().click();
+    rolesPage.container().waitFor();
+
+    // Verify cleanup
+    assertThat(rolesPage.roleItem(roleName)).hasCount(0);
   }
 
   // ===================================================================================

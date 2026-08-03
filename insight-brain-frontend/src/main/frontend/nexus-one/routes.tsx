@@ -28,6 +28,8 @@ import GettingStartedContainer from 'MainRoot/configuration/gettingStarted/Getti
 import UserManagementContainer from 'MainRoot/security/users/UserManagementContainer';
 import UserAddContainer from 'MainRoot/security/users/userConfiguration/UserAddContainer';
 import UserEditContainer from 'MainRoot/security/users/userConfiguration/UserEditContainer';
+import RoleListContainer from 'MainRoot/security/roleList/RoleListContainer';
+import RoleEditorContainer from 'MainRoot/security/roleEditor/RoleEditorContainer';
 import UserActivityDetailsContainer from 'MainRoot/configuration/userActivityOverview/UserActivityDetailsContainer';
 import SystemNoticeConfigurationContainer from 'MainRoot/configuration/systemNoticeConfiguration/SystemNoticeConfigurationContainer';
 import UserTokensConfiguration from 'MainRoot/configuration/userTokensConfiguration/UserTokensConfiguration';
@@ -89,6 +91,9 @@ import { setApplicationReportRootWrapper } from 'MainRoot/applicationReport/appl
 // Classic Component Details / Application Report styles (License Detections hanging
 // indent, etc.) — N1 does not load scss/scss.scss. Same pattern as orgsAndPoliciesEmbed.
 import 'MainRoot/scss/applicationReportEmbed.scss';
+// Roles permission group 2-column layout (roleEditor.scss) — N1 does not load
+// scss/scss.scss. Same pattern as orgsAndPoliciesEmbed and applicationReportEmbed.
+import 'MainRoot/scss/rolesEmbed.scss';
 // Offset applicationReport.* (Component Details Legal, etc.) inside NOUX chrome —
 // without this, `.nx-page-main` underruns LeftNav when deep-linking into the tree.
 setApplicationReportRootWrapper((node) => <ClassicComponentMount>{node}</ClassicComponentMount>);
@@ -622,6 +627,11 @@ const requireConfigureSystem = async () => {
   return authorized ? undefined : 'nexusOneDashboard.violations';
 };
 
+const requireViewRoles = async () => {
+  const authorized = await isAuthorized(['VIEW_ROLES']);
+  return authorized ? undefined : 'nexusOneDashboard.violations';
+};
+
 router.stateRegistry.register({
   name: 'successMetricsConfiguration',
   url: '/successMetricsConfiguration',
@@ -858,6 +868,44 @@ router.stateRegistry.register({
   data: {
     title: 'Administrator Edit',
     isDirty: ['administratorsConfig', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+// CLM-42196: Roles list + create/edit pages. RoleListItem uses prefixRoute('editRole')
+// which resolves to the registered state, and RoleEditor's stateGo calls target
+// 'rolesList' and 'addRole' by name. All three states live at the top level
+// (not firewall-prefixed) in the NOUX router.
+// Gated on VIEW_ROLES to match backend RoleService's @Authorize(VIEW_ROLES) annotation
+// and preserve parity with Classic's component-level auth (no route gate).
+router.stateRegistry.register({
+  name: 'rolesList',
+  url: '/roles',
+  component: mountClassicComponent(RoleListContainer),
+  redirectTo: requireViewRoles,
+  data: {
+    title: 'Roles',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'addRole',
+  url: '/roles/_new_',
+  component: mountClassicComponent(RoleEditorContainer),
+  redirectTo: requireViewRoles,
+  data: {
+    title: 'Create a Role',
+    isDirty: ['roleEditor', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'editRole',
+  url: '/roles/{roleId}',
+  component: mountClassicComponent(RoleEditorContainer),
+  redirectTo: requireViewRoles,
+  data: {
+    title: 'Edit a Role',
+    isDirty: ['roleEditor', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

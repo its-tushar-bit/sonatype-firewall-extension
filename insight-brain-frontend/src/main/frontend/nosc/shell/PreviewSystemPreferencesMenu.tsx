@@ -132,7 +132,7 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
   // mainHeader/MenuBar/SystemPreferencesMenu/SystemPreferencesMenu.jsx.
   // Keep these two lists in lock-step until the Classic menu is retired.
   // Exception: pages embedded in the NOUX shell (e.g. Administrators, Product
-  // License, Advanced Search, Waived Components, LDAP, User Tokens, SAML, Webhooks) intentionally omit `prefix` —
+  // License, Advanced Search, Waived Components, LDAP, User Tokens, SAML, Webhooks, Roles) intentionally omit `prefix` —
   // they target the in-shell NOUX state directly, which does not use the
   // firewall-prefix routing Classic requires.
   const items: ItemSpec[] = [
@@ -165,8 +165,12 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     },
     {
       label: 'Roles',
+      // No prefix: rolesList is embedded in NOUX, not a Classic firewall-prefixed state.
       stateName: 'rolesList',
-      prefix: firewallPrefix,
+      // Gated on VIEW_ROLES to match the NOUX rolesList route's requireViewRoles guard
+      // and preserve parity with backend RoleService's @Authorize(VIEW_ROLES) annotation.
+      // Classic's rolesList had no route gate; component-level actions enforce EDIT_ROLES
+      // for creation, VIEW_ROLES for viewing.
       showIf: VIEW_ROLES && !!productLicense,
       testId: 'nexus-one-top-nav-settings-item-roles',
     },

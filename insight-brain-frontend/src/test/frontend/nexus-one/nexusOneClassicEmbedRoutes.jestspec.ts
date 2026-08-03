@@ -844,6 +844,82 @@ describe('nexusOneClassicEmbedRoutes', () => {
     });
   });
 
+  // CLM-42196: Roles list page (read-only, no form, no dirty guard)
+  describe('rolesList Classic-embed admin route', () => {
+    const state = () => router.stateRegistry.get('rolesList');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /roles', () => {
+      expect(state()?.url).toBe('/roles');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('omits isDirty data property (list page with no form)', () => {
+      expect(state()?.data?.isDirty).toBeUndefined();
+    });
+
+    it('resolves to undefined when the user has VIEW_ROLES', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['VIEW_ROLES']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks VIEW_ROLES', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+  });
+
+  // CLM-42196: Create / edit role pages the Roles list navigates to via stateGo(...).
+  describe.each<[string, string]>([
+    ['addRole', '/roles/_new_'],
+    ['editRole', '/roles/{roleId}'],
+  ])('%s Classic-embed sub-route', (stateName, expectedUrl) => {
+    const state = () => router.stateRegistry.get(stateName);
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it(`is registered at ${expectedUrl}`, () => {
+      expect(state()?.url).toBe(expectedUrl);
+    });
+
+    it('carries the roleEditor dirty path so the shell dirty guard fires on nav', () => {
+      expect(state()?.data?.isDirty).toEqual(['roleEditor', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has VIEW_ROLES', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['VIEW_ROLES']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when authorization fails', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      const rootState = rootReducer(undefined, { type: '@@INIT' });
+      const [slice, field] = state()?.data?.isDirty ?? [];
+      expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
+    });
+  });
+
+  it('/roles/_new_ resolves to addRole, not editRole (static segment wins)', () => {
+    const match = router.urlService.match({ path: '/roles/_new_' });
+    expect(match?.rule?.state?.name).toBe('addRole');
+  });
+
   // CLM-42961: Webhooks list page (read-only, no form, no dirty guard)
   describe('listWebhooks Classic-embed admin route', () => {
     const state = () => router.stateRegistry.get('listWebhooks');

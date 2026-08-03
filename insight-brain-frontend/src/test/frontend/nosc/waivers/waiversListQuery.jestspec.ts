@@ -20,9 +20,12 @@ describe('waiversListQuery', () => {
       threat: 'Critical,Severe',
       expiry: 'Active',
       auto: 'Auto,Manual',
+      state: 'existing,requested',
+      scope: 'application',
+      policyType: 'security,license',
       org: 'Java Team',
       app: 'Apple - Java',
-      policy: 'policy-crit',
+      policy: 'Critical CVSS 9+',
     });
     expect(state.search).toBe('guava');
     expect(state.orderBy).toBe('-policyWaiverThreatLevel');
@@ -30,9 +33,12 @@ describe('waiversListQuery', () => {
     expect([...state.filters.threatLevelIds].sort()).toEqual(['Critical', 'Severe']);
     expect([...state.filters.expiryStatusIds]).toEqual(['Active']);
     expect([...state.filters.autoStatusIds].sort()).toEqual(['Auto', 'Manual']);
+    expect([...state.filters.waiverStateIds].sort()).toEqual(['existing', 'requested']);
+    expect([...state.filters.scopeIds]).toEqual(['application']);
+    expect([...state.filters.policyTypeIds].sort()).toEqual(['license', 'security']);
     expect([...state.filters.organizationIds]).toEqual(['Java Team']);
     expect([...state.filters.applicationIds]).toEqual(['Apple - Java']);
-    expect([...state.filters.policyIds]).toEqual(['policy-crit']);
+    expect([...state.filters.policyIds]).toEqual(['Critical CVSS 9+']);
   });
 
   it('defaults to newest first sort and page 1 when params are missing', () => {
@@ -48,15 +54,21 @@ describe('waiversListQuery', () => {
     expect(parseWaiversListParams({ page: 0 }).page).toBe(1);
   });
 
-  it('drops invalid threat / expiry / auto tokens without falling over', () => {
+  it('drops invalid threat / expiry / auto / state tokens without falling over', () => {
     const state = parseWaiversListParams({
       threat: 'None,Bogus,Critical',
       expiry: 'Never,WhoKnows',
       auto: 'Robot,Auto',
+      state: 'excluded,existing,bogus',
+      scope: 'repository,application',
+      policyType: 'SECURITY,security',
     });
     expect([...state.filters.threatLevelIds]).toEqual(['Critical']);
     expect([...state.filters.expiryStatusIds]).toEqual(['Never']);
     expect([...state.filters.autoStatusIds]).toEqual(['Auto']);
+    expect([...state.filters.waiverStateIds]).toEqual(['existing']);
+    expect([...state.filters.scopeIds]).toEqual(['application']);
+    expect([...state.filters.policyTypeIds]).toEqual(['security']);
   });
 
   it('builds hash params with defaults omitted for round-trip cleanliness', () => {
@@ -68,6 +80,9 @@ describe('waiversListQuery', () => {
         threatLevelIds: new Set(),
         expiryStatusIds: new Set(),
         autoStatusIds: new Set(),
+        waiverStateIds: new Set(),
+        scopeIds: new Set(),
+        policyTypeIds: new Set(),
         organizationIds: new Set(),
         applicationIds: new Set(),
         policyIds: new Set(),
@@ -80,6 +95,9 @@ describe('waiversListQuery', () => {
       threat: undefined,
       expiry: undefined,
       auto: undefined,
+      state: undefined,
+      scope: undefined,
+      policyType: undefined,
       org: undefined,
       app: undefined,
       policy: undefined,
@@ -89,15 +107,18 @@ describe('waiversListQuery', () => {
   it('round-trips a non-default state back to the parsed shape', () => {
     const initial = {
       search: 'guava',
-      orderBy: 'policyWaiverThreatLevel' as const,
+      orderBy: 'expiration' as const,
       page: 3,
       filters: {
         threatLevelIds: new Set(['Critical', 'Low'] as const),
         expiryStatusIds: new Set(['Active'] as const),
         autoStatusIds: new Set(['Manual'] as const),
+        waiverStateIds: new Set(['requested'] as const),
+        scopeIds: new Set(['organization'] as const),
+        policyTypeIds: new Set(['license'] as const),
         organizationIds: new Set(['Java Team']),
         applicationIds: new Set(['Apple - Java']),
-        policyIds: new Set(['policy-crit']),
+        policyIds: new Set(['Critical CVSS 9+']),
       },
     };
     const params = buildWaiversListRouteParams(initial);
@@ -108,9 +129,12 @@ describe('waiversListQuery', () => {
     expect([...reparsed.filters.threatLevelIds].sort()).toEqual(['Critical', 'Low']);
     expect([...reparsed.filters.expiryStatusIds]).toEqual(['Active']);
     expect([...reparsed.filters.autoStatusIds]).toEqual(['Manual']);
+    expect([...reparsed.filters.waiverStateIds]).toEqual(['requested']);
+    expect([...reparsed.filters.scopeIds]).toEqual(['organization']);
+    expect([...reparsed.filters.policyTypeIds]).toEqual(['license']);
     expect([...reparsed.filters.organizationIds]).toEqual(['Java Team']);
     expect([...reparsed.filters.applicationIds]).toEqual(['Apple - Java']);
-    expect([...reparsed.filters.policyIds]).toEqual(['policy-crit']);
+    expect([...reparsed.filters.policyIds]).toEqual(['Critical CVSS 9+']);
   });
 
   it('sort slug conversion is total (unknown → default)', () => {
@@ -124,5 +148,6 @@ describe('waiversListQuery', () => {
     expect(waiversListOrderByLabel('policyWaiverCreatedAt')).toBe('Oldest first');
     expect(waiversListOrderByLabel('-policyWaiverThreatLevel')).toBe('Highest threat first');
     expect(waiversListOrderByLabel('policyWaiverThreatLevel')).toBe('Lowest threat first');
+    expect(waiversListOrderByLabel('expiration')).toBe('Expiring soonest');
   });
 });

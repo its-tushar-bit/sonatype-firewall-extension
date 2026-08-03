@@ -14,6 +14,18 @@ export type WaiversExpiryStatusId = 'Active' | 'Expired' | 'Never';
 /** {@code Auto|Manual} — collapsed to a single {@code includeAutoWaivers} boolean at the wire. */
 export type WaiversAutoStatusId = 'Auto' | 'Manual';
 
+/**
+ * Ana {@code waiverStates} multi-select. Never includes {@code excluded} — that token today matches
+ * auto-waivers, not a true excluded set, and must not be offered as a UI chip.
+ */
+export type WaiversStateId = 'existing' | 'requested' | 'rejected';
+
+/** Ana {@code scope} TERMS over {@code policyWaiverScope}. */
+export type WaiversScopeId = 'application' | 'organization' | 'component';
+
+/** Ana {@code policyTypes} TERMS over denormalized {@code policyWaiverPolicyType} (lowercase names). */
+export type WaiversPolicyTypeId = 'security' | 'license' | 'quality' | 'other';
+
 function parseThreatGroupRange(range: string): readonly [number, number] {
   if (range === '0') {
     return [0, 0];
@@ -39,6 +51,14 @@ const SELECTABLE_THREAT_LEVEL_IDS = new Set<WaiversThreatLevelId>([
 
 const SELECTABLE_EXPIRY_STATUS_IDS = new Set<WaiversExpiryStatusId>(['Active', 'Expired', 'Never']);
 const SELECTABLE_AUTO_STATUS_IDS = new Set<WaiversAutoStatusId>(['Auto', 'Manual']);
+const SELECTABLE_STATE_IDS = new Set<WaiversStateId>(['existing', 'requested', 'rejected']);
+const SELECTABLE_SCOPE_IDS = new Set<WaiversScopeId>(['application', 'organization', 'component']);
+const SELECTABLE_POLICY_TYPE_IDS = new Set<WaiversPolicyTypeId>([
+  'security',
+  'license',
+  'quality',
+  'other',
+]);
 
 export function isSelectableThreatLevelId(value: string): value is WaiversThreatLevelId {
   return SELECTABLE_THREAT_LEVEL_IDS.has(value as WaiversThreatLevelId);
@@ -52,12 +72,28 @@ export function isSelectableAutoStatusId(value: string): value is WaiversAutoSta
   return SELECTABLE_AUTO_STATUS_IDS.has(value as WaiversAutoStatusId);
 }
 
+export function isSelectableStateId(value: string): value is WaiversStateId {
+  return SELECTABLE_STATE_IDS.has(value as WaiversStateId);
+}
+
+export function isSelectableScopeId(value: string): value is WaiversScopeId {
+  return SELECTABLE_SCOPE_IDS.has(value as WaiversScopeId);
+}
+
+export function isSelectablePolicyTypeId(value: string): value is WaiversPolicyTypeId {
+  return SELECTABLE_POLICY_TYPE_IDS.has(value as WaiversPolicyTypeId);
+}
+
 export type WaiversListFilterState = {
   readonly threatLevelIds: ReadonlySet<WaiversThreatLevelId>;
   readonly expiryStatusIds: ReadonlySet<WaiversExpiryStatusId>;
   readonly autoStatusIds: ReadonlySet<WaiversAutoStatusId>;
+  readonly waiverStateIds: ReadonlySet<WaiversStateId>;
+  readonly scopeIds: ReadonlySet<WaiversScopeId>;
+  readonly policyTypeIds: ReadonlySet<WaiversPolicyTypeId>;
   readonly organizationIds: ReadonlySet<string>;
   readonly applicationIds: ReadonlySet<string>;
+  /** Selected policy display names (wire {@code policy} TERMS on policyWaiverPolicyName). */
   readonly policyIds: ReadonlySet<string>;
 };
 
@@ -67,6 +103,9 @@ export const EMPTY_WAIVERS_LIST_FILTERS: WaiversListFilterState = {
   threatLevelIds: new Set(),
   expiryStatusIds: new Set(),
   autoStatusIds: new Set(),
+  waiverStateIds: new Set(),
+  scopeIds: new Set(),
+  policyTypeIds: new Set(),
   organizationIds: new Set(),
   applicationIds: new Set(),
   policyIds: new Set(),
@@ -77,6 +116,9 @@ export function hasActiveWaiversListFilters(filters: WaiversListFilterState): bo
     filters.threatLevelIds.size > 0
     || filters.expiryStatusIds.size > 0
     || filters.autoStatusIds.size > 0
+    || filters.waiverStateIds.size > 0
+    || filters.scopeIds.size > 0
+    || filters.policyTypeIds.size > 0
     || filters.organizationIds.size > 0
     || filters.applicationIds.size > 0
     || filters.policyIds.size > 0
@@ -96,6 +138,9 @@ export function toggleWaiversListFilterId(
   if (group === 'threatLevelIds' && !isSelectableThreatLevelId(id)) return filters;
   if (group === 'expiryStatusIds' && !isSelectableExpiryStatusId(id)) return filters;
   if (group === 'autoStatusIds' && !isSelectableAutoStatusId(id)) return filters;
+  if (group === 'waiverStateIds' && !isSelectableStateId(id)) return filters;
+  if (group === 'scopeIds' && !isSelectableScopeId(id)) return filters;
+  if (group === 'policyTypeIds' && !isSelectablePolicyTypeId(id)) return filters;
   if (!id.trim()) return filters;
   const current = filters[group] as ReadonlySet<string>;
   const next = new Set(current);
@@ -115,6 +160,9 @@ export function filtersEqual(
     'threatLevelIds',
     'expiryStatusIds',
     'autoStatusIds',
+    'waiverStateIds',
+    'scopeIds',
+    'policyTypeIds',
     'organizationIds',
     'applicationIds',
     'policyIds',
@@ -152,13 +200,17 @@ function buildThreatLevelRange(
 export interface WaiversIndexQueryFilterFields {
   readonly organizations?: ReadonlyArray<string>;
   readonly applications?: ReadonlyArray<string>;
-  readonly policies?: ReadonlyArray<string>;
+  /** Policy display names → Ana {@code policy} TERMS on policyWaiverPolicyName. */
+  readonly policy?: ReadonlyArray<string>;
   readonly policyThreatLevel?: readonly [number, number];
   readonly expiryStatus?: ReadonlyArray<WaiversExpiryStatusId>;
   /** Classic: {@code false}=manual only; omitted otherwise (true is not sent). */
   readonly includeAutoWaivers?: boolean;
   /** Ana Auto-only chip → {@code isAuto:["true"]} (do not overload includeAutoWaivers). */
   readonly isAuto?: ReadonlyArray<'true' | 'false'>;
+  readonly waiverStates?: ReadonlyArray<WaiversStateId>;
+  readonly scope?: ReadonlyArray<WaiversScopeId>;
+  readonly policyTypes?: ReadonlyArray<WaiversPolicyTypeId>;
 }
 
 /**
@@ -169,6 +221,8 @@ export interface WaiversIndexQueryFilterFields {
  * - Manual only → {@code includeAutoWaivers:false}
  * - Auto only → {@code isAuto:["true"]}
  * - both / neither → omit both keys
+ *
+ * Never emits {@code waiverStates:excluded}.
  */
 export function waiversListFiltersToRequest(
   filters: WaiversListFilterState,
@@ -176,11 +230,14 @@ export function waiversListFiltersToRequest(
   const out: {
     organizations?: ReadonlyArray<string>;
     applications?: ReadonlyArray<string>;
-    policies?: ReadonlyArray<string>;
+    policy?: ReadonlyArray<string>;
     policyThreatLevel?: readonly [number, number];
     expiryStatus?: ReadonlyArray<WaiversExpiryStatusId>;
     includeAutoWaivers?: boolean;
     isAuto?: ReadonlyArray<'true' | 'false'>;
+    waiverStates?: ReadonlyArray<WaiversStateId>;
+    scope?: ReadonlyArray<WaiversScopeId>;
+    policyTypes?: ReadonlyArray<WaiversPolicyTypeId>;
   } = {};
 
   if (filters.organizationIds.size > 0) {
@@ -190,7 +247,7 @@ export function waiversListFiltersToRequest(
     out.applications = Array.from(filters.applicationIds);
   }
   if (filters.policyIds.size > 0) {
-    out.policies = Array.from(filters.policyIds);
+    out.policy = Array.from(filters.policyIds);
   }
   const range = buildThreatLevelRange(filters.threatLevelIds);
   if (range) {
@@ -198,6 +255,15 @@ export function waiversListFiltersToRequest(
   }
   if (filters.expiryStatusIds.size > 0) {
     out.expiryStatus = Array.from(filters.expiryStatusIds);
+  }
+  if (filters.waiverStateIds.size > 0) {
+    out.waiverStates = Array.from(filters.waiverStateIds);
+  }
+  if (filters.scopeIds.size > 0) {
+    out.scope = Array.from(filters.scopeIds);
+  }
+  if (filters.policyTypeIds.size > 0) {
+    out.policyTypes = Array.from(filters.policyTypeIds);
   }
   const wantsAuto = filters.autoStatusIds.has('Auto');
   const wantsManual = filters.autoStatusIds.has('Manual');
@@ -251,4 +317,68 @@ export function staticAutoStatusFacets(): ReadonlyArray<{
   readonly count: number;
 }> {
   return STATIC_AUTO_STATUS_FACETS;
+}
+
+/** Static waiver-state rows — existing / requested / rejected only (never excluded). */
+const STATIC_WAIVER_STATE_FACETS = [
+  { id: 'existing', label: 'Existing', count: 0 },
+  { id: 'requested', label: 'Requested', count: 0 },
+  { id: 'rejected', label: 'Rejected', count: 0 },
+];
+
+export function staticWaiverStateFacets(): ReadonlyArray<{
+  readonly id: string;
+  readonly label: string;
+  readonly count: number;
+}> {
+  return STATIC_WAIVER_STATE_FACETS;
+}
+
+const SCOPE_LABELS: Record<WaiversScopeId, string> = {
+  application: 'Application',
+  organization: 'Organization',
+  component: 'Component',
+};
+
+const STATIC_SCOPE_FACETS = (['application', 'organization', 'component'] as const).map((id) => ({
+  id,
+  label: SCOPE_LABELS[id],
+  count: 0,
+}));
+
+export function staticScopeFacets(): ReadonlyArray<{
+  readonly id: string;
+  readonly label: string;
+  readonly count: number;
+}> {
+  return STATIC_SCOPE_FACETS;
+}
+
+const POLICY_TYPE_LABELS: Record<WaiversPolicyTypeId, string> = {
+  security: 'Security',
+  license: 'License',
+  quality: 'Quality',
+  other: 'Other',
+};
+
+const STATIC_POLICY_TYPE_FACETS = (['security', 'license', 'quality', 'other'] as const).map((id) => ({
+  id,
+  label: POLICY_TYPE_LABELS[id],
+  count: 0,
+}));
+
+export function staticPolicyTypeFacets(): ReadonlyArray<{
+  readonly id: string;
+  readonly label: string;
+  readonly count: number;
+}> {
+  return STATIC_POLICY_TYPE_FACETS;
+}
+
+export function scopeFacetLabel(id: string): string {
+  return SCOPE_LABELS[id as WaiversScopeId] ?? id;
+}
+
+export function policyTypeFacetLabel(id: string): string {
+  return POLICY_TYPE_LABELS[id as WaiversPolicyTypeId] ?? id;
 }

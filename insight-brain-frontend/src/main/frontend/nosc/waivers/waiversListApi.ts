@@ -10,9 +10,16 @@ import {
 } from 'MainRoot/nosc/waivers/waiversListTypes';
 import {
   WaiversListFilterState,
+  isSelectablePolicyTypeId,
+  isSelectableScopeId,
+  policyTypeFacetLabel,
+  scopeFacetLabel,
   staticAutoStatusFacets,
   staticExpiryStatusFacets,
+  staticPolicyTypeFacets,
+  staticScopeFacets,
   staticThreatLevelFacets,
+  staticWaiverStateFacets,
   waiversListFiltersToRequest,
 } from 'MainRoot/nosc/waivers/waiversListFilters';
 import type { WaiversListOrderBy } from 'MainRoot/nosc/waivers/waiversListQuery';
@@ -147,6 +154,8 @@ export function mapApiWaiverRow(row: ApiWaiverRow): AnaWaiverRow | null {
     applicationName: asString(fields, 'applicationName'),
     applicationId: asString(fields, 'applicationId'),
     isAuto: asBoolean(fields, 'isAuto'),
+    isRequested: asBoolean(fields, 'isRequested'),
+    status: asString(fields, 'status'),
   };
 }
 
@@ -167,46 +176,58 @@ function facetEntriesFromBuckets(
     .sort((left, right) => left.label.localeCompare(right.label));
 }
 
-/** Derive rail facet entries for policy id → policyName by inspecting the current page rows. */
-function derivePolicyFacetsFromRows(
-  rows: ReadonlyArray<AnaWaiverRow>,
+/**
+ * Overlay whole-corpus counts from the API onto a static facet vocabulary so the rail always
+ * shows every selectable chip (even when the current page seeds no bucket for that value).
+ */
+function mergeStaticFacetsWithCounts(
+  staticEntries: ReadonlyArray<WaiversFilterFacetEntry>,
+  buckets: ReadonlyArray<ApiIndexQueryFacetBucket> | null | undefined,
+  labelFor: (id: string) => string = (id) => id,
 ): ReadonlyArray<WaiversFilterFacetEntry> {
-  if (rows.length === 0) return [];
-  const nameById = new Map<string, string>();
   const countById = new Map<string, number>();
-  rows.forEach((row) => {
-    if (!row.policyId) return;
-    if (!nameById.has(row.policyId)) {
-      nameById.set(row.policyId, row.policyName ?? row.policyId);
-    }
-    countById.set(row.policyId, (countById.get(row.policyId) ?? 0) + 1);
+  (buckets ?? []).forEach((bucket) => {
+    if (typeof bucket.value !== 'string' || !bucket.value.trim()) return;
+    countById.set(bucket.value.trim().toLowerCase(), typeof bucket.count === 'number' ? bucket.count : 0);
   });
-  return Array.from(nameById.entries())
-    .map(([id, label]) => ({ id, label, count: countById.get(id) ?? 0 }))
-    .sort((left, right) => left.label.localeCompare(right.label));
+  return staticEntries.map((entry) => ({
+    id: entry.id,
+    label: labelFor(entry.id),
+    count: countById.get(entry.id.toLowerCase()) ?? entry.count,
+  }));
 }
 
 /**
- * Build the filter-rail facet counts from the API response. The backend returns
- * {@code organizationName} / {@code applicationName} buckets for the WAIVER entityType;
- * threat levels and expiry statuses are static UI buckets (they always render regardless
- * of what's on the page), and policies are derived from the current page rows since the
- * WAIVER schema does not (yet) return a policy facet.
+ * Build the filter-rail facet counts from the API response. Static sections always render;
+ * organizations / applications / policies use page-seeded whole-corpus buckets from Ana.
  */
 export function mapWaiversFacets(
   response: WaiversIndexQueryResponse,
-  rows: ReadonlyArray<AnaWaiverRow>,
+  _rows: ReadonlyArray<AnaWaiverRow>,
   totalWaivers: number,
 ): WaiversFilterFacetCounts {
   const facets = response.facets ?? {};
+  const scopeBuckets = (facets.scope ?? []).filter(
+    (bucket) => typeof bucket.value === 'string' && isSelectableScopeId(bucket.value.trim().toLowerCase()),
+  );
+  const policyTypeBuckets = (facets.policyType ?? []).filter(
+    (bucket) => typeof bucket.value === 'string' && isSelectablePolicyTypeId(bucket.value.trim().toLowerCase()),
+  );
   return {
     totalWaivers,
     threatLevels: staticThreatLevelFacets(),
     expiryStatuses: staticExpiryStatusFacets(),
     autoStatuses: staticAutoStatusFacets(),
+    waiverStates: staticWaiverStateFacets(),
+    scopes: mergeStaticFacetsWithCounts(staticScopeFacets(), scopeBuckets, scopeFacetLabel),
+    policyTypes: mergeStaticFacetsWithCounts(
+      staticPolicyTypeFacets(),
+      policyTypeBuckets,
+      policyTypeFacetLabel,
+    ),
     organizations: facetEntriesFromBuckets(facets.organizationName),
     applications: facetEntriesFromBuckets(facets.applicationName),
-    policies: derivePolicyFacetsFromRows(rows),
+    policies: facetEntriesFromBuckets(facets.policyName),
   };
 }
 

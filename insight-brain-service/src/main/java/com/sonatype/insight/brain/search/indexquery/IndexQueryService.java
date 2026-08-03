@@ -91,15 +91,24 @@ public class IndexQueryService
       // the owner scope), so a page containing a component-targeted waiver surfaces a component bucket.
       // status is the fixed active/expiring/expired/auto-waived vocabulary derived from the expires-at
       // epoch point vs server-now and the auto discriminator (see FacetMode.WAIVER_STATUS).
+      // Fixed / bounded facets first so the shared count budget never starves always-relevant rail
+      // sections (status, auto, threatLevel, scope, policyType) when org/app/policyName hit the
+      // per-field bucket cap on a dense page. Variable-name facets are last and may truncate.
       IndexQueryType.WAIVER, List.of(
           Facet.waiverStatus("status"),
+          Facet.autoWaiverToggle("auto", "policyWaiverAuto"),
+          Facet.numeric("threatLevel", "threatLevel", "policyWaiverThreatLevel"),
           Facet.value("scope", "scope", "policyWaiverScope"),
           // policyType buckets by the denormalized policyWaiverPolicyType keyword (SECURITY/LICENSE/
           // QUALITY/OTHER), seeded from each row's policyType field. Present on both waiver and request docs.
           Facet.value("policyType", "policyType", "policyWaiverPolicyType"),
           Facet.value("organizationName", "organizationName", "organizationName"),
-          Facet.autoWaiverToggle("auto", "policyWaiverAuto"),
-          Facet.numeric("threatLevel", "threatLevel", "policyWaiverThreatLevel")));
+          // applicationName is written on app-scoped waivers via setOwner(application); org-scoped
+          // waivers carry no applicationName and simply do not seed this facet.
+          Facet.value("applicationName", "applicationName", "applicationName"),
+          // policyName is the display name on IndexQueryRow (from policyWaiverPolicyName). Whole-corpus
+          // counts still query the indexed policyWaiverPolicyName keyword.
+          Facet.value("policyName", "policyName", "policyWaiverPolicyName")));
 
   /**
    * Cap on distinct values counted per facet field. Facet values come from the current page's rows, so
@@ -118,12 +127,13 @@ public class IndexQueryService
    * Sized to admit a realistic worst-case page across all entity types without truncating while still
    * guarding against a pathological one, and kept below the sum of the per-field caps
    * ({@value #MAX_FACET_BUCKETS_PER_FIELD} x the facet count per entity type) so it is a live guard
-   * rather than an unreachable ceiling. The densest WAIVER page — the fixed status vocabulary (4),
-   * scope (at most 3 values: application, organization, component), organizationName (up to
-   * {@value #MAX_FACET_BUCKETS_PER_FIELD}), the auto/manual toggle (2), and threatLevel (numeric, at
-   * most the ~11 discrete IQ threat levels), ~40 counts — fits comfortably under this budget too.
+   * rather than an unreachable ceiling. The densest WAIVER page — fixed status (4) + auto/manual (2) +
+   * threatLevel (~11) + scope (≤3) + policyType (≤4) + organizationName / applicationName / policyName
+   * (up to {@value #MAX_FACET_BUCKETS_PER_FIELD} each) ≈ 84 counts — fits under this budget. Fixed
+   * facets are listed first in {@link #FACET_FIELDS} so any future truncation still prefers them.
+   * Fan-out stays O(1) in estate size (bounded Lucene {@code count()}s, not N-per-app).
    */
-  static final int MAX_FACET_COUNT_QUERIES = 60;
+  static final int MAX_FACET_COUNT_QUERIES = 90;
 
   /** Metric name for rows dropped due to incomplete index data. Tagged with {@code entityType}. */
   static final String DROPPED_METRIC_NAME = "insight_brain_index_query_dropped_rows_total";

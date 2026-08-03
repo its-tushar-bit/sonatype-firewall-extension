@@ -37,9 +37,13 @@ describe('WaiversFilterRail', () => {
     }));
 
     renderRail({
+      totalWaivers: 0,
       threatLevels: [],
       autoStatuses: [],
       expiryStatuses: [],
+      waiverStates: [],
+      scopes: [],
+      policyTypes: [],
       organizations,
       applications: [],
       policies: [],

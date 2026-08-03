@@ -8,9 +8,15 @@ import {
   WaiversAutoStatusId,
   WaiversExpiryStatusId,
   WaiversListFilterState,
+  WaiversPolicyTypeId,
+  WaiversScopeId,
+  WaiversStateId,
   WaiversThreatLevelId,
   isSelectableAutoStatusId,
   isSelectableExpiryStatusId,
+  isSelectablePolicyTypeId,
+  isSelectableScopeId,
+  isSelectableStateId,
   isSelectableThreatLevelId,
 } from 'MainRoot/nosc/waivers/waiversListFilters';
 
@@ -18,23 +24,26 @@ import {
  * Wire sort tokens accepted by {@code POST /rest/search/index-query} for the WAIVER entity type.
  * The backend's {@code GlobalSearchSortAllowlist} accepts these keys against the WAIVER tab
  * (see {@code IndexQueryService.validateSort}); default is descending created-at.
+ * {@code expiration} is the allowlisted soonest-expiry-first token (not a field-style alias).
  */
 export type WaiversListOrderBy =
   | '-policyWaiverCreatedAt'
   | 'policyWaiverCreatedAt'
   | '-policyWaiverThreatLevel'
-  | 'policyWaiverThreatLevel';
+  | 'policyWaiverThreatLevel'
+  | 'expiration';
 
 export const DEFAULT_WAIVERS_LIST_ORDER_BY: WaiversListOrderBy = '-policyWaiverCreatedAt';
 
 /** URL-friendly sort slugs persisted in the hash query — same shape as Applications. */
-type WaiversListSortSlug = 'newest' | 'oldest' | 'severity' | 'severity-asc';
+type WaiversListSortSlug = 'newest' | 'oldest' | 'severity' | 'severity-asc' | 'expiration';
 
 const ORDER_BY_TO_SORT_SLUG: Record<WaiversListOrderBy, WaiversListSortSlug> = {
   '-policyWaiverCreatedAt': 'newest',
   policyWaiverCreatedAt: 'oldest',
   '-policyWaiverThreatLevel': 'severity',
   policyWaiverThreatLevel: 'severity-asc',
+  expiration: 'expiration',
 };
 
 const SORT_SLUG_TO_ORDER_BY: Record<WaiversListSortSlug, WaiversListOrderBy> = {
@@ -42,6 +51,7 @@ const SORT_SLUG_TO_ORDER_BY: Record<WaiversListSortSlug, WaiversListOrderBy> = {
   oldest: 'policyWaiverCreatedAt',
   severity: '-policyWaiverThreatLevel',
   'severity-asc': 'policyWaiverThreatLevel',
+  expiration: 'expiration',
 };
 
 export function orderByToSortSlug(orderBy: WaiversListOrderBy): WaiversListSortSlug {
@@ -62,6 +72,8 @@ export function waiversListOrderByLabel(orderBy: WaiversListOrderBy): string {
       return 'Highest threat first';
     case 'policyWaiverThreatLevel':
       return 'Lowest threat first';
+    case 'expiration':
+      return 'Expiring soonest';
     case '-policyWaiverCreatedAt':
     default:
       return 'Newest first';
@@ -110,7 +122,7 @@ function parsePageParam(value: unknown): number {
   return 1;
 }
 
-/** Parse UI-Router params for the Ana Waivers list (CLM-43204). */
+/** Parse UI-Router params for the Ana Waivers list (CLM-43204 / CLM-43962). */
 export function parseWaiversListParams(
   params: Record<string, unknown>,
 ): WaiversListQueryState {
@@ -136,6 +148,18 @@ export function parseWaiversListParams(
         parseCsvParam(typeof params.auto === 'string' ? params.auto : null),
         isSelectableAutoStatusId,
       ),
+      waiverStateIds: parseTypedSet<WaiversStateId>(
+        parseCsvParam(typeof params.state === 'string' ? params.state : null),
+        isSelectableStateId,
+      ),
+      scopeIds: parseTypedSet<WaiversScopeId>(
+        parseCsvParam(typeof params.scope === 'string' ? params.scope : null),
+        isSelectableScopeId,
+      ),
+      policyTypeIds: parseTypedSet<WaiversPolicyTypeId>(
+        parseCsvParam(typeof params.policyType === 'string' ? params.policyType : null),
+        isSelectablePolicyTypeId,
+      ),
       organizationIds: new Set(parseCsvParam(typeof params.org === 'string' ? params.org : null)),
       applicationIds: new Set(parseCsvParam(typeof params.app === 'string' ? params.app : null)),
       policyIds: new Set(parseCsvParam(typeof params.policy === 'string' ? params.policy : null)),
@@ -152,6 +176,9 @@ export function buildWaiversListRouteParams(state: WaiversListQueryState): Recor
     threat: serializeCsvParam(state.filters.threatLevelIds),
     expiry: serializeCsvParam(state.filters.expiryStatusIds),
     auto: serializeCsvParam(state.filters.autoStatusIds),
+    state: serializeCsvParam(state.filters.waiverStateIds),
+    scope: serializeCsvParam(state.filters.scopeIds),
+    policyType: serializeCsvParam(state.filters.policyTypeIds),
     org: serializeCsvParam(state.filters.organizationIds),
     app: serializeCsvParam(state.filters.applicationIds),
     policy: serializeCsvParam(state.filters.policyIds),

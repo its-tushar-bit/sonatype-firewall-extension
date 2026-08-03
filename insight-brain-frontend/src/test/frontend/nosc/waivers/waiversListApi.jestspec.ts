@@ -36,10 +36,13 @@ describe('waiversListApi (index-query)', () => {
         ...EMPTY_WAIVERS_LIST_FILTERS,
         organizationIds: new Set(['Java Team']),
         applicationIds: new Set(['Apple - Java']),
-        policyIds: new Set(['policy-crit']),
+        policyIds: new Set(['Critical CVSS 9+']),
         threatLevelIds: new Set(['Critical']),
         expiryStatusIds: new Set(['Active']),
         autoStatusIds: new Set(['Manual']),
+        waiverStateIds: new Set(['existing']),
+        scopeIds: new Set(['application']),
+        policyTypeIds: new Set(['security']),
       },
     });
     expect(request.entityType).toBe('WAIVER');
@@ -47,10 +50,13 @@ describe('waiversListApi (index-query)', () => {
       query: 'guava',
       organizations: ['Java Team'],
       applications: ['Apple - Java'],
-      policies: ['policy-crit'],
+      policy: ['Critical CVSS 9+'],
       policyThreatLevel: [8, 10],
       expiryStatus: ['Active'],
       includeAutoWaivers: false,
+      waiverStates: ['existing'],
+      scope: ['application'],
+      policyTypes: ['security'],
     });
   });
 
@@ -114,6 +120,7 @@ describe('waiversListApi (index-query)', () => {
       scopeOwnerType: 'application',
       scopeOwnerId: 'app-internal-1',
       isAuto: false,
+      isRequested: false,
     });
     expect(mapped.waivers[1].isAuto).toBe(true);
     expect(mapped.total).toBe(2);
@@ -128,7 +135,7 @@ describe('waiversListApi (index-query)', () => {
     expect(mapped.facets.applications).toEqual([
       expect.objectContaining({ id: 'Apple - Java', count: 1 }),
     ]);
-    // Threat + expiry + auto sections are always populated (static rows) so the rail renders.
+    // Threat + expiry + auto + state sections are always populated (static rows) so the rail renders.
     expect(mapped.facets.threatLevels.length).toBeGreaterThan(0);
     expect(mapped.facets.expiryStatuses).toEqual([
       expect.objectContaining({ id: 'Active' }),
@@ -139,9 +146,27 @@ describe('waiversListApi (index-query)', () => {
       expect.objectContaining({ id: 'Auto' }),
       expect.objectContaining({ id: 'Manual' }),
     ]);
-    // Policies are derived from the current page's rows (waiver-1 has a policyId).
+    expect(mapped.facets.waiverStates).toEqual([
+      expect.objectContaining({ id: 'existing' }),
+      expect.objectContaining({ id: 'requested' }),
+      expect.objectContaining({ id: 'rejected' }),
+    ]);
+    expect(mapped.facets.scopes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'application', count: 1 }),
+        expect.objectContaining({ id: 'organization', count: 1 }),
+        expect.objectContaining({ id: 'component', count: 0 }),
+      ]),
+    );
+    expect(mapped.facets.policyTypes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'security', count: 1 }),
+        expect.objectContaining({ id: 'other', count: 1 }),
+      ]),
+    );
+    // Policies come from the Ana policyName facet (display names, not ids).
     expect(mapped.facets.policies).toEqual([
-      { id: 'policy-crit', label: 'Critical CVSS 9+', count: 1 },
+      { id: 'Critical CVSS 9+', label: 'Critical CVSS 9+', count: 1 },
     ]);
   });
 

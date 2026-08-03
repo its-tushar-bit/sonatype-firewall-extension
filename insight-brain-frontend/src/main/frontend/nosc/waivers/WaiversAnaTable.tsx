@@ -88,13 +88,23 @@ export default function WaiversAnaTable({
           return (
             <Table.Row key={row.id} data-testid={`${testId}-row`}>
               <Table.Cell>
-                <Flex align="center" gap="2">
+                <Flex align="center" gap="2" wrap="wrap">
                   <Badge color={threatColorFor(row.threatLevel)} variant="solid">
                     {row.threatLevel}
                   </Badge>
                   {row.isAuto && (
                     <Badge color="green" variant="soft">
                       Auto
+                    </Badge>
+                  )}
+                  {row.isRequested && row.status === 'REJECTED' && (
+                    <Badge color="red" variant="soft">
+                      Rejected
+                    </Badge>
+                  )}
+                  {row.isRequested && row.status === 'REQUESTED' && (
+                    <Badge color="orange" variant="soft">
+                      Requested
                     </Badge>
                   )}
                 </Flex>

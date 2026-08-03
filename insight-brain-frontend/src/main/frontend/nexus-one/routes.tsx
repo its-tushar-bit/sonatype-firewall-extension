@@ -256,13 +256,16 @@ const waiversListDynamicParams = {
   threat: { dynamic: true },
   expiry: { dynamic: true },
   auto: { dynamic: true },
+  state: { dynamic: true },
+  scope: { dynamic: true },
+  policyType: { dynamic: true },
   org: { dynamic: true },
   app: { dynamic: true },
   policy: { dynamic: true },
 };
 router.stateRegistry.register({
   name: 'nexusOneWaivers',
-  url: '/waivers?q&sort&page&threat&expiry&auto&org&app&policy',
+  url: '/waivers?q&sort&page&threat&expiry&auto&state&scope&policyType&org&app&policy',
   params: waiversListDynamicParams,
   component: PreviewWaiversList,
   data: {

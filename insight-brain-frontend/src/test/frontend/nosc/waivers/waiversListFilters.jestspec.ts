@@ -72,11 +72,26 @@ describe('waiversListFilters', () => {
   it('serializes free-form set filters (orgs, apps, policies) as arrays', () => {
     let filters = toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'organizationIds', 'Java Team');
     filters = toggleWaiversListFilterId(filters, 'applicationIds', 'Apple - Java');
-    filters = toggleWaiversListFilterId(filters, 'policyIds', 'policy-crit');
+    filters = toggleWaiversListFilterId(filters, 'policyIds', 'Critical CVSS 9+');
     const req = waiversListFiltersToRequest(filters);
     expect(req.organizations).toEqual(['Java Team']);
     expect(req.applications).toEqual(['Apple - Java']);
-    expect(req.policies).toEqual(['policy-crit']);
+    expect(req.policy).toEqual(['Critical CVSS 9+']);
+  });
+
+  it('maps waiverStates / scope / policyTypes and never emits excluded', () => {
+    let filters = toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'waiverStateIds', 'existing');
+    filters = toggleWaiversListFilterId(filters, 'waiverStateIds', 'requested');
+    filters = toggleWaiversListFilterId(filters, 'scopeIds', 'application');
+    filters = toggleWaiversListFilterId(filters, 'policyTypeIds', 'security');
+    const req = waiversListFiltersToRequest(filters);
+    expect(req.waiverStates).toEqual(expect.arrayContaining(['existing', 'requested']));
+    expect(req.waiverStates).not.toContain('excluded');
+    expect(req.scope).toEqual(['application']);
+    expect(req.policyTypes).toEqual(['security']);
+    expect(
+      toggleWaiversListFilterId(EMPTY_WAIVERS_LIST_FILTERS, 'waiverStateIds', 'excluded'),
+    ).toBe(EMPTY_WAIVERS_LIST_FILTERS);
   });
 
   it('treats set-order differences as equal', () => {

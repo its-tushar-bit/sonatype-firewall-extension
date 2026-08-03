@@ -165,12 +165,7 @@ describe('useAnaWaiversList', () => {
           orderBy: '-policyWaiverCreatedAt',
           page: 5,
           filters: {
-            threatLevelIds: new Set(),
-            expiryStatusIds: new Set(),
-            autoStatusIds: new Set(),
-            organizationIds: new Set(),
-            applicationIds: new Set(),
-            policyIds: new Set(),
+            ...EMPTY_WAIVERS_LIST_FILTERS,
           },
         },
       }),

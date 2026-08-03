@@ -436,6 +436,69 @@ public class IndexQueryServiceTest
   }
 
   @Test
+  public void query_waiverApplicationAndPolicyNameFacets_seedFromRows_wholeCorpusCounts() {
+    SearchResultItemDTO a = waiverDto("w-a", "Security-Critical", "Apple - Java", "Acme");
+    SearchResultItemDTO b = waiverDto("w-b", "License-Banned", "Banana - Go", "Acme");
+    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(List.of(a, b), 2, List.of()));
+    when(searchIndexClient.count(contains("applicationName:\"Apple - Java\""))).thenReturn(11L);
+    when(searchIndexClient.count(contains("applicationName:\"Banana - Go\""))).thenReturn(4L);
+    when(searchIndexClient.count(contains("policyWaiverPolicyName:\"Security-Critical\""))).thenReturn(22L);
+    when(searchIndexClient.count(contains("policyWaiverPolicyName:\"License-Banned\""))).thenReturn(8L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
+
+    Map<String, Long> apps = resp.facets()
+        .get("applicationName")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    Map<String, Long> policies = resp.facets()
+        .get("policyName")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(apps).containsEntry("Apple - Java", 11L).containsEntry("Banana - Go", 4L);
+    assertThat(policies).containsEntry("Security-Critical", 22L).containsEntry("License-Banned", 8L);
+  }
+
+  @Test
+  public void query_denseWaiverPage_keepsFixedFacetsWhenVariableNameFacetsAreMaxed() {
+    // 20 orgs + 20 apps + 20 policy names max the variable facets. Fixed status/auto/threatLevel must
+    // still be computed (they are ordered first) so the rail does not lose always-relevant sections
+    // under a dense page at enterprise scale.
+    List<SearchResultItemDTO> page = new java.util.ArrayList<>();
+    for (int i = 0; i < 20; i++) {
+      SearchResultItemDTO d = new SearchResultItemDTO();
+      d.itemType = "POLICY_WAIVER";
+      d.policyWaiverId = "w-" + i;
+      d.policyWaiverPolicyId = "policy-" + i;
+      d.policyWaiverPolicyName = "Policy " + i;
+      d.policyWaiverScopeOwnerType = "APPLICATION";
+      d.policyWaiverScopeOwnerId = "app-" + i;
+      d.policyWaiverIsAuto = false;
+      d.policyWaiverAuto = false;
+      d.policyWaiverThreatLevel = i % 10;
+      d.policyWaiverScope = "application";
+      d.policyWaiverPolicyType = "security";
+      d.applicationName = "App " + i;
+      d.organizationName = "Org " + i;
+      page.add(d);
+    }
+    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(page, page.size(), List.of()));
+    when(searchIndexClient.count(any())).thenReturn(1L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
+
+    verify(searchIndexClient, org.mockito.Mockito.atMost(IndexQueryService.MAX_FACET_COUNT_QUERIES)).count(any());
+    assertThat(resp.facets().get("status")).isNotEmpty();
+    assertThat(resp.facets().get("auto")).extracting(IndexQueryResponse.IndexQueryFacetBucket::value)
+        .containsExactlyInAnyOrder("true", "false");
+    assertThat(resp.facets().get("threatLevel")).isNotEmpty();
+  }
+
+  @Test
   public void query_waiverStatesFilter_spansBothItemTypes() {
     // requested + rejected states compile to POLICY_WAIVER_REQUEST status clauses; existing to
     // POLICY_WAIVER. Proves the waiverStates multi-select query spans both item types.

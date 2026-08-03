@@ -35,6 +35,10 @@ export interface AnaWaiverRow {
   readonly applicationId: string | null;
   /** True when the waiver was created automatically by IQ (no policyId on the source row). */
   readonly isAuto: boolean;
+  /** True when the row is a POLICY_WAIVER_REQUEST (pending/rejected/approved). */
+  readonly isRequested: boolean;
+  /** Uppercase request status when {@link #isRequested}; otherwise null. */
+  readonly status: string | null;
 }
 
 export type WaiversFilterFacetEntry = {
@@ -44,15 +48,18 @@ export type WaiversFilterFacetEntry = {
 };
 
 /**
- * Filter-rail facet counts for the top-level waivers page. Threat levels and expiry statuses
- * are static UI-side buckets; organizations / applications / policies come from the API
- * response's whole-corpus, RBAC-scoped counts (values seeded by the current page rows).
+ * Filter-rail facet counts for the top-level waivers page. Threat / expiry / auto / state /
+ * scope / policyType are static UI-side buckets (counts overlaid from the API when present);
+ * organizations / applications / policies come from whole-corpus, page-seeded facet buckets.
  */
 export type WaiversFilterFacetCounts = {
   readonly totalWaivers: number;
   readonly threatLevels: ReadonlyArray<WaiversFilterFacetEntry>;
   readonly expiryStatuses: ReadonlyArray<WaiversFilterFacetEntry>;
   readonly autoStatuses: ReadonlyArray<WaiversFilterFacetEntry>;
+  readonly waiverStates: ReadonlyArray<WaiversFilterFacetEntry>;
+  readonly scopes: ReadonlyArray<WaiversFilterFacetEntry>;
+  readonly policyTypes: ReadonlyArray<WaiversFilterFacetEntry>;
   readonly organizations: ReadonlyArray<WaiversFilterFacetEntry>;
   readonly applications: ReadonlyArray<WaiversFilterFacetEntry>;
   readonly policies: ReadonlyArray<WaiversFilterFacetEntry>;

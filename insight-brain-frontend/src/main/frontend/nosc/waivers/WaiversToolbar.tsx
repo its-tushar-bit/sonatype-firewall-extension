@@ -29,6 +29,7 @@ const SORT_OPTIONS: ReadonlyArray<WaiversListOrderBy> = [
   'policyWaiverCreatedAt',
   '-policyWaiverThreatLevel',
   'policyWaiverThreatLevel',
+  'expiration',
 ];
 
 function formatTotalLabel(totalCount: number, exact: boolean): string {

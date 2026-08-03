@@ -135,6 +135,54 @@ describe('PreviewSystemPreferencesMenu', () => {
     expect(mockHref).not.toHaveBeenCalledWith('firewall.advancedSearchConfig');
   });
 
+  // Regression guard (CLM-42876): the Proxy item must use the plain 'proxyConfig'
+  // state name, never 'firewall.proxyConfig'. `prefix: firewallPrefix` was removed
+  // so the entry targets the NOUX embed at /proxyConfig regardless of license.
+  // Reintroducing `prefix: firewallPrefix` would flip href() to the firewall-
+  // prefixed name (which routes into Classic instead of the NOUX embed) and fail
+  // the `.not.toHaveBeenCalledWith` assertion.
+  it('calls href with plain "proxyConfig" state, never firewall-prefixed', async () => {
+    const user = userEvent.setup();
+
+    renderInTheme({
+      mainHeader: { permissions: { CONFIGURE_SYSTEM: true } },
+      productFeatures: { productFeatures: { 'proxy-configuration': true } },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    const menu = await screen.findByRole('menu');
+    const proxyItem = within(menu).getByTestId('nexus-one-top-nav-settings-item-proxy');
+    expect(proxyItem).toBeInTheDocument();
+
+    expect(mockHref).toHaveBeenCalledWith('proxyConfig');
+    expect(mockHref).not.toHaveBeenCalledWith('firewall.proxyConfig');
+    expect(mockHref).not.toHaveBeenCalledWith('.proxyConfig');
+  });
+
+  // Regression guard (CLM-42876): under a firewall-only license, the Proxy
+  // menu entry still targets the NOUX embed at /proxyConfig (not the Classic
+  // firewall.proxyConfig state). This is the license configuration anastasia
+  // flagged in review — the removal of `prefix: firewallPrefix` intentionally
+  // routes firewall-only users to the same NOUX embed as Lifecycle users.
+  it('routes firewall-only license users to the NOUX proxyConfig embed, not firewall.proxyConfig', async () => {
+    const user = userEvent.setup();
+
+    renderInTheme({
+      mainHeader: { permissions: { CONFIGURE_SYSTEM: true } },
+      productFeatures: { productFeatures: { 'proxy-configuration': true } },
+      productLicense: {
+        license: { products: ['Sonatype Repository Firewall'] },
+      },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    const menu = await screen.findByRole('menu');
+    expect(within(menu).getByTestId('nexus-one-top-nav-settings-item-proxy')).toBeInTheDocument();
+
+    expect(mockHref).toHaveBeenCalledWith('proxyConfig');
+    expect(mockHref).not.toHaveBeenCalledWith('firewall.proxyConfig');
+  });
+
   it('hides Advanced Search entry entirely under firewall-only license - CLM-42963', async () => {
     const user = userEvent.setup();
 

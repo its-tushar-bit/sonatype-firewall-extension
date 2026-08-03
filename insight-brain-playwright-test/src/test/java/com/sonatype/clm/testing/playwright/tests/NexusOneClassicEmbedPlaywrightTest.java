@@ -43,6 +43,8 @@ import com.sonatype.clm.testing.playwright.pages.OperationalReportingPageAsserti
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
+import com.sonatype.clm.testing.playwright.pages.ProxyConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.ProxyConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.RolesPage;
 import com.sonatype.clm.testing.playwright.pages.RolesPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPage;
@@ -1741,6 +1743,148 @@ public class NexusOneClassicEmbedPlaywrightTest
     }
   }
 
+  // ===================================================================================
+  // Proxy Configuration embed tests (CLM-42876)
+  // ===================================================================================
+
+  /**
+   * CLM-42876: Proxy Configuration mounts natively at {@code /proxyConfig}
+   * on the Nexus One bundle, rendering the Classic form as-is inside the
+   * Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedProxyConfiguration_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+    assertThat(proxyPage.hostName()).isVisible();
+    assertThat(proxyPage.port()).isVisible();
+    assertThat(proxyPage.saveButton()).isVisible();
+  }
+
+  /**
+   * CLM-42876 dirty-guard cancel path: editing the host name dirties the form;
+   * a hash navigation triggers the shell dirty-guard; Cancel keeps the user on
+   * the Proxy page with the dirty state intact.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedProxyConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
+
+    ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    proxyPage.hostName().waitFor();
+    // The dirty value is client-only — we never click save — so the next test's
+    // @Before re-login reloads a fresh page and no server-side cleanup is required.
+    proxyPage.hostName().fill("dirty-proxy-test.example.invalid");
+
+    // Navigate to dashboard, which has no dirty guard
+    playwrightRefreshOrOpen(NexusOnePage.url("/dashboard"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(proxyPage.hostName()).isVisible();
+    assertThat(proxyPage.hostName()).hasValue("dirty-proxy-test.example.invalid");
+  }
+
+  /**
+   * CLM-42876 dirty-guard continue path: Continue closes the modal and lets
+   * the transition proceed; the proxy page unmounts and the user lands on
+   * the destination page.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedProxyConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
+
+    ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    proxyPage.hostName().waitFor();
+    // Client-only dirty value — see cancel test above.
+    proxyPage.hostName().fill("dirty-proxy-test.example.invalid");
+
+    // Navigate to dashboard, which has no dirty guard
+    playwrightRefreshOrOpen(NexusOnePage.url("/dashboard"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(proxyPage.hostName()).isHidden();
+    // Verify we arrived at the dashboard, not just away from proxy
+    assertThat(page).hasURL(Pattern.compile(".*/dashboard.*"));
+  }
+
+  /**
+   * CLM-42876 save-through-shell path: the form's save action works when driven
+   * through the shell's redux/router bridge. Fill the form, save, reload, and
+   * assert the persisted value re-populates.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedProxyConfiguration_savePersistsThroughShellBridge() {
+    // Standalone Classic save round-trip is covered by ProxyConfigurationPlaywrightTest.
+    // This test exercises the shell-specific concern: that the Redux write path
+    // (proxyConfigActions save → PUT → serverData replace → new GET on refresh) flows
+    // through the NOUX shell's redux/router bridge and re-populates the form.
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
+
+    ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
+    ProxyConfigurationPageAssertions proxyAssertions = new ProxyConfigurationPageAssertions(proxyPage);
+
+    proxyPage.hostName().waitFor();
+    proxyPage.fillMinimal("proxy-embed-test.invalid", "8080");
+    proxyPage.save();
+    waitForSubmitMask();
+
+    try {
+      // Persistence assertions inside the try/finally so a mid-test failure still
+      // fires the cleanup delete — the applied config affects the server's live
+      // HTTP clients (proxy-embed-test.invalid:8080), so leaking it would poison
+      // every later test in this class.
+      playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
+      proxyAssertions.shouldShowHostname("proxy-embed-test.invalid");
+      proxyAssertions.shouldShowPort("8080");
+    }
+    finally {
+      // Clean up the persisted config so subsequent tests / test classes see a fresh state.
+      proxyPage.clickDelete();
+      proxyPage.confirmDelete();
+      waitForSubmitMask();
+      proxyAssertions.shouldBeEmpty();
+    }
+  }
+
+  /**
+   * CLM-42876 auth gate: a user without CONFIGURE_SYSTEM navigating to
+   * /proxyConfig is redirected to the Nexus One violations dashboard before
+   * the admin form ever mounts.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedProxyConfiguration_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/proxyConfig"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
+    assertThat(proxyPage.hostName()).isHidden();
+  }
   // ===================================================================================
   // Webhooks embed tests (CLM-42961)
   // ===================================================================================

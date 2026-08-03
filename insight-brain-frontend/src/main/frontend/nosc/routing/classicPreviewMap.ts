@@ -95,6 +95,17 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/saml', '/saml'],
   ['/userTokensConfiguration', '/userTokensConfiguration'],
   ['/advancedSearchConfig', '/advancedSearchConfig'],
+  ['/proxyConfig', '/proxyConfig'],
+  // Reverse-mapping only: Classic firewall serves Proxy at these paths under a
+  // firewall-only license (state `firewall.proxyConfig`, registered as a child
+  // of the abstract `firewall` state in `firewall/route.js:815-823`). Users
+  // toggling from Classic firewall must land on the NOUX `/proxyConfig` embed.
+  // Emission order does NOT matter for forward mapping — the identity entry
+  // above wins on the nexus-key first-match. For reverse mapping
+  // (`toNexusOneEquivalent`), first-match by classic-key routes each of these
+  // distinct Classic paths back to the same `/proxyConfig`. CLM-42876.
+  ['/proxyConfig', '/firewall/proxyConfig'],
+  ['/proxyConfig', '/malware-defense/proxyConfig'],
   ...COMING_SOON_ENTRIES,
 ];
 

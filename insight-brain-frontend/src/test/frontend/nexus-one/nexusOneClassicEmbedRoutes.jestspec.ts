@@ -1044,4 +1044,59 @@ describe('nexusOneClassicEmbedRoutes', () => {
       expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
     });
   });
+
+  describe('proxyConfig Classic-embed admin route (CLM-42876)', () => {
+    const state = () => router.stateRegistry.get('proxyConfig');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /proxyConfig', () => {
+      expect(state()?.url).toBe('/proxyConfig');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('is wrapped in mountClassicComponent (shell offsets applied)', () => {
+      // mountClassicComponent returns a named function `MountedClassicComponent`
+      // (see nexus-one/ClassicComponentMount.tsx). Asserting the wrapper is in
+      // place guards against a future refactor that drops it — the inline
+      // comment at routes.tsx explains that skipping the wrapper causes .nx-page
+      // content to underrun the LeftNav.
+      const component = state()?.component as { name?: string } | undefined;
+      expect(component).toBeDefined();
+      expect(component?.name).toBe('MountedClassicComponent');
+    });
+
+    it('carries the isDirty data path so the shell dirty guard fires on nav', () => {
+      expect(state()?.data?.isDirty).toEqual(['proxyConfig', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks CONFIGURE_SYSTEM', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      const isDirty = state()?.data?.isDirty as ReadonlyArray<string> | undefined;
+      // Fail early if the guard entry is missing — without this the destructure
+      // below silently produces two undefineds and typeof undefined !== 'boolean'
+      // would still fail, but with a confusing "expected boolean, got undefined"
+      // instead of "isDirty is missing".
+      expect(isDirty).toEqual(['proxyConfig', 'isDirty']);
+      const rootState = rootReducer(undefined, { type: '@@INIT' });
+      const [slice, field] = isDirty as ReadonlyArray<string>;
+      expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
+    });
+  });
 });

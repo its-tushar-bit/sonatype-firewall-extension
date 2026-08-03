@@ -177,6 +177,25 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/advancedSearchConfig')).toBe('/advancedSearchConfig');
     });
 
+    it('keeps the Proxy Configuration admin path identical on both bundles (CLM-42876)', () => {
+      expect(toNexusOneEquivalent('/proxyConfig')).toBe('/proxyConfig');
+    });
+
+    // CLM-42876: under a firewall-only license, Classic serves Proxy at
+    // /firewall/proxyConfig (canonical, via firewall.proxyConfig state) or
+    // /malware-defense/proxyConfig (legacy alias). Both must reverse-map to
+    // the NOUX embed at /proxyConfig so the Classic→Preview toggle lands on
+    // the embed instead of falling through to the default dashboard.
+    // Guards the "reverse-only" entries in classicPreviewMap.ts (three tuples
+    // sharing the nexus key `/proxyConfig`).
+    it('maps Classic firewall proxyConfig path to the NOUX /proxyConfig embed (CLM-42876)', () => {
+      expect(toNexusOneEquivalent('/firewall/proxyConfig')).toBe('/proxyConfig');
+    });
+
+    it('maps Classic malware-defense proxyConfig alias to the NOUX /proxyConfig embed (CLM-42876)', () => {
+      expect(toNexusOneEquivalent('/malware-defense/proxyConfig')).toBe('/proxyConfig');
+    });
+
     it('keeps the Webhooks list path identical on both bundles (CLM-42961)', () => {
       expect(toNexusOneEquivalent('/webhooks/list')).toBe('/webhooks/list');
     });
@@ -332,6 +351,10 @@ describe('classicPreviewMap', () => {
 
     it('maps Advanced Search admin back to the same Classic path (CLM-42963)', () => {
       expect(toClassicEquivalent('/advancedSearchConfig')).toBe('/advancedSearchConfig');
+    });
+
+    it('maps Proxy Configuration admin back to the same Classic path (CLM-42876)', () => {
+      expect(toClassicEquivalent('/proxyConfig')).toBe('/proxyConfig');
     });
 
     it('maps Webhooks list admin back to the same Classic path (CLM-42961)', () => {
@@ -521,6 +544,7 @@ describe('classicPreviewMap', () => {
       ['/saml'],
       ['/userTokensConfiguration'],
       ['/advancedSearchConfig'],
+      ['/proxyConfig'],
       ['/webhooks/list'],
       ['/webhooks/create'],
       ['/webhooks/some-webhook-id'],

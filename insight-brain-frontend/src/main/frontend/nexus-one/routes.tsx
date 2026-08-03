@@ -36,6 +36,7 @@ import UserTokensConfiguration from 'MainRoot/configuration/userTokensConfigurat
 import AuthorizedAdvancedSearchConfig from 'MainRoot/nexus-one/AuthorizedAdvancedSearchConfig';
 import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
+import ProxyConfigContainer from 'MainRoot/configuration/proxy/ProxyConfigContainer';
 import MailConfigContainer from 'MainRoot/configuration/mail/MailConfigContainer';
 import ListWebhooksContainer from 'MainRoot/configuration/webhook/listWebhooks/ListWebhooksContainer';
 import EditWebhookContainer from 'MainRoot/configuration/webhook/editWebhook/EditWebhookContainer';
@@ -1006,6 +1007,18 @@ router.stateRegistry.register({
   data: {
     title: 'Advanced Search Configuration',
     isDirty: ['advancedSearchConfig', 'viewState', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'proxyConfig',
+  url: '/proxyConfig',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(ProxyConfigContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Proxy',
+    isDirty: ['proxyConfig', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

@@ -75,6 +75,8 @@ export interface PolicyWaiverDetailDTO extends PolicyWaiverDTO {
   comment?: string | null;
   creatorName?: string | null;
   reasonText?: string | null;
+  /** Present on v2 detail (`ApiPolicyWaiverDTO.policyWaiverReasonId`); needed for update/extend. */
+  policyWaiverReasonId?: string | null;
   vulnerabilityId?: string | null;
   associatedPackageUrl?: string | null;
   scopeOwnerType?: string | null;

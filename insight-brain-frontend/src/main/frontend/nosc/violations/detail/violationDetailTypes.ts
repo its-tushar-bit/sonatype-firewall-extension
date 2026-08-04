@@ -50,6 +50,7 @@ export interface ViolationStageDataDTO {
 
 export interface ViolationDetailsDTO {
   readonly policyViolationId: string;
+  readonly policyId?: string;
   readonly policyName: string;
   readonly policyThreatCategory: string;
   readonly policyOwner: ViolationPolicyOwnerDTO;

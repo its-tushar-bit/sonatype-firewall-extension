@@ -66,6 +66,7 @@ export default function WaiversAnaTable({
       waiverId: row.id,
       from: linkFrom,
       type: waiverDetailTypeParam(row.isAuto),
+      requested: row.isRequested ? 'true' : undefined,
     });
   };
 

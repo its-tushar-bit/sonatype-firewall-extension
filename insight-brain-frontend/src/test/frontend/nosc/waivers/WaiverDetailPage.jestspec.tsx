@@ -7,7 +7,11 @@ import React from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import WaiverDetailPage from 'MainRoot/nosc/waivers/WaiverDetailPage';
-import { getWaiverDetailsUrl, getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
+import {
+  getWaiverDetailsUrl,
+  getAutoWaiversConfigurationURLWaiver,
+  getViewOrUpdatePolicyWaiverRequestUrl,
+} from 'MainRoot/util/CLMLocation';
 import { formatDateUtcYYYYMMDD } from 'MainRoot/util/dateUtils';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
@@ -457,5 +461,38 @@ describe('WaiverDetailPage', () => {
     await screen.findByTestId('preview-waiver-detail-body');
     expect(axiosMock.history.get).toHaveLength(1);
     expect(axiosMock.history.post).toHaveLength(0);
+  });
+
+  it('loads a pending request via ?requested=true and shows review actions', async () => {
+    axiosMock
+      .onGet(
+        getViewOrUpdatePolicyWaiverRequestUrl(
+          ROUTE.ownerType,
+          ROUTE.ownerId,
+          ROUTE.waiverId,
+        ),
+      )
+      .reply(200, {
+        policyWaiverRequestId: ROUTE.waiverId,
+        status: 'REQUESTED',
+        threatLevel: 7,
+        policyName: 'Security-High',
+        comment: 'please waive',
+        matcherStrategy: 'EXACT_COMPONENT',
+        expiryTime: null,
+        expireWhenRemediationAvailable: false,
+        canReview: true,
+      });
+
+    renderDetail({ ...ROUTE, requested: 'true' });
+
+    await screen.findByTestId('preview-waiver-detail-header');
+    expect(screen.getByText('Security-High')).toBeInTheDocument();
+    expect(screen.getByText('REQUESTED')).toBeInTheDocument();
+    expect(screen.getByTestId('waiver-detail-approve')).toBeInTheDocument();
+    expect(screen.getByTestId('waiver-detail-reject')).toBeInTheDocument();
+    expect(screen.getByTestId('waiver-detail-withdraw')).toBeInTheDocument();
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).toContain('/api/v2/policyWaiverRequests/');
   });
 });

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useCallback, type ReactElement } from 'react';
+import React, { useCallback, useState, type ReactElement } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { Badge, Box, Button, Card, Flex, Grid, Heading, Link as RadixLink, Text, Tooltip } from '@radix-ui/themes';
@@ -20,7 +20,11 @@ import {
   selectHasWaiverRequestWorkflow,
   selectIsWaiverRequestWorkflowEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { fetchViolationWaiverPermission } from 'MainRoot/nosc/violations/detail/violationDetailSlice';
+import {
+  fetchViolationIdentity,
+  fetchViolationWaiverPermission,
+  fetchViolationWaivers,
+} from 'MainRoot/nosc/violations/detail/violationDetailSlice';
 import {
   componentDisplayNameLabel,
   getMostRecentScanId,
@@ -28,6 +32,8 @@ import {
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { ConstraintsSection } from 'MainRoot/nosc/violations/detail/ConstraintsSection';
 import type { ViolationDetailsDTO } from 'MainRoot/nosc/violations/detail/violationDetailTypes';
+import CreateWaiverModal from 'MainRoot/nosc/waivers/CreateWaiverModal';
+import RequestWaiverModal from 'MainRoot/nosc/waivers/RequestWaiverModal';
 
 function componentHref(details: ViolationDetailsDTO): string | undefined {
   if (!details.hash) {
@@ -51,6 +57,8 @@ export function OverviewTab(): ReactElement {
 
   const details = identityState.data;
   const violationId = typeof params.id === 'string' ? params.id : details?.policyViolationId;
+  const [createOpen, setCreateOpen] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
 
   const retryWaiverPermission = useCallback(() => {
     if (!violationId || !details?.applicationPublicId) return;
@@ -61,6 +69,34 @@ export function OverviewTab(): ReactElement {
       }),
     );
   }, [details?.applicationPublicId, dispatch, violationId]);
+
+  const handleWaiverCreated = useCallback(() => {
+    // Diff against prior IDs — create returns 204 with no waiver id, and
+    // activeWaivers has no createTime / sort guarantee. Prefer staying on the
+    // violation when the created row cannot be identified uniquely.
+    if (!violationId) return;
+    const priorIds = new Set(
+      waiversState.active.map((waiver) => waiver.policyWaiverId),
+    );
+    void dispatch(fetchViolationIdentity({ violationId }));
+    void dispatch(fetchViolationWaivers({ violationId }))
+      .unwrap()
+      .then((waivers) => {
+        const created = waivers.activeWaivers.find(
+          (waiver) => !priorIds.has(waiver.policyWaiverId),
+        );
+        if (!created?.scopeOwnerType || !created.scopeOwnerId || !created.policyWaiverId) {
+          return;
+        }
+        stateService.go('nexusOneWaiverDetail', {
+          ownerType: String(created.scopeOwnerType).toLowerCase(),
+          ownerId: created.scopeOwnerId,
+          waiverId: created.policyWaiverId,
+          from: 'waivers-list',
+        });
+      })
+      .catch(() => undefined);
+  }, [dispatch, stateService, violationId, waiversState.active]);
 
   if (identityState.status === 'loading' || identityState.status === 'idle') {
     return <LoadingSkeleton height={240} data-testid="nosc-violation-detail-overview-loading" />;
@@ -85,19 +121,27 @@ export function OverviewTab(): ReactElement {
   const showRequestWaiver = Boolean(isWaiverRequestWorkflowEnabled);
   const isRequestWaiverGated = !hasWaiverRequestWorkflow;
   const canRequestWaiver = showRequestWaiver && !isRequestWaiverGated;
+  const canUseNativeWaiverModals = Boolean(details.policyId);
   const resolvedComponentHref = componentHref(details);
   const componentLabel = componentDisplayNameLabel(details.displayName, details.hash || 'Component');
 
   const goToAddWaiver = (): void => {
-    if (canAddWaiver) {
-      stateService.go('addWaiver', { violationId });
+    if (!canAddWaiver) return;
+    if (canUseNativeWaiverModals) {
+      setCreateOpen(true);
+      return;
     }
+    // Fallback when policyId is absent from the detail payload (should be rare).
+    stateService.go('addWaiver', { violationId });
   };
 
   const goToRequestWaiver = (): void => {
-    if (canRequestWaiver) {
-      stateService.go('requestWaiver', { violationId });
+    if (!canRequestWaiver) return;
+    if (canUseNativeWaiverModals) {
+      setRequestOpen(true);
+      return;
     }
+    stateService.go('requestWaiver', { violationId });
   };
 
   return (
@@ -123,7 +167,7 @@ export function OverviewTab(): ReactElement {
             <Flex gap="2" wrap="wrap">
               {canAddWaiver && (
                 <Button size="2" onClick={goToAddWaiver} data-testid="nosc-violation-detail-add-waiver">
-                  Add Waiver
+                  Create Waiver
                 </Button>
               )}
               {hasPermissionForAppWaivers === null && waiverPermissionError && (
@@ -200,6 +244,38 @@ export function OverviewTab(): ReactElement {
       </Card>
 
       <ConstraintsSection constraintViolations={details.constraintViolations} />
+
+      {details.policyId && (
+        <>
+          <CreateWaiverModal
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            policyViolationId={violationId}
+            applicationPublicId={details.applicationPublicId}
+            policyId={details.policyId}
+            onCreated={handleWaiverCreated}
+          />
+          <RequestWaiverModal
+            open={requestOpen}
+            onOpenChange={setRequestOpen}
+            policyViolationId={violationId}
+            applicationPublicId={details.applicationPublicId}
+            policyId={details.policyId}
+            onRequested={(result) => {
+              void dispatch(fetchViolationIdentity({ violationId }));
+              void dispatch(fetchViolationWaivers({ violationId }));
+              if (!result) return;
+              stateService.go('nexusOneWaiverDetail', {
+                ownerType: result.ownerType,
+                ownerId: result.ownerId,
+                waiverId: result.requestId,
+                from: 'waivers-list',
+                requested: 'true',
+              });
+            }}
+          />
+        </>
+      )}
     </Flex>
   );
 }

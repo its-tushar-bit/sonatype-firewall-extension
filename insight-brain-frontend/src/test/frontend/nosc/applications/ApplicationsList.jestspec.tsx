@@ -363,17 +363,23 @@ describe('ApplicationsList (CLM-42224)', () => {
     expect(nameLink).toHaveAttribute('href', expect.stringContaining('/applications/apple-java'));
   });
 
-  it('stage tiles with evaluations link to application detail (avoids purged-report 404s)', async () => {
+  it('stage tiles open that stage\u2019s own Classic report, not the latest', async () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
     await waitFor(() => {
       expect(screen.getAllByTestId('evaluation-card')).toHaveLength(3);
     });
     const appleCard = screen.getAllByTestId('evaluation-card')[0];
-    const stageLink = within(appleCard).getByRole('link', {
-      name: /open build for application/i,
-    });
-    expect(stageLink).toHaveAttribute('href', '#/applications/apple-java');
+    expect(
+      within(appleCard).getByRole('link', {
+        name: /open the build report for this application/i,
+      }),
+    ).toHaveAttribute('href', '#/applications/apple-java/report/scan-apple-build');
+    expect(
+      within(appleCard).getByRole('link', {
+        name: /open the develop report for this application/i,
+      }),
+    ).toHaveAttribute('href', '#/applications/apple-java/report/scan-apple-develop');
   });
 
   it('page wrapper offsets reflow when LeftNav collapses', async () => {

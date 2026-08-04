@@ -6,7 +6,7 @@
 import React from 'react';
 import { Badge, Box, Card, Flex, Grid, Text } from '@radix-ui/themes';
 import PreviewDashboardApplicationsAppNameLink from 'MainRoot/nosc/dashboard/tabs/PreviewDashboardApplicationsAppNameLink';
-import { applicationDetailHref } from 'MainRoot/nosc/applications/applicationDetailUtils';
+import { nouxApplicationReportHref } from 'MainRoot/nosc/routing/nouxNavigation';
 import {
   ApplicationRiskScore,
   ApplicationStageRisk,
@@ -106,7 +106,6 @@ function StageColumn({
   readonly columnLabel: string;
   readonly stage: ApplicationStageRisk;
 }): JSX.Element {
-  const detailHref = applicationDetailHref(publicId);
   const risk = stage.risk;
 
   const body = (
@@ -135,8 +134,11 @@ function StageColumn({
     </Flex>
   );
 
-  // Purged/missing reports on large estates make direct report deep-links fail; route to
-  // application detail (recommended safe click-through) when a stage evaluation exists.
+  // The app name opens native application detail; a stage tile is a specific
+  // evaluation, so it opens that stage's Classic report in Nexus One chrome.
+  // resolveStageColumns only emits stages that carry a scanId.
+  const reportHref = nouxApplicationReportHref({ publicId, scanId: stage.scanId });
+
   return (
     <Box
       asChild
@@ -145,7 +147,7 @@ function StageColumn({
       data-stage-id={columnId}
       className="nosc-evaluation-stage-column nosc-evaluation-stage-column--link"
     >
-      <a href={detailHref} aria-label={`Open ${columnLabel} for application`}>
+      <a href={reportHref} aria-label={`Open the ${columnLabel} report for this application`}>
         {body}
       </a>
     </Box>

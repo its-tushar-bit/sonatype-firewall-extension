@@ -12,17 +12,11 @@ import {
   ApplicationStageRisk,
 } from 'MainRoot/nosc/applications/applicationListTypes';
 import { ApplicationSeverityBadge } from 'MainRoot/nosc/dashboard/tabs/ApplicationSeverityBadge';
+import {
+  IQ_LIFECYCLE_STAGE_ORDER,
+  iqLifecycleStageLabel,
+} from 'MainRoot/nosc/applications/iqLifecycleStages';
 import './EvaluationCardGrid.scss';
-
-/** Display order for known IQ stages; unknown stage ids are appended alphabetically. */
-const STAGE_COLUMN_ORDER: ReadonlyArray<{ readonly id: string; readonly label: string }> = [
-  { id: 'develop', label: 'Develop' },
-  { id: 'source', label: 'Source' },
-  { id: 'build', label: 'Build' },
-  { id: 'stage-release', label: 'Stage Release' },
-  { id: 'release', label: 'Release' },
-  { id: 'operate', label: 'Operate' },
-];
 
 const ABSOLUTE_DATE = new Intl.DateTimeFormat(undefined, {
   month: 'short',
@@ -70,15 +64,15 @@ export function resolveStageColumns(
   }> = [];
   const remaining = new Set(byId.keys());
 
-  STAGE_COLUMN_ORDER.forEach((column) => {
-    const stage = byId.get(column.id);
+  IQ_LIFECYCLE_STAGE_ORDER.forEach((id) => {
+    const stage = byId.get(id);
     if (!stage) return;
     ordered.push({
-      id: column.id,
-      label: stage.stageTypeName || column.label,
+      id,
+      label: stage.stageTypeName || iqLifecycleStageLabel(id),
       stage,
     });
-    remaining.delete(column.id);
+    remaining.delete(id);
   });
 
   Array.from(remaining)

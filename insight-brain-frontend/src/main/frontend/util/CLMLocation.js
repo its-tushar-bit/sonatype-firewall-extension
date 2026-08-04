@@ -1890,8 +1890,10 @@ export const getLicensedSolutionsUrl = () => uriTemplate`/api/v2/solutions/licen
 export const getOwnerDetailsByTypeAndInternalId = (ownerType, ownerId) =>
   uriTemplate`/rest/owner/${ownerType}/${ownerId}/details`;
 
-export const getApplicationReportHistoryUrl = (applicationId, stageId) =>
-  uriTemplate`/api/v2/reports/applications/${applicationId}/history?stage=${stageId}&limit=20`;
+// The endpoint reads two report files per returned row and does not cap `limit` server-side, so
+// callers state the page size they can afford rather than inheriting the server's default of 100.
+export const getApplicationReportHistoryUrl = (applicationId, stageId, limit = 20) =>
+  uriTemplate`/api/v2/reports/applications/${applicationId}/history?stage=${stageId}&limit=${limit}`;
 
 export const getRoiConfigurationUrl = (currencyType) => {
   const currencyPath = currencyType ? `/currencyType/${currencyType}` : '';

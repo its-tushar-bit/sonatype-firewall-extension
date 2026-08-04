@@ -32,6 +32,17 @@ describe('nexusOneApplicationDetailStates', () => {
     ).toBe('#/applications/webgoat-app/components');
   });
 
+  it('exposes the evaluations tab at its own bookmarkable url', async () => {
+    const router = createRouter();
+    await router.stateService.go('nexusOneApplicationsDetail.evaluations', {
+      publicId: 'webgoat-app',
+    });
+    expect(router.globals.$current.name).toBe('nexusOneApplicationsDetail.evaluations');
+    expect(
+      router.stateService.href('nexusOneApplicationsDetail.evaluations', { publicId: 'webgoat-app' }),
+    ).toBe('#/applications/webgoat-app/evaluations');
+  });
+
   it('routes a known tab slug through the legacy wildcard to the static child state', async () => {
     const router = createRouter();
     await router.stateService.go('nexusOneApplicationsDetailTab', {

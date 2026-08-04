@@ -1874,6 +1874,14 @@ describe('clmLocation.js', function () {
 
       expect(clmLocation.getApplicationReportHistoryUrl(applicationId, stageId)).toEqual(expectedUrl);
     });
+
+    it('sends the page size the caller asks for', () => {
+      const applicationId = 'someApplicationId';
+      const stageId = 'someStageId';
+      const expectedUrl = `http://localhost/api/v2/reports/applications/${applicationId}/history?stage=${stageId}&limit=5`;
+
+      expect(clmLocation.getApplicationReportHistoryUrl(applicationId, stageId, 5)).toEqual(expectedUrl);
+    });
   });
 
   describe('getRoiConfigurationUrl', () => {

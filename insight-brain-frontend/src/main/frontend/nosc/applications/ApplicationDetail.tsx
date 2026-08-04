@@ -137,6 +137,11 @@ export default function ApplicationDetail(): ReactElement {
         testId: 'nosc-app-detail-tab-components',
       },
       {
+        value: 'evaluations',
+        label: 'Evaluations',
+        testId: 'nosc-app-detail-tab-evaluations',
+      },
+      {
         value: 'waivers',
         label: 'Waivers',
         testId: 'nosc-app-detail-tab-waivers',

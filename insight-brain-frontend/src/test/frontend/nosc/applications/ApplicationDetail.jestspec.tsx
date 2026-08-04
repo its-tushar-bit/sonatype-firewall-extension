@@ -228,7 +228,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     expect(screen.getAllByText('Tribbles').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders all 4 V1 tabs in the correct order', async () => {
+  it('renders all 5 V1 tabs in the correct order', async () => {
     mockHappyPath(axiosMock);
     renderAppDetail();
 
@@ -238,6 +238,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       'nosc-app-detail-tab-overview',
       'nosc-app-detail-tab-policy-failures',
       'nosc-app-detail-tab-components',
+      'nosc-app-detail-tab-evaluations',
       'nosc-app-detail-tab-waivers',
     ];
     const tabList = screen.getByTestId('nosc-app-detail-tabs');

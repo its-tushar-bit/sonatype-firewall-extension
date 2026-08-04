@@ -7,6 +7,7 @@ import { ReactStateDeclaration } from '@uirouter/react';
 import ApplicationDetail from 'MainRoot/nosc/applications/ApplicationDetail';
 import {
   ApplicationDetailComponentsRoute,
+  ApplicationDetailEvaluationsRoute,
   ApplicationDetailOverviewRoute,
   ApplicationDetailViolationsRoute,
   ApplicationDetailWaiversRoute,
@@ -57,6 +58,12 @@ export function nexusOneApplicationDetailStates(): ReactStateDeclaration[] {
       name: childState('components'),
       url: '/components',
       component: ApplicationDetailComponentsRoute,
+      data: { title: APPLICATION_DETAIL_TITLE },
+    },
+    {
+      name: childState('evaluations'),
+      url: '/evaluations',
+      component: ApplicationDetailEvaluationsRoute,
       data: { title: APPLICATION_DETAIL_TITLE },
     },
     {

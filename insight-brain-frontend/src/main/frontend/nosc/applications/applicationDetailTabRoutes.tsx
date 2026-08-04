@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useApplicationDetailShellContext } from './applicationDetailContext';
 import {
@@ -22,7 +22,9 @@ import {
 import { OverviewTab } from './OverviewTab';
 import { PolicyFailuresTab } from './PolicyFailuresTab';
 import { ComponentsTab } from './ComponentsTab';
+import { EvaluationsTab } from './EvaluationsTab';
 import { AppWaiversTab } from './AppWaiversTab';
+import { useApplicationEvaluations } from './evaluationsApi';
 
 /** UI-Router child route: Overview tab (CLM-40901). */
 export function ApplicationDetailOverviewRoute(): JSX.Element {
@@ -112,6 +114,35 @@ export function ApplicationDetailComponentsRoute(): JSX.Element {
       scanId={scanId}
       violationCountByHash={violationCountByHash}
       onRetry={shell.retryRaw}
+    />
+  );
+}
+
+/** UI-Router child route: Evaluations tab (CLM-44033). */
+export function ApplicationDetailEvaluationsRoute(): JSX.Element {
+  const shell = useApplicationDetailShellContext();
+  const reportsState = useSelector(selectApplicationReportsState);
+
+  // The latest-per-stage reports are a database-only query the page has already run, so they name
+  // the stages worth asking history for without probing stages that were never evaluated.
+  const stageIds = useMemo(
+    () => Array.from(new Set((reportsState.data ?? []).map((report) => report.stage).filter(Boolean))),
+    [reportsState.data],
+  );
+
+  const evaluations = useApplicationEvaluations(shell.applicationInternalId, stageIds);
+
+  const reportsLoading = reportsState.status === 'loading' || reportsState.status === 'idle';
+  const noScanYet = reportsState.status === 'ready' && stageIds.length === 0;
+
+  return (
+    <EvaluationsTab
+      publicId={shell.publicId}
+      stages={evaluations.stages}
+      loading={reportsLoading || (!noScanYet && evaluations.status === 'loading')}
+      errored={reportsState.status === 'error' || evaluations.status === 'error'}
+      onRetry={reportsState.status === 'error' ? shell.retryReports : evaluations.retry}
+      showNoScanYet={noScanYet}
     />
   );
 }

@@ -122,6 +122,7 @@ const URL_TO_TAB: Readonly<Record<string, TabId>> = {
   violations: 'policy-failures',
   'policy-failures': 'policy-failures', // tolerate the internal name in URLs too
   components: 'components',
+  evaluations: 'evaluations',
   waivers: 'waivers',
   // V1 removed Coming Soon tabs — old bookmarks land on Overview
   sboms: 'overview',
@@ -132,6 +133,7 @@ export const TAB_TO_URL: Readonly<Record<TabId, string>> = {
   overview: 'overview',
   'policy-failures': 'violations',
   components: 'components',
+  evaluations: 'evaluations',
   waivers: 'waivers',
 };
 

@@ -63,6 +63,40 @@ describe('PreviewSystemPreferencesMenu', () => {
     expect(within(menu).queryByText('No preferences available')).not.toBeInTheDocument();
   });
 
+  // CLM-42957 regression guard: Atlassian Crowd must NOT use the firewall prefix.
+  // The entry intentionally omits `prefix` because the embedded NOUX state is
+  // `atlassianCrowdConfiguration`, not `firewall.atlassianCrowdConfiguration`.
+  // A firewall-only-license user clicking the gear-menu item must get a working href.
+  it('calls href with plain atlassianCrowdConfiguration (never firewall-prefixed) for Crowd item', async () => {
+    const user = userEvent.setup();
+    // selectIsCrowdIntegrationSupported reads state.productFeatures.productFeatures['crowd-integration']
+    // (double-nested — selectProductFeaturesSlice picks the slice, selectProductFeatures picks the
+    // inner map). The prior state shape `productFeatures: { isCrowdIntegrationSupported: true }`
+    // never activated the selector, so the Crowd item was hidden and getByTestId failed.
+    // selectIsFirewallOnlyLicense reads state.productLicense.license.products (array of product names).
+    // Seeding a firewall product makes firewallPrefix === 'firewall', so the assertions actually
+    // bite if the prefix ever comes back to this item.
+    renderInTheme({
+      mainHeader: { permissions: { CONFIGURE_SYSTEM: true } },
+      productFeatures: {
+        productFeatures: { 'crowd-integration': true },
+      },
+      productLicense: {
+        license: {
+          products: ['Sonatype Repository Firewall'],
+        },
+      },
+    });
+    await user.click(screen.getByRole('button', { name: 'System Preferences' }));
+    const menu = await screen.findByRole('menu');
+    const crowdItem = within(menu).getByTestId('nexus-one-top-nav-settings-item-crowd');
+    expect(crowdItem).toBeInTheDocument();
+    // The href spy should have been called with the plain state name.
+    expect(mockHref).toHaveBeenCalledWith('atlassianCrowdConfiguration');
+    // And NEVER with the firewall-prefixed variant.
+    expect(mockHref).not.toHaveBeenCalledWith('firewall.atlassianCrowdConfiguration');
+  });
+
   // CLM-42196: Regression guard — Roles must use the plain stateName 'rolesList'
   // (embedded in NOUX), NOT the firewall-prefixed 'firewall.rolesList' that Classic
   // uses. The `prefix: firewallPrefix` line was removed; this test ensures it

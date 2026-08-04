@@ -126,7 +126,7 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
   // mainHeader/MenuBar/SystemPreferencesMenu/SystemPreferencesMenu.jsx.
   // Keep these two lists in lock-step until the Classic menu is retired.
   // Exception: pages embedded in the NOUX shell (e.g. Administrators, Product
-  // License, Advanced Search, Proxy, Waived Components, LDAP, User Tokens, SAML, Webhooks, Roles, Email) intentionally omit `prefix` —
+  // License, Advanced Search, Atlassian Crowd, Proxy, Waived Components, LDAP, User Tokens, SAML, Webhooks, Roles, Email) intentionally omit `prefix` —
   // they target the in-shell NOUX state directly, which does not use the
   // firewall-prefix routing Classic requires.
   const items: ItemSpec[] = [
@@ -213,8 +213,8 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
     },
     {
       label: 'Atlassian Crowd',
+      // No prefix: atlassianCrowdConfiguration is embedded in NOUX, not a Classic firewall-prefixed state.
       stateName: 'atlassianCrowdConfiguration',
-      prefix: firewallPrefix,
       showIf: CONFIGURE_SYSTEM && isCrowdIntegrationEnabled && !isSbomManagerOnlyLicense,
       testId: 'nexus-one-top-nav-settings-item-crowd',
     },

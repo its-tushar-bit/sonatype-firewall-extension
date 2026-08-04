@@ -91,6 +91,18 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/baseUrl', '/baseUrl'],
   ['/systemNoticeConfiguration', '/systemNoticeConfiguration'],
   ['/administrators', '/administrators'],
+  // CLM-42957: Atlassian Crowd configuration page.
+  ['/crowd', '/crowd'],
+  // Reverse-mapping only: Classic firewall serves Atlassian Crowd at
+  // /firewall/crowd under a firewall-only license (state
+  // `firewall.atlassianCrowdConfiguration`, registered as a child of the
+  // abstract `firewall` state in `firewall/route.js:770-778`). Users
+  // toggling from Classic firewall must land on the NOUX `/crowd` embed.
+  // Emission order does NOT matter for forward mapping — the identity
+  // entry above wins on the nexus-key first-match. For reverse mapping
+  // (`toNexusOneEquivalent`), this routes the firewall Classic path back
+  // to the NOUX embed. CLM-42957.
+  ['/crowd', '/firewall/crowd'],
   ['/mailConfig', '/mailConfig'],
   ['/saml', '/saml'],
   ['/userTokensConfiguration', '/userTokensConfiguration'],

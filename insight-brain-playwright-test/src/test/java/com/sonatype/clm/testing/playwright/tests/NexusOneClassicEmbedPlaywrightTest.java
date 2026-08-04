@@ -26,6 +26,7 @@ import com.sonatype.clm.testing.playwright.pages.BasePage;
 import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.CopyrightOverrideFormPage;
+import com.sonatype.clm.testing.playwright.pages.CrowdConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPage;
 import com.sonatype.clm.testing.playwright.pages.EnterpriseReportingPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.InnerSourceRepositoryEditorPage;
@@ -1884,6 +1885,173 @@ public class NexusOneClassicEmbedPlaywrightTest
     page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
     ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
     assertThat(proxyPage.hostName()).isHidden();
+  }
+  // ===================================================================================
+  // Atlassian Crowd Configuration embed tests (CLM-42957)
+  // ===================================================================================
+
+  /**
+   * CLM-42957: Atlassian Crowd Configuration mounts natively at
+   * {@code /crowd} on the Nexus One bundle, rendering the Classic form
+   * as-is inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedCrowdConfiguration_rendersClassicFormInsideNexusOneShell() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    CrowdConfigurationPage crowdPage = new CrowdConfigurationPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(crowdPage.container()).isVisible();
+    assertThat(crowdPage.serverUrl()).isVisible();
+    assertThat(crowdPage.applicationName()).isVisible();
+    assertThat(crowdPage.applicationPassword()).isVisible();
+    assertThat(crowdPage.saveButton()).isVisible();
+  }
+
+  /**
+   * CLM-42957 dirty-guard cancel path: filling the Server url field dirties
+   * the form; a hash navigation triggers the shell dirty-guard; Cancel keeps
+   * the user on the config page with the dirty state intact.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedCrowdConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
+
+    CrowdConfigurationPage crowdPage = new CrowdConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    crowdPage.container().waitFor();
+    // Dirty value is client-only; no server-side cleanup needed.
+    crowdPage.serverUrl().fill("http://dirty-crowd.invalid");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/dashboard"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(crowdPage.container()).isVisible();
+    // The dirty value survives the cancel action.
+    assertThat(crowdPage.serverUrl()).hasValue("http://dirty-crowd.invalid");
+  }
+
+  /**
+   * CLM-42957 dirty-guard continue path: Continue closes the modal and lets
+   * the transition proceed; the config page unmounts and the user lands on
+   * another Classic-embedded page ({@code /successMetricsConfiguration})
+   * whose classic-component mount asserts the transition actually completed.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedCrowdConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
+
+    CrowdConfigurationPage crowdPage = new CrowdConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    crowdPage.container().waitFor();
+    crowdPage.serverUrl().fill("http://dirty-crowd.invalid");
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/successMetricsConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(crowdPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42957 auth gate: a user without CONFIGURE_SYSTEM navigating to
+   * /crowd is redirected to the Nexus One violations dashboard before the
+   * admin form ever mounts. Covers the redirectTo function on the route.
+   *
+   * <p>
+   * Log in on Classic first so the shared session cookie is present when
+   * we navigate into Nexus One. Going straight to the Nexus One URL while
+   * logged out hits {@code ensureNexusOneShellAccess}, which bounces
+   * unauthenticated requests back to Classic before the router — so the
+   * route's own {@code redirectTo} would never fire.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedCrowdConfiguration_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    CrowdConfigurationPage crowdPage = new CrowdConfigurationPage();
+    assertThat(crowdPage.container()).isHidden();
+  }
+
+  /**
+   * CLM-42957 save-through-shell: fill the Crowd configuration form, save,
+   * reload the embed URL, and assert the persisted values re-populate.
+   * Then delete the configuration to leave a clean database for downstream
+   * tests. This closes the gap between "the render test proves the form
+   * mounts" and "the form's actions work when driven through the shell's
+   * redux/router bridge."
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedCrowdConfiguration_saveThroughShellPersists() {
+    setFeatures(LicensedFeature.values());
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
+
+    CrowdConfigurationPage crowdPage = new CrowdConfigurationPage();
+
+    crowdPage.container().waitFor();
+    String testServerUrl = "http://crowd-test.invalid:8095/crowd";
+    String testAppName = "test-app-" + TemporaryEntity.uuid().substring(0, 8);
+    String testAppPassword = "test-password-" + TemporaryEntity.uuid().substring(0, 8);
+
+    crowdPage.serverUrl().fill(testServerUrl);
+    crowdPage.applicationName().fill(testAppName);
+    crowdPage.applicationPassword().fill(testAppPassword);
+
+    crowdPage.saveButton().click();
+    waitForSubmitMask();
+
+    // Reload the embed URL and verify the values persisted.
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
+    crowdPage.container().waitFor();
+
+    try {
+      assertThat(crowdPage.serverUrl()).hasValue(testServerUrl);
+      assertThat(crowdPage.applicationName()).hasValue(testAppName);
+    }
+    finally {
+      // Clean up: delete the configuration.
+      crowdPage.deleteButton().click();
+      assertThat(crowdPage.deleteModal()).isVisible();
+      crowdPage.deleteModalSubmitButton().click();
+      waitForSubmitMask();
+    }
+
+    // Verify empty state after delete.
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/crowd"));
+    crowdPage.container().waitFor();
+    assertThat(crowdPage.serverUrl()).hasValue("");
+    assertThat(crowdPage.applicationName()).hasValue("");
   }
   // ===================================================================================
   // Webhooks embed tests (CLM-42961)

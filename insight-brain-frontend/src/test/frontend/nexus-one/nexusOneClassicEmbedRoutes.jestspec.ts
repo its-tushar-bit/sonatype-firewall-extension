@@ -385,6 +385,8 @@ describe('nexusOneClassicEmbedRoutes', () => {
       '/systemNoticeConfiguration',
       ['systemNoticeConfiguration', 'viewState', 'isDirty'],
     ],
+    // CLM-42957: Atlassian Crowd configuration page.
+    ['atlassianCrowdConfiguration', '/crowd', ['atlassianCrowdConfiguration', 'isDirty']],
     ['saml', '/saml', ['samlConfiguration', 'isDirty']],
     ['userTokensConfiguration', '/userTokensConfiguration', ['userTokensConfiguration', 'isDirty']],
     [

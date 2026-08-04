@@ -36,6 +36,7 @@ import UserTokensConfiguration from 'MainRoot/configuration/userTokensConfigurat
 import AuthorizedAdvancedSearchConfig from 'MainRoot/nexus-one/AuthorizedAdvancedSearchConfig';
 import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
+import AtlassianCrowdConfiguration from 'MainRoot/configuration/crowd/AtlassianCrowdConfiguration';
 import ProxyConfigContainer from 'MainRoot/configuration/proxy/ProxyConfigContainer';
 import MailConfigContainer from 'MainRoot/configuration/mail/MailConfigContainer';
 import ListWebhooksContainer from 'MainRoot/configuration/webhook/listWebhooks/ListWebhooksContainer';
@@ -938,6 +939,19 @@ router.stateRegistry.register({
   data: {
     title: 'Administrator Edit',
     isDirty: ['administratorsConfig', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+// CLM-42957: Atlassian Crowd configuration page.
+router.stateRegistry.register({
+  name: 'atlassianCrowdConfiguration',
+  url: '/crowd',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(AtlassianCrowdConfiguration),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Atlassian Crowd Configuration',
+    isDirty: ['atlassianCrowdConfiguration', 'isDirty'],
   },
 } as ReactStateDeclaration);
 

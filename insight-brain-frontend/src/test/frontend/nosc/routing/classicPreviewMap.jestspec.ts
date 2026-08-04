@@ -152,6 +152,19 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/administrators')).toBe('/administrators');
     });
 
+    it('keeps the Atlassian Crowd admin path identical on both bundles (CLM-42957)', () => {
+      expect(toNexusOneEquivalent('/crowd')).toBe('/crowd');
+    });
+
+    // CLM-42957: under a firewall-only license, Classic serves Atlassian Crowd
+    // at /firewall/crowd (via the firewall.atlassianCrowdConfiguration state).
+    // This must reverse-map to the NOUX /crowd embed so the Classic→Preview
+    // toggle lands on the embed instead of falling through to the default
+    // dashboard.
+    it('maps Classic firewall crowd path to the NOUX /crowd embed (CLM-42957)', () => {
+      expect(toNexusOneEquivalent('/firewall/crowd')).toBe('/crowd');
+    });
+
     it('keeps the Email Configuration admin path identical on both bundles (CLM-42875)', () => {
       expect(toNexusOneEquivalent('/mailConfig')).toBe('/mailConfig');
     });
@@ -326,6 +339,10 @@ describe('classicPreviewMap', () => {
 
     it('maps Administrators admin back to the same Classic path (CLM-42464)', () => {
       expect(toClassicEquivalent('/administrators')).toBe('/administrators');
+    });
+
+    it('maps Atlassian Crowd admin back to the same Classic path (CLM-42957)', () => {
+      expect(toClassicEquivalent('/crowd')).toBe('/crowd');
     });
 
     it('maps Email Configuration admin back to the same Classic path (CLM-42875)', () => {
@@ -537,6 +554,8 @@ describe('classicPreviewMap', () => {
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
       ['/administrators'],
+      // CLM-42957: Atlassian Crowd configuration page.
+      ['/crowd'],
       ['/mailConfig'],
       ['/roles'],
       ['/roles/_new_'],

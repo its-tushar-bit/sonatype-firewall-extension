@@ -90,15 +90,25 @@ import SAMLConfigurationPage from 'MainRoot/configuration/saml/SAMLConfiguration
 // in-report links from the embedded ReportPage resolve inside the Nexus One bundle.
 import 'MainRoot/applicationReport/route';
 import { setApplicationReportRootWrapper } from 'MainRoot/applicationReport/applicationReportNexusOneShell';
+import { setClassicWaiverPageWrapper } from 'MainRoot/waivers/waiversNexusOneShell';
 // Classic Component Details / Application Report styles (License Detections hanging
 // indent, etc.) — N1 does not load scss/scss.scss. Same pattern as orgsAndPoliciesEmbed.
 import 'MainRoot/scss/applicationReportEmbed.scss';
 // Roles permission group 2-column layout (roleEditor.scss) — N1 does not load
 // scss/scss.scss. Same pattern as orgsAndPoliciesEmbed and applicationReportEmbed.
 import 'MainRoot/scss/rolesEmbed.scss';
+// The standalone Classic waiver pages reached from the embedded ViolationPage get a
+// ClassicComponentMount wrapper below, but that only positions them — their own styles also
+// come from scss.scss, so without this the waiver form renders in place but unstyled.
+import 'MainRoot/scss/waiversEmbed.scss';
 // Offset applicationReport.* (Component Details Legal, etc.) inside NOUX chrome —
 // without this, `.nx-page-main` underruns LeftNav when deep-linking into the tree.
 setApplicationReportRootWrapper((node) => <ClassicComponentMount>{node}</ClassicComponentMount>);
+// Same treatment for the standalone Classic waiver pages reached from the embedded
+// ViolationPage — without it, #/addWaiver/... underruns LeftNav. The abstract `waiver`
+// SidebarLayout tree is left alone: Nexus One serves waiver detail natively at
+// nexusOneWaiverDetail, and wrapping a sidebar grid needs the `page` layout instead.
+setClassicWaiverPageWrapper((node) => <ClassicComponentMount>{node}</ClassicComponentMount>);
 // Classic violation child states (sidebarView.violation, transitive violations)
 // so in-detail links from the embedded ViolationPage resolve inside the Nexus One
 // bundle. Registered at the singular /violation/{id} path — distinct from the

@@ -10,12 +10,13 @@ import RequestWaiverReviewPage from './RequestWaiverReviewPage';
 import FirewallReviewWaiverRequestPage from 'MainRoot/firewall/waiverRequests/FirewallReviewWaiverRequestPage';
 import SidebarLayout from 'MainRoot/sidebarNav/SidebarLayout';
 import WaiverDetailsContainer from './waiverDetails/WaiverDetailsContainer';
+import { shellWrappedWaiverPage } from './waiversNexusOneShell';
 
 // Add waiver
 router.stateRegistry.register({
   name: 'addWaiver',
   url: '/addWaiver/{violationId}?comments&reasonId',
-  component: AddWaiverPageContainer,
+  component: shellWrappedWaiverPage(AddWaiverPageContainer),
   data: {
     title: 'Add Waiver',
     isDirty: ['addWaiver', 'isDirty'],
@@ -26,7 +27,7 @@ router.stateRegistry.register({
 router.stateRegistry.register({
   name: 'requestWaiver',
   url: '/requestWaiver/{violationId}',
-  component: RequestWaiverPage,
+  component: shellWrappedWaiverPage(RequestWaiverPage),
   data: {
     title: 'Request Waiver',
     isDirty: ['requestWaiver', 'isDirty'],
@@ -37,7 +38,7 @@ router.stateRegistry.register({
 router.stateRegistry.register({
   name: 'requestWaiverReview',
   url: '/requestWaiverReview/{ownerType}/{ownerId}/{policyWaiverRequestId}',
-  component: RequestWaiverReviewPage,
+  component: shellWrappedWaiverPage(RequestWaiverReviewPage),
   data: {
     title: 'Review Requested Waiver',
     isDirty: ['requestWaiver', 'isDirty'],
@@ -68,7 +69,7 @@ router.stateRegistry.register({
 router.stateRegistry.register({
   name: 'dashboardFirewallWaiverRequestReview',
   url: '/dashboardFirewallWaiverRequestReview/{ownerType}/{ownerId}/{waiverRequestId}?origin',
-  component: FirewallReviewWaiverRequestPage,
+  component: shellWrappedWaiverPage(FirewallReviewWaiverRequestPage),
   data: {
     title: 'Review Requested Waiver',
   },
@@ -78,7 +79,7 @@ router.stateRegistry.register({
 router.stateRegistry.register({
   name: 'requestWaiverUpdate',
   url: '/requestWaiverUpdate/{ownerType}/{ownerId}/{policyWaiverRequestId}',
-  component: RequestWaiverPage,
+  component: shellWrappedWaiverPage(RequestWaiverPage),
   data: {
     title: 'Request Waiver',
     isDirty: ['requestWaiverUpdate', 'isDirty'],

@@ -88,7 +88,7 @@ const DisplayAutoWaiver = ({ waiver }) => {
 DisplayAutoWaiver.propTypes = {
   waiver: PropTypes.shape({
     autoPolicyWaiverId: PropTypes.string,
-    createTime: PropTypes.oneOf(PropTypes.number, PropTypes.string),
+    createTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     creatorName: PropTypes.string,
     ownerName: PropTypes.string,
     ownerType: PropTypes.string,
@@ -263,7 +263,7 @@ DisplayWaiverInTableRow.propTypes = {
   violationDetails: PropTypes.object,
   waiver: PropTypes.shape({
     comment: PropTypes.string,
-    createTime: PropTypes.oneOf(PropTypes.number, PropTypes.string),
+    createTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     creatorName: PropTypes.string,
     expireWhenRemediationAvailable: PropTypes.bool,
     expiryTime: PropTypes.string,

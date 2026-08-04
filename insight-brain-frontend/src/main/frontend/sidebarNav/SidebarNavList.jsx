@@ -94,7 +94,7 @@ SidebarNavList.propTypes = {
   loading: PropTypes.bool.isRequired,
   error: LoadWrapper.propTypes.error,
   data: PropTypes.arrayOf(
-    PropTypes.oneOfType(SidebarViolationDataType, SidebarWaiverDetailsDataType, SidebarWaiverFilterDataType)
+    PropTypes.oneOfType([SidebarViolationDataType, SidebarWaiverDetailsDataType, SidebarWaiverFilterDataType])
   ),
   stateParams: PropTypes.shape({
     id: PropTypes.string,

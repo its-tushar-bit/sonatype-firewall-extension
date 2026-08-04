@@ -123,7 +123,7 @@ export const SidebarWaiverDetailsDataType = PropTypes.shape({
 
 SidebarNavWaiversList.propTypes = {
   currentWaiverId: PropTypes.string,
-  waivers: PropTypes.arrayOf(PropTypes.oneOfType(SidebarWaiverFilterDataType, SidebarWaiverDetailsDataType)),
+  waivers: PropTypes.arrayOf(PropTypes.oneOfType([SidebarWaiverFilterDataType, SidebarWaiverDetailsDataType])),
   onClick: PropTypes.func.isRequired,
   scrollToSelection: PropTypes.bool.isRequired,
 };

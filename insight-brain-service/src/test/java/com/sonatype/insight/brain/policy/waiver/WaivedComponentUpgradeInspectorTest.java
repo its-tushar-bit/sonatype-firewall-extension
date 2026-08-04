@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -70,9 +69,6 @@ public class WaivedComponentUpgradeInspectorTest
 
   @Mock
   HdsClient hdsClientMock;
-
-  @Mock
-  private ProductLicense productLicense;
 
   @Mock
   private ApiComponentRemediationService apiComponentRemediationService;

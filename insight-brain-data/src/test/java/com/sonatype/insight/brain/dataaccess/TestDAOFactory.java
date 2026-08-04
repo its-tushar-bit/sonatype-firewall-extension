@@ -43,8 +43,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2Configur
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
-import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionEventDAO;
-import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionLimitConfigDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingFilterDAO;
@@ -1358,16 +1356,6 @@ public class TestDAOFactory
   @Override
   public EvaluationQueueDAO createEvaluationQueueDAO() {
     return new EvaluationQueueDAO(dataStoreProvider.getOperationalDataStore());
-  }
-
-  @Override
-  public ConsumptionEventDAO createConsumptionEventDAO() {
-    return new ConsumptionEventDAO(dataStoreProvider.getOperationalDataStore());
-  }
-
-  @Override
-  public ConsumptionLimitConfigDAO createConsumptionLimitConfigDAO() {
-    return new ConsumptionLimitConfigDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   private TemporaryTableHelper createTemporaryTableHelper() {

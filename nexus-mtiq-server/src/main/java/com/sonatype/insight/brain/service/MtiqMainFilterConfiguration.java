@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.brain.service.consumption.ConsumptionContextFilter;
 import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.spring.config.FilterOrder;
@@ -24,13 +23,6 @@ public class MtiqMainFilterConfiguration
       @Qualifier("activeRequestCounterFilter") ActiveRequestCounterFilter activeRequestCounterFilter)
   {
     return registerFilter(activeRequestCounterFilter, FilterOrder.ACTIVE_REQUEST_COUNTER, "/*");
-  }
-
-  @Bean
-  public FilterRegistrationBean<ConsumptionContextFilter> mtiqMainConsumptionContextFilterRegistration(
-      ConsumptionContextFilter consumptionContextFilter)
-  {
-    return registerFilter(consumptionContextFilter, FilterOrder.CONSUMPTION_CONTEXT, "/*");
   }
 
   @Bean

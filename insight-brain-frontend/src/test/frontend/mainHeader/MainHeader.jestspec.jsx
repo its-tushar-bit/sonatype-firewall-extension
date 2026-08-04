@@ -181,7 +181,6 @@ describe('MainHeader', () => {
           'VIEW_ROLES',
           'MANAGE_AUTOMATIC_APPLICATION_CREATION',
           'MANAGE_AUTOMATIC_SCM_CONFIGURATION',
-          'VIEW_USAGE',
         ]);
       });
     });

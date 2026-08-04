@@ -38,8 +38,6 @@ public final class FilterOrder
 
   public static final int TENANT_URL = 11;
 
-  public static final int CONSUMPTION_CONTEXT = 12;
-
   public static final int SERVER_HEADER = 20;
 
   public static final int PLATFORM_CONTEXT = 25;

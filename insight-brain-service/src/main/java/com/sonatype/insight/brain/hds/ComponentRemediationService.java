@@ -48,7 +48,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.CompositeComparableVersion;
-import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -725,19 +724,10 @@ public class ComponentRemediationService
     return versionChangeOption;
   }
 
-  /**
-   * Reached from three entry points: CD page-load ({@code ComponentInfoService.getComponentVersionInfo}),
-   * Priorities pre-compute ({@code DevelopmentPrioritizationRemediationService}), and PR Commenting
-   * ({@code PullRequestCommentingRemediationService}). All three are server-internal cascades with no
-   * explicit VR user interaction, so the wrap suppresses the cascade VR event for every caller
-   * (CLM-40771).
-   */
   private ComponentDependenciesDTO getComponentDependencies(
       final Collection<PackageUrlIdentifier> componentIdentifiers)
   {
-    try (var ignored = ConsumptionContext.suppressVrCascadeScope()) {
-      return hdsClient.post(ComponentDependenciesDTO.class, "rest/component/dependencies", componentIdentifiers);
-    }
+    return hdsClient.post(ComponentDependenciesDTO.class, "rest/component/dependencies", componentIdentifiers);
   }
 
   private int findCurrentIndex(List<ComponentDetailsDTO> allVersions, ComponentIdentifier componentIdentifier) {

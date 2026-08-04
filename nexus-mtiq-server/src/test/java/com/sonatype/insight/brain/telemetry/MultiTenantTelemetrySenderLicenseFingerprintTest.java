@@ -100,7 +100,7 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
 
     testProductLicenseManager = new TestProductLicenseManager();
     productLicense = new MultiTenantProductLicense(mock(DeveloperEnablementService.class));
-    HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId, null, null);
+    HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId, null);
     telemetrySender =
         new TelemetrySender(hdsClient, versionService, telemetryId, tenantUtil, mockTelemetryReceiptService,
             TelemetrySender.DEFAULT_MAX_QUEUE_SIZE, TelemetrySender.DEFAULT_DRAIN_TIMEOUT_MS);

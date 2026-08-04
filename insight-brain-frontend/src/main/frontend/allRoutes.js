@@ -73,9 +73,6 @@ import './violation/route';
 import './vulnerabilityCustomize/route';
 import './vulnerabilitySearch/route';
 
-// Usage dashboard route
-import './usage/route';
-
 // Waiver routes
 import './waivers/route';
 

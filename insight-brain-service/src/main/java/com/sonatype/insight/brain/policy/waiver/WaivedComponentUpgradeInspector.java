@@ -35,8 +35,6 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.Configuration;
@@ -66,8 +64,6 @@ public class WaivedComponentUpgradeInspector
 
   private final ApiComponentRemediationService apiComponentRemediationService;
 
-  private final ProductLicense productLicense;
-
   private Map<String, Owner> ownersById;
 
   @Inject
@@ -78,8 +74,7 @@ public class WaivedComponentUpgradeInspector
       RepositoryDAO repositoryDAO,
       PolicyDAO policyDAO,
       PolicyWaiverDAO policyWaiverDAO,
-      ApiComponentRemediationService apiComponentRemediationService,
-      ProductLicense productLicense)
+      ApiComponentRemediationService apiComponentRemediationService)
   {
     this.configuration = configuration;
     this.organizationDAO = organizationDAO;
@@ -88,7 +83,6 @@ public class WaivedComponentUpgradeInspector
     this.policyDAO = policyDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.apiComponentRemediationService = apiComponentRemediationService;
-    this.productLicense = productLicense;
   }
 
   @Override
@@ -100,17 +94,15 @@ public class WaivedComponentUpgradeInspector
       return;
     }
 
-    try (ConsumptionContext.Scope consumptionCtx = ConsumptionContext.scopeBackgroundJob(productLicense)) {
-      long start = System.currentTimeMillis();
+    long start = System.currentTimeMillis();
 
-      ownersById = getAllOwnersById();
+    ownersById = getAllOwnersById();
 
-      // Query by policy to reduce memory load while doing less database hits than querying by owners
-      policyDAO.getAll().forEach(this::inspectWaiversForPolicy);
+    // Query by policy to reduce memory load while doing less database hits than querying by owners
+    policyDAO.getAll().forEach(this::inspectWaiversForPolicy);
 
-      log.info("Completed Waived Component Upgrade Inspector in {} ms for tenant {}",
-          System.currentTimeMillis() - start, TenantThreadLocal.getTenant());
-    }
+    log.info("Completed Waived Component Upgrade Inspector in {} ms for tenant {}",
+        System.currentTimeMillis() - start, TenantThreadLocal.getTenant());
   }
 
   private Map<String, Owner> getAllOwnersById() {

@@ -185,11 +185,6 @@
 @use '../manualPullRequest/createPRModal';
 @use '../modals/externalLinkModal/externalLinkModal';
 @use '../OrgsAndPolicies/publicDataSources/publicDataSourcesEditor';
-@use '../usage/consumptionWarningBanner';
-@use '../usage/consumptionBySourceChart';
-@use '../usage/consumptionByStageChart';
-@use '../usage/componentsConsumedSidebarTile';
-@use '../usage/usageDashboard';
 @use '../hostedRepos/hostedRepos';
 @use '../announcementBanner/announcementBanner';
 

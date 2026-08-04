@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.evaluation.EvaluationQueue;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -36,14 +35,12 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataSt
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -62,7 +59,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.exception.UncheckedInterruptedException;
 import org.junit.After;
@@ -107,9 +103,6 @@ public class EvaluationQueueConsumerTest
 
   @Mock
   private ShutdownHandler mockShutdownHandler;
-
-  @Mock
-  private ProductLicense mockProductLicense;
 
   @Mock
   private QuartzJobStoreTX mockQuartzJobStoreTX;
@@ -207,8 +200,7 @@ public class EvaluationQueueConsumerTest
         mockScanUploadService,
         mockScanPolicyEvaluator,
         mockPolicyAlertNotifier,
-        mockShutdownHandler,
-        mockProductLicense)
+        mockShutdownHandler)
     {
       @Override
       void evaluate(final EvaluationQueue item) throws IOException, InterruptedException {
@@ -670,32 +662,6 @@ public class EvaluationQueueConsumerTest
     spyEvaluationQueueConsumer.execute(null, new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(spyEvaluationQueueConsumer).run();
-  }
-
-  @Test
-  public void testEvaluate_scopesConsumptionContextToInternalApplicationId() throws Exception {
-    EvaluationQueueConsumer spyEvaluationQueueConsumer = spy(evaluationQueueConsumer);
-    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
-    try {
-      Application app = tempEntity.newApplicationWithParent();
-      EvaluationQueue item =
-          tempEntity.newEvaluationQueue(1, app.getId(), ComplianceStageType.ID, "1.0.0", new Date(0), new Date(0),
-              null);
-
-      AtomicReference<String> capturedAppId = new AtomicReference<>();
-      doAnswer(invocation -> {
-        ConsumptionContext ctx = ConsumptionContext.get();
-        capturedAppId.set(ctx == null ? null : ctx.getAppId());
-        return null;
-      }).when(spyEvaluationQueueConsumer).evaluateSbom(item);
-
-      spyEvaluationQueueConsumer.evaluate(item);
-
-      assertThat(capturedAppId.get()).isEqualTo(app.getId());
-    }
-    finally {
-      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
-    }
   }
 
   private void setEvaluationQueueConfig(final EvaluationQueueConfig evaluationQueueConfig) {

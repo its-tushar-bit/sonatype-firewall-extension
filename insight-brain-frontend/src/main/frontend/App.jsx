@@ -15,12 +15,10 @@ import router from 'MainRoot/router/routerInstance';
 import { selectRouterState, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectError } from 'MainRoot/session/appErrorSelectors';
 import { selectShowLoginModal } from 'MainRoot/user/LoginModal/userLoginSelectors';
-import { selectIsUsageDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 import ChangeDefaultAdminPasswordNotice from './changeDefaultAdminPasswordNotice/ChangeDefaultAdminPasswordNotice';
 import BaseUrlNotSetNotice from './configuration/baseUrl/baseUrlNotSetNotice/BaseUrlNotSetNotice';
 import AnnouncementBanner from './announcementBanner/AnnouncementBanner';
-import ConsumptionWarningBanner from './usage/ConsumptionWarningBanner';
 import ToastContainer from './toastContainer/ToastContainer';
 import NavigationContainer from './navigationContainer/NavigationContainer';
 import MainHeader from './mainHeader/MainHeader.jsx';
@@ -32,7 +30,6 @@ function PageLayout() {
   const currentParams = useSelector(selectRouterCurrentParams);
   const error = useSelector(selectError);
   const showLoginModal = useSelector(selectShowLoginModal);
-  const isConsumptionReportingEnabled = useSelector(selectIsUsageDashboardEnabled);
 
   const additionalPageClass = currentState?.data?.additionalPageClass;
   const viewportSized = currentState?.data?.viewportSized;
@@ -46,7 +43,6 @@ function PageLayout() {
         {!error && <ChangeDefaultAdminPasswordNotice />}
         {!error && <BaseUrlNotSetNotice />}
         {!error && <AnnouncementBanner />}
-        {!error && isConsumptionReportingEnabled && <ConsumptionWarningBanner />}
       </div>
       <ToastContainer />
       {!embeddable && <NavigationContainer clmServerVersion={CLM_SERVER_VERSION} />}

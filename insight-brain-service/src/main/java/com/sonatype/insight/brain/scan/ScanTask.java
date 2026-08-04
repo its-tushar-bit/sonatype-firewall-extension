@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -126,8 +125,6 @@ public class ScanTask
 
   private boolean isWebUIRequest;
 
-  private ConsumptionContext.Snapshot consumptionSnapshot;
-
   @Inject
   public ScanTask(
       Scanner scanner,
@@ -173,8 +170,6 @@ public class ScanTask
     this.userAgent = userAgent;
     this.scanType = scanType;
     this.isWebUIRequest = isWebUIRequest;
-
-    this.consumptionSnapshot = ConsumptionContext.snapshot();
   }
 
   public String getId() {
@@ -214,10 +209,7 @@ public class ScanTask
   @Override
   public void run() {
     String appPublicId = null;
-    String appId = app != null ? app.getId() : null;
-    try (ConsumptionContext.Scope consumptionCtx = ConsumptionContext.scopeRestored(
-        consumptionSnapshot, appId, scanId))
-    {
+    try {
       log.debug("Running scan task {}", id);
 
       if (app == null || stage == null || binFile == null) {

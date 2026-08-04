@@ -10,12 +10,9 @@ import {
   selectIsRepositoriesRelated,
   selectIsRepositoryContainer,
   selectIsSbomManager,
-  selectIsStandaloneDeveloper,
-  selectIsStandaloneFirewall,
-  selectIsStandaloneSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { PROVIDER_TYPES, SOURCE_CONTROL_OPTIONS } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
-import { selectHasLifecycleLicense, selectHasTierGatedLifecycleLicense } from './productLicenseSelectors';
+import { selectHasTierGatedLifecycleLicense } from './productLicenseSelectors';
 
 export const selectProductFeaturesSlice = prop('productFeatures');
 export const selectProductFeatures = createSelector(selectProductFeaturesSlice, prop('productFeatures'));
@@ -358,25 +355,10 @@ export const selectIsHostedRepositoryEvaluationEnabled = createSelector(
   propOr(false, 'hosted-repository-evaluation')
 );
 
-export const selectIsConsumptionReportingEnabled = createSelector(
-  selectProductFeatures,
-  propOr(false, 'consumption-reporting')
-);
-
 /** CLM-39548: master gate for the Nexus One UI bundle (default OFF). */
 export const selectIsPreviewNexusOneUiEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'preview-nexus-one-ui')
-);
-
-export const selectIsUsageDashboardEnabled = createSelector(
-  selectIsConsumptionReportingEnabled,
-  selectHasLifecycleLicense,
-  selectIsStandaloneSbomManager,
-  selectIsStandaloneFirewall,
-  selectIsStandaloneDeveloper,
-  (flagEnabled, hasLifecycle, isStandaloneSbom, isStandaloneFirewall, isStandaloneDeveloper) =>
-    flagEnabled && hasLifecycle && !isStandaloneSbom && !isStandaloneFirewall && !isStandaloneDeveloper
 );
 
 export const selectIsIqProxyEnabled = createSelector(selectProductFeatures, propOr(false, 'iq-proxy-enabled'));

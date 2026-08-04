@@ -39,7 +39,7 @@ public class PingHdsClient
       TelemetryId telemetryId,
       CurrentUser currentUser)
   {
-    super(proxy, productLicense, configuration, versionService, telemetryId, currentUser, null);
+    super(proxy, productLicense, configuration, versionService, telemetryId, currentUser);
   }
 
   @Override

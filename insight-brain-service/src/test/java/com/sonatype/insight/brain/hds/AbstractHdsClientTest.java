@@ -10,25 +10,17 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 import com.google.common.collect.ImmutableSet;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchIndexFixture;
 import com.sonatype.insight.brain.search.SearchIndexRule;
 import com.sonatype.insight.brain.search.SearchIndexType;
-import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.service.consumption.ConsumptionRecorder;
-import com.sonatype.insight.brain.utils.Retry;
-import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
@@ -182,28 +174,6 @@ public abstract class AbstractHdsClientTest
     protected SearchIndexType getType() {
       return SearchIndexType.LUCENE;
     }
-  }
-
-  /**
-   * Factory helper for subclasses that live outside this package. Provides access to the
-   * package-protected {@link HdsClient} constructor that accepts a {@link ConsumptionRecorder}.
-   * <p>
-   * Use this in {@link #initClient()} implementations when the test needs to inject a mock
-   * recorder without the test class having to be in the {@code hds} package.
-   */
-  protected static HdsClient newHdsClient(
-      InsightProxy proxy,
-      ProductLicense productLicense,
-      Configuration configuration,
-      VersionService versionService,
-      TelemetryId telemetryId,
-      CurrentUser currentUser,
-      int poolSize,
-      Function<String, Retry> retryCreator,
-      ConsumptionRecorder consumptionRecorder)
-  {
-    return new HdsClient(proxy, productLicense, configuration, versionService, telemetryId,
-        currentUser, poolSize, retryCreator, consumptionRecorder);
   }
 
   public void setBaseUrl(String baseUrl) {

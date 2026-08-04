@@ -43,8 +43,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2Configur
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
-import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionEventDAO;
-import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionLimitConfigDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingFilterDAO;
@@ -530,8 +528,4 @@ public interface DAOFactory
   KeyValueDAO createKeyValueDAO();
 
   EvaluationQueueDAO createEvaluationQueueDAO();
-
-  ConsumptionEventDAO createConsumptionEventDAO();
-
-  ConsumptionLimitConfigDAO createConsumptionLimitConfigDAO();
 }

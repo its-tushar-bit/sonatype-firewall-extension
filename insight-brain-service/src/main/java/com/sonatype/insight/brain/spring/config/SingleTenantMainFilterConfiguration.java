@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.spring.config;
 
 import com.sonatype.insight.brain.service.ServerHeaderFilter;
-import com.sonatype.insight.brain.service.consumption.ConsumptionContextFilter;
 import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
 import jakarta.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -22,13 +21,6 @@ public class SingleTenantMainFilterConfiguration
       ActiveRequestCounterFilter activeRequestCounterFilter)
   {
     return registerFilter(activeRequestCounterFilter, FilterOrder.ACTIVE_REQUEST_COUNTER, "/*");
-  }
-
-  @Bean
-  public FilterRegistrationBean<ConsumptionContextFilter> consumptionContextFilterRegistration(
-      ConsumptionContextFilter consumptionContextFilter)
-  {
-    return registerFilter(consumptionContextFilter, FilterOrder.CONSUMPTION_CONTEXT, "/*");
   }
 
   @Bean

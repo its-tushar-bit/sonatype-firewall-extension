@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -182,7 +181,7 @@ public class SourceControlScanServiceTest
 
     service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO, licenseChecker,
         proprietaryConfigService, policyEvaluateService, mockPolicyEvaluationPollingResultUtils,
-        scanner, mockAuditRecorder, sourceControlSshService, testProductLicense);
+        scanner, mockAuditRecorder, sourceControlSshService);
 
     proprietaryConfig = new ProprietaryConfig();
     when(proprietaryConfigService.getProprietaryConfig(eq(OwnerType.APPLICATION), eq("public-app-id")))
@@ -404,32 +403,6 @@ public class SourceControlScanServiceTest
     assertThat(scanConfigurationArgCaptor.getValue().getProperties().get("dirExcludes")).isEqualTo("**/src/test");
 
     verifySshServiceInvoked();
-  }
-
-  // BDD: event-recording.feature - Internal SCM-triggered PR evaluation opens consumption scope
-  @Test
-  public void testDoSynchronousSourceControlScan_opensConsumptionContextScope() throws Exception {
-    doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
-        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
-    when(mockGitApiFactory.createGitApi(mockGitRepositoryInfo)).thenReturn(mockGitApi);
-
-    scanResult = new ScanResult();
-    scanResult.setScanEntity(mock(ScanEntity.class));
-    when(scanner.scan(any(List.class), eq(APP_ID), eq(proprietaryConfig), any(ScanConfiguration.class),
-        any(ScanMetadata.class))).thenReturn(scanResult);
-
-    Stage stage = new Stage(Stage.ID_DEVELOP);
-    when(policyEvaluateService.evaluateSynchronousNoAuth(any(Application.class), any(ClientScanType.class),
-        any(ScanEntity.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
-            .thenReturn(new PolicyEvaluation());
-
-    try (org.mockito.MockedStatic<ConsumptionContext> ctxMock =
-        org.mockito.Mockito.mockStatic(ConsumptionContext.class, org.mockito.Mockito.CALLS_REAL_METHODS))
-    {
-      service.doSynchronousSourceControlScan(APP_ID, stage, "testBranchName");
-
-      ctxMock.verify(() -> ConsumptionContext.scopeBackgroundJob(any(), eq(APP_ID)), times(1));
-    }
   }
 
   @Test

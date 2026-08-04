@@ -9,7 +9,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.sonatype.insight.brain.api.admin.authorization.JwtHttpAuthorizationFilter;
-import com.sonatype.insight.brain.service.consumption.ConsumptionContextFilter;
 import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
 import com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter;
 import com.sonatype.insight.brain.tenancy.AdminTenantFilter;
@@ -84,11 +83,6 @@ public class MtiqMainFilterConfigurationTest
     @Bean
     PlatformContextFilter platformContextFilter() {
       return mock(PlatformContextFilter.class);
-    }
-
-    @Bean
-    ConsumptionContextFilter consumptionContextFilter() {
-      return mock(ConsumptionContextFilter.class);
     }
   }
 }

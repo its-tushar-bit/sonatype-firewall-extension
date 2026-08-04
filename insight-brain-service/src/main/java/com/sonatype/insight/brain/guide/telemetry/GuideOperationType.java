@@ -13,6 +13,7 @@ public enum GuideOperationType
 {
   COMPONENT_LOOKUP("component_lookup"),
   VULNERABILITY_LOOKUP("vulnerability_lookup"),
+  SECURITY_EVENT_LOOKUP("security_event_lookup"),
   GLOBAL_SEARCH("global_search"),
   MCP_LOOKUP("mcp_lookup");
 

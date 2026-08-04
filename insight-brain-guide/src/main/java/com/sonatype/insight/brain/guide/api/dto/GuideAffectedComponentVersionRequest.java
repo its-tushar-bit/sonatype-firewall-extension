@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.guide.api.dto;
 
+import java.util.Objects;
+
 /**
  * Request parameters for vulnerability affected components endpoint.
  *
@@ -23,4 +25,7 @@ public record GuideAffectedComponentVersionRequest(
     String sortField,
     String sortOrder)
 {
+  public GuideAffectedComponentVersionRequest {
+    Objects.requireNonNull(id, "id must not be null");
+  }
 }

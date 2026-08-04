@@ -19,6 +19,8 @@ import com.sonatype.guide.api.dto.ApiSearchResponse;
 import com.sonatype.guide.api.dto.ComponentDetailDocument;
 import com.sonatype.guide.api.dto.ComponentDocument;
 import com.sonatype.guide.api.dto.SearchResult;
+import com.sonatype.guide.api.dto.SecurityEventDetailDocument;
+import com.sonatype.guide.api.dto.SecurityEventDocument;
 import com.sonatype.guide.api.dto.VulnerabilityDetailDocument;
 import com.sonatype.guide.api.dto.VulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersionRequest;
@@ -33,6 +35,9 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentVulnerabilitiesReq
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideRecommendationResult;
+import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventDetailDocument;
+import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventSearchRequest;
+import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDetailDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse;
@@ -686,6 +691,67 @@ public class SearchApiClientImpl
     catch (BadGatewayException | InternalServerErrorException e) {
       throw new GuideApiException(Response.Status.BAD_GATEWAY,
           "Failed to retrieve latest version from data service");
+    }
+  }
+
+  @GuideUsageEvent(operationType = GuideOperationType.SECURITY_EVENT_LOOKUP)
+  @Authorize(permission = Permission.READ)
+  @Override
+  public ApiSearchResponse<SecurityEventDocument> searchSecurityEvents(GuideSecurityEventSearchRequest request) {
+    try {
+      return withLicenseRefreshOn402("rest/search/security-events",
+          () -> hdsClient.getWithMultimap(
+              GuideSecurityEventSearchResponse.class, "rest/search/security-events",
+              buildSecurityEventSearchParams(request)));
+    }
+    catch (NotFoundException e) {
+      return new GuideSecurityEventSearchResponse(List.of(), 0, request.offset(), request.limit(), null);
+    }
+    catch (BadGatewayException | InternalServerErrorException e) {
+      throw new GuideApiException(Response.Status.BAD_GATEWAY,
+          "Failed to retrieve security event search results from data service");
+    }
+  }
+
+  private static Multimap<String, String> buildSecurityEventSearchParams(GuideSecurityEventSearchRequest request) {
+    Multimap<String, String> params = ArrayListMultimap.create();
+    if (request.query() != null) {
+      params.put("query", request.query());
+    }
+    // offset and limit are never null (normalized in compact constructor)
+    params.put("offset", String.valueOf(request.offset()));
+    params.put("limit", String.valueOf(request.limit()));
+    if (request.sortField() != null) {
+      params.put("sortField", request.sortField());
+    }
+    if (request.sortOrder() != null) {
+      params.put("sortOrder", request.sortOrder());
+    }
+    // severities, threatTypes, and affectedEcosystems are never null (normalized to List.of() in compact constructor)
+    request.severities().forEach(s -> params.put("severities", s));
+    request.threatTypes().forEach(t -> params.put("threatTypes", t));
+    request.affectedEcosystems().forEach(e -> params.put("affectedEcosystems", e));
+    if (request.knownExploited() != null) {
+      params.put("knownExploited", String.valueOf(request.knownExploited()));
+    }
+    return params;
+  }
+
+  @GuideUsageEvent(operationType = GuideOperationType.SECURITY_EVENT_LOOKUP)
+  @Authorize(permission = Permission.READ)
+  @Override
+  public SecurityEventDetailDocument getSecurityEventById(String id) {
+    try {
+      return withLicenseRefreshOn402("rest/search/security-events/{id}",
+          () -> hdsClient.get(GuideSecurityEventDetailDocument.class,
+              "rest/search/security-events/" + encodePathSegment(id)));
+    }
+    catch (NotFoundException e) {
+      throw notFound(e, "Security event not found: " + id);
+    }
+    catch (BadGatewayException | InternalServerErrorException e) {
+      throw new GuideApiException(Response.Status.BAD_GATEWAY,
+          "Failed to retrieve security event detail from data service");
     }
   }
 

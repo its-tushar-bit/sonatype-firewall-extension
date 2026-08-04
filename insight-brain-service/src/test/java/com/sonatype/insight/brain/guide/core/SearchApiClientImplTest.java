@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.guide.core;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,6 +17,8 @@ import com.sonatype.guide.api.dto.ApiSearchResponse;
 import com.sonatype.guide.api.dto.ComponentDocument;
 import com.sonatype.guide.api.dto.RecommendationResponse.Outcome;
 import com.sonatype.guide.api.dto.SearchResult;
+import com.sonatype.guide.api.dto.SecurityEventDetailDocument;
+import com.sonatype.guide.api.dto.SecurityEventDocument;
 import com.sonatype.guide.api.dto.VulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDependenciesRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentDetailDocument;
@@ -28,6 +31,10 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideRecommendationResult;
+import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventDetailDocument;
+import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventDocument;
+import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventSearchRequest;
+import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse;
@@ -952,5 +959,218 @@ public class SearchApiClientImplTest
     assertThatThrownBy(() -> underTest.getComponentByPurl(PURL))
         .isInstanceOfSatisfying(GuideLicenseUnavailableException.class,
             e -> assertThat(e.getResponse().getStatus()).isEqualTo(402));
+  }
+
+  // ===== Security Events Tests =====
+
+  @Test
+  public void testSearchSecurityEvents_delegatesToHdsGetWithMultimap() {
+    GuideSecurityEventSearchRequest request = new GuideSecurityEventSearchRequest(
+        "log4j", 0, 25, "publishedDate", "desc",
+        List.of("critical", "high"),
+        List.of("VULNERABILITY", "MALWARE"),
+        true,
+        List.of("maven", "npm"));
+
+    GuideSecurityEventSearchResponse expected = new GuideSecurityEventSearchResponse(
+        List.of(new GuideSecurityEventDocument(
+            "se-123", "Log4Shell RCE", "Critical remote code execution in Log4j",
+            Instant.parse("2026-07-15T10:30:00Z"),
+            Instant.parse("2026-07-15T10:30:00Z"),
+            "critical", "VULNERABILITY", true)),
+        1, 0, 25, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("query", "log4j");
+    expectedParams.put("offset", "0");
+    expectedParams.put("limit", "25");
+    expectedParams.put("sortField", "publishedDate");
+    expectedParams.put("sortOrder", "desc");
+    expectedParams.put("severities", "critical");
+    expectedParams.put("severities", "high");
+    expectedParams.put("threatTypes", "VULNERABILITY");
+    expectedParams.put("threatTypes", "MALWARE");
+    expectedParams.put("affectedEcosystems", "maven");
+    expectedParams.put("affectedEcosystems", "npm");
+    expectedParams.put("knownExploited", "true");
+
+    when(hdsClient.getWithMultimap(GuideSecurityEventSearchResponse.class, "rest/search/security-events",
+        expectedParams)).thenReturn(expected);
+
+    ApiSearchResponse<SecurityEventDocument> result = underTest.searchSecurityEvents(request);
+
+    assertThat(result).isSameAs(expected);
+    verify(hdsClient).getWithMultimap(GuideSecurityEventSearchResponse.class,
+        "rest/search/security-events", expectedParams);
+  }
+
+  @Test
+  public void testSearchSecurityEvents_returnsEmptyOnNotFound() {
+    GuideSecurityEventSearchRequest request = new GuideSecurityEventSearchRequest(
+        "nonexistent", null, null, null, null,
+        null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("query", "nonexistent");
+    expectedParams.put("offset", "0");
+    expectedParams.put("limit", "25");
+
+    when(hdsClient.getWithMultimap(GuideSecurityEventSearchResponse.class, "rest/search/security-events",
+        expectedParams)).thenThrow(new NotFoundException("Not found"));
+
+    ApiSearchResponse<SecurityEventDocument> result = underTest.searchSecurityEvents(request);
+
+    assertThat(result.hits()).isEmpty();
+    assertThat(result.total()).isEqualTo(0);
+  }
+
+  @Test
+  public void testSearchSecurityEvents_throwsGuideApiExceptionOnBadGateway() {
+    GuideSecurityEventSearchRequest request = new GuideSecurityEventSearchRequest(
+        "test", null, null, null, null,
+        null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("query", "test");
+    expectedParams.put("offset", "0");
+    expectedParams.put("limit", "25");
+
+    when(hdsClient.getWithMultimap(GuideSecurityEventSearchResponse.class, "rest/search/security-events",
+        expectedParams)).thenThrow(new BadGatewayException("upstream unavailable"));
+
+    assertThatThrownBy(() -> underTest.searchSecurityEvents(request))
+        .isInstanceOf(GuideApiException.class)
+        .hasMessageContaining("Failed to retrieve security event search results");
+  }
+
+  @Test
+  public void testSearchSecurityEvents_throwsGuideApiExceptionOnInternalServerError() {
+    GuideSecurityEventSearchRequest request = new GuideSecurityEventSearchRequest(
+        "test", null, null, null, null,
+        null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("query", "test");
+    expectedParams.put("offset", "0");
+    expectedParams.put("limit", "25");
+
+    when(hdsClient.getWithMultimap(GuideSecurityEventSearchResponse.class, "rest/search/security-events",
+        expectedParams)).thenThrow(new InternalServerErrorException("hds error"));
+
+    assertThatThrownBy(() -> underTest.searchSecurityEvents(request))
+        .isInstanceOf(GuideApiException.class)
+        .hasMessageContaining("Failed to retrieve security event search results");
+  }
+
+  @Test
+  public void testGetSecurityEventById_delegatesToHdsGet() {
+    String eventId = "se-123";
+    GuideSecurityEventDetailDocument expected = new GuideSecurityEventDetailDocument(
+        eventId, "Log4Shell RCE", "Critical remote code execution in Log4j",
+        Instant.parse("2026-07-15T10:30:00Z"),
+        Instant.parse("2026-07-15T10:30:00Z"),
+        "critical", "VULNERABILITY", true,
+        "Remote code execution vulnerability in Log4j versions prior to 2.17.0.",
+        "Upgrade to version 2.17.0 or later.",
+        "https://www.sonatype.com/blog/log4shell",
+        List.of("CVE-2021-44228", "GHSA-jfh8-c2jp-5v3q"),
+        List.of("CWE-502", "CWE-94"),
+        List.of(),
+        List.of(),
+        List.of("maven"),
+        150);
+
+    when(hdsClient.get(GuideSecurityEventDetailDocument.class, "rest/search/security-events/se-123"))
+        .thenReturn(expected);
+
+    SecurityEventDetailDocument result = underTest.getSecurityEventById(eventId);
+
+    assertThat(result).isSameAs(expected);
+    verify(hdsClient).get(GuideSecurityEventDetailDocument.class, "rest/search/security-events/se-123");
+  }
+
+  @Test
+  public void testGetSecurityEventById_throwsNotFoundWhenEventNotFound() {
+    String eventId = "se-nonexistent";
+    when(hdsClient.get(GuideSecurityEventDetailDocument.class, "rest/search/security-events/se-nonexistent"))
+        .thenThrow(new NotFoundException("Security event not found: se-nonexistent"));
+
+    assertThatThrownBy(() -> underTest.getSecurityEventById(eventId))
+        .isInstanceOf(GuideNotFoundException.class)
+        .hasMessage("Security event not found: se-nonexistent");
+  }
+
+  @Test
+  public void testGetSecurityEventById_throwsGuideApiExceptionOnBadGateway() {
+    String eventId = "se-123";
+    when(hdsClient.get(GuideSecurityEventDetailDocument.class, "rest/search/security-events/se-123"))
+        .thenThrow(new BadGatewayException("upstream unavailable"));
+
+    assertThatThrownBy(() -> underTest.getSecurityEventById(eventId))
+        .isInstanceOf(GuideApiException.class)
+        .hasMessageContaining("Failed to retrieve security event detail");
+  }
+
+  @Test
+  public void testGetSecurityEventById_throwsGuideApiExceptionOnInternalServerError() {
+    String eventId = "se-123";
+    when(hdsClient.get(GuideSecurityEventDetailDocument.class, "rest/search/security-events/se-123"))
+        .thenThrow(new InternalServerErrorException("hds error"));
+
+    assertThatThrownBy(() -> underTest.getSecurityEventById(eventId))
+        .isInstanceOf(GuideApiException.class)
+        .hasMessageContaining("Failed to retrieve security event detail");
+  }
+
+  @Test
+  public void testGetSecurityEventById_encodesPathSegment() {
+    String eventId = "se/with/slashes";
+    when(hdsClient.get(GuideSecurityEventDetailDocument.class, "rest/search/security-events/se%2Fwith%2Fslashes"))
+        .thenReturn(new GuideSecurityEventDetailDocument(
+            eventId, "Test Event", "A malware event",
+            null, null, "high", "MALWARE", false,
+            null, null, null,
+            List.of(), List.of(), List.of("trojan"), List.of("dropper"),
+            List.of("npm"), null));
+
+    underTest.getSecurityEventById(eventId);
+
+    verify(hdsClient).get(GuideSecurityEventDetailDocument.class,
+        "rest/search/security-events/se%2Fwith%2Fslashes");
+  }
+
+  @Test
+  public void testSearchSecurityEvents_paymentRequired_triggersLicenseRefresh() {
+    GuideSecurityEventSearchRequest request = new GuideSecurityEventSearchRequest(
+        "test", null, null, null, null,
+        null, null, null, null);
+
+    Multimap<String, String> expectedParams = ArrayListMultimap.create();
+    expectedParams.put("query", "test");
+    expectedParams.put("offset", "0");
+    expectedParams.put("limit", "25");
+
+    when(hdsClient.getWithMultimap(GuideSecurityEventSearchResponse.class,
+        "rest/search/security-events", expectedParams))
+            .thenThrow(new PaymentRequiredException("HDS gated"));
+
+    assertThatThrownBy(() -> underTest.searchSecurityEvents(request))
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class,
+            e -> assertThat(e.getResponse().getStatus()).isEqualTo(402));
+
+    verify(revocationHandler, times(1)).onPaymentRequired("rest/search/security-events");
+  }
+
+  @Test
+  public void testGetSecurityEventById_paymentRequired_triggersLicenseRefresh() {
+    String eventId = "se-123";
+    when(hdsClient.get(GuideSecurityEventDetailDocument.class, "rest/search/security-events/se-123"))
+        .thenThrow(new PaymentRequiredException("HDS gated"));
+
+    assertThatThrownBy(() -> underTest.getSecurityEventById(eventId))
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class,
+            e -> assertThat(e.getResponse().getStatus()).isEqualTo(402));
+
+    verify(revocationHandler, times(1)).onPaymentRequired("rest/search/security-events/{id}");
   }
 }

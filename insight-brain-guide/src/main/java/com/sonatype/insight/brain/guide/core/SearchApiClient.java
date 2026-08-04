@@ -10,6 +10,8 @@ import com.sonatype.guide.api.dto.ApiSearchResponse;
 import com.sonatype.guide.api.dto.ComponentDetailDocument;
 import com.sonatype.guide.api.dto.ComponentDocument;
 import com.sonatype.guide.api.dto.SearchResult;
+import com.sonatype.guide.api.dto.SecurityEventDetailDocument;
+import com.sonatype.guide.api.dto.SecurityEventDocument;
 import com.sonatype.guide.api.dto.VulnerabilityDetailDocument;
 import com.sonatype.guide.api.dto.VulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersionRequest;
@@ -19,6 +21,7 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentVersionsRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentVulnerabilitiesRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideRecommendationResult;
+import com.sonatype.insight.brain.guide.api.dto.GuideSecurityEventSearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 
 /**
@@ -154,4 +157,19 @@ public interface SearchApiClient
    *           than return {@code null}; see {@link #getRecommendations} for rationale.
    */
   ComponentDetailDocument getLatestVersionDetail(String purl);
+
+  /**
+   * Search security events with the given filters.
+   */
+  ApiSearchResponse<SecurityEventDocument> searchSecurityEvents(GuideSecurityEventSearchRequest request);
+
+  /**
+   * Get security event detail by ID.
+   *
+   * @return the security event detail; never {@code null}
+   * @throws com.sonatype.insight.brain.guide.api.error.GuideNotFoundException if no
+   *           security event matches the given ID. Implementations MUST throw rather than
+   *           return {@code null}; see {@link #getRecommendations} for rationale.
+   */
+  SecurityEventDetailDocument getSecurityEventById(String id);
 }

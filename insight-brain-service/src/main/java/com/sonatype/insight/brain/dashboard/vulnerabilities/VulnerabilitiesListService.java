@@ -76,14 +76,19 @@ public class VulnerabilitiesListService
   /** Max distinct vulnerabilityIds materialized for sort/slice in V1. */
   static final int MAX_DISTINCT_COLLECT = 5_000;
 
-  /** Max distinct applications returned for a single vulnerability Impact tab. */
+  /** Max distinct applications materialized for a single vulnerability Applications tab. */
   static final int MAX_AFFECTED_APPLICATIONS = 500;
+
+  /** Max distinct components materialized for a single vulnerability Components Impacted tab. */
+  static final int MAX_IMPACTED_COMPONENTS = 500;
 
   private static final int INDEX_FETCH_PAGE_SIZE = 100;
 
   private static final int MAX_INDEX_PAGES = 50;
 
   private static final int MAX_AFFECTED_APP_INDEX_PAGES = 50;
+
+  private static final int MAX_IMPACTED_COMPONENT_INDEX_PAGES = 50;
 
   private static final List<String> ESTATE_VULNERABILITY_KEY_FIELDS =
       List.of(FieldIdentifier.VULNERABILITY_ID.label);
@@ -122,20 +127,20 @@ public class VulnerabilitiesListService
 
   /**
    * Distinct applications with My Scan Data hits for {@code vulnerabilityId}, sorted by name.
-   * RBAC-scoped via {@link SearchIndexClient}. Caps at {@link #MAX_AFFECTED_APPLICATIONS}, and
-   * scans at most {@link #MAX_AFFECTED_APP_INDEX_PAGES} index pages. The response is flagged
-   * {@code truncated} whenever either cap stopped the scan, so the caller never reads a
-   * budget-limited list as a complete one. A failed index lookup is likewise reported as
-   * truncated rather than as an empty-but-complete result.
+   * <p>
+   * When both {@code page} and {@code pageSize} are omitted, returns the full collected list (still
+   * subject to walk caps). When either paging param is supplied, slices with defaults
+   * ({@code page=0}, {@code pageSize=}{@link #DEFAULT_PAGE_SIZE}) for any omitted value.
+   * End-of-list for a paged client is {@code !hasNextPage && !truncated} — {@code !hasNextPage}
+   * alone can mean more matches exist beyond the walk budget.
    */
-  public VulnerabilityAffectedApplicationsResponseDTO listAffectedApplications(final String vulnerabilityId) {
-    if (StringUtils.isBlank(vulnerabilityId)) {
-      throw new BadRequestException("vulnerabilityId is required.");
-    }
-    if (vulnerabilityId.length() > MAX_SEARCH_LENGTH) {
-      throw new BadRequestException(
-          "vulnerabilityId exceeds maximum length of " + MAX_SEARCH_LENGTH + " characters.");
-    }
+  public VulnerabilityAffectedApplicationsResponseDTO listAffectedApplications(
+      final String vulnerabilityId,
+      final Integer page,
+      final Integer pageSize)
+  {
+    requireVulnerabilityId(vulnerabilityId);
+    ImpactPagination paging = resolveImpactPagination(page, pageSize);
 
     String query = indexQueryBuilder.buildAffectedApplicationsQuery(vulnerabilityId);
     LinkedHashMap<String, VulnerabilityAffectedApplicationDTO> byPublicId = new LinkedHashMap<>();
@@ -176,13 +181,102 @@ public class VulnerabilitiesListService
             (VulnerabilityAffectedApplicationDTO row) -> row.applicationPublicId,
             Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
 
+    List<VulnerabilityAffectedApplicationDTO> pageRows =
+        paging.unpaged() ? applications : slicePage(applications, paging.page(), paging.pageSize());
     VulnerabilityAffectedApplicationsResponseDTO response = new VulnerabilityAffectedApplicationsResponseDTO();
-    response.applications = applications;
+    response.applications = pageRows;
     response.total = applications.size();
+    response.page = paging.unpaged() ? 0 : paging.page();
+    response.pageSize = paging.unpaged() ? applications.size() : paging.pageSize();
+    response.hasNextPage = paging.unpaged()
+        ? false
+        : hasNextPage(
+            paging.page(), paging.pageSize(), pageRows.size(), applications.size(), applications.size());
     // Only a page that ran out of index hits proves the list is complete. Exhausting the page
     // budget or the distinct-app cap both stop the scan early with matches potentially unseen.
     response.truncated = !scannedEveryMatch || byPublicId.size() >= MAX_AFFECTED_APPLICATIONS;
     return response;
+  }
+
+  /**
+   * Distinct components with My Scan Data hits for {@code vulnerabilityId}, sorted by name.
+   * Same paging contract and walk-cap honesty as {@link #listAffectedApplications}.
+   */
+  public VulnerabilityImpactedComponentsResponseDTO listImpactedComponents(
+      final String vulnerabilityId,
+      final Integer page,
+      final Integer pageSize)
+  {
+    requireVulnerabilityId(vulnerabilityId);
+    ImpactPagination paging = resolveImpactPagination(page, pageSize);
+
+    String query = indexQueryBuilder.buildAffectedApplicationsQuery(vulnerabilityId);
+    LinkedHashMap<String, VulnerabilityImpactedComponentDTO> byHash = new LinkedHashMap<>();
+    boolean scannedEveryMatch = false;
+    for (int indexPage = 0; indexPage < MAX_IMPACTED_COMPONENT_INDEX_PAGES; indexPage++) {
+      if (byHash.size() >= MAX_IMPACTED_COMPONENTS) {
+        break;
+      }
+      SearchResultDTO searchResult = searchIndexClient.searchIndex(
+          query,
+          INDEX_FETCH_PAGE_SIZE,
+          toSearchIndexPage(indexPage),
+          false,
+          false,
+          List.of());
+      if (searchResult == null) {
+        break;
+      }
+      mergeImpactedComponents(searchResult, byHash);
+      boolean exhaustedPage = searchResult.groupingByDTOS == null
+          || searchResult.groupingByDTOS.isEmpty()
+          || countItems(searchResult) < INDEX_FETCH_PAGE_SIZE;
+      if (exhaustedPage) {
+        scannedEveryMatch = true;
+        break;
+      }
+    }
+
+    List<VulnerabilityImpactedComponentDTO> components = new ArrayList<>(byHash.values());
+    components.sort(Comparator
+        .comparing(
+            (VulnerabilityImpactedComponentDTO row) -> row.componentName,
+            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+        .thenComparing(
+            (VulnerabilityImpactedComponentDTO row) -> row.componentHash,
+            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+
+    List<VulnerabilityImpactedComponentDTO> pageRows =
+        paging.unpaged() ? components : slicePage(components, paging.page(), paging.pageSize());
+    VulnerabilityImpactedComponentsResponseDTO response = new VulnerabilityImpactedComponentsResponseDTO();
+    response.components = pageRows;
+    response.total = components.size();
+    response.page = paging.unpaged() ? 0 : paging.page();
+    response.pageSize = paging.unpaged() ? components.size() : paging.pageSize();
+    response.hasNextPage = paging.unpaged()
+        ? false
+        : hasNextPage(
+            paging.page(), paging.pageSize(), pageRows.size(), components.size(), components.size());
+    response.truncated = !scannedEveryMatch || byHash.size() >= MAX_IMPACTED_COMPONENTS;
+    return response;
+  }
+
+  /**
+   * Omitting both paging params returns the full collected window. Supplying either enables
+   * slicing with {@link #DEFAULT_PAGE_SIZE} / page {@code 0} for omitted values.
+   */
+  private static ImpactPagination resolveImpactPagination(final Integer page, final Integer pageSize) {
+    if (page == null && pageSize == null) {
+      return new ImpactPagination(0, DEFAULT_PAGE_SIZE, true);
+    }
+    int safePage = page == null ? 0 : page;
+    int safePageSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
+    validatePagination(safePage, safePageSize);
+    return new ImpactPagination(safePage, safePageSize, false);
+  }
+
+  private record ImpactPagination(int page, int pageSize, boolean unpaged)
+  {
   }
 
   static void mergeAffectedApplications(
@@ -208,13 +302,69 @@ public class VulnerabilitiesListService
     }
   }
 
+  static void mergeImpactedComponents(
+      final SearchResultDTO searchResult,
+      final LinkedHashMap<String, VulnerabilityImpactedComponentDTO> byHash)
+  {
+    if (searchResult == null || searchResult.groupingByDTOS == null) {
+      return;
+    }
+    for (var group : searchResult.groupingByDTOS) {
+      if (group == null || group.searchResultItemDTOS == null) {
+        continue;
+      }
+      for (SearchResultItemDTO item : group.searchResultItemDTOS) {
+        if (item == null || StringUtils.isBlank(item.componentHash)) {
+          continue;
+        }
+        if (byHash.size() >= MAX_IMPACTED_COMPONENTS) {
+          return;
+        }
+        byHash.putIfAbsent(item.componentHash, toImpactedComponent(item));
+      }
+    }
+  }
+
   private static VulnerabilityAffectedApplicationDTO toAffectedApplication(final SearchResultItemDTO item) {
     VulnerabilityAffectedApplicationDTO row = new VulnerabilityAffectedApplicationDTO();
     row.applicationPublicId = item.applicationPublicId;
     row.applicationName = StringUtils.isNotBlank(item.applicationName)
         ? item.applicationName
         : item.applicationPublicId;
+    if (StringUtils.isNotBlank(item.organizationName)) {
+      row.organizationName = item.organizationName;
+    }
     return row;
+  }
+
+  private static VulnerabilityImpactedComponentDTO toImpactedComponent(final SearchResultItemDTO item) {
+    VulnerabilityImpactedComponentDTO row = new VulnerabilityImpactedComponentDTO();
+    row.componentHash = item.componentHash;
+    row.componentName = StringUtils.isNotBlank(item.componentName) ? item.componentName : item.componentHash;
+    if (item.componentIdentifier != null && StringUtils.isNotBlank(item.componentIdentifier.getFormat())) {
+      row.ecosystem = item.componentIdentifier.getFormat();
+    }
+    return row;
+  }
+
+  private static void requireVulnerabilityId(final String vulnerabilityId) {
+    if (StringUtils.isBlank(vulnerabilityId)) {
+      throw new BadRequestException("vulnerabilityId is required.");
+    }
+    if (vulnerabilityId.length() > MAX_SEARCH_LENGTH) {
+      throw new BadRequestException(
+          "vulnerabilityId exceeds maximum length of " + MAX_SEARCH_LENGTH + " characters.");
+    }
+  }
+
+  private static <T> List<T> slicePage(final List<T> rows, final int page, final int pageSize) {
+    long fromL = (long) page * pageSize;
+    if (fromL >= rows.size()) {
+      return List.of();
+    }
+    int from = (int) fromL;
+    int to = (int) Math.min(fromL + pageSize, rows.size());
+    return rows.subList(from, to);
   }
 
   public VulnerabilitiesListResponseDTO listVulnerabilities(final VulnerabilitiesListRequestDTO request) {

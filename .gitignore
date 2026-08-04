@@ -72,3 +72,4 @@ docs/superpowers/
 
 # Local Justfile overrides
 Justfile.local
+.mvn/maven.config

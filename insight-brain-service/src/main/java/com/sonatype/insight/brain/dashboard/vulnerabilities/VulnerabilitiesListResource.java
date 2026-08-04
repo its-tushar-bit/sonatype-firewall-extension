@@ -14,6 +14,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -47,6 +48,9 @@ public class VulnerabilitiesListResource
   public static final String VULNERABILITIES_AFFECTED_APPLICATIONS_PATH =
       "vulnerabilities/{vulnerabilityId}/applications";
 
+  public static final String VULNERABILITIES_IMPACTED_COMPONENTS_PATH =
+      "vulnerabilities/{vulnerabilityId}/components";
+
   private final VulnerabilitiesListService service;
 
   private final VulnerabilitiesExportService exportService;
@@ -71,7 +75,9 @@ public class VulnerabilitiesListResource
   }
 
   /**
-   * Distinct My Scan Data applications affected by {@code vulnerabilityId} for the Impact tab.
+   * Distinct My Scan Data applications affected by {@code vulnerabilityId} for the Applications tab.
+   * Omitting both {@code page} and {@code pageSize} returns the full collected list (walk-capped).
+   * Supplying either enables paging (0-based; omitted page defaults to 0, omitted pageSize to 25).
    */
   @GET
   @Path(VULNERABILITIES_AFFECTED_APPLICATIONS_PATH)
@@ -79,9 +85,28 @@ public class VulnerabilitiesListResource
   @ExceptionMetered(name = "getVulnerabilityAffectedApplicationsExceptionMeter")
   @Audited(AuditEvent.VIEW_NEXUS_ONE_VULNERABILITIES_LIST)
   public VulnerabilityAffectedApplicationsResponseDTO listAffectedApplications(
-      @PathParam("vulnerabilityId") final String vulnerabilityId)
+      @PathParam("vulnerabilityId") final String vulnerabilityId,
+      @QueryParam("page") final Integer page,
+      @QueryParam("pageSize") final Integer pageSize)
   {
-    return service.listAffectedApplications(vulnerabilityId);
+    return service.listAffectedApplications(vulnerabilityId, page, pageSize);
+  }
+
+  /**
+   * Distinct My Scan Data components impacted by {@code vulnerabilityId} for the Components Impacted
+   * tab. Same paging contract as {@link #listAffectedApplications}.
+   */
+  @GET
+  @Path(VULNERABILITIES_IMPACTED_COMPONENTS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @ExceptionMetered(name = "getVulnerabilityImpactedComponentsExceptionMeter")
+  @Audited(AuditEvent.VIEW_NEXUS_ONE_VULNERABILITIES_LIST)
+  public VulnerabilityImpactedComponentsResponseDTO listImpactedComponents(
+      @PathParam("vulnerabilityId") final String vulnerabilityId,
+      @QueryParam("page") final Integer page,
+      @QueryParam("pageSize") final Integer pageSize)
+  {
+    return service.listImpactedComponents(vulnerabilityId, page, pageSize);
   }
 
   /**

@@ -14,7 +14,7 @@ import jakarta.inject.Named;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.report.LifecycleReport;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -47,16 +47,16 @@ public class ReportComponentService
   }
 
   public ReportComponentData fetchReportAndComponents(
-      Application application,
+      Owner owner,
       String scanId,
       String stageTypeId) throws IOException
   {
     LifecycleReport lifecycleReport;
     List<Component> components;
 
-    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(owner, scanId)) {
       clusterLock.lock();
-      lifecycleReport = reportService.fetchReport(application, scanId, stageTypeId);
+      lifecycleReport = reportService.fetchReport(owner, scanId, stageTypeId);
       Map<String, ReportEntry> entries = lifecycleReport.getEntries(List.of(
           LICENSES_JSON.getName(),
           SECURITY_JSON.getName(),
@@ -73,7 +73,7 @@ public class ReportComponentService
         throw new BadRequestException("Unable to fetch report data, the scan " + scanId + " could not be processed.");
       }
 
-      components = componentLoaderFactory.createComponentLoader(application)
+      components = componentLoaderFactory.createComponentLoader(owner)
           .getAll(licenseReportEntry.buf,
               securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     }
@@ -81,7 +81,7 @@ public class ReportComponentService
     return new ReportComponentData(lifecycleReport, components);
   }
 
-  public List<Component> getReportComponents(String scanId, Application owner) throws IOException {
+  public List<Component> getReportComponents(String scanId, Owner owner) throws IOException {
     LifecycleReport lifecycleReport = reportService.getReport(owner.getId(), scanId);
     Map<String, ReportEntry> entries = lifecycleReport.getEntries(List.of(
         LICENSES_JSON.getName(),

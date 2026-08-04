@@ -11,7 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -43,23 +43,23 @@ public class ReportDataStore
   }
 
   public LifecycleReport downloadReport(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final DownloadReportPostAction downloadReportPostAction) throws IOException, NotFoundException
   {
-    LifecycleReport applicationReport = getLifecycleReport(application, scanId);
+    LifecycleReport applicationReport = getLifecycleReport(owner, scanId);
     if (!applicationReport.exists()) {
       int reportTimeoutInSeconds = configuration.getReportTimeoutInSeconds();
       if (!reportDownloader.downloadReport(applicationReport, reportTimeoutInSeconds, 5)) {
         throw new NotFoundException("Could not download the report for scan ID " + scanId);
       }
-      downloadReportPostAction.apply(scanId, applicationReport, application.getId());
+      downloadReportPostAction.apply(scanId, applicationReport, owner.getId());
     }
     return applicationReport;
   }
 
-  public LifecycleReport getLifecycleReport(final Application application, final String scanId) {
-    return new LifecycleReport(lifecycleReportPersistenceService, application, scanId);
+  public LifecycleReport getLifecycleReport(final Owner owner, final String scanId) {
+    return new LifecycleReport(lifecycleReportPersistenceService, owner, scanId);
   }
 
   public ReportPdfEntity getReportPdf(final String appId, final String scanId) {

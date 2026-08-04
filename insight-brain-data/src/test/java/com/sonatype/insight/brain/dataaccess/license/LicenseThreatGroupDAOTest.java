@@ -396,13 +396,13 @@ public class LicenseThreatGroupDAOTest
   }
 
   @Test
-  public void testGetLicenseThreatLevelsByApplication() {
+  public void testGetLicenseThreatLevelsByOwner() {
     tempEntity.newLicenseThreatGroup(application.getId(), "My group 1", 0, "Apache-2.0", "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
 
     Map<String, Integer> threatLevelsByLicenseId =
-        licenseThreatGroupDAO.getLicenseThreatLevelsByApplication(application);
+        licenseThreatGroupDAO.getLicenseThreatLevelsByOwner(application);
 
     assertThat(threatLevelsByLicenseId.get("Apache-2.0")).isEqualTo(0);
     assertThat(threatLevelsByLicenseId.get("GPL-2.0")).isEqualTo(5);

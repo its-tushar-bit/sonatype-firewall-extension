@@ -66,6 +66,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -141,6 +143,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -209,6 +212,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -1957,6 +1962,35 @@ public class ReportServiceTest
             eq(Collections.emptyList()),
             eq(true),
             any());
+  }
+
+  @Test
+  public void testFetchReport_innerSourceWritePath_runsForApplicationOwner() throws IOException {
+    innerSourceApplicationDAO = spy(innerSourceApplicationDAO);
+
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-innersource-dependencies",
+        app.getId(), scanId);
+    ReportService reportService = createReportService();
+
+    reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+
+    verify(innerSourceApplicationDAO, atLeastOnce()).getByPackageUrl(any());
+  }
+
+  @Test
+  public void testFetchReport_innerSourceWritePath_skippedForNonApplicationOwner() throws IOException {
+    innerSourceApplicationDAO = spy(innerSourceApplicationDAO);
+
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hostedComponent = tempEntity.newHostedRepositoryComponent(repository);
+
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-innersource-dependencies",
+        hostedComponent.getId(), scanId);
+    ReportService reportService = createReportService();
+
+    reportService.fetchReport(hostedComponent, scanId, StageTypes.RELEASE.getId());
+
+    verify(innerSourceApplicationDAO, never()).getByPackageUrl(any());
   }
 
   @Test

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.lock;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 
 /**
@@ -13,7 +14,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
  */
 public interface ClusterLockManager
 {
-  ClusterLock createForPolicyViolations(Application application);
+  ClusterLock createForPolicyViolations(Owner owner);
 
   ClusterLock createForPolicyViolationAggregations(String applicationId);
 
@@ -21,7 +22,7 @@ public interface ClusterLockManager
 
   ClusterLock createForRepositoryReevaluation(Repository repository);
 
-  ClusterLock createForPolicyEvaluation(Application application, String scanId);
+  ClusterLock createForPolicyEvaluation(Owner owner, String scanId);
 
   ClusterLock createForAuditJsonFileStore(String ownerId);
 

@@ -91,7 +91,7 @@ import com.sonatype.insight.brain.policy.AutoPolicyWaiverExclusionMatcherWrapper
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.utils.EvaluationUtils;
-import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
+import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -305,19 +305,19 @@ public class ScanPolicyEvaluator
   }
 
   public ScanPolicyEvaluatorResults evaluate(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final Stage stage,
       final ScanTriggerType scanTriggerType,
       final ClientScanType clientScanType,
       final boolean skipAutoWaivers) throws IOException
   {
-    return doEvaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
+    return doEvaluate(owner, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
         clientScanType, null, skipAutoWaivers);
   }
 
   public ScanPolicyEvaluatorResults evaluate(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final Stage stage,
       final ScanTriggerType scanTriggerType,
@@ -325,12 +325,12 @@ public class ScanPolicyEvaluator
       final VulnerabilitySignatureAnalysisDTO analysisDTO,
       final boolean skipAutoWaivers) throws IOException
   {
-    return doEvaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
+    return doEvaluate(owner, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
         clientScanType, analysisDTO, skipAutoWaivers);
   }
 
   public ScanPolicyEvaluatorResults evaluate(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final Stage stage,
       final ScanTriggerType scanTriggerType,
@@ -338,12 +338,12 @@ public class ScanPolicyEvaluator
       final String clientInstanceId,
       final ClientScanType clientScanType) throws IOException
   {
-    return doEvaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+    return doEvaluate(owner, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
         false /* forMonitoring */, clientScanType, null, false /* skipAutoWaivers */);
   }
 
   public ScanPolicyEvaluatorResults evaluate(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final Stage stage,
       final ScanTriggerType scanTriggerType,
@@ -352,18 +352,18 @@ public class ScanPolicyEvaluator
       final ClientScanType clientScanType,
       final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
   {
-    return doEvaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+    return doEvaluate(owner, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
         false /* forMonitoring */, clientScanType, analysisDTO, false /* skipAutoWaivers */);
   }
 
   public ScanPolicyEvaluatorResults evaluateForMonitoring(
-      Application application,
+      Owner owner,
       String scanId,
       Stage stage,
       ScanTriggerType scanTriggerType,
       ClientScanType clientScanType) throws IOException
   {
-    return doEvaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */,
+    return doEvaluate(owner, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */,
         clientScanType, null, false /* skipAutoWaivers */);
   }
 
@@ -373,7 +373,7 @@ public class ScanPolicyEvaluator
    */
   @WithSpan // OTel agent instruments private methods via bytecode manipulation (verified in CLM-39873)
   private ScanPolicyEvaluatorResults doEvaluate(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final Stage stage,
       final ScanTriggerType scanTriggerType,
@@ -386,7 +386,7 @@ public class ScanPolicyEvaluator
   {
     log.debug(
         "Evaluating policies for application ID {}, scan ID {}, stage {}, scan trigger type {}, for monitoring {}.",
-        application.getId(), scanId, stage.getStageTypeId(), scanTriggerType.name(), forMonitoring);
+        owner.getId(), scanId, stage.getStageTypeId(), scanTriggerType.name(), forMonitoring);
 
     boolean isContainerImageEval = isEvaluationForContainerImage(stage);
 
@@ -407,14 +407,14 @@ public class ScanPolicyEvaluator
      * them to the policy_violation table, we would leave the report in state where the policy_violations have no ids.
      * This prevents portions of the report from rendering, such as violation details.
      */
-    throwErrorIfReEvaluatingAnOldScan(application.getId(), scanId, stage.getStageTypeId());
+    throwErrorIfReEvaluatingAnOldScan(owner, scanId, stage.getStageTypeId());
 
     AuditData.get().setStageId(stage.getStageTypeId());
 
     ReportComponentData reportComponentData =
-        reportComponentService.fetchReportAndComponents(application, scanId, stage.getStageTypeId());
+        reportComponentService.fetchReportAndComponents(owner, scanId, stage.getStageTypeId());
 
-    return performPolicyEvaluation(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+    return performPolicyEvaluation(owner, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
         forMonitoring, clientScanType, reportComponentData, analysisDTO, skipAutoWaivers);
   }
 
@@ -422,7 +422,7 @@ public class ScanPolicyEvaluator
       final String scanId,
       final Stage stage,
       final List<Component> components,
-      final String appId)
+      final Owner owner)
   {
     try {
       List<ComponentIdentifier> componentIdentifiers = components.stream()
@@ -430,7 +430,7 @@ public class ScanPolicyEvaluator
           .filter(Objects::nonNull) // Some components, like local jars, don't have any identifier
           .collect(toList());
       developmentPrioritizationRemediationService.fetchAndPersistRemediationRecommendations(
-          componentIdentifiers, scanId, appId, stage);
+          componentIdentifiers, scanId, owner.getId(), stage);
       log.debug("Subroutine fetchAndPersistRemediationRecommendations() finished.");
     }
     catch (Throwable ex) {
@@ -512,7 +512,7 @@ public class ScanPolicyEvaluator
    * legacy status on policy violations - determines the policy violations for which notifications should be sent
    */
   private ScanPolicyEvaluatorResults processPolicyResults(
-      Application app,
+      Owner owner,
       String scanId,
       Stage stage,
       ScanTriggerType scanTriggerType,
@@ -527,15 +527,15 @@ public class ScanPolicyEvaluator
       VulnerabilitySignatureAnalysisDTO analysisDTO,
       final boolean skipAutoWaivers) throws IOException
   {
-    String appId = app.getId();
+    String appId = owner.getId();
     long start = System.currentTimeMillis();
-    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(app);
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(owner);
         TransactionContext tx = policyEvaluationDAO.createTransactionContext())
     {
       clusterLock.lock();
       tx.begin();
       boolean isLegacyViolationApplicable = stage.getStageTypeId().equals(Stage.ID_COMPLIANCE) ? false : true;
-      boolean isLegacyViolationEnabled = legacyViolationService.isLegacyViolationEnabled(tx, app.getId(),
+      boolean isLegacyViolationEnabled = legacyViolationService.isLegacyViolationEnabled(tx, owner.getId(),
           stage.getStageTypeId());
       // Persist the policy evaluation
       boolean isReevaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(tx, appId, scanId) != null;
@@ -622,7 +622,7 @@ public class ScanPolicyEvaluator
       }
 
       PurlIdentifiersWithVulnerabilities reachablePurlIdentifiersWithVulnerabilities =
-          getReachablePurlIdentifiersWithVulnerabilities(app.getId(), scanId, analysisDTO);
+          getReachablePurlIdentifiersWithVulnerabilities(owner.getId(), scanId, analysisDTO);
 
       // Convert the policy alerts into policy violations
       List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
@@ -756,11 +756,11 @@ public class ScanPolicyEvaluator
       pathForwardInspector.cleanUp();
 
       if (isLegacyViolationApplicable) {
-        setLegacyViolations(tx, isLegacyViolationEnabled, app, policies, policyEvaluation.getTime(),
+        setLegacyViolations(tx, isLegacyViolationEnabled, owner, policies, policyEvaluation.getTime(),
             results.allViolations);
       }
-      ApplicationPolicyViolationLogger policyViolationLogger =
-          policyViolationLoggerFactory.newLogger(policyEvaluation.getTime(), app);
+      AbstractPolicyViolationLogger<PolicyViolation> policyViolationLogger =
+          policyViolationLoggerFactory.newLogger(policyEvaluation.getTime(), owner);
 
       // Persist the PolicyViolations and ApplicationComponents only if there isn't a more recent
       // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
@@ -1123,16 +1123,16 @@ public class ScanPolicyEvaluator
   private void setLegacyViolations(
       TransactionContext tx,
       boolean areLegacyViolationsEnabled,
-      Application app,
+      Owner owner,
       List<Policy> policies,
       Date policyEvaluationTime,
       List<PolicyViolation> policyViolations)
   {
     // The check if this is the first evaluation can be expensive. Do it only if legacy violations are enabled.
-    if (areLegacyViolationsEnabled && isFirstEvaluation(tx, app)) {
+    if (areLegacyViolationsEnabled && isFirstEvaluation(tx, owner)) {
       if (!productLicense.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
         log.debug("No legacy violations in the first evaluation for application {}, "
-            + "license does not support legacy violations.", app.getId());
+            + "license does not support legacy violations.", owner.getId());
         return;
       }
       Map<String, Policy> policiesById = policies.stream().collect(toMap(Policy::getId, Function.identity()));
@@ -1148,7 +1148,7 @@ public class ScanPolicyEvaluator
     }
     else {
       List<PolicyViolation> legacyViolations =
-          policyViolationDAO.getUnfixedLegacyViolationByOwnerId(tx, app.getId());
+          policyViolationDAO.getUnfixedLegacyViolationByOwnerId(tx, owner.getId());
       policyViolationDAO.loadConstraintFacts(legacyViolations);
       if (!legacyViolations.isEmpty()) {
         PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
@@ -1168,9 +1168,9 @@ public class ScanPolicyEvaluator
     }
   }
 
-  private boolean isFirstEvaluation(TransactionContext tx, Application app) {
+  private boolean isFirstEvaluation(TransactionContext tx, Owner owner) {
     // The record for the current policy evaluation was already created, so we have to check with 1, not 0.
-    return policyEvaluationDAO.getCountByOwnerId(tx, app.getId()) == 1;
+    return policyEvaluationDAO.getCountByOwnerId(tx, owner.getId()) == 1;
   }
 
   private String getFilename(ComponentFact componentFact) {
@@ -1467,7 +1467,7 @@ public class ScanPolicyEvaluator
    */
   private void postEvents(
       ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
-      Application application,
+      Owner owner,
       List<Component> components)
   {
     final PolicyEvaluation policyEvaluation = scanPolicyEvaluatorResults.evaluation;
@@ -1486,9 +1486,13 @@ public class ScanPolicyEvaluator
         policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
         components, fixedViolations);
 
-    applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, application);
-    policyAlertEventService
-        .postEvent(policyEvaluation, policyEvaluationResult, application, waivedAlerts, fixedAlerts);
+    // TODO CLM-44039: webhooks do not fire for HostedRepositoryComponent owners; current event
+    // payloads (ApplicationEvaluationEvent, PolicyAlertEvent) are ApplicationSummary-shaped.
+    if (owner instanceof Application application) {
+      applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, application);
+      policyAlertEventService
+          .postEvent(policyEvaluation, policyEvaluationResult, application, waivedAlerts, fixedAlerts);
+    }
   }
 
   private int getTotalComponentCount(PolicyEvaluation policyEvaluation, ReportEntry summaryReportEntry) {
@@ -1542,13 +1546,13 @@ public class ScanPolicyEvaluator
    * @since 1.50
    */
   void sendLegacyViolationTelemetryData(
-      String applicationId,
+      Owner owner,
       List<PolicyViolation> policyViolations,
       String stageTypeId)
   {
     TelemetryData telemetryData = new TelemetryData(
         TelemetryPurpose.APPLICATION_EVALUATION_LEGACY_VIOLATION_COUNTS);
-    telemetryData.setAttributes(getLegacyViolationCountsAttributes(applicationId, policyViolations, stageTypeId));
+    telemetryData.setAttributes(getLegacyViolationCountsAttributes(owner, policyViolations, stageTypeId));
     telemetrySender.send(telemetryData);
   }
 
@@ -1556,7 +1560,7 @@ public class ScanPolicyEvaluator
    * @since 1.50
    */
   private Map<String, Object> getLegacyViolationCountsAttributes(
-      String applicationId,
+      Owner owner,
       List<PolicyViolation> policyViolations,
       String stageTypeId)
   {
@@ -1583,10 +1587,11 @@ public class ScanPolicyEvaluator
     }
 
     Map<String, Object> attributes = new HashMap<>();
-    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
-    telemetryUtils.includeRealApplicationId(attributes, applicationId);
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(owner.getId()));
+    attributes.put("owner_type", owner.getType() == null ? null : owner.getType().toString());
+    telemetryUtils.includeRealApplicationId(attributes, owner.getId());
     attributes.put("grandfathering_enabled",
-        String.valueOf(legacyViolationService.isLegacyViolationEnabled(applicationId, stageTypeId)));
+        String.valueOf(legacyViolationService.isLegacyViolationEnabled(owner.getId(), stageTypeId)));
     attributes.put("number_of_grandfathered_violations", String.valueOf(legacyViolationCount));
     if (legacyViolationCount > 0) {
       for (Entry<ThreatLevel, Long> entry : threatLevels.entrySet()) {
@@ -1675,38 +1680,39 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.180
    */
-  private void sendStaleReportEvaluationTelemetryData(final String privateAppId, final String scanId) {
+  private void sendStaleReportEvaluationTelemetryData(final Owner owner, final String scanId) {
     TelemetryData telemetryData = new TelemetryData(
         TelemetryPurpose.STALE_REPORT_REEVALUATION);
     Map<String, Object> attributes = new HashMap<>();
-    attributes.put("application_id", HdsClientAnalytics.obfuscate(privateAppId));
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(owner.getId()));
+    attributes.put("owner_type", owner.getType() == null ? null : owner.getType().toString());
     attributes.put("scan_id", HdsClientAnalytics.obfuscate(scanId));
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
   }
 
   private void throwErrorIfReEvaluatingAnOldScan(
-      final String privateAppId,
+      final Owner owner,
       final String scanId,
       final String stageTypeId)
   {
     final boolean isReevaluation =
-        policyEvaluationDAO.getLastByOwnerIdAndScanId(privateAppId, scanId) != null;
+        policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId) != null;
 
     if (isReevaluation) {
       final PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByOwnerIdAndStageId(
-          privateAppId, stageTypeId);
+          owner.getId(), stageTypeId);
       final boolean isNotForLatestScan = !lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
 
       if (isNotForLatestScan) {
-        sendStaleReportEvaluationTelemetryData(privateAppId, scanId);
+        sendStaleReportEvaluationTelemetryData(owner, scanId);
         throw new BadRequestException(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
       }
     }
   }
 
   public ScanPolicyEvaluatorResults performPolicyEvaluation(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final Stage stage,
       final ScanTriggerType scanTriggerType,
@@ -1717,12 +1723,12 @@ public class ScanPolicyEvaluator
       final ReportComponentData reportComponentData,
       final boolean skipAutoWaivers) throws IOException
   {
-    return performPolicyEvaluation(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+    return performPolicyEvaluation(owner, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
         forMonitoring, clientScanType, reportComponentData, null, skipAutoWaivers);
   }
 
   public ScanPolicyEvaluatorResults performPolicyEvaluation(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final Stage stage,
       final ScanTriggerType scanTriggerType,
@@ -1734,12 +1740,12 @@ public class ScanPolicyEvaluator
       final VulnerabilitySignatureAnalysisDTO analysisDTO,
       final boolean skipAutoWaivers) throws IOException
   {
-    sendEvaluationTelemetry(scanId, application.getId(), stage.getStageTypeId(), scanTriggerType,
+    sendEvaluationTelemetry(scanId, owner.getId(), stage.getStageTypeId(), scanTriggerType,
         reportComponentData.components,
         clientUserAgent, clientInstanceId);
 
-    String appId = application.getId();
-    String ownerId = getPolicyOwnerIdForEvaluation(application, stage);
+    String appId = owner.getId();
+    String ownerId = getPolicyOwnerIdForEvaluation(owner, stage);
     List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
     PolicyResults policyResults =
         componentPolicyEvaluator.evaluate(appId, stage, policies, reportComponentData.components,
@@ -1751,30 +1757,31 @@ public class ScanPolicyEvaluator
         telemetryUtils,
         licenseNameProvider,
         sourceControlUtils.isScmEnabled(appId),
-        componentHelper);
+        componentHelper,
+        owner);
 
     AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector =
         new AutoPolicyWaiverTelemetryCollector(telemetryUtils);
 
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,
+        processPolicyResults(owner, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,
             reportComponentData.components, telemetryCollector, autoPolicyWaiverTelemetryCollector,
             reportComponentData.lifecycleReport, clientScanType, analysisDTO, skipAutoWaivers);
 
     sendAggregatePolicyViolationAndAutoWaiverTelemetry(telemetryCollector, autoPolicyWaiverTelemetryCollector);
 
-    sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations,
+    sendLegacyViolationTelemetryData(owner, scanPolicyEvaluatorResults.allViolations,
         stage.getStageTypeId());
 
-    sendMissingEpssScoreTelemetry(application.getId(), scanId, stage.getStageTypeId(),
+    sendMissingEpssScoreTelemetry(owner.getId(), scanId, stage.getStageTypeId(),
         reportComponentData.components);
 
     final Set<Feature> features = featuresService.getFeatures();
     if (features.contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS)) {
-      fetchAndPersistRemediationRecommendations(scanId, stage, reportComponentData.components, appId);
+      fetchAndPersistRemediationRecommendations(scanId, stage, reportComponentData.components, owner);
     }
 
-    postEvents(scanPolicyEvaluatorResults, application, reportComponentData.components);
+    postEvents(scanPolicyEvaluatorResults, owner, reportComponentData.components);
 
     // Third-party SBOM must be activated before the zero-components check to ensure SBOM export/viewer
     // functionality works even when the check throws BadRequestException.
@@ -1788,10 +1795,10 @@ public class ScanPolicyEvaluator
     // components in CM mode is intentional - if a previously working scan suddenly produces zero components,
     // it likely indicates a scanner misconfiguration or environment issue that should be investigated.
     if (reportComponentData.components.isEmpty()) {
-      scanHealthService.failOnEvaluateResultContainingZeroComponentsIfConfigured(application);
+      scanHealthService.failOnEvaluateResultContainingZeroComponentsIfConfigured(owner);
     }
 
-    recordConsumption(application, scanId, forMonitoring, reportComponentData, scanPolicyEvaluatorResults);
+    recordConsumption(owner, scanId, forMonitoring, reportComponentData, scanPolicyEvaluatorResults);
 
     return scanPolicyEvaluatorResults;
   }
@@ -1802,7 +1809,7 @@ public class ScanPolicyEvaluator
    * No-op when there is no consumption context on the thread, no components, or zero known components.
    */
   private void recordConsumption(
-      Application application,
+      Owner owner,
       String scanId,
       boolean forMonitoring,
       ReportComponentData reportComponentData,
@@ -1821,7 +1828,7 @@ public class ScanPolicyEvaluator
       }
       ActivityType activityType = resolveActivityType(forMonitoring, scanPolicyEvaluatorResults);
       ConsumptionEvent event = ConsumptionEvents.builderFromContext(ctx)
-          .appId(application.getId())
+          .appId(owner.getId())
           .scanId(scanId)
           .userId(currentUser.getUsernameOrSystem())
           .activityType(activityType)
@@ -1841,14 +1848,19 @@ public class ScanPolicyEvaluator
     return results.evaluation.isReevaluation() ? ActivityType.RE_EVALUATE : ActivityType.APP_SCAN;
   }
 
-  String getPolicyOwnerIdForEvaluation(final Application application, final Stage stage) {
+  String getPolicyOwnerIdForEvaluation(final Owner owner, final Stage stage) {
     boolean isContainerImageEval = isEvaluationForContainerImage(stage);
 
-    if (isContainerImageEval) {
+    if (isContainerImageEval && owner instanceof Application application) {
       return organizationDAO.getById(application.getOrganizationId()).getRelatedRepositoryId();
     }
 
-    return application.getId();
+    if (isContainerImageEval) {
+      throw new IllegalStateException(
+          "Container-image evaluation is not supported for owner type " + owner.getType());
+    }
+
+    return owner.getId();
   }
 
   private boolean isEvaluationForContainerImage(final Stage stage) {

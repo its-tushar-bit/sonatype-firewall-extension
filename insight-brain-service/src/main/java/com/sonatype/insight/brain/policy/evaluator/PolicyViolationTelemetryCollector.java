@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.license.LicenseNameProvider;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -162,6 +163,8 @@ public class PolicyViolationTelemetryCollector
 
   private final ComponentHelper componentHelper;
 
+  private final Owner owner;
+
   private Clock clock = Clock.systemUTC();
 
   @VisibleForTesting
@@ -177,12 +180,26 @@ public class PolicyViolationTelemetryCollector
       boolean isScmEnabled,
       ComponentHelper componentHelper)
   {
+    this(policyWaiverDAO, sourceControlEventDAO, telemetryUtils, licenseNameProvider, isScmEnabled, componentHelper,
+        null);
+  }
+
+  public PolicyViolationTelemetryCollector(
+      final PolicyWaiverDAO policyWaiverDAO,
+      SourceControlEventDAO sourceControlEventDAO,
+      TelemetryUtils telemetryUtils,
+      LicenseNameProvider licenseNameProvider,
+      boolean isScmEnabled,
+      ComponentHelper componentHelper,
+      Owner owner)
+  {
     this.policyWaiverDAO = policyWaiverDAO;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.telemetryUtils = telemetryUtils;
     this.licenseNameProvider = licenseNameProvider;
     this.isScmEnabled = isScmEnabled;
     this.componentHelper = componentHelper;
+    this.owner = owner;
     timeOfPolicyEvaluation = new Date();
   }
 
@@ -537,6 +554,7 @@ public class PolicyViolationTelemetryCollector
         new PolicyViolationTelemetryBuilder(policyViolation, telemetryPurpose, telemetryUtils, licenseNameProvider)
             .forComponent(component)
             .withScmEnabled(isScmEnabled)
+            .withOwnerType(owner != null ? owner.getType() : null)
             .withTime(computeTimeBetween(policyViolation.getOpenTime(), timeOfPolicyEvaluation))
             .build();
 

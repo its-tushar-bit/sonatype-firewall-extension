@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.scanhealth;
 import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfig;
 import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfigDTO;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import jakarta.inject.Inject;
@@ -33,7 +35,7 @@ public class ScanHealthServiceTest
 
     scanHealthConfigDAO.save(new ScanHealthConfig(app.getId(), "application", "{\"failOnZeroComponents\":true}"));
 
-    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId());
+    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId(), app.getType());
 
     assertThat(result.failOnZeroComponents()).isTrue();
   }
@@ -45,7 +47,7 @@ public class ScanHealthServiceTest
 
     scanHealthConfigDAO.save(new ScanHealthConfig(org.getId(), "organization", "{\"failOnZeroComponents\":true}"));
 
-    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId());
+    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId(), app.getType());
 
     assertThat(result.failOnZeroComponents()).isTrue();
   }
@@ -55,7 +57,7 @@ public class ScanHealthServiceTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
 
-    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId());
+    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId(), app.getType());
 
     assertThat(result.failOnZeroComponents()).isNull();
   }
@@ -67,7 +69,7 @@ public class ScanHealthServiceTest
 
     scanHealthConfigDAO.save(new ScanHealthConfig(app.getId(), "application", "{\"failOnZeroComponents\":true}"));
 
-    boolean shouldFail = scanHealthService.shouldFailOnZeroComponents(app.getId());
+    boolean shouldFail = scanHealthService.shouldFailOnZeroComponents(app);
 
     assertThat(shouldFail).isTrue();
   }
@@ -79,7 +81,7 @@ public class ScanHealthServiceTest
 
     scanHealthConfigDAO.save(new ScanHealthConfig(app.getId(), "application", "{\"failOnZeroComponents\":false}"));
 
-    boolean shouldFail = scanHealthService.shouldFailOnZeroComponents(app.getId());
+    boolean shouldFail = scanHealthService.shouldFailOnZeroComponents(app);
 
     assertThat(shouldFail).isFalse();
   }
@@ -91,7 +93,7 @@ public class ScanHealthServiceTest
 
     scanHealthConfigDAO.save(new ScanHealthConfig(app.getId(), "application", "{}"));
 
-    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId());
+    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId(), app.getType());
 
     assertThat(result.failOnZeroComponents()).isNull();
   }
@@ -105,7 +107,20 @@ public class ScanHealthServiceTest
     scanHealthConfigDAO.save(
         new ScanHealthConfig(rootOrg.getId(), "organization", "{\"failOnZeroComponents\":true}"));
 
-    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId());
+    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId(), app.getType());
+
+    assertThat(result.failOnZeroComponents()).isTrue();
+  }
+
+  @Test
+  public void testGetEffectiveConfig_hrcInheritsFromAncestorOrg() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(tempEntity.newRepository());
+
+    scanHealthConfigDAO.save(new ScanHealthConfig(
+        Organization.ROOT_ORGANIZATION_ID, "organization", "{\"failOnZeroComponents\":true}"));
+
+    ScanHealthConfigDTO result =
+        scanHealthService.getEffectiveConfig(hrc.getId(), OwnerType.HOSTED_REPOSITORY_COMPONENT);
 
     assertThat(result.failOnZeroComponents()).isTrue();
   }
@@ -121,7 +136,7 @@ public class ScanHealthServiceTest
     scanHealthConfigDAO.save(
         new ScanHealthConfig(childOrg.getId(), "organization", "{\"failOnZeroComponents\":false}"));
 
-    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId());
+    ScanHealthConfigDTO result = scanHealthService.getEffectiveConfig(app.getId(), app.getType());
 
     assertThat(result.failOnZeroComponents()).isFalse();
   }

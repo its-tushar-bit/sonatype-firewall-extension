@@ -36,6 +36,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -83,6 +84,7 @@ import com.sonatype.insight.brain.model.OwnerComponent;
 import com.sonatype.insight.brain.model.OwnerComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
@@ -1760,6 +1762,7 @@ public class ScanPolicyEvaluatorTest
     verify(mockTelemetrySender, times(3)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("owner_type", application.getType().toString());
     expectedAttributes.put("real_application_id", application.getId());
     expectedAttributes.put("grandfathering_enabled", String.valueOf(legacyViolationsEnabled));
     expectedAttributes.put("number_of_grandfathered_violations", expectLegacyViolations ? "36" : "0");
@@ -3029,12 +3032,13 @@ public class ScanPolicyEvaluatorTest
     policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, false));
     policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, false));
 
-    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application.getId(), policyViolations, Stage.ID_BUILD);
+    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application, policyViolations, Stage.ID_BUILD);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("owner_type", application.getType().toString());
     expectedAttributes.put("real_application_id", application.getId());
     expectedAttributes.put("grandfathering_enabled", "true");
     expectedAttributes.put("number_of_grandfathered_violations", "0");
@@ -3059,12 +3063,13 @@ public class ScanPolicyEvaluatorTest
     policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, false));
     policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, false));
 
-    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application.getId(), policyViolations, Stage.ID_RELEASE);
+    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application, policyViolations, Stage.ID_RELEASE);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("owner_type", application.getType().toString());
     expectedAttributes.put("real_application_id", application.getId());
     expectedAttributes.put("grandfathering_enabled", "true");
     expectedAttributes.put("number_of_grandfathered_violations", "5");
@@ -4194,6 +4199,7 @@ public class ScanPolicyEvaluatorTest
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("owner_type", application.getType().toString());
     expectedAttributes.put("scan_id", HdsClientAnalytics.obfuscate(scanId));
     assertStaleScanAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
     clearInvocations(mockTelemetrySender);
@@ -5354,6 +5360,32 @@ public class ScanPolicyEvaluatorTest
     String result = scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(application, proxyStage);
 
     assertThat(result).isEqualTo("test-repo-id");
+  }
+
+  @Test
+  public void testGetPolicyOwnerIdForEvaluation_ContainerImageNonApplication_Throws() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+
+    Stage proxyStage = new Stage(Stage.ID_PROXY);
+
+    Owner owner = mock(Owner.class);
+    when(owner.getType()).thenReturn(OwnerType.HOSTED_REPOSITORY_COMPONENT);
+
+    assertThatThrownBy(() -> scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(owner, proxyStage))
+        .isInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  public void testGetPolicyOwnerIdForEvaluation_NonContainerImageNonApplication_ReturnsOwnerId() {
+    Stage buildStage = new Stage(Stage.ID_BUILD);
+
+    Owner owner = mock(Owner.class);
+    when(owner.getId()).thenReturn("owner-id");
+
+    String result = scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(owner, buildStage);
+
+    assertThat(result).isEqualTo("owner-id");
   }
 
   private void restoreConstraintFactsToPreMigratedState() {

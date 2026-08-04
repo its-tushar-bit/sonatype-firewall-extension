@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -53,6 +54,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -171,6 +173,20 @@ public class RepositoryMatcherTest
         SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE,
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL,
         SystemConfigurationProperty.BASE_URL)));
+  }
+
+  @Test
+  public void testMatch_NonApplicationOwner_ReturnsEmpty() {
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+
+    Owner owner = mock(Owner.class);
+
+    Set<ComponentIdentifier> match = matcher.match(owner, objectMapper.createObjectNode(),
+        objectMapper.createObjectNode(), objectMapper.createObjectNode(),
+        objectMapper.createObjectNode(), objectMapper.createObjectNode());
+
+    assertThat(match).isEmpty();
+    verifyNoInteractions(mockApiComponentDetailsServiceV2);
   }
 
   @Test

@@ -78,6 +78,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -309,35 +310,35 @@ public class ReportService
 
   @WithSpan
   public LifecycleReport fetchReport(
-      final Application app,
+      final Owner owner,
       final String scanId,
       final String stageTypeId) throws IOException
   {
-    return fetchReport(app, scanId, stageTypeId, null);
+    return fetchReport(owner, scanId, stageTypeId, null);
   }
 
   @WithSpan
   public LifecycleReport fetchReport(
-      final Application app,
+      final Owner owner,
       final String scanId,
       final String stageTypeId,
       final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
   {
-    LifecycleReport applicationReport = materializeReportFromHds(app, scanId, preservedThirdPartyEntries);
+    LifecycleReport applicationReport = materializeReportFromHds(owner, scanId, preservedThirdPartyEntries);
     CpeResultsTelemetry cpeResultsTelemetry = new CpeResultsTelemetry();
-    applyChanges(app, scanId, applicationReport, stageTypeId, cpeResultsTelemetry, repositoryMatcher, telemetrySender,
+    applyChanges(owner, scanId, applicationReport, stageTypeId, cpeResultsTelemetry, repositoryMatcher, telemetrySender,
         telemetryUtils, configuration);
     thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport, cpeResultsTelemetry);
-    sendCpeResultMetricsTelemetry(app.getId(), cpeResultsTelemetry);
+    sendCpeResultMetricsTelemetry(owner.getId(), cpeResultsTelemetry);
     return applicationReport;
   }
 
   private LifecycleReport materializeReportFromHds(
-      final Application app,
+      final Owner owner,
       final String scanId,
       final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
   {
-    return reportDataStore.downloadReport(app, scanId,
+    return reportDataStore.downloadReport(owner, scanId,
         (sid, report, appId) -> processThirdPartyDataWithFallback(sid, report, appId, preservedThirdPartyEntries));
   }
 
@@ -1066,7 +1067,7 @@ public class ReportService
   }
 
   private void applyChanges(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final LifecycleReport applicationReport,
       final String stageTypeId,
@@ -1086,7 +1087,7 @@ public class ReportService
 
     applicationReport.embedOwnerPublicId();
 
-    applyComponentRelatedChanges(application, scanId, applicationReport, stageTypeId, cpeResultsTelemetry,
+    applyComponentRelatedChanges(owner, scanId, applicationReport, stageTypeId, cpeResultsTelemetry,
         repositoryMatcher, telemetrySender, telemetryUtils);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
@@ -1127,7 +1128,7 @@ public class ReportService
 
     License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
 
-    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(application);
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(owner);
     for (JsonNode licenseJsonNode : licenses.get("aaData")) {
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
 
@@ -1170,7 +1171,7 @@ public class ReportService
 
     applicationReport.saveReportEntry(LICENSES_JSON.getName(), licenses);
     applicationReport.saveReportEntry(PARTIAL_MATCHED_JSON.getName(), partialMatched);
-    writeLicenseThreatsToReportFile(application, applicationReport);
+    writeLicenseThreatsToReportFile(owner, applicationReport);
 
     JacksonNodeUtils.fill(data.putArray("securityCounts"), securityCounts);
     data.put("insecureArtifactCount", insecureArtifactCount);
@@ -1187,7 +1188,7 @@ public class ReportService
    * Applies changes to component data (bom/license/security/partialmatched/dependencies) including claiming components
    */
   private void applyComponentRelatedChanges(
-      final Application application,
+      final Owner owner,
       final String scanId,
       final LifecycleReport applicationReport,
       final String stageTypeId,
@@ -1228,26 +1229,28 @@ public class ReportService
     augmentDependenciesGraph(dependenciesJsonData);
     applicationReport.saveReportEntry(DEPENDENCIES_JSON.getName(), dependenciesJsonData);
 
-    innerSourceCleanupPendingService.cleanupRecordsIfPending(application.getId(), scanId);
+    innerSourceCleanupPendingService.cleanupRecordsIfPending(owner.getId(), scanId);
 
-    DependencyResolver
-        .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, stageTypeId, application,
-            telemetrySender, telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
-            proprietaryConfigService)
-        .resolve();
+    if (owner instanceof Application application) {
+      DependencyResolver
+          .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, stageTypeId, owner,
+              telemetrySender, telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
+              proprietaryConfigService)
+          .resolve();
 
-    triggerInnerSourceAutomatedRemediation(application, scanId, stageTypeId, dependenciesJsonData);
+      triggerInnerSourceAutomatedRemediation(application, scanId, stageTypeId, dependenciesJsonData);
+    }
 
     componentIdentifiers.addAll(
-        repositoryMatcher.match(application, bomJsonData, dataJson, summaryJsonData, licensesJsonData,
+        repositoryMatcher.match(owner, bomJsonData, dataJson, summaryJsonData, licensesJsonData,
             securityJsonData));
 
     fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = applyLicenseOverrides(licensesJsonData,
-        application);
+        owner);
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
     componentIdentifiersWithLicenseOverrides
-        .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application));
+        .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), owner));
     applicationReport.saveReportEntry(LICENSES_JSON.getName(), licensesJsonData);
 
     applicationReport.saveReportEntry(DATA_JSON.getName(), dataJson);
@@ -1257,7 +1260,7 @@ public class ReportService
     applicationReport.saveReportEntry(BOM_JSON.getName(), bomJsonData);
 
     fixComponentIdentifiers(securityJsonData, componentIdentifiers);
-    applySecurityVulnerabilityOverrides(securityJsonData, application, cpeResultsTelemetry);
+    applySecurityVulnerabilityOverrides(securityJsonData, owner, cpeResultsTelemetry);
     applicationReport.saveReportEntry(SECURITY_JSON.getName(), securityJsonData);
 
     // must start from un-edited data
@@ -1640,11 +1643,11 @@ public class ReportService
 
   private Set<ComponentIdentifier> applyLicenseOverrides(
       ContainerNode<?> licensesJsonData,
-      Application application)
+      Owner owner)
   {
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
 
-    if (!hasAnyLicenseOverrides(licenseOverrideDAO, application.getId())) {
+    if (!hasAnyLicenseOverrides(licenseOverrideDAO, owner.getId())) {
       return componentIdentifiersWithLicenseOverrides;
     }
 
@@ -1655,7 +1658,7 @@ public class ReportService
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
       LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
-          application, componentIdentifier);
+          owner, componentIdentifier);
       if (licenseOverride != null) {
         licenseOverrideCount++;
         componentIdentifiersWithLicenseOverrides.add(componentIdentifier);
@@ -1679,7 +1682,7 @@ public class ReportService
 
   private void applySecurityVulnerabilityOverrides(
       ContainerNode<?> securityJsonData,
-      Application application,
+      Owner owner,
       CpeResultsTelemetry cpeResultsTelemetry)
   {
     ArrayNode securityAaData = (ArrayNode) securityJsonData.get("aaData");
@@ -1692,7 +1695,7 @@ public class ReportService
       String source = securityJsonNode.get("source").asText();
       String referenceId = securityJsonNode.get("reference").asText();
       SecurityVulnerabilityOverride override =
-          securityVulnerabilityOverrideDAO.getByOwnerIdHashSourceAndReferenceId(application.getId(),
+          securityVulnerabilityOverrideDAO.getByOwnerIdHashSourceAndReferenceId(owner.getId(),
               hash, source, referenceId);
       if (override != null) {
         overrideCount++;
@@ -1710,14 +1713,14 @@ public class ReportService
   private Set<ComponentIdentifier> addLicenseOverridesForClaimedComponents(
       ArrayNode licensesAaData,
       Collection<HashComponentIdentifier> hashComponentIdentifiers,
-      Application application)
+      Owner owner)
   {
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
 
     int licenseOverrideCount = 0;
     for (HashComponentIdentifier hashComponentIdentifier : hashComponentIdentifiers) {
       LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
-          application, hashComponentIdentifier.getComponentIdentifier());
+          owner, hashComponentIdentifier.getComponentIdentifier());
       if (licenseOverride != null) {
         licenseOverrideCount++;
         ObjectNode licenseJsonNode = licensesAaData.addObject();
@@ -1830,11 +1833,11 @@ public class ReportService
 
   @VisibleForTesting
   void writeLicenseThreatsToReportFile(
-      final Application application,
+      final Owner owner,
       final LifecycleReport applicationReport) throws IOException
   {
     Map<String, Integer> threatLevelsBySimpleLicenseId =
-        licenseThreatGroupDAO.getLicenseThreatLevelsByApplication(application);
+        licenseThreatGroupDAO.getLicenseThreatLevelsByOwner(owner);
 
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode licenseTable = mapper.createObjectNode();

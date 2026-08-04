@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.lock;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 
 public abstract class AbstractClusterLockManager
@@ -14,8 +15,8 @@ public abstract class AbstractClusterLockManager
   protected abstract ClusterLock createClusterLock(ClusterLockId clusterLockId);
 
   @Override
-  public ClusterLock createForPolicyViolations(final Application application) {
-    return createClusterLock(ClusterLockId.forPolicyViolations(application.getId()));
+  public ClusterLock createForPolicyViolations(final Owner owner) {
+    return createClusterLock(ClusterLockId.forPolicyViolations(owner.getId()));
   }
 
   @Override
@@ -34,8 +35,8 @@ public abstract class AbstractClusterLockManager
   }
 
   @Override
-  public ClusterLock createForPolicyEvaluation(final Application application, final String scanId) {
-    return createClusterLock(ClusterLockId.forPolicyEvaluation(application.getId(), scanId));
+  public ClusterLock createForPolicyEvaluation(final Owner owner, final String scanId) {
+    return createClusterLock(ClusterLockId.forPolicyEvaluation(owner.getId(), scanId));
   }
 
   @Override

@@ -11,7 +11,10 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -24,6 +27,7 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PolicyViolationLoggerFactoryTest
     extends AbstractComponentTest
@@ -61,6 +65,54 @@ public class PolicyViolationLoggerFactoryTest
   public void testNewLogger_ForApplication_FeatureUnlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
     assertThat(policyViolationLoggerFactory.newLogger(new Date(), new Application()).isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testNewLogger_ForHostedRepositoryComponent_FeatureLicensed() {
+    testProductLicense.setFeatures(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(),
+        new HostedRepositoryComponent("repo-id", "path/foo.jar", "hash")))
+            .isInstanceOf(HostedRepositoryComponentPolicyViolationLogger.class)
+            .satisfies(logger -> assertThat(logger.isEnabled()).isTrue());
+  }
+
+  @Test
+  public void testNewLogger_ForHostedRepositoryComponent_FeatureUnlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(),
+        new HostedRepositoryComponent("repo-id", "path/foo.jar", "hash"))
+        .isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testNewPolicyViolationLogger_ForOwner_DispatchesToApplicationLogger() {
+    testProductLicense.setFeatures(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    Owner owner = new Application();
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), owner))
+        .isInstanceOf(ApplicationPolicyViolationLogger.class);
+  }
+
+  @Test
+  public void testNewPolicyViolationLogger_ForOwner_DispatchesToHostedRepositoryComponentLogger() {
+    testProductLicense.setFeatures(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    Owner owner = new HostedRepositoryComponent("repo-id", "path/foo.jar", "hash");
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), owner))
+        .isInstanceOf(HostedRepositoryComponentPolicyViolationLogger.class);
+  }
+
+  @Test
+  public void testNewPolicyViolationLogger_ForOwner_DispatchesToOrganizationLogger() {
+    testProductLicense.setFeatures(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+    Owner owner = new Organization();
+    assertThat(policyViolationLoggerFactory.newLogger(new Date(), owner))
+        .isInstanceOf(OrganizationPolicyViolationLogger.class);
+  }
+
+  @Test
+  public void testNewPolicyViolationLogger_ForOwner_UnsupportedType_Throws() {
+    Owner owner = new RepositoryManager();
+    assertThatThrownBy(() -> policyViolationLoggerFactory.newLogger(new Date(), owner))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test

@@ -14,6 +14,9 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
@@ -71,6 +74,29 @@ public class PolicyViolationLoggerFactory
     return new ProxyRepositoryPolicyViolationLogger(
         productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), logTimestamp, repository,
         currentUser, repositoryManagerDAO);
+  }
+
+  public HostedRepositoryComponentPolicyViolationLogger newLogger(
+      Date logTimestamp,
+      HostedRepositoryComponent hostedRepositoryComponent)
+  {
+    return new HostedRepositoryComponentPolicyViolationLogger(
+        productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp,
+        hostedRepositoryComponent, currentUser);
+  }
+
+  public AbstractPolicyViolationLogger<PolicyViolation> newLogger(Date logTimestamp, Owner owner) {
+    if (owner instanceof Application application) {
+      return newLogger(logTimestamp, application);
+    }
+    if (owner instanceof HostedRepositoryComponent hostedRepositoryComponent) {
+      return newLogger(logTimestamp, hostedRepositoryComponent);
+    }
+    if (owner instanceof Organization organization) {
+      return newLogger(logTimestamp, organization);
+    }
+    throw new IllegalArgumentException(
+        "Unsupported owner type for scan policy violation logging: " + owner.getType());
   }
 
   private void logPotentialMisconfiguration() {

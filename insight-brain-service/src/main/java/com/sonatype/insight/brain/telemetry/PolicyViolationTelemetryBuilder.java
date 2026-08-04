@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.license.LicenseNameProvider;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -44,6 +45,8 @@ public class PolicyViolationTelemetryBuilder
       Set.of(PolicyThreatCategory.SECURITY, PolicyThreatCategory.LICENSE);
 
   static final String APPLICATION_ID = "application_id";
+
+  static final String OWNER_TYPE = "owner_type";
 
   static final String COUNT = "count";
 
@@ -107,6 +110,8 @@ public class PolicyViolationTelemetryBuilder
 
   private Component component;
 
+  private OwnerType ownerType;
+
   public PolicyViolationTelemetryBuilder(
       PolicyViolation policyViolation,
       TelemetryPurpose purpose,
@@ -153,6 +158,11 @@ public class PolicyViolationTelemetryBuilder
     return this;
   }
 
+  public PolicyViolationTelemetryBuilder withOwnerType(OwnerType ownerType) {
+    this.ownerType = ownerType;
+    return this;
+  }
+
   public PolicyViolationTelemetryBuilder withTime(long time) {
     telemetryData.put(TIME, time);
     return this;
@@ -169,6 +179,7 @@ public class PolicyViolationTelemetryBuilder
 
     telemetryData
         .put(APPLICATION_ID, HdsClientAnalytics.obfuscate(policyViolation.getOwnerId()))
+        .put(OWNER_TYPE, ownerType == null ? null : ownerType.toString())
         .put(COUNT, 1)
         .put(OPEN_TIME, policyViolation.getOpenTime().getTime())
         .put(POLICY_NAME, policyViolation.getPolicyName())

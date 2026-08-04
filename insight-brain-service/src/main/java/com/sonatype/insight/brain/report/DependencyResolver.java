@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
@@ -100,7 +101,7 @@ public class DependencyResolver
 
   private final JsonNode summaryJson;
 
-  private final Application application;
+  private final Owner owner;
 
   // Visible for testing
   Predicate<String> isProprietary;
@@ -135,7 +136,7 @@ public class DependencyResolver
       JsonNode dataJson,
       JsonNode summaryJson,
       String stageTypeId,
-      Application application,
+      Owner owner,
       TelemetrySender telemetrySender,
       TelemetryUtils telemetryUtils,
       InnerSourceApplicationDAO innerSourceApplicationDAO,
@@ -143,7 +144,7 @@ public class DependencyResolver
       ApplicationDAO applicationDAO,
       ProprietaryConfigService proprietaryConfigService)
   {
-    return new DependencyResolver(dependenciesJson, bomJson, dataJson, summaryJson, stageTypeId, application,
+    return new DependencyResolver(dependenciesJson, bomJson, dataJson, summaryJson, stageTypeId, owner,
         telemetrySender, telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
         proprietaryConfigService);
   }
@@ -155,7 +156,7 @@ public class DependencyResolver
       final JsonNode dataJson,
       final JsonNode summaryJson,
       final String stageTypeId,
-      final Application application,
+      final Owner owner,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       final InnerSourceApplicationDAO innerSourceApplicationDAO,
@@ -168,7 +169,7 @@ public class DependencyResolver
     this.bomJson = bomJson;
     this.dataJson = dataJson;
     this.summaryJson = summaryJson;
-    this.application = application;
+    this.owner = owner;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.innerSourceApplicationDAO = innerSourceApplicationDAO;
@@ -221,7 +222,7 @@ public class DependencyResolver
       return false;
     }
 
-    String appId = application.getId();
+    String appId = owner.getId();
     String version = packageUrl.getVersion();
     PackageUrlIdentifier versionlessPurl = packageUrl.createAlternativeVersion(null);
 
@@ -381,7 +382,7 @@ public class DependencyResolver
   {
     InnerSourceApplication innerSourceApplication =
         innerSourceApplicationsByPackageUrl.get(simplifiedPurl.getPackageUrl());
-    if (innerSourceApplication == null || application.getId().equals(innerSourceApplication.getApplicationId())) {
+    if (innerSourceApplication == null || owner.getId().equals(innerSourceApplication.getApplicationId())) {
       return null;
     }
     return innerSourceApplication;
@@ -567,7 +568,7 @@ public class DependencyResolver
   // Visible for testing
   boolean isProprietaryComponent(PackageUrlIdentifier componentPurl) {
     if (isProprietary == null) {
-      isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
+      isProprietary = proprietaryConfigService.createIsProprietary(owner.getId());
     }
     return componentPurl.toComponentIdentifier().getProprietaryCoordinates().stream().anyMatch(isProprietary);
   }
@@ -848,7 +849,7 @@ public class DependencyResolver
   private void sendTelemetryData() {
     if (!innerSourceProducerTelemetries.isEmpty()) {
       telemetrySender.send(
-          buildInnerSourceTelemetryData(application.getId(), innerSourceProducerTelemetries));
+          buildInnerSourceTelemetryData(owner.getId(), innerSourceProducerTelemetries));
     }
   }
 }

@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -403,13 +402,13 @@ public class LicenseThreatGroupDAO
   }
 
   /**
-   * Returns a map of threat levels by (simple) license id for the specified application. The threat levels are
-   * determined from the License Threat Groups in the app/org hierarchy.
+   * Returns a map of threat levels by (simple) license id for the specified owner. The threat levels are
+   * determined from the License Threat Groups in the owner hierarchy.
    *
    * @since 1.91
    */
-  public Map<String, Integer> getLicenseThreatLevelsByApplication(Application application) {
-    Collection<String> ownerIds = ownerDAO.getOwnerIds(application);
+  public Map<String, Integer> getLicenseThreatLevelsByOwner(Owner owner) {
+    Collection<String> ownerIds = ownerDAO.getOwnerIds(owner);
 
     Map<String, Integer> threatLevelsByLicenseThreatGroupId = getByOwnerIds(ownerIds).stream()
         .collect(Collectors.toMap(LicenseThreatGroup::getId, LicenseThreatGroup::getThreatLevel));

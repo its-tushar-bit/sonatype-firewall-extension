@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDA
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -214,7 +215,7 @@ public class RepositoryMatcher
   }
 
   public Set<ComponentIdentifier> match(
-      Application application,
+      Owner owner,
       JsonNode bomJson,
       JsonNode dataJson,
       JsonNode summaryJson,
@@ -225,11 +226,16 @@ public class RepositoryMatcher
       return Collections.emptySet();
     }
 
+    // TODO CLM-44136: Artifactory BFS matching is Application-only for now.
+    if (!(owner instanceof Application)) {
+      return Collections.emptySet();
+    }
+
     Set<ComponentIdentifier> result = new HashSet<>();
     ArtifactoryConnection connection = null;
     try {
       long start = System.currentTimeMillis();
-      connection = getArtifactoryConnection(application.getId());
+      connection = getArtifactoryConnection(owner.getId());
       Map<ComponentIdentifier, ObjectNode> sha256Matched = identify(connection, bomJson);
       log.debug("performed repository matching in {} seconds with {} identified results",
           (System.currentTimeMillis() - start) / 1000, sha256Matched.size());
@@ -239,7 +245,7 @@ public class RepositoryMatcher
       log.debug("performed component evaluation in {} seconds with {} evaluation results",
           (System.currentTimeMillis() - start) / 1000, evaluationByIdentifier.size());
       start = System.currentTimeMillis();
-      result.addAll(updateJsonFiles(application, (ObjectNode) bomJson, (ObjectNode) dataJson, (ObjectNode) summaryJson,
+      result.addAll(updateJsonFiles(owner, (ObjectNode) bomJson, (ObjectNode) dataJson, (ObjectNode) summaryJson,
           (ObjectNode) licensesJson, (ObjectNode) securityJson, sha256Matched, evaluationByIdentifier));
       log.debug("updated json files in {} seconds", (System.currentTimeMillis() - start) / 1000);
     }
@@ -273,7 +279,7 @@ public class RepositoryMatcher
 
   // Visible for testing
   Set<ComponentIdentifier> updateJsonFiles(
-      Application application,
+      Owner owner,
       ObjectNode bomJson,
       ObjectNode dataJson,
       ObjectNode summaryJson,
@@ -286,7 +292,7 @@ public class RepositoryMatcher
       return Collections.emptySet();
     }
     Set<ComponentIdentifier> result = new HashSet<>();
-    Predicate<String> isProprietary = proprietaryConfigService.createIsProprietary(application.getId());
+    Predicate<String> isProprietary = proprietaryConfigService.createIsProprietary(owner.getId());
     AtomicInteger unknown = new AtomicInteger();
     AtomicInteger similar = new AtomicInteger();
     for (Entry<ComponentIdentifier, ComponentEvaluationData> entry : evaluationByIdentifier.entrySet()) {

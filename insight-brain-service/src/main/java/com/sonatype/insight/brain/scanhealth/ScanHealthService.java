@@ -11,8 +11,8 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfig;
 import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfigDTO;
@@ -28,7 +28,6 @@ import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
 import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
 
 import java.util.List;
@@ -160,25 +159,26 @@ public class ScanHealthService
    * Do not expose this method through REST endpoints or other external interfaces without adding
    * appropriate authorization.
    *
-   * @param applicationId the application ID (required)
+   * @param ownerId the owner ID (required)
+   * @param ownerType the type of the owner identified by {@code ownerId}
    * @return the effective configuration
    */
-  public ScanHealthConfigDTO getEffectiveConfig(final String applicationId) {
-    // 1. Check application-level config
-    if (applicationId != null) {
-      Optional<ScanHealthConfig> appConfig = scanHealthConfigDAO.findByOwner(APPLICATION.toString(), applicationId);
-      if (appConfig.isPresent()) {
-        ScanHealthConfigDTO dto = deserializeConfig(appConfig.get().getConfigurationJson());
+  public ScanHealthConfigDTO getEffectiveConfig(final String ownerId, final OwnerType ownerType) {
+    // 1. Check owner-level config
+    if (ownerId != null) {
+      Optional<ScanHealthConfig> ownerConfig = scanHealthConfigDAO.findByOwner(ownerType.toString(), ownerId);
+      if (ownerConfig.isPresent()) {
+        ScanHealthConfigDTO dto = deserializeConfig(ownerConfig.get().getConfigurationJson());
         if (dto.failOnZeroComponents() != null) {
-          log.debug("Using application-level Scan Health config for app {}", applicationId);
+          log.debug("Using owner-level Scan Health config for {}/{}", ownerType, ownerId);
           return dto;
         }
       }
     }
 
     // 2. Walk up the organization hierarchy (from closest parent to root)
-    if (applicationId != null) {
-      final List<Organization> parentOrgs = organizationDAO.getAllParentOrganizations(applicationId, APPLICATION);
+    if (ownerId != null) {
+      final List<Organization> parentOrgs = organizationDAO.getAllParentOrganizations(ownerId, ownerType);
       for (final Organization org : parentOrgs) {
         Optional<ScanHealthConfig> orgConfig = scanHealthConfigDAO.findByOwner(ORGANIZATION.toString(), org.getId());
         if (orgConfig.isPresent()) {
@@ -205,31 +205,27 @@ public class ScanHealthService
    * (Unprocessable Entity) might be semantically more precise, HTTP 400 is the established convention
    * in this codebase for post-input-validation failures in the scan evaluation flow.
    *
-   * @param application the application being scanned
+   * @param owner the owner being scanned
    * @throws BadRequestException if the feature is enabled and zero components were detected
    */
-  public void failOnEvaluateResultContainingZeroComponentsIfConfigured(final Application application) {
-    if (shouldFailOnZeroComponents(application)) {
+  public void failOnEvaluateResultContainingZeroComponentsIfConfigured(final Owner owner) {
+    if (shouldFailOnZeroComponents(owner)) {
       throw new BadRequestException(SCAN_FAILED_ZERO_COMPONENTS_DETECTED_MESSAGE);
     }
-  }
-
-  public boolean shouldFailOnZeroComponents(final Application application) {
-    return shouldFailOnZeroComponents(application.getId());
   }
 
   /**
    * Check if a scan should fail due to zero components.
    *
-   * @param applicationId the internal ID of the application
+   * @param owner the owner being scanned
    * @return true if the scan should fail (feature enabled AND zero components)
    */
-  public boolean shouldFailOnZeroComponents(final String applicationId) {
-    final ScanHealthConfigDTO config = getEffectiveConfig(applicationId);
+  public boolean shouldFailOnZeroComponents(final Owner owner) {
+    final ScanHealthConfigDTO config = getEffectiveConfig(owner.getId(), owner.getType());
     final boolean shouldFail = Boolean.TRUE.equals(config.failOnZeroComponents());
 
     if (shouldFail) {
-      log.info("Scan failing due to zero components for application {}", applicationId);
+      log.info("Scan failing due to zero components for {}/{}", owner.getType(), owner.getId());
     }
 
     return shouldFail;

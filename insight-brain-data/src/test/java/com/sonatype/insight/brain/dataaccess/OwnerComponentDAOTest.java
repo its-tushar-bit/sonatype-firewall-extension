@@ -1082,4 +1082,111 @@ public class OwnerComponentDAOTest
     assertThat(actual.getPathnames()).isEqualTo(expected.getPathnames());
     assertThat(actual.getPathnamesString()).isEqualTo(expected.getPathnamesString());
   }
+
+  @Test
+  public void findDistinctOwnersByHashPaged_excludesOrphansAndRespectsOwnerScope() {
+    Date newer = new Date(2_000L);
+    Date older = new Date(1_000L);
+    // varchar(20) hash; keep unique across parallel forks.
+    String hash = ("u1" + TemporaryEntity.uuid()).substring(0, 20);
+    dao.insert(new OwnerComponent(application.getId(), BuildStageType.ID, older, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null));
+    dao.insert(new OwnerComponent(application.getId(), ReleaseStageType.ID, newer, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null));
+
+    String app2Id = tempEntity.newApplication(organization.getId()).getId();
+    dao.insert(new OwnerComponent(app2Id, BuildStageType.ID, older, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null));
+
+    // Orphan owner_component (no application row) must not inflate total or pages.
+    // Delete before TemporaryEntity teardown — MAIN runs with -DdetectTestEntityLeaks.
+    OwnerComponent orphan = new OwnerComponent("missing-app-" + TemporaryEntity.uuid(), BuildStageType.ID, newer,
+        hash, ComponentIdentifier.createMavenCoordinates("g", "a", "1"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null);
+    dao.insert(orphan);
+    try {
+      OwnerComponentDAO.PagedOwnersByHash unrestricted =
+          dao.findDistinctOwnersByHashPaged(hash, null, 0, 25);
+      assertThat(unrestricted.total()).isEqualTo(2L);
+      assertThat(unrestricted.rows()).extracting(OwnerComponentDAO.ComponentOwnerUsageRow::ownerId)
+          .containsExactly(application.getId(), app2Id);
+      // Compare epoch millis — Postgres returns Timestamp; Timestamp.equals(Date) is false.
+      assertThat(unrestricted.rows().get(0).lastSeenTime().getTime()).isEqualTo(newer.getTime());
+
+      OwnerComponentDAO.PagedOwnersByHash scoped =
+          dao.findDistinctOwnersByHashPaged(hash, Set.of(app2Id), 0, 25);
+      assertThat(scoped.total()).isEqualTo(1L);
+      assertThat(scoped.rows()).extracting(OwnerComponentDAO.ComponentOwnerUsageRow::ownerId)
+          .containsExactly(app2Id);
+
+      assertThat(dao.findDistinctOwnersByHashPaged(hash, Set.of(), 0, 25).total()).isZero();
+
+      Map<String, List<String>> stages =
+          dao.getStageTypeIdsByOwnerIdForHash(hash, List.of(application.getId()));
+      assertThat(stages.get(application.getId()))
+          .containsExactlyInAnyOrder(BuildStageType.ID, ReleaseStageType.ID);
+    }
+    finally {
+      dao.delete(orphan);
+    }
+  }
+
+  @Test
+  public void findDistinctOwnersByHashPaged_embeddedLargeScopeFiltersInMemory() {
+    Date now = new Date();
+    String hash = ("u3" + TemporaryEntity.uuid()).substring(0, 20);
+    dao.insert(new OwnerComponent(application.getId(), BuildStageType.ID, now, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null));
+
+    // Above H2 complex-query IN threshold: must take the embedded hash-seek + in-memory filter path.
+    Set<String> largeScope = new HashSet<>();
+    largeScope.add(application.getId());
+    for (int i = 0; i < 400; i++) {
+      largeScope.add("missing-owner-" + i);
+    }
+
+    OwnerComponentDAO.PagedOwnersByHash paged =
+        dao.findDistinctOwnersByHashPaged(hash, largeScope, 0, 25);
+    assertThat(paged.total()).isEqualTo(1L);
+    assertThat(paged.rows()).extracting(OwnerComponentDAO.ComponentOwnerUsageRow::ownerId)
+        .containsExactly(application.getId());
+
+    OwnerComponentDAO.PagedOrganizationsByHash orgs =
+        dao.findDistinctOrganizationsByHashPaged(hash, largeScope, 0, 25);
+    assertThat(orgs.total()).isEqualTo(1L);
+    assertThat(orgs.rows()).extracting(OwnerComponentDAO.ComponentOrganizationUsageRow::organizationId)
+        .containsExactly(organization.getId());
+  }
+
+  @Test
+  public void findDistinctOrganizationsByHashPaged_pagesAndScopes() {
+    Date now = new Date();
+    String hash = ("u2" + TemporaryEntity.uuid()).substring(0, 20);
+    dao.insert(new OwnerComponent(application.getId(), BuildStageType.ID, now, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null));
+
+    Organization org2 = tempEntity.newOrganization(getClass().getSimpleName() + "_org2_" + TemporaryEntity.uuid());
+    String appInOrg2 = tempEntity.newApplication(org2.getId()).getId();
+    dao.insert(new OwnerComponent(appInOrg2, BuildStageType.ID, new Date(now.getTime() + 1_000), hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null));
+
+    OwnerComponentDAO.PagedOrganizationsByHash unrestricted =
+        dao.findDistinctOrganizationsByHashPaged(hash, null, 0, 25);
+    assertThat(unrestricted.total()).isEqualTo(2L);
+    assertThat(unrestricted.rows()).extracting(OwnerComponentDAO.ComponentOrganizationUsageRow::organizationId)
+        .containsExactly(org2.getId(), organization.getId());
+    assertThat(unrestricted.rows().get(0).applicationCount()).isEqualTo(1L);
+
+    OwnerComponentDAO.PagedOrganizationsByHash scoped =
+        dao.findDistinctOrganizationsByHashPaged(hash, Set.of(application.getId()), 0, 25);
+    assertThat(scoped.total()).isEqualTo(1L);
+    assertThat(scoped.rows()).extracting(OwnerComponentDAO.ComponentOrganizationUsageRow::organizationId)
+        .containsExactly(organization.getId());
+  }
 }

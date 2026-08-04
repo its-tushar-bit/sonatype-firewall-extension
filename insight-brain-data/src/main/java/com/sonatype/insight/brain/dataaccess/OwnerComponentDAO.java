@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,6 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -593,6 +596,320 @@ public class OwnerComponentDAO
           r.get("scoreModerate", Integer.class),
           r.get("scoreLow", Integer.class)));
     }
+  }
+
+  /**
+   * Distinct application ({@code owner_id}) that contains {@code hash}, with latest component time.
+   * Used by Nexus One component where-used (CLM-43959).
+   */
+  public record ComponentOwnerUsageRow(String ownerId, Date lastSeenTime)
+  {
+  }
+
+  /**
+   * Distinct organization that contains {@code hash} via at least one readable application, with
+   * distinct application count and latest component time.
+   */
+  public record ComponentOrganizationUsageRow(String organizationId, long applicationCount, Date lastSeenTime)
+  {
+  }
+
+  /**
+   * Count + page of distinct applications for a hash in one transaction (one RBAC temp table).
+   * Inner-joins {@code application} so orphan {@code owner_component} rows never inflate total/pages.
+   * <ul>
+   * <li>{@code ownerIds == null} — unrestricted (hash-only; no owner IN clause)</li>
+   * <li>{@code ownerIds} empty — fail-closed → empty</li>
+   * <li>non-empty — filter to those owners (temp table when large)</li>
+   * </ul>
+   */
+  public record PagedOwnersByHash(long total, List<ComponentOwnerUsageRow> rows)
+  {
+  }
+
+  /**
+   * Count + page of distinct organizations for a hash in one transaction (one RBAC temp table).
+   */
+  public record PagedOrganizationsByHash(long total, List<ComponentOrganizationUsageRow> rows)
+  {
+  }
+
+  /**
+   * Paged distinct application owners for a component hash (latest-seen descending), with total.
+   */
+  public PagedOwnersByHash findDistinctOwnersByHashPaged(
+      final String hash,
+      final Set<String> ownerIds,
+      final int offset,
+      final int limit)
+  {
+    if (StringUtils.isBlank(hash) || isFailClosedOwnerScope(ownerIds) || limit < 1) {
+      return new PagedOwnersByHash(0L, List.of());
+    }
+    // Embedded H2: avoid uncapped IN (ownerIds) cost; seek by hash then filter/page in memory.
+    if (ownerIds != null && requiresManualFilter(ownerIds)) {
+      return findDistinctOwnersByHashPagedEmbedded(hash, ownerIds, offset, limit);
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      boolean useTemporaryTable = prepareOwnerTempTable(tx, ownerIds);
+      Condition where = hashAndOwnerCondition(hash, ownerIds, useTemporaryTable);
+
+      var countFrom = tx.dsl()
+          .select(DSL.countDistinct(OWNER_COMPONENT.OWNER_ID))
+          .from(OWNER_COMPONENT)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID));
+      if (useTemporaryTable) {
+        countFrom = countFrom
+            .join(DSL.table("temporary_ids").as("ti"))
+            .on(OWNER_COMPONENT.OWNER_ID.eq(DSL.field("ti.id", String.class)));
+      }
+      Long count = countFrom.where(where).fetchOne(0, Long.class);
+      long total = count == null ? 0L : count;
+
+      var lastSeen = DSL.max(OWNER_COMPONENT.TIME).as("last_seen");
+      var select = tx.dsl()
+          .select(OWNER_COMPONENT.OWNER_ID, lastSeen)
+          .from(OWNER_COMPONENT)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID));
+      if (useTemporaryTable) {
+        select = select
+            .join(DSL.table("temporary_ids").as("ti"))
+            .on(OWNER_COMPONENT.OWNER_ID.eq(DSL.field("ti.id", String.class)));
+      }
+      List<ComponentOwnerUsageRow> rows = select
+          .where(where)
+          .groupBy(OWNER_COMPONENT.OWNER_ID)
+          .orderBy(lastSeen.desc(), OWNER_COMPONENT.OWNER_ID.asc())
+          .limit(limit)
+          .offset(offset)
+          .fetch(r -> new ComponentOwnerUsageRow(r.get(OWNER_COMPONENT.OWNER_ID), r.get(lastSeen)));
+      return new PagedOwnersByHash(total, rows);
+    }
+  }
+
+  /**
+   * H2-safe owners where-used: hash index seek + join application, then RBAC filter/page in memory.
+   */
+  private PagedOwnersByHash findDistinctOwnersByHashPagedEmbedded(
+      final String hash,
+      final Set<String> ownerIds,
+      final int offset,
+      final int limit)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      var lastSeen = DSL.max(OWNER_COMPONENT.TIME).as("last_seen");
+      List<ComponentOwnerUsageRow> filtered = tx.dsl()
+          .select(OWNER_COMPONENT.OWNER_ID, lastSeen)
+          .from(OWNER_COMPONENT)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID))
+          .where(OWNER_COMPONENT.HASH.eq(hash))
+          .groupBy(OWNER_COMPONENT.OWNER_ID)
+          .fetch(r -> new ComponentOwnerUsageRow(r.get(OWNER_COMPONENT.OWNER_ID), r.get(lastSeen)))
+          .stream()
+          .filter(row -> ownerIds.contains(row.ownerId()))
+          .sorted(Comparator
+              .comparing(ComponentOwnerUsageRow::lastSeenTime, Comparator.nullsLast(Comparator.reverseOrder()))
+              .thenComparing(ComponentOwnerUsageRow::ownerId, Comparator.nullsLast(String::compareTo)))
+          .toList();
+      return pageOwners(filtered, offset, limit);
+    }
+  }
+
+  /**
+   * Stage type ids per owner for a hash, for the current applications page only.
+   */
+  public Map<String, List<String>> getStageTypeIdsByOwnerIdForHash(
+      final String hash,
+      final Collection<String> ownerIds)
+  {
+    if (StringUtils.isBlank(hash) || CollectionUtils.isEmpty(ownerIds)) {
+      return Map.of();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(OWNER_COMPONENT.OWNER_ID, OWNER_COMPONENT.STAGE_TYPE_ID)
+          .from(OWNER_COMPONENT)
+          .where(OWNER_COMPONENT.HASH.eq(hash))
+          .and(OWNER_COMPONENT.OWNER_ID.in(ownerIds))
+          .orderBy(OWNER_COMPONENT.OWNER_ID.asc(), OWNER_COMPONENT.STAGE_TYPE_ID.asc())
+          .fetchGroups(OWNER_COMPONENT.OWNER_ID, OWNER_COMPONENT.STAGE_TYPE_ID);
+    }
+  }
+
+  /**
+   * Paged distinct organizations for a component hash (latest-seen descending), with total.
+   */
+  public PagedOrganizationsByHash findDistinctOrganizationsByHashPaged(
+      final String hash,
+      final Set<String> ownerIds,
+      final int offset,
+      final int limit)
+  {
+    if (StringUtils.isBlank(hash) || isFailClosedOwnerScope(ownerIds) || limit < 1) {
+      return new PagedOrganizationsByHash(0L, List.of());
+    }
+    if (ownerIds != null && requiresManualFilter(ownerIds)) {
+      return findDistinctOrganizationsByHashPagedEmbedded(hash, ownerIds, offset, limit);
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      boolean useTemporaryTable = prepareOwnerTempTable(tx, ownerIds);
+      // organization_id is NOT NULL in schema; keep explicit for GROUP BY / COUNT Distinct parity.
+      Condition where = hashAndOwnerCondition(hash, ownerIds, useTemporaryTable)
+          .and(APPLICATION.ORGANIZATION_ID.isNotNull());
+
+      var countFrom = tx.dsl()
+          .select(DSL.countDistinct(APPLICATION.ORGANIZATION_ID))
+          .from(OWNER_COMPONENT)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID));
+      if (useTemporaryTable) {
+        countFrom = countFrom
+            .join(DSL.table("temporary_ids").as("ti"))
+            .on(OWNER_COMPONENT.OWNER_ID.eq(DSL.field("ti.id", String.class)));
+      }
+      Long count = countFrom.where(where).fetchOne(0, Long.class);
+      long total = count == null ? 0L : count;
+
+      var lastSeen = DSL.max(OWNER_COMPONENT.TIME).as("last_seen");
+      var appCount = DSL.countDistinct(OWNER_COMPONENT.OWNER_ID).as("application_count");
+      var select = tx.dsl()
+          .select(APPLICATION.ORGANIZATION_ID, appCount, lastSeen)
+          .from(OWNER_COMPONENT)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID));
+      if (useTemporaryTable) {
+        select = select
+            .join(DSL.table("temporary_ids").as("ti"))
+            .on(OWNER_COMPONENT.OWNER_ID.eq(DSL.field("ti.id", String.class)));
+      }
+      List<ComponentOrganizationUsageRow> rows = select
+          .where(where)
+          .groupBy(APPLICATION.ORGANIZATION_ID)
+          .orderBy(lastSeen.desc(), APPLICATION.ORGANIZATION_ID.asc())
+          .limit(limit)
+          .offset(offset)
+          .fetch(r -> {
+            Long applicationCount = r.get(appCount, Long.class);
+            return new ComponentOrganizationUsageRow(
+                r.get(APPLICATION.ORGANIZATION_ID),
+                applicationCount == null ? 0L : applicationCount,
+                r.get(lastSeen));
+          });
+      return new PagedOrganizationsByHash(total, rows);
+    }
+  }
+
+  /**
+   * H2-safe orgs where-used: hash seek + join application, RBAC filter and org rollup in memory.
+   */
+  private PagedOrganizationsByHash findDistinctOrganizationsByHashPagedEmbedded(
+      final String hash,
+      final Set<String> ownerIds,
+      final int offset,
+      final int limit)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      var lastSeen = DSL.max(OWNER_COMPONENT.TIME).as("last_seen");
+      record OwnerOrg(String ownerId, String organizationId, Date lastSeenTime)
+      {
+      }
+      List<OwnerOrg> owners = tx.dsl()
+          .select(OWNER_COMPONENT.OWNER_ID, APPLICATION.ORGANIZATION_ID, lastSeen)
+          .from(OWNER_COMPONENT)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(OWNER_COMPONENT.OWNER_ID))
+          .where(OWNER_COMPONENT.HASH.eq(hash))
+          .and(APPLICATION.ORGANIZATION_ID.isNotNull())
+          .groupBy(OWNER_COMPONENT.OWNER_ID, APPLICATION.ORGANIZATION_ID)
+          .fetch(r -> new OwnerOrg(
+              r.get(OWNER_COMPONENT.OWNER_ID),
+              r.get(APPLICATION.ORGANIZATION_ID),
+              r.get(lastSeen)))
+          .stream()
+          .filter(row -> ownerIds.contains(row.ownerId()))
+          .toList();
+
+      Map<String, ComponentOrganizationUsageRow> byOrg = new HashMap<>();
+      for (OwnerOrg owner : owners) {
+        ComponentOrganizationUsageRow existing = byOrg.get(owner.organizationId());
+        if (existing == null) {
+          byOrg.put(owner.organizationId(), new ComponentOrganizationUsageRow(
+              owner.organizationId(), 1L, owner.lastSeenTime()));
+          continue;
+        }
+        Date mergedLastSeen = existing.lastSeenTime();
+        if (owner.lastSeenTime() != null
+            && (mergedLastSeen == null || owner.lastSeenTime().after(mergedLastSeen)))
+        {
+          mergedLastSeen = owner.lastSeenTime();
+        }
+        byOrg.put(owner.organizationId(), new ComponentOrganizationUsageRow(
+            owner.organizationId(), existing.applicationCount() + 1L, mergedLastSeen));
+      }
+
+      List<ComponentOrganizationUsageRow> filtered = byOrg.values()
+          .stream()
+          .sorted(Comparator
+              .comparing(ComponentOrganizationUsageRow::lastSeenTime,
+                  Comparator.nullsLast(Comparator.reverseOrder()))
+              .thenComparing(ComponentOrganizationUsageRow::organizationId,
+                  Comparator.nullsLast(String::compareTo)))
+          .toList();
+      return pageOrganizations(filtered, offset, limit);
+    }
+  }
+
+  private static PagedOwnersByHash pageOwners(
+      final List<ComponentOwnerUsageRow> filtered,
+      final int offset,
+      final int limit)
+  {
+    if (offset >= filtered.size()) {
+      return new PagedOwnersByHash(filtered.size(), List.of());
+    }
+    int to = Math.min(offset + limit, filtered.size());
+    return new PagedOwnersByHash(filtered.size(), filtered.subList(offset, to));
+  }
+
+  private static PagedOrganizationsByHash pageOrganizations(
+      final List<ComponentOrganizationUsageRow> filtered,
+      final int offset,
+      final int limit)
+  {
+    if (offset >= filtered.size()) {
+      return new PagedOrganizationsByHash(filtered.size(), List.of());
+    }
+    int to = Math.min(offset + limit, filtered.size());
+    return new PagedOrganizationsByHash(filtered.size(), filtered.subList(offset, to));
+  }
+
+  /** Empty set is fail-closed; {@code null} is unrestricted (no owner filter). */
+  private static boolean isFailClosedOwnerScope(final Set<String> ownerIds) {
+    return ownerIds != null && ownerIds.isEmpty();
+  }
+
+  /**
+   * Shared RBAC owner-scope: create {@code temporary_ids} when the IN list exceeds the PG parameter
+   * threshold. Callers join that table when this returns {@code true}, otherwise AND
+   * {@link #hashAndOwnerCondition}.
+   */
+  private boolean prepareOwnerTempTable(final TransactionContext tx, final Set<String> ownerIds) {
+    return ownerIds != null && temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, ownerIds);
+  }
+
+  private static Condition hashAndOwnerCondition(
+      final String hash,
+      final Set<String> ownerIds,
+      final boolean useTemporaryTable)
+  {
+    Condition where = OWNER_COMPONENT.HASH.eq(hash);
+    if (ownerIds != null && !useTemporaryTable) {
+      where = where.and(OWNER_COMPONENT.OWNER_ID.in(ownerIds));
+    }
+    return where;
   }
 
   /**

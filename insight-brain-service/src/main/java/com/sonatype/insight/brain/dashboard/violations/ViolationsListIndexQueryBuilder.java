@@ -62,6 +62,7 @@ final class ViolationsListIndexQueryBuilder
     clauses.add(FieldIdentifier.ITEM_TYPE.label + ":" + ItemType.POLICY_VIOLATION.name());
 
     addIfPresent(clauses, buildSearchClause(request == null ? null : request.search));
+    addIfPresent(clauses, buildComponentHashClause(request == null ? null : request.componentHash));
     addIfPresent(clauses, buildDimensionClause(request));
     addIfPresent(clauses, buildStageClause(request == null ? null : request.stageIds));
     addIfPresent(clauses, buildThreatLevelClause(request == null ? null : request.policyThreatLevelRange));
@@ -69,6 +70,15 @@ final class ViolationsListIndexQueryBuilder
     addIfPresent(clauses, buildStateClause(request == null ? null : request.policyViolationStates));
 
     return clauses;
+  }
+
+  private static String buildComponentHashClause(final String componentHash) {
+    if (StringUtils.isBlank(componentHash)) {
+      return null;
+    }
+    String trimmed = componentHash.trim();
+    String safe = DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(trimmed);
+    return FieldIdentifier.COMPONENT_HASH.label + ":" + safe;
   }
 
   private String buildDimensionClause(final ViolationsListRequestDTO request) {

@@ -95,4 +95,11 @@ public class ViolationsListRequestDTO
    * rows).
    */
   public String applicationFacetSearch;
+
+  /**
+   * Optional exact component hash filter for component-detail Policy Violations (CLM-43958).
+   * When non-blank, list rows and facets narrow to {@code POLICY_VIOLATION} documents with that
+   * {@code componentHash}. Blank/null leaves estate-wide behavior unchanged.
+   */
+  public String componentHash;
 }

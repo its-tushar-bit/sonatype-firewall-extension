@@ -25,6 +25,9 @@ final class ViolationsListRequestValidator
 {
   static final String DEFAULT_ORDER_BY = "-policyThreatLevel";
 
+  /** Matches {@code application_component.hash} / index componentHash storage width. */
+  static final int MAX_COMPONENT_HASH_LENGTH = 40;
+
   private static final Set<String> SUPPORTED_ORDER_BY = Set.of("policyThreatLevel", "-policyThreatLevel");
 
   void validate(final ViolationsListRequestDTO request) {
@@ -32,7 +35,22 @@ final class ViolationsListRequestValidator
       return;
     }
     rejectUnsupportedFilters(request);
+    validateComponentHash(request.componentHash);
     validateOrderBy(request.orderBy);
+  }
+
+  private static void validateComponentHash(final String componentHash) {
+    if (componentHash == null) {
+      return;
+    }
+    String trimmed = componentHash.trim();
+    if (trimmed.isEmpty()) {
+      return;
+    }
+    if (trimmed.length() > MAX_COMPONENT_HASH_LENGTH) {
+      throw new BadRequestException(
+          "componentHash exceeds maximum length of " + MAX_COMPONENT_HASH_LENGTH + " characters.");
+    }
   }
 
   private static void rejectUnsupportedFilters(final ViolationsListRequestDTO request) {

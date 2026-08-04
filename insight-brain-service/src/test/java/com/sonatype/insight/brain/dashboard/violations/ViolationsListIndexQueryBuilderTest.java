@@ -72,6 +72,46 @@ public class ViolationsListIndexQueryBuilderTest
   }
 
   @Test
+  public void buildViolationQuery_componentHash_exactMatch() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.componentHash = "abc123def456";
+
+    assertThat(newBuilder().buildViolationQuery(request))
+        .isEqualTo(BASE + " AND componentHash:abc123def456");
+  }
+
+  @Test
+  public void buildViolationQuery_blankComponentHash_omitsClause() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.componentHash = "   ";
+
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(BASE);
+  }
+
+  @Test
+  public void buildViolationQuery_componentHash_escapesSpecialChars() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.componentHash = "hash:with+special";
+
+    assertThat(newBuilder().buildViolationQuery(request))
+        .isEqualTo(BASE + " AND componentHash:"
+            + DashboardIndexDimensionQueryBuilder.escapeLuceneTerm("hash:with+special"));
+  }
+
+  @Test
+  public void buildViolationQuery_componentHashAndSearch_andsClauses() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.componentHash = "abc123";
+    request.search = "log4j";
+
+    String query = newBuilder().buildViolationQuery(request);
+
+    assertThat(query).startsWith(BASE + " AND ");
+    assertThat(query).contains("componentHash:abc123");
+    assertThat(query).contains("componentName:*log4j*");
+  }
+
+  @Test
   public void buildViolationQuery_multiWordSearch_andsTokensAcrossFields() {
     ViolationsListRequestDTO request = new ViolationsListRequestDTO();
     request.search = "apple pie";

@@ -34,6 +34,7 @@ describe('violationsListQuery (CLM-42260)', () => {
         stage: 'build,release',
         org: 'org-java',
         app: 'app-apple,app-banana',
+        appCategory: 'cat-internal,cat-distributed',
         threat: '4-9',
       });
       expect(parsed.search).toBe('log4j');
@@ -43,6 +44,7 @@ describe('violationsListQuery (CLM-42260)', () => {
       expect([...parsed.filters.stageIds].sort()).toEqual(['build', 'release']);
       expect([...parsed.filters.organizationIds]).toEqual(['org-java']);
       expect([...parsed.filters.applicationIds].sort()).toEqual(['app-apple', 'app-banana']);
+      expect([...parsed.filters.applicationCategoryIds].sort()).toEqual(['cat-distributed', 'cat-internal']);
       expect(parsed.filters.threatRange).toEqual([4, 9]);
     });
 
@@ -108,6 +110,7 @@ describe('violationsListQuery (CLM-42260)', () => {
         stage: undefined,
         org: undefined,
         app: undefined,
+        appCategory: undefined,
         threat: undefined,
         waiver: undefined,
       });
@@ -123,6 +126,7 @@ describe('violationsListQuery (CLM-42260)', () => {
           stageIds: new Set(['release', 'build']),
           organizationIds: new Set(['org-java']),
           applicationIds: new Set(['app-banana', 'app-apple']),
+          applicationCategoryIds: new Set(['cat-b', 'cat-a']),
           threatRange: [4, 9],
         }),
       });
@@ -134,6 +138,7 @@ describe('violationsListQuery (CLM-42260)', () => {
         stage: 'build,release',
         org: 'org-java',
         app: 'app-apple,app-banana',
+        appCategory: 'cat-a,cat-b',
         threat: '4-9',
       });
     });
@@ -170,6 +175,7 @@ describe('violationsListQuery (CLM-42260)', () => {
           stageIds: new Set(['build']),
           organizationIds: new Set(['org-java']),
           applicationIds: new Set(['app-apple']),
+          applicationCategoryIds: new Set(['cat-internal']),
           threatRange: [2, 8] as const,
           waiverType: 'AUTO' as const,
         }),
@@ -191,6 +197,15 @@ describe('violationsListQuery (CLM-42260)', () => {
     it('detects a differing set member', () => {
       expect(
         violationsFiltersEqual(filterState({ states: new Set(['OPEN']) }), filterState()),
+      ).toBe(false);
+    });
+
+    it('detects differing application category ids (CLM-44129)', () => {
+      expect(
+        violationsFiltersEqual(
+          filterState({ applicationCategoryIds: new Set(['cat-a']) }),
+          filterState({ applicationCategoryIds: new Set(['cat-b']) }),
+        ),
       ).toBe(false);
     });
 

@@ -99,6 +99,7 @@ export function parseViolationsListParams(params: Record<string, unknown>): Viol
       stageIds: new Set(parseCsvParam(params.stage)),
       organizationIds: new Set(parseCsvParam(params.org)),
       applicationIds: new Set(parseCsvParam(params.app)),
+      applicationCategoryIds: new Set(parseCsvParam(params.appCategory)),
       threatRange: parseThreatRange(params.threat),
       waiverType: parseWaiverType(params.waiver),
     },
@@ -120,6 +121,7 @@ export function buildViolationsListRouteParams(
     stage: serializeCsvParam(state.filters.stageIds),
     org: serializeCsvParam(state.filters.organizationIds),
     app: serializeCsvParam(state.filters.applicationIds),
+    appCategory: serializeCsvParam(state.filters.applicationCategoryIds),
     threat: serializeThreatRange(state.filters.threatRange),
     waiver: serializeWaiverType(state.filters.waiverType),
   };
@@ -139,6 +141,7 @@ export function rawViolationsListParamsSnapshot(params: Record<string, unknown>)
     stage: asString(params.stage),
     org: asString(params.org),
     app: asString(params.app),
+    appCategory: asString(params.appCategory),
     threat: asString(params.threat),
     waiver: asString(params.waiver),
   });
@@ -155,6 +158,7 @@ export function violationsFiltersEqual(
     'stageIds',
     'organizationIds',
     'applicationIds',
+    'applicationCategoryIds',
   ];
   const setsEqual = setFields.every((field) => {
     const leftIds = left[field] as ReadonlySet<string>;

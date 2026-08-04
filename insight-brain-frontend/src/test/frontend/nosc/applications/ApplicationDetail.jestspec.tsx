@@ -375,7 +375,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     await screen.findByTestId('nosc-app-detail-policy-failures-table');
 
     const criticalLink = screen.getByRole('link', { name: 'Critical CVE Policy' });
-    expect(criticalLink).toHaveAttribute('href', '#/violations/pv-1');
+    expect(criticalLink).toHaveAttribute('href', '#/violations/pv-1/overview');
   });
 
   it('Policy Failures policy name falls back to plain text when policyViolationId is absent', async () => {

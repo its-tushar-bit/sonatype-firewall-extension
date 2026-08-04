@@ -170,7 +170,7 @@ export function classicHref(path: string): string {
 /**
  * Classic violation-detail deep-link (`#/violation/{id}`, rendered in Classic's sidebar layout). The
  * Preview violations table and global-search deliberately hand off to Classic detail here rather than the
- * native Nexus One `/violations/{id}` page (see {@link violationDetailHref}). Single source of truth for
+ * native Nexus One `/violations/{id}/overview` page (see {@link violationDetailHref}). Single source of truth for
  * the path + bundle prefix (context-path / MTIQ aware via {@link classicHref}).
  */
 export function violationSidebarHref(policyViolationId: string): string {

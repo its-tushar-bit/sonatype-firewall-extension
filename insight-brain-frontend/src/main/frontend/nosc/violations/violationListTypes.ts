@@ -113,9 +113,9 @@ export type ViolationsListResponse = {
  * (their {@code String} constructors — {@code "security,license"}, {@code "0,10"}).
  *
  * The waiver-type filter maps to {@code waivedWithAutoWaiver} (true = auto-waived only, false =
- * manually-waived only, omitted = no narrowing). Filters the backend validator still rejects
- * (ageInDays, applicationCategoryIds, and the LEGACY_VIOLATION state) are intentionally omitted until
- * the API supports them.
+ * manually-waived only, omitted = no narrowing). {@code applicationCategoryIds} is accepted and
+ * resolved server-side to category names for an index TERMS clause. {@code ageInDays} remains
+ * Kitchen Sink (not indexed) and is omitted from this request type.
  */
 export type ViolationsListRequest = {
   readonly search?: string;
@@ -129,6 +129,8 @@ export type ViolationsListRequest = {
   readonly stageIds?: ReadonlyArray<string>;
   readonly organizationIds?: ReadonlyArray<string>;
   readonly applicationIds?: ReadonlyArray<string>;
+  /** Application category (tag) ids — resolved to names on the server for the index clause. */
+  readonly applicationCategoryIds?: ReadonlyArray<string>;
   readonly waivedWithAutoWaiver?: boolean;
   /**
    * Optional org-name substring for the Organizations facet map. When set, the server replaces the
@@ -148,9 +150,9 @@ export type ViolationThreatRange = readonly [number, number];
 
 /**
  * Selected filter state owned by the Violations list container and rendered by the filter rail.
- * Multi-selects are id sets keyed to match the API facet maps (states OPEN/WAIVED, categories
- * security/license/…, stage ids, owner internal ids). {@code threatRange} maps to
- * {@code policyThreatLevelRange}.
+ * Multi-selects are id sets keyed to match the API facet maps (states OPEN/WAIVED/LEGACY_VIOLATION,
+ * categories security/license/…, stage ids, owner internal ids) or the categories options API
+ * ({@code applicationCategoryIds}). {@code threatRange} maps to {@code policyThreatLevelRange}.
  */
 export type ViolationsFilterState = {
   readonly states: ReadonlySet<string>;
@@ -158,6 +160,8 @@ export type ViolationsFilterState = {
   readonly stageIds: ReadonlySet<string>;
   readonly organizationIds: ReadonlySet<string>;
   readonly applicationIds: ReadonlySet<string>;
+  /** Application category (tag) ids for {@code applicationCategoryIds} on the list POST. */
+  readonly applicationCategoryIds: ReadonlySet<string>;
   readonly threatRange: ViolationThreatRange;
   /** Single-select waiver-type narrowing; {@code ANY} is the unfiltered default. */
   readonly waiverType: ViolationWaiverType;
@@ -169,4 +173,11 @@ export type ViolationFilterSetGroup =
   | 'threatCategories'
   | 'stageIds'
   | 'organizationIds'
-  | 'applicationIds';
+  | 'applicationIds'
+  | 'applicationCategoryIds';
+
+/** One Application Category option for the filter rail (from {@code /api/v2/applicationCategories/application}). */
+export type ApplicationCategoryOption = {
+  readonly id: string;
+  readonly name: string;
+};

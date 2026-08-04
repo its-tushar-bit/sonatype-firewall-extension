@@ -11,6 +11,7 @@ import {
 import router from 'MainRoot/router/routerInstance';
 import {
   NEXUS_ONE_VIOLATION_DETAIL_STATE,
+  NEXUS_ONE_VIOLATION_DETAIL_DEFAULT_STATE,
   NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE,
   NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY_STATE,
   NEXUS_ONE_VIOLATION_DETAIL_WAIVERS_STATE,
@@ -44,9 +45,23 @@ describe('nexusOneViolationDetailStates', () => {
 
   it('registers static tab child states under the parent', () => {
     const isolated = createIsolatedRouter();
-    expect(isolated.stateRegistry.get(NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE)?.url).toBe('');
+    expect(isolated.stateRegistry.get(NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE)?.url).toBe('/overview');
     expect(isolated.stateRegistry.get(NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY_STATE)?.url).toBe('/vulnerability');
     expect(isolated.stateRegistry.get(NEXUS_ONE_VIOLATION_DETAIL_WAIVERS_STATE)?.url).toBe('/waivers');
+  });
+
+  it('redirects the bare parent url to the overview child', async () => {
+    const isolated = createIsolatedRouter();
+    await isolated.stateService.go(NEXUS_ONE_VIOLATION_DETAIL_DEFAULT_STATE, {
+      id: 'violation-123',
+    });
+    expect(isolated.globals.$current.name).toBe(NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE);
+    expect(isolated.globals.params.id).toBe('violation-123');
+    expect(
+      isolated.stateService.href(NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE, {
+        id: 'violation-123',
+      }),
+    ).toBe('#/violations/violation-123/overview');
   });
 
   it('lands on the overview child by default and exposes the violation id param', async () => {
@@ -60,7 +75,7 @@ describe('nexusOneViolationDetailStates', () => {
       isolated.stateService.href(NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE, {
         id: 'violation-123',
       }),
-    ).toBe('#/violations/violation-123');
+    ).toBe('#/violations/violation-123/overview');
   });
 
   it('preserves optional Classic sidebar deep-link query params across tab hrefs', () => {
@@ -89,6 +104,7 @@ describe('nexusOneViolationDetailHref', () => {
     router.stateRegistry.deregister(NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE);
     router.stateRegistry.deregister(NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY_STATE);
     router.stateRegistry.deregister(NEXUS_ONE_VIOLATION_DETAIL_WAIVERS_STATE);
+    router.stateRegistry.deregister(NEXUS_ONE_VIOLATION_DETAIL_DEFAULT_STATE);
     router.stateRegistry.deregister(NEXUS_ONE_VIOLATION_DETAIL_STATE);
   });
 
@@ -97,7 +113,7 @@ describe('nexusOneViolationDetailHref', () => {
       nexusOneViolationDetailHref({
         policyViolationId: 'a2e3c6037a6a46bd8b769729c76cbb20',
       }),
-    ).toBe('#/violations/a2e3c6037a6a46bd8b769729c76cbb20');
+    ).toBe('#/violations/a2e3c6037a6a46bd8b769729c76cbb20/overview');
   });
 
   it('forwards an optional deep-link param alongside the mapped id', () => {
@@ -106,7 +122,7 @@ describe('nexusOneViolationDetailHref', () => {
         policyViolationId: 'violation-123',
         type: 'violation',
       }),
-    ).toBe('#/violations/violation-123?type=violation');
+    ).toBe('#/violations/violation-123/overview?type=violation');
   });
 
   it('serializes all four Classic deep-link query params together in URL-declared order', () => {
@@ -121,6 +137,8 @@ describe('nexusOneViolationDetailHref', () => {
         sidebarId: 'sidebar-1',
         page: '2',
       }),
-    ).toBe('#/violations/violation-123?type=violation&sidebarReference=security&sidebarId=sidebar-1&page=2');
+    ).toBe(
+      '#/violations/violation-123/overview?type=violation&sidebarReference=security&sidebarId=sidebar-1&page=2',
+    );
   });
 });

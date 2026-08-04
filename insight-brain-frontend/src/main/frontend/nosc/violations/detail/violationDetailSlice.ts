@@ -22,6 +22,7 @@ import {
 } from 'MainRoot/nosc/violations/detail/violationDetailTypes';
 import {
   getMostRecentScanId,
+  getSecurityVulnerabilityRefId,
   isSecurityPolicyCategory,
 } from 'MainRoot/nosc/violations/detail/violationDetailUtils';
 
@@ -105,16 +106,6 @@ function getClassicSelectedComponentIdentificationSource(state: unknown): string
 
   return rootState.applicationReport?.selectedReport?.allEntries?.find((component) => component.hash === hash)
     ?.identificationSource;
-}
-
-function getSecurityVulnerabilityRefId(details: ViolationDetailsDTO): string | null {
-  for (const constraint of details.constraintViolations ?? []) {
-    const reason = constraint.reasons?.find((item) => item.reference?.type === 'SECURITY_VULNERABILITY_REFID');
-    if (reason?.reference?.value) {
-      return reason.reference.value;
-    }
-  }
-  return null;
 }
 
 function normalizeComponentIdentifier(

@@ -34,7 +34,7 @@ describe('EntityDetailContextRail', () => {
         {
           kind: 'violation',
           label: 'Critical CVE Policy',
-          href: '#/violations/pv-1',
+          href: '#/violations/pv-1/overview',
           isCurrent: true,
           isAvailable: true,
         },

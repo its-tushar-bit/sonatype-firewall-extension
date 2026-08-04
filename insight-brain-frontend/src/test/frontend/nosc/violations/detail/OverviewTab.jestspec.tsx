@@ -16,6 +16,7 @@ import {
   getViolationDetailsUrl,
 } from 'MainRoot/util/CLMLocation';
 import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
+import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
 import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 import type {
@@ -148,15 +149,48 @@ describe('OverviewTab', () => {
       'href',
       '#/applications/demo-app',
     );
+    expect(within(overview).getByText('Organization')).toBeInTheDocument();
+    expect(overview).toHaveTextContent('Demo Org');
+    expect(within(overview).getByText('Stage')).toBeInTheDocument();
+    expect(overview).toHaveTextContent('build');
+    expect(screen.getByTestId('nosc-violation-detail-first-seen')).toBeInTheDocument();
     expect(within(overview).getByRole('link', { name: 'demo-component' })).toHaveAttribute(
       'href',
       componentDetailHref('demo-app', 'component-hash', 'scan-1'),
+    );
+    expect(within(screen.getByTestId('nosc-violation-detail-cve')).getByRole('link', { name: 'CVE-2026-0001' })).toHaveAttribute(
+      'href',
+      vulnerabilityDetailHref({
+        vulnId: 'CVE-2026-0001',
+        applicationPublicId: 'demo-app',
+        componentHash: 'component-hash',
+        violationId: VIOLATION_ID,
+        scanId: 'scan-1',
+      }),
     );
     expect(within(overview).queryByRole('link', { name: /classic/i })).not.toBeInTheDocument();
     expect(overview).toHaveTextContent('Critical Security Risk');
     expect(overview).toHaveTextContent('CVSS score is greater than 9');
     expect(within(overview).getByText('reachable')).toBeInTheDocument();
     expect(overview).not.toHaveTextContent('Reachability: reachable');
+  });
+
+  it('omits the CVE field when constraint reasons have no security reference', async () => {
+    renderOverview({
+      violation: {
+        ...VIOLATION_FIXTURE,
+        constraintViolations: [
+          {
+            constraintName: 'License Risk',
+            reasons: [{ reason: 'Banned license detected' }],
+          },
+        ],
+      },
+    });
+
+    const overview = await screen.findByTestId('nosc-violation-detail-overview-tab');
+    expect(screen.queryByTestId('nosc-violation-detail-cve')).not.toBeInTheDocument();
+    expect(within(overview).queryByRole('link', { name: /CVE-/i })).not.toBeInTheDocument();
   });
 
   it('opens Create Waiver modal when the user has waiver permission', async () => {

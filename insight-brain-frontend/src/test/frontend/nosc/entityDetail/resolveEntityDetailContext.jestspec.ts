@@ -70,7 +70,7 @@ describe('resolveEntityDetailContext', () => {
   });
 
   it.each([
-    ['application', '#/violations/pv-1?stageId=build&scanId=scan-1'],
+    ['application', '#/violations/pv-1/overview?stageId=build&scanId=scan-1'],
     ['component', '#/applications/my-app?stageId=build&scanId=scan-1'],
     ['vulnerability', '#/applications/my-app?stageId=build&scanId=scan-1'],
   ] as const)('current=%s keeps current href null and links other available nodes', (current, expectedSiblingHref) => {
@@ -107,7 +107,7 @@ describe('resolveEntityDetailContext', () => {
       '#/applications/a%2Fb%20c?scanId=scan+id',
     );
     expect(chain.nodes.find((n) => n.kind === 'violation')?.href).toBe(
-      '#/violations/pv%2F1%202?scanId=scan+id',
+      '#/violations/pv%2F1%202/overview?scanId=scan+id',
     );
     expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
       '#/vulnerabilities/CVE%2F1%202?applicationPublicId=a%2Fb+c&componentHash=h%2Fash&violationId=pv%2F1+2&scanId=scan+id',

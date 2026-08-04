@@ -10,6 +10,7 @@ import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
 import {
+  ApplicationCategoryOption,
   ViolationFilterSetGroup,
   ViolationRow,
   ViolationsFilterState,
@@ -40,6 +41,9 @@ export interface ViolationsPageProps {
   readonly onOrganizationFacetSearchChange?: (query: string) => void;
   readonly applicationFacetSearch?: string;
   readonly onApplicationFacetSearchChange?: (query: string) => void;
+  readonly applicationCategoryOptions?: ReadonlyArray<ApplicationCategoryOption>;
+  readonly applicationCategorySearch?: string;
+  readonly onApplicationCategorySearchChange?: (query: string) => void;
   readonly loading?: boolean;
   readonly error?: string | null;
   readonly onRetry?: () => void;
@@ -118,6 +122,9 @@ export default function ViolationsPage({
   onOrganizationFacetSearchChange,
   applicationFacetSearch,
   onApplicationFacetSearchChange,
+  applicationCategoryOptions,
+  applicationCategorySearch,
+  onApplicationCategorySearchChange,
   loading = false,
   error = null,
   onRetry,
@@ -166,6 +173,9 @@ export default function ViolationsPage({
     onOrganizationFacetSearchChange,
     applicationFacetSearch,
     onApplicationFacetSearchChange,
+    applicationCategoryOptions,
+    applicationCategorySearch,
+    onApplicationCategorySearchChange,
     hideStateFilter,
     hideWaiverTypeFilter,
     threatCategorySectionTitle,

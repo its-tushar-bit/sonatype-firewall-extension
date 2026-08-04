@@ -47,18 +47,21 @@ public class ViolationsListRequestDTO
   /** Inclusive threat-level range (0–10). */
   public PolicyThreatLevelFilter policyThreatLevelRange;
 
-  /** Violation state (Open / Waived). Legacy is not yet indexed and is rejected. */
+  /** Violation state (Open / Waived / Legacy). All three are indexed via waiver-status clauses. */
   public PolicyViolationStateFilter policyViolationStates;
 
   /**
-   * Application category / tag ids. Not indexed on violation documents yet — rejected until the
-   * filter sidebar work (CLM-42258) lands.
+   * Application category / tag ids. Resolved to category names (O(ids) via Tag DAO) and applied as
+   * an index TERMS clause on multi-valued {@code applicationCategoryName} already denormalized onto
+   * {@code POLICY_VIOLATION} docs. Unknown ids resolve to a no-match clause; docs without the field
+   * (pre-denorm estates) do not match.
    */
   public Set<String> applicationCategoryIds;
 
   /**
-   * Age window in days ("first seen" cutoff). Violation timestamps are not indexed yet — rejected
-   * until the filter sidebar work (CLM-42258) lands.
+   * Age window in days ("first seen" cutoff). Not range-queryable on {@code POLICY_VIOLATION} docs
+   * ({@code openTime} is SQL page-enrich only) — rejected by
+   * {@link ViolationsListRequestValidator}.
    */
   public Integer ageInDays;
 

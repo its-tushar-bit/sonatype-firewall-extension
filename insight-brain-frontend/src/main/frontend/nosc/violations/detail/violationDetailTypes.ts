@@ -58,7 +58,7 @@ export interface ViolationDetailsDTO {
   readonly openTime: string;
   readonly stageData: Record<string, ViolationStageDataDTO>;
   readonly applicationPublicId: string;
-  readonly organizationName: string;
+  readonly organizationName?: string | null;
   readonly applicationName: string;
   readonly componentIdentifier?: ComponentIdentifierDTO | string;
   readonly identificationSource?: string;

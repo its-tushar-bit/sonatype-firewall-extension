@@ -11,7 +11,7 @@ import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
 import ViolationsList from 'MainRoot/nosc/violations/ViolationsList';
 import { NEXUS_ONE_VIOLATIONS_STATE_NAME } from 'MainRoot/nosc/violations/violationsRoute';
-import { getViolationsListUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicationTagsUrl, getViolationsListUrl } from 'MainRoot/util/CLMLocation';
 import { MOCK_VIOLATIONS_LIST_RESPONSE } from 'MainRoot/nosc/violations/mockViolationsListData';
 import { ViolationsListResponse } from 'MainRoot/nosc/violations/violationListTypes';
 import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
@@ -29,6 +29,8 @@ describe('ViolationsList', () => {
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
     user = userEvent.setup();
+    // Application Categories options (Classic tags API); empty by default unless a test overrides.
+    axiosMock.onGet(getApplicationTagsUrl()).reply(200, []);
   });
 
   afterEach(() => {
@@ -60,7 +62,7 @@ describe('ViolationsList', () => {
     expect(screen.getAllByTestId('violation-threat-badge').length).toBe(cards.length);
   });
 
-  it('links each card to the embedded violation detail route at /violations/{id}', async () => {
+  it('links each card to the embedded violation detail route at /violations/{id}/overview', async () => {
     axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
     renderList();
 
@@ -68,7 +70,7 @@ describe('ViolationsList', () => {
     const link = screen.getByRole('link', {
       name: /open violation for Security-Critical on log4j-core : 2\.14\.0/i,
     });
-    expect(link).toHaveAttribute('href', '#/violations/pv-log4j-critical');
+    expect(link).toHaveAttribute('href', '#/violations/pv-log4j-critical/overview');
   });
 
   it('includes state and auto-waiver in the card link accessible name', async () => {
@@ -313,6 +315,28 @@ describe('ViolationsList', () => {
           }),
         );
       });
+    });
+
+    it('hydrates Application Categories from appCategory and posts applicationCategoryIds (CLM-44129)', async () => {
+      axiosMock.onGet(getApplicationTagsUrl()).reply(200, [
+        { id: 'cat-internal', name: 'Internal', organizationId: 'ROOT_ORGANIZATION_ID', color: 'dark-green' },
+      ]);
+      axiosMock.onPost(getViolationsListUrl()).reply(200, MOCK_VIOLATIONS_LIST_RESPONSE);
+      renderNexusOneRoute(<ViolationsList />, 'nexusOneViolations', {
+        appCategory: 'cat-internal',
+      });
+
+      await waitFor(() => {
+        const hydrated = axiosMock.history.post.find((request) => {
+          const body = JSON.parse(String(request.data));
+          return Array.isArray(body.applicationCategoryIds);
+        });
+        expect(hydrated).toBeDefined();
+        expect(JSON.parse(String(hydrated!.data)).applicationCategoryIds).toEqual(['cat-internal']);
+      });
+
+      await screen.findByTestId('violations-filter-app-categories-option-cat-internal');
+      expect(screen.getByTestId('violations-filter-app-categories-option-cat-internal')).toBeChecked();
     });
 
     it('restores the sidebar checkbox selection from a bookmarked filter URL', async () => {

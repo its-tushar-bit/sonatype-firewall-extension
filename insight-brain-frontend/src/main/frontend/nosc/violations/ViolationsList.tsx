@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ViolationsPage from 'MainRoot/nosc/violations/ViolationsPage';
 import { useViolationsList } from 'MainRoot/nosc/violations/useViolationsList';
 import {
+  ApplicationCategoryOption,
   ViolationFilterSetGroup,
   ViolationRow,
   ViolationsFilterState,
@@ -25,6 +26,7 @@ import {
   rawViolationsListParamsSnapshot,
   violationsFiltersEqual,
 } from 'MainRoot/nosc/violations/violationsListQuery';
+import { fetchApplicationCategoryOptions } from 'MainRoot/nosc/violations/applicationCategoryOptions';
 import { NEXUS_ONE_VIOLATIONS_STATE_NAME } from 'MainRoot/nosc/violations/violationsRoute';
 import { useNexusOneListUrlState } from 'MainRoot/nosc/list/useNexusOneListUrlState';
 
@@ -67,6 +69,26 @@ export default function ViolationsList(): JSX.Element {
   const [applicationFacetSearch, setApplicationFacetSearch] = useState('');
   const [debouncedOrganizationFacetSearch, setDebouncedOrganizationFacetSearch] = useState('');
   const [debouncedApplicationFacetSearch, setDebouncedApplicationFacetSearch] = useState('');
+  // Client-only Application Categories search (options from Classic tags API; not list-facet search).
+  const [applicationCategorySearch, setApplicationCategorySearch] = useState('');
+  const [applicationCategoryOptions, setApplicationCategoryOptions] = useState<
+    ReadonlyArray<ApplicationCategoryOption>
+  >([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchApplicationCategoryOptions()
+      .then((options) => {
+        if (!cancelled) setApplicationCategoryOptions(options);
+      })
+      .catch(() => {
+        // Soft-fail: selected ids from the URL still render with id labels when options are absent.
+        if (!cancelled) setApplicationCategoryOptions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const handle = window.setTimeout(
@@ -177,6 +199,7 @@ export default function ViolationsList(): JSX.Element {
     setDebouncedOrganizationFacetSearch('');
     setApplicationFacetSearch('');
     setDebouncedApplicationFacetSearch('');
+    setApplicationCategorySearch('');
     setPage(1);
     requestUrlWrite();
   }, [setFilters, setPage, requestUrlWrite]);
@@ -219,6 +242,9 @@ export default function ViolationsList(): JSX.Element {
       onOrganizationFacetSearchChange={setOrganizationFacetSearch}
       applicationFacetSearch={applicationFacetSearch}
       onApplicationFacetSearchChange={setApplicationFacetSearch}
+      applicationCategoryOptions={applicationCategoryOptions}
+      applicationCategorySearch={applicationCategorySearch}
+      onApplicationCategorySearchChange={setApplicationCategorySearch}
       loading={loading}
       error={errorMessage}
       onRetry={retry}

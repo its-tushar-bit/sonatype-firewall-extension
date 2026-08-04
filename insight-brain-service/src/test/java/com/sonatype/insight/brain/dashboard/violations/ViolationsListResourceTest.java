@@ -422,13 +422,44 @@ public class ViolationsListResourceTest
   }
 
   @Test
-  public void listViolations_unsupportedApplicationCategoryFilter_returns400() throws Exception {
+  public void listViolations_unknownApplicationCategoryFilter_returnsEmpty() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
-    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
-    request.applicationCategoryIds = Set.of("some-category-id");
+    Organization org = tempEntity.newOrganization("CategoryTribe");
+    Application app = tempEntity.newApplication("Category App", "category-app", org.getId());
+    seedStandardViolations(org, app, "catfilt");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
 
-    assertResponseStatus(400, post(request));
+    // Unknown category ids resolve to a no-match TERMS clause (not a 400).
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.applicationCategoryIds = Set.of("some-category-id");
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    assertThat(body.violations).isEmpty();
+    assertThat(body.total).isZero();
+  }
+
+  @Test
+  public void listViolations_applicationCategoryFilter_returnsTaggedAppViolations() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("TaggedCategoryTribe");
+    Application tagged = tempEntity.newApplication("Tagged App", "tagged-cat-app", org.getId());
+    Application untagged = tempEntity.newApplication("Untagged App", "untagged-cat-app", org.getId());
+    var category = tempEntity.newTag(org.getId(), "Platform Services");
+    tempEntity.newApplicationTag(tagged.getId(), category.getId());
+
+    seedStandardViolations(org, tagged, "tagged");
+    seedStandardViolations(org, untagged, "untagged");
+    ViolationsListTestSupport.populateIndex(lookup(SearchIndexClient.class));
+
+    ViolationsListRequestDTO request = scopedRequest(org);
+    request.applicationCategoryIds = Set.of(category.getId());
+    ViolationsListResponseDTO body = post(request).getBody(ViolationsListResponseDTO.class);
+
+    assertThat(body.total).isEqualTo(3);
+    assertThat(body.violations).hasSize(3);
+    assertThat(body.violations).extracting(row -> row.applicationId).containsOnly(tagged.getId());
   }
 
   @Test

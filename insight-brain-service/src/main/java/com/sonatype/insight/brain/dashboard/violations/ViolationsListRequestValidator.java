@@ -17,7 +17,10 @@ import org.apache.commons.lang3.StringUtils;
  * Validates Violations list request filters at the API boundary.
  * <p>
  * Filters that cannot yet be resolved from the search index return {@link BadRequestException}
- * rather than being silently ignored until later stories wire them.
+ * rather than being silently ignored until later stories wire them. {@code ageInDays} remains
+ * rejected (first-seen is SQL page-enrich only; not range-queryable on {@code POLICY_VIOLATION}
+ * docs). {@code applicationCategoryIds} is accepted and resolved to category names for an index
+ * TERMS clause.
  */
 @Named
 @Singleton
@@ -54,14 +57,13 @@ final class ViolationsListRequestValidator
   }
 
   private static void rejectUnsupportedFilters(final ViolationsListRequestDTO request) {
-    if (request.applicationCategoryIds != null && !request.applicationCategoryIds.isEmpty()) {
-      throw new BadRequestException("applicationCategoryIds filter is not yet supported on the violations list.");
-    }
     if (request.ageInDays != null) {
       throw new BadRequestException("ageInDays filter is not yet supported on the violations list.");
     }
-    // waivedWithAutoWaiver, and all three policyViolationStates (OPEN/WAIVED/LEGACY_VIOLATION), are
-    // supported and need no rejection here. State mapping lives in ViolationWaiverStatus.
+    // applicationCategoryIds, waivedWithAutoWaiver, and all three policyViolationStates
+    // (OPEN/WAIVED/LEGACY_VIOLATION) are supported and need no rejection here. Category ids resolve
+    // to APPLICATION_CATEGORY_NAME TERMS in ViolationsListIndexQueryBuilder. State mapping lives in
+    // ViolationWaiverStatus.
   }
 
   private static void validateOrderBy(final String orderBy) {

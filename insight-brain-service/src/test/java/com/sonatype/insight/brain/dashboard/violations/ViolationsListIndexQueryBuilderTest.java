@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard.violations;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -15,8 +16,10 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -27,6 +30,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 /**
@@ -45,9 +49,13 @@ public class ViolationsListIndexQueryBuilderTest
   @Mock
   private OrganizationDAO organizationDAO;
 
+  @Mock
+  private TagDAO tagDAO;
+
   private ViolationsListIndexQueryBuilder newBuilder() {
     return new ViolationsListIndexQueryBuilder(
-        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration));
+        new DashboardIndexDimensionQueryBuilder(organizationDAO, configuration),
+        tagDAO);
   }
 
   @Test
@@ -371,5 +379,80 @@ public class ViolationsListIndexQueryBuilderTest
     assertThat(query).contains("policyViolationThreatLevel:[7 TO 10]");
     assertThat(query).contains("policyViolationThreatCategory:(" + PolicyThreatCategory.SECURITY.getName() + ")");
     assertThat(query).contains("NOT (policyViolationWaiverStatus:(Waived AutoWaived Legacy))");
+  }
+
+  @Test
+  public void buildViolationQuery_applicationCategoryIds_resolvesNamesToTermsClause() {
+    Tag tagA = new Tag("org-1", "Alpha", "desc");
+    tagA.setId("cat-a");
+    Tag tagB = new Tag("org-1", "Beta", "desc");
+    tagB.setId("cat-b");
+    when(tagDAO.getByIds(anyList())).thenReturn(List.of(tagA, tagB));
+
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.applicationCategoryIds = Set.of("cat-b", "cat-a");
+
+    // Names are sorted for stable clause order; values within the filter are OR'd.
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(
+        BASE + " AND (applicationCategoryName:\"Alpha\" OR applicationCategoryName:\"Beta\")");
+  }
+
+  @Test
+  public void buildViolationQuery_applicationCategoryIds_singleName_omitsOuterParens() {
+    Tag tag = new Tag("org-1", "Platform", "desc");
+    tag.setId("cat-1");
+    when(tagDAO.getByIds(anyList())).thenReturn(List.of(tag));
+
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.applicationCategoryIds = Set.of("cat-1");
+
+    assertThat(newBuilder().buildViolationQuery(request))
+        .isEqualTo(BASE + " AND applicationCategoryName:\"Platform\"");
+  }
+
+  @Test
+  public void buildViolationQuery_applicationCategoryIds_unknownIds_emitNoMatchClause() {
+    when(tagDAO.getByIds(anyList())).thenReturn(List.of());
+
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.applicationCategoryIds = Set.of("missing-category");
+
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(
+        BASE + " AND applicationCategoryName:\""
+            + ViolationsListIndexQueryBuilder.NO_MATCH_APPLICATION_CATEGORY_NAME + "\"");
+  }
+
+  @Test
+  public void buildViolationQuery_emptyApplicationCategoryIds_omitsClause() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.applicationCategoryIds = Set.of();
+
+    assertThat(newBuilder().buildViolationQuery(request)).isEqualTo(BASE);
+  }
+
+  @Test
+  public void buildViolationQuery_rejectsBlankApplicationCategoryId() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    Set<String> ids = new LinkedHashSet<>();
+    ids.add("cat-1");
+    ids.add("  ");
+    request.applicationCategoryIds = ids;
+
+    assertThatThrownBy(() -> newBuilder().buildViolationQuery(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("applicationCategoryIds");
+  }
+
+  @Test
+  public void buildViolationQuery_applicationCategoryName_stripsQuotesFromName() {
+    Tag tag = new Tag("org-1", "Bad\"Name", "desc");
+    tag.setId("cat-1");
+    when(tagDAO.getByIds(anyList())).thenReturn(List.of(tag));
+
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.applicationCategoryIds = Set.of("cat-1");
+
+    assertThat(newBuilder().buildViolationQuery(request))
+        .isEqualTo(BASE + " AND applicationCategoryName:\"BadName\"");
   }
 }

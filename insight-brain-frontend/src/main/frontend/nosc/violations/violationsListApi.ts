@@ -33,6 +33,7 @@ export function createDefaultViolationsFilterState(): ViolationsFilterState {
     stageIds: new Set<string>(),
     organizationIds: new Set<string>(),
     applicationIds: new Set<string>(),
+    applicationCategoryIds: new Set<string>(),
     threatRange: DEFAULT_VIOLATION_THREAT_RANGE,
     waiverType: 'ANY',
   };
@@ -55,6 +56,7 @@ export function hasExportableViolationFilters(filters: ViolationsFilterState): b
     filters.stageIds.size > 0 ||
     filters.organizationIds.size > 0 ||
     filters.applicationIds.size > 0 ||
+    filters.applicationCategoryIds.size > 0 ||
     !isDefaultThreatRange(filters.threatRange)
   );
 }
@@ -103,6 +105,7 @@ export function buildViolationsListRequest(params: {
   const stageIds = filters ? toSortedArray(filters.stageIds) : undefined;
   const organizationIds = filters ? toSortedArray(filters.organizationIds) : undefined;
   const applicationIds = filters ? toSortedArray(filters.applicationIds) : undefined;
+  const applicationCategoryIds = filters ? toSortedArray(filters.applicationCategoryIds) : undefined;
   const categories = filters ? toSortedArray(filters.threatCategories) : undefined;
   const threatRange =
     filters && !isDefaultThreatRange(filters.threatRange)
@@ -122,6 +125,7 @@ export function buildViolationsListRequest(params: {
     ...(stageIds ? { stageIds } : {}),
     ...(organizationIds ? { organizationIds } : {}),
     ...(applicationIds ? { applicationIds } : {}),
+    ...(applicationCategoryIds ? { applicationCategoryIds } : {}),
     ...(waivedWithAutoWaiver !== undefined ? { waivedWithAutoWaiver } : {}),
     ...(organizationFacetSearch ? { organizationFacetSearch } : {}),
     ...(applicationFacetSearch ? { applicationFacetSearch } : {}),

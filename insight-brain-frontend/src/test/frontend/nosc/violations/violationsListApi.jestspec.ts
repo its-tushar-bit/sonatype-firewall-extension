@@ -80,6 +80,7 @@ describe('violationsListApi', () => {
       expect(request.stageIds).toBeUndefined();
       expect(request.organizationIds).toBeUndefined();
       expect(request.applicationIds).toBeUndefined();
+      expect(request.applicationCategoryIds).toBeUndefined();
     });
 
     it('serializes each filter group to the backend wire format', () => {
@@ -91,6 +92,7 @@ describe('violationsListApi', () => {
           stageIds: new Set(['release', 'build']),
           organizationIds: new Set(['org-b', 'org-a']),
           applicationIds: new Set(['app-2', 'app-1']),
+          applicationCategoryIds: new Set(['cat-b', 'cat-a']),
           threatRange: [4, 9],
         }),
       });
@@ -103,6 +105,7 @@ describe('violationsListApi', () => {
       expect(request.stageIds).toEqual(['build', 'release']);
       expect(request.organizationIds).toEqual(['org-a', 'org-b']);
       expect(request.applicationIds).toEqual(['app-1', 'app-2']);
+      expect(request.applicationCategoryIds).toEqual(['cat-a', 'cat-b']);
     });
 
     it('omits a full-domain [0,10] threat range but sends a narrowed one', () => {
@@ -148,6 +151,7 @@ describe('violationsListApi', () => {
       expect(state.stageIds.size).toBe(0);
       expect(state.organizationIds.size).toBe(0);
       expect(state.applicationIds.size).toBe(0);
+      expect(state.applicationCategoryIds.size).toBe(0);
       expect(state.threatRange).toEqual([0, 10]);
       expect(state.waiverType).toBe('ANY');
     });
@@ -161,6 +165,9 @@ describe('violationsListApi', () => {
     it('hasActiveViolationFilters detects any narrowing group, a narrowed range, or a waiver type', () => {
       expect(hasActiveViolationFilters(filterState())).toBe(false);
       expect(hasActiveViolationFilters(filterState({ states: new Set(['OPEN']) }))).toBe(true);
+      expect(hasActiveViolationFilters(filterState({ applicationCategoryIds: new Set(['cat-a']) }))).toBe(
+        true,
+      );
       expect(hasActiveViolationFilters(filterState({ threatRange: [2, 10] }))).toBe(true);
       expect(hasActiveViolationFilters(filterState({ waiverType: 'AUTO' }))).toBe(true);
     });
@@ -171,6 +178,9 @@ describe('violationsListApi', () => {
       // Any export-honored group still counts.
       expect(hasExportableViolationFilters(filterState({ states: new Set(['WAIVED']) }))).toBe(true);
       expect(hasExportableViolationFilters(filterState({ threatRange: [2, 10] }))).toBe(true);
+      expect(
+        hasExportableViolationFilters(filterState({ applicationCategoryIds: new Set(['cat-a']) })),
+      ).toBe(true);
     });
   });
 
@@ -270,8 +280,8 @@ describe('violationsListApi', () => {
 
   describe('violationDetailHref', () => {
     it('targets the embed state and URL-encodes the id', () => {
-      expect(violationDetailHref('pv-1')).toBe('#/violations/pv-1');
-      expect(violationDetailHref('a/b c')).toBe('#/violations/a%2Fb%20c');
+      expect(violationDetailHref('pv-1')).toBe('#/violations/pv-1/overview');
+      expect(violationDetailHref('a/b c')).toBe('#/violations/a%2Fb%20c/overview');
     });
   });
 });

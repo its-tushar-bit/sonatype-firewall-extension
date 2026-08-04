@@ -43,12 +43,18 @@ export function buildViolationsListExportPayload(
   const stageIds = toSortedArray(filters.stageIds);
   const organizationIds = toSortedArray(filters.organizationIds);
   const applicationIds = toSortedArray(filters.applicationIds);
+  // Classic RisksFilterDTO.tagIds filters applications by exact category id (SQL). Martha's list
+  // resolves the same ids to names and TERMS-matches indexed applicationCategoryName — so sibling
+  // orgs that share a category *name* can diverge between list total and CSV row count. Classic has
+  // no name-based category field; sending the selected ids is the honest Classic contract.
+  const tagIds = toSortedArray(filters.applicationCategoryIds);
 
   if (states) payload.policyViolationStates = states;
   if (categories) payload.policyThreatCategories = categories.join(',');
   if (stageIds) payload.stageIds = stageIds;
   if (organizationIds) payload.organizationIds = organizationIds;
   if (applicationIds) payload.applicationIds = applicationIds;
+  if (tagIds) payload.tagIds = tagIds;
   if (!isDefaultThreatRange(filters.threatRange)) {
     payload.policyThreatLevelRange = {
       minPolicyThreatLevel: filters.threatRange[0],

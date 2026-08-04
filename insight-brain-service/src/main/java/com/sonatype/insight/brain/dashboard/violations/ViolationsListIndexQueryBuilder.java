@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dashboard.violations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -18,6 +19,8 @@ import com.sonatype.insight.brain.dashboard.ViolationWaiverStatus;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 
@@ -33,11 +36,24 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 final class ViolationsListIndexQueryBuilder
 {
+  /**
+   * Sentinel category name for a filter that must match zero violation docs (unknown /
+   * unresolved applicationCategoryIds). Contains a character {@link com.sonatype.insight.brain.model.NameHelper}
+   * rejects in real tag names, so it can never collide with an indexed category.
+   */
+  static final String NO_MATCH_APPLICATION_CATEGORY_NAME = "#no-match#";
+
   private final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder;
 
+  private final TagDAO tagDAO;
+
   @Inject
-  ViolationsListIndexQueryBuilder(final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder) {
+  ViolationsListIndexQueryBuilder(
+      final DashboardIndexDimensionQueryBuilder dimensionQueryBuilder,
+      final TagDAO tagDAO)
+  {
     this.dimensionQueryBuilder = dimensionQueryBuilder;
+    this.tagDAO = tagDAO;
   }
 
   String buildViolationQuery(final ViolationsListRequestDTO request) {
@@ -68,6 +84,7 @@ final class ViolationsListIndexQueryBuilder
     addIfPresent(clauses, buildThreatLevelClause(request == null ? null : request.policyThreatLevelRange));
     addIfPresent(clauses, buildThreatCategoryClause(request == null ? null : request.policyThreatCategories));
     addIfPresent(clauses, buildStateClause(request == null ? null : request.policyViolationStates));
+    addIfPresent(clauses, buildApplicationCategoryClause(request == null ? null : request.applicationCategoryIds));
 
     return clauses;
   }
@@ -79,6 +96,50 @@ final class ViolationsListIndexQueryBuilder
     String trimmed = componentHash.trim();
     String safe = DashboardIndexDimensionQueryBuilder.escapeLuceneTerm(trimmed);
     return FieldIdentifier.COMPONENT_HASH.label + ":" + safe;
+  }
+
+  /**
+   * Resolves category ids → names (O(ids) via {@link TagDAO}) and emits a TERMS clause on
+   * multi-valued {@link FieldIdentifier#APPLICATION_CATEGORY_NAME}. Unknown ids with no resolvable
+   * names become a no-match clause so the filter never silently widens to the full estate.
+   */
+  private String buildApplicationCategoryClause(final Set<String> applicationCategoryIds) {
+    if (applicationCategoryIds == null || applicationCategoryIds.isEmpty()) {
+      return null;
+    }
+    DashboardIndexDimensionQueryBuilder.rejectBlankFilterIds(applicationCategoryIds, "applicationCategoryIds");
+
+    List<Tag> tags = tagDAO.getByIds(new ArrayList<>(applicationCategoryIds));
+    Set<String> categoryNames = new TreeSet<>();
+    for (Tag tag : tags) {
+      if (tag != null && StringUtils.isNotBlank(tag.getName())) {
+        categoryNames.add(tag.getName());
+      }
+    }
+    if (categoryNames.isEmpty()) {
+      return applicationCategoryNameTerm(NO_MATCH_APPLICATION_CATEGORY_NAME);
+    }
+
+    List<String> terms = new ArrayList<>(categoryNames.size());
+    for (String name : categoryNames) {
+      terms.add(applicationCategoryNameTerm(name));
+    }
+    if (terms.size() == 1) {
+      return terms.get(0);
+    }
+    return "(" + String.join(" OR ", terms) + ")";
+  }
+
+  private static String applicationCategoryNameTerm(final String categoryName) {
+    return FieldIdentifier.APPLICATION_CATEGORY_NAME.label + ":\"" + sanitizeQuotedTerm(categoryName) + "\"";
+  }
+
+  /** Strip quotes/backslashes so a category name cannot terminate its own quoted Lucene term. */
+  static String sanitizeQuotedTerm(final String raw) {
+    if (raw == null) {
+      return "";
+    }
+    return raw.replace("\\", "").replace("\"", "").strip();
   }
 
   private String buildDimensionClause(final ViolationsListRequestDTO request) {

@@ -208,17 +208,22 @@ public class TagDAO
     }
   }
 
+  /**
+   * Load tags by id. Large id collections are auto-chunked via {@link #getListWithSqlInClause}.
+   */
   public List<Tag> getByIds(List<String> tagIds) {
     if (tagIds == null || tagIds.isEmpty()) {
       return Collections.emptyList();
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
-          .selectFrom(TAG)
-          .where(TAG.TAG_ID.in(tagIds))
-          .fetch()
-          .map(this::toEntity);
+      return getListWithSqlInClause(tagIds,
+          ids -> tx.dsl()
+              .selectFrom(TAG)
+              .where(TAG.TAG_ID.in(ids))
+              .fetch()
+              .map(this::toEntity),
+          getDataStore());
     }
   }
 

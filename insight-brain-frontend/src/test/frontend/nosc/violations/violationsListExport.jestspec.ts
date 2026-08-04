@@ -29,6 +29,7 @@ describe('buildViolationsListExportPayload (CLM-42260)', () => {
         stageIds: new Set(['release', 'build']),
         organizationIds: new Set(['org-java']),
         applicationIds: new Set(['app-banana', 'app-apple']),
+        applicationCategoryIds: new Set(['cat-b', 'cat-a']),
         threatRange: [4, 9],
       }),
     );
@@ -41,6 +42,8 @@ describe('buildViolationsListExportPayload (CLM-42260)', () => {
       stageIds: ['build', 'release'],
       organizationIds: ['org-java'],
       applicationIds: ['app-apple', 'app-banana'],
+      // Application categories map to Classic tagIds (exact id filter; list matches by name).
+      tagIds: ['cat-a', 'cat-b'],
       // threat range as the object form (PolicyThreatLevelFilter @JsonCreator).
       policyThreatLevelRange: { minPolicyThreatLevel: 4, maxPolicyThreatLevel: 9 },
     });

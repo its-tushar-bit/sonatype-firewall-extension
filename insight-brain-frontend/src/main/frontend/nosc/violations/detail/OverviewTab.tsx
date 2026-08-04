@@ -10,6 +10,7 @@ import { Badge, Box, Button, Card, Flex, Grid, Heading, Link as RadixLink, Text,
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import { ViolationThreatBadge } from 'MainRoot/nosc/violations/ViolationThreatBadge';
 import { componentDetailHref } from 'MainRoot/nosc/components/detail/componentDetailHref';
+import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 import {
   selectViolationDetailIdentityState,
   selectViolationDetailWaiversState,
@@ -28,6 +29,8 @@ import {
 import {
   componentDisplayNameLabel,
   getMostRecentScanId,
+  getMostRecentStageEntry,
+  getSecurityVulnerabilityRefId,
 } from 'MainRoot/nosc/violations/detail/violationDetailUtils';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { ConstraintsSection } from 'MainRoot/nosc/violations/detail/ConstraintsSection';
@@ -42,6 +45,16 @@ import {
   resolveRequestWaiverDisableReason,
   writePendingWaiverRequestSessionFlag,
 } from 'MainRoot/nosc/waivers/waiverActionEligibility';
+// dateUtils.js is outside the TS program — import is untyped under strict .tsx.
+import { formatTimeAgo } from 'MainRoot/util/dateUtils';
+
+const FIRST_SEEN_DATE_TIME = new Intl.DateTimeFormat(undefined, {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+});
 
 function componentHref(details: ViolationDetailsDTO): string | undefined {
   if (!details.hash) {
@@ -50,6 +63,18 @@ function componentHref(details: ViolationDetailsDTO): string | undefined {
 
   const scanId = getMostRecentScanId(details.stageData);
   return componentDetailHref(details.applicationPublicId, details.hash, scanId);
+}
+
+function formatFirstSeen(openTime: string): string | undefined {
+  const ms = Date.parse(openTime);
+  if (!Number.isFinite(ms)) {
+    return undefined;
+  }
+  const absolute = FIRST_SEEN_DATE_TIME.format(new Date(ms));
+  // Sub-minute ages map to "just now" from elapsed ms so we do not couple to
+  // formatTimeAgo's exact sub-minute wording.
+  const relative = Date.now() - ms < 60_000 ? 'just now' : formatTimeAgo(ms);
+  return `${absolute} · ${relative}`;
 }
 
 function ActionButtonWithReason(props: {
@@ -185,6 +210,19 @@ export function OverviewTab(): ReactElement {
   const canUseNativeWaiverModals = Boolean(details.policyId);
   const resolvedComponentHref = componentHref(details);
   const componentLabel = componentDisplayNameLabel(details.displayName, details.hash || 'Component');
+  const latestStage = getMostRecentStageEntry(details.stageData);
+  const firstSeen = formatFirstSeen(details.openTime);
+  const securityRefId = getSecurityVulnerabilityRefId(details);
+  const organizationLabel = details.organizationName?.trim() || undefined;
+  const cveHref = securityRefId
+    ? vulnerabilityDetailHref({
+        vulnId: securityRefId,
+        applicationPublicId: details.applicationPublicId,
+        componentHash: details.hash,
+        violationId,
+        scanId: getMostRecentScanId(details.stageData),
+      })
+    : undefined;
 
   const createDisableReason = resolveCreateWaiverDisableReason({
     hasWaivePermission: hasPermissionForAppWaivers,
@@ -235,7 +273,9 @@ export function OverviewTab(): ReactElement {
                 </Badge>
               </Flex>
               <Text size="2" color="gray">
-                {details.policyThreatCategory} policy in {details.organizationName}
+                {organizationLabel
+                  ? `${details.policyThreatCategory} policy in ${organizationLabel}`
+                  : `${details.policyThreatCategory} policy`}
               </Text>
             </Flex>
 
@@ -289,6 +329,14 @@ export function OverviewTab(): ReactElement {
                 {details.applicationName}
               </RadixLink>
             </Box>
+            {organizationLabel && (
+              <Box>
+                <Text as="p" size="1" color="gray" weight="medium">
+                  Organization
+                </Text>
+                <Text size="2">{organizationLabel}</Text>
+              </Box>
+            )}
             <Box>
               <Text as="p" size="1" color="gray" weight="medium">
                 Component
@@ -301,6 +349,30 @@ export function OverviewTab(): ReactElement {
                 </Text>
               )}
             </Box>
+            {latestStage && (
+              <Box>
+                <Text as="p" size="1" color="gray" weight="medium">
+                  Stage
+                </Text>
+                <Text size="2">{latestStage.stageId}</Text>
+              </Box>
+            )}
+            {firstSeen && (
+              <Box data-testid="nosc-violation-detail-first-seen">
+                <Text as="p" size="1" color="gray" weight="medium">
+                  First seen
+                </Text>
+                <Text size="2">{firstSeen}</Text>
+              </Box>
+            )}
+            {securityRefId && cveHref && (
+              <Box data-testid="nosc-violation-detail-cve">
+                <Text as="p" size="1" color="gray" weight="medium">
+                  CVE
+                </Text>
+                <RadixLink href={cveHref}>{securityRefId}</RadixLink>
+              </Box>
+            )}
             {details.reachabilityStatus && (
               <Box>
                 <Text as="p" size="1" color="gray" weight="medium">

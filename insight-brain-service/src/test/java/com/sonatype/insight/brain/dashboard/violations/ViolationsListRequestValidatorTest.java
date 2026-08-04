@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dashboard.violations;
 
+import java.util.Set;
+
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
@@ -14,7 +16,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * API-boundary coverage for {@link ViolationsListRequestValidator} — especially componentHash length.
+ * API-boundary coverage for {@link ViolationsListRequestValidator} — componentHash length,
+ * accepted category ids, and kitchen-sink age rejection.
  */
 public class ViolationsListRequestValidatorTest
 {
@@ -65,5 +68,41 @@ public class ViolationsListRequestValidatorTest
     assertThatThrownBy(() -> validator.validate(request))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("componentHash exceeds maximum length of 40");
+  }
+
+  @Test
+  public void validate_acceptsNonEmptyApplicationCategoryIds() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.applicationCategoryIds = Set.of("cat-1", "cat-2");
+
+    assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void validate_acceptsEmptyApplicationCategoryIds() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.applicationCategoryIds = Set.of();
+
+    assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void validate_rejectsAgeInDays() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.ageInDays = 30;
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("ageInDays");
+  }
+
+  @Test
+  public void validate_rejectsUnsupportedOrderBy() {
+    ViolationsListRequestDTO request = new ViolationsListRequestDTO();
+    request.orderBy = "firstOccurredTime";
+
+    assertThatThrownBy(() -> validator.validate(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("orderBy");
   }
 }

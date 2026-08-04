@@ -662,4 +662,54 @@ describe('ViolationsFilterRail', () => {
       expect(within(policyType).getByText('Banned')).toBeInTheDocument();
     });
   });
+
+  describe('Application Categories (CLM-44129)', () => {
+    const CATEGORY_OPTIONS = [
+      { id: 'cat-internal', name: 'Internal' },
+      { id: 'cat-distributed', name: 'Distributed' },
+    ];
+
+    it('hides Application Categories when no options and nothing selected', () => {
+      renderRail();
+      expect(screen.queryByTestId('violations-filter-app-categories')).not.toBeInTheDocument();
+      expect(screen.queryByText('Age')).not.toBeInTheDocument();
+    });
+
+    it('renders searchable Application Categories from options and toggles selection', async () => {
+      const props = renderRail({
+        applicationCategoryOptions: CATEGORY_OPTIONS,
+        applicationCategorySearch: '',
+        onApplicationCategorySearchChange: jest.fn(),
+      });
+      expect(screen.getByTestId('violations-filter-app-categories')).toBeInTheDocument();
+      expect(screen.getByTestId('violations-filter-app-categories-option-cat-internal')).toBeInTheDocument();
+      expect(within(screen.getByTestId('violations-filter-app-categories')).getByText('Distributed')).toBeInTheDocument();
+
+      await user.click(screen.getByTestId('violations-filter-app-categories-option-cat-internal'));
+      expect(props.onToggle).toHaveBeenCalledWith('applicationCategoryIds', 'cat-internal');
+    });
+
+    it('keeps selected category ids visible when options are absent', () => {
+      renderRail({
+        selected: {
+          ...createDefaultViolationsFilterState(),
+          applicationCategoryIds: new Set(['cat-orphan']),
+        },
+      });
+      expect(screen.getByTestId('violations-filter-app-categories-option-cat-orphan')).toBeInTheDocument();
+      expect(
+        within(screen.getByTestId('violations-filter-app-categories')).getByText('cat-orphan'),
+      ).toBeInTheDocument();
+    });
+
+    it('places Policy Type before Waiver Type and Application Categories after Applications', () => {
+      renderRail({ applicationCategoryOptions: CATEGORY_OPTIONS });
+      const policyType = screen.getByTestId('violations-filter-policy-type');
+      const waiverType = screen.getByTestId('violations-filter-waiver-type');
+      const applications = screen.getByTestId('violations-filter-applications');
+      const appCategories = screen.getByTestId('violations-filter-app-categories');
+      expect(policyType.compareDocumentPosition(waiverType) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(applications.compareDocumentPosition(appCategories) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+  });
 });

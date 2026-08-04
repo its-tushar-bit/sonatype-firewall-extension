@@ -17,6 +17,8 @@ import {
  * states, mirroring {@link nexusOneApplicationDetailStates}.
  */
 export const NEXUS_ONE_VIOLATION_DETAIL_STATE = 'nexusOneViolationDetail';
+/** Empty-url child that redirects bare `#/violations/{id}` → `/overview`. */
+export const NEXUS_ONE_VIOLATION_DETAIL_DEFAULT_STATE = `${NEXUS_ONE_VIOLATION_DETAIL_STATE}.default`;
 export const NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE = `${NEXUS_ONE_VIOLATION_DETAIL_STATE}.overview`;
 export const NEXUS_ONE_VIOLATION_DETAIL_VULNERABILITY_STATE = `${NEXUS_ONE_VIOLATION_DETAIL_STATE}.vulnerability`;
 export const NEXUS_ONE_VIOLATION_DETAIL_WAIVERS_STATE = `${NEXUS_ONE_VIOLATION_DETAIL_STATE}.waivers`;
@@ -37,8 +39,22 @@ export function nexusOneViolationDetailStates(): ReactStateDeclaration[] {
       data: { title: VIOLATION_DETAIL_TITLE },
     },
     {
-      name: NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE,
+      name: NEXUS_ONE_VIOLATION_DETAIL_DEFAULT_STATE,
       url: '',
+      redirectTo: (trans) => ({
+        state: NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE,
+        params: {
+          id: trans.params().id,
+          type: trans.params().type,
+          sidebarReference: trans.params().sidebarReference,
+          sidebarId: trans.params().sidebarId,
+          page: trans.params().page,
+        },
+      }),
+    },
+    {
+      name: NEXUS_ONE_VIOLATION_DETAIL_OVERVIEW_STATE,
+      url: '/overview',
       component: ViolationDetailOverviewRoute,
       data: { title: VIOLATION_DETAIL_TITLE },
     },

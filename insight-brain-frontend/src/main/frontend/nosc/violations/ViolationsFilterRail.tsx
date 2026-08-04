@@ -18,6 +18,7 @@ import {
 } from '@radix-ui/themes';
 import { ActionIcons, NavIcons } from 'MainRoot/nosc/icons';
 import {
+  ApplicationCategoryOption,
   ViolationFilterSetGroup,
   ViolationsFilterState,
   ViolationsListFacets,
@@ -80,6 +81,16 @@ export interface ViolationsFilterRailProps {
   /** Controlled Applications facet search text (debounced server-side by the list container). */
   readonly applicationFacetSearch?: string;
   readonly onApplicationFacetSearchChange?: (query: string) => void;
+  /**
+   * Application Category options from {@code GET /api/v2/applicationCategories/application}
+   * (Classic dashboard tags endpoint). Facets for categories are deferred on the list API, so the
+   * rail uses this option list instead of a facet map. When empty/undefined and nothing is selected,
+   * the section is hidden.
+   */
+  readonly applicationCategoryOptions?: ReadonlyArray<ApplicationCategoryOption>;
+  /** Controlled client-side search for Application Categories (not sent to the list POST). */
+  readonly applicationCategorySearch?: string;
+  readonly onApplicationCategorySearchChange?: (query: string) => void;
   /**
    * Disambiguates data-testids/input ids when the rail is rendered twice (desktop rail + mobile
    * drawer). Defaults to the desktop instance.
@@ -208,6 +219,7 @@ function SearchableFilterSection({
   onToggle,
   query,
   onQueryChange,
+  serverSearchNotes = true,
 }: {
   readonly title: string;
   readonly testId: string;
@@ -220,6 +232,11 @@ function SearchableFilterSection({
   /** Controlled search text; parent debounces and sends organizationFacetSearch / applicationFacetSearch. */
   readonly query: string;
   readonly onQueryChange: (query: string) => void;
+  /**
+   * When true (org/app facets), show top-N / search-cap notes tied to the server facet map.
+   * Application Categories load from a tags API (client filter only) — keep notes off.
+   */
+  readonly serverSearchNotes?: boolean;
 }): JSX.Element | null {
   const [expanded, setExpanded] = useState(false);
   // Collapse See more whenever the whole rail returns to the default filter state. Depends on
@@ -254,8 +271,8 @@ function SearchableFilterSection({
   const canToggleCollapse = !searching && filtered.length > FACET_COLLAPSE_LIMIT;
   // Uncapped top-N map is capped at FACET_SERVER_CAP. When searching, the map is name-match results
   // (also capped) — do not show the top-by-count affordance over search results.
-  const showTopByCountNote = !searching && entries.length >= FACET_SERVER_CAP;
-  const showSearchCapNote = searching && entries.length >= FACET_SERVER_CAP;
+  const showTopByCountNote = serverSearchNotes && !searching && entries.length >= FACET_SERVER_CAP;
+  const showSearchCapNote = serverSearchNotes && searching && entries.length >= FACET_SERVER_CAP;
 
   return (
     <fieldset className="nosc-violations-filter-group" data-testid={testId}>
@@ -477,9 +494,9 @@ function ThreatLevelSection({
 
 /**
  * Interactive filter sidebar for Martha V1 Violations. Renders violation-state, policy-type,
- * threat-level, stage, organization, and application controls from the API facet maps and lifts every
- * change to the list container, which refetches. Age, application categories, and legacy state are
- * deferred until the index supports them.
+ * waiver-type, threat-level, stage, organization, application, and application-category controls
+ * and lifts every change to the list container, which refetches. Age stays Kitchen Sink (not
+ * indexed). Application Categories use the Classic tags options API when list facets are absent.
  */
 export default function ViolationsFilterRail({
   facets,
@@ -493,6 +510,9 @@ export default function ViolationsFilterRail({
   onOrganizationFacetSearchChange,
   applicationFacetSearch = '',
   onApplicationFacetSearchChange,
+  applicationCategoryOptions,
+  applicationCategorySearch = '',
+  onApplicationCategorySearchChange,
   idPrefix = 'violations-filter',
   hideStateFilter = false,
   hideWaiverTypeFilter = false,
@@ -504,6 +524,13 @@ export default function ViolationsFilterRail({
   const appLabel = (id: string): string => labels?.applications[id] ?? id;
   const filtersActive = filtersActiveProp ?? hasActiveViolationFilters(selected);
   const categoryLabel = threatCategoryUseIdentityLabels ? (id: string) => id : threatCategoryLabel;
+  const applicationCategoryNameById = Object.fromEntries(
+    (applicationCategoryOptions ?? []).map((option) => [option.id, option.name]),
+  );
+  const applicationCategoryLabel = (id: string): string => applicationCategoryNameById[id] ?? id;
+  const applicationCategoryCounts = Object.fromEntries(
+    (applicationCategoryOptions ?? []).map((option) => [option.id, 0]),
+  );
 
   return (
     <Box asChild className="nosc-violations-filter-rail" data-testid={`${idPrefix}-rail`}>
@@ -540,14 +567,6 @@ export default function ViolationsFilterRail({
               }
             />
           )}
-          {!hideWaiverTypeFilter && (
-            <WaiverTypeSection
-              facets={facets}
-              value={selected.waiverType}
-              onWaiverTypeChange={onWaiverTypeChange}
-              testId={`${idPrefix}-waiver-type`}
-            />
-          )}
           <CheckboxFilterSection
             title={threatCategorySectionTitle}
             testId={`${idPrefix}-policy-type`}
@@ -556,6 +575,14 @@ export default function ViolationsFilterRail({
             selected={selected.threatCategories}
             onToggle={onToggle}
           />
+          {!hideWaiverTypeFilter && (
+            <WaiverTypeSection
+              facets={facets}
+              value={selected.waiverType}
+              onWaiverTypeChange={onWaiverTypeChange}
+              testId={`${idPrefix}-waiver-type`}
+            />
+          )}
           <ThreatLevelSection
             range={selected.threatRange}
             onThreatRangeChange={onThreatRangeChange}
@@ -590,6 +617,22 @@ export default function ViolationsFilterRail({
             onToggle={onToggle}
             query={applicationFacetSearch}
             onQueryChange={onApplicationFacetSearchChange ?? (() => undefined)}
+          />
+          <SearchableFilterSection
+            title="Application Categories"
+            testId={`${idPrefix}-app-categories`}
+            group="applicationCategoryIds"
+            entries={toEntries(
+              applicationCategoryCounts,
+              selected.applicationCategoryIds,
+              applicationCategoryLabel,
+            )}
+            selected={selected.applicationCategoryIds}
+            filtersActive={filtersActive}
+            onToggle={onToggle}
+            query={applicationCategorySearch}
+            onQueryChange={onApplicationCategorySearchChange ?? (() => undefined)}
+            serverSearchNotes={false}
           />
         </Flex>
       </aside>

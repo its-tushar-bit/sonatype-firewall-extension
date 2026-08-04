@@ -9,6 +9,7 @@ import {
   classicVulnerabilityHref,
   componentDisplayNameLabel,
   getMostRecentScanId,
+  getSecurityVulnerabilityRefId,
   isSecurityPolicyCategory,
   tabFromViolationDetailStateName,
   violationDetailStateNameForTab,
@@ -98,5 +99,43 @@ describe('violationDetailUtils', () => {
         },
       }),
     ).toBe('scan-later');
+  });
+
+  it('reads the first SECURITY_VULNERABILITY_REFID from constraint reasons only', () => {
+    expect(
+      getSecurityVulnerabilityRefId({
+        constraintViolations: [
+          {
+            constraintName: 'License',
+            reasons: [{ reason: 'Banned license' }],
+          },
+          {
+            constraintName: 'Security',
+            reasons: [
+              {
+                reason: 'Known CVE',
+                reference: { type: 'SECURITY_VULNERABILITY_REFID', value: 'CVE-2026-0001' },
+              },
+            ],
+          },
+        ],
+      }),
+    ).toBe('CVE-2026-0001');
+    expect(
+      getSecurityVulnerabilityRefId({
+        constraintViolations: [
+          {
+            constraintName: 'License',
+            reasons: [
+              {
+                reason: 'Other ref',
+                reference: { type: 'OTHER', value: 'not-a-cve' },
+              },
+            ],
+          },
+        ],
+      }),
+    ).toBeNull();
+    expect(getSecurityVulnerabilityRefId(undefined)).toBeNull();
   });
 });

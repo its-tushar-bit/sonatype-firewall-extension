@@ -84,6 +84,24 @@ export function getMostRecentScanId(
   return getMostRecentStageEntry(stageData)?.scanId;
 }
 
+/**
+ * First security vulnerability ref id from constraint reasons, when the detail
+ * payload already exposes {@code SECURITY_VULNERABILITY_REFID}. Does not invent ids.
+ */
+export function getSecurityVulnerabilityRefId(
+  details: Pick<ViolationDetailsDTO, 'constraintViolations'> | null | undefined,
+): string | null {
+  for (const constraint of details?.constraintViolations ?? []) {
+    const reason = constraint.reasons?.find(
+      (item) => item.reference?.type === 'SECURITY_VULNERABILITY_REFID',
+    );
+    if (reason?.reference?.value) {
+      return reason.reference.value;
+    }
+  }
+  return null;
+}
+
 export function componentDisplayNameLabel(
   displayName: ViolationDetailsDTO['displayName'] | undefined,
   fallback?: string,

@@ -198,7 +198,7 @@ describe('ViolationCardGrid (CLM-42259)', () => {
   it('links the whole card to the embedded detail route with an accessible label', () => {
     renderGrid([OPEN_CRITICAL]);
     const link = screen.getByTestId('violation-card-link');
-    expect(link).toHaveAttribute('href', '#/violations/pv-1');
+    expect(link).toHaveAttribute('href', '#/violations/pv-1/overview');
     // Accessible name leads with the state and references the policy, component, application, and
     // threat level so screen readers announce the same context/severity the card shows visually.
     expect(link).toHaveAccessibleName(

@@ -28,6 +28,35 @@ function renderRail(facets: WaiversFilterFacetCounts) {
 }
 
 describe('WaiversFilterRail', () => {
+  it('orders facet groups toward the vision filter chrome', () => {
+    renderRail({
+      totalWaivers: 1,
+      threatLevels: [{ id: 'critical', label: 'Critical', count: 1 }],
+      autoStatuses: [{ id: 'auto', label: 'Auto', count: 1 }],
+      expiryStatuses: [{ id: 'active', label: 'Active', count: 1 }],
+      waiverStates: [{ id: 'active', label: 'Active', count: 1 }],
+      scopes: [{ id: 'application', label: 'Application', count: 1 }],
+      policyTypes: [{ id: 'security', label: 'Security', count: 1 }],
+      organizations: [{ id: 'org-1', label: 'Org One', count: 1 }],
+      applications: [{ id: 'app-1', label: 'App One', count: 1 }],
+      policies: [{ id: 'p-1', label: 'Policy One', count: 1 }],
+    });
+
+    const rail = screen.getByTestId('waivers-filter-rail');
+    const legends = Array.from(rail.querySelectorAll('legend')).map((el) => el.textContent);
+    expect(legends).toEqual([
+      'Waiver State',
+      'Status',
+      'Auto vs Manual',
+      'Policy Threat',
+      'Organizations',
+      'Applications',
+      'Scope',
+      'Policy Types',
+      'Policies',
+    ]);
+  });
+
   it('collapses long organization lists behind Show more / Show less', async () => {
     const user = userEvent.setup();
     const organizations = Array.from({ length: WAIVERS_FILTER_COLLAPSED_COUNT + 3 }, (_, index) => ({

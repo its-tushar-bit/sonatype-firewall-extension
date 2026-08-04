@@ -10,6 +10,7 @@ import { BRAND_ACCENT } from 'MainRoot/nosc/theme';
 import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
 import { actions as displayThemeActions } from 'MainRoot/configuration/displayTheme/displayThemeSlice';
 import UnsavedChangesModal from 'MainRoot/modals/unsavedChangesModal/UnsavedChangesModal';
+import NoscToastHost from 'MainRoot/nosc/toast/NoscToastHost';
 import { TopNav } from './TopNav';
 // @ts-expect-error — LeftNav is intentionally .jsx
 import LeftNav from './LeftNav';
@@ -54,6 +55,7 @@ export function NexusOneShellLayout({ children }: { readonly children: React.Rea
       </div>
       <LeftNav />
       {children}
+      <NoscToastHost />
       <UnsavedChangesModal />
     </Theme>
   );

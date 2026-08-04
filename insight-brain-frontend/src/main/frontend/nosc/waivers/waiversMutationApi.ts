@@ -15,6 +15,43 @@ import {
   getWaiverDetailsUrl,
 } from 'MainRoot/util/CLMLocation';
 
+/**
+ * IQ JaxRsExceptionMapper often returns plain-text bodies (not JSON). Axios then sets
+ * {@code error.message} to the generic "Request failed with status code NNN" — prefer the
+ * response body when present so Approve/Reject/etc. can show the real reason (e.g.
+ * "This policy waiver already exists.").
+ */
+export function extractIqApiErrorMessage(err: unknown, fallback = 'Request failed'): string {
+  const responseData = (() => {
+    if (!err || typeof err !== 'object') return undefined;
+    if (axios.isAxiosError(err)) return err.response?.data;
+    // Plain axios-shaped objects (common in unit tests / some wrappers).
+    return (err as { response?: { data?: unknown } }).response?.data;
+  })();
+  if (typeof responseData === 'string' && responseData.trim()) return responseData.trim();
+  if (
+    responseData
+    && typeof responseData === 'object'
+    && typeof (responseData as { message?: unknown }).message === 'string'
+  ) {
+    const nested = (responseData as { message: string }).message.trim();
+    if (nested) return nested;
+  }
+  if (axios.isAxiosError(err) && typeof err.message === 'string' && err.message.trim()) {
+    return err.message.trim();
+  }
+  if (err instanceof Error && err.message.trim()) return err.message.trim();
+  if (
+    err
+    && typeof err === 'object'
+    && typeof (err as { message?: unknown }).message === 'string'
+    && (err as { message: string }).message.trim()
+  ) {
+    return (err as { message: string }).message.trim();
+  }
+  return fallback;
+}
+
 /** Wire matcher tokens accepted by {@code ApiWaiverOptionsDTO.matcherStrategy}. */
 export type WaiverMatcherStrategy =
   | 'DEFAULT'
@@ -62,6 +99,7 @@ export interface PolicyWaiverReason {
 export interface PolicyWaiverRequestDTO {
   readonly policyWaiverRequestId?: string;
   readonly id?: string;
+  readonly policyViolationId?: string | null;
   readonly status?: string | null;
   readonly comment?: string | null;
   readonly noteToReviewer?: string | null;
@@ -70,7 +108,7 @@ export interface PolicyWaiverRequestDTO {
   readonly expiryTime?: string | null;
   readonly expireWhenRemediationAvailable?: boolean;
   readonly policyWaiverReasonId?: string | null;
-  /** Per-caller WAIVE permission from ApiPolicyWaiverRequestDTO.canReview. */
+  /** Server-computed: whether the current user may approve/reject this request. */
   readonly canReview?: boolean | null;
   readonly requesterName?: string | null;
   readonly reviewerName?: string | null;

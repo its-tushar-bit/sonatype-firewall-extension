@@ -4,14 +4,24 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { Box, Button, Flex, Heading, Text } from '@radix-ui/themes';
+import { useSelector } from 'react-redux';
+import { useRouter } from '@uirouter/react';
+import { Badge, Box, Button, Flex, Heading, Text } from '@radix-ui/themes';
 import { AsyncPageState, AsyncPageStateInfoProps } from 'MainRoot/nosc/components/AsyncPageState';
 import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
+import {
+  selectIsAutoWaiversEnabled,
+  selectIsDeveloperDashboardEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  DEFAULT_AUTO_WAIVER_OWNER_ID,
+  DEFAULT_AUTO_WAIVER_OWNER_TYPE,
+} from 'MainRoot/nosc/waivers/autoWaiversApi';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import WaiversFilterRail from 'MainRoot/nosc/waivers/WaiversFilterRail';
 import WaiversToolbar from 'MainRoot/nosc/waivers/WaiversToolbar';
-import WaiversAnaTable from 'MainRoot/nosc/waivers/WaiversAnaTable';
+import WaiversAnaCardList from 'MainRoot/nosc/waivers/WaiversAnaCardList';
 import type { AnaWaiverRow, WaiversFilterFacetCounts } from 'MainRoot/nosc/waivers/waiversListTypes';
 import type {
   WaiversFilterSetGroup,
@@ -48,7 +58,7 @@ export interface WaiversAnaPageProps {
 }
 
 /**
- * Presentational Ana Waivers page shell (CLM-43204): filter rail + toolbar + table.
+ * Presentational Ana Waivers page shell (CLM-43204): filter rail + toolbar + card list.
  * Wired by {@code WaiversListPage} (router hydration) against
  * {@code POST /rest/search/index-query} with {@code entityType: WAIVER}. Mirrors the
  * Applications page contract so future filter/toolbar improvements stay symmetric.
@@ -77,6 +87,14 @@ export default function WaiversAnaPage({
   warnings = [],
 }: WaiversAnaPageProps): JSX.Element {
   const offsets = usePreviewShellOffsets();
+  const { stateService } = useRouter();
+  const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
+  const showAutoWaiversEntry = isAutoWaiversEnabled && isDeveloperDashboardEnabled;
+  const headerCount = facets.totalWaivers > 0 ? facets.totalWaivers : totalCount;
+  const headerCountLabel = exactTotalEstimate
+    ? String(headerCount)
+    : `${headerCount}+`;
 
   return (
     <Box
@@ -97,10 +115,34 @@ export default function WaiversAnaPage({
             <Flex align="center" gap="3">
               <DomainIcons.Waivers size={28} color="var(--accent-9)" />
               <Heading size="6">Waivers</Heading>
+              <Badge
+                size="2"
+                color="gray"
+                variant="soft"
+                radius="full"
+                data-testid="waivers-page-count-badge"
+              >
+                {headerCountLabel}
+              </Badge>
             </Flex>
+            {showAutoWaiversEntry && (
+              <Button
+                size="2"
+                variant="solid"
+                onClick={() =>
+                  stateService.go('nexusOneAutoWaivers', {
+                    ownerType: DEFAULT_AUTO_WAIVER_OWNER_TYPE,
+                    ownerId: DEFAULT_AUTO_WAIVER_OWNER_ID,
+                  })
+                }
+                data-testid="nosc-waivers-auto-waivers-button"
+              >
+                <DomainIcons.AutoWaiver size={14} aria-hidden /> Auto-Waivers
+              </Button>
+            )}
           </Flex>
           <Text size="2" color="gray">
-            Policy-violation waivers across every application and organization visible to your account.
+            Review and manage policy waivers across applications and organizations you can access.
           </Text>
           {warnings.length > 0 && (
             <Flex direction="column" gap="1" data-testid="waivers-list-warnings">
@@ -219,7 +261,7 @@ export default function WaiversAnaPage({
                   </Flex>
                 ) : (
                   <>
-                    <WaiversAnaTable waivers={waivers} linkFrom="waivers-list" />
+                    <WaiversAnaCardList waivers={waivers} linkFrom="waivers-list" />
                     {(totalCount > pageSize || page > 1 || hasNextPage) && (
                       <Pagination
                         page={page}

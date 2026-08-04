@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { Theme } from '@radix-ui/themes';
-import { userEvent } from 'TestRoot/SpecUtil';
+import { render, userEvent } from 'TestRoot/SpecUtil';
 import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 import RequestWaiverModal from 'MainRoot/nosc/waivers/RequestWaiverModal';
 import * as mutationApi from 'MainRoot/nosc/waivers/waiversMutationApi';

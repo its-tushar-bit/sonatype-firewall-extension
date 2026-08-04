@@ -10,7 +10,11 @@ interface PaginationProps {
   /** 1-based index of the current page. */
   readonly page: number;
   readonly pageSize: number;
-  readonly totalItems: number;
+  /**
+   * Exact total when known. Omit (or pass undefined) for hasNext-only APIs so we
+   * do not invent a page count from a lower-bound estimate.
+   */
+  readonly totalItems?: number;
   /** When true, Next stays enabled even if {@code page >= totalPages} (API signalled more results). */
   readonly hasNextPage?: boolean;
   /** Called with the new 1-based page when the user pages forward/back. */
@@ -32,14 +36,22 @@ export function Pagination({
   onPageChange,
   ...rest
 }: PaginationProps): JSX.Element {
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const canGoNext = hasNextPage || page < totalPages;
-  const firstShown = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
-  const lastShown = Math.min(page * pageSize, totalItems);
+  const exactTotal = typeof totalItems === 'number';
+  const totalPages = exactTotal ? Math.max(1, Math.ceil(totalItems / pageSize)) : undefined;
+  const canGoNext = hasNextPage || (totalPages !== undefined && page < totalPages);
+  const firstShown = exactTotal
+    ? (totalItems === 0 ? 0 : (page - 1) * pageSize + 1)
+    : (page - 1) * pageSize + 1;
+  const lastShown = exactTotal
+    ? Math.min(page * pageSize, totalItems)
+    : firstShown + pageSize - 1;
+
   return (
     <Flex align="center" justify="between" p="3" {...rest}>
       <Text size="2" color="gray">
-        Showing {firstShown}–{lastShown} of {totalItems}
+        {exactTotal
+          ? `Showing ${firstShown}–${lastShown} of ${totalItems}`
+          : `Showing page ${page}`}
       </Text>
       <Flex align="center" gap="2">
         <Button
@@ -54,7 +66,7 @@ export function Pagination({
           Prev
         </Button>
         <Text size="2" color="gray">
-          Page {page} of {totalPages}
+          {totalPages !== undefined ? `Page ${page} of ${totalPages}` : `Page ${page}`}
         </Text>
         <Button
           size="1"

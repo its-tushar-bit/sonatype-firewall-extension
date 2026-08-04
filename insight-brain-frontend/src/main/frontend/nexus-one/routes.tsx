@@ -133,6 +133,8 @@ import {
 import {
   WaiversListPage as PreviewWaiversList,
   WaiverDetailPage as PreviewWaiverDetail,
+  AutoWaiversPage as PreviewAutoWaiversList,
+  AutoWaiverDetailPage as PreviewAutoWaiverDetail,
 } from 'MainRoot/nosc/waivers';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 import {
@@ -270,6 +272,30 @@ router.stateRegistry.register({
   component: PreviewWaiversList,
   data: {
     title: 'Nexus One — Waivers',
+  },
+} as ReactStateDeclaration);
+
+// Auto-Waivers config surface (CLM-43964): owner-scoped CRUD via /api/v2/autoPolicyWaivers.
+// Defaults to ROOT_ORGANIZATION_ID — one applicableAutoWaivers call, never estate fan-out.
+router.stateRegistry.register({
+  name: 'nexusOneAutoWaivers',
+  url: '/waivers/auto-waivers?ownerType&ownerId',
+  params: {
+    ownerType: { dynamic: true, value: 'organization', squash: true },
+    ownerId: { dynamic: true, value: 'ROOT_ORGANIZATION_ID', squash: true },
+  },
+  component: PreviewAutoWaiversList,
+  data: {
+    title: 'Nexus One — Auto-Waivers',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneAutoWaiverDetail',
+  url: '/waivers/auto-waivers/{ownerType}/{ownerId}/{autoPolicyWaiverId}',
+  component: PreviewAutoWaiverDetail,
+  data: {
+    title: 'Nexus One — Auto-Waiver Detail',
   },
 } as ReactStateDeclaration);
 

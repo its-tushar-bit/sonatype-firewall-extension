@@ -66,4 +66,12 @@ describe('Pagination', () => {
     expect(screen.getByText('Showing 0–0 of 0')).toBeInTheDocument();
     expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
   });
+
+  it('omits fabricated totals when totalItems is unknown', () => {
+    renderPagination({ page: 2, pageSize: 25, totalItems: undefined, hasNextPage: true });
+    expect(screen.getByText('Showing page 2')).toBeInTheDocument();
+    expect(screen.getByText('Page 2')).toBeInTheDocument();
+    expect(screen.queryByText(/of /)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next page' })).not.toBeDisabled();
+  });
 });

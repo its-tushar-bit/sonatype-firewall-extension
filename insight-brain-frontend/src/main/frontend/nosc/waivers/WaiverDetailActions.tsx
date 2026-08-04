@@ -5,11 +5,13 @@
  */
 import React, { useState } from 'react';
 import { Button, Dialog, Flex, Text, TextArea, TextField } from '@radix-ui/themes';
-import { extractAxiosMessage } from 'MainRoot/nosc/util/extractAxiosMessage';
+import { useNoscToast } from 'MainRoot/nosc/toast/useNoscToast';
+import { clearPendingWaiverRequestSessionFlag } from 'MainRoot/nosc/waivers/waiverActionEligibility';
 import type { PolicyWaiverDetailDTO } from 'MainRoot/nosc/waivers/waiverTypes';
 import {
   deletePolicyWaiver,
   expiryDateToIsoEndOfDay,
+  extractIqApiErrorMessage,
   reviewPolicyWaiverRequest,
   updatePolicyWaiver,
   withdrawPolicyWaiverRequest,
@@ -53,6 +55,7 @@ export default function WaiverDetailActions({
   onChanged,
   onDeletedOrWithdrawn,
 }: WaiverDetailActionsProps): JSX.Element | null {
+  const toast = useNoscToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [extendOpen, setExtendOpen] = useState(false);
@@ -61,7 +64,7 @@ export default function WaiverDetailActions({
   const [rejectionReason, setRejectionReason] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
-  // Hide decide actions as soon as approve/reject succeeds so a second click cannot
+  // Hide decide actions as soon as a decision succeeds so a second click cannot
   // race the parent reloadRequest() round trip.
   const [reviewComplete, setReviewComplete] = useState(false);
 
@@ -81,14 +84,26 @@ export default function WaiverDetailActions({
     && !reviewComplete;
   const canMutateCommitted = !isRequested && !!waiver;
 
-  const run = async (action: () => Promise<void>, after?: () => void): Promise<void> => {
+  const clearPendingSessionHint = (): void => {
+    const violationId = request?.policyViolationId;
+    if (violationId) clearPendingWaiverRequestSessionFlag(violationId);
+  };
+
+  const run = async (
+    action: () => Promise<void>,
+    after?: () => void,
+    messages?: { readonly success: string; readonly failure: string },
+  ): Promise<void> => {
     setBusy(true);
     setError(null);
     try {
       await action();
+      if (messages?.success) toast.success(messages.success);
       after?.();
     } catch (err: unknown) {
-      setError(extractAxiosMessage(err));
+      const message = extractIqApiErrorMessage(err, messages?.failure ?? 'Action failed');
+      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -101,13 +116,14 @@ export default function WaiverDetailActions({
   const committedWaiverReasonId = waiver?.policyWaiverReasonId ?? null;
 
   return (
-    <Flex direction="column" gap="2" data-testid="waiver-detail-actions">
-      <Flex gap="2" wrap="wrap">
+    <Flex direction="column" gap="2" align="end" data-testid="waiver-detail-actions">
+      <Flex gap="2" wrap="wrap" justify="end">
         {canMutateCommitted && (
           <>
             <Button
               size="2"
-              variant="soft"
+              variant="outline"
+              color="gray"
               disabled={busy}
               onClick={() => {
                 setExtendDate(toDateInputValue(waiver?.expiryTime));
@@ -120,7 +136,7 @@ export default function WaiverDetailActions({
             <Button
               size="2"
               color="red"
-              variant="soft"
+              variant="solid"
               disabled={busy}
               onClick={() => setDeleteOpen(true)}
               data-testid="waiver-detail-delete"
@@ -133,6 +149,17 @@ export default function WaiverDetailActions({
           <>
             <Button
               size="2"
+              color="red"
+              variant="outline"
+              disabled={busy}
+              onClick={() => setRejectOpen(true)}
+              data-testid="waiver-detail-reject"
+            >
+              Reject
+            </Button>
+            <Button
+              size="2"
+              variant="solid"
               disabled={busy}
               onClick={() =>
                 void run(
@@ -154,7 +181,12 @@ export default function WaiverDetailActions({
                   },
                   () => {
                     setReviewComplete(true);
+                    clearPendingSessionHint();
                     onChanged();
+                  },
+                  {
+                    success: 'Waiver request approved',
+                    failure: 'Failed to approve waiver request',
                   },
                 )
               }
@@ -162,22 +194,12 @@ export default function WaiverDetailActions({
             >
               Approve
             </Button>
-            <Button
-              size="2"
-              color="red"
-              variant="soft"
-              disabled={busy}
-              onClick={() => setRejectOpen(true)}
-              data-testid="waiver-detail-reject"
-            >
-              Reject
-            </Button>
           </>
         )}
         {canWithdrawRequest && (
           <Button
             size="2"
-            variant="outline"
+            variant="soft"
             color="gray"
             disabled={busy}
             onClick={() => setWithdrawOpen(true)}
@@ -242,7 +264,6 @@ export default function WaiverDetailActions({
                         comment: waiver?.comment ?? null,
                         expiryTime: expiryDateToIsoEndOfDay(extendDate),
                         waiverReasonId: committedWaiverReasonId,
-                        // Preserve remediation-driven expiry; Extend only changes the date.
                         expireWhenRemediationAvailable:
                           waiver?.expireWhenRemediationAvailable
                           ?? waiver?.isExpireWhenRemediationAvailable
@@ -253,6 +274,10 @@ export default function WaiverDetailActions({
                     setExtendDate('');
                   },
                   onChanged,
+                  {
+                    success: 'Waiver extended',
+                    failure: 'Failed to extend waiver',
+                  },
                 );
               }}
               data-testid="waiver-detail-extend-submit"
@@ -289,6 +314,10 @@ export default function WaiverDetailActions({
                     setDeleteOpen(false);
                   },
                   onDeletedOrWithdrawn,
+                  {
+                    success: 'Waiver deleted',
+                    failure: 'Failed to delete waiver',
+                  },
                 )
               }
               data-testid="waiver-detail-delete-confirm"
@@ -353,7 +382,12 @@ export default function WaiverDetailActions({
                   },
                   () => {
                     setReviewComplete(true);
+                    clearPendingSessionHint();
                     onChanged();
+                  },
+                  {
+                    success: 'Waiver request rejected',
+                    failure: 'Failed to reject waiver request',
                   },
                 )
               }
@@ -392,7 +426,12 @@ export default function WaiverDetailActions({
                   },
                   () => {
                     setReviewComplete(true);
+                    clearPendingSessionHint();
                     onDeletedOrWithdrawn();
+                  },
+                  {
+                    success: 'Waiver request withdrawn',
+                    failure: 'Failed to withdraw waiver request',
                   },
                 )
               }

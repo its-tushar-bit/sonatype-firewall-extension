@@ -314,36 +314,38 @@ export default function WaiverDetailPage(): ReactElement {
       }
       return (
         <Flex direction="column" gap="3" data-testid="preview-waiver-detail-header">
-          <Flex align="center" gap="3" wrap="wrap">
-            <ViolationThreatBadge threat={request.threatLevel ?? 0} size="2" />
-            <PageHeading mb="0">{request.policyName ?? 'Waiver request'}</PageHeading>
-            <Badge
-              color={
-                (request.status ?? '').toUpperCase() === 'APPROVED'
-                  ? 'green'
-                  : (request.status ?? '').toUpperCase() === 'REJECTED'
-                    ? 'red'
-                    : 'orange'
-              }
-              variant="soft"
-            >
-              {(request.status ?? 'REQUESTED').toUpperCase()}
-            </Badge>
+          <Flex align="start" justify="between" gap="4" wrap="wrap">
+            <Flex align="center" gap="3" wrap="wrap" minWidth="0">
+              <ViolationThreatBadge threat={request.threatLevel ?? 0} size="2" />
+              <PageHeading mb="0">{request.policyName ?? 'Waiver request'}</PageHeading>
+              <Badge
+                color={
+                  (request.status ?? '').toUpperCase() === 'APPROVED'
+                    ? 'green'
+                    : (request.status ?? '').toUpperCase() === 'REJECTED'
+                      ? 'red'
+                      : 'orange'
+                }
+                variant="soft"
+              >
+                {(request.status ?? 'REQUESTED').toUpperCase()}
+              </Badge>
+            </Flex>
+            {route.ownerType && route.ownerId && route.waiverId && (
+              <WaiverDetailActions
+                key={`request-${route.ownerType}-${route.ownerId}-${route.waiverId}`}
+                ownerType={route.ownerType as WaiverOwnerType}
+                ownerId={route.ownerId}
+                waiverId={route.waiverId}
+                isRequested
+                isAutoWaiver={false}
+                waiver={null}
+                request={request}
+                onChanged={reloadRequest}
+                onDeletedOrWithdrawn={() => stateService.go('nexusOneWaivers')}
+              />
+            )}
           </Flex>
-          {route.ownerType && route.ownerId && route.waiverId && (
-            <WaiverDetailActions
-              key={`request-${route.ownerType}-${route.ownerId}-${route.waiverId}`}
-              ownerType={route.ownerType as WaiverOwnerType}
-              ownerId={route.ownerId}
-              waiverId={route.waiverId}
-              isRequested
-              isAutoWaiver={false}
-              waiver={null}
-              request={request}
-              onChanged={reloadRequest}
-              onDeletedOrWithdrawn={() => stateService.go('nexusOneWaivers')}
-            />
-          )}
         </Flex>
       );
     }
@@ -354,35 +356,37 @@ export default function WaiverDetailPage(): ReactElement {
     }
     return (
       <Flex direction="column" gap="3" data-testid="preview-waiver-detail-header">
-        <Flex align="center" gap="3" wrap="wrap">
-          <ViolationThreatBadge threat={waiver.threatLevel} size="2" />
-          {/* mb="0" drops the heading token's bottom margin so it centers against the badge. */}
-          <PageHeading mb="0">{waiver.policyName ?? 'Policy waiver'}</PageHeading>
-          {waiver.isAutoWaiver && (
-            <Badge color="green" variant="soft">
-              Auto-waiver
-            </Badge>
-          )}
-          {waiver.forContainerImage && (
-            <Badge color="blue" variant="soft">
-              Container image
-            </Badge>
+        <Flex align="start" justify="between" gap="4" wrap="wrap">
+          <Flex align="center" gap="3" wrap="wrap" minWidth="0">
+            <ViolationThreatBadge threat={waiver.threatLevel} size="2" />
+            {/* mb="0" drops the heading token's bottom margin so it centers against the badge. */}
+            <PageHeading mb="0">{waiver.policyName ?? 'Policy waiver'}</PageHeading>
+            {waiver.isAutoWaiver && (
+              <Badge color="green" variant="soft">
+                Auto-waiver
+              </Badge>
+            )}
+            {waiver.forContainerImage && (
+              <Badge color="blue" variant="soft">
+                Container image
+              </Badge>
+            )}
+          </Flex>
+          {route.ownerType && route.ownerId && route.waiverId && (
+            <WaiverDetailActions
+              key={`waiver-${route.ownerType}-${route.ownerId}-${route.waiverId}`}
+              ownerType={route.ownerType as WaiverOwnerType}
+              ownerId={route.ownerId}
+              waiverId={route.waiverId}
+              isRequested={false}
+              isAutoWaiver={route.isAutoWaiver}
+              waiver={waiver}
+              request={null}
+              onChanged={refetch}
+              onDeletedOrWithdrawn={() => stateService.go('nexusOneWaivers')}
+            />
           )}
         </Flex>
-        {route.ownerType && route.ownerId && route.waiverId && (
-          <WaiverDetailActions
-            key={`waiver-${route.ownerType}-${route.ownerId}-${route.waiverId}`}
-            ownerType={route.ownerType as WaiverOwnerType}
-            ownerId={route.ownerId}
-            waiverId={route.waiverId}
-            isRequested={false}
-            isAutoWaiver={route.isAutoWaiver}
-            waiver={waiver}
-            request={null}
-            onChanged={refetch}
-            onDeletedOrWithdrawn={() => stateService.go('nexusOneWaivers')}
-          />
-        )}
 
         {constraints.length > 0 && (
           <Box data-testid="preview-waiver-detail-constraint">
@@ -491,22 +495,48 @@ export default function WaiverDetailPage(): ReactElement {
       )}
 
       {route.isRequested && request && activeTab === OVERVIEW_TAB.value && (
-        <Box mt="4" data-testid="preview-waiver-detail-body">
-          <Card style={{ maxWidth: 880 }}>
+        <Flex
+          mt="4"
+          gap="4"
+          wrap="wrap"
+          align="start"
+          data-testid="preview-waiver-detail-body"
+        >
+          <Card style={{ flex: '1 1 320px', maxWidth: 480 }} data-testid="preview-waiver-detail-waiver-card">
             <Flex direction="column" p="4">
               <Heading size="4" mb="3">
-                Request Details
+                Waiver Details
               </Heading>
-              <EntityDetailRow label="Requester" testId="preview-waiver-detail-requester">
-                <Text size="2">{request.requesterName ?? '—'}</Text>
-              </EntityDetailRow>
-              <EntityDetailRow label="Note to reviewer" testId="preview-waiver-detail-note">
-                <Text size="2">{request.noteToReviewer ?? '—'}</Text>
+              {/* Created / Reason are not on the v2 request DTO — omit rather than ship blank rows. */}
+              <EntityDetailRow label="Expires" testId="preview-waiver-detail-expires">
+                <Text size="2">
+                  {request.expiryTime
+                    ? formatWaiverCalendarDate(request.expiryTime)
+                    : request.expireWhenRemediationAvailable
+                      ? 'When remediation available'
+                      : 'Never'}
+                </Text>
               </EntityDetailRow>
               <EntityDetailRow label="Comments" testId="preview-waiver-detail-comments">
                 <Text size="2" color="gray">
                   {request.comment || 'No additional comments'}
                 </Text>
+              </EntityDetailRow>
+            </Flex>
+          </Card>
+          <Card style={{ flex: '1 1 320px', maxWidth: 480 }} data-testid="preview-waiver-detail-request-card">
+            <Flex direction="column" p="4">
+              <Heading size="4" mb="3">
+                Request Details
+              </Heading>
+              <EntityDetailRow label="Requested by" testId="preview-waiver-detail-requester">
+                <Text size="2">{request.requesterName ?? '—'}</Text>
+              </EntityDetailRow>
+              <EntityDetailRow label="Reviewer" testId="preview-waiver-detail-reviewer">
+                <Text size="2">{request.reviewerName ?? '—'}</Text>
+              </EntityDetailRow>
+              <EntityDetailRow label="Note to reviewer" testId="preview-waiver-detail-note">
+                <Text size="2">{request.noteToReviewer ?? '—'}</Text>
               </EntityDetailRow>
               {request.rejectionReason && (
                 <EntityDetailRow label="Rejection reason" testId="preview-waiver-detail-rejection">
@@ -517,7 +547,7 @@ export default function WaiverDetailPage(): ReactElement {
               )}
             </Flex>
           </Card>
-        </Box>
+        </Flex>
       )}
 
       {/* Load/error chrome lives in the header slot (Application detail pattern). */}

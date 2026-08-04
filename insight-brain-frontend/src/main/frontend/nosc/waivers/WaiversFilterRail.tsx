@@ -210,8 +210,8 @@ function SearchableFilterSection({
 }
 
 /**
- * Filter sidebar for the Ana Waivers list (CLM-43204 / CLM-43962). Confluence V1 filter set
- * plus rich Ana schema wire-up: waiver state, scope, policy type. Never offers an Excluded chip.
+ * Filter sidebar for the Ana Waivers list (CLM-43204 / CLM-43962). Vision-ordered facet groups
+ * for existing Ana facets only (no new facet kinds). Never offers an Excluded chip.
  * High-cardinality facets use in-section search + Show more/less (no clipped scrollbar labels).
  */
 export default function WaiversFilterRail({
@@ -240,7 +240,7 @@ export default function WaiversFilterRail({
 
         <Flex direction="column" gap="4">
           <CheckboxFilterSection
-            title="State"
+            title="Waiver State"
             testId="waivers-filter-state"
             group="waiverStateIds"
             entries={facets.waiverStates}
@@ -250,34 +250,13 @@ export default function WaiversFilterRail({
           />
 
           <CheckboxFilterSection
-            title="Policy Threat Level"
-            testId="waivers-filter-threat-level"
-            group="threatLevelIds"
-            entries={facets.threatLevels}
-            selected={filters.threatLevelIds}
+            title="Status"
+            testId="waivers-filter-expiry"
+            group="expiryStatusIds"
+            entries={facets.expiryStatuses}
+            selected={filters.expiryStatusIds}
             onToggle={onToggleFilter}
             showCount={false}
-            hint="Applied as a continuous min–max range of the selected buckets."
-          />
-
-          <CheckboxFilterSection
-            title="Policy type"
-            testId="waivers-filter-policy-type"
-            group="policyTypeIds"
-            entries={facets.policyTypes}
-            selected={filters.policyTypeIds}
-            onToggle={onToggleFilter}
-            showCount
-          />
-
-          <CheckboxFilterSection
-            title="Scope"
-            testId="waivers-filter-scope"
-            group="scopeIds"
-            entries={facets.scopes}
-            selected={filters.scopeIds}
-            onToggle={onToggleFilter}
-            showCount
           />
 
           <CheckboxFilterSection
@@ -291,13 +270,14 @@ export default function WaiversFilterRail({
           />
 
           <CheckboxFilterSection
-            title="Expiry"
-            testId="waivers-filter-expiry"
-            group="expiryStatusIds"
-            entries={facets.expiryStatuses}
-            selected={filters.expiryStatusIds}
+            title="Policy Threat"
+            testId="waivers-filter-threat-level"
+            group="threatLevelIds"
+            entries={facets.threatLevels}
+            selected={filters.threatLevelIds}
             onToggle={onToggleFilter}
             showCount={false}
+            hint="Applied as a continuous min–max range of the selected buckets."
           />
 
           <SearchableFilterSection
@@ -316,6 +296,26 @@ export default function WaiversFilterRail({
             group="applicationIds"
             entries={facets.applications}
             selected={filters.applicationIds}
+            onToggle={onToggleFilter}
+            showCount
+          />
+
+          <CheckboxFilterSection
+            title="Scope"
+            testId="waivers-filter-scope"
+            group="scopeIds"
+            entries={facets.scopes}
+            selected={filters.scopeIds}
+            onToggle={onToggleFilter}
+            showCount
+          />
+
+          <CheckboxFilterSection
+            title="Policy Types"
+            testId="waivers-filter-policy-type"
+            group="policyTypeIds"
+            entries={facets.policyTypes}
+            selected={filters.policyTypeIds}
             onToggle={onToggleFilter}
             showCount
           />

@@ -478,6 +478,8 @@ describe('WaiverDetailPage', () => {
         threatLevel: 7,
         policyName: 'Security-High',
         comment: 'please waive',
+        noteToReviewer: 'need this for release',
+        requesterName: 'alice',
         matcherStrategy: 'EXACT_COMPONENT',
         expiryTime: null,
         expireWhenRemediationAvailable: false,
@@ -489,9 +491,20 @@ describe('WaiverDetailPage', () => {
     await screen.findByTestId('preview-waiver-detail-header');
     expect(screen.getByText('Security-High')).toBeInTheDocument();
     expect(screen.getByText('REQUESTED')).toBeInTheDocument();
+    const actions = screen.getByTestId('waiver-detail-actions');
+    expect(actions).toBeInTheDocument();
     expect(screen.getByTestId('waiver-detail-approve')).toBeInTheDocument();
     expect(screen.getByTestId('waiver-detail-reject')).toBeInTheDocument();
     expect(screen.getByTestId('waiver-detail-withdraw')).toBeInTheDocument();
+
+    await screen.findByTestId('preview-waiver-detail-body');
+    expect(screen.getByTestId('preview-waiver-detail-waiver-card')).toBeInTheDocument();
+    expect(screen.getByTestId('preview-waiver-detail-request-card')).toBeInTheDocument();
+    expect(screen.getByTestId('preview-waiver-detail-comments')).toHaveTextContent('please waive');
+    expect(screen.getByTestId('preview-waiver-detail-requester')).toHaveTextContent('alice');
+    expect(screen.getByTestId('preview-waiver-detail-note')).toHaveTextContent('need this for release');
+    expect(screen.getByTestId('preview-waiver-detail-expires')).toHaveTextContent('Never');
+
     expect(axiosMock.history.get).toHaveLength(1);
     expect(axiosMock.history.get[0].url).toContain('/api/v2/policyWaiverRequests/');
   });

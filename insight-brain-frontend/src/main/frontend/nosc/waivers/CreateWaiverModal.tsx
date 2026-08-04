@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { Button, Dialog, Flex, Text } from '@radix-ui/themes';
-import { extractAxiosMessage } from 'MainRoot/nosc/util/extractAxiosMessage';
+import { useNoscToast } from 'MainRoot/nosc/toast/useNoscToast';
 import WaiverMutationFormFields, {
   DEFAULT_WAIVER_MUTATION_FORM,
   parseScopeKey,
@@ -14,6 +14,7 @@ import WaiverMutationFormFields, {
 } from 'MainRoot/nosc/waivers/WaiverMutationFormFields';
 import {
   createPolicyWaiver,
+  extractIqApiErrorMessage,
   expiryDateToIsoEndOfDay,
   fetchPolicyWaiverReasons,
   fetchWaiverScopeTargets,
@@ -53,6 +54,7 @@ export default function CreateWaiverModal({
   policyId,
   onCreated,
 }: CreateWaiverModalProps): JSX.Element {
+  const toast = useNoscToast();
   const [form, setForm] = useState<WaiverMutationFormState>(DEFAULT_WAIVER_MUTATION_FORM);
   const [scopes, setScopes] = useState<ReadonlyArray<WaiverScopeTarget>>([]);
   const [reasons, setReasons] = useState<ReadonlyArray<PolicyWaiverReason>>([]);
@@ -87,7 +89,7 @@ export default function CreateWaiverModal({
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setError(extractAxiosMessage(err) || 'Failed to load waiver options');
+        setError(extractIqApiErrorMessage(err, 'Failed to load waiver options'));
       })
       .finally(() => {
         if (!cancelled) setLoadingMeta(false);
@@ -121,9 +123,12 @@ export default function CreateWaiverModal({
         options: buildOptions(form),
       });
       onOpenChange(false);
+      toast.success('Waiver created');
       onCreated();
     } catch (err: unknown) {
-      setError(extractAxiosMessage(err) || 'Failed to create waiver');
+      const message = extractIqApiErrorMessage(err, 'Failed to create waiver');
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }

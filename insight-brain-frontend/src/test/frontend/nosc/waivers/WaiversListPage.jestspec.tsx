@@ -22,6 +22,15 @@ import type { WaiversIndexQueryResponse } from 'MainRoot/nosc/waivers/waiversLis
  * surfaces the empty / 409 / 500 states expected by the design.
  */
 
+const AUTO_WAIVERS_FEATURE_STATE = {
+  productFeatures: {
+    productFeatures: {
+      'auto-waivers': true,
+      'developer-dashboard': true,
+    },
+  },
+};
+
 describe('WaiversListPage (Ana)', () => {
   let axiosMock: ReturnType<typeof axiosMockAdapter>;
 
@@ -35,14 +44,17 @@ describe('WaiversListPage (Ana)', () => {
     axiosMock.reset();
   });
 
-  const renderPage = (params: Record<string, unknown> = {}) =>
-    renderNexusOneRoute(<WaiversListPage />, 'nexusOneWaivers', params);
+  const renderPage = (
+    params: Record<string, unknown> = {},
+    preloadedState: Record<string, unknown> = AUTO_WAIVERS_FEATURE_STATE,
+  ) =>
+    renderNexusOneRoute(<WaiversListPage />, 'nexusOneWaivers', params, { preloadedState });
 
   function reply(body: WaiversIndexQueryResponse = MOCK_WAIVERS_INDEX_QUERY_RESPONSE) {
     axiosMock.onPost(getIndexQueryUrl()).reply(200, body);
   }
 
-  it('renders skeleton while loading, then a row per waiver from index-query', async () => {
+  it('renders skeleton while loading, then a card per waiver from index-query', async () => {
     reply();
 
     renderPage();
@@ -51,25 +63,49 @@ describe('WaiversListPage (Ana)', () => {
     expect(screen.getByTestId('waivers-list-loading')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByTestId('waivers-ana-table')).toBeInTheDocument();
+      expect(screen.getByTestId('waivers-ana-list')).toBeInTheDocument();
     });
-    const table = screen.getByTestId('waivers-ana-table');
-    expect(within(table).getAllByTestId('waivers-ana-table-row')).toHaveLength(2);
-    // Two-row fixture: one manual + one auto. The Auto badge should appear at least once.
-    expect(within(table).getAllByText('Auto').length).toBeGreaterThanOrEqual(1);
+    const list = screen.getByTestId('waivers-ana-list');
+    expect(within(list).getAllByTestId('waivers-ana-list-row')).toHaveLength(2);
+    // Two-row fixture: one manual + one auto. Vision status pill for auto.
+    expect(within(list).getByText('Auto-Waived')).toBeInTheDocument();
+    expect(within(list).getByText('Active')).toBeInTheDocument();
+    expect(within(list).queryByText(/^Component:/i)).not.toBeInTheDocument();
   });
 
-  it('renders the applications-style chrome (rail, toolbar, count)', async () => {
+  it('renders vision-style chrome (rail, toolbar, header count, Auto-Waivers, CSV)', async () => {
     reply();
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByTestId('waivers-ana-table')).toBeInTheDocument();
+      expect(screen.getByTestId('waivers-ana-list')).toBeInTheDocument();
     });
     expect(screen.getByTestId('waivers-page-layout')).toBeInTheDocument();
     expect(screen.getByTestId('waivers-filter-rail')).toBeInTheDocument();
     expect(screen.getByTestId('waivers-toolbar')).toBeInTheDocument();
+    expect(screen.getByTestId('waivers-page-count-badge')).toHaveTextContent('2');
     expect(screen.getByTestId('waivers-toolbar-count')).toHaveTextContent('2 waivers');
+    expect(screen.getByTestId('nosc-waivers-auto-waivers-button')).toBeInTheDocument();
+    expect(screen.getByTestId('waivers-toolbar-csv')).toBeInTheDocument();
+    expect(screen.getByTestId('waivers-filter-state')).toHaveTextContent('Waiver State');
+    expect(screen.getByTestId('waivers-filter-expiry')).toHaveTextContent('Status');
+  });
+
+  it('hides the Auto-Waivers entry when the feature flag is off', async () => {
+    reply();
+    renderPage({}, {
+      productFeatures: {
+        productFeatures: {
+          'auto-waivers': false,
+          'developer-dashboard': true,
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('waivers-ana-list')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('nosc-waivers-auto-waivers-button')).not.toBeInTheDocument();
   });
 
   it('POSTs entityType=WAIVER with the expected default request shape', async () => {
@@ -133,21 +169,21 @@ describe('WaiversListPage (Ana)', () => {
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
   });
 
-  it('rows link to the native Waiver Detail page with the correct owner segments', async () => {
+  it('cards link to the native Waiver Detail page with the correct owner segments', async () => {
     reply();
     renderPage();
     // findAllBy... because the fixture has two rows and therefore two detail links.
-    const links = await screen.findAllByTestId('waivers-ana-table-row-detail-link');
+    const links = await screen.findAllByTestId('waivers-ana-list-row-detail-link');
     expect(links).toHaveLength(2);
     const hrefs = links.map((el) => el.getAttribute('href') ?? '');
     expect(hrefs.some((href) => href.includes('/waivers/application/app-internal-1/waiver-1'))).toBe(true);
     expect(hrefs.some((href) => href.includes('/waivers/organization/org-root/waiver-auto-2'))).toBe(true);
   });
 
-  it('carries type=autoWaiver on the auto-waiver row so the detail page fetches the right API (CLM-43502)', async () => {
+  it('carries type=autoWaiver on the auto-waiver card so the detail page fetches the right API (CLM-43502)', async () => {
     reply();
     renderPage();
-    const links = await screen.findAllByTestId('waivers-ana-table-row-detail-link');
+    const links = await screen.findAllByTestId('waivers-ana-list-row-detail-link');
     expect(links).toHaveLength(2);
     const hrefs = links.map((el) => el.getAttribute('href') ?? '');
     expect(

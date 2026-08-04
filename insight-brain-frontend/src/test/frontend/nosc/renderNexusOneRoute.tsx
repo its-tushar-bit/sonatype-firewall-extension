@@ -64,6 +64,11 @@ const STATES: ReactStateDeclaration[] = [
   { name: 'nexusOneApplications', url: '/applications?q&sort&page&stage&org&app&threat' },
   ...nexusOneApplicationDetailStates(),
   { name: 'nexusOneWaivers', url: '/waivers?q&sort&page&threat&expiry&auto&org&app&policy' },
+  { name: 'nexusOneAutoWaivers', url: '/waivers/auto-waivers?ownerType&ownerId' },
+  {
+    name: 'nexusOneAutoWaiverDetail',
+    url: '/waivers/auto-waivers/{ownerType}/{ownerId}/{autoPolicyWaiverId}',
+  },
   {
     name: 'nexusOneWaiverDetail',
     url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from&type&requested',

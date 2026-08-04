@@ -45,6 +45,48 @@ html, body {
 }
 
 /*
+ * Dialog overlays also portal to document.body. Radix Themes leaves
+ * .rt-BaseDialogOverlay at z-index:auto (only the inner content is z-index:1
+ * within the overlay). That paints the entire dialog BEHIND
+ * NexusOneShellLayout's Theme (z-index:100) and TopNav (z-index:1000), so
+ * Edit / Delete / New Auto-Waiver (and other NOSC Dialogs) appear to do
+ * nothing — the handlers fire, but the modal is hidden under the page.
+ */
+.rt-BaseDialogOverlay,
+.rt-DialogOverlay {
+  z-index: var(--nexus-one-z-popper);
+}
+
+/*
+ * Mutation feedback toasts (ported to document.body). Sit above dialogs +
+ * shell chrome. Soft Callouts are ~10% opacity and read as "no toast" —
+ * force an opaque panel + border so success/error is unmistakable.
+ */
+.nosc-toast-host {
+  position: fixed;
+  top: calc(var(--space-4) + 56px);
+  right: var(--space-4);
+  z-index: calc(var(--nexus-one-z-popper) + 20);
+  width: min(380px, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+
+.nosc-toast-item {
+  pointer-events: auto;
+  position: relative;
+  padding-right: var(--space-6);
+  box-shadow: var(--shadow-5);
+  border: 1px solid var(--accent-a6);
+  background-color: var(--color-panel-solid);
+}
+
+.nosc-toast-dismiss {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
+/*
  * NxModal doesn't portal to document.body — its `.nx-modal-backdrop` relies on
  * z-index alone to cover the page. `position: fixed` always creates a new
  * stacking context (even at z-index:auto), so .nosc-classic-mount (itself

@@ -9,6 +9,7 @@ import {
   createPolicyWaiverRequest,
   deletePolicyWaiver,
   expiryDateToIsoEndOfDay,
+  extractIqApiErrorMessage,
   fetchWaiverScopeTargets,
   reviewPolicyWaiverRequest,
   updatePolicyWaiver,
@@ -17,6 +18,7 @@ import {
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+const actualAxios = jest.requireActual<typeof import('axios')>('axios');
 
 describe('waiversMutationApi', () => {
   beforeEach(() => {
@@ -24,11 +26,29 @@ describe('waiversMutationApi', () => {
     mockedAxios.post.mockReset();
     mockedAxios.put.mockReset();
     mockedAxios.delete.mockReset();
+    mockedAxios.isAxiosError.mockImplementation(actualAxios.isAxiosError);
   });
 
   it('formats expiry dates as local end-of-day ISO', () => {
     const iso = expiryDateToIsoEndOfDay('2026-12-31');
     expect(iso).toMatch(/^2026-12-31T23:59:59\.999[+-]\d{4}$/);
+  });
+
+  it('extractIqApiErrorMessage prefers IQ plain-text response bodies', () => {
+    const err = new actualAxios.AxiosError(
+      'Request failed with status code 400',
+      'ERR_BAD_REQUEST',
+      undefined,
+      undefined,
+      {
+        status: 400,
+        data: 'This policy waiver already exists.',
+        statusText: 'Bad Request',
+        headers: {},
+        config: {} as any,
+      },
+    );
+    expect(extractIqApiErrorMessage(err)).toBe('This policy waiver already exists.');
   });
 
   it('flattens owner hierarchy into selectable scopes (child first)', async () => {
@@ -134,4 +154,5 @@ describe('waiversMutationApi', () => {
       expect.stringContaining('/api/v2/policyWaiverRequests/application/app-1/req-1'),
     );
   });
+
 });

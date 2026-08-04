@@ -22,6 +22,10 @@ import type {
   ApplicableWaiversDTO,
   ViolationDetailsDTO,
 } from 'MainRoot/nosc/violations/detail/violationDetailTypes';
+import {
+  pendingWaiverRequestSessionKey,
+  writePendingWaiverRequestSessionFlag,
+} from 'MainRoot/nosc/waivers/waiverActionEligibility';
 
 const VIOLATION_ID = 'violation-123';
 
@@ -71,13 +75,15 @@ const EMPTY_WAIVERS: ApplicableWaiversDTO = {
 function mockViolationRequests({
   hasWaiverPermission = true,
   violation = VIOLATION_FIXTURE,
+  waivers = EMPTY_WAIVERS,
 }: {
   readonly hasWaiverPermission?: boolean;
   readonly violation?: ViolationDetailsDTO;
+  readonly waivers?: ApplicableWaiversDTO;
 } = {}) {
   const axiosMock = axiosMockAdapter();
   axiosMock.onGet(getViolationDetailsUrl(VIOLATION_ID)).reply(200, violation);
-  axiosMock.onGet(getApplicableWaiversUrl(VIOLATION_ID)).reply(200, EMPTY_WAIVERS);
+  axiosMock.onGet(getApplicableWaiversUrl(VIOLATION_ID)).reply(200, waivers);
   axiosMock.onGet(getApplicationSummaryUrl('demo-app')).reply(200, { id: 'app-internal-1' });
   axiosMock
     .onPut(getPermissionContextTestUrl('application', 'app-internal-1'))
@@ -100,12 +106,16 @@ function renderOverview({
   hasWaiverPermission,
   productFeatures = {},
   productLicense,
+  violation,
+  waivers,
 }: {
   readonly hasWaiverPermission?: boolean;
   readonly productFeatures?: Record<string, boolean>;
   readonly productLicense?: { license: { products: string[] } };
+  readonly violation?: ViolationDetailsDTO;
+  readonly waivers?: ApplicableWaiversDTO;
 } = {}) {
-  mockViolationRequests({ hasWaiverPermission });
+  mockViolationRequests({ hasWaiverPermission, violation, waivers });
   return renderNexusOneViolationDetail(VIOLATION_ID, {
     preloadedState: {
       productFeatures: {
@@ -124,10 +134,6 @@ describe('OverviewTab', () => {
 
   afterAll(() => {
     setBaseUrl();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it('shows the policy decision core with constraints and NOUX entity links', async () => {
@@ -156,9 +162,9 @@ describe('OverviewTab', () => {
   it('opens Create Waiver modal when the user has waiver permission', async () => {
     renderOverview();
 
-    const addWaiverButton = await screen.findByTestId('nosc-violation-detail-add-waiver');
-    await waitFor(() => expect(addWaiverButton).toBeEnabled());
-    await userEvent.click(addWaiverButton);
+    await screen.findByTestId('nosc-violation-detail-overview-tab');
+    await waitFor(() => expect(screen.getByTestId('nosc-violation-detail-add-waiver')).toBeEnabled());
+    await userEvent.click(screen.getByTestId('nosc-violation-detail-add-waiver'));
 
     expect(await screen.findByTestId('create-waiver-modal')).toBeInTheDocument();
   });
@@ -172,20 +178,28 @@ describe('OverviewTab', () => {
     });
     const goSpy = jest.spyOn(router.stateService, 'go').mockImplementation(jest.fn());
 
-    const addWaiverButton = await screen.findByTestId('nosc-violation-detail-add-waiver');
-    await waitFor(() => expect(addWaiverButton).toBeEnabled());
-    await userEvent.click(addWaiverButton);
+    await screen.findByTestId('nosc-violation-detail-overview-tab');
+    await waitFor(() => expect(screen.getByTestId('nosc-violation-detail-add-waiver')).toBeEnabled());
+    await userEvent.click(screen.getByTestId('nosc-violation-detail-add-waiver'));
 
     expect(screen.queryByTestId('create-waiver-modal')).not.toBeInTheDocument();
     expect(goSpy).toHaveBeenCalledWith('addWaiver', { violationId: VIOLATION_ID });
+    goSpy.mockRestore();
   });
 
-  it('hides Create Waiver when the user does not have waiver permission', async () => {
+  it('shows disabled Create Waiver with permission reason when the user cannot waive', async () => {
     renderOverview({ hasWaiverPermission: false });
 
     await screen.findByTestId('nosc-violation-detail-overview-tab');
-
-    expect(screen.queryByTestId('nosc-violation-detail-add-waiver')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId('nosc-violation-detail-add-waiver')).toBeDisabled(),
+    );
+    const addWaiverButton = screen.getByTestId('nosc-violation-detail-add-waiver');
+    expect(addWaiverButton).toHaveAttribute(
+      'data-disabled-reason',
+      "You don't have permission to create waivers",
+    );
+    expect(addWaiverButton).toHaveAccessibleName(/don't have permission/i);
   });
 
   it('opens Request Waiver modal when the workflow is enabled without waiver permission', async () => {
@@ -197,11 +211,77 @@ describe('OverviewTab', () => {
       },
     });
 
-    const requestWaiverButton = await screen.findByTestId('nosc-violation-detail-request-waiver');
-    await userEvent.click(requestWaiverButton);
+    await screen.findByTestId('nosc-violation-detail-overview-tab');
+    await waitFor(() =>
+      expect(screen.getByTestId('nosc-violation-detail-add-waiver')).toBeDisabled(),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('nosc-violation-detail-request-waiver')).toBeEnabled(),
+    );
+    await userEvent.click(screen.getByTestId('nosc-violation-detail-request-waiver'));
 
-    expect(screen.queryByTestId('nosc-violation-detail-add-waiver')).not.toBeInTheDocument();
     expect(await screen.findByTestId('request-waiver-modal')).toBeInTheDocument();
+  });
+
+  it('disables Create and Request when the violation is already waived', async () => {
+    renderOverview({
+      hasWaiverPermission: true,
+      productFeatures: {
+        'waiver-request-workflow-enabled': true,
+        'waiver-request-workflow': true,
+      },
+      violation: { ...VIOLATION_FIXTURE, waived: true },
+      waivers: {
+        activeWaivers: [
+          {
+            policyWaiverId: 'waiver-1',
+            policyId: 'policy-1',
+            scopeOwnerType: 'application',
+            scopeOwnerId: 'app-1',
+            scopeOwnerName: 'Demo App',
+          },
+        ],
+        expiredWaivers: [],
+      },
+    });
+
+    await screen.findByTestId('nosc-violation-detail-overview-tab');
+    await waitFor(() =>
+      expect(screen.getByTestId('nosc-violation-detail-add-waiver')).toBeDisabled(),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('nosc-violation-detail-request-waiver')).toBeDisabled(),
+    );
+    expect(screen.getByTestId('nosc-violation-detail-add-waiver')).toHaveAttribute(
+      'data-disabled-reason',
+      'This violation is already waived',
+    );
+    expect(screen.getByTestId('nosc-violation-detail-request-waiver')).toHaveAttribute(
+      'data-disabled-reason',
+      'This violation is already waived',
+    );
+  });
+
+  it('disables Request Waiver when a pending request is remembered in sessionStorage', async () => {
+    sessionStorage.removeItem(pendingWaiverRequestSessionKey(VIOLATION_ID));
+    writePendingWaiverRequestSessionFlag(VIOLATION_ID);
+
+    renderOverview({
+      hasWaiverPermission: true,
+      productFeatures: {
+        'waiver-request-workflow-enabled': true,
+        'waiver-request-workflow': true,
+      },
+    });
+
+    await screen.findByTestId('nosc-violation-detail-overview-tab');
+    await waitFor(() =>
+      expect(screen.getByTestId('nosc-violation-detail-request-waiver')).toBeDisabled(),
+    );
+    expect(screen.getByTestId('nosc-violation-detail-request-waiver')).toHaveAttribute(
+      'data-disabled-reason',
+      'A waiver request already exists for this violation',
+    );
   });
 
   it('shows gated Request Waiver when workflow is enabled without entitlement', async () => {
@@ -220,10 +300,11 @@ describe('OverviewTab', () => {
 
     const requestWaiverButton = await screen.findByTestId('nosc-violation-detail-request-waiver');
     expect(requestWaiverButton).toBeDisabled();
-    expect(requestWaiverButton).toHaveAccessibleName('Request Waiver (Enterprise Feature)');
+    expect(requestWaiverButton).toHaveAccessibleName(/Enterprise feature/i);
 
     await userEvent.click(requestWaiverButton);
 
     expect(goSpy).not.toHaveBeenCalledWith('requestWaiver', { violationId: VIOLATION_ID });
+    goSpy.mockRestore();
   });
 });

@@ -11,6 +11,10 @@ import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 import WaiverDetailActions from 'MainRoot/nosc/waivers/WaiverDetailActions';
 import * as mutationApi from 'MainRoot/nosc/waivers/waiversMutationApi';
 
+jest.mock('MainRoot/nosc/toast/useNoscToast', () => ({
+  useNoscToast: () => ({ success: jest.fn(), error: jest.fn() }),
+}));
+
 jest.mock('MainRoot/nosc/waivers/waiversMutationApi', () => {
   const actual = jest.requireActual('MainRoot/nosc/waivers/waiversMutationApi');
   return {

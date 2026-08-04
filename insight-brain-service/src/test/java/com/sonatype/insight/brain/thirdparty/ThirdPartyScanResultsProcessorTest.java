@@ -19,6 +19,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.base.Throwables;
 import com.google.gson.Gson;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -50,6 +51,7 @@ import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.file.ContainerFileSonatypeProcessor;
+import com.sonatype.insight.scan.file.SbomProcessingException;
 import com.sonatype.insight.scan.manifest.ClairScannerResult;
 import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -1313,5 +1315,99 @@ public class ThirdPartyScanResultsProcessorTest
 
   private void assertExistingSbomFiles(String... expectedPaths) throws IOException {
     existingFilesHelper.assertExistingSbomFiles(expectedPaths);
+  }
+
+  // INT-10513 regression tests: an invalid embedded SBOM item must not abort the whole archive scan.
+
+  @Test
+  public void testHandle_invalidSpdxContent_singleItem_skipsAndCompletes() throws Exception {
+    File scanFile = getScanFile("scan-with-invalid-spdx.xml");
+    File tempScanFile = tempDir.newFile();
+
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+        new FileScanEntity(tempScanFile.toPath()), mockContext(scanFile), null);
+
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SPDX),
+        any(ThirdPartyScanContext.class));
+
+    DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    Document actualScan = db.parse(getScanXMLFile(tempScanFile));
+    // SPDX contentType is rewritten to SBOM in the filtered output; the item should carry hasError=true.
+    assertThat(getSbomNodeAsString(actualScan, "/scan/item[1]/@hasError")).isEqualTo("true");
+
+    assertExistingSbomFiles();
+  }
+
+  @Test
+  public void testHandle_mixedValidAndInvalidSboms_processesValidSkipsInvalid() throws Exception {
+    File scanFile = getScanFile("scan-with-mixed-valid-and-invalid-sboms.xml");
+    File tempScanFile = tempDir.newFile();
+
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+        new FileScanEntity(tempScanFile.toPath()), mockContext(scanFile), null);
+
+    // Both items go through createHandler: the SPDX one throws (recovered), the SBOM one processes normally.
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SPDX),
+        any(ThirdPartyScanContext.class));
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
+        any(ThirdPartyScanContext.class));
+
+    DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    Document actualScan = db.parse(getScanXMLFile(tempScanFile));
+    // Invalid SPDX (item[1]) marked hasError; valid CycloneDX (item[2]) not.
+    assertThat(getSbomNodeAsString(actualScan, "/scan/item[1]/@hasError")).isEqualTo("true");
+    assertThat(getSbomNodeAsString(actualScan, "/scan/item[2]/@hasError")).isEmpty();
+
+    assertExistingSbomFiles();
+  }
+
+  @Test
+  public void testHandle_allInvalidSboms_completesWithoutError() throws Exception {
+    File scanFile = getScanFile("scan-with-all-invalid-sboms.xml");
+    File tempScanFile = tempDir.newFile();
+
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+        new FileScanEntity(tempScanFile.toPath()), mockContext(scanFile), null);
+
+    verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(eq(ItemContentType.SPDX),
+        any(ThirdPartyScanContext.class));
+
+    DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    Document actualScan = db.parse(getScanXMLFile(tempScanFile));
+    assertThat(getSbomNodeAsString(actualScan, "/scan/item[1]/@hasError")).isEqualTo("true");
+    assertThat(getSbomNodeAsString(actualScan, "/scan/item[2]/@hasError")).isEqualTo("true");
+
+    assertExistingSbomFiles();
+  }
+
+  @Test
+  public void testHandle_sbomManagerCompliancePath_doesNotSwallowInvalidSbom() throws Exception {
+    // Mirror the two-call SBOM Manager flow: the first call inserts a PENDING ThirdPartySbomMetadata row and
+    // sets sbomMetadataId on the context; the second call runs evaluation. On an invalid item the guard must
+    // rethrow (so the caller can mark the row FAILED) rather than skip and leave the row PENDING forever.
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata pendingMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(PENDING, application.getId(), thirdPartyFile.getId());
+    thirdPartySbomMetadataDAO.insert(pendingMetadata);
+
+    File scanFile = getScanFile("scan-with-invalid-spdx.xml");
+    ThirdPartyScanContext ctx =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM,
+            new FileScanEntity(scanFile.toPath()), StageTypes.COMPLIANCE.getName());
+    ctx.setSbomMetadataId(pendingMetadata.getId());
+    ctx.setThirdPartyFileId(thirdPartyFile.getId());
+
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(
+        () -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+            new FileScanEntity(tempDir.newFile().toPath()), ctx, null))
+        .withMessage("Error reading/processing third party scan content from scan file")
+        .satisfies(thrown -> assertThat(Throwables.getCausalChain(thrown))
+            .hasAtLeastOneElementOfType(SbomProcessingException.class));
+
+    ThirdPartySbomMetadata persisted = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(persisted).isNotNull();
+    assertThat(persisted.getStatus()).isEqualTo(PENDING);
+    assertExistingSbomFiles();
   }
 }

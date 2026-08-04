@@ -376,6 +376,33 @@ public class SpdxResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_invalid_isValidTrue_skipSbomImportValidation_Xml() throws Exception {
+    testHandleAndFilterContents_invalid_isValidTrue_skipSbomImportValidation(getSbomXmlFile("spdx-invalid.xml"),
+        "spdx-invalid.xml");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalid_isValidTrue_skipSbomImportValidation_Json() throws Exception {
+    testHandleAndFilterContents_invalid_isValidTrue_skipSbomImportValidation(getSbomJsonFile("spdx-invalid.json"),
+        "spdx-invalid.json");
+  }
+
+  private void testHandleAndFilterContents_invalid_isValidTrue_skipSbomImportValidation(
+      String sbomContent,
+      String path)
+  {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
+
+    ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    FilteredThirdPartyContent filteredThirdPartyContent =
+        spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredThirdPartyContent.hasErrors()).isTrue();
+  }
+
+  @Test
   public void testHandleAndFilterContents_Xml_v2_3() throws Exception {
     String sbomContent = getSbomXmlFile("spdx-v2_3.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent("spdx-v2_3.xml", null, null, null, sbomContent);

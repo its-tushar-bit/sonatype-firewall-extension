@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -41,6 +43,9 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.file.SbomProcessingException;
+import com.sonatype.insight.scan.file.SbomValidationException;
+import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.scan.model.io.XStreamFactory;
@@ -69,6 +74,12 @@ public class ThirdPartyScanResultsProcessor
   private static final List<String> thirdPartyItemContentTypes =
       asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name(), ItemContentType.CONTAINER_URI.name(),
           ItemContentType.CONTAINER_URI_SONATYPE.name(), ItemContentType.SPDX.name(), ItemContentType.IAC_FILE.name());
+
+  // Malformed SBOM content — safe to skip per-item; anything else must still propagate (CLM-34561).
+  private static final Set<Class<? extends Throwable>> RECOVERABLE_SBOM_FAILURES = Set.of(
+      SbomValidationException.class,
+      SbomProcessingException.class,
+      UnsupportedSbomException.class);
 
   private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newInstance();
 
@@ -195,11 +206,29 @@ public class ThirdPartyScanResultsProcessor
         Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
         Xpp3Dom contentElement = itemElement.getChild("content");
         if (contentElement != null) {
-          FilteredThirdPartyContent filteredThirdPartyContent =
-              handleContent(itemElement, contentElement, contentType, scanContext);
-          writeFilteredInformation(writer, filteredThirdPartyContent);
-          Optional.of(filteredThirdPartyContent.getModuleDependencies())
-              .ifPresent(moduleDependencies::addAll);
+          try {
+            FilteredThirdPartyContent filteredThirdPartyContent =
+                handleContent(itemElement, contentElement, contentType, scanContext);
+            writeFilteredInformation(writer, filteredThirdPartyContent);
+            Optional.of(filteredThirdPartyContent.getModuleDependencies())
+                .ifPresent(moduleDependencies::addAll);
+          }
+          catch (RuntimeException e) {
+            Optional<Throwable> recoverable = findRecoverableCause(e);
+            // SBOM Manager path leaves a PENDING metadata row on skip; guard prevents that.
+            if (recoverable.isPresent() && scanContext.getSbomMetadataId() == null) {
+              Throwable cause = recoverable.get();
+              String reason = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
+              log.warn("Skipping invalid SBOM item '{}' (contentType={}): {}",
+                  itemElement.getAttribute("path"), contentType, reason);
+              // Skipped item contributes no components to moduleDependencies (nothing to append).
+              writeFilteredInformation(writer,
+                  new FilteredThirdPartyContent(contentElement.getValue(), Collections.emptyList(), true));
+            }
+            else {
+              throw e;
+            }
+          }
         }
         else {
           log.error("scan file {} contained a third party scan item {} without any content",
@@ -349,6 +378,20 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyScanContext thirdPartyScanContext)
   {
     return thirdPartyResultHandlerFactory.newHandler(contentItemType, thirdPartyScanContext);
+  }
+
+  private static Optional<Throwable> findRecoverableCause(Throwable t) {
+    for (Throwable c = t; c != null; c = c.getCause()) {
+      for (Class<? extends Throwable> recoverable : RECOVERABLE_SBOM_FAILURES) {
+        if (recoverable.isInstance(c)) {
+          return Optional.of(c);
+        }
+      }
+      if (c.getCause() == c) {
+        break;
+      }
+    }
+    return Optional.empty();
   }
 
   /**

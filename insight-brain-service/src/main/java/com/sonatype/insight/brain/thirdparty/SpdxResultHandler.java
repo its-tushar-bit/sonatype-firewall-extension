@@ -422,7 +422,15 @@ public class SpdxResultHandler
       }
     }
     else if (isValid) {
-      return Pair.of(ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat), true);
+      try {
+        return Pair.of(ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat), true);
+      }
+      catch (SbomValidationException e) {
+        if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
+          return Pair.of(ThirdPartyUtils.parseSpdxWithNoValidation(content.getContent(), sbomFormat), false);
+        }
+        throw e;
+      }
     }
     else {
       return Pair.of(ThirdPartyUtils.parseSpdxWithNoValidation(content.getContent(), sbomFormat), false);

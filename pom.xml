@@ -119,7 +119,7 @@
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
     <test.group>all</test.group>
 
-    <opentelemetry.version>2.27.0</opentelemetry.version>
+    <opentelemetry.version>2.29.0</opentelemetry.version>
     <!--
      Runtime add-opens flags live in jvm.options at the repo root (the single source of truth).
      @argfile syntax (JEP 293) tells the JVM to read flags from that file.

@@ -95,10 +95,13 @@ export function buildViolationsListRequest(params: {
   readonly filters?: ViolationsFilterState;
   readonly organizationFacetSearch?: string;
   readonly applicationFacetSearch?: string;
+  /** Exact component hash scope for estate Component Detail (CLM-43961). */
+  readonly componentHash?: string;
 }): ViolationsListRequest {
   const search = params.search?.trim();
   const organizationFacetSearch = params.organizationFacetSearch?.trim();
   const applicationFacetSearch = params.applicationFacetSearch?.trim();
+  const componentHash = params.componentHash?.trim();
   const filters = params.filters;
 
   const states = filters ? toSortedArray(filters.states) : undefined;
@@ -129,6 +132,7 @@ export function buildViolationsListRequest(params: {
     ...(waivedWithAutoWaiver !== undefined ? { waivedWithAutoWaiver } : {}),
     ...(organizationFacetSearch ? { organizationFacetSearch } : {}),
     ...(applicationFacetSearch ? { applicationFacetSearch } : {}),
+    ...(componentHash ? { componentHash } : {}),
   };
 }
 

@@ -1946,4 +1946,21 @@ describe('clmLocation.js', function () {
       );
     });
   });
+
+  describe('estate component detail URLs (CLM-43961)', () => {
+    it('returns the HDS component details URL', () => {
+      expect(clmLocation.getApiV2ComponentDetailsUrl()).toBe(
+        'http://localhost/api/v2/components/details'
+      );
+    });
+
+    it('returns component usage applications and organizations URLs', () => {
+      expect(clmLocation.getComponentUsageApplicationsUrl()).toBe(
+        'http://localhost/rest/dashboard/components/usage/applications'
+      );
+      expect(clmLocation.getComponentUsageOrganizationsUrl()).toBe(
+        'http://localhost/rest/dashboard/components/usage/organizations'
+      );
+    });
+  });
 });

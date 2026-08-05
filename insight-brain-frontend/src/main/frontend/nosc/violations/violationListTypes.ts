@@ -133,6 +133,11 @@ export type ViolationsListRequest = {
   readonly applicationCategoryIds?: ReadonlyArray<string>;
   readonly waivedWithAutoWaiver?: boolean;
   /**
+   * Exact component hash scope (CLM-43958 / estate Component Detail). Blank/omitted leaves
+   * estate-wide behavior unchanged.
+   */
+  readonly componentHash?: string;
+  /**
    * Optional org-name substring for the Organizations facet map. When set, the server replaces the
    * uncapped top-N org facets with name-matched owners that still have scoped violation counts.
    */

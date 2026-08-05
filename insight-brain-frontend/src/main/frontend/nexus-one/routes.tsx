@@ -79,6 +79,7 @@ import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneAppl
 import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { nexusOneViolationDetailStates } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
 import { nexusOneComponentDetailStates } from 'MainRoot/nexus-one/nexusOneComponentDetailStates';
+import { nexusOneEstateComponentDetailStates } from 'MainRoot/nexus-one/nexusOneEstateComponentDetailStates';
 import { nexusOneVulnerabilityDetailStates } from 'MainRoot/nexus-one/nexusOneVulnerabilityDetailStates';
 import BaseUrlConfiguration from 'MainRoot/configuration/baseUrl/BaseUrlConfiguration';
 import SAMLConfigurationPage from 'MainRoot/configuration/saml/SAMLConfigurationPage';
@@ -339,6 +340,12 @@ router.stateRegistry.register({
   component: PreviewVulnerabilitiesList,
   data: { title: 'Nexus One — Vulnerabilities' },
 } as ReactStateDeclaration);
+
+// Estate (hash-primary) Component Detail (CLM-43961). Path segment /components/{hash}
+// is distinct from the query-only list at /components?… (registration order is not load-bearing).
+nexusOneEstateComponentDetailStates().forEach((state) => {
+  router.stateRegistry.register(state);
+});
 
 // Martha V1 Components portfolio list (CLM-42214). Query params match Applications so
 // search/sort/filters/page can persist in the hash in follow-up slices.

@@ -39,6 +39,18 @@ describe('violationsListApi', () => {
       });
     });
 
+    it('includes trimmed componentHash and omits blank values', () => {
+      expect(
+        buildViolationsListRequest({ page: 0, componentHash: 'abc' }),
+      ).toMatchObject({ componentHash: 'abc', page: 0 });
+      expect(
+        buildViolationsListRequest({ page: 0, componentHash: '  hash1  ' }).componentHash,
+      ).toBe('hash1');
+      expect(
+        buildViolationsListRequest({ page: 0, componentHash: '   ' }).componentHash,
+      ).toBeUndefined();
+    });
+
     it('omits blank/whitespace search terms and trims real ones', () => {
       expect(buildViolationsListRequest({ page: 1, search: '   ' }).search).toBeUndefined();
       expect(buildViolationsListRequest({ page: 1, search: '  log4j  ' }).search).toBe('log4j');

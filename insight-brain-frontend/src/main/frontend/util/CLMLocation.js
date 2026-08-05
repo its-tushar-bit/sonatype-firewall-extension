@@ -153,6 +153,31 @@ export function getComponentsListUrl() {
   return uriTemplate`/rest/dashboard/components/list`;
 }
 
+/**
+ * Public API component details (HDS-backed). POST body
+ * `{ components: [{ hash }] }` (or componentIdentifier / packageUrl).
+ * Used by estate Component Detail Overview / Legal (CLM-43961).
+ */
+export function getApiV2ComponentDetailsUrl() {
+  return uriTemplate`/api/v2/components/details`;
+}
+
+/**
+ * Estate component where-used applications (CLM-43959). POST
+ * `{ componentHash, page, pageSize }`.
+ */
+export function getComponentUsageApplicationsUrl() {
+  return uriTemplate`/rest/dashboard/components/usage/applications`;
+}
+
+/**
+ * Estate component where-used organizations (CLM-43959). POST
+ * `{ componentHash, page, pageSize }`.
+ */
+export function getComponentUsageOrganizationsUrl() {
+  return uriTemplate`/rest/dashboard/components/usage/organizations`;
+}
+
 export function getNewestRisksExportUrl() {
   return uriTemplate`/rest/dashboard/export/newestRisks`;
 }

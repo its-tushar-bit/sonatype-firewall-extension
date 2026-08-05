@@ -8,17 +8,30 @@ import type { ComponentsFilterFacetEntry } from 'MainRoot/nosc/componentsList/co
 /** Orgs/ecosystems show this many options before "See more" (Applications-pattern AC). */
 export const FACET_COLLAPSE_LIMIT = 8;
 
+/** Integer policy threat domain for the Components My Scan Data slider (Applications parity). */
+export const COMPONENTS_THREAT_MIN = 0;
+export const COMPONENTS_THREAT_MAX = 10;
+
+export type ComponentsThreatRange = readonly [number, number];
+
+export const DEFAULT_COMPONENTS_THREAT_RANGE: ComponentsThreatRange = [
+  COMPONENTS_THREAT_MIN,
+  COMPONENTS_THREAT_MAX,
+];
+
 /**
- * Sidebar filter selection for Components (Ana catalog schema).
+ * Sidebar filter selection for Components (Ana catalog schema + My Scan Data dashboard).
  * {@code organizations} values are friendly org names (local source only).
  * {@code applications} and {@code stages} are My Scan Data only (CLM-43211); the Catalog source
  * rejects them, so switching tabs clears them rather than sending a request that would 400.
+ * {@code threatRange} is My Scan Data only (CLM-43960).
  */
 export type ComponentsListFilterState = {
   readonly organizations: ReadonlySet<string>;
   readonly ecosystems: ReadonlySet<string>;
   readonly applications: ReadonlySet<string>;
   readonly stages: ReadonlySet<string>;
+  readonly threatRange: ComponentsThreatRange;
 };
 
 export type ComponentsFilterSetGroup =
@@ -32,7 +45,31 @@ export const EMPTY_COMPONENTS_LIST_FILTERS: ComponentsListFilterState = {
   ecosystems: new Set(),
   applications: new Set(),
   stages: new Set(),
+  threatRange: DEFAULT_COMPONENTS_THREAT_RANGE,
 };
+
+/**
+ * Full-domain span means "no threat filter" (Applications / Violations slider parity). Narrow
+ * ranges such as {@code [0, 0]} still filter level-0-only; only {@code [0, 10]} is treated as unset.
+ */
+export function isDefaultComponentsThreatRange(range: ComponentsThreatRange): boolean {
+  return range[0] <= COMPONENTS_THREAT_MIN && range[1] >= COMPONENTS_THREAT_MAX;
+}
+
+export function normalizeComponentsThreatRange(
+  next: readonly number[],
+): ComponentsThreatRange {
+  const clampThreat = (n: number): number => {
+    const safe = Number.isFinite(n) ? n : COMPONENTS_THREAT_MIN;
+    return Math.min(
+      COMPONENTS_THREAT_MAX,
+      Math.max(COMPONENTS_THREAT_MIN, safe),
+    );
+  };
+  const low = clampThreat(next[0]);
+  const high = clampThreat(next[1] ?? next[0]);
+  return [Math.min(low, high), Math.max(low, high)];
+}
 
 export function hasActiveComponentsListFilters(filters: ComponentsListFilterState): boolean {
   return (
@@ -40,6 +77,7 @@ export function hasActiveComponentsListFilters(filters: ComponentsListFilterStat
     || filters.ecosystems.size > 0
     || filters.applications.size > 0
     || filters.stages.size > 0
+    || !isDefaultComponentsThreatRange(filters.threatRange)
   );
 }
 
@@ -65,6 +103,7 @@ function toSortedArray(values: ReadonlySet<string>): ReadonlyArray<string> | und
 /**
  * Maps sidebar selection into catalog {@code filters} (organizations / ecosystems TERMS).
  * Organization filter is omitted when {@code includeOrganizations} is false (Sonatype Catalog tab).
+ * Threat range is My Scan Data dashboard–only and is not part of the catalog filter schema.
  */
 export function componentsListFiltersToCatalogFilters(
   filters: ComponentsListFilterState,
@@ -88,6 +127,8 @@ export function filtersEqual(
     && setEqual(left.ecosystems, right.ecosystems)
     && setEqual(left.applications, right.applications)
     && setEqual(left.stages, right.stages)
+    && left.threatRange[0] === right.threatRange[0]
+    && left.threatRange[1] === right.threatRange[1]
   );
 }
 

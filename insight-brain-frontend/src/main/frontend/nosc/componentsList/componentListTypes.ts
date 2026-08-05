@@ -32,6 +32,12 @@ export type ComponentListRow = {
   readonly ecosystem?: string;
   readonly organization?: string;
   readonly source: 'local' | 'catalog';
+  /**
+   * Estate component hash when known (My Scan Data dashboard rows). Prefer this over
+   * {@link #id} / {@code source === 'local'} for estate detail deep-links — catalog and
+   * coordinate-fallback local rows leave it unset.
+   */
+  readonly componentHash?: string;
   /** Optional in-app detail href from the catalog API when present. */
   readonly href?: string;
   readonly scoreCritical?: number;

@@ -7,9 +7,7 @@
 /**
  * Estate (hash-primary) Component Detail href helper (CLM-43961).
  * Distinct from app-scoped {@link componentDetailHref}.
- * <p>
- * List card → estate detail deep-links are intentionally deferred to CLM-43960
- * ({@code #16861}); this helper is for in-page tab / Overview self-links until then.
+ * Used by estate detail tab/Overview self-links and My Scan Data list cards (CLM-43960).
  */
 export type EstateComponentTab =
   | 'overview'

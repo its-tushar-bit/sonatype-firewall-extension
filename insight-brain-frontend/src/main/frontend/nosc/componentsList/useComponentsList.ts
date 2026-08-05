@@ -22,9 +22,13 @@ import {
 import {
   ComponentsFilterSetGroup,
   ComponentsListFilterState,
+  ComponentsThreatRange,
+  DEFAULT_COMPONENTS_THREAT_RANGE,
   EMPTY_COMPONENTS_LIST_FILTERS,
   filtersEqual,
   hasActiveComponentsListFilters,
+  isDefaultComponentsThreatRange,
+  normalizeComponentsThreatRange,
   toggleComponentsListFilterId,
 } from 'MainRoot/nosc/componentsList/componentsListFilters';
 import {
@@ -58,6 +62,7 @@ export interface UseComponentsListResult {
   readonly setTab: (tab: ComponentsTab) => void;
   readonly submitSearch: (term: string) => void;
   readonly toggleFilter: (group: ComponentsFilterSetGroup, id: string) => void;
+  readonly setThreatRange: (range: ComponentsThreatRange) => void;
   readonly resetFilters: () => void;
   readonly syncQueryState: (state: ComponentsListQueryState) => void;
 }
@@ -189,18 +194,20 @@ export function useComponentsList(
   const setTab = useCallback((nextTab: ComponentsTab) => {
     setTabState(nextTab);
     if (nextTab === 'catalog') {
-      // Estate scope (org/app/stage) is My Scan Data–only, and the Catalog source rejects those
-      // filter keys outright — carrying them over would 400 rather than narrow.
+      // Estate scope (org/app/stage/threat) is My Scan Data–only, and the Catalog source rejects
+      // those filter keys outright — carrying them over would 400 rather than narrow.
       setFilters((current) =>
         current.organizations.size === 0
         && current.applications.size === 0
         && current.stages.size === 0
+        && isDefaultComponentsThreatRange(current.threatRange)
           ? current
           : {
               ...current,
               organizations: new Set<string>(),
               applications: new Set<string>(),
               stages: new Set<string>(),
+              threatRange: DEFAULT_COMPONENTS_THREAT_RANGE,
             },
       );
     }
@@ -222,6 +229,20 @@ export function useComponentsList(
 
   const toggleFilter = useCallback((group: ComponentsFilterSetGroup, id: string) => {
     setFilters((current) => toggleComponentsListFilterId(current, group, id));
+    setPage(0);
+  }, []);
+
+  const setThreatRange = useCallback((range: ComponentsThreatRange) => {
+    const normalized = normalizeComponentsThreatRange(range);
+    setFilters((current) => {
+      if (
+        current.threatRange[0] === normalized[0]
+        && current.threatRange[1] === normalized[1]
+      ) {
+        return current;
+      }
+      return { ...current, threatRange: normalized };
+    });
     setPage(0);
   }, []);
 
@@ -273,6 +294,7 @@ export function useComponentsList(
     setTab,
     submitSearch,
     toggleFilter,
+    setThreatRange,
     resetFilters,
     syncQueryState,
   };

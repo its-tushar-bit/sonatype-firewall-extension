@@ -45,6 +45,7 @@ function renderRail(overrides: Partial<React.ComponentProps<typeof ComponentsFil
     filters: EMPTY_COMPONENTS_LIST_FILTERS,
     hasActiveFilters: false,
     onToggleFilter: jest.fn(),
+    onThreatRangeChange: jest.fn(),
     onResetFilters: jest.fn(),
     ...overrides,
   };
@@ -94,10 +95,32 @@ describe('ComponentsFilterRail', () => {
     expect(props.onToggleFilter).toHaveBeenCalledWith('stages', 'release');
   });
 
-  it('hides applications and stages on the Sonatype Catalog tab', () => {
+  it('hides applications, stages, and threat slider on the Sonatype Catalog tab', () => {
     renderRail({ tab: 'catalog' });
     expect(screen.queryByTestId('components-filter-applications')).not.toBeInTheDocument();
     expect(screen.queryByTestId('components-filter-stages')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('components-filter-threat-level')).not.toBeInTheDocument();
+  });
+
+  it('renders the My Scan Data threat slider instead of threat checkboxes', () => {
+    renderRail();
+    expect(screen.getByTestId('components-filter-threat-level-slider')).toBeInTheDocument();
+    expect(screen.getByTestId('components-filter-threat-level-value')).toHaveTextContent('0 – 10');
+  });
+
+  it('commits the threat slider range through onThreatRangeChange', async () => {
+    const props = renderRail();
+    const slider = screen.getByTestId('components-filter-threat-level-slider');
+    const thumbs = slider.querySelectorAll('[role="slider"]');
+    expect(thumbs.length).toBeGreaterThanOrEqual(2);
+
+    thumbs[0].focus();
+    await user.keyboard('{ArrowRight}');
+    expect(props.onThreatRangeChange).toHaveBeenCalled();
+    const committed = props.onThreatRangeChange.mock.calls.at(-1)?.[0];
+    expect(committed[0]).toBeGreaterThanOrEqual(0);
+    expect(committed[1]).toBeLessThanOrEqual(10);
+    expect(committed[0]).toBeLessThanOrEqual(committed[1]);
   });
 
   it('shows 8 organization options plus See more when facets exceed the collapse limit', () => {

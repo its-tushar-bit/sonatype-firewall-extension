@@ -31,6 +31,7 @@ function renderPage(overrides: Partial<React.ComponentProps<typeof ComponentsPag
     filters: EMPTY_COMPONENTS_LIST_FILTERS,
     hasActiveFilters: false,
     onToggleFilter: jest.fn(),
+    onThreatRangeChange: jest.fn(),
     onResetFilters: jest.fn(),
     searchValue: '',
     onSearchSubmit: jest.fn(),

@@ -57,6 +57,7 @@ export default function ComponentsList(): JSX.Element {
     setTab,
     submitSearch,
     toggleFilter,
+    setThreatRange,
     resetFilters,
     syncQueryState,
   } = useComponentsList({ initialState: parsed, enabled: fetchEnabled });
@@ -103,6 +104,7 @@ export default function ComponentsList(): JSX.Element {
       filters={filters}
       hasActiveFilters={hasActiveFilters}
       onToggleFilter={toggleFilter}
+      onThreatRangeChange={setThreatRange}
       onResetFilters={resetFilters}
       loading={loading}
       error={error}

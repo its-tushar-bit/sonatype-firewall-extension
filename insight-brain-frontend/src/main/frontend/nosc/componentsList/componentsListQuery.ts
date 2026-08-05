@@ -5,7 +5,12 @@
  */
 import {
   ComponentsListFilterState,
+  COMPONENTS_THREAT_MAX,
+  COMPONENTS_THREAT_MIN,
+  DEFAULT_COMPONENTS_THREAT_RANGE,
   EMPTY_COMPONENTS_LIST_FILTERS,
+  isDefaultComponentsThreatRange,
+  type ComponentsThreatRange,
 } from 'MainRoot/nosc/componentsList/componentsListFilters';
 import {
   ComponentsTab,
@@ -13,6 +18,13 @@ import {
   componentsSourceToTab,
   componentsTabToSource,
 } from 'MainRoot/nosc/componentsList/componentsRoute';
+import {
+  MAX_DEEP_LINK_PAGE,
+  asString,
+  parsePageIndex,
+  parseThreatRangeParam,
+  serializeThreatRangeParam,
+} from 'MainRoot/nosc/list/listQueryCodec';
 
 export interface ComponentsListQueryState {
   readonly tab: ComponentsTab;
@@ -22,15 +34,7 @@ export interface ComponentsListQueryState {
   readonly filters: ComponentsListFilterState;
 }
 
-/**
- * Soft ceiling for deep-linked 1-based {@code page} values. Prevents a stale bookmark like
- * {@code ?page=999999} from posting an absurd index on the first request.
- */
-export const MAX_DEEP_LINK_PAGE = 10_000;
-
-function asString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
+export { MAX_DEEP_LINK_PAGE };
 
 /**
  * Parse a comma-separated hash-query list. Each segment is {@link decodeURIComponent}'d so
@@ -62,14 +66,6 @@ function serializeCsvParam(values: ReadonlySet<string>): string | undefined {
     .join(',');
 }
 
-function parsePageIndex(value: unknown): number {
-  const pageParam = typeof value === 'string' ? Number.parseInt(value, 10) : 1;
-  if (!Number.isFinite(pageParam) || pageParam <= 1) {
-    return 0;
-  }
-  return Math.min(pageParam, MAX_DEEP_LINK_PAGE) - 1;
-}
-
 function parseTab(params: Record<string, unknown>): ComponentsTab {
   // Prefer {@code source=local|catalog} (requirements); accept legacy {@code tab} synonyms.
   if (typeof params.source === 'string') {
@@ -80,11 +76,33 @@ function parseTab(params: Record<string, unknown>): ComponentsTab {
   return DEFAULT_COMPONENTS_TAB;
 }
 
-/** Parse UI-Router params for the Martha Components list page (CLM-42214). */
+/**
+ * Parse {@code threat=min-max} via the shared list codec (Applications / Violations-compatible).
+ * Malformed tokens fall back to the full-domain default.
+ */
+export function parseComponentsThreatRange(value: string | null | undefined): ComponentsThreatRange {
+  return parseThreatRangeParam(value, {
+    minDomain: COMPONENTS_THREAT_MIN,
+    maxDomain: COMPONENTS_THREAT_MAX,
+    defaultRange: DEFAULT_COMPONENTS_THREAT_RANGE,
+  });
+}
+
+function serializeComponentsThreatRange(range: ComponentsThreatRange): string | undefined {
+  return serializeThreatRangeParam(range, isDefaultComponentsThreatRange);
+}
+
+/** Parse UI-Router params for the Martha Components list page (CLM-42214 / CLM-43960). */
 export function parseComponentsListParams(params: Record<string, unknown>): ComponentsListQueryState {
   const search = typeof params.q === 'string' ? params.q.trim() : '';
   const page = parsePageIndex(params.page);
   const tab = parseTab(params);
+  // Threat is My Scan Data only — ignore crafted/legacy {@code threat=} on Catalog URLs so Reset
+  // does not appear for a hidden control.
+  const threatRange =
+    tab === 'myScanData'
+      ? parseComponentsThreatRange(typeof params.threat === 'string' ? params.threat : null)
+      : DEFAULT_COMPONENTS_THREAT_RANGE;
 
   return {
     tab,
@@ -95,6 +113,7 @@ export function parseComponentsListParams(params: Record<string, unknown>): Comp
       ecosystems: new Set(parseCsvParam(params.ecosystem)),
       applications: new Set(parseCsvParam(params.app)),
       stages: new Set(parseCsvParam(params.stage)),
+      threatRange,
     },
   };
 }
@@ -120,6 +139,7 @@ export function buildComponentsListRouteParams(state: {
     ecosystem: serializeCsvParam(state.filters.ecosystems),
     app: myScanData ? serializeCsvParam(state.filters.applications) : undefined,
     stage: myScanData ? serializeCsvParam(state.filters.stages) : undefined,
+    threat: myScanData ? serializeComponentsThreatRange(state.filters.threatRange) : undefined,
   };
 }
 
@@ -134,6 +154,7 @@ export function rawComponentsListParamsSnapshot(params: Record<string, unknown>)
     ecosystem: asString(params.ecosystem),
     app: asString(params.app),
     stage: asString(params.stage),
+    threat: asString(params.threat),
   });
 }
 

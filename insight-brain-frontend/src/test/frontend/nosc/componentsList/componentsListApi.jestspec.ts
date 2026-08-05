@@ -151,6 +151,21 @@ describe('componentsListApi (My Scan Data dashboard)', () => {
     const request = buildComponentsDashboardRequest({ page: 0 });
     expect(request).not.toHaveProperty('applicationIds');
     expect(request).not.toHaveProperty('stageIds');
+    expect(request).not.toHaveProperty('policyThreatLevelRanges');
+  });
+
+  it('serializes a non-default threat range as policyThreatLevelRanges', () => {
+    expect(
+      buildComponentsDashboardRequest({
+        page: 0,
+        filters: {
+          ...EMPTY_COMPONENTS_LIST_FILTERS,
+          threatRange: [3, 9],
+        },
+      }),
+    ).toMatchObject({
+      policyThreatLevelRanges: [{ minPolicyThreatLevel: 3, maxPolicyThreatLevel: 9 }],
+    });
   });
 
   it('maps application and stage facets, labelling by name where the backend resolved one', () => {

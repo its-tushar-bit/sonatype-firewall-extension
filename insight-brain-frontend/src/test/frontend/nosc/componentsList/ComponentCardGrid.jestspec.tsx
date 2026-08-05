@@ -63,6 +63,65 @@ describe('ComponentCardGrid', () => {
     );
   });
 
+  it('deep-links My Scan Data rows with a componentHash and no API href to estate detail', () => {
+    render(
+      <Theme>
+        <ComponentCardGrid
+          components={[
+            {
+              id: 'hash1',
+              componentHash: 'hash1',
+              name: 'guava',
+              subtitle: 'hash1',
+              source: 'local',
+            },
+          ]}
+        />
+      </Theme>,
+    );
+
+    expect(screen.getByTestId('component-card-link')).toHaveAttribute(
+      'href',
+      '#/components/hash1',
+    );
+  });
+
+  it('does not invent an estate deep-link for local rows without a componentHash', () => {
+    render(
+      <Theme>
+        <ComponentCardGrid
+          components={[
+            {
+              id: 'pkg:maven/com.google.guava/guava@31.1-jre',
+              name: 'guava',
+              source: 'local',
+            },
+          ]}
+        />
+      </Theme>,
+    );
+
+    expect(screen.queryByTestId('component-card-link')).not.toBeInTheDocument();
+  });
+
+  it('does not invent an estate deep-link for Catalog rows without an API href', () => {
+    render(
+      <Theme>
+        <ComponentCardGrid
+          components={[
+            {
+              id: 'hash1',
+              name: 'guava',
+              source: 'catalog',
+            },
+          ]}
+        />
+      </Theme>,
+    );
+
+    expect(screen.queryByTestId('component-card-link')).not.toBeInTheDocument();
+  });
+
   it('does not link protocol-relative or backslash-escaped hrefs', () => {
     const { rerender } = render(
       <Theme>

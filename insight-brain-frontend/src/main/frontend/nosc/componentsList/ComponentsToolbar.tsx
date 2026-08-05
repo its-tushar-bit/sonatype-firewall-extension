@@ -12,7 +12,7 @@ import type { ComponentsTab } from 'MainRoot/nosc/componentsList/componentsRoute
 import { getComponentRisksExportUrl } from 'MainRoot/util/CLMLocation';
 
 export const COMPONENTS_CSV_FILTER_CAVEAT =
-  'CSV export caveat: search, organization, and ecosystem filters are not applied to Classic export';
+  'CSV export caveat: search, organization, and ecosystem filters are not applied to Classic export. Application, stage, and threat level filters are applied.';
 
 export interface ComponentsToolbarProps {
   readonly tab: ComponentsTab;

@@ -6,6 +6,7 @@
 import React from 'react';
 import { Card, Flex, Link, Text } from '@radix-ui/themes';
 import { ApplicationSeverityBadge } from 'MainRoot/nosc/dashboard/tabs/ApplicationSeverityBadge';
+import { estateComponentDetailHref } from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
 import { componentCardIdentity } from 'MainRoot/nosc/componentsList/componentCardIdentity';
 import { ComponentListRow } from 'MainRoot/nosc/componentsList/componentListTypes';
 import { applicationsLabel } from 'MainRoot/nosc/list/applicationsLabel';
@@ -16,13 +17,17 @@ function isSafeInAppHref(href: string): boolean {
 }
 
 /**
- * Only link when the catalog API supplies an in-app href. Portfolio component detail
- * requires application + hash ({@code #/applications/{app}/components/{hash}}); list rows
- * usually lack that context, so do not invent a search fallback.
+ * Prefer a safe API href. Rows with a known estate {@code componentHash} deep-link to estate
+ * Component Detail; Catalog / coordinate-only rows stay unlinked unless the API supplies an
+ * in-app href (do not treat {@code source === 'local'} alone as proof of a hash).
  */
 function componentCardHref(component: ComponentListRow): string | null {
   const href = component.href?.trim();
   if (href && isSafeInAppHref(href)) return href;
+  const componentHash = component.componentHash?.trim();
+  if (componentHash) {
+    return estateComponentDetailHref(componentHash);
+  }
   return null;
 }
 

@@ -19,6 +19,7 @@ import {
 import {
   ComponentsFilterSetGroup,
   ComponentsListFilterState,
+  ComponentsThreatRange,
 } from 'MainRoot/nosc/componentsList/componentsListFilters';
 import type { ComponentsTab } from 'MainRoot/nosc/componentsList/componentsRoute';
 
@@ -32,6 +33,7 @@ export interface ComponentsPageProps {
   readonly filters: ComponentsListFilterState;
   readonly hasActiveFilters: boolean;
   readonly onToggleFilter: (group: ComponentsFilterSetGroup, id: string) => void;
+  readonly onThreatRangeChange: (range: ComponentsThreatRange) => void;
   readonly onResetFilters: () => void;
   readonly loading?: boolean;
   readonly error?: string | null;
@@ -64,6 +66,7 @@ export default function ComponentsPage({
   filters,
   hasActiveFilters,
   onToggleFilter,
+  onThreatRangeChange,
   onResetFilters,
   loading = false,
   error = null,
@@ -112,6 +115,7 @@ export default function ComponentsPage({
             filters={filters}
             hasActiveFilters={hasActiveFilters}
             onToggleFilter={onToggleFilter}
+            onThreatRangeChange={onThreatRangeChange}
             onResetFilters={onResetFilters}
           />
           <Box className="components-page__content" data-testid="components-page-content">

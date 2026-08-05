@@ -11,6 +11,7 @@ import {
 import {
   ComponentsListFilterState,
   componentsListFiltersToCatalogFilters,
+  isDefaultComponentsThreatRange,
 } from 'MainRoot/nosc/componentsList/componentsListFilters';
 import {
   ComponentsTab,
@@ -256,6 +257,10 @@ export type ComponentsDashboardRequest = {
   readonly organizationIds?: ReadonlyArray<string>;
   readonly applicationIds?: ReadonlyArray<string>;
   readonly stageIds?: ReadonlyArray<string>;
+  readonly policyThreatLevelRanges?: ReadonlyArray<{
+    readonly minPolicyThreatLevel: number;
+    readonly maxPolicyThreatLevel: number;
+  }>;
 };
 
 function sortedIds(values: ReadonlySet<string> | undefined): ReadonlyArray<string> | undefined {
@@ -272,6 +277,14 @@ export function buildComponentsDashboardRequest(params: {
   const organizationIds = sortedIds(params.filters?.organizations);
   const applicationIds = sortedIds(params.filters?.applications);
   const stageIds = sortedIds(params.filters?.stages);
+  const threatRange = params.filters?.threatRange;
+  const policyThreatLevelRanges =
+    threatRange && !isDefaultComponentsThreatRange(threatRange)
+      ? [{
+          minPolicyThreatLevel: threatRange[0],
+          maxPolicyThreatLevel: threatRange[1],
+        }]
+      : undefined;
   return {
     page: Math.max(0, params.page),
     pageSize: params.pageSize ?? COMPONENTS_LIST_PAGE_SIZE,
@@ -280,6 +293,7 @@ export function buildComponentsDashboardRequest(params: {
     ...(organizationIds ? { organizationIds } : {}),
     ...(applicationIds ? { applicationIds } : {}),
     ...(stageIds ? { stageIds } : {}),
+    ...(policyThreatLevelRanges ? { policyThreatLevelRanges } : {}),
   };
 }
 
@@ -300,6 +314,7 @@ export function mapComponentRiskRow(row: ApiComponentRiskRow): ComponentListRow 
   // the API left them absent so catalog/stub rows do not invent risk chrome.
   return {
     id,
+    componentHash: id,
     name: componentRiskDisplayName(row),
     subtitle: id,
     source: 'local',

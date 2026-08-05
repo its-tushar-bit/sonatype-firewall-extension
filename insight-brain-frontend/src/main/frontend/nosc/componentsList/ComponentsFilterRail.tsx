@@ -11,6 +11,7 @@ import {
   Checkbox,
   Flex,
   ScrollArea,
+  Slider,
   Text,
   TextField,
 } from '@radix-ui/themes';
@@ -21,9 +22,13 @@ import {
 } from 'MainRoot/nosc/componentsList/componentListTypes';
 import {
   collapseFacetEntries,
+  COMPONENTS_THREAT_MAX,
+  COMPONENTS_THREAT_MIN,
   ComponentsFilterSetGroup,
   ComponentsListFilterState,
+  ComponentsThreatRange,
   FACET_COLLAPSE_LIMIT,
+  normalizeComponentsThreatRange,
 } from 'MainRoot/nosc/componentsList/componentsListFilters';
 import type { ComponentsTab } from 'MainRoot/nosc/componentsList/componentsRoute';
 import './ComponentsFilterRail.scss';
@@ -34,7 +39,58 @@ export interface ComponentsFilterRailProps {
   readonly filters: ComponentsListFilterState;
   readonly hasActiveFilters: boolean;
   readonly onToggleFilter: (group: ComponentsFilterSetGroup, id: string) => void;
+  readonly onThreatRangeChange: (range: ComponentsThreatRange) => void;
   readonly onResetFilters: () => void;
+}
+
+function ThreatLevelSection({
+  range,
+  onThreatRangeChange,
+}: {
+  readonly range: ComponentsThreatRange;
+  readonly onThreatRangeChange: (range: ComponentsThreatRange) => void;
+}): JSX.Element {
+  const [liveRange, setLiveRange] = useState<[number, number]>([range[0], range[1]]);
+  useEffect(() => {
+    setLiveRange((current) => (
+      current[0] === range[0] && current[1] === range[1]
+        ? current
+        : [range[0], range[1]]
+    ));
+  }, [range[0], range[1]]);
+
+  const legendId = 'components-filter-threat-level-legend';
+  return (
+    <fieldset
+      className="nosc-components-filter-group"
+      data-testid="components-filter-threat-level"
+    >
+      <legend id={legendId} className="nosc-components-filter-legend">
+        Policy Threat Level
+      </legend>
+      <Slider
+        min={COMPONENTS_THREAT_MIN}
+        max={COMPONENTS_THREAT_MAX}
+        step={1}
+        value={liveRange}
+        onValueChange={(next) => setLiveRange([...normalizeComponentsThreatRange(next)])}
+        onValueCommit={(next) => onThreatRangeChange(normalizeComponentsThreatRange(next))}
+        data-testid="components-filter-threat-level-slider"
+        aria-labelledby={legendId}
+      />
+      <Flex justify="between" mt="2">
+        <Text size="1" color="gray">
+          {COMPONENTS_THREAT_MIN}
+        </Text>
+        <Text size="1" color="gray" data-testid="components-filter-threat-level-value">
+          {liveRange[0]} – {liveRange[1]}
+        </Text>
+        <Text size="1" color="gray">
+          {COMPONENTS_THREAT_MAX}
+        </Text>
+      </Flex>
+    </fieldset>
+  );
 }
 
 /**
@@ -145,9 +201,9 @@ function SearchableFilterSection({
 }
 
 /**
- * Filter sidebar for the Martha V1 Components page (CLM-42214).
+ * Filter sidebar for the Martha V1 Components page (CLM-42214 / CLM-43960).
  * Ecosystems on Catalog only (My Scan Data dashboard list has no ecosystem facets yet).
- * Organizations, Applications, and Stages (friendly names) on My Scan Data only — the Catalog
+ * Organizations, Applications, Stages, and Policy Threat Level on My Scan Data only — the Catalog
  * source rejects those estate dimensions outright (CLM-43211).
  */
 export default function ComponentsFilterRail({
@@ -156,6 +212,7 @@ export default function ComponentsFilterRail({
   filters,
   hasActiveFilters,
   onToggleFilter,
+  onThreatRangeChange,
   onResetFilters,
 }: ComponentsFilterRailProps): JSX.Element {
   const showEcosystems = tab === 'catalog';
@@ -191,6 +248,10 @@ export default function ComponentsFilterRail({
           )}
           {showEstateScope && (
             <>
+              <ThreatLevelSection
+                range={filters.threatRange}
+                onThreatRangeChange={onThreatRangeChange}
+              />
               <SearchableFilterSection
                 title="Organizations"
                 testId="components-filter-organizations"

@@ -41,6 +41,7 @@ describe('componentsListFilters', () => {
       { ecosystems: new Set(['npm']) },
       { applications: new Set(['app-1']) },
       { stages: new Set(['build']) },
+      { threatRange: [3, 9] as const },
     ];
     active.forEach((selection) => {
       expect(

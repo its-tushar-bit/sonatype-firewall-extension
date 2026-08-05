@@ -229,11 +229,25 @@ export function getVulnerabilitiesListUrl() {
 }
 
 /**
- * Distinct My Scan Data applications affected by a vulnerability (Impact tab).
+ * Distinct My Scan Data applications affected by a vulnerability (Applications tab).
  * GET `/rest/dashboard/vulnerabilities/{vulnerabilityId}/applications`.
+ * Optional {@code page}/{@code pageSize} (0-based page index; default page size 25).
  */
-export function getVulnerabilityAffectedApplicationsUrl(vulnerabilityId) {
-  return uriTemplate`/rest/dashboard/vulnerabilities/${vulnerabilityId}/applications`;
+export function getVulnerabilityAffectedApplicationsUrl(vulnerabilityId, { page, pageSize } = {}) {
+  const base = uriTemplate`/rest/dashboard/vulnerabilities/${vulnerabilityId}/applications`;
+  const params = toURIParams({ page, pageSize });
+  return params.length > 0 ? `${base}?${params}` : base;
+}
+
+/**
+ * Distinct My Scan Data components impacted by a vulnerability (Components Impacted tab).
+ * GET `/rest/dashboard/vulnerabilities/{vulnerabilityId}/components`.
+ * Optional {@code page}/{@code pageSize} (0-based page index; default page size 25).
+ */
+export function getVulnerabilityImpactedComponentsUrl(vulnerabilityId, { page, pageSize } = {}) {
+  const base = uriTemplate`/rest/dashboard/vulnerabilities/${vulnerabilityId}/components`;
+  const params = toURIParams({ page, pageSize });
+  return params.length > 0 ? `${base}?${params}` : base;
 }
 
 /**

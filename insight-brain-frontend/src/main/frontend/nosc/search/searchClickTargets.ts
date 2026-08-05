@@ -15,17 +15,17 @@ import {
   isSbomMetadata,
 } from 'MainRoot/nosc/search/searchTypes';
 import { classicHref, violationSidebarHref } from 'MainRoot/nosc/applications/applicationDetailUtils';
-import { NEXUS_ONE_VULNERABILITY_DETAIL_STATE } from 'MainRoot/nexus-one/nexusOneVulnerabilityDetailStates';
+import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 import router from 'MainRoot/router/routerInstance';
 
 /**
  * Maps a search result row to the URL the omnibar navigates to on click.
  *
- * Nexus One destinations are resolved through the UI-Router state registry
- * (`router.stateService.href`) so paths and params come from a single source of
- * truth rather than hand-built hash strings. Organizations and policies have no
- * native Nexus One page yet, so they deep-link into Classic via `bundleIndexUrl`
- * (context-path / MTIQ-prefix aware). Vulnerabilities open native detail.
+ * Application destinations use the UI-Router state registry
+ * (`router.stateService.href`). Vulnerabilities use {@link vulnerabilityDetailHref}
+ * so clicks land on a concrete tab (Security Details by default). Organizations
+ * and policies have no native Nexus One page yet, so they deep-link into Classic
+ * via `bundleIndexUrl` (context-path / MTIQ-prefix aware).
  *
  * TODO(CLM-39549): replace the Classic deep-links (org / policy) and the
  * component / SBOM "home" fallbacks with native Nexus One detail routes as those
@@ -46,9 +46,7 @@ export function clickHrefFor(result: SearchResultItemDTO): string {
   }
 
   if (isVulnerability(result) && result.vulnerabilityId) {
-    return router.stateService.href(NEXUS_ONE_VULNERABILITY_DETAIL_STATE, {
-      vulnId: result.vulnerabilityId,
-    });
+    return vulnerabilityDetailHref({ vulnId: result.vulnerabilityId });
   }
 
   if (isPolicy(result) && result.policyId) {

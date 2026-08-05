@@ -14,6 +14,10 @@ import {
   embeddedHref,
   usesEmbeddedHrefPrimary,
 } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
+import {
+  VULNERABILITY_DETAIL_DEFAULT_TAB,
+  VULNERABILITY_DETAIL_TAB_PATH_PATTERN,
+} from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailUtils';
 
 /**
  * Symmetric Classic <-> Nexus One in-hash path map.
@@ -224,12 +228,16 @@ const DETAIL_PAGE_MAPPINGS: ReadonlyArray<DetailPageMapping> = [
     nexusOneTemplate: (id) => `/violations/${id}`,
   },
   {
-    // Native vulnerability detail: same hash path on Classic CVE view and Nexus One.
+    // Native vulnerability detail: Classic CVE view <-> Nexus One tabbed detail.
+    // Optional tab segment is derived from VULNERABILITY_DETAIL_TAB_IDS so new tabs
+    // stay toggle-safe. Classic -> Nexus One lands on the default tab.
     // Encoded slash ids (e.g. sonatype-2024%2F12345) stay a single path segment.
-    nexusOneMatch: /^\/vulnerabilities\/([^/]+)\/?$/,
+    nexusOneMatch: new RegExp(
+      `^/vulnerabilities/([^/]+)(?:/(?:${VULNERABILITY_DETAIL_TAB_PATH_PATTERN}))?/?$`,
+    ),
     classicTemplate: (id) => `/vulnerabilities/${id}`,
     classicMatch: /^\/vulnerabilities\/([^/]+)\/?$/,
-    nexusOneTemplate: (id) => `/vulnerabilities/${id}`,
+    nexusOneTemplate: (id) => `/vulnerabilities/${id}/${VULNERABILITY_DETAIL_DEFAULT_TAB}`,
   },
   {
     // Administrators edit (CLM-42464): identity mapping — both bundles share the

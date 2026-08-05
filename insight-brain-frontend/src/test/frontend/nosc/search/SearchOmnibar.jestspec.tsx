@@ -195,7 +195,7 @@ describe('SearchOmnibar (P1-F13 multi-entity)', () => {
     await user.type(input, SEARCH_QUERY);
     const vulnRow = await screen.findByTestId('nosc-search-row-vulnerability');
     await user.click(vulnRow);
-    expect(assignMock).toHaveBeenCalledWith('#/vulnerabilities/CVE-2021-44228');
+    expect(assignMock).toHaveBeenCalledWith('#/vulnerabilities/CVE-2021-44228/security-details');
   });
 
   it('navigates to the native Preview Application Detail page when an Application row is clicked (CLM-39709)', async () => {
@@ -263,7 +263,7 @@ describe('SearchOmnibar (P1-F13 multi-entity)', () => {
     await user.keyboard('{ArrowDown}');
     await user.keyboard('{Enter}');
     // First row in fixture order is the best-match Vulnerability.
-    expect(assignMock).toHaveBeenCalledWith('#/vulnerabilities/CVE-2021-44228');
+    expect(assignMock).toHaveBeenCalledWith('#/vulnerabilities/CVE-2021-44228/security-details');
   });
 
   it('Escape clears the input and closes the dropdown', async () => {

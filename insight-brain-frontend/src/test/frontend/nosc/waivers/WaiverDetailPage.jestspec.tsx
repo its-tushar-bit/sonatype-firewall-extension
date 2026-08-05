@@ -422,7 +422,7 @@ describe('WaiverDetailPage', () => {
     renderDetail();
 
     const vulnLink = await screen.findByTestId('preview-waiver-detail-vuln-link');
-    expect(vulnLink).toHaveAttribute('href', '#/vulnerabilities/CVE-2024-1234');
+    expect(vulnLink).toHaveAttribute('href', '#/vulnerabilities/CVE-2024-1234/security-details');
   });
 
   it('related-risk context rail marks the vulnerability as current after metadata loads', async () => {

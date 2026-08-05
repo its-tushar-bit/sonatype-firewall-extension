@@ -41,7 +41,7 @@ describe('resolveEntityDetailContext', () => {
       '#/applications/my-app/components/abc?scanId=scan-1',
     );
     expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
-      '#/vulnerabilities/CVE-2021-44228?applicationPublicId=my-app&componentHash=abc&violationId=pv-1&scanId=scan-1',
+      '#/vulnerabilities/CVE-2021-44228/applications?applicationPublicId=my-app&componentHash=abc&violationId=pv-1&scanId=scan-1',
     );
     expect(chain.stageId).toBe('build');
     expect(chain.scanId).toBe('scan-1');
@@ -87,7 +87,7 @@ describe('resolveEntityDetailContext', () => {
         '#/applications/my-app/components/abc?scanId=scan-1',
       );
       expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
-        '#/vulnerabilities/CVE-2021-44228?applicationPublicId=my-app&componentHash=abc&violationId=pv-1&scanId=scan-1',
+        '#/vulnerabilities/CVE-2021-44228/applications?applicationPublicId=my-app&componentHash=abc&violationId=pv-1&scanId=scan-1',
       );
     } else {
       expect(chain.nodes.find((n) => n.kind === 'application')?.href).toBe(expectedSiblingHref);
@@ -110,7 +110,7 @@ describe('resolveEntityDetailContext', () => {
       '#/violations/pv%2F1%202/overview?scanId=scan+id',
     );
     expect(chain.nodes.find((n) => n.kind === 'vulnerability')?.href).toBe(
-      '#/vulnerabilities/CVE%2F1%202?applicationPublicId=a%2Fb+c&componentHash=h%2Fash&violationId=pv%2F1+2&scanId=scan+id',
+      '#/vulnerabilities/CVE%2F1%202/applications?applicationPublicId=a%2Fb+c&componentHash=h%2Fash&violationId=pv%2F1+2&scanId=scan+id',
     );
   });
 });

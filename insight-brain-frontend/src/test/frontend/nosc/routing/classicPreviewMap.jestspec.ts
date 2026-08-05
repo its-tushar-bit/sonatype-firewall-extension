@@ -458,12 +458,27 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/vulnerabilities')).toBe('/vulnerabilities');
     });
 
-    it('maps /vulnerabilities/{vulnId} detail identity both ways', () => {
+    it('maps /vulnerabilities/{vulnId} detail both ways (Classic stays bare; Nexus One lands on security-details)', () => {
       expect(toClassicEquivalent('/vulnerabilities/CVE-2021-44228')).toBe(
         '/vulnerabilities/CVE-2021-44228',
       );
       expect(toNexusOneEquivalent('/vulnerabilities/CVE-2021-44228')).toBe(
+        '/vulnerabilities/CVE-2021-44228/security-details',
+      );
+    });
+
+    it('strips Nexus One tab segments when toggling to Classic CVE view', () => {
+      expect(toClassicEquivalent('/vulnerabilities/CVE-2021-44228/security-details')).toBe(
         '/vulnerabilities/CVE-2021-44228',
+      );
+      expect(toClassicEquivalent('/vulnerabilities/CVE-2021-44228/components')).toBe(
+        '/vulnerabilities/CVE-2021-44228',
+      );
+      expect(toClassicEquivalent('/vulnerabilities/CVE-2021-44228/applications')).toBe(
+        '/vulnerabilities/CVE-2021-44228',
+      );
+      expect(toClassicEquivalent('/vulnerabilities/sonatype-2024%2F12345/components')).toBe(
+        '/vulnerabilities/sonatype-2024%2F12345',
       );
     });
 

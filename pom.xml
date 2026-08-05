@@ -86,7 +86,7 @@
     <embedded-postgres.version>2.1.0</embedded-postgres.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <!-- OpenSearch TestContainers 3.x series is for Java 21+ so we are stuck on 2.x for now -->
-    <opensearch-testcontainers.version>2.1.3</opensearch-testcontainers.version>
+    <opensearch-testcontainers.version>2.1.4</opensearch-testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
     <aws.java.sdk.version>2.42.21</aws.java.sdk.version>
     <opensearch-client.version>2.26.0</opensearch-client.version>

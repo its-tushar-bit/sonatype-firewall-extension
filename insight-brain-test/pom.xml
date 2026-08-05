@@ -136,18 +136,18 @@
                 <artifactItem>
                   <groupId>org.bouncycastle</groupId>
                   <artifactId>bctls-fips</artifactId>
-                  <version>2.1.20</version>
+                  <version>${bctls-fips.version}</version>
                   <type>jar</type>
                   <outputDirectory>${fips.lib.dir}</outputDirectory>
-                  <destFileName>bctls-fips-2.1.20.jar</destFileName>
+                  <destFileName>bctls-fips-${bctls-fips.version}.jar</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.bouncycastle</groupId>
                   <artifactId>bcutil-fips</artifactId>
-                  <version>2.1.4</version>
+                  <version>${bc-fips-util.version}</version>
                   <type>jar</type>
                   <outputDirectory>${fips.lib.dir}</outputDirectory>
-                  <destFileName>bcutil-fips-2.1.4.jar</destFileName>
+                  <destFileName>bcutil-fips-${bc-fips-util.version}.jar</destFileName>
                 </artifactItem>
               </artifactItems>
             </configuration>

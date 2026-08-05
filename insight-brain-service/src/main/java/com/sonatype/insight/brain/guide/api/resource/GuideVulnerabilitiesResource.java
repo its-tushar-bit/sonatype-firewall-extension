@@ -18,7 +18,6 @@ import com.sonatype.guide.api.dto.VulnerabilityDetailDocument;
 import com.sonatype.guide.api.dto.VulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersionRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
-import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -33,7 +32,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 
 @Named
 @Singleton
@@ -94,7 +92,7 @@ public class GuideVulnerabilitiesResource
   @Path("/{id}")
   @Override
   public VulnerabilityDetailDocument getVulnerabilityByRefId(@PathParam("id") String id) throws IOException {
-    requireNonBlankId(id);
+    GuideValidation.requireNonBlankId(id, "id");
     return searchApiClient.getVulnerabilityByRefId(id);
   }
 
@@ -125,18 +123,12 @@ public class GuideVulnerabilitiesResource
       @Parameter(description = "Policy evaluation stage: develop, build, stage-release, release, or "
           + "operate. Case-insensitive; omitted defaults to release.") @QueryParam("stage") String stage) throws IOException
   {
-    requireNonBlankId(id);
+    GuideValidation.requireNonBlankId(id, "id");
     requireLimitWithinPolicyEnrichmentCap(limit);
     requireValidStage(stage);
     GuideAffectedComponentVersionRequest request = new GuideAffectedComponentVersionRequest(
         id, query, offset, limit, sortField, sortOrder);
     return guidePolicyService.enrichAffectedSearch(
         searchApiClient.getVulnerabilityAffectedComponents(request), ownerId, stage);
-  }
-
-  private static void requireNonBlankId(String id) {
-    if (id == null || id.isBlank()) {
-      throw new GuideApiException(Response.Status.BAD_REQUEST, "id is required");
-    }
   }
 }

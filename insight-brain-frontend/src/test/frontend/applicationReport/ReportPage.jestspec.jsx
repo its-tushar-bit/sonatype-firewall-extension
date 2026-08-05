@@ -22,6 +22,7 @@ import {
 import { act } from '@testing-library/react';
 import { SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components/components/NxSubmitMask/NxSubmitMask';
 import ReevaluationStatusModal from 'MainRoot/applicationReport/ReevaluationStatusModal';
+import * as urlUtil from 'MainRoot/util/urlUtil';
 
 describe('Report Page component', () => {
   let loadReportIfNeededSpy,
@@ -104,6 +105,34 @@ describe('Report Page component', () => {
     expect(retryButton).toBeVisible();
     fireEvent.click(retryButton);
     expect(loadReportIfNeededSpy).toHaveBeenCalled();
+  });
+
+  it('tells the user a purged report is gone and does not offer Retry', () => {
+    applicationReport.metadata = null;
+    applicationReport.loadError =
+      'The report for application ID app-1 and scan ID scan-1 does not exist. Usually this means the report was ' +
+      'deemed obsolete according to the data retention policies and hence purged to the trash.';
+    routerContextMock.href.mockReturnValue('#/violations');
+    renderComponent();
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/no longer available/i);
+    expect(screen.getByRole('link', { name: 'View all reports' })).toHaveAttribute('href', '#/violations');
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
+  });
+
+  it('forwards purged reports to application evaluations in the Nexus One bundle', () => {
+    jest.spyOn(urlUtil, 'isNexusOneBundle').mockReturnValue(true);
+    applicationReport.metadata = null;
+    applicationReport.loadError =
+      'The report for application ID app-1 and scan ID scan-1 does not exist. Usually this means the report was ' +
+      'deemed obsolete according to the data retention policies and hence purged to the trash.';
+    renderComponent();
+
+    expect(screen.getByRole('link', { name: 'View application evaluations' })).toHaveAttribute(
+      'href',
+      '#/applications/publicId/evaluations'
+    );
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
   });
 
   it('renders an All Reports back button', () => {

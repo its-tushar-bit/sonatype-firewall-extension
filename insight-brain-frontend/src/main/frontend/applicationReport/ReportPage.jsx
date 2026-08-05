@@ -13,6 +13,7 @@ import {
   NxFooter,
   NxLoadWrapper,
   NxModal,
+  NxTextLink,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import ReportStatusBar from './ReportStatusBar';
@@ -20,8 +21,10 @@ import ReportContent from './ReportContent';
 import ReportFilterPopover from './ReportFilterPopover';
 import ReportTitle from './ReportTitle';
 import UnscannedComponentsTable from './unscannedComponentsTable/UnscannedComponentsTable';
+import { isPurgedReportLoadError } from './reportLoadErrors';
 import './_applicationReport.scss';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { isNexusOneBundle } from 'MainRoot/util/urlUtil';
 import {
   selectApplicationReportLoading,
   selectApplicationReportSlice,
@@ -123,66 +126,83 @@ export default function ReportPage() {
     }
   }, [publicId, stageId]);
 
+  const uiRouterState = useRouterState();
+  const reportPurged = isPurgedReportLoadError(loadError);
+  const nexusOneEvals = isNexusOneBundle() && !!publicId;
+  const purgedForwardHref = nexusOneEvals
+    ? `#/applications/${encodeURIComponent(publicId)}/evaluations`
+    : uiRouterState.href('violations');
+  const purgedForwardText = nexusOneEvals ? 'View application evaluations' : 'View all reports';
+
   return (
     <Fragment>
       {!reevaluationError && <ReevaluationStatusModal reevaluating={reevaluating} />}
       <ReportFilterPopover />
       <main id="app-report" className="nx-page-main iq-app-report">
         <BackButton />
-        <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
-          {hasUnscannedComponents && (
-            <NxErrorAlert id="application-report-unscannable-components-error">
-              <span>You have unscannable components in this build</span>
-              <div className="nx-btn-bar">
-                <NxButton variant="error" onClick={() => setShowUnscannedComponentsModal(true)}>
-                  View
-                </NxButton>
-              </div>
-            </NxErrorAlert>
-          )}
-          {showUnscannedComponentsModal && (
-            <NxModal
-              onCancel={modalCloseHandler}
-              aria-labelledby="unscanned-modal-header-text"
-              id="unscanned-components-modal"
-            >
-              <NxModal.Header>
-                <h2 className="nx-h2">Unscannable Components</h2>
-              </NxModal.Header>
-              <NxModal.Content tabIndex={0}>
-                <UnscannedComponentsTable />
-              </NxModal.Content>
-              <NxFooter>
+        {reportPurged ? (
+          <NxErrorAlert>
+            <p>This scan report is no longer available. It was removed according to your data retention policy.</p>
+            <p>
+              <NxTextLink href={purgedForwardHref}>{purgedForwardText}</NxTextLink>
+            </p>
+          </NxErrorAlert>
+        ) : (
+          <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
+            {hasUnscannedComponents && (
+              <NxErrorAlert id="application-report-unscannable-components-error">
+                <span>You have unscannable components in this build</span>
                 <div className="nx-btn-bar">
-                  <NxButton onClick={modalCloseHandler}>Close</NxButton>
+                  <NxButton variant="error" onClick={() => setShowUnscannedComponentsModal(true)}>
+                    View
+                  </NxButton>
                 </div>
-              </NxFooter>
-            </NxModal>
-          )}
+              </NxErrorAlert>
+            )}
+            {showUnscannedComponentsModal && (
+              <NxModal
+                onCancel={modalCloseHandler}
+                aria-labelledby="unscanned-modal-header-text"
+                id="unscanned-components-modal"
+              >
+                <NxModal.Header>
+                  <h2 className="nx-h2">Unscannable Components</h2>
+                </NxModal.Header>
+                <NxModal.Content tabIndex={0}>
+                  <UnscannedComponentsTable />
+                </NxModal.Content>
+                <NxFooter>
+                  <div className="nx-btn-bar">
+                    <NxButton onClick={modalCloseHandler}>Close</NxButton>
+                  </div>
+                </NxFooter>
+              </NxModal>
+            )}
 
-          <ReportTitle />
+            <ReportTitle />
 
-          <LegacyScannerBanner />
+            <LegacyScannerBanner />
 
-          <NewerReportAvailable />
+            <NewerReportAvailable />
 
-          {!isPolicyTypeFilterEnabled && (
-            <NxWarningAlert id="application-report-policy-type-filter-warning">
-              This report has not been upgraded for the new Policy Types filter introduced in release 61. Re-evaluate in
-              order to enable the Policy Types filter.
-            </NxWarningAlert>
-          )}
-          {isOldReportWithNoDependencyInfo && (
-            <NxWarningAlert id="application-report-no-dependency-info-warning">
-              This report was generated with an older version of IQ. Please re-scan the application.
-            </NxWarningAlert>
-          )}
+            {!isPolicyTypeFilterEnabled && (
+              <NxWarningAlert id="application-report-policy-type-filter-warning">
+                This report has not been upgraded for the new Policy Types filter introduced in release 61. Re-evaluate
+                in order to enable the Policy Types filter.
+              </NxWarningAlert>
+            )}
+            {isOldReportWithNoDependencyInfo && (
+              <NxWarningAlert id="application-report-no-dependency-info-warning">
+                This report was generated with an older version of IQ. Please re-scan the application.
+              </NxWarningAlert>
+            )}
 
-          <ReevaluationError reevaluationError={reevaluationError} />
+            <ReevaluationError reevaluationError={reevaluationError} />
 
-          <ReportStatusBar {...reportStatusBarProps} />
-          <ReportContent />
-        </NxLoadWrapper>
+            <ReportStatusBar {...reportStatusBarProps} />
+            <ReportContent />
+          </NxLoadWrapper>
+        )}
       </main>
     </Fragment>
   );

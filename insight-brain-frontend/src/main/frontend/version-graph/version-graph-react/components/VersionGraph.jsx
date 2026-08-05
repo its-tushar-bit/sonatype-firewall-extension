@@ -75,10 +75,12 @@ export default function VersionGraph() {
         <NxH3 id="version-graph-header">Version Graph</NxH3>
       </header>
       <NxP>Click on the graph below to see details about different versions</NxP>
-      {/* This DOM structure is required by the version-graph library */}
-      <div className="iq-version-graph-chart-section__container" id="aiVersionChartContainer">
-        <div id="aiVersionChartLabels"></div>
-        <div className="iq-version-graph-chart-section__chart" id="aiVersionChartViz"></div>
+      {/* Inner IDs are required by the version-graph library; outer scrollport is ours (CLM-44042). */}
+      <div className="iq-version-graph-chart-section__scroll">
+        <div className="iq-version-graph-chart-section__container" id="aiVersionChartContainer">
+          <div className="iq-version-graph-chart-section__labels" id="aiVersionChartLabels"></div>
+          <div className="iq-version-graph-chart-section__chart" id="aiVersionChartViz"></div>
+        </div>
       </div>
     </section>
   );

@@ -43,9 +43,13 @@ const VersionGraphExplorer = ({
   }, [selectedVersionError]);
 
   return (
-    <div id="aiVersionChartContainer" data-testid="aiVersionChartContainer">
-      <div id="aiVersionChartLabels"></div>
-      <div id="aiVersionChartViz"></div>
+    // Outer scrollport keeps tile-local overflow when the shell is narrower than the chart
+    // row; the library may set overflow:hidden on #aiVersionChartContainer itself (CLM-44042).
+    <div className="iq-version-graph-scroll">
+      <div id="aiVersionChartContainer" data-testid="aiVersionChartContainer">
+        <div id="aiVersionChartLabels"></div>
+        <div id="aiVersionChartViz"></div>
+      </div>
     </div>
   );
 };

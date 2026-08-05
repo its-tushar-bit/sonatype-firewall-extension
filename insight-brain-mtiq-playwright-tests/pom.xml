@@ -29,7 +29,7 @@
     <it.includes>**/*Test.*</it.includes>
     <!-- 0.5C caps parallel forks to avoid overwhelming Docker with concurrent Postgres startups. -->
     <failsafe.forkCount>0.5C</failsafe.forkCount>
-    <playwright.version>1.49.0</playwright.version>
+    <playwright.version>1.60.0</playwright.version>
     <!-- Playwright defaults (override with -Dplaywright.headless=false for headed mode) -->
     <playwright.headless>true</playwright.headless>
     <playwright.slowMo>0</playwright.slowMo>

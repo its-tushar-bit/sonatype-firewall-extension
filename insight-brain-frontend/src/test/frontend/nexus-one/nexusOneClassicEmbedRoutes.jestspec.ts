@@ -390,6 +390,11 @@ describe('nexusOneClassicEmbedRoutes', () => {
     ['saml', '/saml', ['samlConfiguration', 'isDirty']],
     ['userTokensConfiguration', '/userTokensConfiguration', ['userTokensConfiguration', 'isDirty']],
     [
+      'automaticSourceControlConfiguration',
+      '/automaticSourceControlConfiguration',
+      ['automaticSourceControlConfiguration', 'viewState', 'isDirty'],
+    ],
+    [
       'advancedSearchConfig',
       '/advancedSearchConfig',
       ['advancedSearchConfig', 'viewState', 'isDirty'],
@@ -436,6 +441,61 @@ describe('nexusOneClassicEmbedRoutes', () => {
         value = (rootState as Record<string, Record<string, Record<string, unknown>>>)[path[0]]?.[path[1]]?.[path[2]];
       }
       expect(typeof value).toBe('boolean');
+    });
+  });
+
+  // CLM-42962: Classic-only redirect stubs so $state.href() resolves in the
+  // embedded AutomaticSourceControlConfiguration component (lines 96,100). Each
+  // fires window.location.href to the Classic hash route and returns a valid
+  // NOUX fallback state so the router always has somewhere to land.
+  describe.each<[string, string, string]>([
+    ['scmOnboarding', '/onboarding', '/assets/#/onboarding'],
+    [
+      'automaticApplicationsConfiguration',
+      '/automaticApplicationsConfiguration',
+      '/assets/#/automaticApplicationsConfiguration',
+    ],
+  ])('%s Classic hard-exit stub', (stateName, expectedUrl, expectedClassicHref) => {
+    const state = () => router.stateRegistry.get(stateName);
+    const redirectTo = () => state()?.redirectTo as () => string;
+    let originalLocation: Location;
+
+    beforeEach(() => {
+      // jsdom does not honour `window.location.href = "..."` — it re-parses the
+      // value against the current origin. Swap in a plain object so the
+      // assignment is observable.
+      originalLocation = window.location;
+      // @ts-expect-error — replacing readonly window.location for the test.
+      delete window.location;
+      // @ts-expect-error — plain-object stand-in.
+      window.location = { href: originalLocation.href };
+    });
+
+    afterEach(() => {
+      // @ts-expect-error — restore the real Location.
+      window.location = originalLocation;
+    });
+
+    it(`is registered at ${expectedUrl}`, () => {
+      expect(state()?.url).toBe(expectedUrl);
+    });
+
+    it('has a redirectTo function so $state.href() resolves (not null)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('has no component (it always redirects — never mounts a NOUX page)', () => {
+      expect(state()?.component).toBeUndefined();
+    });
+
+    it('has no isDirty path (no form — nothing to guard)', () => {
+      expect(state()?.data?.isDirty).toBeUndefined();
+    });
+
+    it(`sets window.location.href to ${expectedClassicHref} and returns the NOUX fallback state`, () => {
+      const fallback = redirectTo()();
+      expect(window.location.href).toBe(expectedClassicHref);
+      expect(fallback).toBe('nexusOneDashboard.violations');
     });
   });
 

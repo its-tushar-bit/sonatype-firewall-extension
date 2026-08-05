@@ -1053,6 +1053,48 @@ router.stateRegistry.register({
 } as ReactStateDeclaration);
 
 router.stateRegistry.register({
+  name: 'automaticSourceControlConfiguration',
+  url: '/automaticSourceControlConfiguration',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(AutomaticSourceControlConfigurationContainer),
+  redirectTo: requireConfigureSystem,
+  data: {
+    title: 'Automatic Source Control',
+    isDirty: ['automaticSourceControlConfiguration', 'viewState', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+// Register Classic-only routes so that $state.href() resolves in embedded components.
+// These states exist in Classic but not in NOUX; registering them with a redirectTo
+// ensures that links built via $state.href() return valid URLs instead of null.
+// The redirect performs a full-page nav to the Classic page and returns a valid
+// fallback NOUX state so the router always has somewhere to land if the browser
+// nav is delayed (e.g. slow reload, blocked by unsaved-changes guard).
+const CLASSIC_HARD_EXIT_FALLBACK = 'nexusOneDashboard.violations';
+const CLASSIC_HASH_ROUTE = (path: string) => `/assets/#${path}`;
+
+function classicHardExit(classicPath: string): () => string {
+  return () => {
+    window.location.href = CLASSIC_HASH_ROUTE(classicPath);
+    return CLASSIC_HARD_EXIT_FALLBACK;
+  };
+}
+
+router.stateRegistry.register({
+  name: 'scmOnboarding',
+  url: '/onboarding',
+  redirectTo: classicHardExit('/onboarding'),
+  data: { title: 'SCM Onboarding' },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'automaticApplicationsConfiguration',
+  url: '/automaticApplicationsConfiguration',
+  redirectTo: classicHardExit('/automaticApplicationsConfiguration'),
+  data: { title: 'Automatic Applications' },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
   name: 'advancedSearchConfig',
   url: '/advancedSearchConfig',
   component: mountClassicComponent(AuthorizedAdvancedSearchConfig),
@@ -1081,15 +1123,6 @@ router.stateRegistry.register({
   redirectTo: comingSoonStateName('reports'),
   data: { title: 'Enterprise Reporting' },
 } as ReactStateDeclaration);
-
-// Classic System Preferences deep-link → in-shell Automatic Source Control embed.
-router.stateRegistry.register({
-  name: 'automaticSourceControlConfiguration',
-  url: '/automaticSourceControlConfiguration',
-  redirectTo: comingSoonStateName('source-control'),
-  data: { title: 'Automatic Source Control' },
-} as ReactStateDeclaration);
-
 
 router.stateRegistry.register({ name: 'dashboard', abstract: true, url: '' });
 router.stateRegistry.register({ name: 'dashboard.overview', abstract: true, url: '' });

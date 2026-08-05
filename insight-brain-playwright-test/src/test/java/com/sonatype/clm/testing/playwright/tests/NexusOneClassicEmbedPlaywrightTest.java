@@ -22,6 +22,7 @@ import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.AutomaticSourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.BasePage;
 import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
@@ -1739,6 +1740,166 @@ public class NexusOneClassicEmbedPlaywrightTest
           configPage.enabledCheckbox().uncheck();
         }
         configPage.saveButton().click();
+        waitForSubmitMask();
+      }
+    }
+  }
+
+  /**
+   * CLM-42962: Automatic Source Control Configuration mounts natively at
+   * {@code /automaticSourceControlConfiguration} on the Nexus One bundle, rendering
+   * the Classic form as-is inside the Nexus One shell.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedAutomaticSourceControlConfiguration_rendersClassicFormInsideNexusOneShell() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    AutomaticSourceControlConfigurationPage autoScmPage = new AutomaticSourceControlConfigurationPage();
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    assertThat(autoScmPage.container()).isVisible();
+    assertThat(autoScmPage.pageHeading()).isVisible();
+    assertThat(autoScmPage.toggleLabel()).isVisible();
+  }
+
+  /**
+   * CLM-42962 dirty-guard cancel path: toggling the enabled checkbox dirties
+   * the form; a hash navigation triggers the shell dirty-guard; Cancel keeps
+   * the user on the config page with the dirty state intact.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAutomaticSourceControlConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
+
+    AutomaticSourceControlConfigurationPage autoScmPage = new AutomaticSourceControlConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    autoScmPage.container().waitFor();
+    // Capture initial state, then flip it to create a dirty value. Read-then-flip
+    // avoids the hardcoded assumption that the toggle starts unchecked — a prior
+    // test in this class can leave it in either state.
+    boolean wasChecked = autoScmPage.toggleInput().isChecked();
+    autoScmPage.toggleLabel().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    // Cancel preserves the dirty value — assert the toggle is flipped from its initial state.
+    assertThat(autoScmPage.container()).isVisible();
+    if (wasChecked) {
+      assertThat(autoScmPage.toggleInput()).not().isChecked();
+    }
+    else {
+      assertThat(autoScmPage.toggleInput()).isChecked();
+    }
+  }
+
+  /**
+   * CLM-42962 dirty-guard continue path: Continue closes the modal and lets
+   * the transition proceed; the config page unmounts and the user lands on
+   * another Classic-embedded page.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAutomaticSourceControlConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
+
+    AutomaticSourceControlConfigurationPage autoScmPage = new AutomaticSourceControlConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    autoScmPage.container().waitFor();
+    // Toggle to create dirty state
+    autoScmPage.toggleLabel().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(autoScmPage.container()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42962 auth gate: a user without CONFIGURE_SYSTEM navigating to
+   * /automaticSourceControlConfiguration is redirected to the Nexus One violations
+   * dashboard before the admin form ever mounts. Covers the redirectTo
+   * function on the route.
+   *
+   * <p>
+   * Log in on Classic first so the shared session cookie is present when
+   * we navigate into Nexus One. Going straight to the Nexus One URL while
+   * logged out hits {@code ensureNexusOneShellAccess}, which bounces
+   * unauthenticated requests back to Classic before the router — so the
+   * route's own {@code redirectTo} would never fire.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAutomaticSourceControlConfiguration_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    AutomaticSourceControlConfigurationPage autoScmPage = new AutomaticSourceControlConfigurationPage();
+    assertThat(autoScmPage.container()).isHidden();
+  }
+
+  /**
+   * CLM-42962 save-through-shell: toggle the enabled checkbox, save, reload,
+   * and verify the persisted state.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAutomaticSourceControlConfiguration_saveThroughShellPersists() {
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
+
+    AutomaticSourceControlConfigurationPage autoScmPage = new AutomaticSourceControlConfigurationPage();
+
+    autoScmPage.container().waitFor();
+
+    // Capture the current server-side state so we can restore it in the finally
+    // block regardless of whether the assertions below pass or fail.
+    boolean wasEnabled = autoScmPage.toggleInput().isChecked();
+
+    try {
+      // Toggle to the opposite state and save through the shell's redux/router bridge.
+      autoScmPage.toggleLabel().click();
+      autoScmPage.updateButton().click();
+      waitForSubmitMask();
+
+      // Reload the embed URL and assert the persisted value re-populates.
+      playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
+      autoScmPage.container().waitFor();
+
+      if (wasEnabled) {
+        assertThat(autoScmPage.toggleInput()).not().isChecked();
+      }
+      else {
+        assertThat(autoScmPage.toggleInput()).isChecked();
+      }
+    }
+    finally {
+      // Restore the original state for downstream tests. Must run even if the
+      // assertions above throw, otherwise the mutated server state leaks.
+      playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticSourceControlConfiguration"));
+      autoScmPage.container().waitFor();
+      if (autoScmPage.toggleInput().isChecked() != wasEnabled) {
+        autoScmPage.toggleLabel().click();
+        autoScmPage.updateButton().click();
         waitForSubmitMask();
       }
     }

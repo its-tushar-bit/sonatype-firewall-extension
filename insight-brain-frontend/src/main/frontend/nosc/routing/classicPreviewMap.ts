@@ -119,6 +119,16 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/proxyConfig', '/firewall/proxyConfig'],
   ['/proxyConfig', '/malware-defense/proxyConfig'],
   ...COMING_SOON_ENTRIES,
+  // CLM-42962: Forward-only identity for the Automatic SCM Configuration embed.
+  // Placed AFTER COMING_SOON_ENTRIES so that `toNexusOneEquivalent('/automaticSourceControlConfiguration')`
+  // continues to prefer the Coming Soon entry (returns `/source-control`) — the
+  // Classic→NOUX toggle keeps landing on the Coming Soon primary owned by the
+  // `source-control` slug in NATIVE_CLASSIC_EMBED_SLUGS. This entry only affects
+  // the reverse direction (`toClassicEquivalent('/automaticSourceControlConfiguration')`)
+  // so users on the NOUX `/automaticSourceControlConfiguration` embed clicking the
+  // top-nav "Switch to Classic UI" button land on the same Classic hash path
+  // instead of falling through to CLASSIC_DEFAULT_PATH.
+  ['/automaticSourceControlConfiguration', '/automaticSourceControlConfiguration'],
 ];
 
 // Prefix matches use Array.find — keep more-specific paths before broader prefixes

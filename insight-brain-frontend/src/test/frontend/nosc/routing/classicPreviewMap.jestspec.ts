@@ -345,6 +345,17 @@ describe('classicPreviewMap', () => {
       expect(toClassicEquivalent('/crowd')).toBe('/crowd');
     });
 
+    // CLM-42962: NOUX users on the /automaticSourceControlConfiguration embed
+    // clicking the top-nav "Switch to Classic UI" button must land on the same
+    // Classic hash path (not CLASSIC_DEFAULT_PATH). This exercises a forward-only
+    // identity entry placed AFTER COMING_SOON_ENTRIES so the reverse Classic→NOUX
+    // toggle keeps landing on the /source-control Coming Soon primary.
+    it('maps Automatic SCM Configuration admin back to the same Classic path (CLM-42962)', () => {
+      expect(toClassicEquivalent('/automaticSourceControlConfiguration')).toBe(
+        '/automaticSourceControlConfiguration'
+      );
+    });
+
     it('maps Email Configuration admin back to the same Classic path (CLM-42875)', () => {
       expect(toClassicEquivalent('/mailConfig')).toBe('/mailConfig');
     });

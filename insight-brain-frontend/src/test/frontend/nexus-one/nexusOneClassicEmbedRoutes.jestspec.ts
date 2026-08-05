@@ -448,13 +448,13 @@ describe('nexusOneClassicEmbedRoutes', () => {
   // embedded AutomaticSourceControlConfiguration component (lines 96,100). Each
   // fires window.location.href to the Classic hash route and returns a valid
   // NOUX fallback state so the router always has somewhere to land.
+  //
+  // NOTE: `automaticApplicationsConfiguration` was previously in this list
+  // (as a placeholder hard-exit stub) but is now a real NOUX embed
+  // registered above via mountClassicComponent — see CLM-42877. Its own
+  // Classic-embed admin-route test suite covers component/isDirty/redirectTo.
   describe.each<[string, string, string]>([
     ['scmOnboarding', '/onboarding', '/assets/#/onboarding'],
-    [
-      'automaticApplicationsConfiguration',
-      '/automaticApplicationsConfiguration',
-      '/assets/#/automaticApplicationsConfiguration',
-    ],
   ])('%s Classic hard-exit stub', (stateName, expectedUrl, expectedClassicHref) => {
     const state = () => router.stateRegistry.get(stateName);
     const redirectTo = () => state()?.redirectTo as () => string;
@@ -1158,6 +1158,43 @@ describe('nexusOneClassicEmbedRoutes', () => {
       expect(isDirty).toEqual(['proxyConfig', 'isDirty']);
       const rootState = rootReducer(undefined, { type: '@@INIT' });
       const [slice, field] = isDirty as ReadonlyArray<string>;
+      expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
+    });
+  });
+  describe('automaticApplicationsConfiguration Classic-embed admin route (CLM-42877)', () => {
+    const state = () => router.stateRegistry.get('automaticApplicationsConfiguration');
+    const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;
+
+    beforeEach(() => (isAuthorized as jest.Mock).mockReset());
+
+    it('is registered at /automaticApplicationsConfiguration', () => {
+      expect(state()?.url).toBe('/automaticApplicationsConfiguration');
+    });
+
+    it('gates access via an async redirectTo function (not a static state string)', () => {
+      expect(typeof state()?.redirectTo).toBe('function');
+    });
+
+    it('carries the isDirty data path so the shell dirty guard fires on nav', () => {
+      expect(state()?.data?.isDirty).toEqual(['automaticApplicationsConfiguration', 'isDirty']);
+    });
+
+    it('resolves to undefined when the user has MANAGE_AUTOMATIC_APPLICATION_CREATION', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(true);
+
+      await expect(redirectTo()()).resolves.toBeUndefined();
+      expect(isAuthorized).toHaveBeenCalledWith(['MANAGE_AUTOMATIC_APPLICATION_CREATION']);
+    });
+
+    it('redirects to nexusOneDashboard.violations when the user lacks MANAGE_AUTOMATIC_APPLICATION_CREATION', async () => {
+      (isAuthorized as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(redirectTo()()).resolves.toBe('nexusOneDashboard.violations');
+    });
+
+    it('isDirty path resolves to a boolean in rootReducer initial state', () => {
+      const rootState = rootReducer(undefined, { type: '@@INIT' });
+      const [slice, field] = state()?.data?.isDirty ?? [];
       expect(typeof (rootState as Record<string, Record<string, unknown>>)[slice]?.[field]).toBe('boolean');
     });
   });

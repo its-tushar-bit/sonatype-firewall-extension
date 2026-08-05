@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Route;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import com.microsoft.playwright.TimeoutError;
@@ -22,6 +23,8 @@ import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPage;
 import com.sonatype.clm.testing.playwright.pages.ApiDocumentationPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.AutomaticApplicationsConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.AutomaticApplicationsConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.AutomaticSourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.BasePage;
 import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
@@ -125,11 +128,46 @@ public class NexusOneClassicEmbedPlaywrightTest
     // Dismiss any dirty-guard modal a failed test may have left open, so the
     // next test doesn't hit a blocked transition on refresh.
     new UnsavedChangesModalComponent().continueIfOpen();
+    // Unroute any Automatic Applications stubs so a later test in this class
+    // doesn't inherit them. page.unroute is a no-op if the pattern was never
+    // routed by the current test.
+    page.unroute(AUTO_APP_CONFIG_ROUTE);
+    page.unroute(ORGANIZATIONS_ROUTE);
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
     if (originalSuccessMetricsEnabled != null) {
       lookup(SystemConfigurationPropertyDAO.class)
           .set(SuccessMetricsService.PROPERTY_ENABLED, originalSuccessMetricsEnabled);
     }
+  }
+
+  // CLM-42877: Route stubs for the Automatic Applications Configuration render test.
+  // The reducer filters out the system root org
+  // (`configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationActions.js`
+  // filters `org.id !== 'ROOT_ORGANIZATION_ID'`), so if the embedded IQ server has only
+  // the root org the form renders `<NxErrorAlert>No parent organizations found</NxErrorAlert>`
+  // instead of the Parent Organization select — and `shouldRenderPageLayout()` fails on
+  // `getByLabel("Parent Organization")`. Same stubbing pattern as
+  // AutomaticApplicationsConfigurationPlaywrightTest.
+  private static final String AUTO_APP_CONFIG_ROUTE = "**/rest/config/automaticApplications**";
+
+  private static final String ORGANIZATIONS_ROUTE = "**/rest/organization*";
+
+  private static final String AUTO_APP_CONFIG_DISABLED_NO_PARENT_JSON =
+      "{\"enabled\":false,\"parentOrganizationId\":null}";
+
+  private static final String AUTO_APP_ORGANIZATIONS_JSON =
+      "[{\"id\":\"pw-test-org\",\"name\":\"pw-test-org\"}]";
+
+  private void stubAutomaticApplicationsRoutes(String autoAppConfigJson, String organizationsJson) {
+    stubJson(ORGANIZATIONS_ROUTE, organizationsJson);
+    stubJson(AUTO_APP_CONFIG_ROUTE, autoAppConfigJson);
+  }
+
+  private void stubJson(String routePattern, String body) {
+    page.route(routePattern, route -> route.fulfill(new Route.FulfillOptions()
+        .setStatus(200)
+        .setContentType("application/json")
+        .setBody(body)));
   }
 
   @Test
@@ -1743,6 +1781,111 @@ public class NexusOneClassicEmbedPlaywrightTest
         waitForSubmitMask();
       }
     }
+  }
+
+  /**
+   * CLM-42877: The Automatic Applications Configuration page should render with the Nexus One shell
+   * when accessed via the embedded route, showing the classic form inside the modern layout.
+   *
+   * <p>
+   * Stubs the organizations and config endpoints because the reducer filters out the system
+   * root org — without at least one non-root org, the form renders the "No parent organizations
+   * found" error alert instead of the Parent Organization select. See
+   * {@link AutomaticApplicationsConfigurationPlaywrightTest} for the same pattern in the
+   * Classic-only tests.
+   */
+  @Test
+  @Category(SanityTest.class)
+  public void testEmbeddedAutomaticApplicationsConfiguration_rendersClassicFormInsideNexusOneShell() {
+    stubAutomaticApplicationsRoutes(AUTO_APP_CONFIG_DISABLED_NO_PARENT_JSON, AUTO_APP_ORGANIZATIONS_JSON);
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticApplicationsConfiguration"));
+
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+    AutomaticApplicationsConfigurationPage autoAppsPage = new AutomaticApplicationsConfigurationPage();
+    AutomaticApplicationsConfigurationPageAssertions autoAppsAssertions =
+        new AutomaticApplicationsConfigurationPageAssertions(autoAppsPage);
+
+    assertThat(embedPage.leftNav()).isVisible();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+    assertThat(embedPage.classicGlobalSidebar()).not().isVisible();
+
+    autoAppsAssertions.shouldRenderPageLayout();
+  }
+
+  /**
+   * CLM-42877: The dirty guard should block navigation when the user toggles the enable switch
+   * and then attempts to navigate away, clicking Cancel should keep them on the page.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAutomaticApplicationsConfiguration_dirtyGuardBlocksNavigationOnCancel() {
+    // Stub the same routes as the render test above: NxStatefulForm's loading
+    // spinner hides the enabled-toggle label until both /rest/organization*
+    // and /rest/config/automaticApplications** have returned. Without stubs
+    // this test is a real API round-trip that can time out under CI load.
+    stubAutomaticApplicationsRoutes(AUTO_APP_CONFIG_DISABLED_NO_PARENT_JSON, AUTO_APP_ORGANIZATIONS_JSON);
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticApplicationsConfiguration"));
+
+    AutomaticApplicationsConfigurationPage autoAppsPage = new AutomaticApplicationsConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+
+    autoAppsPage.enabledToggleLabel().waitFor();
+    autoAppsPage.enabledToggleLabel().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.cancelButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(autoAppsPage.tile()).isVisible();
+  }
+
+  /**
+   * CLM-42877: The dirty guard should allow navigation when the user toggles the enable switch
+   * and then clicks Continue on the unsaved changes modal, navigating away from the page.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAutomaticApplicationsConfiguration_dirtyGuardAllowsNavigationOnContinue() {
+    // See dirtyGuardBlocksNavigationOnCancel above for why these stubs are needed.
+    stubAutomaticApplicationsRoutes(AUTO_APP_CONFIG_DISABLED_NO_PARENT_JSON, AUTO_APP_ORGANIZATIONS_JSON);
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticApplicationsConfiguration"));
+
+    AutomaticApplicationsConfigurationPage autoAppsPage = new AutomaticApplicationsConfigurationPage();
+    UnsavedChangesModalComponent modal = new UnsavedChangesModalComponent();
+    NexusOneClassicEmbedPage embedPage = new NexusOneClassicEmbedPage();
+
+    autoAppsPage.enabledToggleLabel().waitFor();
+    autoAppsPage.enabledToggleLabel().click();
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/systemNoticeConfiguration"));
+    assertThat(modal.container()).isVisible();
+
+    modal.continueButton().click();
+    assertThat(modal.container()).isHidden();
+    assertThat(autoAppsPage.tile()).isHidden();
+    assertThat(embedPage.classicComponentMount()).isVisible();
+  }
+
+  /**
+   * CLM-42877: A user without MANAGE_AUTOMATIC_APPLICATION_CREATION permission should be redirected
+   * to the violations dashboard when attempting to access the Automatic Applications Configuration page.
+   * This test verifies the permission gate works correctly by using a user with no specific permissions.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEmbeddedAutomaticApplicationsConfiguration_unauthorizedUserRedirectsToViolations() {
+    User nonAdminUser = tempEntity.newUser(TemporaryEntity.uuid());
+
+    playwrightLogout();
+    playwrightLoginAt(LoginPage.rootUrl(),
+        nonAdminUser.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+
+    playwrightRefreshOrOpen(NexusOneClassicEmbedPage.embedUrl("/automaticApplicationsConfiguration"));
+
+    page.waitForURL("**/nexus-one/index.html#/dashboard/violations");
+    AutomaticApplicationsConfigurationPage autoAppsPage = new AutomaticApplicationsConfigurationPage();
+    assertThat(autoAppsPage.tile()).isHidden();
   }
 
   /**

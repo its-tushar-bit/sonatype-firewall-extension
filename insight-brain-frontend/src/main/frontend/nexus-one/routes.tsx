@@ -36,6 +36,7 @@ import UserTokensConfiguration from 'MainRoot/configuration/userTokensConfigurat
 import AuthorizedAdvancedSearchConfig from 'MainRoot/nexus-one/AuthorizedAdvancedSearchConfig';
 import AdministratorsConfig from 'MainRoot/configuration/administrators/config/AdministratorsConfig';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
+import AutomaticApplicationsConfigurationContainer from 'MainRoot/configuration/automaticApplicationsConfiguration/AutomaticApplicationsConfigurationContainer';
 import AtlassianCrowdConfiguration from 'MainRoot/configuration/crowd/AtlassianCrowdConfiguration';
 import ProxyConfigContainer from 'MainRoot/configuration/proxy/ProxyConfigContainer';
 import MailConfigContainer from 'MainRoot/configuration/mail/MailConfigContainer';
@@ -1060,6 +1061,21 @@ router.stateRegistry.register({
 } as ReactStateDeclaration);
 
 router.stateRegistry.register({
+  name: 'automaticApplicationsConfiguration',
+  url: '/automaticApplicationsConfiguration',
+  // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
+  component: mountClassicComponent(AutomaticApplicationsConfigurationContainer),
+  redirectTo: async () => {
+    const authorized = await isAuthorized(['MANAGE_AUTOMATIC_APPLICATION_CREATION']);
+    return authorized ? undefined : 'nexusOneDashboard.violations';
+  },
+  data: {
+    title: 'Automatic Applications Configuration',
+    isDirty: ['automaticApplicationsConfiguration', 'isDirty'],
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
   name: 'automaticSourceControlConfiguration',
   url: '/automaticSourceControlConfiguration',
   // mountClassicComponent applies shell offsets — see successMetricsConfiguration above.
@@ -1094,12 +1110,6 @@ router.stateRegistry.register({
   data: { title: 'SCM Onboarding' },
 } as ReactStateDeclaration);
 
-router.stateRegistry.register({
-  name: 'automaticApplicationsConfiguration',
-  url: '/automaticApplicationsConfiguration',
-  redirectTo: classicHardExit('/automaticApplicationsConfiguration'),
-  data: { title: 'Automatic Applications' },
-} as ReactStateDeclaration);
 
 router.stateRegistry.register({
   name: 'advancedSearchConfig',

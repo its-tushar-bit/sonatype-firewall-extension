@@ -95,6 +95,7 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   ['/baseUrl', '/baseUrl'],
   ['/systemNoticeConfiguration', '/systemNoticeConfiguration'],
   ['/administrators', '/administrators'],
+  ['/automaticApplicationsConfiguration', '/automaticApplicationsConfiguration'],
   // CLM-42957: Atlassian Crowd configuration page.
   ['/crowd', '/crowd'],
   // Reverse-mapping only: Classic firewall serves Atlassian Crowd at

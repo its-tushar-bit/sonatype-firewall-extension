@@ -152,6 +152,12 @@ describe('classicPreviewMap', () => {
       expect(toNexusOneEquivalent('/administrators')).toBe('/administrators');
     });
 
+    it('keeps the Automatic Applications Configuration admin path identical on both bundles (CLM-42877)', () => {
+      expect(toNexusOneEquivalent('/automaticApplicationsConfiguration')).toBe(
+        '/automaticApplicationsConfiguration',
+      );
+    });
+
     it('keeps the Atlassian Crowd admin path identical on both bundles (CLM-42957)', () => {
       expect(toNexusOneEquivalent('/crowd')).toBe('/crowd');
     });
@@ -341,6 +347,12 @@ describe('classicPreviewMap', () => {
       expect(toClassicEquivalent('/administrators')).toBe('/administrators');
     });
 
+    it('maps Automatic Applications Configuration admin back to the same Classic path (CLM-42877)', () => {
+      expect(toClassicEquivalent('/automaticApplicationsConfiguration')).toBe(
+        '/automaticApplicationsConfiguration',
+      );
+    });
+
     it('maps Atlassian Crowd admin back to the same Classic path (CLM-42957)', () => {
       expect(toClassicEquivalent('/crowd')).toBe('/crowd');
     });
@@ -368,6 +380,7 @@ describe('classicPreviewMap', () => {
       expect(toClassicEquivalent('/roles/_new_')).toBe('/roles/_new_');
       expect(toClassicEquivalent('/roles/some-role-id')).toBe('/roles/some-role-id');
     });
+
 
     it('maps SAML admin back to the same Classic path (CLM-42956)', () => {
       expect(toClassicEquivalent('/saml')).toBe('/saml');
@@ -580,6 +593,7 @@ describe('classicPreviewMap', () => {
       ['/baseUrl'],
       ['/systemNoticeConfiguration'],
       ['/administrators'],
+      ['/automaticApplicationsConfiguration'],
       // CLM-42957: Atlassian Crowd configuration page.
       ['/crowd'],
       ['/mailConfig'],

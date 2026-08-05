@@ -198,6 +198,7 @@ function isNexusOnePath(path: string): boolean {
   if (path === '/roles' || path.startsWith('/roles/')) return true;
   if (path === '/webhooks' || path.startsWith('/webhooks/')) return true;
   if (path === '/ldap' || path.startsWith('/ldap/')) return true;
+  if (path === '/settings' || path.startsWith('/settings/')) return true;
   if (path.startsWith('/coming-soon/')) return true;
   return NEXUS_ONE_TO_CLASSIC.some(([nexus]) => path === nexus || path.startsWith(nexus + '/'));
 }

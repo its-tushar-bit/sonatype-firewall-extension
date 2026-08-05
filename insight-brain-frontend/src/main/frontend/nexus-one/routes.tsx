@@ -76,6 +76,7 @@ import {
 import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap';
 import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
+import { nexusOneSettingsStates } from 'MainRoot/nexus-one/nexusOneSettingsStates';
 import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
 import { nexusOneApplicationReportStates } from 'MainRoot/nexus-one/nexusOneApplicationReportStates';
 import { nexusOneViolationDetailStates } from 'MainRoot/nexus-one/nexusOneViolationDetailStates';
@@ -192,6 +193,13 @@ router.stateRegistry.register({
 
 // Dashboard: abstract parent shell (tab strip + nested <UIView>) with one child state per tab.
 nexusOneDashboardStates().forEach((state) => {
+  router.stateRegistry.register(state);
+});
+
+// Native Settings hub (CLM-42469), reached from the LeftNav Settings item at /settings.
+// Non-embedded rows link to the generic /coming-soon/settings page; rows whose admin page
+// is already embedded link straight to that in-shell state.
+nexusOneSettingsStates().forEach((state) => {
   router.stateRegistry.register(state);
 });
 
@@ -704,7 +712,7 @@ router.stateRegistry.register({
 } as ReactStateDeclaration);
 
 // LDAP list + create/edit sub-pages the list navigates to via stateGo(...).
-// State name matches the Classic state + gear-menu `hrefFromStateName('ldap-list')`.
+// State name matches the Classic state + the Settings hub's `hrefFromStateName('ldap-list')`.
 // mountClassicComponent applies shell offsets on each — see successMetricsConfiguration above.
 router.stateRegistry.register({
   name: 'ldap-list',
@@ -890,7 +898,7 @@ router.stateRegistry.register({
 } as ReactStateDeclaration);
 
 // Standalone User Activity view — shown when isUserActivityTrackingEnabled but
-// !isUserManagementEnabled (see PreviewSystemPreferencesMenu.tsx gear entry).
+// !isUserManagementEnabled (see settingsGating.ts's 'user-activity' predicate).
 // UserManagement.jsx computes showActivityOnly = isUserActivityTrackingEnabled && !isUserManagementEnabled
 // from selectors and renders only UserActivityOverviewContainer when true.
 router.stateRegistry.register({

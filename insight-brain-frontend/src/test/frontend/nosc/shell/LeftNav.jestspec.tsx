@@ -126,14 +126,12 @@ describe('LeftNav', () => {
     expect(link.getAttribute('href')).toContain('#/legal');
   });
 
-  it.each([['settings', '#/coming-soon/settings']])(
-    'renders the Coming Soon %s item pointing at %s',
-    (id, expectedHash) => {
-      renderLeftNav(fullyLicensedState);
-      const link = screen.getByTestId(`nosc-leftnav-${id}`);
-      expect(link.getAttribute('href')).toContain(expectedHash);
-    },
-  );
+  it('renders the Settings item pointing at the native /settings hub (not coming-soon)', () => {
+    renderLeftNav(fullyLicensedState);
+    const link = screen.getByTestId('nosc-leftnav-settings');
+    expect(link.getAttribute('href')).toContain('#/settings');
+    expect(link.getAttribute('href')).not.toContain('coming-soon');
+  });
 
   it('renders a divider before Success Metrics and before API', () => {
     renderLeftNav(fullyLicensedState);
@@ -265,16 +263,34 @@ describe('LeftNav', () => {
       },
     };
     renderLeftNav(state);
-    // Dashboard, Success Metrics, and API aren't gated on isLicensed, so they still render.
-    const licenseGatedIds = EXPECTED_ORDER.filter((id) => !['dashboard', 'success-metrics', 'api'].includes(id));
+    // Dashboard, Success Metrics, API, and Settings aren't gated on isLicensed, so they
+    // still render — Settings must stay reachable so an unlicensed admin can install one.
+    const licenseGatedIds = EXPECTED_ORDER.filter(
+      (id) => !['dashboard', 'success-metrics', 'api', 'settings'].includes(id)
+    );
     for (const id of licenseGatedIds) {
       expect(screen.queryByTestId(`nosc-leftnav-${id}`)).not.toBeInTheDocument();
     }
+    expect(screen.getByTestId('nosc-leftnav-settings')).toBeInTheDocument();
 
     // Dashboard leads, then the reporting group (Success Metrics) and the settings
-    // group (API) each contribute one divider — no orphaned dividers for this state.
+    // group (API, Settings) each contribute one divider — no orphaned dividers for this state.
     const nav = screen.getByTestId('nosc-leftnav');
     expect(nav.querySelectorAll(SEPARATOR_SELECTOR).length).toBe(2);
+  });
+
+  it('renders Settings for an unlicensed tenant so an admin can install a license', () => {
+    const state = {
+      ...fullyLicensedState,
+      productLicense: {
+        loading: false,
+        installed: false,
+        license: { products: [] },
+      },
+    };
+    renderLeftNav(state);
+    const link = screen.getByTestId('nosc-leftnav-settings');
+    expect(link.getAttribute('href')).toContain('#/settings');
   });
 
   it('hides Applications when orgs-and-apps is disabled', () => {

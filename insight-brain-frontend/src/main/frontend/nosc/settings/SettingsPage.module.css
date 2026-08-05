@@ -1,0 +1,43 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+/* Each settings hub row is a bare <a> filling the row. The doubled `.settingsRow`
+ * selector out-specifies the legacy `.nx-html a` rule (red, underlined) without
+ * depending on any ancestor class, so rows never look like raw hyperlinks in any
+ * bundle and Radix typography (which inherits currentColor) stays intact. Same
+ * technique as nosc/dashboard/metrics/MetricCard.module.css `.cardLink`. */
+.settingsRow.settingsRow {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--gray-a5);
+}
+
+/* Last row sits flush against the surrounding card's rounded corner. */
+.settingsRow:last-child {
+  border-bottom: 0;
+}
+
+/* Subtle hover highlight so the whole row reads as interactive (matches the
+ * Nexus One UX prototype's settings hub). */
+.settingsRow:hover {
+  background-color: var(--gray-a3);
+}
+
+/* Theme-aware focus ring for keyboard users; inset so it isn't clipped by the
+ * card's `overflow: hidden`. */
+.settingsRow:focus-visible {
+  outline: 2px solid var(--accent-8);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .settingsRow {
+    transition: background-color 120ms ease;
+  }
+}

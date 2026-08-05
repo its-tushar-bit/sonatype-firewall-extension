@@ -538,7 +538,7 @@ describe('nexusOneClassicEmbedRoutes', () => {
   });
 
   // State name is `ldap-list` (not `ldapServers`) so it matches the shell nav
-  // and Classic — gear menu → hrefFromStateName('ldap-list') resolves here.
+  // and Classic — the Settings hub → hrefFromStateName('ldap-list') resolves here.
   describe('ldap-list Classic-embed admin route', () => {
     const state = () => router.stateRegistry.get('ldap-list');
     const redirectTo = () => state()?.redirectTo as () => Promise<string | undefined>;

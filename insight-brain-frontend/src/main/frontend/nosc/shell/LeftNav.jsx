@@ -9,7 +9,6 @@ import { useSelector } from 'react-redux';
 import { Box, Flex, IconButton, ScrollArea, Separator, Tooltip } from '@radix-ui/themes';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { DomainIcons } from 'MainRoot/nosc/icons';
-import { comingSoonHref } from 'MainRoot/nosc/comingSoon';
 import { embeddedHref } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
 import {
   LEGAL_APPLICATIONS_DASHBOARD_URL,
@@ -109,7 +108,7 @@ const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
  *   --- divider ---
  *   API                  → /api                           (embedded Classic
  *                          mount; native ApiPage, no Coming Soon stub)
- *   Settings             → /coming-soon/settings          (Coming Soon)
+ *   Settings             → /settings                      (native hub)
  */
 
 function readHashPath() {
@@ -370,12 +369,15 @@ function buildNavItems(flags) {
       href: embeddedHref('api'),
     });
   }
-  if (isLicensed && isOrgsAndAppsEnabled) {
+  // No isLicensed check here (unlike the other items in this file): the hub's
+  // product-license row exists specifically to let an unlicensed admin install
+  // one, so /settings must stay reachable from the rail when there is no license.
+  if (isOrgsAndAppsEnabled) {
     settingsGroupItems.push({
       id: 'settings',
       label: 'Settings',
       Icon: DomainIcons.Settings,
-      href: comingSoonHref('settings'),
+      href: '/settings',
     });
   }
   pushGroup(items, settingsGroupItems);

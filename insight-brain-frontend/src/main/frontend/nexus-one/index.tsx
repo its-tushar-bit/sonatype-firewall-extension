@@ -60,10 +60,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // LeftNav gates Success Metrics on successMetricsConfiguration.serverData.enabled.
   // Classic loads this in NavigationContainer; the nexus-one bundle must too.
   store.dispatch(loadSuccessMetricsConfig());
-  // The TopNav System Preferences menu gates its items on mainHeader
-  // permissions (CONFIGURE_SYSTEM, VIEW_ROLES, etc.). Classic loads these in
-  // MainHeader.jsx; the Nexus One bundle must dispatch it too or the gear menu
-  // renders "No preferences available".
+  // The Settings hub (nosc/settings/SettingsPage.tsx) gates its Admin Console
+  // items on mainHeader permissions (CONFIGURE_SYSTEM, VIEW_ROLES, etc.) via
+  // useSettingsGatingContext. Classic loads these in MainHeader.jsx; the
+  // Nexus One bundle must dispatch it too or every admin item stays hidden.
   store.dispatch(mainHeaderActions.loadPermissions());
 
   initializeRouterListener(router.transitionService);

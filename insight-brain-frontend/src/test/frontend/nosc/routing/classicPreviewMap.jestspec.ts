@@ -415,6 +415,13 @@ describe('classicPreviewMap', () => {
       expect(toClassicEquivalent('/coming-soon/guide')).toBe(CLASSIC_DEFAULT_PATH);
     });
 
+    it('falls back to CLASSIC_DEFAULT_PATH for the Settings hub, which has no Classic equivalent (CLM-42469)', () => {
+      // /settings is Nexus-One-native (see isNexusOnePath) — it must fall through to
+      // the Classic landing here, not get force-mapped onto an unrelated Classic route.
+      expect(toClassicEquivalent('/settings')).toBe(CLASSIC_DEFAULT_PATH);
+      expect(toClassicEquivalent('/settings/anything')).toBe(CLASSIC_DEFAULT_PATH);
+    });
+
     it('strips the leading # if the caller passes window.location.hash directly', () => {
       expect(toClassicEquivalent('#/dashboard')).toBe('/dashboard/violations');
     });

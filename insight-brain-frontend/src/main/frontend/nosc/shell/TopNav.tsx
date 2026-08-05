@@ -19,7 +19,6 @@ import { SearchOmnibar } from 'MainRoot/nosc/search/SearchOmnibar';
 import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
 import { useLeftNavCollapsed } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 import PreviewSolutionSwitcher from 'MainRoot/nosc/shell/PreviewSolutionSwitcher';
-import PreviewSystemPreferencesMenu from 'MainRoot/nosc/shell/PreviewSystemPreferencesMenu';
 import PreviewUserMenu from 'MainRoot/nosc/shell/PreviewUserMenu';
 import lifecycleLogoLight from 'MainRoot/productIcons/sonatype-lifecycle-logo-nav.svg';
 import lifecycleLogoDark from 'MainRoot/productIcons/sonatype-lifecycle-logo-nav-dark.svg';
@@ -221,15 +220,6 @@ export function TopNav(): JSX.Element {
                 {isDark ? <ActionIcons.Moon size={18} /> : <ActionIcons.Sun size={18} />}
               </IconButton>
             </Tooltip>
-
-            {/* System Preferences (gear). Reuses Classic's
-                SystemPreferencesMenu for the dropdown items + license
-                gating; injects a "Nexus One UI" menu entry at the top
-                that opens the existing #/previewUiSettings page. Same
-                wrap-Classic trade-off Stage 2 made for the Solution
-                Switcher (since Radix-rewritten in Stage 3-A). Follow-up
-                Epic: PreviewSystemPreferencesMenu Radix rewrite. */}
-            <PreviewSystemPreferencesMenu />
 
             {/* Solution Switcher — Radix-native dropdown that reads
                 the same `state.solutionSwitcher` Redux slice Classic

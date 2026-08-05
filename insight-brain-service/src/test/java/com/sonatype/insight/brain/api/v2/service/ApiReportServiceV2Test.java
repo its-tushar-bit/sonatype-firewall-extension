@@ -310,6 +310,20 @@ public class ApiReportServiceV2Test
   }
 
   @Test
+  public void testResolveHistoryLimit_DefaultClampAndRejectNonPositive() {
+    assertThat(ApiReportServiceV2.resolveHistoryLimit(null)).isEqualTo(100);
+    assertThat(ApiReportServiceV2.resolveHistoryLimit(1)).isEqualTo(1);
+    assertThat(ApiReportServiceV2.resolveHistoryLimit(100)).isEqualTo(100);
+    assertThat(ApiReportServiceV2.resolveHistoryLimit(101)).isEqualTo(100);
+    assertThat(ApiReportServiceV2.resolveHistoryLimit(10_000)).isEqualTo(100);
+    // Non-positive rejection at the service boundary is covered by
+    // testGetReportHistoryForApplication_InvalidLimit; cover -1 here at the helper.
+    assertThatThrownBy(() -> ApiReportServiceV2.resolveHistoryLimit(-1))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Limit must be positive integer.");
+  }
+
+  @Test
   public void testGetReportHistoryForApplication_LegacyViolationCount() throws IOException, URISyntaxException {
     // setup application scan reports and evaluations
     Application app = tempEntity.newApplicationWithParent("application");

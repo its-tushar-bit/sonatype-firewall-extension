@@ -159,7 +159,8 @@ public class ApiReportResourceV2
       @Parameter(description = "Enter the specific stage, for which you want retrieve the scan history, e.g." +
           " 'build' ") @QueryParam("stage") String stage,
       @Parameter(
-          description = "Enter the exact no. of most recent reports to retrieve.") @QueryParam("limit") Integer limit)
+          description = "Enter the exact no. of most recent reports to retrieve (maximum 100; larger values are " +
+              "clamped).") @QueryParam("limit") Integer limit)
   {
     return reportService.getReportHistoryForApplication(applicationId, stage, limit);
   }

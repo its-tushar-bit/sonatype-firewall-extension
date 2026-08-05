@@ -150,15 +150,28 @@ public class ApiReportServiceV2
       throw new BadRequestException("Invalid stage: " + stage + ".");
     }
 
-    if (limit != null && limit < 1) {
-      throw new BadRequestException("Limit must be positive integer.");
-    }
+    int effectiveLimit = resolveHistoryLimit(limit);
 
     final ApiReportHistoryDTO apiReportHistoryDTO = new ApiReportHistoryDTO();
     apiReportHistoryDTO.applicationId = applicationId;
     apiReportHistoryDTO.reports = new CopyOnWriteArrayList<>();
-    loadReportHistory(apiReportHistoryDTO, application, stage, limit);
+    loadReportHistory(apiReportHistoryDTO, application, stage, effectiveLimit);
     return apiReportHistoryDTO;
+  }
+
+  /**
+   * Resolve the effective history page size. Null uses the documented default; values above the
+   * maximum are clamped so a caller cannot trigger unbounded per-row report file reads against disk
+   * or S3.
+   */
+  static int resolveHistoryLimit(Integer limit) {
+    if (limit == null) {
+      return MAX_POLICY_EVALUATIONS_TO_RETURN;
+    }
+    if (limit < 1) {
+      throw new BadRequestException("Limit must be positive integer.");
+    }
+    return Math.min(limit, MAX_POLICY_EVALUATIONS_TO_RETURN);
   }
 
   private List<ApiApplicationReportDTOV2> getReports(List<Application> apps) {
@@ -194,9 +207,8 @@ public class ApiReportServiceV2
       ApiReportHistoryDTO apiReportHistoryDTO,
       Application application,
       String stage,
-      Integer limit)
+      int maxResultsToReturn)
   {
-    int maxResultsToReturn = limit != null ? limit : MAX_POLICY_EVALUATIONS_TO_RETURN;
     List<PolicyEvaluation> policyEvaluations =
         policyEvaluationDAO.getLimitedAmountByOwnerId(apiReportHistoryDTO.applicationId, maxResultsToReturn,
             stage);

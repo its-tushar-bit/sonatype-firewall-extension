@@ -918,6 +918,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.COMPONENT_EVALUATION);
       features.add(LicensedFeature.COMPONENT_LABELS);
       features.add(LicensedFeature.COMPONENT_SEARCH);
+      features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
       features.add(LicensedFeature.POLICY_MANAGEMENT);
       features.add(LicensedFeature.POLICY_READ_ONLY);
       features.add(LicensedFeature.POLICY_VIOLATIONS);

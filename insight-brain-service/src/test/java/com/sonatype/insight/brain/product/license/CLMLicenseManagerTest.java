@@ -527,6 +527,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.COMPONENT_EVALUATION,
         LicensedFeature.COMPONENT_LABELS,
         LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
         LicensedFeature.POLICY_MANAGEMENT,
         LicensedFeature.POLICY_READ_ONLY,
         LicensedFeature.POLICY_VIOLATIONS,
@@ -561,6 +562,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.COMPONENT_EVALUATION,
         LicensedFeature.COMPONENT_LABELS,
         LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
         LicensedFeature.POLICY_MANAGEMENT,
         LicensedFeature.POLICY_READ_ONLY,
         LicensedFeature.POLICY_VIOLATIONS,
@@ -574,6 +576,22 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION);
+  }
+
+  @Test
+  public void testGetFeatures_Firewall_grantsContainerImagesEvaluation() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+  }
+
+  @Test
+  public void testGetFeatures_FirewallForArtifactory_grantsContainerImagesEvaluation() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
   }
 
   @Test

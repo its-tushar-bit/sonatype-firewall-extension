@@ -1108,8 +1108,8 @@ public abstract class AbstractSearchIndexClient
    * <li>SBOM metadata MUST NOT be returned</li>
    * </ul>
    */
-  // Visible for testing (package-private): appendSbomFilteringToQuery_excludesPolicyWaiverInBothModes.
-  String appendSbomFilteringToQuery(final String originalQuery, final boolean isSbomManagerMode) {
+  // Visible for testing and to the Lucene backend: appendSbomFilteringToQuery_excludesPolicyWaiverInBothModes.
+  protected String appendSbomFilteringToQuery(final String originalQuery, final boolean isSbomManagerMode) {
     StringBuilder queryBuilder = new StringBuilder();
 
     // Start with the original query wrapped in parentheses

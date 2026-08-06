@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
@@ -524,13 +525,18 @@ public class LuceneSearchIndexClient
     Set<String> fieldNames = getFieldNames(initialQuery);
     populateTelemetry(initialSearch, fieldNames);
     checkFieldNames(fieldNames);
-    FinalQueryWithRbacMeta finalQueryMeta = createFinalQueryWithRbacMeta(initialQuery, isSbomManagerMode);
-    String finalQuery = finalQueryMeta.query();
-    LuceneReaderTiming.endQueryBuild(finalQuery, finalQueryMeta.rbacContextCount());
+    // Apply SBOM-mode filtering in the query string, then parse only the user's own query.
+    String userQueryString = appendSbomFilteringToQuery(initialQuery, isSbomManagerMode);
+
+    // RBAC is applied as a budget-exempt TermInSetQuery filter ANDed with the user query, reusing
+    // the same builder as the count/metric paths (buildRbacFilterQuery), so a user who can read
+    // more contexts than the advanced-search clause budget can still search (CLM-33964).
+    Query permissionFilter = buildRbacFilterQuery();
+    LuceneReaderTiming.endQueryBuild(userQueryString, rbacContextCount(resolveReadableContextIdsForCurrentUser()));
 
     // Passing 0 to IndexSearcher#search throws IllegalArgumentException with 'numHits must be > 0'
     LuceneReaderTiming.startQueryParse();
-    Query query = conversionHelper.stringToQuery(finalQuery);
+    Query query = wrapWithPermissionFilter(conversionHelper.stringToQuery(userQueryString), permissionFilter);
     LuceneReaderTiming.endQueryParse();
     int collectN = Math.max(1, indexSearcher.getIndexReader().maxDoc());
     LuceneReaderTiming.startSearch();
@@ -925,5 +931,24 @@ public class LuceneSearchIndexClient
 
   private Query buildRbacFilterQuery() {
     return resolveReadableContextRbacFilterForCurrentUser();
+  }
+
+  /**
+   * Number of application/organization contexts contributing to the RBAC filter, for reader-timing
+   * telemetry only. Returns {@code -1} for unrestricted/global access (no RBAC filter) and {@code 0}
+   * for a fail-closed deny-all. Non-application/organization owner types are excluded because they
+   * never become filter terms, so the count reflects the terms the filter actually uses.
+   */
+  private static int rbacContextCount(final Optional<Map<String, OwnerType>> readableContexts) {
+    if (readableContexts.isEmpty()) {
+      return -1;
+    }
+    int count = 0;
+    for (OwnerType type : readableContexts.get().values()) {
+      if (OwnerType.APPLICATION == type || OwnerType.ORGANIZATION == type) {
+        count++;
+      }
+    }
+    return count;
   }
 }

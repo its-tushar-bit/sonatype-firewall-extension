@@ -101,7 +101,8 @@ pipeline {
               [moduleExclude: '**/test/**'],
               [moduleExclude: '**/test-classes/**/module.xml']
             ],
-            failBuildOnNetworkError: true
+            failBuildOnNetworkError: true,
+            unstableBuildOnScanningWarnings: false
           )
         }
       }

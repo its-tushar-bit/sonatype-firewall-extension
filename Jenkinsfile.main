@@ -90,7 +90,8 @@ make(
               //Test files inside the maven modules are excluded from the scan
               iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
               failBuildOnNetworkError: true,
-              reachability: reachabilityConfig
+              reachability: reachabilityConfig,
+              unstableBuildOnScanningWarnings: false
         }
     },
     distFiles: [

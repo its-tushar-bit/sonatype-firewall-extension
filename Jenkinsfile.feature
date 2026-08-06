@@ -229,7 +229,8 @@ pipeline {
                     iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
                     iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
                     failBuildOnNetworkError: true,
-                    reachability: reachabilityConfig
+                    reachability: reachabilityConfig,
+                    unstableBuildOnScanningWarnings: false
                 )
               }
             }

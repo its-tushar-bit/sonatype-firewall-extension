@@ -65,11 +65,6 @@ public enum SystemConfigurationPropertyFeature
       SystemConfigurationProperty.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK,
       false),
   /**
-   * Gates the Global Search backend. Default OFF; legacy {@code /api/v2/search/advanced}
-   * is unaffected.
-   */
-  GLOBAL_SEARCH(SystemConfigurationProperty.GLOBAL_SEARCH, false),
-  /**
    * Gates the federated catalog source (Guide/HDS) of the catalog search endpoint. Default OFF; when
    * off the catalog source degrades gracefully and only the IQ-local source is served.
    */

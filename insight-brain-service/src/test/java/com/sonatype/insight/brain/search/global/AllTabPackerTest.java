@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.global;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -151,6 +152,81 @@ public class AllTabPackerTest
     AllTabPacker.PackResult result = AllTabPacker.pack(suppliersFromMap(map), 1, 25, null);
 
     assertThat(result.totalEstimate()).isEqualTo(350L);
+  }
+
+  @Test
+  public void sectionTotals_retainsEachSectionTotalObserved() {
+    Map<Tab, AllTabPacker.SectionSupplier> map = new EnumMap<>(Tab.class);
+    map.put(Tab.COMPONENT, cursor -> new SectionResult(Tab.COMPONENT, List.of(row(Tab.COMPONENT, 0)), 100, null, true));
+    map.put(Tab.VULNERABILITY,
+        cursor -> new SectionResult(Tab.VULNERABILITY, List.of(row(Tab.VULNERABILITY, 0)), 250, null, true));
+
+    AllTabPacker.PackResult result = AllTabPacker.pack(suppliersFromMap(map), 1, 25, null);
+
+    assertThat(result.sectionTotals()).containsEntry(Tab.COMPONENT, 100L);
+    assertThat(result.sectionTotals()).containsEntry(Tab.VULNERABILITY, 250L);
+    // Sections with no fixture report an empty section (total 0) and are still recorded.
+    assertThat(result.sectionTotals()).containsEntry(Tab.APPLICATION, 0L);
+    assertThat(result.sectionTotals()).doesNotContainKey(Tab.ALL);
+  }
+
+  @Test
+  public void sectionTotals_omitsRetiredSection_distinguishesUnavailableFromZero() {
+    // Drain the first-fetch permits so every section retires as unavailable (no sleep needed). A retired
+    // section must be ABSENT from sectionTotals so the caller can tell "unavailable" from "0 hits".
+    int drained = AllTabPacker.FIRST_FETCH_SEMAPHORE.drainPermits();
+    try {
+      Map<Tab, AllTabPacker.SectionSupplier> map = new EnumMap<>(Tab.class);
+      map.put(Tab.APPLICATION, singlePageSupplier(Tab.APPLICATION, 5));
+      map.put(Tab.COMPONENT, singlePageSupplier(Tab.COMPONENT, 5));
+
+      AllTabPacker.PackResult result = AllTabPacker.pack(suppliersFromMap(map), 1, 25, null);
+
+      assertThat(result.sectionTotals()).doesNotContainKey(Tab.APPLICATION);
+      assertThat(result.sectionTotals()).doesNotContainKey(Tab.COMPONENT);
+    }
+    finally {
+      AllTabPacker.FIRST_FETCH_SEMAPHORE.release(drained);
+    }
+  }
+
+  @Test
+  public void sectionTotals_omitsDegradedSection_ratherThanRecordingItsZero() {
+    // A degraded catalog section returns a SUCCESSFUL result carrying 0 with catalogAvailable=false
+    // (HDS 5xx/429/timeout, or a not-entitled / MTIQ deployment): it never times out and never throws,
+    // so it must be filtered on the catalogAvailable flag or its untrustworthy 0 would be recorded as a
+    // real count. ALL then also renders as 0 despite nothing having been counted.
+    Map<Tab, AllTabPacker.SectionSupplier> map = new EnumMap<>(Tab.class);
+    map.put(Tab.COMPONENT,
+        cursor -> new SectionResult(Tab.COMPONENT, List.of(), 0L, null, false, List.of("catalog unavailable")));
+    map.put(Tab.VULNERABILITY,
+        cursor -> new SectionResult(Tab.VULNERABILITY, List.of(), 0L, null, false, List.of("catalog unavailable")));
+    map.put(Tab.APPLICATION, cursor -> new SectionResult(
+        Tab.APPLICATION, List.of(row(Tab.APPLICATION, 0)), 7L, null, true));
+
+    AllTabPacker.PackResult result = AllTabPacker.pack(suppliersFromMap(map), 1, 25, null);
+
+    assertThat(result.sectionTotals()).doesNotContainKey(Tab.COMPONENT);
+    assertThat(result.sectionTotals()).doesNotContainKey(Tab.VULNERABILITY);
+    // An available section still records its count, including a genuine zero.
+    assertThat(result.sectionTotals()).containsEntry(Tab.APPLICATION, 7L);
+    // The degraded sections still flip the response-level flag and still feed totalEstimate/warnings.
+    assertThat(result.catalogAvailable()).isFalse();
+    assertThat(result.warnings()).contains("catalog unavailable");
+  }
+
+  @Test
+  public void countTotals_omitsDegradedSection_ratherThanRecordingItsZero() {
+    // Same omit rule on the count-only fan-out, so single-tab badge counts agree with sectionTotals().
+    Map<Tab, AllTabPacker.SectionSupplier> map = new EnumMap<>(Tab.class);
+    map.put(Tab.COMPONENT, cursor -> new SectionResult(Tab.COMPONENT, List.of(), 0L, null, false));
+    map.put(Tab.APPLICATION, cursor -> new SectionResult(
+        Tab.APPLICATION, List.of(row(Tab.APPLICATION, 0)), 7L, null, true));
+
+    Map<Tab, Long> totals = AllTabPacker.countTotals(suppliersFromMap(map), null);
+
+    assertThat(totals).doesNotContainKey(Tab.COMPONENT);
+    assertThat(totals).containsEntry(Tab.APPLICATION, 7L);
   }
 
   @Test
@@ -462,5 +538,30 @@ public class AllTabPackerTest
     finally {
       AllTabPacker.FIRST_FETCH_SEMAPHORE.release(drained);
     }
+  }
+
+  @Test
+  public void countTotals_nullSkip_probesEverySection() {
+    Map<Tab, AllTabPacker.SectionSupplier> map = new EnumMap<>(Tab.class);
+    map.put(Tab.APPLICATION, singlePageSupplier(Tab.APPLICATION, 3));
+    map.put(Tab.COMPONENT, singlePageSupplier(Tab.COMPONENT, 7));
+
+    Map<Tab, Long> totals = AllTabPacker.countTotals(suppliersFromMap(map), null);
+
+    assertThat(totals).containsEntry(Tab.APPLICATION, 3L).containsEntry(Tab.COMPONENT, 7L);
+    assertThat(totals.keySet()).containsExactlyInAnyOrderElementsOf(AllTabPacker.SECTION_ORDER);
+  }
+
+  @Test
+  public void countTotals_skippedSection_isNotProbed() {
+    Map<Tab, AllTabPacker.SectionSupplier> map = new EnumMap<>(Tab.class);
+    map.put(Tab.APPLICATION, singlePageSupplier(Tab.APPLICATION, 3));
+    map.put(Tab.COMPONENT, singlePageSupplier(Tab.COMPONENT, 7));
+
+    Map<Tab, Long> totals =
+        AllTabPacker.countTotals(suppliersFromMap(map), EnumSet.of(Tab.APPLICATION));
+
+    assertThat(totals).doesNotContainKey(Tab.APPLICATION);
+    assertThat(totals).containsEntry(Tab.COMPONENT, 7L);
   }
 }

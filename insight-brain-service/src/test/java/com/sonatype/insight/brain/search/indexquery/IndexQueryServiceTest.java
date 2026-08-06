@@ -56,7 +56,7 @@ public class IndexQueryServiceTest
     iq = new IqLocalSearchService(searchIndexClient);
     service = new IndexQueryService(iq, searchIndexClient, null);
 
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));

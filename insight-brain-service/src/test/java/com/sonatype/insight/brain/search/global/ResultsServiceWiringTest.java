@@ -29,7 +29,7 @@ public class ResultsServiceWiringTest
   public void defaultStubBeans_assembleResultsServiceCleanly() {
     GlobalSearchResultsIqLocalClientStub iq = new GlobalSearchResultsIqLocalClientStub();
     GlobalSearchResultsCatalogClientStub catalog = new GlobalSearchResultsCatalogClientStub();
-    ResultsService service = new ResultsService(iq, catalog);
+    ResultsService service = new ResultsService(iq, catalog, UnusedIndexQueryServices.throwOnUse());
     assertThat(service).isNotNull();
   }
 

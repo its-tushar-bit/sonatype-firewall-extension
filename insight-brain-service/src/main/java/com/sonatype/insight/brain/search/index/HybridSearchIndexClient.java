@@ -566,8 +566,8 @@ public class HybridSearchIndexClient
   }
 
   @Override
-  public boolean isGlobalSearchEnabled() {
-    return primaryClient.isGlobalSearchEnabled();
+  public boolean isSearchPreviewEnabled() {
+    return primaryClient.isSearchPreviewEnabled();
   }
 
   /**

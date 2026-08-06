@@ -123,13 +123,12 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(80);
+    assertThat(featureConfigNode.size()).isEqualTo(79);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
               "ADVANCED_SEARCH_CONFIGURATION": true,
               "ADVANCED_SEARCH_ENABLED": false,
-              "GLOBAL_SEARCH": false,
               "CATALOG_FEDERATION": false,
               "alpForSbomManager": false,
               "API_PAGE": true,
@@ -224,13 +223,12 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(80);
+    assertThat(featureConfigNode.size()).isEqualTo(79);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
               "ADVANCED_SEARCH_CONFIGURATION": true,
               "ADVANCED_SEARCH_ENABLED": true,
-              "GLOBAL_SEARCH": false,
               "CATALOG_FEDERATION": false,
               "alpForSbomManager": false,
               "API_PAGE": true,
@@ -330,8 +328,10 @@ public class FeaturePropertiesInfoTest
 
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
+    int unfilteredFeatureCount = featurePropertiesInfo.getFeatureConfigProperties(null).size();
+
     assertThat(featureConfigMap)
-        .hasSize(70)
+        .hasSize(unfilteredFeatureCount - filteredFeatures.size())
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

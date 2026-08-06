@@ -3,423 +3,746 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { Box, TextField, Theme } from '@radix-ui/themes';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Box, Flex, IconButton, Select, TextField } from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
-import { BRAND_ACCENT } from 'MainRoot/nosc/theme';
-import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
+import { TOP_NAV_HEIGHT_PX } from 'MainRoot/nosc/shell/previewShellLayout';
+import { selectIsCatalogFederationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { useGlobalSearch } from 'MainRoot/nosc/search/useGlobalSearch';
+import { isSearchEntityType, SearchEntityType, SearchRow, SearchSource } from 'MainRoot/nosc/search/searchTypes';
 import {
-  ITEM_TYPE_LABEL,
-  ItemType,
-  SearchResultItemDTO,
-  reactKeyFor,
-} from 'MainRoot/nosc/search/searchTypes';
-import { clickHrefFor, enterSearchHref } from 'MainRoot/nosc/search/searchClickTargets';
-import { activateOnKey } from 'MainRoot/nosc/keyboardActivate';
-import { SearchResultRow, SearchResultRowSkeleton } from 'MainRoot/nosc/search/SearchResultRow';
+  DEFAULT_SEARCH_SOURCE,
+  SEARCH_SOURCE_LABEL,
+  isTypeVisibleForSource,
+} from 'MainRoot/nosc/search/searchDataSource';
+import { clickHrefFor, searchResultsStateParams } from 'MainRoot/nosc/search/searchClickTargets';
+import { FilterBar, FilterInsertRequest } from 'MainRoot/nosc/search/FilterBar';
+import { computeFilterInsert, useFocusInputWithCaret } from 'MainRoot/nosc/search/searchFilterInsert';
+import router from 'MainRoot/router/routerInstance';
+import { CatalogScopeHint, PanelFooter } from 'MainRoot/nosc/search/SearchPanelParts';
+import {
+  LEAD_LISTBOX_ID,
+  PLACEHOLDER_OPTION_ID,
+  PlaceholderView,
+  RecentSearchesView,
+  ResultsView,
+  ROWS_LISTBOX_ID,
+  SHOW_RESULTS_OPTION_ID,
+  VIEW_MORE_OPTION_ID,
+  recentOptionId,
+  rowOptionId,
+} from 'MainRoot/nosc/search/SearchPanelViews';
+import {
+  ALL_TAB_ID,
+  SearchPanelState,
+  buildPanelTabs,
+  derivePanelState,
+  flattenSuggestRows,
+  itemTypeTokens,
+  selectTabRows,
+} from 'MainRoot/nosc/search/searchPanelModel';
+import { useRecentSearches } from 'MainRoot/nosc/search/useRecentSearches';
 import 'MainRoot/nosc/search/SearchOmnibar.css';
 
 /**
- * P1-F13 / CLM-39549. Multi-entity global search omnibar for the Preview UI.
+ * Global search omnibar for the Preview (Nexus One) UI.
  *
- * Sits in the TopNav's search-slot. Debounced typeahead over IQ's existing
- * OpenSearch index (via GET /api/v2/search/advanced), surfacing 6 entity
- * types: Applications, Organizations, Components, Vulnerabilities,
- * Policies, SBOM Metadata.
+ * Structure follows the Nexus One prototype's expand-in-place model rather than
+ * an anchored dropdown:
  *
- * Mirrors:
- *   - Sonatype Guide's SearchWithSuggestions (debounce, keyboard nav,
- *     ARIA combobox/listbox, Enter goes to full results page)
- *   - Sonatype Repo's SearchSuggestions grouped-by-type layout (best-match
- *     on top, then per-type sections each capped to a small N)
- *   - nexusone-ux-prototype's GuideApplicationFilters/ResultCard design
- *     language (calm, polished rows; no heavy chrome)
+ *   - CLOSED, the omnibar is the search field alone — magnifier, placeholder,
+ *     and the "/" + Cmd-K shortcut chips. No data-source select, no filter
+ *     toggle.
+ *   - FOCUSED, the same surface expands into a floating card centered on the
+ *     field. The card's header row carries the data-source select, the input,
+ *     and the filter toggle; the body below renders one of the panel views.
  *
- * Behavior:
- *   - Type 2+ chars → debounced fetch → dropdown opens with grouped results
- *   - Click a row → navigate to that entity's detail page (Classic deep
- *     link or Coming Soon stub per searchClickTargets.ts)
- *   - Press Enter without selecting a row → navigate to the full
- *     /preview/search?q=... results page
- *   - Press Enter WITH a row highlighted → activate that row
- *   - Esc → clear & close
- *   - Click outside → close (state preserved for re-focus)
+ * Which view the body shows is decided solely by derivePanelState (see
+ * searchPanelModel): recent searches while the query is empty or too short, a
+ * placeholder while fetching or when nothing matched, and the results view with
+ * a horizontal tab strip plus a mixed relevance-ranked row list once loaded.
  *
- * The dropdown renders via a React portal into document.body so no
- * ancestor's overflow / containing-block / transform can clip it.
+ * Keyboard follows the prototype's pan-panel model: arrows drive the listbox
+ * composite from anywhere inside the card (the input is the only Tab stop, via
+ * aria-activedescendant), Enter activates the highlighted option only when focus
+ * is on the input, and Tab moves in natural document order.
  */
-const PLACEHOLDER = 'Search apps, components, CVEs, policies...';
+const PLACEHOLDER = 'Search applications, components, violations, and vulnerabilities';
+
+/** Search-syntax docs target for the panel footer. */
+const SYNTAX_DOCS_URL = 'https://links.sonatype.com/products/nxiq/doc/advanced-search';
 
 /**
- * Per-type cap in the typeahead. Keeps the dropdown to ~10 rows total
- * even if there are dozens of matches per type. Mirrors Repo's
- * SearchSuggestions caps. The "Press Enter for all results" footer takes
- * the user to the full /preview/search page when they want more.
+ * Tallest the expanded card may grow. Measured from the viewport's dynamic height
+ * minus the fixed top nav the card sits under and a bottom gutter, so a short
+ * viewport shrinks the card instead of letting it run under the nav. `dvh` rather
+ * than `vh` so mobile browser chrome is accounted for.
  */
-const TYPEAHEAD_CAPS: Record<ItemType, number> = {
-  APPLICATION: 2,
-  ORGANIZATION: 2,
-  NON_VULNERABLE_COMPONENT: 3,
-  SECURITY_VULNERABILITY: 2,
-  POLICY_VIOLATION: 2,
-  WAIVER: 2,
-  APPLICATION_CATEGORY: 0, // not rendered
-  COMPONENT_LABEL: 0, // not rendered
-  POLICY: 1,
-  // SBOM_METADATA is intentionally not rendered in F13. The bucket is
-  // omitted from useGlobalSearch's fanout — see ENTITY_BUCKETS for the
-  // rationale. The cap is left at 0 here so any stray document that
-  // somehow reaches the omnibar (e.g. from a future free-text query
-  // path) is silently dropped instead of producing an empty section.
-  SBOM_METADATA: 0,
+const PANEL_MAX_HEIGHT = `min(640px, calc(100dvh - ${TOP_NAV_HEIGHT_PX + 24}px))`;
+
+/**
+ * Shortcut chip styling. Inline rather than in CSS because the chips must resolve
+ * Radix theme vars inside the field's own slot, matching the prototype exactly.
+ */
+const SHORTCUT_CHIP_STYLE: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minWidth: '1.25rem',
+  padding: '0 0.35rem',
+  height: '1.25rem',
+  fontSize: 11,
+  fontFamily: 'var(--code-font-family)',
+  lineHeight: 1,
+  color: 'var(--gray-11)',
+  background: 'var(--gray-3)',
+  border: '1px solid var(--gray-6)',
+  borderRadius: 'var(--radius-1)',
+  boxShadow: '0 1px 0 var(--gray-5)',
 };
 
-/**
- * Display order of entity-type sections in the dropdown. SBOM_METADATA
- * is not in this list — see TYPEAHEAD_CAPS comment.
- */
-const SECTION_ORDER: readonly ItemType[] = [
-  'SECURITY_VULNERABILITY',
-  'POLICY_VIOLATION',
-  'WAIVER',
-  'NON_VULNERABLE_COMPONENT',
-  'APPLICATION',
-  'ORGANIZATION',
-  'POLICY',
-];
-
-/**
- * Group results by ItemType, apply per-type cap, return a flat ordered
- * list of {section header} + {rows}. Best-match (resultIndex === 0) is
- * extracted to a "BEST MATCH" section at the top so the most relevant
- * result is always above-the-fold.
- */
-interface RenderItem {
-  readonly kind: 'section' | 'row';
-  /** Section label (when kind === 'section'). */
-  readonly label?: string;
-  /** Result row (when kind === 'row'). */
-  readonly result?: SearchResultItemDTO;
-  /** Stable key for React. */
-  readonly key: string;
-  /** Flat row index for keyboard nav (when kind === 'row'). */
-  readonly rowOrdinal?: number;
-}
-
-function buildRenderItems(results: readonly SearchResultItemDTO[]): RenderItem[] {
-  if (results.length === 0) return [];
-
-  const items: RenderItem[] = [];
-  let rowOrdinal = 0;
-  let bestMatch: SearchResultItemDTO | null = null;
-  if (results[0]?.resultIndex === 0) {
-    bestMatch = results[0];
-    items.push({ kind: 'section', label: 'Best match', key: 'sec:best' });
-    items.push({
-      kind: 'row',
-      result: bestMatch,
-      key: `row:best:${reactKeyFor(bestMatch)}`,
-      rowOrdinal: rowOrdinal++,
-    });
-  }
-
-  // Group remaining by type, applying per-type cap.
-  const grouped = new Map<ItemType, SearchResultItemDTO[]>();
-  for (const r of results) {
-    if (r === bestMatch) continue;
-    const cap = TYPEAHEAD_CAPS[r.itemType] ?? 0;
-    if (cap === 0) continue;
-    const bucket = grouped.get(r.itemType) ?? [];
-    if (bucket.length < cap) {
-      bucket.push(r);
-      grouped.set(r.itemType, bucket);
-    }
-  }
-
-  for (const type of SECTION_ORDER) {
-    const bucket = grouped.get(type);
-    if (!bucket || bucket.length === 0) continue;
-    items.push({
-      kind: 'section',
-      label: `${ITEM_TYPE_LABEL[type]} (${bucket.length})`,
-      key: `sec:${type}`,
-    });
-    for (const r of bucket) {
-      items.push({
-        kind: 'row',
-        result: r,
-        key: `row:${type}:${reactKeyFor(r)}`,
-        rowOrdinal: rowOrdinal++,
-      });
-    }
-  }
-
-  return items;
-}
+/** One entry in the panel's keyboard-navigation composite. */
+type MenuItem =
+  | { readonly kind: 'show-all'; readonly id: string }
+  | { readonly kind: 'placeholder'; readonly id: string }
+  | { readonly kind: 'row'; readonly id: string; readonly rowIndex: number }
+  | { readonly kind: 'view-more'; readonly id: string }
+  | { readonly kind: 'recent'; readonly id: string; readonly recentIndex: number };
 
 export function SearchOmnibar(): JSX.Element {
+  const dispatch = useDispatch();
+  // The CATALOG_FEDERATION gate on the data-source toggle reads the product-features
+  // slice, so make sure it is loaded regardless of which page mounted the shell.
+  useEffect(() => {
+    dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
+  }, [dispatch]);
+  // The product-features selectors come from untyped JS, so coerce to boolean
+  // here rather than letting `unknown` leak into JSX conditionals.
+  const isCatalogEnabled = !!useSelector(selectIsCatalogFederationEnabled);
+
   const [query, setQuery] = useState('');
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [source, setSource] = useState<SearchSource>(DEFAULT_SEARCH_SOURCE);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [activeTabId, setActiveTabId] = useState<string>(ALL_TAB_ID);
+  const [highlight, setHighlight] = useState(0);
+
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const inputWrapperRef = useRef<HTMLDivElement | null>(null);
-  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
-  // The portal escapes the Preview shell's <Theme> tree, so the dropdown
-  // would otherwise render outside any Radix Theme scope — every
-  // var(--color-panel-solid), var(--shadow-4), var(--gray-N) reference
-  // in SearchOmnibar.css would resolve to an empty string, producing a
-  // transparent dropdown with no shadow. We wrap the portal contents in
-  // a Theme of our own so CSS vars resolve correctly. The appearance
-  // mirrors the TopNav toggle so light/dark mode flips with the user's
-  // choice.
-  const { effectiveTheme } = useNoscTheme();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  /**
+   * Set while Escape is closing the panel. Escape returns focus to the input,
+   * and the input's focus handler would otherwise reopen the panel immediately,
+   * so a single Escape would appear to do nothing.
+   */
+  const suppressReopenRef = useRef(false);
 
-  const { loading, loadError, results, totalHits } = useGlobalSearch(query, { pageSize: 12 });
+  const { entries: recentEntries, record: recordRecent } = useRecentSearches();
 
-  // Derive what to render (sections + rows interleaved).
-  const renderItems = useMemo(() => buildRenderItems(results), [results]);
-  // Indices of rows (not sections) — used for keyboard nav across the flat list.
-  const rowIndices = useMemo(
-    () => renderItems.map((it, i) => (it.kind === 'row' ? i : -1)).filter((i) => i >= 0),
-    [renderItems],
-  );
+  // When CATALOG_FEDERATION is off the select offers only "My Scan Data", so
+  // clamp defensively in case the flag flips off while catalog is selected.
+  const effectiveSource: SearchSource = isCatalogEnabled ? source : 'local';
+
+  // No warnings destructured: /rest/search/suggest carries none, so the panel has
+  // nothing to surface. The full results page renders warnings from /rest/search/results.
+  const { loading, loadError, bestMatch, groups } = useGlobalSearch(query, {
+    mode: 'typeahead',
+    source: effectiveSource,
+  });
 
   const trimmedQuery = query.trim();
-  const shouldShowDropdown = open && trimmedQuery.length >= 2;
-  // While loading, show the skeleton state in the dropdown — Guide does
-  // the same so the dropdown doesn't pop into view AFTER the fetch
-  // resolves; it opens immediately on the second keystroke.
-  const showLoading = shouldShowDropdown && loading && results.length === 0;
-  const showNoResults = shouldShowDropdown && !loading && !loadError && results.length === 0;
-  const showResults = shouldShowDropdown && results.length > 0;
-  const showError = shouldShowDropdown && !!loadError && results.length === 0;
-  const dropdownVisible = showResults || showNoResults || showError || showLoading;
 
-  // Reset highlighted row whenever the result set changes.
+  const rows = useMemo(
+    () => flattenSuggestRows(bestMatch, groups, effectiveSource),
+    [bestMatch, groups, effectiveSource]
+  );
+
+  const panelState: SearchPanelState = derivePanelState({
+    panelOpen,
+    trimmedQuery,
+    loading,
+    rowCount: rows.length,
+  });
+
+  // Counts come from the suggest groups, which are capped per type, so they are a
+  // lower bound rather than a true total. They still drive the badges and the
+  // "more results exist" decision, both of which only need "at least this many".
+  const countsByType = useMemo(() => {
+    const counts: Partial<Record<SearchEntityType, number>> = {};
+    for (const group of groups) {
+      if (!isTypeVisibleForSource(group.type, effectiveSource)) continue;
+      counts[group.type] = group.rows.length;
+    }
+    return counts;
+  }, [groups, effectiveSource]);
+
+  const tabs = useMemo(
+    () => buildPanelTabs(effectiveSource, countsByType, rows.length),
+    [effectiveSource, countsByType, rows.length]
+  );
+
+  // A query carrying itemType: tokens has already narrowed by type, so the strip
+  // is hidden; a single token also selects its tab.
+  const tokens = useMemo(() => itemTypeTokens(query), [query]);
+  // A token naming a type the active source cannot serve (itemType:APPLICATION
+  // against the catalog) has no tab to select, so it is dropped: the tab falls back
+  // to All and the strip stays visible rather than hiding it to advertise a
+  // narrowing that was not applied.
+  const servableTokens = useMemo(
+    () => tokens.filter((token) => isTypeVisibleForSource(token, effectiveSource)),
+    [tokens, effectiveSource]
+  );
+  const hideTabs = servableTokens.length > 0;
+  const effectiveActiveTab = useMemo(() => {
+    if (servableTokens.length === 1) return servableTokens[0];
+    if (servableTokens.length > 1) return ALL_TAB_ID;
+    return activeTabId;
+  }, [servableTokens, activeTabId]);
+
+  // Drop back to All whenever the active tab is not offered by the current data
+  // source (switching to catalog hides the IQ-local tabs).
   useEffect(() => {
-    setActiveIndex(-1);
-  }, [results, shouldShowDropdown]);
+    if (!tabs.some((tab) => tab.id === activeTabId)) setActiveTabId(ALL_TAB_ID);
+  }, [tabs, activeTabId]);
 
-  // Compute the dropdown's screen position from the input's bounding box.
-  // Rerun on resize and whenever visibility flips on so first paint is correct.
-  useLayoutEffect(() => {
-    if (!dropdownVisible) return;
-    const update = (): void => {
-      if (inputWrapperRef.current) {
-        setAnchorRect(inputWrapperRef.current.getBoundingClientRect());
+  const visibleRows = useMemo(
+    () => (panelState === 'loaded' ? selectTabRows(rows, effectiveActiveTab, tabs) : []),
+    [panelState, rows, effectiveActiveTab, tabs]
+  );
+
+  const activeTabCount = isSearchEntityType(effectiveActiveTab) ? countsByType[effectiveActiveTab] : rows.length;
+  const showViewMore = (activeTabCount ?? visibleRows.length) > visibleRows.length;
+
+  // -------------------------------------------------------------------------
+  // Keyboard composite: the single source of truth for what arrows traverse.
+  // -------------------------------------------------------------------------
+  const menuItems = useMemo<MenuItem[]>(() => {
+    // Exhaustive over SearchPanelState so adding a state without giving it a
+    // composite becomes a compile error rather than a silently unnavigable panel.
+    switch (panelState) {
+      case 'closed':
+        return [];
+      case 'focused-empty':
+      case 'focused-short':
+        return recentEntries.map((_, index) => ({
+          kind: 'recent' as const,
+          id: recentOptionId(index),
+          recentIndex: index,
+        }));
+      case 'loading':
+      case 'loaded-empty':
+        return [{ kind: 'placeholder' as const, id: PLACEHOLDER_OPTION_ID }];
+      case 'loaded': {
+        const items: MenuItem[] = [{ kind: 'show-all', id: SHOW_RESULTS_OPTION_ID }];
+        visibleRows.forEach((_, index) => items.push({ kind: 'row', id: rowOptionId(index), rowIndex: index }));
+        if (showViewMore) items.push({ kind: 'view-more', id: VIEW_MORE_OPTION_ID });
+        return items;
       }
-    };
-    update();
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
-    return () => {
-      window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
-    };
-  }, [dropdownVisible]);
+      default: {
+        const exhaustive: never = panelState;
+        return exhaustive;
+      }
+    }
+  }, [panelState, recentEntries, visibleRows, showViewMore]);
 
-  // Click outside closes the dropdown. Account for clicks on the portaled
-  // dropdown by checking both the in-tree container AND the portal node.
+  const highlightCount = menuItems.length;
+  const activeDescendantId = menuItems[highlight]?.id;
+
+  /**
+   * The listbox ids the input controls. role="combobox" requires aria-controls,
+   * so the lead listbox is always named — every open view renders it, empty if
+   * it has nothing to list. The loaded view adds the rows listbox, so AT walking
+   * aria-controls reaches the result rows and "View more", not just the lead option.
+   */
+  const controlledListboxIds = useMemo<string>(
+    () => (panelState === 'loaded' ? `${LEAD_LISTBOX_ID} ${ROWS_LISTBOX_ID}` : LEAD_LISTBOX_ID),
+    [panelState]
+  );
+
+  // Reset the highlight whenever the composite changes shape. In `loaded` the
+  // "Show results for" row sits at index 0, so a bare Enter still falls back to
+  // the full results page.
   useEffect(() => {
-    const onClick = (event: MouseEvent): void => {
-      const target = event.target as Node;
-      if (containerRef.current && containerRef.current.contains(target)) return;
-      const portal = document.getElementById('nosc-search-omnibar-dropdown');
-      if (portal && portal.contains(target)) return;
-      setOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    setHighlight(0);
+  }, [panelState, effectiveActiveTab, trimmedQuery, effectiveSource]);
+
+  const handleHighlightById = useCallback(
+    (id: string): void => {
+      const index = menuItems.findIndex((item) => item.id === id);
+      if (index >= 0) setHighlight(index);
+    },
+    [menuItems]
+  );
+
+  // Closing the panel always closes the filter bar too, otherwise the toggle can
+  // be left stuck in its active state with no panel beneath it.
+  const closePanel = useCallback((): void => {
+    setPanelOpen(false);
+    setFiltersOpen(false);
   }, []);
 
-  const navigateToResult = (result: SearchResultItemDTO): void => {
-    setQuery('');
-    setOpen(false);
-    window.location.assign(clickHrefFor(result));
-  };
+  // The results page is an in-app UI-Router state, so it is entered through the
+  // router. That keeps the transition lifecycle intact and lets the state's dynamic
+  // params update in place instead of the full-page reload location.assign forces.
+  const goToResultsPage = useCallback(
+    (rawQuery: string): void => {
+      const trimmed = rawQuery.trim();
+      if (!trimmed) return;
+      recordRecent(trimmed);
+      closePanel();
+      router.stateService.go('nexusOneSearch', searchResultsStateParams(trimmed, effectiveSource));
+    },
+    [closePanel, effectiveSource, recordRecent]
+  );
 
-  const navigateToFullResults = (): void => {
-    const href = enterSearchHref(query);
-    setQuery('');
-    setOpen(false);
-    window.location.assign(href);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Escape') {
+  // A row activation jumps to an entity rather than performing a search, so the
+  // typed fragment is not recorded as a recent search. Row destinations can be
+  // Classic-bundle URLs, so they navigate by href rather than through the router.
+  const goToRow = useCallback(
+    (row: SearchRow): void => {
+      const href = clickHrefFor(row);
+      closePanel();
       setQuery('');
-      setOpen(false);
-      setActiveIndex(-1);
-      return;
-    }
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (showResults && activeIndex >= 0 && activeIndex < rowIndices.length) {
-        const item = renderItems[rowIndices[activeIndex]];
-        if (item?.result) {
-          navigateToResult(item.result);
+      window.location.assign(href);
+    },
+    [closePanel]
+  );
+
+  const openPanel = useCallback((): void => {
+    if (suppressReopenRef.current) return;
+    setPanelOpen(true);
+  }, []);
+
+  // -------------------------------------------------------------------------
+  // Document-level keyboard handler (pan-panel model).
+  //
+  // Capture phase so we run before Radix's own handlers: that lets us stop
+  // propagation on arrows to keep a DropdownMenu.Trigger from opening its menu,
+  // since arrows are reserved for the listbox. We bail entirely inside a Radix
+  // popper, which owns its own keyboard.
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    function onDocumentKeyDown(event: KeyboardEvent): void {
+      const target = event.target as HTMLElement | null;
+      const active = document.activeElement as HTMLElement | null;
+      const isOnInput = active === inputRef.current;
+      const inEditableField =
+        !!target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+
+      // A Radix popper (filter menus, tab overflow menu, data-source select) owns
+      // its own keyboard entirely, shortcuts included: focusing the input from
+      // inside one would dismiss it on focus loss mid-interaction.
+      if (target?.closest('[data-radix-popper-content-wrapper]')) return;
+
+      // Global focus shortcuts work from anywhere on the page.
+      const isCmdK = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k';
+      const isSlash = event.key === '/' && !inEditableField;
+      if (isCmdK || isSlash) {
+        event.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+        setPanelOpen(true);
+        return;
+      }
+
+      // Arrow-down on a focused-but-closed input reopens the panel.
+      if (!panelOpen && isOnInput && event.key === 'ArrowDown') {
+        event.preventDefault();
+        setPanelOpen(true);
+        return;
+      }
+
+      if (!panelOpen) return;
+
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        closePanel();
+        suppressReopenRef.current = true;
+        inputRef.current?.focus();
+        suppressReopenRef.current = false;
+        return;
+      }
+
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Enter') return;
+
+      // In scope when focus is inside the card, or has drifted to body/null after
+      // a portaled menu closed.
+      const isInsideContainer = active != null && !!containerRef.current?.contains(active);
+      const isOnBodyOrNothing = active == null || active === document.body;
+      if (!isInsideContainer && !isOnBodyOrNothing) return;
+
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        event.stopPropagation();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        setHighlight((current) =>
+          highlightCount === 0 ? 0 : (current + step + highlightCount) % highlightCount
+        );
+        if (!isOnInput) inputRef.current?.focus();
+        return;
+      }
+
+      // Enter must defer to native activation on real interactive elements (the
+      // clear button, filter toggle, filter buttons, tab triggers, footer links)
+      // so those keep working; only the input dispatches listbox activation.
+      if (!isOnInput && !isOnBodyOrNothing) return;
+      event.preventDefault();
+      const item = menuItems[highlight];
+      if (!item) {
+        goToResultsPage(trimmedQuery);
+        return;
+      }
+      switch (item.kind) {
+        case 'show-all':
+        case 'view-more':
+        case 'placeholder':
+          goToResultsPage(trimmedQuery);
+          return;
+        case 'row': {
+          const row = visibleRows[item.rowIndex];
+          if (row) goToRow(row);
+          return;
+        }
+        case 'recent': {
+          const entry = recentEntries[item.recentIndex];
+          if (entry) {
+            setQuery(entry.q);
+            goToResultsPage(entry.q);
+          }
           return;
         }
       }
-      // Bare Enter (no row selected) → full results page.
-      // Only reached when activeIndex < 0 OR the active item has no result
-      // (defensive — section headers are filtered out of rowIndices).
-      navigateToFullResults();
-      return;
     }
-    if (!showResults || rowIndices.length === 0) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIndex((prev) => (prev < rowIndices.length - 1 ? prev + 1 : 0));
-      return;
-    }
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIndex((prev) => (prev > 0 ? prev - 1 : rowIndices.length - 1));
-      return;
-    }
-  };
 
-  const dropdown =
-    dropdownVisible &&
-    anchorRect &&
-    typeof document !== 'undefined' &&
-    createPortal(
-      <Theme
-        appearance={effectiveTheme}
-        accentColor={BRAND_ACCENT}
-        grayColor="slate"
-        radius="medium"
-        scaling="100%"
-        hasBackground={false}
-      >
-        <div
-          id="nosc-search-omnibar-dropdown"
-          className="nosc-search-omnibar-dropdown"
-          style={{
-            position: 'fixed',
-            top: anchorRect.bottom + 6,
-            left: anchorRect.left,
-            width: anchorRect.width,
-          }}
-        >
-        <ul id="nosc-search-omnibar-listbox" role="listbox" aria-label="Search results">
-          {showError && (
-            <li>
-              <div className="nosc-search-empty">
-                <span className="nosc-search-empty-title">Search unavailable</span>
-                <span className="nosc-search-empty-subtitle">{loadError ?? 'Try again in a moment.'}</span>
-              </div>
-            </li>
-          )}
-          {showNoResults && (
-            <li>
-              <div className="nosc-search-empty">
-                <span className="nosc-search-empty-title">No matches</span>
-                <span className="nosc-search-empty-subtitle">
-                  Nothing found for &ldquo;{trimmedQuery}&rdquo;.
-                </span>
-              </div>
-            </li>
-          )}
-          {showLoading &&
-            [0, 1, 2, 3, 4].map((i) => (
-              <li key={`skeleton-${i}`} className="nosc-search-row nosc-search-row--skeleton">
-                <SearchResultRowSkeleton />
-              </li>
-            ))}
-          {showResults &&
-            renderItems.map((item) => {
-              if (item.kind === 'section') {
-                return (
-                  <li
-                    key={item.key}
-                    aria-hidden="true"
-                    className="nosc-search-section-eyebrow"
-                  >
-                    <span className="nosc-search-section-eyebrow-text">{item.label}</span>
-                  </li>
-                );
-              }
-              if (item.kind === 'row' && item.result) {
-                const flatRowIndex = item.rowOrdinal ?? -1;
-                const isActive = flatRowIndex === activeIndex;
-                return (
-                  <li
-                    key={item.key}
-                    id={`nosc-search-row-${flatRowIndex}`}
-                    role="option"
-                    aria-selected={isActive}
-                    data-selected={isActive || undefined}
-                    className="nosc-search-row"
-                    onClick={() => navigateToResult(item.result!)}
-                    onMouseEnter={() => setActiveIndex(flatRowIndex)}
-                  >
-                    <SearchResultRow result={item.result} />
-                  </li>
-                );
-              }
-              return null;
-            })}
-        </ul>
-        {showResults && (
-          <div
-            className="nosc-search-see-all"
-            role="button"
-            tabIndex={0}
-            onClick={navigateToFullResults}
-            onKeyDown={activateOnKey(navigateToFullResults)}
-            data-testid="nosc-search-see-all"
-          >
-            <span className="nosc-search-see-all-primary">
-              See all {totalHits.toLocaleString()} results
-            </span>
-            <span className="nosc-search-see-all-hint">
-              Press <kbd className="nosc-search-see-all-kbd">Enter</kbd> &rarr;
-            </span>
-          </div>
-        )}
-        </div>
-      </Theme>,
-      document.body,
-    );
+    document.addEventListener('keydown', onDocumentKeyDown, true);
+    return () => document.removeEventListener('keydown', onDocumentKeyDown, true);
+  }, [
+    panelOpen,
+    closePanel,
+    highlight,
+    highlightCount,
+    menuItems,
+    goToResultsPage,
+    goToRow,
+    recentEntries,
+    trimmedQuery,
+    visibleRows,
+  ]);
+
+  // Click-outside closes the panel. Radix menus (filter dropdowns, the tab
+  // overflow menu, the data-source select) are portaled to the body, so a click
+  // inside one looks "outside" to a naive containment check; treat any click in a
+  // popper wrapper as belonging to the panel.
+  useEffect(() => {
+    function onMouseDown(event: MouseEvent): void {
+      const target = event.target as Element | null;
+      if (!target) return;
+      if (target.closest?.('[data-radix-popper-content-wrapper]')) return;
+      if (containerRef.current && !containerRef.current.contains(target)) closePanel();
+    }
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [closePanel]);
+
+  // Owns cancellation of a pending focus retry, so a retry loop cannot keep chasing
+  // a detached input after unmount.
+  const focusWithCaret = useFocusInputWithCaret();
+
+  const handleFilterInsert = useCallback(
+    (request: FilterInsertRequest): void => {
+      const { value, caretAt } = computeFilterInsert(query, request.syntax);
+      setQuery(value);
+      setPanelOpen(true);
+      focusWithCaret(inputRef.current, caretAt);
+    },
+    [query, focusWithCaret]
+  );
+
+  /** Returns focus to the input when a filter-category menu closes by dismissal. */
+  const handleFilterMenuClose = useCallback((): void => {
+    inputRef.current?.focus();
+  }, []);
+
+  /**
+   * Handle for the pending blur-close check. Cleared on unmount and before each
+   * replacement so the callback cannot fire against a torn-down panel — navigating
+   * away right after a blur is the common case.
+   */
+  const blurCloseTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (blurCloseTimerRef.current !== null) window.clearTimeout(blurCloseTimerRef.current);
+    },
+    []
+  );
+
+  /**
+   * Blur handling: re-check focus after a delay instead of closing immediately.
+   * Picking an item in a portaled menu moves focus out of the input and back on a
+   * later frame, so an immediate close would race those menus and tear the panel
+   * down mid-interaction. The document mousedown handler above remains the
+   * authoritative outside-click detector.
+   */
+  const handleInputBlur = useCallback(
+    (event: React.FocusEvent<HTMLInputElement>): void => {
+      if (blurCloseTimerRef.current !== null) {
+        window.clearTimeout(blurCloseTimerRef.current);
+        blurCloseTimerRef.current = null;
+      }
+      const next = event.relatedTarget as Node | null;
+      if (next && containerRef.current?.contains(next)) return;
+      if (next instanceof Element && next.closest('[data-radix-popper-content-wrapper]')) return;
+      blurCloseTimerRef.current = window.setTimeout(() => {
+        blurCloseTimerRef.current = null;
+        const active = document.activeElement;
+        if (containerRef.current && active && containerRef.current.contains(active)) return;
+        // Any open popper means the user is mid-interaction with a menu we own;
+        // its own close handlers will tear it down.
+        if (document.querySelector('[data-radix-popper-content-wrapper]')) return;
+        if (active instanceof Element && active.closest('[data-radix-popper-content-wrapper]')) return;
+        // Focus fell to body / nothing: defer to the mousedown handler, which has
+        // already decided whether the click was truly outside.
+        if (!active || active === document.body) return;
+        closePanel();
+      }, 150);
+    },
+    [closePanel]
+  );
+
+  const open = panelOpen || filtersOpen;
 
   return (
     <Box
       ref={containerRef}
-      style={{ position: 'relative', width: '100%', maxWidth: 560 }}
+      className="nosc-search-omnibar"
       data-testid="nosc-search-omnibar"
+      style={{
+        flex: '1 1 0',
+        maxWidth: 500,
+        minWidth: 200,
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'center',
+      }}
     >
-      <div ref={inputWrapperRef}>
-        <TextField.Root
-          placeholder={PLACEHOLDER}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={handleKeyDown}
-          size="2"
-          aria-label="Search apps, components, vulnerabilities, and policies"
-          aria-autocomplete="list"
-          aria-expanded={dropdownVisible}
-          aria-controls="nosc-search-omnibar-listbox"
-          aria-activedescendant={
-            activeIndex >= 0 && activeIndex < rowIndices.length
-              ? `nosc-search-row-${activeIndex}`
-              : undefined
-          }
-          role="combobox"
-        >
-          <TextField.Slot>
-            <ActionIcons.Search size={16} />
-          </TextField.Slot>
-        </TextField.Root>
-      </div>
-      {dropdown}
+      {/* Layout placeholder so the nav row reserves the same space whether the
+          card is closed or expanded. */}
+      <Box aria-hidden="true" width="100%" height="32px" style={{ pointerEvents: 'none' }} />
+
+      {/* The interactive surface. Closed, it covers the placeholder exactly;
+          open, it expands into a floating card centered on the field.
+
+          Deliberately role-less: this is the combobox's popup surface, not a
+          dialog. The combobox pattern names the input and its listboxes, and a
+          `dialog` role here would have AT announce a dialog for a non-modal
+          surface with no focus trap. */}
+      <Box
+        data-testid="nosc-search-omnibar-surface"
+        data-open={open || undefined}
+        className="nosc-search-omnibar-surface"
+        style={
+          open
+            ? {
+                position: 'absolute',
+                top: 'calc(-1 * var(--space-3))',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 'min(790px, calc(100vw - 32px))',
+                background: 'var(--color-panel-solid)',
+                border: '1px solid var(--gray-6)',
+                borderRadius: 'var(--radius-3)',
+                boxShadow: 'var(--shadow-5)',
+                maxHeight: PANEL_MAX_HEIGHT,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                zIndex: 60,
+              }
+            : { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1 }
+        }
+      >
+        {/* Header row. The data-source select and filter toggle belong to the
+            expanded card only — closed, this row is the field alone. */}
+        <Flex gap="2" width="100%" flexShrink="0" pt={open ? '3' : '0'} px={open ? '3' : '0'}>
+          {open && isCatalogEnabled && (
+            <Select.Root
+              value={source}
+              size="2"
+              onValueChange={(value) => {
+                // Narrow instead of casting so a Select.Item added later without
+                // updating SearchSource cannot reach the backend.
+                if (value !== 'local' && value !== 'catalog') return;
+                setSource(value);
+                setHighlight(0);
+                // Keep the panel open so switching source re-queries in place.
+                setPanelOpen(true);
+              }}
+            >
+              <Select.Trigger
+                variant="surface"
+                color="gray"
+                aria-label="Search data source"
+                className="nosc-search-datasource-trigger"
+                data-testid="nosc-search-datasource"
+              />
+              <Select.Content data-testid="nosc-search-datasource-content" position="popper">
+                <Select.Item value="local" data-testid="nosc-search-datasource-local">
+                  {SEARCH_SOURCE_LABEL.local}
+                </Select.Item>
+                <Select.Item value="catalog" data-testid="nosc-search-datasource-catalog">
+                  {SEARCH_SOURCE_LABEL.catalog}
+                </Select.Item>
+              </Select.Content>
+            </Select.Root>
+          )}
+
+          <TextField.Root
+            ref={inputRef}
+            placeholder={PLACEHOLDER}
+            size="2"
+            style={{ flex: 1 }}
+            value={query}
+            role="combobox"
+            aria-expanded={panelOpen}
+            // Names every listbox in the DOM for the current state, so the ids
+            // always resolve and AT reaches the result rows, not just the lead option.
+            aria-controls={controlledListboxIds}
+            aria-autocomplete="list"
+            aria-activedescendant={activeDescendantId}
+            aria-label={PLACEHOLDER}
+            data-testid="nosc-search-input"
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPanelOpen(true);
+            }}
+            onFocus={openPanel}
+            onBlur={handleInputBlur}
+          >
+            <TextField.Slot>
+              <ActionIcons.Search size={16} />
+            </TextField.Slot>
+            {/* Closed, the field advertises its shortcuts. Open, it offers a
+                clear button instead (only once there is something to clear). */}
+            {open ? (
+              query ? (
+                <TextField.Slot>
+                  <IconButton
+                    variant="ghost"
+                    size="1"
+                    onClick={() => {
+                      setQuery('');
+                      setHighlight(0);
+                      inputRef.current?.focus();
+                    }}
+                    aria-label="Clear search"
+                    data-testid="nosc-search-clear"
+                  >
+                    <ActionIcons.Cancel size={14} />
+                  </IconButton>
+                </TextField.Slot>
+              ) : null
+            ) : (
+              <TextField.Slot side="right">
+                <Flex
+                  align="center"
+                  gap="1"
+                  aria-hidden="true"
+                  style={{ flexShrink: 0, pointerEvents: 'none' }}
+                  data-testid="nosc-search-shortcut-hints"
+                >
+                  <kbd style={SHORTCUT_CHIP_STYLE}>/</kbd>
+                  <kbd style={SHORTCUT_CHIP_STYLE}>&#8984; K</kbd>
+                </Flex>
+              </TextField.Slot>
+            )}
+          </TextField.Root>
+
+          {open && (
+            <IconButton
+              size="2"
+              variant={filtersOpen ? 'solid' : 'outline'}
+              color="gray"
+              highContrast={filtersOpen}
+              // Disclosure, not a toggle button: aria-controls + aria-expanded name
+              // the filter bar this button shows and hides.
+              aria-expanded={filtersOpen}
+              aria-controls="nosc-search-filter-bar"
+              aria-label={filtersOpen ? 'Hide filters' : 'Show filters'}
+              data-testid="nosc-search-filter-toggle"
+              onClick={() => setFiltersOpen((value) => !value)}
+            >
+              <ActionIcons.FilterList size={16} />
+            </IconButton>
+          )}
+        </Flex>
+
+        {/* Panel body. Mounted only while open so the closed omnibar renders
+            nothing but the field. */}
+        {open && (
+          <Box flexGrow="1" minHeight="0" overflow="auto" data-testid="nosc-search-panel-body">
+            {filtersOpen && (
+              <FilterBar
+                id="nosc-search-filter-bar"
+                hideTriggerIcons
+                onInsert={handleFilterInsert}
+                onMenuClose={handleFilterMenuClose}
+              />
+            )}
+
+            {panelOpen && (
+              <>
+                {(panelState === 'focused-empty' || panelState === 'focused-short') && (
+                  <RecentSearchesView
+                    entries={recentEntries}
+                    highlightedItemId={activeDescendantId}
+                    onHighlight={handleHighlightById}
+                    onActivate={(recentQuery) => {
+                      setQuery(recentQuery);
+                      goToResultsPage(recentQuery);
+                    }}
+                  />
+                )}
+
+                {(panelState === 'loading' || panelState === 'loaded-empty') && (
+                  <PlaceholderView
+                    query={trimmedQuery}
+                    variant={panelState === 'loading' ? 'loading' : loadError ? 'error' : 'empty'}
+                    errorMessage={loadError}
+                    highlightedItemId={activeDescendantId}
+                    onHighlight={handleHighlightById}
+                    onActivate={() => goToResultsPage(trimmedQuery)}
+                  />
+                )}
+
+                {panelState === 'loaded' && (
+                  <ResultsView
+                    query={trimmedQuery}
+                    tabs={tabs}
+                    activeTab={effectiveActiveTab}
+                    onActiveTabChange={setActiveTabId}
+                    hideTabs={hideTabs}
+                    rows={visibleRows}
+                    highlightedItemId={activeDescendantId}
+                    onHighlight={handleHighlightById}
+                    onActivateRow={goToRow}
+                    onShowAll={() => goToResultsPage(trimmedQuery)}
+                    showViewMore={showViewMore}
+                  />
+                )}
+
+                {/* Catalog narrows the tab set, so say why once results (or the
+                    lack of them) are on screen. */}
+                {effectiveSource === 'catalog' &&
+                  (panelState === 'loaded' || panelState === 'loaded-empty') && <CatalogScopeHint />}
+
+                <PanelFooter syntaxDocsUrl={SYNTAX_DOCS_URL} />
+              </>
+            )}
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }

@@ -15,16 +15,13 @@ import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.telemetry.GuideOperationType;
 import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.global.SearchSource;
 import com.sonatype.insight.brain.search.global.SuggestItemType;
 import com.sonatype.insight.brain.search.global.SuggestRow;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.GatewayTimeoutException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -46,10 +43,15 @@ import org.springframework.context.annotation.Primary;
  * <h3>Entitlement</h3>
  *
  * <p>
- * {@link #isEnabled()} and {@link #suggest(CatalogSuggestRequest)} apply the same gate the catalog
- * list endpoint uses: deny on multi-tenant (MTIQ) deployments and require the
- * {@link LicensedFeature#GUIDE_SEARCH} feature. When not entitled the client degrades — it never
- * reaches HDS and never fails the response.
+ * Catalog federation is base Nexus One functionality: it is available with any valid IQ license, on
+ * both single-tenant and multi-tenant (MTIQ) deployments. IQ does not serve requests without a valid
+ * product license, so no license-feature or tenancy gate is applied here.
+ * <p>
+ * The only gate on this leg is the {@code PREVIEW_NEXUS_ONE_UI} feature, enforced upstream by
+ * {@code GlobalSearchResource#verifyPreviewUiEnabled()}. The admin {@code CATALOG_FEDERATION} toggle
+ * is NOT consulted: it defaults to off ({@code enabledWhenAbsent = false}) and gates only the catalog
+ * browse endpoint ({@code CatalogService#searchCatalog}), so reading it here would leave global search's
+ * catalog suggestions dark on every deployment that has not explicitly switched it on.
  *
  * <h3>Failure handling</h3>
  *
@@ -77,19 +79,9 @@ public class GlobalSearchSuggestCatalogClientImpl
 
   private final GlobalSearchCatalogHdsClient hdsClient;
 
-  private final ProductLicense productLicense;
-
-  private final TenantUtil tenantUtil;
-
   @Inject
-  public GlobalSearchSuggestCatalogClientImpl(
-      final GlobalSearchCatalogHdsClient hdsClient,
-      final ProductLicense productLicense,
-      final TenantUtil tenantUtil)
-  {
+  public GlobalSearchSuggestCatalogClientImpl(final GlobalSearchCatalogHdsClient hdsClient) {
     this.hdsClient = hdsClient;
-    this.productLicense = productLicense;
-    this.tenantUtil = tenantUtil;
   }
 
   @Override
@@ -100,7 +92,6 @@ public class GlobalSearchSuggestCatalogClientImpl
   @Override
   public CatalogSuggestResult suggest(final CatalogSuggestRequest request) {
     if (!entitled()) {
-      // Not entitled (MTIQ or missing GUIDE_SEARCH): degrade, never reach HDS, never 500.
       return CatalogSuggestResult.unavailable();
     }
 
@@ -139,8 +130,12 @@ public class GlobalSearchSuggestCatalogClientImpl
    * Performs the raw HDS call. Carries the {@link GuideUsageEvent} annotation so the AspectJ advice
    * only sees the request DTO (not the raw query) and only records on actual success — exceptions
    * propagate to {@link #suggest(CatalogSuggestRequest)} for degrade handling.
+   * <p>
+   * Reported as {@link GuideOperationType#CATALOG_FEDERATION_SEARCH}, not
+   * {@link GuideOperationType#GLOBAL_SEARCH}: this leg is base functionality reachable with any valid IQ
+   * license, so downstream usage analytics must be able to tell it apart from Guide-licensed traffic.
    */
-  @GuideUsageEvent(operationType = GuideOperationType.GLOBAL_SEARCH)
+  @GuideUsageEvent(operationType = GuideOperationType.CATALOG_FEDERATION_SEARCH)
   GuideGlobalSearchResponse callCatalogGlobalSearch(final CatalogSuggestRequest request) {
     final Multimap<String, String> params = ArrayListMultimap.create();
     params.put("query", request.query());
@@ -149,11 +144,18 @@ public class GlobalSearchSuggestCatalogClientImpl
   }
 
   /**
-   * Mirrors the catalog list endpoint gate: deny on multi-tenant deployments and require the
-   * {@link LicensedFeature#GUIDE_SEARCH} feature.
+   * Always true: catalog federation is base Nexus One functionality available with any valid IQ license
+   * on both single-tenant and MTIQ deployments, so no license-feature or tenancy check applies.
+   *
+   * <p>
+   * Entitlement is not the gate that decides whether the catalog source is offered. That is the
+   * default-off {@code CATALOG_FEDERATION} flag, enforced on {@code ?source=catalog} by
+   * {@code GlobalSearchResource.verifyCatalogSourceAllowed}; this leg is additionally killed by
+   * {@code PREVIEW_NEXUS_ONE_UI} in the same resource. Both live at the request boundary, so this
+   * method answering "licensed?" rather than "offered?" is the whole split.
    */
   private boolean entitled() {
-    return !tenantUtil.isMultiTenant() && productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH);
+    return true;
   }
 
   private static List<SuggestRow> toRows(final List<SearchResult> hits) {

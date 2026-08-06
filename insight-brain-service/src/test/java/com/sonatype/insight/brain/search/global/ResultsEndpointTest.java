@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search.global;
 
 import com.sonatype.insight.brain.search.global.catalog.GlobalSearchResultsCatalogClient;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryResponse.IndexQueryFacetBucket;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -46,11 +47,11 @@ public class ResultsEndpointTest
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
     iq = new FakeGlobalSearchResultsIqLocalClient();
     catalog = new FakeCatalogClient();
-    service = new ResultsService(iq, catalog);
+    service = new ResultsService(iq, catalog, UnusedIndexQueryServices.throwOnUse());
     // Default: authenticated caller with a scoped READ grant so the resource's runtime
     // verifyReadOnAnyContext() gate passes and the test focuses on flag / cursor / filter behaviour.
     SearchIndexClient searchIndexClient = org.mockito.Mockito.mock(SearchIndexClient.class);
@@ -67,8 +68,8 @@ public class ResultsEndpointTest
 
   @Test
   public void flagOff_returns404() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
-    assertThatThrownBy(() -> resource.getResults("q", "APPLICATION", 1, 25, null, null, null))
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
+    assertThatThrownBy(() -> resource.getResults("q", "APPLICATION", 1, 25, null, null, null, null, null))
         .isInstanceOf(NotFoundException.class);
   }
 
@@ -84,7 +85,7 @@ public class ResultsEndpointTest
 
       StaleCursorException thrown = null;
       try {
-        resource.getResults("q", "ALL", 1, 25, null, encoded, null);
+        resource.getResults("q", "ALL", 1, 25, null, encoded, null, null, null);
       }
       catch (StaleCursorException e) {
         thrown = e;
@@ -106,7 +107,7 @@ public class ResultsEndpointTest
   public void unknownSort_isMappedTo400WithGenericBody() {
     FilterValidationException thrown = null;
     try {
-      resource.getResults("q", "COMPONENT", 1, 25, "noSuchSort", null, null);
+      resource.getResults("q", "COMPONENT", 1, 25, "noSuchSort", null, null, null, null);
     }
     catch (FilterValidationException e) {
       thrown = e;
@@ -129,9 +130,103 @@ public class ResultsEndpointTest
     iq.registerRow(Tab.APPLICATION,
         ResultRow.builder().type("APPLICATION").source(SearchSource.LOCAL.value()).id("a1").title("App 1").build());
     ResultsResponse response =
-        (ResultsResponse) resource.getResults("q", "APPLICATION", 1, 25, null, null, null).getEntity();
+        (ResultsResponse) resource.getResults("q", "APPLICATION", 1, 25, null, null, null, null, null).getEntity();
     assertThat(response).isNotNull();
     assertThat(response.getResults()).hasSize(1);
+  }
+
+  @Test
+  public void tabCounts_serializeAsUppercaseEnumKeys_inTabDeclarationOrder() throws Exception {
+    iq.registerRow(Tab.APPLICATION,
+        ResultRow.builder().type("APPLICATION").source(SearchSource.LOCAL.value()).id("a1").title("App 1").build());
+    // includeTabCounts=true: the sibling probe that populates every badge is opt-in.
+    ResultsResponse response =
+        (ResultsResponse) resource.getResults("q", "APPLICATION", 1, 25, null, null, null, null, true).getEntity();
+
+    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+    String json = mapper.writeValueAsString(response);
+
+    // Keys are the uppercase enum names, matching the `tab` field, so a client can index tabCounts by
+    // the same token it sends.
+    assertThat(json).contains("\"APPLICATION\":1");
+
+    // EnumMap ordering survives construction, so the badge keys serialize in Tab declaration order
+    // rather than the unspecified order Map.copyOf would give. Read the key order off the parsed node so
+    // no substring can be mismatched, and compare against Tab.values() so the assertion tracks the enum.
+    java.util.List<String> keyOrder = new java.util.ArrayList<>();
+    mapper.readTree(json).get("tabCounts").fieldNames().forEachRemaining(keyOrder::add);
+
+    assertThat(keyOrder)
+        .containsExactlyElementsOf(java.util.Arrays.stream(Tab.values()).map(Tab::name).toList());
+  }
+
+  @Test
+  public void facets_serializeInInsertionOrder_andAreAbsentWhenNull() throws Exception {
+    // The response stores facets in a LinkedHashMap so the filter rail renders in FACET_FIELDS declaration
+    // order. Assert the order survives serialization rather than only the in-memory map, since that is what
+    // a client actually reads.
+    java.util.Map<String, java.util.List<IndexQueryFacetBucket>> facets = new java.util.LinkedHashMap<>();
+    facets.put("status", java.util.List.of(new IndexQueryFacetBucket("OPEN", 3L)));
+    facets.put("auto", java.util.List.of());
+    facets.put("threatLevel", java.util.List.of());
+    facets.put("scope", java.util.List.of());
+    ResultsResponse withFacets = new ResultsResponse(
+        Tab.WAIVER, 1, 25, 3L, null, List.of(), null, List.of(), true, facets);
+
+    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+    java.util.List<String> keyOrder = new java.util.ArrayList<>();
+    mapper.readTree(mapper.writeValueAsString(withFacets))
+        .get("facets")
+        .fieldNames()
+        .forEachRemaining(keyOrder::add);
+
+    assertThat(keyOrder).containsExactly("status", "auto", "threatLevel", "scope");
+
+    // A null facets map is omitted entirely (@JsonInclude NON_NULL), so an existing client sees no new field.
+    ResultsResponse withoutFacets = new ResultsResponse(
+        Tab.WAIVER, 1, 25, 3L, null, List.of(), null, List.of(), true, null);
+    assertThat(mapper.readTree(mapper.writeValueAsString(withoutFacets)).has("facets")).isFalse();
+  }
+
+  @Test
+  public void catalogFederationOff_catalogSourceRejected_withoutReachingTheCatalogLeg() {
+    // The frontend hides the catalog data source when CATALOG_FEDERATION is off. The backend must enforce
+    // the same flag rather than trust that clamp: a hand-crafted ?source=catalog must be rejected at the
+    // boundary instead of dispatching to the catalog leg (and from there to HDS).
+    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+
+    assertThatThrownBy(() -> resource.getResults("q", "COMPONENT", 1, 25, null, null, "catalog", null, null))
+        .isInstanceOf(jakarta.ws.rs.BadRequestException.class);
+    assertThat(catalog.searchCalls).isZero();
+  }
+
+  @Test
+  public void catalogFederationOn_catalogSourceReachesTheCatalogLeg() {
+    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
+    catalog.enabled = true;
+
+    ResultsResponse response = (ResultsResponse) resource
+        .getResults("q", "COMPONENT", 1, 25, null, null, "catalog", null, null)
+        .getEntity();
+
+    assertThat(response.getTab()).isEqualTo(Tab.COMPONENT);
+    // The flag is on and the fake reports the catalog reachable, so the dispatcher consults the leg.
+    assertThat(catalog.searchCalls).isPositive();
+  }
+
+  @Test
+  public void catalogFederationOff_localSourceStillServed() {
+    // The flag gates only the catalog source; the default local source is unaffected.
+    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+    iq.registerRow(Tab.APPLICATION,
+        ResultRow.builder().type("APPLICATION").source(SearchSource.LOCAL.value()).id("a1").title("App 1").build());
+
+    ResultsResponse response = (ResultsResponse) resource
+        .getResults("q", "APPLICATION", 1, 25, null, null, "local", null, null)
+        .getEntity();
+
+    assertThat(response.getResults()).hasSize(1);
+    assertThat(catalog.searchCalls).isZero();
   }
 
   private static final class FakeGlobalSearchResultsIqLocalClient
@@ -153,14 +248,21 @@ public class ResultsEndpointTest
   private static final class FakeCatalogClient
       implements GlobalSearchResultsCatalogClient
   {
+    /** Counts dispatches into the catalog leg, so a test can assert the leg was never reached. */
+    private int searchCalls;
+
+    /** Off by default, matching a deployment with no reachable catalog. */
+    private boolean enabled;
+
     @Override
     public java.util.Optional<SectionResult> searchResults(ResultsRequest request) {
-      return java.util.Optional.empty();
+      searchCalls++;
+      return java.util.Optional.of(SectionResult.empty(request.getTab(), true));
     }
 
     @Override
     public boolean isEnabled() {
-      return false;
+      return enabled;
     }
   }
 }

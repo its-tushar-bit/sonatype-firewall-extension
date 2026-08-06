@@ -253,6 +253,20 @@ public final class FieldMap
       "APPLICATION", "COMPONENT", "SECURITY_VULNERABILITY", "POLICY_VIOLATION", "LEGAL_VIOLATION", "POLICY",
       "POLICY_WAIVER", "POLICY_WAIVER_REQUEST");
 
+  /**
+   * Grammar key for the violation waiver-status chip. Named because the facet-count bridge must identify
+   * this chip to keep the waiver-status buckets counting whole-corpus instead of self-restricting; a
+   * rename must break compilation on both sides rather than silently change those semantics.
+   */
+  public static final String KEY_POLICY_VIOLATION_WAIVER_STATUS = "policyViolationWaiverStatus";
+
+  /**
+   * Grammar key for the auto-vs-manual waiver chip. Named for the same reason as
+   * {@link #KEY_POLICY_VIOLATION_WAIVER_STATUS}: the facet-count bridge drops an explicit manual-only
+   * restriction on this key so both buckets count whole-corpus.
+   */
+  public static final String KEY_POLICY_WAIVER_AUTO = "policyWaiverAuto";
+
   private final Map<String, FieldEntry> entries;
 
   private FieldMap(Map<String, FieldEntry> entries) {
@@ -403,7 +417,7 @@ public final class FieldMap
             THREAT_CATEGORIES));
     m.put("policyViolationThreatLevel",
         FieldEntry.numericInt(POLICY_VIOLATION_THREAT_LEVEL.label, VIOLATION_TYPES));
-    m.put("policyViolationWaiverStatus",
+    m.put(KEY_POLICY_VIOLATION_WAIVER_STATUS,
         FieldEntry.keyword(POLICY_VIOLATION_WAIVER_STATUS.label, VIOLATION_TYPES, WAIVER_STATUSES));
 
     // Policy waiver. policyWaiverThreatLevel is a distinct key from the POLICY policyThreatLevel:
@@ -415,7 +429,7 @@ public final class FieldMap
     // waivedBy/auto are set only on waiver docs, never on request docs, so narrow to WAIVER_ONLY_TYPES.
     m.put("policyWaiverWaivedBy", FieldEntry.keyword(POLICY_WAIVER_WAIVED_BY.label, WAIVER_ONLY_TYPES));
     // Auto-vs-manual discriminator, indexed as the keyword "true"/"false".
-    m.put("policyWaiverAuto", FieldEntry.keyword(POLICY_WAIVER_AUTO.label, WAIVER_ONLY_TYPES, BOOLEAN_VALUES));
+    m.put(KEY_POLICY_WAIVER_AUTO, FieldEntry.keyword(POLICY_WAIVER_AUTO.label, WAIVER_ONLY_TYPES, BOOLEAN_VALUES));
     m.put("policyWaiverIsAuto", FieldEntry.keyword(POLICY_WAIVER_IS_AUTO.label, WAIVER_ONLY_TYPES, BOOLEAN_VALUES));
     m.put("policyWaiverExpiryStatus",
         FieldEntry.keyword(POLICY_WAIVER_EXPIRY_STATUS.label, WAIVER_TYPES, PolicyWaiverExpiryStatuses.ALL));

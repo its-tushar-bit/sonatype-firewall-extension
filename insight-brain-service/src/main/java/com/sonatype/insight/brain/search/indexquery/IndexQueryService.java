@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -283,17 +284,8 @@ public class IndexQueryService
     final SearchInputs inputs = new SearchInputs(q, tab, queryType.itemTypes(), pageSize, sortKey, rawSearchAfter);
     final IqLocalSearchResponse result = iqLocalSearchService.search(inputs);
 
-    final List<IndexQueryRow> rows = new ArrayList<>(result.rows().size());
-    int dropped = 0;
-    for (IqLocalRow tagged : result.rows()) {
-      final IndexQueryRow row = IndexQueryRowMapper.toRow(queryType, tagged.row());
-      if (row != null) {
-        rows.add(row);
-      }
-      else {
-        dropped++;
-      }
-    }
+    final List<IndexQueryRow> rows = toRows(queryType, result);
+    final int dropped = result.rows().size() - rows.size();
 
     final List<String> warnings = new ArrayList<>(result.warnings());
     if (dropped > 0) {
@@ -318,6 +310,19 @@ public class IndexQueryService
     final Map<String, List<IndexQueryFacetBucket>> facets =
         request.isIncludeFacets() ? computeFacets(queryType, compiled, rows, warnings, requestClock) : null;
 
+    return buildResponse(queryType, page, pageSize, result, rows, facets, nextSearchAfter, warnings);
+  }
+
+  private static IndexQueryResponse buildResponse(
+      final IndexQueryType queryType,
+      final int page,
+      final int pageSize,
+      final IqLocalSearchResponse result,
+      final List<IndexQueryRow> rows,
+      final Map<String, List<IndexQueryFacetBucket>> facets,
+      final String nextSearchAfter,
+      final List<String> warnings)
+  {
     return new IndexQueryResponse(
         queryType.name(),
         page,
@@ -329,6 +334,120 @@ public class IndexQueryService
         false,
         nextSearchAfter,
         warnings);
+  }
+
+  /** Global-search entity {@link Tab}s that map to an {@link IndexQueryType} carrying a facet set. */
+  private static IndexQueryType facetQueryTypeFor(final Tab tab) {
+    return switch (tab) {
+      case APPLICATION -> IndexQueryType.APPLICATION;
+      case VIOLATION -> IndexQueryType.VIOLATION;
+      case WAIVER -> IndexQueryType.WAIVER;
+      // COMPONENT/VULNERABILITY carry no FACET_FIELDS entry today; ALL never reaches here (facets are
+      // computed only for a single entity tab). Returning null yields a null facet map upstream.
+      case COMPONENT, VULNERABILITY, ALL -> null;
+    };
+  }
+
+  /**
+   * Compute the per-tab facet map for a Global-Search {@code /results} request, reusing the identical
+   * whole-corpus / RBAC-scoped / capped {@link #computeFacets} machinery the {@code /index-query}
+   * endpoint uses.
+   *
+   * <p>
+   * The {@code /results} filters live inside the free-text {@code q=} string rather than a structured
+   * filter bag, so {@link ResultsFacetQueryBridge} re-parses {@code q} with the SAME query parser and
+   * rebuilds the structured field chips as the Lucene clause strings the facet-count base expects
+   * (same FieldMap field resolution as the index-query path).
+   *
+   * <p>
+   * Facet VALUES are seeded from a dedicated page-1 / RELEVANCE / default-size query, independent of the
+   * caller's sort, page and cursor. That is deliberate: the bucket COUNTS are whole-corpus (computed by
+   * separate count queries, not derived from the seed rows), so the seed page affects only which candidate
+   * values populate the rail, and pinning it keeps the filter rail stable as the user pages instead of
+   * changing underneath them. The cost is one extra search per faceted request beyond the caller's page
+   * search, which {@link #query} avoids by deriving both from a single call at the price of page-dependent
+   * candidates.
+   *
+   * <p>
+   * Returns {@code null} for a tab with no facet set (COMPONENT/VULNERABILITY today, and defensively
+   * ALL). Returns a (possibly empty) map otherwise. A {@code q} carrying only free text (no
+   * {@code field:value} chips) still yields the tab's whole-corpus facet buckets rather than erroring:
+   * the rebuilt clause list is empty, so the counts fall back to the item-type base.
+   *
+   * <p>
+   * VIOLATION unions POLICY_VIOLATION + LEGAL_VIOLATION inside {@link IndexQueryType#VIOLATION}, so the
+   * violation facet counts already span both index item types with no extra work here.
+   *
+   * <p>
+   * Facet-count warnings (e.g. {@code FACET_COUNTS_TRUNCATED} when the {@code MAX_FACET_COUNT_QUERIES}
+   * budget is exhausted) are collected into {@code warnings}, so the caller can merge them into the
+   * {@code /results} warnings channel instead of the frontend rendering truncated buckets with no signal.
+   *
+   * @param warnings non-null mutable sink for facet-count warnings; pass a fresh mutable list to ignore them
+   */
+  public Map<String, List<IndexQueryFacetBucket>> facetsForResults(
+      final Tab tab,
+      final String q,
+      final List<String> warnings)
+  {
+    // Must be mutable and non-null: computeFacets appends the truncation warning to it. Checked up front
+    // so a bad caller fails immediately rather than only on the queries that exhaust the count budget.
+    Objects.requireNonNull(warnings, "warnings");
+    final IndexQueryType queryType = facetQueryTypeFor(tab);
+    if (queryType == null) {
+      return null;
+    }
+    final Clock requestClock = Clock.fixed(clock.instant(), clock.getZone());
+    final CompiledQuery compiled = ResultsFacetQueryBridge.compile(queryType, q);
+
+    // Seed facet VALUES from a fresh page query (page 1, default size). The free-text refinement is
+    // part of the page query (compiled.q() carries only the structured chips, so the free text is added
+    // back here) so the seed rows reflect what the user searched.
+    //
+    // The seed query always sorts by RELEVANCE, never the per-tab default sort: facet VALUES are an
+    // unordered set (the buckets are re-derived from row-field values and counted whole-corpus), so the
+    // order of the seed page is irrelevant, and relevance is allowlisted on every tab. See the method
+    // contract for why the seed is pinned rather than following the caller's sort/page.
+    final String pageQuery = pageQueryFor(q, compiled);
+    final Tab cursorTab = tabFor(queryType);
+    final String sortKey = GlobalSearchSortAllowlist.RELEVANCE;
+    final int pageSize = IqLocalSearchService.DEFAULT_PER_TYPE_PAGE_SIZE;
+    final SearchInputs inputs =
+        new SearchInputs(pageQuery, cursorTab, queryType.itemTypes(), pageSize, sortKey, null);
+    final IqLocalSearchResponse result = iqLocalSearchService.search(inputs);
+
+    final List<IndexQueryRow> rows = toRows(queryType, result);
+    // Facet-count warnings (e.g. budget truncation) land in the caller-supplied list so /results can
+    // merge them into its own warnings channel.
+    return computeFacets(queryType, compiled, rows, warnings, requestClock);
+  }
+
+  /**
+   * Maps the IQ-local rows to {@link IndexQueryRow}s, skipping any row the mapper rejects for missing its
+   * identifying field. Callers that report drops derive the count by comparing sizes, so the drop count
+   * stays observable without this helper owning the reporting policy.
+   */
+  private static List<IndexQueryRow> toRows(final IndexQueryType queryType, final IqLocalSearchResponse result) {
+    final List<IndexQueryRow> rows = new ArrayList<>(result.rows().size());
+    for (IqLocalRow tagged : result.rows()) {
+      final IndexQueryRow row = IndexQueryRowMapper.toRow(queryType, tagged.row());
+      if (row != null) {
+        rows.add(row);
+      }
+    }
+    return rows;
+  }
+
+  /**
+   * The page query used to seed facet VALUES: the caller's raw {@code q} (free text + chips) so the
+   * seed rows match what the user searched. Falls back to the rebuilt structured-only chip string when
+   * {@code q} is blank so an empty query still returns a match-all page.
+   */
+  private static String pageQueryFor(final String q, final CompiledQuery compiled) {
+    if (q != null && !q.isBlank()) {
+      return q;
+    }
+    return compiled.q();
   }
 
   /**

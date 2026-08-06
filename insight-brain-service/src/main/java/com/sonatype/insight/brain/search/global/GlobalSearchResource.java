@@ -38,10 +38,15 @@ import jakarta.ws.rs.core.Response;
  * endpoint is intentionally untouched.
  *
  * <p>
- * The endpoint is gated by the {@code GLOBAL_SEARCH} feature flag. When disabled, authenticated and
- * authorized callers receive {@code 404 Not Found}; unauthenticated callers still receive the normal
- * {@code 401} from the Shiro filter chain before this handler runs, and authenticated callers with no
- * readable context receive {@code 403}.
+ * The endpoint is gated by the {@code PREVIEW_NEXUS_ONE_UI} feature flag, the same flag that gates the
+ * rest of the Nexus One UI this surface backs. When disabled, authenticated and authorized callers
+ * receive {@code 404 Not Found}; unauthenticated callers still receive the normal {@code 401} from the
+ * Shiro filter chain before this handler runs, and authenticated callers with no readable context
+ * receive {@code 403}.
+ *
+ * <p>
+ * The {@code source=catalog} parameter value is separately gated by the {@code CATALOG_FEDERATION}
+ * feature flag, so the catalog data source is offered only where the deployment has switched it on.
  */
 @Named
 @Singleton
@@ -107,10 +112,11 @@ public class GlobalSearchResource
       @QueryParam("q") final String q,
       @QueryParam("source") final String source)
   {
-    verifyGlobalSearchEnabled();
+    verifyPreviewUiEnabled();
     verifyReadOnAnyContext();
     final String validated = validateQuery(q);
     final SearchSource parsedSource = validateSource(source);
+    verifyCatalogSourceAllowed(parsedSource);
     return suggestService.suggest(validated, parsedSource);
   }
 
@@ -123,6 +129,27 @@ public class GlobalSearchResource
    * {@link ResultsRequest#DEEP_PAGINATION_THRESHOLD} rows and the opaque {@code searchAfter} cursor for
    * that offset and deeper. A stale cursor (after a shard rebalance, full reindex, or sort-allowlist update) is
    * rejected with HTTP 410 and the {@link StaleCursorExceptionMapper#RETRY_HINT_HEADER} hint header.
+   *
+   * <p>
+   * {@code includeFacets=true} additionally returns the per-tab {@code facets} map for a single IQ-local
+   * entity tab (see {@link ResultsResponse}). It is a no-op for the {@link Tab#ALL} tab and for
+   * {@code source=catalog} (those responses carry no {@code facets}); default is off so count-only tab
+   * probes and ALL packing do not pay for facet counts.
+   *
+   * <p>
+   * Facets are returned on the FIRST page only: the map is a property of the query rather than of the
+   * page, so it is identical on every page and recomputing it while paging would repeat a full search
+   * plus a count query per bucket. On page 2+ (or any request carrying a cursor) {@code facets} is
+   * {@code null} even when {@code includeFacets=true}, and a caller paging through results is expected
+   * to retain the page-1 map. A client landing directly on a deep page (bookmark or reload) therefore
+   * has no facet map and must re-request page 1 to populate the rail.
+   *
+   * <p>
+   * {@code includeTabCounts=true} additionally populates the sibling tab count badges on a single-tab
+   * first-page response, which costs one extra count-only search per sibling section (five today).
+   * Default is off, so a caller that renders only one tab's rows pays for one search rather than six.
+   * It is a no-op on the {@link Tab#ALL} tab (whose counts come free from the packing pass) and on
+   * pages after the first.
    *
    * <p>
    * Parameters are taken as bare types and validated manually so the feature-flag gate runs first.
@@ -138,9 +165,11 @@ public class GlobalSearchResource
       @QueryParam("pageSize") final Integer pageSize,
       @QueryParam("sort") final String sort,
       @QueryParam("searchAfter") final String searchAfter,
-      @QueryParam("source") final String source)
+      @QueryParam("source") final String source,
+      @QueryParam("includeFacets") final Boolean includeFacets,
+      @QueryParam("includeTabCounts") final Boolean includeTabCounts)
   {
-    verifyGlobalSearchEnabled();
+    verifyPreviewUiEnabled();
     verifyReadOnAnyContext();
 
     final String validatedQ = validateQuery(q);
@@ -148,10 +177,14 @@ public class GlobalSearchResource
     final int parsedPage = validatePage(page);
     final int parsedPageSize = validatePageSize(pageSize);
     final SearchSource parsedSource = validateSource(source);
+    verifyCatalogSourceAllowed(parsedSource);
     final String validatedSort = validateSort(sort);
+    final boolean facetsRequested = Boolean.TRUE.equals(includeFacets);
+    final boolean tabCountsRequested = Boolean.TRUE.equals(includeTabCounts);
 
     ResultsRequest request = new ResultsRequest(
-        validatedQ, parsedTab, parsedPage, parsedPageSize, validatedSort, searchAfter, parsedSource);
+        validatedQ, parsedTab, parsedPage, parsedPageSize, validatedSort, searchAfter, parsedSource,
+        facetsRequested, tabCountsRequested);
     ResultsResponse body = resultsService.search(request);
 
     // Response envelope carries `warnings` inline for redundancy, and additionally exposes them
@@ -230,10 +263,40 @@ public class GlobalSearchResource
     return sort;
   }
 
-  private static void verifyGlobalSearchEnabled() {
-    // 404 (not 403) when the flag is off, so a disabled endpoint is indistinguishable from absent.
-    if (!SystemConfigurationPropertyFeature.GLOBAL_SEARCH.isEnabled()) {
+  /**
+   * Gate on {@code PREVIEW_NEXUS_ONE_UI}, the flag that gates the Nexus One UI this endpoint backs.
+   *
+   * <p>
+   * 404 (not 403) when the flag is off, so a disabled endpoint is indistinguishable from absent. Called
+   * as the first statement of each handler so the gate runs ahead of parameter validation: otherwise a
+   * flag-off endpoint would answer {@code 400} to a malformed request and leak its existence.
+   */
+  private static void verifyPreviewUiEnabled() {
+    if (!SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled()) {
       throw new NotFoundException("Not Found");
+    }
+  }
+
+  /**
+   * Enforce the {@code CATALOG_FEDERATION} flag on {@code ?source=catalog} so the backend agrees with
+   * the frontend rather than trusting the UI's source clamp. The flag defaults off, so a request naming
+   * the catalog source while it is off is rejected here and never reaches HDS.
+   *
+   * <p>
+   * 400 (not 404) because the endpoint itself is present and the IQ-local source is fully served; only
+   * this one parameter value is unavailable. The gate lives at the request boundary rather than on the
+   * catalog client's entitlement check: entitlement answers "is this deployment licensed for catalog
+   * data" -- always yes, catalog federation is base functionality on any license and on MTIQ -- whereas
+   * this flag answers "is the catalog source offered on this deployment", which is the question the
+   * frontend asks before it renders the source toggle. That is why {@code entitled()} in
+   * {@code GlobalSearchSuggestCatalogClientImpl} and {@code GlobalSearchResultsCatalogClientImpl}
+   * returns an unconditional true: this method is the deployment-level gate, not those.
+   */
+  private static void verifyCatalogSourceAllowed(final SearchSource parsedSource) {
+    if (parsedSource == SearchSource.CATALOG
+        && !SystemConfigurationPropertyFeature.CATALOG_FEDERATION.isEnabled())
+    {
+      throw new BadRequestException("catalog source is not enabled");
     }
   }
 

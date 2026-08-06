@@ -25,6 +25,10 @@ import jakarta.ws.rs.core.MediaType;
 
 /**
  * JAX-RS resource backing the IQ-index left-nav list pages at {@code POST /rest/search/index-query}.
+ *
+ * <p>
+ * Gated by the {@code PREVIEW_NEXUS_ONE_UI} feature flag, the same flag that gates the Nexus One UI
+ * pages this endpoint backs. When disabled callers receive {@code 404 Not Found}.
  */
 @Named
 @Singleton
@@ -51,7 +55,7 @@ public class IndexQueryResource
 
   @POST
   public IndexQueryResponse query(final IndexQueryRequest request) {
-    verifyGlobalSearchEnabled();
+    verifyPreviewUiEnabled();
     if (request == null) {
       throw new BadRequestException("request body must not be empty");
     }
@@ -69,9 +73,15 @@ public class IndexQueryResource
     }
   }
 
-  private static void verifyGlobalSearchEnabled() {
-    // 404 (not 403) when the flag is off, so a disabled endpoint is indistinguishable from absent.
-    if (!SystemConfigurationPropertyFeature.GLOBAL_SEARCH.isEnabled()) {
+  /**
+   * Gate on {@code PREVIEW_NEXUS_ONE_UI}, the flag that gates the Nexus One UI this endpoint backs.
+   *
+   * <p>
+   * 404 (not 403) when the flag is off, so a disabled endpoint is indistinguishable from absent. Called
+   * as the first statement of the handler so the gate runs ahead of body validation.
+   */
+  private static void verifyPreviewUiEnabled() {
+    if (!SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled()) {
       throw new NotFoundException("Not Found");
     }
   }

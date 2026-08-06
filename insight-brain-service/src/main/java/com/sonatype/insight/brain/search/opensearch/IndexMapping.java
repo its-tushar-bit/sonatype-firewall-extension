@@ -112,11 +112,13 @@ public class IndexMapping
     // for policyWaiverAuto; the epoch-millis long could be mis-typed). date_detection is off at index
     // creation (see OpenSearchSearchIndexClient.createIndex), so date-ish keyword fields are never
     // auto-typed as date, but the keyword-vs-text drift on a pre-existing index remains until reindex.
-    // Decision: WAIVER is a new entity type; correct auto/expiry filtering requires the explicit
-    // mappings, which are guaranteed only after a full reindex. The WAIVER read path is gated behind
-    // the GLOBAL_SEARCH feature flag (off by default) and the reindex is admin-triggered, so WAIVER
-    // filtering is not exercised in production before a full reindex has run. The upgrade note that a
-    // reindex is required before WAIVER results are correct is captured in the PR / runbook.
+    // Correct auto/expiry filtering therefore requires these explicit mappings, which on an upgraded
+    // deployment only a full reindex installs (populateIndex creates a brand-new index and swaps the
+    // alias). That reindex is admin-triggered (IndexService.createIndexAsync, CONFIGURE_SYSTEM) and
+    // nothing forces or prompts it on upgrade. The WAIVER read path follows PREVIEW_NEXUS_ONE_UI, which
+    // also gates unrelated Nexus One surfaces, so enabling it for those exposes WAIVER search on a
+    // not-yet-reindexed index. A full reindex is required after upgrade before WAIVER auto/expiry/status
+    // filtering can be relied on.
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_ID.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_NAME.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_POLICY_ID.label, createProperty("keyword"));
@@ -147,8 +149,7 @@ public class IndexMapping
 
     // Policy waiver REQUEST fields (ItemType.POLICY_WAIVER_REQUEST). Same fresh-index-only upgrade
     // caveat as the policyWaiver* fields above: correct request-status/policyType filtering requires
-    // the explicit mappings, guaranteed only after a full reindex; WAIVER is gated behind the
-    // GLOBAL_SEARCH feature flag and the reindex is admin-triggered, so not exercised pre-reindex.
+    // the explicit mappings, which only a full reindex installs on an upgraded deployment.
     propertyMappings.put(FieldIdentifier.POLICY_WAIVER_REQUEST_STATUS.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.REQUESTER_NAME.label, createProperty("keyword"));
     propertyMappings.put(FieldIdentifier.REVIEWER_NAME.label, createProperty("keyword"));

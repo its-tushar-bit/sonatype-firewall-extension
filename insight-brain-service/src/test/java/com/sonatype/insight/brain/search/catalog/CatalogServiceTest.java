@@ -92,11 +92,11 @@ public class CatalogServiceTest
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
 
     searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));

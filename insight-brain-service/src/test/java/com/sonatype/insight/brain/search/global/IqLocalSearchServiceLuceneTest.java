@@ -52,6 +52,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
@@ -147,7 +148,7 @@ public class IqLocalSearchServiceLuceneTest
     service = new IqLocalSearchService(searchIndexClient,
         com.sonatype.insight.brain.search.global.fieldmap.FieldMap.defaultMap());
 
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
@@ -461,6 +462,156 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   @Test
+  public void violationThreatSort_overMixedPolicyAndLegalViolations_ordersByThreat_withLegalLast() throws Exception {
+    // Regression guard for the VIOLATION tab's DEFAULT sort against a production-shaped index.
+    // Two things make this fail without the INT-width sort: the docs carry the 4-byte IntPoint that
+    // DocumentBuilder writes (Lucene validates a numeric sort's byte width against the points index,
+    // so an 8-byte LONG sort throws "indexed with 4 bytes per dimension ... expected 8" as soon as a
+    // segment holds a value), and the result set mixes POLICY_VIOLATION with LEGAL_VIOLATION docs that
+    // carry no policyViolationThreatLevel at all and must degrade to last rather than break the sort.
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        writer.addDocument(violationDoc("pv-4", 4));
+        writer.addDocument(legalViolationDoc("lv-a", 5));
+        writer.addDocument(violationDoc("pv-10", 10));
+        writer.addDocument(violationDoc("pv-0", 0));
+        writer.commit();
+        // Second segment: the comparator is built per-leaf, so a multi-segment index proves the
+        // width check passes on every leaf and the cross-segment merge still orders correctly.
+        writer.addDocument(violationDoc("pv-9", 9));
+        writer.addDocument(legalViolationDoc("lv-b", 7));
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        Sort byThreat = IqLocalSearchService.sortFor(Tab.VIOLATION, "threat");
+        // Match BOTH item types the VIOLATION tab spans, so the sort sees the real mixed shape.
+        Query allViolations = new org.apache.lucene.search.BooleanQuery.Builder()
+            .add(new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+                FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_VIOLATION.name().toLowerCase())),
+                org.apache.lucene.search.BooleanClause.Occur.SHOULD)
+            .add(new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+                FieldIdentifier.ITEM_TYPE.label, ItemType.LEGAL_VIOLATION.name().toLowerCase())),
+                org.apache.lucene.search.BooleanClause.Occur.SHOULD)
+            .build();
+
+        TopDocs top = localSearcher.search(allViolations, 10, byThreat);
+
+        List<String> order = new ArrayList<>();
+        for (ScoreDoc sd : top.scoreDocs) {
+          order.add(localSearcher.storedFields()
+              .document(sd.doc)
+              .get(FieldIdentifier.POLICY_VIOLATION_ID.label));
+        }
+        // Policy violations highest-threat first; the two legal violations (no threat field) trail.
+        assertThat(order.subList(0, 4)).containsExactly("pv-10", "pv-9", "pv-4", "pv-0");
+        assertThat(order.subList(4, 6)).containsExactlyInAnyOrder("lv-a", "lv-b");
+      }
+    }
+  }
+
+  @Test
+  public void numericSortCursor_roundTripsThroughSortValueType_notCustom() {
+    // A SortedNumericSortField reports getType() == CUSTOM (it comparator-wraps the numeric type), so
+    // a cursor codec keyed off getType() rejects every numeric sort with "Unsupported SortField.Type in
+    // searchAfter: CUSTOM" and page 2 of a threat-sorted list 400s. The tuple slots must be keyed off
+    // getNumericType() instead. Assert the numeric type is a concrete, encodable type for each
+    // allowlisted numeric sort.
+    for (Tab tab : Tab.values()) {
+      for (String sortKey : GlobalSearchSortAllowlist.allowedFor(tab)) {
+        Sort sort = IqLocalSearchService.sortFor(tab, sortKey);
+        if (sort == null) {
+          continue;
+        }
+        for (SortField sf : sort.getSort()) {
+          if (sf instanceof SortedNumericSortField numeric) {
+            assertThat(numeric.getType())
+                .as("SortedNumericSortField.getType() is CUSTOM, so a cursor codec must not key off it")
+                .isEqualTo(SortField.Type.CUSTOM);
+            assertThat(numeric.getNumericType())
+                .as("encodable numeric type for '%s' on tab %s", sortKey, tab)
+                .isIn(SortField.Type.LONG, SortField.Type.INT, SortField.Type.FLOAT, SortField.Type.DOUBLE);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Drift guard for every allowlisted numeric sort: writes a single doc whose numeric field carries
+   * the point field at the width {@code DocumentBuilder} uses plus the doc-values twin
+   * {@code LuceneIndexingContext} adds, then runs the {@link Sort} {@link IqLocalSearchService}
+   * builds for that (tab, sortKey). Lucene's numeric comparator reads the same-named points index to
+   * build a competitive iterator and throws when the sort's comparator width disagrees with the
+   * point field's width, so this fails for ANY numeric sort key that drifts out of width agreement
+   * — not only the fields enumerated in the targeted tests. A value must be present, since an absent
+   * field yields no {@code PointValues} and the mismatch would stay invisible.
+   */
+  @Test
+  public void everyAllowlistedNumericSort_executesAgainstAProductionShapedIndex() throws Exception {
+    for (Tab tab : Tab.values()) {
+      for (String sortKey : GlobalSearchSortAllowlist.allowedFor(tab)) {
+        FieldIdentifier f = IqLocalSearchService.sortableIndexFieldFor(tab, sortKey);
+        if (f == null) {
+          continue;
+        }
+        Sort sort = IqLocalSearchService.sortFor(tab, sortKey);
+        if (sort == null || !(sort.getSort()[0] instanceof SortedNumericSortField)) {
+          continue;
+        }
+        assertNumericSortExecutes(tab, sortKey, f, sort);
+      }
+    }
+  }
+
+  private static void assertNumericSortExecutes(
+      final Tab tab,
+      final String sortKey,
+      final FieldIdentifier f,
+      final Sort sort) throws Exception
+  {
+    try (Directory dir = new ByteBuffersDirectory()) {
+      try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
+        Document doc = new Document();
+        if (INT_POINT_LABELS.contains(f.label)) {
+          doc.add(new IntPoint(f.label, 5));
+          doc.add(new SortedNumericDocValuesField(f.label, 5));
+        }
+        else if (FLOAT_POINT_LABELS.contains(f.label)) {
+          doc.add(new org.apache.lucene.document.FloatPoint(f.label, 5.5f));
+          doc.add(new SortedNumericDocValuesField(
+              f.label, org.apache.lucene.util.NumericUtils.floatToSortableInt(5.5f)));
+        }
+        else {
+          doc.add(new LongPoint(f.label, 5000L));
+          doc.add(new SortedNumericDocValuesField(f.label, 5000L));
+        }
+        writer.addDocument(doc);
+        writer.commit();
+      }
+      try (IndexReader localReader = DirectoryReader.open(dir)) {
+        IndexSearcher localSearcher = new IndexSearcher(localReader);
+        // Throws IllegalArgumentException when the sort width and the point width disagree.
+        assertThat(localSearcher.search(new org.apache.lucene.search.MatchAllDocsQuery(), 10, sort).scoreDocs)
+            .as("sort '%s' on tab %s (field %s) must execute against a real index", sortKey, tab, f.label)
+            .hasSize(1);
+      }
+    }
+  }
+
+  /** Labels DocumentBuilder writes as a 4-byte {@code IntPoint}. */
+  private static final Set<String> INT_POINT_LABELS = Set.of(
+      FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+      FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label,
+      FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label,
+      FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label,
+      FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label);
+
+  /** Labels DocumentBuilder writes as a 4-byte {@code FloatPoint}. */
+  private static final Set<String> FLOAT_POINT_LABELS = Set.of(
+      FieldIdentifier.VULNERABILITY_SEVERITY.label);
+
+  @Test
   public void search_appliesNumericCreatedSort_descending_forWaiver() throws Exception {
     // WAIVER default created-desc: newest waiver first. Epoch-millis 3000 (newest) before 1000.
     try (Directory dir = new ByteBuffersDirectory()) {
@@ -684,8 +835,10 @@ public class IqLocalSearchServiceLuceneTest
             .document(page1.scoreDocs[0].doc)
             .get(FieldIdentifier.POLICY_VIOLATION_ID.label)).isEqualTo("v-10");
 
-        // Anchor searchAfter on the highest threat value (10); next page must be v-7 then v-2.
-        FieldDoc after = new FieldDoc(localReader.maxDoc() - 1, Float.NaN, new Object[]{10L});
+        // Anchor searchAfter on the highest threat value (10); next page must be v-7 then v-2. The
+        // anchor is an Integer because the threat sort is an INT comparator (the field's point twin is
+        // a 4-byte IntPoint), and searchAfter requires the anchor type to match the sort type.
+        FieldDoc after = new FieldDoc(localReader.maxDoc() - 1, Float.NaN, new Object[]{10});
         TopDocs page2 = localSearcher.searchAfter(after, allViolations, 10, byThreat);
         List<String> page2Ids = new ArrayList<>();
         for (ScoreDoc sd : page2.scoreDocs) {
@@ -911,9 +1064,13 @@ public class IqLocalSearchServiceLuceneTest
     fields.put(FieldIdentifier.ITEM_TYPE.label, ItemType.NON_VULNERABLE_COMPONENT.name());
     fields.put(FieldIdentifier.COMPONENT_NAME.label, componentName);
     Document doc = docOf(fields);
-    // Mirror DocumentBuilder.setComponentMaxPolicyThreatLevel: IntPoint (range-queryable) + StoredField.
+    // Mirror DocumentBuilder.setComponentMaxPolicyThreatLevel: IntPoint (range-queryable) + StoredField,
+    // plus the SortedNumericDocValues sort twin LuceneIndexingContext adds, so this fixture backs both
+    // the range filter and the policyThreatLevel sort.
     doc.add(new IntPoint(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label, threatLevel));
     doc.add(new StoredField(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label, threatLevel));
+    doc.add(new SortedNumericDocValuesField(
+        FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label, threatLevel));
     return doc;
   }
 
@@ -930,33 +1087,67 @@ public class IqLocalSearchServiceLuceneTest
     return docOf(fields);
   }
 
-  /** POLICY_VIOLATION doc carrying the numeric threat sort doc-values twin (mirrors production). */
+  /**
+   * POLICY_VIOLATION doc mirroring production exactly: {@code DocumentBuilder} writes the threat
+   * level as a 4-byte {@link IntPoint} plus a {@link StoredField}, and
+   * {@code LuceneIndexingContext.addDocuments} adds the {@link SortedNumericDocValuesField} sort
+   * twin. The IntPoint matters for sort coverage — Lucene's numeric comparator validates the sort's
+   * byte width against the points index, so a fixture carrying only the doc-values twin cannot catch
+   * a sort-width mismatch that fails on a real index.
+   */
   private static Document violationDoc(final String violationId, final int threatLevel) {
     Document doc = new Document();
     doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_VIOLATION.name(), Store.YES));
     doc.add(new TextField(FieldIdentifier.POLICY_VIOLATION_ID.label, violationId, Store.YES));
+    doc.add(new IntPoint(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StoredField(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label, threatLevel));
     doc.add(new SortedNumericDocValuesField(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label, threatLevel));
     return doc;
   }
 
-  /** APPLICATION doc carrying the max-policy-threat numeric sort twin (null = no active violation). */
+  /**
+   * LEGAL_VIOLATION doc: shares the VIOLATION tab with POLICY_VIOLATION but carries
+   * {@code componentLicenseThreatLevel} instead of a policy threat level, so it has no
+   * policyViolationThreatLevel field at all and must sort last under the threat sort.
+   */
+  private static Document legalViolationDoc(final String violationId, final int licenseThreatLevel) {
+    Document doc = new Document();
+    doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.LEGAL_VIOLATION.name(), Store.YES));
+    doc.add(new TextField(FieldIdentifier.POLICY_VIOLATION_ID.label, violationId, Store.YES));
+    doc.add(new IntPoint(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label, licenseThreatLevel));
+    doc.add(new StoredField(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label, licenseThreatLevel));
+    return doc;
+  }
+
+  /**
+   * APPLICATION doc carrying the max-policy-threat numeric sort twin (null = no active violation),
+   * plus the 4-byte {@link IntPoint} production writes alongside it so the sort's byte-width
+   * agreement with the points index is actually exercised.
+   */
   private static Document appThreatDoc(final String publicId, final Integer maxThreatLevel) {
     Document doc = new Document();
     doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name(), Store.YES));
     doc.add(new TextField(FieldIdentifier.APPLICATION_PUBLIC_ID.label, publicId, Store.YES));
     if (maxThreatLevel != null) {
+      doc.add(new IntPoint(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel));
+      doc.add(new StoredField(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel));
       doc.add(new SortedNumericDocValuesField(
           FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label, maxThreatLevel));
     }
     return doc;
   }
 
-  /** APPLICATION doc carrying the violation-state-ordinal numeric sort twin (null = no violation). */
+  /**
+   * APPLICATION doc carrying the violation-state-ordinal numeric sort twin (null = no violation),
+   * plus the 4-byte {@link IntPoint} production writes alongside it.
+   */
   private static Document appStateOrdinalDoc(final String publicId, final Integer ordinal) {
     Document doc = new Document();
     doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name(), Store.YES));
     doc.add(new TextField(FieldIdentifier.APPLICATION_PUBLIC_ID.label, publicId, Store.YES));
     if (ordinal != null) {
+      doc.add(new IntPoint(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label, ordinal));
+      doc.add(new StoredField(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label, ordinal));
       doc.add(new SortedNumericDocValuesField(
           FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label, ordinal));
     }
@@ -982,6 +1173,8 @@ public class IqLocalSearchServiceLuceneTest
     Document doc = new Document();
     doc.add(new TextField(FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name(), Store.YES));
     doc.add(new TextField(FieldIdentifier.POLICY_WAIVER_ID.label, waiverId, Store.YES));
+    doc.add(new IntPoint(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
+    doc.add(new StoredField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
     doc.add(new SortedNumericDocValuesField(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label, threatLevel));
     return doc;
   }

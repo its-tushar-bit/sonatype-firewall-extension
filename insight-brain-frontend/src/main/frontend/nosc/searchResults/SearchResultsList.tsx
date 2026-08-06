@@ -4,19 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { Badge, Box, Card, Flex, Skeleton, Text } from '@radix-ui/themes';
+import { Badge, Card, Flex, Skeleton, Text } from '@radix-ui/themes';
 import { ActionIcons, DomainIcons } from 'MainRoot/nosc/icons';
 import {
-  SearchResultItemDTO,
+  SearchEntityType,
+  SearchRow,
   displayNameFor,
-  isApplication,
-  isComponent,
-  isOrganization,
-  isPolicy,
-  isPolicyViolation,
-  isSbomMetadata,
-  isVulnerability,
-  isWaiver,
   reactKeyFor,
   vulnerabilitySourceLabel,
 } from 'MainRoot/nosc/search/searchTypes';
@@ -30,26 +23,21 @@ import { activateOnKey } from 'MainRoot/nosc/keyboardActivate';
  * GuideApplicationResultCard.tsx:
  *
  *   ┌──────────────────────────────────────────────────────────────────┐
- *   │ [icon] {bold name}                            [metric] [metric] │
- *   │        {gray description}                                       │
- *   │        Label: <Badge>  Label: <Badge>  ...                      │
+ *   │ [icon] {bold title}                                            │
+ *   │        {gray subtitle}                                         │
+ *   │        Label: <Badge>  Label: <Badge>  ...                     │
  *   └──────────────────────────────────────────────────────────────────┘
  *
- * Per-entity-type variations:
- *   - Application: stage / category / org metadata; metric cards for
- *     critical violations and last scan date when present.
- *   - Vulnerability: severity / status badges; metric for "Affected apps"
- *   - Component: ecosystem / version / license badges; "Used in N apps"
- *   - Organization / Policy / SBOM: simpler — name + a few badges, no
- *     right-side metrics.
+ * The backend supplies the title, subtitle, and an open `fields` bag per row;
+ * this renderer picks the icon + a small set of entity-appropriate badges.
  */
 
 interface SearchResultsListProps {
-  readonly results: readonly SearchResultItemDTO[];
+  readonly results: readonly SearchRow[];
   readonly loading: boolean;
   readonly loadError: string | null;
   readonly query: string;
-  readonly onResultClick: (r: SearchResultItemDTO) => void;
+  readonly onResultClick: (r: SearchRow) => void;
 }
 
 export function SearchResultsList({
@@ -106,9 +94,13 @@ export function SearchResultsList({
 
   return (
     <Flex direction="column" gap="3" data-testid="nosc-search-results-list">
-      {results.map((r) => (
+      {results.map((r, i) => (
+        // Position-scoped key: the backend can return the same component id more
+        // than once in a page (e.g. one artifact scanned in several apps shares a
+        // hash), so reactKeyFor alone is not unique within a response. Prefixing
+        // the index keeps React keys distinct and the rendered list 1:1 with rows.
         <SearchResultCard
-          key={reactKeyFor(r)}
+          key={`${i}:${reactKeyFor(r)}`}
           result={r}
           onClick={() => onResultClick(r)}
         />
@@ -118,12 +110,12 @@ export function SearchResultsList({
 }
 
 interface SearchResultCardProps {
-  readonly result: SearchResultItemDTO;
+  readonly result: SearchRow;
   readonly onClick: () => void;
 }
 
 function SearchResultCard({ result, onClick }: SearchResultCardProps): JSX.Element {
-  const { icon, iconColor, badges, metrics } = describeResult(result);
+  const { icon, iconColor, badges } = describeResult(result);
 
   return (
     <Card
@@ -133,62 +125,30 @@ function SearchResultCard({ result, onClick }: SearchResultCardProps): JSX.Eleme
       style={{ cursor: 'pointer' }}
       onClick={onClick}
       onKeyDown={activateOnKey(onClick)}
-      data-testid={`nosc-search-result-card-${result.itemType}`}
+      data-testid={`nosc-search-result-card-${result.type}`}
     >
-      <Flex
-        direction={{ initial: 'column', md: 'row' }}
-        align="stretch"
-        justify={{ initial: 'start', md: 'between' }}
-        gap="4"
-      >
-        <Flex direction="column" gap="2" flexGrow="1" flexShrink="1" minWidth="0" p="3" justify="between">
-          <Flex direction="column" gap="2">
-            <Flex align="center" gap="2">
-              {React.createElement(icon, { size: 18, color: iconColor, style: { flexShrink: 0 } })}
-              <Text size="3" weight="bold" truncate>
-                {displayNameFor(result)}
-              </Text>
-            </Flex>
-            {result.vulnerabilityDescription && isVulnerability(result) && (
-              <Text size="2" color="gray" truncate>
-                {result.vulnerabilityDescription}
-              </Text>
-            )}
-          </Flex>
-
-          {badges.length > 0 && (
-            <Flex align="center" gap="2" wrap="wrap">
-              {badges.map((b, i) => (
-                <React.Fragment key={i}>
-                  <Text size="1" color="gray">{b.label}:</Text>
-                  <Badge size="1" color={b.color ?? 'gray'} variant="soft">
-                    {b.value}
-                  </Badge>
-                </React.Fragment>
-              ))}
-            </Flex>
-          )}
+      <Flex direction="column" gap="2" flexGrow="1" flexShrink="1" minWidth="0" p="3">
+        <Flex align="center" gap="2">
+          {React.createElement(icon, { size: 18, color: iconColor, style: { flexShrink: 0 } })}
+          <Text size="3" weight="bold" truncate>
+            {displayNameFor(result)}
+          </Text>
         </Flex>
+        {result.subtitle && (
+          <Text size="2" color="gray" truncate>
+            {result.subtitle}
+          </Text>
+        )}
 
-        {metrics.length > 0 && (
-          <Flex direction="row" gap="3" flexShrink="0" align="start" justify="end" p="3">
-            {metrics.map((m, i) => (
-              <Card
-                key={i}
-                size="1"
-                style={{
-                  borderLeft: `3px solid ${m.borderColor}`,
-                  display: 'flex',
-                  minWidth: 80,
-                }}
-              >
-                <Flex direction="column" align="start" justify="between" gap="1" p="1" style={{ flex: 1 }}>
-                  <Text size="3" weight="bold" style={{ color: m.valueColor }}>
-                    {m.value}
-                  </Text>
-                  <Text size="1" color="gray">{m.label}</Text>
-                </Flex>
-              </Card>
+        {badges.length > 0 && (
+          <Flex align="center" gap="2" wrap="wrap">
+            {badges.map((b, i) => (
+              <React.Fragment key={i}>
+                <Text size="1" color="gray">{b.label}:</Text>
+                <Badge size="1" color={b.color ?? 'gray'} variant="soft">
+                  {b.value}
+                </Badge>
+              </React.Fragment>
             ))}
           </Flex>
         )}
@@ -197,113 +157,66 @@ function SearchResultCard({ result, onClick }: SearchResultCardProps): JSX.Eleme
   );
 }
 
+type BadgeColor = 'gray' | 'red' | 'orange' | 'green' | 'blue' | 'purple' | 'amber';
+
 interface ResultDescription {
   icon: React.ComponentType<{ size?: number; color?: string; style?: React.CSSProperties }>;
   iconColor: string;
-  badges: { label: string; value: string; color?: 'gray' | 'red' | 'orange' | 'green' | 'blue' | 'purple' | 'amber' }[];
-  metrics: { value: string | number; label: string; borderColor: string; valueColor?: string }[];
+  badges: { label: string; value: string; color?: BadgeColor }[];
 }
 
-function describeResult(resultDTO: SearchResultItemDTO): ResultDescription {
-  if (isApplication(resultDTO)) {
-    return {
-      icon: DomainIcons.Applications,
-      iconColor: 'var(--green-9)',
-      badges: [
-        ...(resultDTO.applicationPublicId ? [{ label: 'ID', value: resultDTO.applicationPublicId }] : []),
-        ...(resultDTO.organizationName ? [{ label: 'Org', value: resultDTO.organizationName }] : []),
-        ...(resultDTO.policyEvaluationStage ? [{ label: 'Stage', value: resultDTO.policyEvaluationStage }] : []),
-      ],
-      metrics: [],
-    };
+/** Read a field as a display string, or undefined when absent/blank. */
+function fieldStr(row: SearchRow, key: string): string | undefined {
+  const v = row.fields[key];
+  if (v == null) return undefined;
+  const s = String(v);
+  return s.length > 0 ? s : undefined;
+}
+
+const ICON_BY_TYPE: Record<
+  SearchEntityType,
+  { icon: ResultDescription['icon']; color: string }
+> = {
+  APPLICATION: { icon: DomainIcons.Applications, color: 'var(--green-9)' },
+  COMPONENT: { icon: DomainIcons.Component, color: 'var(--blue-9)' },
+  VULNERABILITY: { icon: DomainIcons.Vulnerability, color: 'var(--red-9)' },
+  VIOLATION: { icon: DomainIcons.Policies, color: 'var(--orange-9)' },
+  WAIVER: { icon: DomainIcons.Waivers, color: 'var(--amber-9)' },
+};
+
+function describeResult(row: SearchRow): ResultDescription {
+  const chrome = ICON_BY_TYPE[row.type] ?? { icon: ActionIcons.Search, color: 'var(--gray-9)' };
+  const badges: ResultDescription['badges'] = [];
+
+  if (row.type === 'APPLICATION') {
+    const org = fieldStr(row, 'organizationName');
+    const stage = fieldStr(row, 'policyEvaluationStage');
+    if (org) badges.push({ label: 'Org', value: org });
+    if (stage) badges.push({ label: 'Stage', value: stage });
+  } else if (row.type === 'COMPONENT') {
+    const eco = fieldStr(row, 'ecosystem') ?? fieldStr(row, 'format');
+    const version = fieldStr(row, 'version') ?? fieldStr(row, 'latestStable');
+    const license = fieldStr(row, 'license');
+    if (eco) badges.push({ label: 'Ecosystem', value: eco });
+    if (version) badges.push({ label: 'Version', value: version });
+    if (license) badges.push({ label: 'License', value: license });
+  } else if (row.type === 'VULNERABILITY') {
+    const severity = fieldStr(row, 'cvssSeverity');
+    const cvss = fieldStr(row, 'maxCvss');
+    badges.push({ label: 'Type', value: vulnerabilitySourceLabel(row.title), color: 'red' });
+    if (severity) badges.push({ label: 'Severity', value: severity, color: 'red' });
+    if (cvss) badges.push({ label: 'CVSS', value: cvss });
+  } else if (row.type === 'VIOLATION') {
+    const app = fieldStr(row, 'applicationName') ?? fieldStr(row, 'applicationPublicId');
+    const threat = fieldStr(row, 'threatLevel');
+    if (app) badges.push({ label: 'Application', value: app });
+    if (threat) badges.push({ label: 'Threat', value: threat, color: 'orange' });
+  } else if (row.type === 'WAIVER') {
+    const app = fieldStr(row, 'applicationName') ?? fieldStr(row, 'applicationPublicId');
+    const status = fieldStr(row, 'waiverStatus');
+    if (app) badges.push({ label: 'Application', value: app });
+    if (status) badges.push({ label: 'Status', value: status, color: 'amber' });
   }
-  if (isOrganization(resultDTO)) {
-    return {
-      icon: DomainIcons.Organizations,
-      iconColor: 'var(--indigo-9)',
-      badges: [],
-      metrics: [],
-    };
-  }
-  if (isComponent(resultDTO)) {
-    const eco = resultDTO.componentIdentifier?.format ?? '';
-    const version = resultDTO.componentIdentifier?.coordinates?.version ?? '';
-    return {
-      icon: DomainIcons.Component,
-      iconColor: 'var(--blue-9)',
-      badges: [
-        ...(eco ? [{ label: 'Ecosystem', value: eco }] : []),
-        ...(version ? [{ label: 'Version', value: version }] : []),
-      ],
-      metrics: [],
-    };
-  }
-  if (isVulnerability(resultDTO)) {
-    const status = resultDTO.vulnerabilityStatus ?? '';
-    return {
-      icon: DomainIcons.Vulnerability,
-      iconColor: 'var(--red-9)',
-      badges: [
-        { label: 'Type', value: vulnerabilitySourceLabel(resultDTO.vulnerabilityId), color: 'red' },
-        ...(status ? [{ label: 'Status', value: status }] : []),
-      ],
-      metrics: [],
-    };
-  }
-  if (isPolicy(resultDTO)) {
-    return {
-      icon: DomainIcons.Policies,
-      iconColor: 'var(--purple-9)',
-      badges: [
-        ...(resultDTO.policyThreatCategory ? [{ label: 'Category', value: resultDTO.policyThreatCategory }] : []),
-        ...(resultDTO.policyThreatLevel != null
-          ? [{ label: 'Threat Level', value: String(resultDTO.policyThreatLevel) }]
-          : []),
-      ],
-      metrics: [],
-    };
-  }
-  if (isPolicyViolation(resultDTO)) {
-    return {
-      icon: DomainIcons.Policies,
-      iconColor: 'var(--orange-9)',
-      badges: [
-        ...(resultDTO.componentName ? [{ label: 'Component', value: resultDTO.componentName }] : []),
-        ...(resultDTO.applicationName ? [{ label: 'Application', value: resultDTO.applicationName }] : []),
-        ...(resultDTO.policyViolationThreatLevel != null
-          ? [{ label: 'Threat', value: String(resultDTO.policyViolationThreatLevel), color: 'orange' as const }]
-          : []),
-      ],
-      metrics: [],
-    };
-  }
-  if (isWaiver(resultDTO)) {
-    return {
-      icon: DomainIcons.Waivers,
-      iconColor: 'var(--amber-9)',
-      badges: [
-        ...(resultDTO.componentName ? [{ label: 'Component', value: resultDTO.componentName }] : []),
-        ...(resultDTO.applicationName ? [{ label: 'Application', value: resultDTO.applicationName }] : []),
-        ...(resultDTO.policyViolationWaiverStatus
-          ? [{ label: 'Status', value: resultDTO.policyViolationWaiverStatus, color: 'amber' as const }]
-          : []),
-        ...(resultDTO.policyViolationThreatLevel != null
-          ? [{ label: 'Threat', value: String(resultDTO.policyViolationThreatLevel) }]
-          : []),
-      ],
-      metrics: [],
-    };
-  }
-  if (isSbomMetadata(resultDTO)) {
-    return {
-      icon: DomainIcons.SbomMetadata,
-      iconColor: 'var(--teal-9)',
-      badges: [
-        ...(resultDTO.sbomSpecification ? [{ label: 'Format', value: resultDTO.sbomSpecification }] : []),
-        ...(resultDTO.applicationName ? [{ label: 'App', value: resultDTO.applicationName }] : []),
-      ],
-      metrics: [],
-    };
-  }
-  return { icon: ActionIcons.Search, iconColor: 'var(--gray-9)', badges: [], metrics: [] };
+
+  return { icon: chrome.icon, iconColor: chrome.color, badges };
 }

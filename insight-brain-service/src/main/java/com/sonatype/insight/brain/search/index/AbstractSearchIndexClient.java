@@ -1003,7 +1003,7 @@ public abstract class AbstractSearchIndexClient
    * <p>
    * This short-circuit is intentional for <em>all</em> entity types that use this path (APPLICATION,
    * VIOLATION, WAIVER, …), not WAIVER-only: the authz cache is the single source of truth.
-   * Production callers are gated behind {@code GLOBAL_SEARCH} ({@code IndexQueryResource},
+   * Production callers are gated behind {@code PREVIEW_NEXUS_ONE_UI} ({@code IndexQueryResource},
    * {@code GlobalSearchResource} → {@code IqLocalSearchService}).
    */
   public Set<String> getCurrentUserContextIdsWithReadPermission() {
@@ -1652,10 +1652,14 @@ public abstract class AbstractSearchIndexClient
     return Math.min(total, GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP);
   }
 
-  /** Controls code-path selection and visibility only, never security. */
+  /**
+   * Whether the search preview read path is available. Reads {@code PREVIEW_NEXUS_ONE_UI} — the same
+   * flag the search resources gate on, so this defence-in-depth guard cannot disagree with the
+   * request-boundary gate. Controls code-path selection and visibility only, never security.
+   */
   @Override
-  public boolean isGlobalSearchEnabled() {
-    return SystemConfigurationPropertyFeature.GLOBAL_SEARCH.isEnabled();
+  public boolean isSearchPreviewEnabled() {
+    return SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled();
   }
 
   /**

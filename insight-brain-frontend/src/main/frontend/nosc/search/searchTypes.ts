@@ -5,237 +5,251 @@
  */
 
 /**
- * P1-F13 / CLM-39549: TypeScript types for IQ's multi-entity global search.
+ * TypeScript types for IQ's global search.
  *
- * Mirrors the shape returned by GET /api/v2/search/advanced (backed by
- * IQ's existing OpenSearch index — see
- * insight-brain-service/src/main/java/com/sonatype/insight/brain/search/
- * results/SearchResultItemDTO.java for the canonical Java DTO).
+ * Two layers live here:
  *
- * Each indexed entity is represented as a SearchResultItemDTO with `itemType`
- * + a populated subset of fields. We model that as a discriminated union
- * here so React row renderers can pivot cleanly on `itemType`.
+ *   1. WIRE types — the exact JSON shapes returned by the dedicated
+ *      global-search endpoints GET /rest/search/suggest and
+ *      GET /rest/search/results. These mirror the Java DTOs in
+ *      insight-brain-service/.../search/global/{SuggestResponse,SuggestGroup,
+ *      SuggestRow,ResultsResponse,ResultRow}.java. Field names and enum casing
+ *      match the wire exactly.
+ *
+ *   2. A stable internal RENDER model (SearchRow) that the omnibar and the
+ *      /search results page consume. Adapter functions map wire rows onto it so
+ *      the renderers stay decoupled from the wire shape.
+ *
+ * The five public entity types (Vulnerability, Component, Application,
+ * Violation, Waiver) come straight from the backend SuggestItemType / Tab
+ * enums; VIOLATION is a merged surface for policy + legal violations and there
+ * is no Organization or Policy group. Organizations and policies remain
+ * queryable via filter predicates inside the q= string.
  */
+
+// -----------------------------------------------------------------------------
+// Wire types — GET /rest/search/suggest and GET /rest/search/results
+// -----------------------------------------------------------------------------
 
 /**
- * The 10 ItemType values surfaced by the frontend search union. Eight mirror
- * com.sonatype.insight.brain.search.index.ItemType; `WAIVER` is a synthetic
- * client-side type for waived policy-violation rows remapped from the backend
- * POLICY_VIOLATION bucket. Phase 1 omnibar shows 7 of them as result rows
- * (we omit APPLICATION_CATEGORY and COMPONENT_LABEL because they're filter
- * values, not search destinations).
+ * The five public entity types surfaced by suggest groups and results tabs.
+ * Serialized as the uppercase enum name on the wire (SuggestItemType for suggest
+ * rows, Tab.name() for result rows). VIOLATION unions policy + legal violations.
  */
-export type ItemType =
-  | 'APPLICATION'
-  | 'ORGANIZATION'
-  | 'NON_VULNERABLE_COMPONENT'
-  | 'SECURITY_VULNERABILITY'
-  | 'POLICY_VIOLATION'
-  /** Client-side type for waived / auto-waived policy violations. */
-  | 'WAIVER'
-  | 'APPLICATION_CATEGORY'
-  | 'COMPONENT_LABEL'
-  | 'POLICY'
-  | 'SBOM_METADATA';
+export type SearchEntityType = 'VULNERABILITY' | 'COMPONENT' | 'APPLICATION' | 'VIOLATION' | 'WAIVER';
 
-export interface ComponentIdentifier {
-  format: string;
-  coordinates: Record<string, string>;
+/** Origin of a row / value of the ?source= query param. Lowercase on the wire. */
+export type SearchSource = 'local' | 'catalog';
+
+/** Tabs on the /rest/search/results endpoint. Uppercase on the wire. */
+export type ResultsTab = 'ALL' | 'APPLICATION' | 'COMPONENT' | 'VULNERABILITY' | 'VIOLATION' | 'WAIVER';
+
+/** One typeahead row from GET /rest/search/suggest. href is always null/absent on suggest. */
+export interface SuggestRow {
+  id: string;
+  type: SearchEntityType;
+  source: SearchSource;
+  title: string;
+  subtitle?: string | null;
+  href?: string | null;
 }
 
 /**
- * Raw row shape returned by the backend. Most fields are optional —
- * which fields are populated depends on `itemType`. Use the type guards
- * below to narrow.
+ * One per-entity-type section of the suggest response. All rows share the group's
+ * type + source. results is never null — an empty list is returned when nothing matched.
  */
-export interface SearchResultItemDTO {
-  itemType: ItemType;
-  resultIndex: number;
-
-  organizationId?: string;
-  organizationName?: string;
-  applicationId?: string;
-  applicationPublicId?: string;
-  applicationName?: string;
-  applicationVersion?: string;
-  sbomSpecification?: string;
-  policyEvaluationStage?: string;
-  reportId?: string;
-
-  componentHash?: string;
-  componentIdentifier?: ComponentIdentifier;
-  componentName?: string;
-
-  vulnerabilityId?: string;
-  vulnerabilityDescription?: string;
-  vulnerabilityStatus?: string;
-
-  applicationCategoryId?: string;
-  applicationCategoryName?: string;
-  applicationCategoryColor?: string;
-  applicationCategoryDescription?: string;
-
-  componentLabelId?: string;
-  componentLabelName?: string;
-  componentLabelColor?: string;
-  componentLabelDescription?: string;
-
-  policyId?: string;
-  policyName?: string;
-  policyThreatCategory?: string;
-  policyThreatLevel?: number;
-
-  policyViolationId?: string;
-  policyViolationThreatCategory?: string;
-  policyViolationThreatLevel?: number;
-  policyViolationPolicyName?: string;
-  policyViolationPolicyId?: string;
-  policyViolationWaiverStatus?: string;
-  policyViolationConstraintName?: string;
+export interface SuggestGroup {
+  type: SearchEntityType;
+  source: SearchSource;
+  results: SuggestRow[];
 }
 
 /**
- * Result rows are nested inside a grouping wrapper. The Advanced Search
- * endpoint groups by VULNERABILITY_ID (or other group keys) so multiple
- * apps affected by the same CVE aren't returned as separate top-level
- * rows. For the typeahead we flatten every group's items back to a flat
- * list of SearchResultItemDTO.
+ * GET /rest/search/suggest response. bestMatch is the single highest-confidence
+ * exact match (or null). groups is in fixed presentation order and always present,
+ * including empty groups. catalogAvailable is tri-state: absent (catalog not
+ * consulted), true (catalog usable), false (catalog requested but degraded).
  */
-export interface GroupingByDTO {
-  groupIdentifier?: string;
-  groupBy?: string;
-  additionalInfo?: string;
-  /**
-   * Optional — the backend omits this field on empty groups. Callers
-   * flattening groups must tolerate undefined (see useGlobalSearch).
-   */
-  searchResultItemDTOS?: SearchResultItemDTO[];
+export interface SuggestResponse {
+  bestMatch: SuggestRow | null;
+  groups: SuggestGroup[];
+  catalogAvailable?: boolean | null;
 }
 
 /**
- * Top-level GET /api/v2/search/advanced response shape.
+ * One flat row from GET /rest/search/results. type is the uppercase entity type;
+ * fields is an open per-row bag of entity-appropriate properties (license,
+ * maxCvss, applicationPublicId, etc.). href may be null.
+ */
+export interface ResultRow {
+  type: SearchEntityType;
+  source: SearchSource;
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  fields?: Record<string, unknown>;
+  href?: string | null;
+}
+
+/**
+ * One facet bucket. `value` round-trips as the filter value; `displayName` is a
+ * human label when it differs from the value (absent otherwise). `count` is a
+ * whole-corpus, RBAC-scoped count for the filtered result set.
+ */
+export interface FacetBucket {
+  value: string;
+  displayName?: string | null;
+  count: number;
+}
+
+/**
+ * GET /rest/search/results response. totalEstimate is exact below 10000 and
+ * literally 10000 above it. tabCounts is emitted by the results endpoint; it stays
+ * optional so an older server that omits it still deserializes.
  *
- * Note: the endpoint returns `groupingByDTOS` at the top level (NOT a
- * flat `searchResultItemDTOS` field as you might expect from the Java
- * SearchResultDTO source). Each group contains a `searchResultItemDTOS`
- * array. Hooks must flatten the groups before consumers see results.
+ * `facets` is the per-tab facet map (facet key → ordered buckets), populated only
+ * for a single IQ-local entity-tab request made with includeFacets=true; null
+ * for the ALL tab, count-only probes, and catalog-source responses.
  */
-export interface SearchResultDTO {
-  searchQuery: string;
+export interface ResultsResponse {
+  tab: ResultsTab;
   page: number;
   pageSize: number;
-  totalNumberOfHits: number;
-  isExactTotalNumberOfHits: boolean;
-  groupingByDTOS?: GroupingByDTO[];
-  /**
-   * Some legacy code paths return items at the top level instead of
-   * nested in groups. We tolerate both for forward compatibility.
-   */
-  searchResultItemDTOS?: SearchResultItemDTO[];
+  totalEstimate: number;
+  results: ResultRow[];
+  nextSearchAfter?: string | null;
+  warnings?: string[];
+  catalogAvailable: boolean;
+  /** Per-tab badge counts; may be absent when talking to an older server. */
+  tabCounts?: Partial<Record<ResultsTab, number>>;
+  /** Optional per-tab facet buckets; absent on the ALL tab / catalog source / count-only probes. */
+  facets?: Record<string, FacetBucket[]> | null;
 }
 
 // -----------------------------------------------------------------------------
-// Type guards
+// Internal render model — consumed by the omnibar + results page renderers
 // -----------------------------------------------------------------------------
-//
-// One per ItemType the omnibar surfaces. Callers narrow before reading the
-// type-specific fields. APPLICATION_CATEGORY and COMPONENT_LABEL are
-// included in the guards (so we can filter them OUT of result rendering)
-// but Phase 1 doesn't render them.
 
-export function isApplication(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'APPLICATION';
+/**
+ * Stable row shape the omnibar rows and results cards render. Adapter functions
+ * below map SuggestRow / ResultRow onto it, so the renderers never touch the wire
+ * shape directly. fields carries the open per-row bag from ResultRow (empty on
+ * suggest rows, which have no fields).
+ */
+export interface SearchRow {
+  readonly id: string;
+  readonly type: SearchEntityType;
+  readonly source: SearchSource;
+  readonly title: string;
+  readonly subtitle: string;
+  readonly href: string | null;
+  readonly fields: Record<string, unknown>;
 }
 
-export function isOrganization(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'ORGANIZATION';
+/** Grouped suggest rows for the omnibar, mapped to the render model. */
+export interface SuggestGroupRows {
+  readonly type: SearchEntityType;
+  readonly source: SearchSource;
+  readonly rows: readonly SearchRow[];
 }
 
-export function isComponent(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'NON_VULNERABLE_COMPONENT';
+// -----------------------------------------------------------------------------
+// Adapters: wire -> render model
+// -----------------------------------------------------------------------------
+
+export function suggestRowToSearchRow(row: SuggestRow): SearchRow {
+  return {
+    id: row.id,
+    type: row.type,
+    source: row.source,
+    title: row.title,
+    subtitle: row.subtitle ?? '',
+    href: row.href ?? null,
+    fields: {},
+  };
 }
 
-export function isVulnerability(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'SECURITY_VULNERABILITY';
+export function resultRowToSearchRow(row: ResultRow): SearchRow {
+  return {
+    id: row.id,
+    type: row.type,
+    source: row.source,
+    title: row.title,
+    subtitle: row.subtitle ?? '',
+    href: row.href ?? null,
+    fields: row.fields ?? {},
+  };
 }
 
-export function isPolicy(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'POLICY';
+// -----------------------------------------------------------------------------
+// Type helpers on the render model
+// -----------------------------------------------------------------------------
+
+export function isApplication(r: SearchRow): boolean {
+  return r.type === 'APPLICATION';
 }
 
-export function isPolicyViolation(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'POLICY_VIOLATION';
+export function isComponent(r: SearchRow): boolean {
+  return r.type === 'COMPONENT';
 }
 
-export function isWaiver(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'WAIVER';
+export function isVulnerability(r: SearchRow): boolean {
+  return r.type === 'VULNERABILITY';
 }
 
-export function isSbomMetadata(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'SBOM_METADATA';
+export function isViolation(r: SearchRow): boolean {
+  return r.type === 'VIOLATION';
 }
 
-export function isApplicationCategory(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'APPLICATION_CATEGORY';
-}
-
-export function isComponentLabel(r: SearchResultItemDTO): boolean {
-  return r.itemType === 'COMPONENT_LABEL';
+export function isWaiver(r: SearchRow): boolean {
+  return r.type === 'WAIVER';
 }
 
 /**
- * Phase 1: which item types we render as rows in the typeahead and full
- * results page.
- *
- * Excluded:
- *   - APPLICATION_CATEGORY, COMPONENT_LABEL — these are filter values
- *     (used in the sidebar), not destinations.
- *   - SBOM_METADATA — the indexed fields are limited to sbomSpecification
- *     ("CycloneDX 1.6", "SPDX 2.3") + sbomVersion, which aren't useful
- *     free-text typeahead signals; the bucket also covers ONLY
- *     third-party SBOMs uploaded via SBOM Manager (it does NOT include
- *     SBOMs IQ generates from scans). Components and vulnerabilities
- *     *inside* third-party SBOMs already surface as regular component /
- *     vulnerability rows. Deferred to Phase 2 — see useGlobalSearch.ts
- *     ENTITY_BUCKETS comment for rationale.
+ * The five entity types rendered as rows / tabs, in fixed presentation order
+ * (matches the results-page tab order: Applications, Components, Vulnerabilities, Violations,
+ * Waivers).
  */
-export const RENDERED_ITEM_TYPES: readonly ItemType[] = [
+export const RENDERED_ITEM_TYPES: readonly SearchEntityType[] = [
   'APPLICATION',
-  'ORGANIZATION',
-  'NON_VULNERABLE_COMPONENT',
-  'SECURITY_VULNERABILITY',
-  'POLICY_VIOLATION',
+  'COMPONENT',
+  'VULNERABILITY',
+  'VIOLATION',
   'WAIVER',
-  'POLICY',
 ];
 
-export function isRenderedType(r: SearchResultItemDTO): boolean {
-  return (RENDERED_ITEM_TYPES as readonly string[]).includes(r.itemType);
+/**
+ * Narrows an arbitrary tab id / token to a SearchEntityType. Tab ids travel as plain
+ * strings (a tab id may also be the All sentinel, and the tab-change callback hands back
+ * `tab.id`), so a keyed lookup into a `Record<SearchEntityType, …>` needs the compiler to
+ * be shown the key is one of the five rather than being told to assume it with a cast.
+ */
+export function isSearchEntityType(value: string): value is SearchEntityType {
+  return (RENDERED_ITEM_TYPES as readonly string[]).includes(value);
 }
 
 /**
  * Human-readable label per entity type. Single source of truth shared by the omnibar section headers
  * (SearchOmnibar) and the /search results-page tabs (SearchResultsTabs) so the two surfaces can never
- * disagree on a label. Entity types with no dedicated search surface map to an empty string.
+ * disagree on a label.
  */
-export const ITEM_TYPE_LABEL: Record<ItemType, string> = {
+export const ITEM_TYPE_LABEL: Record<SearchEntityType, string> = {
+  VULNERABILITY: 'Vulnerabilities',
+  COMPONENT: 'Components',
   APPLICATION: 'Applications',
-  ORGANIZATION: 'Organizations',
-  NON_VULNERABLE_COMPONENT: 'Components',
-  SECURITY_VULNERABILITY: 'Vulnerabilities',
-  POLICY_VIOLATION: 'Policy Violations',
+  VIOLATION: 'Policy Violations',
   WAIVER: 'Waivers',
-  APPLICATION_CATEGORY: '',
-  COMPONENT_LABEL: '',
-  POLICY: 'Policies',
-  SBOM_METADATA: '',
 };
 
 /**
- * Display name for a result row. Used in the typeahead row primary text
- * and in result cards. Falls back through reasonable defaults if the
- * primary name field is missing.
+ * The results tab id (uppercase) for a rendered entity type. Identity today since
+ * the render type and the Tab enum share names, but kept as a function so the two
+ * can diverge without touching call sites.
  */
+export function tabIdForType(type: SearchEntityType): ResultsTab {
+  return type;
+}
+
 /**
  * Single source-label helper for a vulnerability id, shared by the omnibar row and the /search results page so
  * the two surfaces can never label the same vulnerability differently. Mirrors the prefix logic in
@@ -246,42 +260,21 @@ export function vulnerabilitySourceLabel(vulnerabilityId: string | undefined): s
   const id = (vulnerabilityId ?? '').toUpperCase();
   if (id.startsWith('CVE-')) return 'CVE';
   if (id.startsWith('GHSA-')) return 'GHSA';
-  if (id.startsWith('SONATYPE-')) return 'Sonatype';
+  // SONATYPE- needs no branch of its own: it shares the default. A prefix added to
+  // VulnerabilityUrlBuilder without a branch here lands on "Sonatype" rather than
+  // failing visibly, so a new source needs its own case adding above.
   return 'Sonatype';
 }
 
-export function displayNameFor(r: SearchResultItemDTO): string {
-  if (isApplication(r)) return r.applicationName || r.applicationPublicId || 'Unknown application';
-  if (isOrganization(r)) return r.organizationName || 'Unknown organization';
-  if (isComponent(r)) return r.componentName || r.componentHash || 'Unknown component';
-  if (isVulnerability(r)) return r.vulnerabilityId || 'Unknown vulnerability';
-  if (isPolicy(r)) return r.policyName || 'Unknown policy';
-  if (isPolicyViolation(r)) {
-    return r.policyViolationPolicyName || r.componentName || 'Unknown policy violation';
-  }
-  if (isWaiver(r)) {
-    return r.policyViolationPolicyName || r.componentName || 'Unknown waiver';
-  }
-  if (isSbomMetadata(r)) return r.applicationName || r.reportId || 'SBOM document';
-  if (isApplicationCategory(r)) return r.applicationCategoryName || '';
-  if (isComponentLabel(r)) return r.componentLabelName || '';
-  return '';
+/** Display name for a result row: the backend title, falling back to the id. */
+export function displayNameFor(r: SearchRow): string {
+  return r.title || r.id || '';
 }
 
 /**
- * Stable React key for a search result. Falls back to multiple identity
- * fields because the backend doesn't promise a single ID across types.
+ * Stable React key for a search result. The backend guarantees a unique id per
+ * row within a response, scoped by type + source to avoid cross-source collisions.
  */
-export function reactKeyFor(r: SearchResultItemDTO): string {
-  if (isApplication(r)) return `app:${r.applicationId ?? r.applicationPublicId}`;
-  if (isOrganization(r)) return `org:${r.organizationId}`;
-  if (isComponent(r)) return `comp:${r.componentHash}`;
-  if (isVulnerability(r)) return `vuln:${r.vulnerabilityId}`;
-  if (isPolicy(r)) return `policy:${r.policyId}`;
-  if (isPolicyViolation(r)) return `pviolation:${r.policyViolationId ?? r.resultIndex}`;
-  if (isWaiver(r)) return `waiver:${r.policyViolationId ?? r.resultIndex}`;
-  if (isSbomMetadata(r)) return `sbom:${r.reportId ?? r.applicationId}`;
-  if (isApplicationCategory(r)) return `cat:${r.applicationCategoryId}`;
-  if (isComponentLabel(r)) return `label:${r.componentLabelId}`;
-  return `${r.itemType}:${r.resultIndex}`;
+export function reactKeyFor(r: SearchRow): string {
+  return `${r.type}:${r.source}:${r.id}`;
 }

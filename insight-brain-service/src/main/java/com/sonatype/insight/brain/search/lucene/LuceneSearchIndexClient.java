@@ -331,7 +331,7 @@ public class LuceneSearchIndexClient
   /** {@code request.baseQuery()} MUST already be permission-wrapped; this runs it verbatim. */
   @Override
   public GlobalSearchResult searchGlobal(final GlobalSearchRequest request) {
-    if (!isGlobalSearchEnabled()) {
+    if (!isSearchPreviewEnabled()) {
       throw new ConflictException("Global Search is disabled");
     }
     updateMaxQueryClauseCount();
@@ -407,9 +407,11 @@ public class LuceneSearchIndexClient
   }
 
   /**
-   * {@link SortedNumericSortField#getType()} is always {@link SortField.Type#CUSTOM}; cursor
-   * encode/decode must use {@link SortedNumericSortField#getNumericType()} (LONG/FLOAT/…) so
-   * Ana/index-query sorts (created-at, threat level, latest evaluation) can mint {@code nextSearchAfter}.
+   * The type of the values a sort field places in a {@link FieldDoc} tuple.
+   * {@link SortedNumericSortField#getType()} is always {@link SortField.Type#CUSTOM} (it
+   * comparator-wraps the numeric type), so the tuple slots must be encoded/decoded from {@link
+   * SortedNumericSortField#getNumericType()} instead; reading {@code getType()} there rejects every
+   * numeric sort cursor as unsupported.
    */
   static SortField.Type sortValueType(final SortField sortField) {
     if (sortField instanceof SortedNumericSortField sortedNumeric) {

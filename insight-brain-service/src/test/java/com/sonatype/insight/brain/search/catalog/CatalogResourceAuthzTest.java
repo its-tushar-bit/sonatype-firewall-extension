@@ -32,7 +32,7 @@ public class CatalogResourceAuthzTest
 {
   @Before
   public void enableGlobalSearch() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     // Left OFF so the catalog source degrades gracefully without exercising an HDS/catalog backend.
     SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
     grantReadPermission(org.getId());
@@ -40,7 +40,7 @@ public class CatalogResourceAuthzTest
 
   @After
   public void disableGlobalSearch() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
   }
 
   @Override

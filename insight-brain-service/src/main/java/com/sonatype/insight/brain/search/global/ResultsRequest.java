@@ -32,6 +32,8 @@ package com.sonatype.insight.brain.search.global;
  * {@link #DEEP_PAGINATION_THRESHOLD}; deeper paging (offset &ge; {@code DEEP_PAGINATION_THRESHOLD})
  * requires {@code searchAfter}.</li>
  * <li>When both {@code page} and {@code searchAfter} are provided, {@code searchAfter} wins.</li>
+ * <li>{@code includeFacets} and {@code includeTabCounts} are opt-in cost parameters, both defaulting to
+ * {@code false}.</li>
  * </ul>
  */
 public final class ResultsRequest
@@ -69,6 +71,10 @@ public final class ResultsRequest
 
   private final SearchSource source;
 
+  private final boolean includeFacets;
+
+  private final boolean includeTabCounts;
+
   public ResultsRequest(
       String q,
       Tab tab,
@@ -89,6 +95,33 @@ public final class ResultsRequest
       String searchAfter,
       SearchSource source)
   {
+    this(q, tab, page, pageSize, sort, searchAfter, source, false);
+  }
+
+  public ResultsRequest(
+      String q,
+      Tab tab,
+      Integer page,
+      Integer pageSize,
+      String sort,
+      String searchAfter,
+      SearchSource source,
+      boolean includeFacets)
+  {
+    this(q, tab, page, pageSize, sort, searchAfter, source, includeFacets, false);
+  }
+
+  public ResultsRequest(
+      String q,
+      Tab tab,
+      Integer page,
+      Integer pageSize,
+      String sort,
+      String searchAfter,
+      SearchSource source,
+      boolean includeFacets,
+      boolean includeTabCounts)
+  {
     int p = page == null ? 1 : page;
     if (p < 1) {
       throw new IllegalArgumentException("page must be >= 1");
@@ -104,6 +137,8 @@ public final class ResultsRequest
     this.sort = sort;
     this.searchAfter = searchAfter;
     this.source = source == null ? SearchSource.DEFAULT : source;
+    this.includeFacets = includeFacets;
+    this.includeTabCounts = includeTabCounts;
   }
 
   public String getQ() {
@@ -132,6 +167,25 @@ public final class ResultsRequest
 
   public SearchSource getSource() {
     return source;
+  }
+
+  /**
+   * Whether the caller asked for per-tab facet buckets. Default {@code false} so the count-only
+   * tabCount probes and the {@link Tab#ALL} packing never pay for facet counts. Facets are computed
+   * only for a single IQ-local entity tab (see {@link ResultsService}).
+   */
+  public boolean isIncludeFacets() {
+    return includeFacets;
+  }
+
+  /**
+   * Whether the caller asked for the sibling per-tab count badges on a single-tab response. Default
+   * {@code false}: populating them costs one extra count-only search per sibling section (five today) on
+   * top of the caller's own page search, so a caller that renders a single tab's rows must opt in. The
+   * probe additionally runs only on the first page of a single entity tab (see {@link ResultsService}).
+   */
+  public boolean isIncludeTabCounts() {
+    return includeTabCounts;
   }
 
   /** When {@code searchAfter} is present we treat it as the authoritative cursor and ignore {@code page}. */

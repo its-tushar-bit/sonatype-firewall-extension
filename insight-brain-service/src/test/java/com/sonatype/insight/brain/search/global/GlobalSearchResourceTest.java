@@ -70,8 +70,8 @@ public class GlobalSearchResourceTest
 
   @Test
   public void results_flagOff_throwsNotFoundAndNeverDelegates() {
-    // GLOBAL_SEARCH default is OFF (enabledWhenAbsent=false, no property row written).
-    assertThatThrownBy(() -> underTest.getResults("q", "APPLICATION", 1, 25, null, null, null))
+    // PREVIEW_NEXUS_ONE_UI default is OFF (enabledWhenAbsent=false, no property row written).
+    assertThatThrownBy(() -> underTest.getResults("q", "APPLICATION", 1, 25, null, null, null, null, null))
         .isInstanceOf(NotFoundException.class);
     verify(resultsService, never()).search(any());
   }
@@ -80,42 +80,42 @@ public class GlobalSearchResourceTest
   public void results_flagOff_missingQuery_returns404NotBadRequest() {
     // The flag gate must run before input validation so a flag-off endpoint cannot leak its existence
     // via a 400 response.
-    assertThatThrownBy(() -> underTest.getResults(null, "APPLICATION", 1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults(null, "APPLICATION", 1, 25, null, null, null, null, null))
         .isInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void results_flagOff_oversizeQuery_returns404NotBadRequest() {
     String oversize = "x".repeat(GlobalSearchResource.MAX_QUERY_LENGTH + 1);
-    assertThatThrownBy(() -> underTest.getResults(oversize, "APPLICATION", 1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults(oversize, "APPLICATION", 1, 25, null, null, null, null, null))
         .isInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void results_flagOff_invalidTab_returns404NotBadRequest() {
-    assertThatThrownBy(() -> underTest.getResults("q", "NOT_A_REAL_TAB", 1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults("q", "NOT_A_REAL_TAB", 1, 25, null, null, null, null, null))
         .isInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void results_flagOff_negativePage_returns404NotBadRequest() {
-    assertThatThrownBy(() -> underTest.getResults("q", "APPLICATION", -1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults("q", "APPLICATION", -1, 25, null, null, null, null, null))
         .isInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void results_flagOn_missingQuery_returns400() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     stubAuthorizedCaller();
-    assertThatThrownBy(() -> underTest.getResults(null, "APPLICATION", 1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults(null, "APPLICATION", 1, 25, null, null, null, null, null))
         .isInstanceOf(BadRequestException.class);
   }
 
   @Test
   public void results_flagOn_invalidTab_returns400_withoutEchoingInput() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     stubAuthorizedCaller();
-    assertThatThrownBy(() -> underTest.getResults("q", "NOT_A_REAL_TAB", 1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults("q", "NOT_A_REAL_TAB", 1, 25, null, null, null, null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("unknown tab")
         .hasMessageNotContaining("NOT_A_REAL_TAB");
@@ -123,10 +123,10 @@ public class GlobalSearchResourceTest
 
   @Test
   public void results_flagOn_oversizeTab_returns400_withoutEchoingInput() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     stubAuthorizedCaller();
     String oversize = "A".repeat(GlobalSearchResource.MAX_TAB_LENGTH + 1);
-    assertThatThrownBy(() -> underTest.getResults("q", oversize, 1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults("q", oversize, 1, 25, null, null, null, null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessageNotContaining(oversize);
     verify(resultsService, never()).search(any());
@@ -134,10 +134,10 @@ public class GlobalSearchResourceTest
 
   @Test
   public void results_flagOn_oversizeSort_returns400_withoutEchoingInput() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     stubAuthorizedCaller();
     String oversize = "A".repeat(GlobalSearchResource.MAX_SORT_LENGTH + 1);
-    assertThatThrownBy(() -> underTest.getResults("q", "APPLICATION", 1, 25, oversize, null, null))
+    assertThatThrownBy(() -> underTest.getResults("q", "APPLICATION", 1, 25, oversize, null, null, null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessageNotContaining(oversize);
     verify(resultsService, never()).search(any());
@@ -147,24 +147,25 @@ public class GlobalSearchResourceTest
   public void results_flagOn_withControlChars_returns400() {
     // Control-char validation must reject newline, tab, and embedded NUL. Every one of these
     // slipping through would allow header injection or garbled query logs.
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     stubAuthorizedCaller();
-    assertThatThrownBy(() -> underTest.getResults("alpha\nbeta", "APPLICATION", 1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults("alpha\nbeta", "APPLICATION", 1, 25, null, null, null, null, null))
         .isInstanceOf(BadRequestException.class);
-    assertThatThrownBy(() -> underTest.getResults("alpha\u0000beta", "APPLICATION", 1, 25, null, null, null))
-        .isInstanceOf(BadRequestException.class);
+    assertThatThrownBy(
+        () -> underTest.getResults("alpha\u0000beta", "APPLICATION", 1, 25, null, null, null, null, null))
+            .isInstanceOf(BadRequestException.class);
     verify(resultsService, never()).search(any());
   }
 
   @Test
   public void results_flagOn_validInput_delegatesToService() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     stubAuthorizedCaller();
     ResultsResponse expected = new ResultsResponse(Tab.APPLICATION, 1, 25, 0L, List.of(), null);
     when(resultsService.search(any())).thenReturn(expected);
 
     ResultsResponse actual =
-        (ResultsResponse) underTest.getResults("q", "APPLICATION", 1, 25, null, null, null).getEntity();
+        (ResultsResponse) underTest.getResults("q", "APPLICATION", 1, 25, null, null, null, null, null).getEntity();
     assertThat(actual).isSameAs(expected);
   }
 
@@ -172,13 +173,13 @@ public class GlobalSearchResourceTest
   public void results_flagOn_scopedUserWithOrgGrant_isAuthorized() {
     // Non-admin user with READ on {org-1, app-1} (no global sentinel) passes the read-context gate;
     // the service layer applies per-principal row filtering downstream.
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of("org-1", "app-1"));
     ResultsResponse expected = new ResultsResponse(Tab.APPLICATION, 1, 25, 0L, List.of(), null);
     when(resultsService.search(any())).thenReturn(expected);
 
     ResultsResponse actual =
-        (ResultsResponse) underTest.getResults("q", "APPLICATION", 1, 25, null, null, null).getEntity();
+        (ResultsResponse) underTest.getResults("q", "APPLICATION", 1, 25, null, null, null, null, null).getEntity();
 
     assertThat(actual).isSameAs(expected);
     verify(resultsService).search(any());
@@ -189,14 +190,14 @@ public class GlobalSearchResourceTest
     // Compiler warnings from the AST pipeline surface both inline (in the JSON body) and via the
     // X-Search-Warnings response header, ASCII-encoded so the header write cannot crash on
     // non-ASCII characters (em-dashes, accented field names, etc.).
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     stubAuthorizedCaller();
     ResultsResponse expected = new ResultsResponse(
         Tab.APPLICATION, 1, 25, 0L, List.of(), null,
         List.of("Unknown filter \"bogus\" \u2014 ignored."));
     when(resultsService.search(any())).thenReturn(expected);
 
-    jakarta.ws.rs.core.Response resp = underTest.getResults("q", "APPLICATION", 1, 25, null, null, null);
+    jakarta.ws.rs.core.Response resp = underTest.getResults("q", "APPLICATION", 1, 25, null, null, null, null, null);
 
     String header = resp.getHeaderString("X-Search-Warnings");
     assertThat(header).as("header must be present when body carries warnings").isNotNull();
@@ -210,22 +211,22 @@ public class GlobalSearchResourceTest
 
   @Test
   public void results_noWarnings_omitsXSearchWarningsHeader() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     stubAuthorizedCaller();
     ResultsResponse expected = new ResultsResponse(Tab.APPLICATION, 1, 25, 0L, List.of(), null);
     when(resultsService.search(any())).thenReturn(expected);
 
-    jakarta.ws.rs.core.Response resp = underTest.getResults("q", "APPLICATION", 1, 25, null, null, null);
+    jakarta.ws.rs.core.Response resp = underTest.getResults("q", "APPLICATION", 1, 25, null, null, null, null, null);
 
     assertThat(resp.getHeaderString("X-Search-Warnings")).isNull();
   }
 
   @Test
   public void results_flagOn_userWithNoReadGrants_throwsForbiddenAndNeverDelegates() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
 
-    assertThatThrownBy(() -> underTest.getResults("q", "APPLICATION", 1, 25, null, null, null))
+    assertThatThrownBy(() -> underTest.getResults("q", "APPLICATION", 1, 25, null, null, null, null, null))
         .isInstanceOf(ForbiddenException.class);
     verify(resultsService, never()).search(any());
   }

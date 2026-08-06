@@ -72,7 +72,7 @@ public class IndexQueryAppsViolationsTest
   @Before
   public void setUp() throws Exception {
     SystemConfigurationPropertyFeatureTestSupport.install();
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
     directory = new ByteBuffersDirectory();
     PerFieldAnalyzerWrapper analyzer =
@@ -98,7 +98,7 @@ public class IndexQueryAppsViolationsTest
     conversionHelper = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
 
     searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of("org-1"));
     when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
@@ -485,7 +485,7 @@ public class IndexQueryAppsViolationsTest
         ConversionHelper realConversion = new ConversionHelper(new LuceneComponents(mock(InsightWork.class)));
 
         SearchIndexClient client = mock(SearchIndexClient.class);
-        when(client.isGlobalSearchEnabled()).thenReturn(true);
+        when(client.isSearchPreviewEnabled()).thenReturn(true);
         when(client.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of("org-1"));
         when(client.buildAllowedContextIdsFilter(any())).thenReturn(null);
         when(client.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));

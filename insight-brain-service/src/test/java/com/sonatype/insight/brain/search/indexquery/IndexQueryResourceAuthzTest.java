@@ -36,10 +36,10 @@ public class IndexQueryResourceAuthzTest
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
     searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
@@ -76,7 +76,7 @@ public class IndexQueryResourceAuthzTest
   @Test
   public void flagOff_mapsTo404_forAuthorizedCaller() {
     grantRead("org-1");
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
     assertMappedStatus(applicationRequest(), 404);
   }
 

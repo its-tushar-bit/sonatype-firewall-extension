@@ -223,7 +223,7 @@ public class ResultsCursorTest
     // back as searchAfter and asserts the follow-up search does NOT 410 and returns the next rows
     // with zero overlap with page 1.
     SearchIndexClient index = mock(SearchIndexClient.class);
-    when(index.isGlobalSearchEnabled()).thenReturn(true);
+    when(index.isSearchPreviewEnabled()).thenReturn(true);
     when(index.getCurrentUserContextIdsWithReadPermission()).thenReturn(java.util.Set.of("org-1"));
     when(index.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(index.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
@@ -244,7 +244,8 @@ public class ResultsCursorTest
     IqLocalSearchService iqService = new IqLocalSearchService(index,
         com.sonatype.insight.brain.search.global.fieldmap.FieldMap.defaultMap());
     GlobalSearchResultsIqLocalClientImpl iqClient = new GlobalSearchResultsIqLocalClientImpl(iqService);
-    ResultsService service = new ResultsService(iqClient, mock(GlobalSearchResultsCatalogClient.class));
+    ResultsService service = new ResultsService(iqClient, mock(GlobalSearchResultsCatalogClient.class),
+        UnusedIndexQueryServices.throwOnUse());
 
     ResultsRequest page1Req = new ResultsRequest("acme", Tab.APPLICATION, 1, 25, null, null);
     ResultsResponse page1 = service.search(page1Req);
@@ -286,7 +287,7 @@ public class ResultsCursorTest
     when(iq.searchNative(any())).thenReturn(Optional.of(SectionResult.empty(Tab.APPLICATION)));
     when(catalog.isEnabled()).thenReturn(false);
     when(catalog.searchResults(any())).thenReturn(Optional.empty());
-    ResultsService service = new ResultsService(iq, catalog);
+    ResultsService service = new ResultsService(iq, catalog, UnusedIndexQueryServices.throwOnUse());
 
     Map<Tab, AllTabCursor.SectionCursor> cursors = new EnumMap<>(Tab.class);
     cursors.put(Tab.APPLICATION, AllTabCursor.SectionCursor.nonExhausted(null, 1));

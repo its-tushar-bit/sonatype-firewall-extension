@@ -16,15 +16,12 @@ import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.global.catalog.GlobalSearchCatalogHdsClient;
 import com.sonatype.insight.brain.search.global.catalog.GlobalSearchSuggestCatalogClient;
 import com.sonatype.insight.brain.search.global.catalog.GlobalSearchSuggestCatalogClientImpl;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.Multimap;
 import jakarta.ws.rs.BadRequestException;
@@ -63,12 +60,6 @@ public class SuggestEndpointTest
   private GlobalSearchCatalogHdsClient hdsClient;
 
   @Mock
-  private ProductLicense productLicense;
-
-  @Mock
-  private TenantUtil tenantUtil;
-
-  @Mock
   private SearchIndexClient searchIndexClient;
 
   @Mock
@@ -84,13 +75,14 @@ public class SuggestEndpointTest
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+    // CATALOG_FEDERATION defaults off; the resource rejects ?source=catalog while it is off, so the
+    // catalog-source cases below must switch it on.
+    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
 
     iqLocal = new FakeIqLocal();
-    when(tenantUtil.isMultiTenant()).thenReturn(false);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(true);
     GlobalSearchSuggestCatalogClient catalog =
-        new GlobalSearchSuggestCatalogClientImpl(hdsClient, productLicense, tenantUtil);
+        new GlobalSearchSuggestCatalogClientImpl(hdsClient);
 
     when(currentUser.getUsernameOrSystem()).thenReturn("tester");
     when(currentUser.getUserPrincipal()).thenReturn(principal);
@@ -110,7 +102,7 @@ public class SuggestEndpointTest
 
   @Test
   public void globalSearchFlagOff_endpointReturns404() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
     assertThatThrownBy(() -> resource.suggest("alpha", null)).isInstanceOf(NotFoundException.class);
   }
 
@@ -118,6 +110,29 @@ public class SuggestEndpointTest
   public void userWithNoReadGrants_endpointReturns403() {
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     assertThatThrownBy(() -> resource.suggest("alpha", null)).isInstanceOf(ForbiddenException.class);
+  }
+
+  @Test
+  public void catalogFederationOff_catalogSourceRejected_withoutReachingHds() {
+    // The frontend hides the catalog toggle when CATALOG_FEDERATION is off; the backend must enforce the
+    // same flag rather than trust that clamp, or a hand-crafted ?source=catalog reaches HDS anyway.
+    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+
+    assertThatThrownBy(() -> resource.suggest("alpha", "catalog"))
+        .isInstanceOf(BadRequestException.class);
+    verifyNoInteractions(hdsClient);
+  }
+
+  @Test
+  public void catalogFederationOff_localSourceStillServed() {
+    // The flag gates only the catalog source; the default local source is unaffected.
+    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+    iqLocal.add(row(SuggestItemType.APPLICATION, "app-1", "App One", SearchSource.LOCAL));
+
+    SuggestResponse response = resource.suggest("alpha", "local");
+
+    assertThat(response.catalogAvailable()).isNull();
+    verifyNoInteractions(hdsClient);
   }
 
   @Test

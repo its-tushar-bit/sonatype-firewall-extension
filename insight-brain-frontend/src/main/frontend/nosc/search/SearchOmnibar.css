@@ -5,237 +5,136 @@
  */
 
 /*
- * CLM-39549 / P1-F5: SearchOmnibar dropdown + row styling.
+ * Global-search omnibar styling.
  *
- * Hard-ported from Sonatype Guide (seaworthy/ui):
- *   - apps/seaworthy/ui/src/components/search/SearchWithSuggestions.module.css
- *   - apps/seaworthy/ui/src/components/search/SearchSuggestionItem.tsx
+ * The omnibar's geometry (the expand-in-place card, the header row, row
+ * padding) lives inline on the components so it stays in lock-step with the
+ * Nexus One prototype's spec values. This file carries only what CSS does
+ * better: the listbox row highlight, the shared hover/active treatment, and
+ * the small typographic details that would otherwise be repeated inline on
+ * every row.
  *
- * Visual contract is intentionally identical to Guide so the omnibar
- * looks the same in Lifecycle's Preview UI and at guide.sonatype.com —
- * this is the Phase 1 promise of "Nexus One UI" consistency.
- *
- * Deviations from Guide:
- *   - Section eyebrows (VULNERABILITIES, COMPONENTS, etc.) — Guide groups
- *     by ItemType in the data layer with no on-screen heading; Lifecycle's
- *     omnibar surfaces multiple ItemTypes so we add eyebrows.
- *   - "See all N results" footer — Guide has a separate /search page
- *     navigation via form submit; Lifecycle uses the same dropdown with
- *     an explicit affordance.
+ * All colors resolve through Radix theme vars so light/dark mode follows the
+ * user's TopNav choice with no hardcoded values.
  */
 
+/* Data-source trigger, left of the input in the expanded card's header. Sized
+ * so the longer "Sonatype Catalog" label never truncates, and pinned against
+ * shrink so the input absorbs the remaining width. */
+.nosc-search-datasource-trigger {
+  flex: 0 0 auto;
+  min-width: 11rem;
+  white-space: nowrap;
+}
+
 /* ─────────────────────────────────────────────────────────────────────
- *  DROPDOWN SHELL  (mirror of Guide's `.suggestions-dropdown`)
+ *  LISTBOX OPTIONS
+ *
+ *  Every panel row (recent search, result, "Show results for",
+ *  "View more results") renders through ListboxOption. The highlight is
+ *  painted here rather than inline so pointer hover and keyboard
+ *  aria-activedescendant produce exactly the same treatment.
  * ──────────────────────────────────────────────────────────────────── */
-.nosc-search-omnibar-dropdown {
-  /* Anchored 6px below the input by JS (top = inputBottom + 6) */
-  z-index: 100;
-  max-height: 480px;
-  overflow-y: auto;
+.nosc-search-option {
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
 
-  /* Guide's elevation contract: solid panel, soft border, lift shadow */
-  background-color: var(--color-panel-solid);
-  border: 1px solid var(--gray-5);
-  border-radius: var(--radius-3);
-  box-shadow: var(--shadow-4);
+.nosc-search-option:hover,
+.nosc-search-option[data-active] {
+  background-color: var(--gray-3);
+}
 
-  /* Sane scrollbar so it doesn't look like a Win98 inset */
+/* Leading 24px slot: type icon or numeric severity pill. The muted color
+ * applies to icons; Radix Badge sets its own color and is unaffected. */
+.nosc-search-icon-slot {
+  color: var(--gray-9);
+}
+
+/* Trailing "Jump to" affordance. Matches Radix Text size="2" weight="medium"
+ * color="gray" without nesting another Text per row. */
+.nosc-search-jump-to {
+  flex-shrink: 0;
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-11);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+ *  RESULTS STACK
+ *
+ *  A listbox admits only options, so the tab strip cannot be nested
+ *  inside one. It is rendered between the two listboxes in the DOM and
+ *  ordered back into position visually: the "Show results for" listbox
+ *  first, then the tabs, then the row listbox.
+ * ──────────────────────────────────────────────────────────────────── */
+.nosc-search-results-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.nosc-search-results-stack__lead {
+  order: 1;
+}
+
+.nosc-search-results-stack__tabs {
+  order: 2;
+}
+
+.nosc-search-results-stack__rows {
+  order: 3;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+ *  TAB STRIP
+ *
+ *  Plain buttons in a `tablist` (see SearchPanelTabs for why not Radix
+ *  Tabs), so the underline + hover treatment is defined here instead of
+ *  inherited from Radix's Tabs styling.
+ * ──────────────────────────────────────────────────────────────────── */
+.nosc-search-tablist {
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  box-shadow: inset 0 -1px 0 0 var(--gray-a5);
+}
+
+.nosc-search-tab {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: var(--space-2) 0;
+  margin: 0;
+  cursor: pointer;
+  color: var(--gray-11);
+  white-space: nowrap;
+  /* Reserve the selected underline so selecting a tab doesn't shift the row. */
+  box-shadow: inset 0 -2px 0 0 transparent;
+}
+
+.nosc-search-tab:hover:not(:disabled) {
+  color: var(--gray-12);
+}
+
+.nosc-search-tab[data-selected] {
+  color: var(--gray-12);
+  font-weight: var(--font-weight-medium);
+  box-shadow: inset 0 -2px 0 0 var(--accent-9);
+}
+
+.nosc-search-tab:disabled {
+  cursor: default;
+  color: var(--gray-8);
+}
+
+.nosc-search-tab:focus-visible {
+  outline: 2px solid var(--focus-8);
+  outline-offset: -2px;
+  border-radius: var(--radius-1);
+}
+
+/* The expanded card scrolls its body, not the page. Keep the scrollbar subtle
+ * so the panel doesn't gain heavy chrome at max-height. */
+.nosc-search-omnibar-surface[data-open] {
   scrollbar-width: thin;
   scrollbar-color: var(--gray-7) transparent;
-}
-
-.nosc-search-omnibar-dropdown ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* ─────────────────────────────────────────────────────────────────────
- *  SECTION EYEBROW  (Lifecycle-only; no Guide analog)
- * ──────────────────────────────────────────────────────────────────── */
-.nosc-search-section-eyebrow {
-  padding: 12px 16px 4px;
-  background-color: var(--gray-1);
-  border-top: 1px solid var(--gray-4);
-}
-
-/* First eyebrow has no top border (the dropdown's own border handles it) */
-.nosc-search-omnibar-dropdown ul > li.nosc-search-section-eyebrow:first-child {
-  border-top: none;
-}
-
-.nosc-search-section-eyebrow-text {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gray-11);
-  line-height: 1;
-}
-
-/* ─────────────────────────────────────────────────────────────────────
- *  ROW  (port of Guide's `.suggestion-item`)
- * ──────────────────────────────────────────────────────────────────── */
-.nosc-search-row {
-  cursor: pointer;
-  padding: var(--space-3) var(--space-4);   /* 12px 16px */
-  border-bottom: 1px solid var(--gray-4);
-  transition: background-color 150ms ease;
-}
-
-.nosc-search-row:last-child {
-  border-bottom: none;
-}
-
-/* When the next sibling is a section eyebrow, drop the bottom border so
- * the eyebrow's top border isn't doubled up against the row divider. */
-.nosc-search-row:has(+ .nosc-search-section-eyebrow) {
-  border-bottom: none;
-}
-
-.nosc-search-row:hover,
-.nosc-search-row[data-selected="true"] {
-  background-color: var(--gray-3);
-}
-
-/* Row internal layout: [icon] [name + subtitle stack] [badge] */
-.nosc-search-row__inner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);   /* 12px */
-  min-width: 0;
-}
-
-.nosc-search-row__icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-}
-
-.nosc-search-row__body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex-grow: 1;
-  min-width: 0;
-}
-
-.nosc-search-row__name {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--gray-12);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.nosc-search-row__subtitle {
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.4;
-  color: var(--gray-11);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.nosc-search-row__badge {
-  flex-shrink: 0;
-}
-
-/* ─────────────────────────────────────────────────────────────────────
- *  SKELETON ROW  (port of Guide's `SearchSuggestionItemSkeleton`)
- * ──────────────────────────────────────────────────────────────────── */
-.nosc-search-row--skeleton {
-  cursor: default;
-}
-
-.nosc-search-row--skeleton:hover {
-  background-color: transparent;
-}
-
-/* ─────────────────────────────────────────────────────────────────────
- *  EMPTY / ERROR STATES
- * ──────────────────────────────────────────────────────────────────── */
-.nosc-search-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 24px 16px;
-}
-
-.nosc-search-empty-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--gray-12);
-}
-
-.nosc-search-empty-subtitle {
-  font-size: 12px;
-  color: var(--gray-11);
-}
-
-/* ─────────────────────────────────────────────────────────────────────
- *  "See all N results" FOOTER  (Lifecycle-only)
- * ──────────────────────────────────────────────────────────────────── */
-.nosc-search-see-all {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background-color: var(--gray-2);
-  border-top: 1px solid var(--gray-5);
-  cursor: pointer;
-  transition: background-color 150ms ease;
-}
-
-.nosc-search-see-all:hover {
-  background-color: var(--gray-3);
-}
-
-.nosc-search-see-all-primary {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-11);
-}
-
-.nosc-search-see-all-hint {
-  font-size: 11px;
-  color: var(--gray-10);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.nosc-search-see-all-kbd {
-  font-family: inherit;
-  font-size: 11px;
-  padding: 1px 6px;
-  border: 1px solid var(--gray-6);
-  border-radius: 3px;
-  background-color: var(--color-panel-solid);
-  color: var(--gray-12);
-  line-height: 1.4;
-}
-
-/* ─────────────────────────────────────────────────────────────────────
- *  ACCESSIBILITY
- * ──────────────────────────────────────────────────────────────────── */
-.nosc-search-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
 }

@@ -266,7 +266,7 @@ public interface SearchIndexClient
   }
 
   /** Default {@code false} so clients fail closed: an unwired feature flag reads as disabled. */
-  default boolean isGlobalSearchEnabled() {
+  default boolean isSearchPreviewEnabled() {
     return false;
   }
 

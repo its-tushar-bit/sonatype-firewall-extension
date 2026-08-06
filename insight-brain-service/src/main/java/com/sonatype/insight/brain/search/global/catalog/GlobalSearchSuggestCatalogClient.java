@@ -34,10 +34,14 @@ public interface GlobalSearchSuggestCatalogClient
   CatalogSuggestResult suggest(CatalogSuggestRequest request);
 
   /**
-   * Indicates whether the catalog source is entitled and feature-enabled. When this returns
-   * {@code false} the service skips the catalog leg entirely and reports {@code catalogAvailable:
-   * false}. Implementations MUST apply the same entitlement gate as the catalog list endpoint (deny
-   * multi-tenant, require the licensed catalog search feature).
+   * Indicates whether the catalog source is available. When this returns {@code false} the service skips
+   * the catalog leg entirely and reports {@code catalogAvailable: false}.
+   * <p>
+   * Catalog federation is base Nexus One functionality, so implementations MUST NOT gate on a license
+   * feature or on tenancy: it is available with any valid IQ license on both single-tenant and MTIQ
+   * deployments. The {@code PREVIEW_NEXUS_ONE_UI} feature checked upstream in the resource is the kill-switch for
+   * this surface; the default-off {@code CATALOG_FEDERATION} toggle gates the catalog browse endpoint
+   * only and MUST NOT be read here.
    */
   boolean isEnabled();
 }

@@ -113,7 +113,7 @@ public class OpenSearchSearchIndexClientTest
 
     client = spy(realClient);
     doReturn(openSearchClient).when(client).getClient();
-    doReturn(true).when(client).isGlobalSearchEnabled();
+    doReturn(true).when(client).isSearchPreviewEnabled();
   }
 
   @Test
@@ -230,6 +230,40 @@ public class OpenSearchSearchIndexClientTest
     var last = fieldSorts.get(fieldSorts.size() - 1).field();
     assertThat(last.field()).isEqualTo(FieldIdentifier.DOCUMENT_KEY.label);
     assertThat(last.order()).isEqualTo(org.opensearch.client.opensearch._types.SortOrder.Asc);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void searchGlobal_intTypedNumericSort_emitsSameFieldSortAsLongTyped() throws Exception {
+    // The Lucene threat sorts use SortField.Type.INT so the comparator width matches the 4-byte
+    // IntPoint the field is indexed with. OpenSearch takes only (field, direction) from the SortField
+    // and orders from its own `integer` mapping, so the emitted FieldSort is identical whether the
+    // Lucene-side type is INT or LONG — the width fix is Lucene-only and cannot skew OpenSearch order.
+    Hit<Map> hit = mock(Hit.class);
+    when(hit.source()).thenReturn(Map.of("itemType", "POLICY_VIOLATION"));
+    stubSearchResponse(List.of(hit), 1L);
+
+    org.apache.lucene.search.Sort intSort = new org.apache.lucene.search.Sort(
+        new org.apache.lucene.search.SortedNumericSortField(
+            FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+            org.apache.lucene.search.SortField.Type.INT, true));
+    client.searchGlobal(new GlobalSearchRequest(new MatchAllDocsQuery(), intSort, 10, List.of()));
+
+    ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+    org.mockito.Mockito.verify(openSearchClient).search(captor.capture(), eq(Map.class));
+    List<org.opensearch.client.opensearch._types.SortOptions> fieldSorts = captor.getValue()
+        .sort()
+        .stream()
+        .filter(org.opensearch.client.opensearch._types.SortOptions::isField)
+        .toList();
+    assertThat(fieldSorts.get(0).field().field())
+        .isEqualTo(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+    assertThat(fieldSorts.get(0).field().order())
+        .as("threat sorts highest-first on OpenSearch too")
+        .isEqualTo(org.opensearch.client.opensearch._types.SortOrder.Desc);
+    var tieBreak = fieldSorts.get(fieldSorts.size() - 1).field();
+    assertThat(tieBreak.field()).isEqualTo(FieldIdentifier.DOCUMENT_KEY.label);
+    assertThat(tieBreak.order()).isEqualTo(org.opensearch.client.opensearch._types.SortOrder.Asc);
   }
 
   @Test

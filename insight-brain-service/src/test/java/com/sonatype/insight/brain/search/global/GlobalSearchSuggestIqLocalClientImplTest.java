@@ -67,7 +67,7 @@ public class GlobalSearchSuggestIqLocalClientImplTest
 
   @Before
   public void setUp() {
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     lenient().when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     lenient().when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
@@ -81,7 +81,7 @@ public class GlobalSearchSuggestIqLocalClientImplTest
   protected GlobalSearchSuggestIqLocalClient createService() {
     // A fresh service with the default open-permission wiring so the contract test runs standalone.
     SearchIndexClient client = mock(SearchIndexClient.class);
-    lenient().when(client.isGlobalSearchEnabled()).thenReturn(true);
+    lenient().when(client.isSearchPreviewEnabled()).thenReturn(true);
     lenient().when(client.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     lenient().when(client.buildAllowedContextIdsFilter(any())).thenReturn(null);
     lenient().when(client.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));

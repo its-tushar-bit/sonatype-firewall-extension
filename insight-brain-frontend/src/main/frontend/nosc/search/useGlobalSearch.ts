@@ -4,248 +4,130 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { getNoscGlobalSearchUrl } from 'MainRoot/util/CLMLocation';
+import axios, { AxiosError } from 'axios';
+import { getGlobalSearchResultsUrl, getGlobalSearchSuggestUrl } from 'MainRoot/util/CLMLocation';
 import {
-  GroupingByDTO,
-  SearchResultDTO,
-  SearchResultItemDTO,
-  isRenderedType,
-  reactKeyFor,
+  FacetBucket,
+  ResultsResponse,
+  ResultsTab,
+  SearchRow,
+  SearchSource,
+  SuggestGroupRows,
+  SuggestResponse,
+  resultRowToSearchRow,
+  suggestRowToSearchRow,
 } from 'MainRoot/nosc/search/searchTypes';
+import { MIN_QUERY_LENGTH } from 'MainRoot/nosc/search/searchPanelModel';
 
 /**
- * P1-F13 / CLM-39549: debounced multi-entity global search hook.
+ * Debounced global-search hook, backed by the dedicated global-search endpoints:
  *
- * Backed by IQ's existing OpenSearch index via
- * GET /api/v2/search/advanced. Uses a per-entity-bucket fanout pattern
- * rather than a single omnibus query — see ENTITY_BUCKETS below for why.
+ *   - typeahead mode → GET /rest/search/suggest
+ *   - full mode      → GET /rest/search/results
  *
- * No new backend endpoint required. The endpoint is permission-scoped on
- * the server, so we don't need any client-side authorization filtering.
+ * A single request per query replaces the former per-entity fan-out: the backend
+ * parses the q= string (including field: predicates), ranks across entity types,
+ * and returns a best match plus grouped rows (suggest) or a flat paged list
+ * (results). No client-side query building.
  *
- * Failure modes:
- *   - Empty query → returns empty state, no fetch
- *   - Query shorter than MIN_QUERY_LENGTH → empty state, no fetch
- *   - All buckets fail (network down, 5xx everywhere) → loadError
- *     populated, results empty
- *   - Some buckets fail (e.g. SBOM_METADATA returns nothing in dev) →
- *     other buckets still render. Partial failure is silent because the
- *     user just sees fewer rows.
+ * Cancellation uses an AbortController. A single request per query makes this
+ * clean — the effect cleanup aborts the in-flight request so a slow earlier
+ * response can never overwrite a newer one. Aborted responses are dropped.
  *
- * Cancellation: a fresh fetch always wins. We use a `cancelled` flag
- * tied to the React effect's cleanup so a slow earlier batch can never
- * overwrite a more recent one. AbortController would be cleaner but
- * doesn't compose well with Promise.all + axios-mock-adapter in tests.
+ * Graceful degrade: catalogAvailable:false is NOT an error — local groups still
+ * render. The hook exposes catalogAvailable/warnings for callers that surface a
+ * "catalog unavailable" indicator; the results page wires that up. Only a real
+ * network / 5xx error populates loadError.
  */
-const DEBOUNCE_MS = 300;
-const MIN_QUERY_LENGTH = 2;
+const DEBOUNCE_MS = 200;
 
 /**
- * Per-entity-type buckets we fan out across in parallel. The single
- * omnibus query approach (one giant OR across all fields) was provably
- * broken: Lucene ranks by term-frequency, so a query like "apple" returns
- * the 583 components mentioning Apple before any of the actual
- * applicationName="Apple - Java" rows ever surface. With a pageSize cap
- * of ~12 for typeahead, apps and orgs simply fall off page 1.
- *
- * Each bucket pins the search to one itemType using
- * `itemType:VALUE AND (field:*term* OR ...)` so the backend's grouping
- * logic produces clean per-entity rows. Verified live: with this pattern,
- * "apple" → an APPLICATION row "Apple - Java" appears every time.
- *
- * The fanout is in parallel so total latency is the slowest single bucket
- * (typically <100ms), not the sum.
+ * totalEstimate is exact below this cap and literally this value at/above it
+ * (rendered as "10,000+"). Mirrors GLOBAL_SEARCH_TRACK_TOTAL_HITS_CAP on the backend.
  */
-export type EntitySearchBucket = {
-  /** Key for tab badges / hitsByType (may differ from backend itemType). */
-  readonly bucketKey: string;
-  readonly itemType: string;
-  readonly fields: readonly string[];
-  /** Remap backend rows before rendering (e.g. waived violations → WAIVER). */
-  readonly resultItemType?: string;
-  /** Only POLICY_VIOLATION rows with policyViolationWaiverStatus:Active. */
-  readonly activeViolationsOnly?: boolean;
-  /** Only POLICY_VIOLATION rows with Waived / AutoWaived status. */
-  readonly waivedOnly?: boolean;
-  /**
-   * How many top results to keep from this bucket. The omnibar shows up
-   * to ~12 rows total, so we keep buckets balanced — apps/orgs/policies
-   * are valuable signals even when components dominate raw match counts.
-   */
-  readonly limit: number;
-};
-
-export const ENTITY_BUCKETS: ReadonlyArray<EntitySearchBucket> = [
-  { bucketKey: 'APPLICATION', itemType: 'APPLICATION', fields: ['applicationName', 'applicationPublicId'], limit: 5 },
-  { bucketKey: 'ORGANIZATION', itemType: 'ORGANIZATION', fields: ['organizationName'], limit: 3 },
-  {
-    bucketKey: 'SECURITY_VULNERABILITY',
-    itemType: 'SECURITY_VULNERABILITY',
-    fields: ['vulnerabilityId', 'vulnerabilityDescription'],
-    limit: 5,
-  },
-  // Components are searchable only by their GAV identifier
-  // (componentName = "groupId : artifactId : version") and componentCoordinate.
-  // The IQ index does NOT carry a separate component "display name" field.
-  {
-    bucketKey: 'NON_VULNERABLE_COMPONENT',
-    itemType: 'NON_VULNERABLE_COMPONENT',
-    fields: ['componentName', 'componentCoordinate'],
-    limit: 5,
-  },
-  {
-    bucketKey: 'POLICY_VIOLATION',
-    itemType: 'POLICY_VIOLATION',
-    activeViolationsOnly: true,
-    fields: [
-      'policyViolationPolicyName',
-      'policyViolationConstraintName',
-      'componentName',
-    ],
-    limit: 5,
-  },
-  {
-    bucketKey: 'WAIVER',
-    itemType: 'POLICY_VIOLATION',
-    resultItemType: 'WAIVER',
-    waivedOnly: true,
-    fields: [
-      'policyViolationPolicyName',
-      'policyViolationConstraintName',
-      'componentName',
-      'policyViolationWaiverStatus',
-    ],
-    limit: 5,
-  },
-  { bucketKey: 'POLICY', itemType: 'POLICY', fields: ['policyName'], limit: 3 },
-  // NOTE: SBOM_METADATA is intentionally omitted from the omnibar in F13.
-  // The indexed fields are limited to sbomSpecification ("CycloneDX 1.6",
-  // "SPDX 2.3") + sbomVersion — neither is a useful free-text typeahead
-  // signal. The bucket also covers ONLY third-party SBOMs uploaded via
-  // SBOM Manager (ThirdPartySbomMetadataDAO); SBOMs IQ generates from
-  // scans aren't indexed at all. Components and CVEs *inside* third-party
-  // SBOMs already surface as regular component / vulnerability rows
-  // because the indexer emits them with their normal ItemType. If a real
-  // SBOM-Manager-specific search use case emerges (e.g. "find SBOMs from
-  // supplier X"), it deserves a Phase 2 backend story with proper fields.
-];
-
-/**
- * Single-character Lucene reserved chars that must be escaped in user input.
- * Per Lucene QueryParser the full set is: + - && || ! ( ) { } [ ] ^ " ~ * ? : \ /
- *
- * NB: a lone `/` (and a lone `&` or `|`) is a literal in Lucene — only the `&&`
- * and `||` boolean OPERATORS are special, and `/` only starts a regexp when a
- * term both begins and ends with it. We deliberately do NOT escape `/` so
- * coordinate/path queries like "org/apache/log4j" keep matching the indexed
- * componentName/componentCoordinate values. The `&&`/`||` operators are handled
- * separately below.
- */
-const LUCENE_SPECIAL_CHARS_RE = /[+\-!(){}[\]^"~*?:\\]/g;
-
-function escapeLuceneTerm(input: string): string {
-  // Escape the single-char specials first (this also escapes any backslash),
-  // then neutralize the && / || operators. Order matters: the char-class pass
-  // inserts backslashes, so running it last would re-escape the backslashes we
-  // add for && / ||.
-  return input
-    .replace(LUCENE_SPECIAL_CHARS_RE, (ch) => `\\${ch}`)
-    .replace(/&&/g, '\\&\\&')
-    .replace(/\|\|/g, '\\|\\|');
-}
-
-/**
- * Build a per-bucket query that pins itemType and matches the user's
- * input against that bucket's name/identifier fields.
- * Example: bucket=APPLICATION, input="log4j" →
- *   "(itemType:APPLICATION AND (applicationName:*log4j* OR applicationPublicId:*log4j*))"
- */
-export function buildBucketQuery(bucket: EntitySearchBucket, userInput: string): string {
-  const trimmed = userInput.trim();
-  if (!trimmed) return '';
-  const safe = escapeLuceneTerm(trimmed);
-  const fieldClauses = bucket.fields.map((f) => `${f}:*${safe}*`).join(' OR ');
-  let statusClause = '';
-  if (bucket.waivedOnly) {
-    statusClause =
-      ' AND (policyViolationWaiverStatus:Waived OR policyViolationWaiverStatus:AutoWaived)';
-  } else if (bucket.activeViolationsOnly) {
-    statusClause = ' AND policyViolationWaiverStatus:Active';
-  }
-  return `(itemType:${bucket.itemType}${statusClause} AND (${fieldClauses}))`;
-}
-
-/**
- * Flatten the backend's grouped response into a deduped ordered list,
- * optionally capped at `limit` rendered items.
- */
-function remapBucketItem(
-  item: SearchResultItemDTO,
-  resultItemType: string | undefined,
-): SearchResultItemDTO {
-  if (!resultItemType || item.itemType === resultItemType) return item;
-  return { ...item, itemType: resultItemType as SearchResultItemDTO['itemType'] };
-}
-
-function flattenGroups(
-  groups: readonly GroupingByDTO[] | undefined,
-  topLevelItems: readonly SearchResultItemDTO[] | undefined,
-  seen: Set<string>,
-  limit: number,
-  resultItemType?: string,
-): SearchResultItemDTO[] {
-  const out: SearchResultItemDTO[] = [];
-  const consume = (items: readonly SearchResultItemDTO[] | undefined): void => {
-    if (!items) return;
-    for (const raw of items) {
-      if (out.length >= limit) return;
-      const item = remapBucketItem(raw, resultItemType);
-      if (!isRenderedType(item)) continue;
-      const key = reactKeyFor(item);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push(item);
-    }
-  };
-  for (const g of groups ?? []) {
-    if (out.length >= limit) break;
-    consume(g.searchResultItemDTOS);
-  }
-  if (out.length < limit) consume(topLevelItems);
-  return out;
-}
+const TOTAL_ESTIMATE_CAP = 10000;
 
 export type GlobalSearchMode = 'typeahead' | 'full';
 
 export interface UseGlobalSearchOptions {
   /**
-   * `typeahead` — small per-entity caps for the omnibar dropdown.
-   * `full` — larger per-bucket fetch for the /search results page.
+   * `typeahead` — one call to /rest/search/suggest for the omnibar dropdown.
+   * `full` — one call to /rest/search/results for the /search results page.
    */
   readonly mode?: GlobalSearchMode;
 
-  /**
-   * Target result count for `full` mode (split across entity buckets).
-   * Ignored by `typeahead` which uses fixed ENTITY_BUCKETS limits.
-   */
+  /** Row source: tenant IQ index ('local', default) or shared catalog ('catalog'). */
+  readonly source?: SearchSource;
+
+  /** Full mode only: which results tab to fetch. Defaults to ALL. */
+  readonly tab?: ResultsTab;
+
+  /** Full mode only: 1-indexed page number. Defaults to 1. */
+  readonly page?: number;
+
+  /** Full mode only: page size (backend caps at 100). Defaults to the backend default. */
   readonly pageSize?: number;
 
   /**
-   * 0-indexed page number for pagination. Defaults to 0.
-   * Reserved for Phase 1.5 load-more; both modes pass 0 today.
+   * Full mode only: opaque deep-pagination cursor. When set, the backend seeks
+   * past the `search_after` sort key instead of computing a numeric offset, so
+   * deep pages (past the ~1000-hit window `page` can address) stay efficient.
+   * The caller carries forward `nextSearchAfter` from the previous page.
    */
-  readonly page?: number;
+  readonly searchAfter?: string | null;
+
+  /**
+   * Full mode only: when true the backend returns the per-tab `facets` map for a
+   * single IQ-local entity tab. The ALL tab / catalog source ignore it (facets
+   * come back null), so the caller should only request it on an entity tab.
+   */
+  readonly includeFacets?: boolean;
+
+  /**
+   * Full mode only: when true the backend probes the sibling sections so the response
+   * carries every tab's count badge. Each sibling costs one count-only search on top of
+   * the caller's own page search, so it is opt-in. The ALL tab gets its counts free from
+   * the packing pass and pages after the first reuse the active tab's own total, so the
+   * caller should only request it on an entity tab's first page whose sibling counts are
+   * not already known.
+   */
+  readonly includeTabCounts?: boolean;
 }
 
 export interface GlobalSearchState {
   readonly loading: boolean;
   readonly loadError: string | null;
-  readonly results: readonly SearchResultItemDTO[];
-  /** Sum of per-bucket totalNumberOfHits from the backend. */
-  readonly totalHits: number;
-  /** Per-entity-type totals from the backend (for tab badges on /search). */
-  readonly hitsByType: Readonly<Record<string, number>>;
+
+  /** Flat rows for the active view (suggest groups flattened, or results page rows). */
+  readonly results: readonly SearchRow[];
+
+  /** Typeahead only: the single best-match row promoted above the groups, or null. */
+  readonly bestMatch: SearchRow | null;
+  /** Typeahead only: per-entity-type sections in fixed presentation order. */
+  readonly groups: readonly SuggestGroupRows[];
+
+  /** Full mode: total estimate (exact below 10000, else 10000). Suggest has no total (0). */
+  readonly totalEstimate: number;
+  /** Full mode: optional per-tab counts when the backend supplies them; else undefined. */
+  readonly tabCounts?: Partial<Record<ResultsTab, number>>;
+  /** Full mode: opaque cursor for the next page, or null on the last page. */
+  readonly nextSearchAfter: string | null;
+  /**
+   * Full mode: per-tab facet buckets (facet key → buckets) when includeFacets was
+   * requested on an entity tab; null/undefined for the ALL tab, catalog source, or
+   * an older backend.
+   */
+  readonly facets: Record<string, FacetBucket[]> | null | undefined;
+  /** Parser/compiler warnings from the results endpoint. */
+  readonly warnings: readonly string[];
+
+  /**
+   * Tri-state catalog signal, passed through from the response: undefined when the
+   * catalog was not consulted, true when usable, false when requested but degraded.
+   */
+  readonly catalogAvailable: boolean | undefined;
+
+  /** True when totalEstimate is an exact count (below the 10000 cap). */
   readonly isExactTotal: boolean;
 }
 
@@ -253,25 +135,62 @@ const EMPTY_STATE: GlobalSearchState = {
   loading: false,
   loadError: null,
   results: [],
-  totalHits: 0,
-  hitsByType: {},
+  bestMatch: null,
+  groups: [],
+  totalEstimate: 0,
+  tabCounts: undefined,
+  nextSearchAfter: null,
+  facets: undefined,
+  warnings: [],
+  catalogAvailable: undefined,
   isExactTotal: false,
 };
 
-function bucketFetchLimit(mode: GlobalSearchMode, pageSize: number, bucketLimit: number): number {
-  if (mode === 'typeahead') {
-    return bucketLimit;
-  }
-  // Full results page: fetch a fair slice per entity type so tab totals
-  // (from totalNumberOfHits) align with the omnibar's "See all N" link.
-  return Math.max(bucketLimit, Math.ceil(pageSize / ENTITY_BUCKETS.length));
+const LOADING_STATE: GlobalSearchState = {
+  ...EMPTY_STATE,
+  loading: true,
+};
+
+/** Copy shown when the caller lacks permission to search. */
+const PERMISSION_MESSAGE = 'You do not have permission to search these results.';
+
+/** Copy shown for a server-side or network failure. */
+const UNAVAILABLE_MESSAGE = 'Search is unavailable. Try again in a moment.';
+
+/**
+ * User-facing copy for a failed search, chosen from the response status class. Axios
+ * populates `error.message` with HTTP plumbing text ("Request failed with status code
+ * 500") which is meaningless to a user, so the raw message never reaches this copy —
+ * see logSearchFailure for where it is recorded.
+ */
+function errorMessage(error: unknown): string {
+  const status = (error as AxiosError)?.response?.status;
+  if (status === 401 || status === 403) return PERMISSION_MESSAGE;
+  return UNAVAILABLE_MESSAGE;
+}
+
+/** Record the raw axios failure, which the user-facing copy deliberately drops. */
+function logSearchFailure(error: unknown): void {
+  const status = (error as AxiosError)?.response?.status;
+  const raw = error instanceof Error ? error.message : String(error);
+  console.error(`Global search request failed${status ? ` (HTTP ${status})` : ''}: ${raw}`);
+}
+
+/** True when a rejection is the effect-cleanup abort rather than a real failure. */
+function isAbort(controller: AbortController, error: unknown): boolean {
+  return controller.signal.aborted || (error as AxiosError)?.code === 'ERR_CANCELED';
 }
 
 export function useGlobalSearch(query: string, opts?: UseGlobalSearchOptions): GlobalSearchState {
   const trimmed = query.trim();
   const mode: GlobalSearchMode = opts?.mode ?? 'typeahead';
-  const pageSize = opts?.pageSize ?? (mode === 'full' ? 50 : 10);
-  const page = opts?.page ?? 0;
+  const source: SearchSource = opts?.source ?? 'local';
+  const tab: ResultsTab = opts?.tab ?? 'ALL';
+  const page = opts?.page ?? 1;
+  const pageSize = opts?.pageSize;
+  const searchAfter = opts?.searchAfter ?? undefined;
+  const includeFacets = opts?.includeFacets ?? false;
+  const includeTabCounts = opts?.includeTabCounts ?? false;
   const [state, setState] = useState<GlobalSearchState>(EMPTY_STATE);
 
   useEffect(() => {
@@ -280,120 +199,97 @@ export function useGlobalSearch(query: string, opts?: UseGlobalSearchOptions): G
       return;
     }
 
-    // We use a `cancelled` flag (not AbortController.signal) for two reasons:
-    //   1. axios-mock-adapter resolves promises synchronously, but React's
-    //      effect cleanup also runs synchronously. If the cleanup aborts the
-    //      controller before the .then microtask runs, the response is
-    //      dropped even when no newer fetch is in flight. The flag avoids
-    //      that race because we set it in cleanup and check it in .then.
-    //   2. Unit tests are simpler — no need to mock AbortController behavior.
-    let cancelled = false;
+    // Created inside the timer callback so the controller's lifecycle matches the
+    // request it actually cancels; the outer clearTimeout handles the
+    // debounce-window cancel (before any request fires), and controller.abort()
+    // below handles an in-flight request. Held in a closure var so cleanup can
+    // reach it after the timer fires.
+    let controller: AbortController | null = null;
     const handle = setTimeout(() => {
-      setState((prev) => ({
-        ...prev,
-        loading: true,
-        loadError: null,
-        results: [],
-        totalHits: 0,
-        hitsByType: {},
-        isExactTotal: false,
-      }));
+      const activeController = new AbortController();
+      controller = activeController;
+      setState(LOADING_STATE);
 
-      // Fan out one request per entity bucket in parallel. The single
-      // omnibus query was provably broken — Lucene ranking lets one
-      // dominant entity type starve all others off page 1 (e.g. "apple"
-      // returns 583 component-context hits before the actual
-      // applicationName="Apple - Java" row ever surfaces). Per-bucket
-      // queries pin itemType so each entity type gets its own slot.
-      const bucketRequests = ENTITY_BUCKETS.map((bucket) => {
-        const q = buildBucketQuery(bucket, trimmed);
-        const fetchLimit = bucketFetchLimit(mode, pageSize, bucket.limit);
-        return axios
-          .get<SearchResultDTO>(getNoscGlobalSearchUrl(q, page, fetchLimit))
-          .then((response) => ({ bucket, data: response.data, error: null as unknown }))
-          .catch((error: unknown) => ({ bucket, data: null as SearchResultDTO | null, error }));
-      });
-
-      Promise.all(bucketRequests).then((bucketResults) => {
-        if (cancelled) return;
-
-        const seen = new Set<string>();
-        const merged: SearchResultItemDTO[] = [];
-        const hitsByType: Record<string, number> = {};
-        let totalHits = 0;
-        // We only treat a search as failed if EVERY bucket failed.
-        // Partial failure (e.g. SBOM_METADATA index empty in dev) still
-        // shows the buckets that worked.
-        let firstError: unknown = null;
-        let successCount = 0;
-
-        for (const { bucket, data, error } of bucketResults) {
-          if (error) {
-            if (firstError === null) firstError = error;
-            continue;
-          }
-          successCount += 1;
-          if (!data) continue;
-          const bucketTotal =
-            typeof data.totalNumberOfHits === 'number' ? data.totalNumberOfHits : 0;
-          hitsByType[bucket.bucketKey] = bucketTotal;
-          totalHits += bucketTotal;
-          const mergeLimit = bucketFetchLimit(mode, pageSize, bucket.limit);
-          const items = flattenGroups(
-            data.groupingByDTOS,
-            data.searchResultItemDTOS,
-            seen,
-            mergeLimit,
-            bucket.resultItemType,
-          );
-          merged.push(...items);
-        }
-
-        if (successCount === 0 && firstError !== null) {
-          const message = firstError instanceof Error ? firstError.message : 'Search failed';
-          setState({
-            loading: false,
-            loadError: message,
-            results: [],
-            totalHits: 0,
-            hitsByType: {},
-            isExactTotal: false,
+      if (mode === 'typeahead') {
+        axios
+          .get<SuggestResponse>(getGlobalSearchSuggestUrl(trimmed, source), {
+            signal: activeController.signal,
+          })
+          .then((response) => {
+            if (activeController.signal.aborted) return;
+            const data = response.data;
+            const bestMatch = data.bestMatch ? suggestRowToSearchRow(data.bestMatch) : null;
+            const groups: SuggestGroupRows[] = (data.groups ?? []).map((g) => ({
+              type: g.type,
+              source: g.source,
+              rows: (g.results ?? []).map(suggestRowToSearchRow),
+            }));
+            const flat: SearchRow[] = [];
+            if (bestMatch) flat.push(bestMatch);
+            for (const g of groups) flat.push(...g.rows);
+            setState({
+              ...EMPTY_STATE,
+              results: flat,
+              bestMatch,
+              groups,
+              // The suggest endpoint reports no warnings, so warnings stays empty
+              // here; only the results endpoint below populates it.
+              catalogAvailable: data.catalogAvailable ?? undefined,
+            });
+          })
+          .catch((error: unknown) => {
+            if (isAbort(activeController, error)) return;
+            logSearchFailure(error);
+            setState({ ...EMPTY_STATE, loadError: errorMessage(error) });
           });
-          return;
-        }
+        return;
+      }
 
-        setState({
-          loading: false,
-          loadError: null,
-          results: merged.slice(0, pageSize),
-          totalHits,
-          hitsByType,
-          // Summed per-bucket totals can double-count cross-bucket dupes.
-          isExactTotal: false,
+      axios
+        .get<ResultsResponse>(
+          getGlobalSearchResultsUrl({
+            q: trimmed,
+            tab,
+            page,
+            pageSize,
+            searchAfter,
+            source,
+            includeFacets,
+            includeTabCounts,
+          }),
+          { signal: activeController.signal }
+        )
+        .then((response) => {
+          if (activeController.signal.aborted) return;
+          const data = response.data;
+          const results = (data.results ?? []).map(resultRowToSearchRow);
+          const totalEstimate = typeof data.totalEstimate === 'number' ? data.totalEstimate : 0;
+          setState({
+            ...EMPTY_STATE,
+            results,
+            totalEstimate,
+            tabCounts: data.tabCounts,
+            nextSearchAfter: data.nextSearchAfter ?? null,
+            facets: data.facets ?? undefined,
+            warnings: data.warnings ?? [],
+            catalogAvailable: data.catalogAvailable,
+            isExactTotal: totalEstimate < TOTAL_ESTIMATE_CAP,
+          });
+        })
+        .catch((error: unknown) => {
+          if (isAbort(activeController, error)) return;
+          logSearchFailure(error);
+          setState({ ...EMPTY_STATE, loadError: errorMessage(error) });
         });
-      }).catch((unexpected: unknown) => {
-        if (cancelled) return;
-        const message =
-          unexpected instanceof Error ? unexpected.message : 'Search failed';
-        setState({
-          loading: false,
-          loadError: message,
-          results: [],
-          totalHits: 0,
-          hitsByType: {},
-          isExactTotal: false,
-        });
-      });
     }, DEBOUNCE_MS);
 
     return () => {
-      cancelled = true;
+      controller?.abort();
       clearTimeout(handle);
     };
-    // All deps are primitives derived from args (trimmed: string, page/pageSize: number, mode: string),
-    // so they have stable identity and the effect re-fetches only when an actual value changes — there is
-    // no object/array dependency that would force a re-run every render.
-  }, [trimmed, page, pageSize, mode]);
+    // All deps are primitives derived from args, so they have stable identity and the effect
+    // re-fetches only when an actual value changes.
+  }, [trimmed, mode, source, tab, page, pageSize, searchAfter, includeFacets, includeTabCounts]);
 
   return state;
 }

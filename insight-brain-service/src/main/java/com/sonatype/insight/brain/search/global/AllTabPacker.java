@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -256,6 +257,11 @@ public final class AllTabPacker
 
     long totalEstimate = 0L;
     boolean catalogAvailable = true;
+    // Per-section raw (uncapped) totals, retained (not just summed) so the caller can surface a count
+    // badge per section; the 10000 ceiling is applied downstream by ResultsService. A section that timed
+    // out, failed, or came back degraded is left absent from the map rather than recorded as 0, so the
+    // caller can distinguish "no hits" from "section unavailable".
+    Map<Tab, Long> sectionTotals = new EnumMap<>(Tab.class);
     // Preserve SECTION_ORDER and dedup exact-string matches so ALL-tab warnings surface the same way
     // single-tab responses do (X-Search-Warnings / body.warnings).
     LinkedHashSet<String> warnings = new LinkedHashSet<>();
@@ -273,6 +279,13 @@ public final class AllTabPacker
       SectionResult last = reader.lastFetchedResult();
       if (last != null) {
         totalEstimate += last.totalEstimate();
+        // A degraded section reports a successful result carrying 0 (catalog HDS failure, or a
+        // not-entitled / MTIQ deployment), so its count is not a trustworthy zero and is omitted for
+        // the same reason a timed-out or failed section is. The section still contributes to
+        // totalEstimate, rows, warnings and the catalogAvailable reduction below.
+        if (last.catalogAvailable()) {
+          sectionTotals.put(section, last.totalEstimate());
+        }
         warnings.addAll(last.warnings());
         // Any catalog-backed section that came back degraded flips the response-level flag so the
         // caller can distinguish "catalog returned nothing" from "catalog was unavailable".
@@ -281,7 +294,52 @@ public final class AllTabPacker
     }
 
     AllTabCursor nextCursor = buildNextCursor(readers, sortKey, pageSize, source);
-    return new PackResult(packed, totalEstimate, nextCursor, List.copyOf(warnings), catalogAvailable);
+    return new PackResult(packed, totalEstimate, sectionTotals, nextCursor, List.copyOf(warnings),
+        catalogAvailable);
+  }
+
+  /**
+   * Count-only fan-out: probes every section's first page in parallel (the same virtual-thread pool +
+   * bounded semaphore + per-section timeout {@link #parallelFirstFetch} uses for the ALL-tab pack) and
+   * returns each section's reported {@code totalEstimate}, keyed by {@link Tab}. Rows are never
+   * materialised beyond the single first-fetch page. A section that timed out, failed, was retired at the
+   * permit ceiling, or came back degraded is OMITTED from the returned map — mirroring
+   * {@link PackResult#sectionTotals()} so the caller can render a placeholder rather than a misleading
+   * {@code 0}. Sections listed in {@code skip} are not probed at all (e.g. the caller-active tab whose
+   * total is already known).
+   *
+   * @param suppliers per-section lazy suppliers, keyed by {@link Tab}
+   * @param skip sections to omit from the probe (their totals are supplied by the caller); {@code null} is
+   *          treated as an empty set (probe every section)
+   * @return per-section {@code totalEstimate}, timed-out/unavailable sections omitted
+   */
+  public static Map<Tab, Long> countTotals(Function<Tab, SectionSupplier> suppliers, Set<Tab> skip) {
+    // A null skip means "probe every section"; normalise here so the membership check below cannot NPE.
+    Set<Tab> skipped = skip == null ? Set.of() : skip;
+    Map<Tab, SectionReader> readers = new EnumMap<>(Tab.class);
+    for (Tab section : SECTION_ORDER) {
+      if (skipped.contains(section)) {
+        continue;
+      }
+      readers.put(section, new SectionReader(section, suppliers.apply(section), null));
+    }
+    parallelFirstFetch(readers);
+    Map<Tab, Long> totals = new EnumMap<>(Tab.class);
+    for (Map.Entry<Tab, SectionReader> e : readers.entrySet()) {
+      SectionReader reader = e.getValue();
+      // A timed-out / failed / permit-retired section is omitted, not recorded as 0, so the caller can
+      // distinguish "no hits" from "section unavailable" (same semantics as sectionTotals()).
+      if (reader.timedOut() || reader.failed()) {
+        continue;
+      }
+      SectionResult last = reader.lastFetchedResult();
+      // A degraded section reports a successful 0 it cannot vouch for, so it is omitted for the same
+      // reason, keeping these totals consistent with sectionTotals().
+      if (last != null && last.catalogAvailable()) {
+        totals.put(e.getKey(), last.totalEstimate());
+      }
+    }
+    return totals;
   }
 
   private static void parallelFirstFetch(Map<Tab, SectionReader> readers) {
@@ -624,12 +682,14 @@ public final class AllTabPacker
   public record PackResult(
       List<ResultRow> rows,
       long totalEstimate,
+      Map<Tab, Long> sectionTotals,
       AllTabCursor nextCursor,
       List<String> warnings,
       boolean catalogAvailable)
   {
     public PackResult {
       rows = rows == null ? List.of() : List.copyOf(rows);
+      sectionTotals = sectionTotals == null ? Map.of() : Map.copyOf(sectionTotals);
       warnings = warnings == null ? List.of() : List.copyOf(warnings);
     }
   }

@@ -361,4 +361,10 @@ export const selectIsPreviewNexusOneUiEnabled = createSelector(
   propOr(false, 'preview-nexus-one-ui')
 );
 
+/** Gate for the "Sonatype Catalog" data source (kebab-case of CATALOG_FEDERATION). */
+export const selectIsCatalogFederationEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'catalog-federation')
+);
+
 export const selectIsIqProxyEnabled = createSelector(selectProductFeatures, propOr(false, 'iq-proxy-enabled'));

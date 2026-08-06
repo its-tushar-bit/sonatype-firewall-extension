@@ -7,9 +7,17 @@
 import { waitFor } from '@testing-library/react';
 import { fetchUser, waitForLogin } from 'MainRoot/user/userSessionUtils';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { getSessionUrl } from 'MainRoot/util/CLMLocation';
+import { getSessionUrl, getSessionLogoutUrl } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/user/userSessionSlice';
 import defaultStore from 'MainRoot/reduxConfig/store';
+import { recentSearchesStorageKey } from 'MainRoot/nosc/search/useRecentSearches';
+
+// The pendo singleton is only built during real app init, so the logout thunk's flush
+// call has nothing to invoke under jsdom. Stub the module so logout runs end to end.
+jest.mock('MainRoot/pendo/mainBundlePendoService', () => ({
+  __esModule: true,
+  default: { flush: () => Promise.resolve() },
+}));
 
 describe('userSessionUtils', () => {
   let axiosMock;
@@ -156,6 +164,23 @@ describe('userSessionUtils', () => {
       await waitForLogin();
       expect(assignSpy).not.toHaveBeenCalled();
       expect(sessionStorage.getItem('iqGuideReturnTo')).toBeNull();
+    });
+  });
+
+  describe('logout', () => {
+    it('clears stored global-search history so it does not carry into the next session', async () => {
+      // Search terms name real applications and vulnerabilities, so they must not survive
+      // logout on a shared browser profile.
+      const adaKey = recentSearchesStorageKey('ada');
+      const graceKey = recentSearchesStorageKey('grace');
+      window.localStorage.setItem(adaKey, JSON.stringify([{ q: 'acme-payments-service', ts: 1 }]));
+      window.localStorage.setItem(graceKey, JSON.stringify([{ q: 'CVE-2021-44228', ts: 1 }]));
+      axiosMock.onDelete(getSessionLogoutUrl()).reply(200, null, {});
+
+      await defaultStore.dispatch(actions.logout());
+
+      expect(window.localStorage.getItem(adaKey)).toBeNull();
+      expect(window.localStorage.getItem(graceKey)).toBeNull();
     });
   });
 });

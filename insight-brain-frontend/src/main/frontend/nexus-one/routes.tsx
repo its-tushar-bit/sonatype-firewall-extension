@@ -378,10 +378,22 @@ router.stateRegistry.register({
   },
 } as ReactStateDeclaration);
 
+// Mark every query param dynamic so UI-Router updates params in place instead of
+// remounting SearchResultsPage — a remount wipes the in-memory searchAfter cursor
+// cache and snaps Next back to page 1.
+const nexusOneSearchDynamicParams = {
+  q: { dynamic: true },
+  tab: { dynamic: true },
+  source: { dynamic: true },
+  page: { dynamic: true },
+};
 router.stateRegistry.register({
   name: 'nexusOneSearch',
-  // `?q` carries the omnibar query; `?tab` selects the active results tab.
-  url: '/search?q&tab',
+  // `?q` carries the omnibar query; `?tab` selects the active results tab; `?page`
+  // selects the results page; `?source` selects the data source (local | catalog) so
+  // the results page opens against the same corpus the omnibar was searching.
+  url: '/search?q&tab&source&page',
+  params: nexusOneSearchDynamicParams,
   component: SearchResultsPage,
   data: {
     title: 'Nexus One — Search',

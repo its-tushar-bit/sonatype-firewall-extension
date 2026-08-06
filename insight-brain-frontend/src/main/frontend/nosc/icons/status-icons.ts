@@ -8,6 +8,7 @@ import {
   Loader2,
   AlertCircle,
   AlertTriangle,
+  TriangleAlert,
   CheckCircle2,
   Info,
 } from 'lucide-react';
@@ -23,6 +24,8 @@ export const StatusIcons = {
   Loading: Loader2,
   Error: AlertCircle,
   Warning: AlertTriangle,
+  /** Filled triangle-alert — inline parser-warning pill. */
+  WarningTriangle: TriangleAlert,
   Success: CheckCircle2,
   Info,
 } as const;

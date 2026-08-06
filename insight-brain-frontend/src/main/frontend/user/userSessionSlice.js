@@ -15,6 +15,7 @@ import pendoService from 'MainRoot/pendo/mainBundlePendoService';
 import { selectShouldDisplayPasswordWarning, selectUsername } from './userSessionSelectors';
 import { selectIsCurrentRouteDirty } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { consumeGuideReturnTo } from 'MainRoot/user/guideReturnTo';
+import { clearRecentSearches } from 'MainRoot/nosc/search/useRecentSearches';
 
 const REDUCER_NAME = 'userSession';
 
@@ -96,6 +97,11 @@ export const logout = createAsyncThunk(`${REDUCER_NAME}/logout`, async (_, { get
 
   await pendoService.flush();
   const resultServerLogout = await axios.delete(getSessionLogoutUrl());
+
+  // Global-search history is client-side only, so ending the server session does not
+  // remove it. Drop it here so a shared browser profile does not show one user's
+  // search terms to the next.
+  clearRecentSearches();
 
   // Clear any onbeforeunload handlers to avoid being prevented to leave the current page by using redirection.
   // Otherwise a browser blocking alert dialog will appear

@@ -15,17 +15,21 @@ import com.sonatype.insight.brain.guide.api.dto.GuideComponentDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideComponentLicense;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
-import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeatureTestSupport;
 import com.sonatype.insight.brain.search.global.ResultRow;
 import com.sonatype.insight.brain.search.global.ResultsRequest;
 import com.sonatype.insight.brain.search.global.SearchSource;
 import com.sonatype.insight.brain.search.global.SectionResult;
 import com.sonatype.insight.brain.search.global.Tab;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.error.exception.GatewayTimeoutException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.google.common.collect.Multimap;
+import jakarta.ws.rs.InternalServerErrorException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,23 +47,27 @@ public class GlobalSearchResultsCatalogClientImplTest
 {
   private GlobalSearchCatalogHdsClient hdsClient;
 
-  private ProductLicense productLicense;
-
-  private TenantUtil tenantUtil;
-
   private GlobalSearchResultsCatalogClientImpl client;
 
   @Before
   public void setUp() {
+    SystemConfigurationPropertyFeatureTestSupport.install();
     hdsClient = mock(GlobalSearchCatalogHdsClient.class);
-    productLicense = mock(ProductLicense.class);
-    tenantUtil = mock(TenantUtil.class);
-    client = new GlobalSearchResultsCatalogClientImpl(hdsClient, productLicense, tenantUtil);
+    client = new GlobalSearchResultsCatalogClientImpl(hdsClient);
+    entitle();
   }
 
+  @After
+  public void tearDown() {
+    SystemConfigurationPropertyFeatureTestSupport.uninstall();
+  }
+
+  /**
+   * Catalog federation is base functionality: there is no license-feature, tenancy or toggle gate on this
+   * leg, so nothing needs arranging. Kept as a named no-op so each test still reads as stating its
+   * entitlement precondition.
+   */
   private void entitle() {
-    when(tenantUtil.isMultiTenant()).thenReturn(false);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(true);
   }
 
   private static ResultsRequest request(final Tab tab) {
@@ -207,28 +215,59 @@ public class GlobalSearchResultsCatalogClientImplTest
   }
 
   @Test
-  public void isEnabled_entitledSingleTenant_true() {
-    entitle();
+  public void isEnabled_true_baseFunctionality() {
+    // Catalog federation is base Nexus One functionality: enabled with any valid IQ license,
+    // on both single-tenant and MTIQ, regardless of the GUIDE_SEARCH feature.
     assertThat(client.isEnabled()).isTrue();
   }
 
   @Test
-  public void isEnabled_multiTenant_false() {
-    when(tenantUtil.isMultiTenant()).thenReturn(true);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(true);
-    assertThat(client.isEnabled()).isFalse();
+  public void searchResults_reachesHdsAndIsAvailable_regardlessOfTenancyOrFeature() {
+    // No tenancy/feature arrangement: the catalog leg must still reach HDS and report available.
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenReturn(responseWithTotal(1L, component("a")));
+
+    Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().catalogAvailable()).isTrue();
+    assertThat(result.get().rows()).hasSize(1);
+    verify(hdsClient).getWithMultimap(any(), any(), any());
   }
 
   @Test
-  public void isEnabled_missingGuideSearchFeature_false() {
-    when(tenantUtil.isMultiTenant()).thenReturn(false);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(false);
-    assertThat(client.isEnabled()).isFalse();
+  public void isEnabled_true_onMultiTenantDeployment() {
+    // Pins the base-functionality contract on MTIQ. The client holds no TenantUtil, so tenancy is not
+    // observable from here and cannot be stubbed: unconditional enablement IS the MTIQ guarantee --
+    // there is no code path by which a multi-tenant deployment can see isEnabled() == false.
+    assertThat(client.isEnabled()).isTrue();
   }
 
   @Test
-  public void searchResults_multiTenant_degradesWithoutHds() {
-    when(tenantUtil.isMultiTenant()).thenReturn(true);
+  public void searchResults_onMultiTenantDeployment_reachesHdsAndReturnsCatalogRows() {
+    // The MTIQ counterpart of the removed isEnabled_multiTenant_false: a multi-tenant deployment now
+    // reaches HDS and receives catalog rows. Tenancy is deliberately not arranged -- the client takes no
+    // tenancy dependency, so any deployment (single-tenant or MTIQ) exercises exactly this path.
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenReturn(responseWithTotal(2L, component("a"), component("b")));
+
+    Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
+
+    assertThat(result).isPresent();
+    SectionResult section = result.get();
+    assertThat(section.catalogAvailable()).isTrue();
+    assertThat(section.rows()).hasSize(2);
+    assertThat(section.rows()).allMatch(r -> r.getSource().equals(SearchSource.CATALOG.value()));
+    verify(hdsClient).getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any());
+  }
+
+  @Test
+  public void searchResults_paymentRequired_degradesSectionOnly() {
+    // HDS answers 402 "Feature not enabled" for a licence without GUIDE_SEARCH. IQ no longer pre-judges
+    // entitlement, so this is the live path for an unlicensed caller: degrade the catalog section and
+    // never surface a 500.
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenThrow(new PaymentRequiredException("Feature not enabled"));
 
     Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
 
@@ -237,20 +276,91 @@ public class GlobalSearchResultsCatalogClientImplTest
     assertThat(section.rows()).isEmpty();
     assertThat(section.catalogAvailable()).isFalse();
     assertThat(section.warnings()).contains("catalog source is unavailable");
-    verify(hdsClient, never()).getWithMultimap(any(), any(), any());
   }
 
   @Test
-  public void searchResults_missingFeature_degradesWithoutHds() {
-    when(tenantUtil.isMultiTenant()).thenReturn(false);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(false);
+  public void searchResults_gatewayTimeout_degradesSectionOnly() {
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenThrow(new GatewayTimeoutException("timeout"));
 
-    Optional<SectionResult> result = client.searchResults(request(Tab.VULNERABILITY));
+    Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
 
     assertThat(result).isPresent();
+    assertThat(result.get().rows()).isEmpty();
     assertThat(result.get().catalogAvailable()).isFalse();
-    assertThat(result.get().warnings()).contains("catalog source is unavailable");
-    verify(hdsClient, never()).getWithMultimap(any(), any(), any());
+  }
+
+  @Test
+  public void searchResults_http500_degradesSectionOnly() {
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenThrow(new InternalServerErrorException("oops"));
+
+    Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().rows()).isEmpty();
+    assertThat(result.get().catalogAvailable()).isFalse();
+  }
+
+  @Test
+  public void searchResults_http404_returnsAvailableEmptySection() {
+    // 404 means the catalog answered with no hits: available, not degraded.
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenThrow(new NotFoundException("not found"));
+
+    Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().rows()).isEmpty();
+    assertThat(result.get().catalogAvailable()).isTrue();
+  }
+
+  @Test
+  public void searchResults_unexpectedRuntimeException_degradesSectionOnly() {
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenThrow(new IllegalStateException("boom"));
+
+    Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().rows()).isEmpty();
+    assertThat(result.get().catalogAvailable()).isFalse();
+  }
+
+  @Test
+  public void searchResults_nullResponse_degradesSectionOnly() {
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenReturn(null);
+
+    Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().rows()).isEmpty();
+    assertThat(result.get().catalogAvailable()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_true_whenCatalogFederationToggleOff() {
+    // CATALOG_FEDERATION defaults to OFF (enabledWhenAbsent = false) and gates only the catalog BROWSE
+    // endpoint. Reading it here would leave global search's catalog rows dark on every deployment that
+    // has not explicitly switched it on, so this leg must ignore it -- PREVIEW_NEXUS_ONE_UI is the kill-switch.
+    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+
+    assertThat(client.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void searchResults_catalogFederationToggleOff_stillReachesHds() {
+    SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(false);
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), any(), any()))
+        .thenReturn(responseWithTotal(1L, component("a")));
+
+    Optional<SectionResult> result = client.searchResults(request(Tab.COMPONENT));
+
+    assertThat(result).isPresent();
+    assertThat(result.get().catalogAvailable()).isTrue();
+    assertThat(result.get().rows()).hasSize(1);
+    verify(hdsClient).getWithMultimap(any(), any(), any());
   }
 
   @Test

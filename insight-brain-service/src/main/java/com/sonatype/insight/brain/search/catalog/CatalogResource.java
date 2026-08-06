@@ -56,7 +56,7 @@ public class CatalogResource
   /**
    * Status matrix for the three "unavailable" conditions:
    * <ul>
-   * <li>{@code GLOBAL_SEARCH} feature off &rarr; 404: the whole endpoint is hidden, so an
+   * <li>{@code PREVIEW_NEXUS_ONE_UI} feature off &rarr; 404: the whole endpoint is hidden, so an
    * unreachable route is reported rather than an empty result.</li>
    * <li>{@code CATALOG_FEDERATION} feature off &rarr; 200 with a degraded body
    * ({@code catalogAvailable=false}): the endpoint is reachable but the catalog source is turned
@@ -67,7 +67,7 @@ public class CatalogResource
    */
   @POST
   public CatalogResponse search(final CatalogRequest request) {
-    verifyGlobalSearchEnabled();
+    verifyPreviewUiEnabled();
     if (request == null) {
       throw new BadRequestException("request body must not be empty");
     }
@@ -95,8 +95,12 @@ public class CatalogResource
     }
   }
 
-  private static void verifyGlobalSearchEnabled() {
-    if (!SystemConfigurationPropertyFeature.GLOBAL_SEARCH.isEnabled()) {
+  /**
+   * Gate on {@code PREVIEW_NEXUS_ONE_UI}, the flag that gates the Nexus One UI this endpoint backs.
+   * 404 (not 403) when the flag is off, so a disabled endpoint is indistinguishable from absent.
+   */
+  private static void verifyPreviewUiEnabled() {
+    if (!SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled()) {
       throw new NotFoundException("Not Found");
     }
   }

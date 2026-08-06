@@ -13,16 +13,13 @@ import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
 import com.sonatype.insight.brain.guide.telemetry.GuideUsageIdentifiers;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.global.SearchSource;
 import com.sonatype.insight.brain.search.global.SuggestItemType;
 import com.sonatype.insight.brain.search.global.SuggestRow;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.GatewayTimeoutException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.Multimap;
 import jakarta.ws.rs.InternalServerErrorException;
@@ -38,7 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -47,48 +43,44 @@ public class GlobalSearchSuggestCatalogClientImplTest
   @Mock
   private GlobalSearchCatalogHdsClient hdsClient;
 
-  @Mock
-  private ProductLicense productLicense;
-
-  @Mock
-  private TenantUtil tenantUtil;
-
   private GlobalSearchSuggestCatalogClientImpl underTest;
 
   @Before
   public void setUp() {
-    underTest = new GlobalSearchSuggestCatalogClientImpl(hdsClient, productLicense, tenantUtil);
-    // Default: entitled (single-tenant, GUIDE_SEARCH present).
-    when(tenantUtil.isMultiTenant()).thenReturn(false);
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(true);
+    underTest = new GlobalSearchSuggestCatalogClientImpl(hdsClient);
   }
 
   @Test
-  public void isEnabled_trueWhenSingleTenantAndFeaturePresent() {
+  public void isEnabled_true_baseFunctionality() {
+    // Catalog federation is base Nexus One functionality: enabled with any valid IQ license,
+    // on both single-tenant and MTIQ, regardless of the GUIDE_SEARCH feature.
     assertThat(underTest.isEnabled()).isTrue();
   }
 
   @Test
-  public void isEnabled_falseWhenMultiTenant() {
-    when(tenantUtil.isMultiTenant()).thenReturn(true);
-    assertThat(underTest.isEnabled()).isFalse();
+  public void isEnabled_true_onMultiTenantDeployment() {
+    // Pins the base-functionality contract on MTIQ. The client holds no TenantUtil, so tenancy is not
+    // observable from here and cannot be stubbed: unconditional enablement IS the MTIQ guarantee --
+    // there is no code path by which a multi-tenant deployment can see isEnabled() == false.
+    assertThat(underTest.isEnabled()).isTrue();
   }
 
   @Test
-  public void isEnabled_falseWhenFeatureAbsent() {
-    when(productLicense.hasFeature(LicensedFeature.GUIDE_SEARCH)).thenReturn(false);
-    assertThat(underTest.isEnabled()).isFalse();
-  }
-
-  @Test
-  public void suggest_unentitled_neverReachesHds_returnsUnavailable() {
-    when(tenantUtil.isMultiTenant()).thenReturn(true);
+  public void suggest_onMultiTenantDeployment_reachesHdsAndReturnsCatalogRows() {
+    // The MTIQ counterpart of the removed isEnabled_multiTenant_false: a multi-tenant deployment now
+    // reaches HDS and receives catalog suggestions. Tenancy is deliberately not arranged -- the client
+    // takes no tenancy dependency, so any deployment (single-tenant or MTIQ) exercises exactly this path.
+    GuideComponentDocument component = component("maven", "org.example", "lib", "1.0.0");
+    when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), eq("rest/search/global"), any(Multimap.class)))
+        .thenReturn(new GuideGlobalSearchResponse(List.of((SearchResult) component), 1, 0, 6, null));
 
     CatalogSuggestResult result = underTest.suggest(new CatalogSuggestRequest("alpha", 6));
 
-    assertThat(result.available()).isFalse();
-    assertThat(result.rows()).isEmpty();
-    verifyNoInteractions(hdsClient);
+    assertThat(result.available()).isTrue();
+    assertThat(result.rows()).hasSize(1);
+    assertThat(result.rows()).allMatch(r -> r.source() == SearchSource.CATALOG);
+    verify(hdsClient).getWithMultimap(eq(GuideGlobalSearchResponse.class), eq("rest/search/global"),
+        any(Multimap.class));
   }
 
   @Test
@@ -209,6 +201,8 @@ public class GlobalSearchSuggestCatalogClientImplTest
 
   @Test
   public void suggest_paymentRequired_returnsUnavailable() {
+    // HDS answers 402 "Feature not enabled" for a licence without GUIDE_SEARCH. IQ no longer pre-judges
+    // entitlement, so this is the live path for an unlicensed caller: report unavailable, never a 500.
     when(hdsClient.getWithMultimap(eq(GuideGlobalSearchResponse.class), eq("rest/search/global"), any(Multimap.class)))
         .thenThrow(new PaymentRequiredException("payment required"));
 

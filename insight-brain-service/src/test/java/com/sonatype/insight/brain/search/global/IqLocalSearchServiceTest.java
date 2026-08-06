@@ -62,7 +62,7 @@ public class IqLocalSearchServiceTest
     service = new IqLocalSearchService(searchIndexClient,
         com.sonatype.insight.brain.search.global.fieldmap.FieldMap.defaultMap());
 
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     // Default permission wiring: open access (null permission filter → base query passed through).
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
@@ -177,7 +177,7 @@ public class IqLocalSearchServiceTest
 
   @Test
   public void search_throwsWhenGlobalSearchDisabled() {
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(false);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(false);
     SearchInputs inputs = new SearchInputs("q", Tab.APPLICATION,
         Set.of(ItemType.APPLICATION), 25, "relevance", null);
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> service.search(inputs));
@@ -400,7 +400,7 @@ public class IqLocalSearchServiceTest
 
   @Test
   public void search_backendIdThrowsUnsupported_failsWithClearIllegalState() {
-    // A backend that passes the isGlobalSearchEnabled() guard but leaves backendId() at the
+    // A backend that passes the isSearchPreviewEnabled() guard but leaves backendId() at the
     // throwing default is misconfigured; the service must surface a clear IllegalStateException
     // rather than let the raw UnsupportedOperationException escape as a 500.
     when(searchIndexClient.backendId())
@@ -608,13 +608,16 @@ public class IqLocalSearchServiceTest
   }
 
   @Test
-  public void sortFor_componentPolicyThreatLevelKey_buildsDescendingLongSortOnMaxThreatTwin() {
+  public void sortFor_componentPolicyThreatLevelKey_buildsDescendingIntSortOnMaxThreatTwin() {
     Sort sort = IqLocalSearchService.sortFor(Tab.COMPONENT, "policyThreatLevel");
     assertThat(sort).isNotNull();
     SortField field = sort.getSort()[0];
     assertThat(field).isInstanceOf(SortedNumericSortField.class);
     assertThat(field.getField()).isEqualTo(FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label);
-    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    // INT, not LONG: the field's point twin is a 4-byte IntPoint and Lucene's numeric comparator
+    // rejects a sort whose byte width disagrees with the points index.
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.INT);
+    assertThat(field.getMissingValue()).isEqualTo(Integer.MIN_VALUE);
     assertThat(field.getReverse()).isTrue();
   }
 
@@ -643,13 +646,15 @@ public class IqLocalSearchServiceTest
   }
 
   @Test
-  public void sortFor_waiverThreatKey_buildsDescendingLongSortOnThreatLevel() {
+  public void sortFor_waiverThreatKey_buildsDescendingIntSortOnThreatLevel() {
     Sort sort = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_THREAT);
     assertThat(sort).isNotNull();
     SortField field = sort.getSort()[0];
     assertThat(field).isInstanceOf(SortedNumericSortField.class);
     assertThat(field.getField()).isEqualTo(FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label);
-    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    // INT, not LONG: IntPoint twin (4 bytes) must match the sort's comparator width.
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.INT);
+    assertThat(field.getMissingValue()).isEqualTo(Integer.MIN_VALUE);
     assertThat(field.getReverse()).as("threat sorts highest-first (descending)").isTrue();
   }
 
@@ -722,36 +727,37 @@ public class IqLocalSearchServiceTest
 
   @Test
   public void buildSortField_maxPolicyThreat_sortsDescending() {
-    // A5: highest threat first (reverse LONG), matching the prototype policy-threat sort.
+    // A5: highest threat first, matching the prototype policy-threat sort. INT because the field's
+    // point twin is a 4-byte IntPoint.
     SortField field = IqLocalSearchService.buildSortField(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL)
         .getSort()[0];
     assertThat(field).isInstanceOf(SortedNumericSortField.class);
-    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.INT);
+    assertThat(field.getMissingValue()).isEqualTo(Integer.MIN_VALUE);
     assertThat(field.getReverse()).isTrue();
     assertThat(field.getField()).isEqualTo(FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label);
   }
 
   @Test
   public void buildSortField_violationStateOrdinal_sortsAscendingOpenFirst() {
-    // A6: Open(0) before Waived(1) before Legacy(2). Ascending numeric; apps with no ordinal sort last.
+    // A6: Open(0) before Waived(1) before Legacy(2). Ascending numeric; apps with no ordinal sort last
+    // via the Integer.MAX_VALUE sentinel (INT sort: the ordinal's point twin is a 4-byte IntPoint).
     SortField field = IqLocalSearchService.buildSortField(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL)
         .getSort()[0];
     assertThat(field).isInstanceOf(SortedNumericSortField.class);
-    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.LONG);
+    assertThat(((SortedNumericSortField) field).getNumericType()).isEqualTo(SortField.Type.INT);
+    assertThat(field.getMissingValue()).as("apps with no ordinal sort last").isEqualTo(Integer.MAX_VALUE);
     assertThat(field.getReverse()).as("violation-state ordinal sorts ascending (Open first)").isFalse();
     assertThat(field.getField()).isEqualTo(FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label);
   }
 
   @Test
-  public void buildSortField_numericFields_sortDescendingAsLong() {
-    // Numeric-backed fields (latest-evaluation, threat level, waiver created-at) sort on their
-    // numeric doc-values twin, descending (newest/highest first). The numeric-vs-string branch is
-    // chosen from the FieldIdentifier itself, not a hardcoded sort-key set.
+  public void buildSortField_epochMillisFields_sortDescendingAsLong() {
+    // Epoch-millis fields are written as an 8-byte LongPoint, so they sort as LONG. The
+    // numeric-vs-string branch is chosen from the FieldIdentifier itself, not a hardcoded key set.
     for (FieldIdentifier f : List.of(
         FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS,
-        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL,
-        FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS,
-        FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL))
+        FieldIdentifier.POLICY_WAIVER_CREATED_AT_EPOCH_MS))
     {
       SortField field = IqLocalSearchService.buildSortField(f).getSort()[0];
       // Numeric fields use SortedNumericSortField (reads the SortedNumericDocValues twin); its
@@ -760,6 +766,33 @@ public class IqLocalSearchServiceTest
       assertThat(((SortedNumericSortField) field).getNumericType())
           .as("numeric type for %s", f)
           .isEqualTo(SortField.Type.LONG);
+      assertThat(field.getMissingValue()).as("missing sorts last for %s", f).isEqualTo(Long.MIN_VALUE);
+      assertThat(field.getReverse()).as("reverse for %s", f).isTrue();
+      assertThat(field.getField()).isEqualTo(f.label);
+    }
+  }
+
+  @Test
+  public void buildSortField_intPointFields_sortDescendingAsInt_matchingPointWidth() {
+    // Threat levels and the violation-state ordinal are written as a 4-byte IntPoint by
+    // DocumentBuilder. Lucene's numeric comparator reads the same-named points index to build a
+    // competitive iterator and rejects a sort whose byte width disagrees, so these MUST sort as INT
+    // with an Integer missing sentinel. An 8-byte LONG sort throws "indexed with 4 bytes per
+    // dimension ... expected 8" the moment a segment holds a value for the field.
+    for (FieldIdentifier f : List.of(
+        FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL,
+        FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL,
+        FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL,
+        FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL))
+    {
+      SortField field = IqLocalSearchService.buildSortField(f).getSort()[0];
+      assertThat(field).as("field for %s", f).isInstanceOf(SortedNumericSortField.class);
+      assertThat(((SortedNumericSortField) field).getNumericType())
+          .as("numeric type for %s", f)
+          .isEqualTo(SortField.Type.INT);
+      assertThat(field.getMissingValue())
+          .as("missing sorts last for %s", f)
+          .isEqualTo(Integer.MIN_VALUE);
       assertThat(field.getReverse()).as("reverse for %s", f).isTrue();
       assertThat(field.getField()).isEqualTo(f.label);
     }

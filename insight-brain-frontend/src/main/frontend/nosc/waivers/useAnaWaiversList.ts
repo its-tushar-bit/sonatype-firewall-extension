@@ -39,9 +39,9 @@ export const WAIVERS_INDEX_NOT_READY_MESSAGE =
 export const WAIVERS_INDEX_FORBIDDEN_MESSAGE =
   'No waivers are visible with your current permissions.';
 
-/** GLOBAL_SEARCH off (or index-query route unavailable) — page hard-depends on Ana after cutover. */
+/** PREVIEW_NEXUS_ONE_UI off (or index-query route unavailable) — page hard-depends on Ana after cutover. */
 export const WAIVERS_INDEX_UNAVAILABLE_MESSAGE =
-  'Waiver search is not available in this environment. Ask an administrator to enable Global Search.';
+  'Waiver search is not available in this environment. Ask an administrator to enable the Preview Nexus One UI feature.';
 
 const EMPTY_FACETS: WaiversFilterFacetCounts = {
   totalWaivers: 0,
@@ -215,7 +215,7 @@ export function useAnaWaiversList(
     {
       method: 'post',
       body: requestBody,
-      // 409 = index building; 403 = no readable context; 404 = GLOBAL_SEARCH off / route absent.
+      // 409 = index building; 403 = no readable context; 404 = PREVIEW_NEXUS_ONE_UI off / route absent.
       // All three are expected product states after the Ana cutover — surface as info, not a crash.
       mapErrorStatus: (statusCode) => (
         statusCode === 409 || statusCode === 403 || statusCode === 404 ? 'not-ready' : 'error'

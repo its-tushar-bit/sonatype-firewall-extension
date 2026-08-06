@@ -508,7 +508,7 @@ public class OpenSearchSearchIndexClient
   /** {@code request.baseQuery()} MUST already be permission-wrapped; this runs it verbatim. */
   @Override
   public GlobalSearchResult searchGlobal(final GlobalSearchRequest request) {
-    if (!isGlobalSearchEnabled()) {
+    if (!isSearchPreviewEnabled()) {
       throw new ConflictException("Global Search is disabled");
     }
     try {

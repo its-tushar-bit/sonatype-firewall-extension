@@ -75,12 +75,6 @@ public class SystemConfigurationProperty
       "PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK";
 
   /**
-   * Gates the Global Search backend. Default OFF (row absent). See
-   * {@link SystemConfigurationPropertyFeature#GLOBAL_SEARCH}.
-   */
-  public static final String GLOBAL_SEARCH = "GLOBAL_SEARCH";
-
-  /**
    * Gates the federated catalog source (Guide/HDS) of the catalog search endpoint. Default OFF (row
    * absent). See {@link SystemConfigurationPropertyFeature#CATALOG_FEDERATION}.
    */

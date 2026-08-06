@@ -29,12 +29,12 @@ public class ResultsResourceAuthzTest
 
   @Before
   public void enableGlobalSearch() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
   }
 
   @After
   public void disableGlobalSearch() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
   }
 
   @Test
@@ -51,7 +51,7 @@ public class ResultsResourceAuthzTest
 
   @Test
   public void flagOff_returns404() throws Exception {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
 
     HttpResponse response = restRequest()
         .path(RESULTS_PATH)

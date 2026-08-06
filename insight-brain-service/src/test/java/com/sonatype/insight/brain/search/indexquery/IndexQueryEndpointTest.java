@@ -90,7 +90,7 @@ public class IndexQueryEndpointTest
   @Before
   public void setUp() throws Exception {
     SystemConfigurationPropertyFeatureTestSupport.install();
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 
     final Instant now = Instant.now();
     futureExpiryMs = now.plus(EXPIRY_OFFSET).toEpochMilli();
@@ -127,7 +127,7 @@ public class IndexQueryEndpointTest
     searcher = new IndexSearcher(reader);
 
     searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     // Default: global read access (no permission narrowing). The RBAC test overrides these three
     // stubs to drive the real production permission clause instead.
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of("org-1"));
@@ -225,7 +225,7 @@ public class IndexQueryEndpointTest
   private IndexQueryResource resourceOver(final IndexReader altReader) {
     IndexSearcher altSearcher = new IndexSearcher(altReader);
     SearchIndexClient altClient = mock(SearchIndexClient.class);
-    when(altClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(altClient.isSearchPreviewEnabled()).thenReturn(true);
     when(altClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of("org-1"));
     when(altClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(altClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
@@ -869,7 +869,7 @@ public class IndexQueryEndpointTest
 
   @Test(expected = jakarta.ws.rs.NotFoundException.class)
   public void flagOff_returns404() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
     resource.query(new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, false));
   }
 
@@ -877,7 +877,7 @@ public class IndexQueryEndpointTest
   public void flagOffWithNullBody_returns404_notLeakingViaBadRequest() {
     // The flag gate runs before the null-body check, so a disabled endpoint stays hidden (404)
     // rather than revealing its existence with a 400 on a malformed body.
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
     resource.query(null);
   }
 

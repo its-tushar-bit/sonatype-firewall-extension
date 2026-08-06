@@ -31,7 +31,10 @@ import {
   LayoutGrid,
   AlertCircle,
   SlidersHorizontal,
+  ListFilter,
   Lock,
+  Clock,
+  EllipsisVertical,
 } from 'lucide-react';
 
 /**
@@ -82,6 +85,12 @@ export const ActionIcons = {
   AlertCircle,
   /** Sliders — filter controls (e.g. the mobile filter-drawer trigger). */
   Filter: SlidersHorizontal,
+  /** List-with-funnel — global-search "add search terms" filter-builder toggle. */
+  FilterList: ListFilter,
+  /** Clock — recent-search rows in the global-search panel. */
+  Clock,
+  /** Vertical ellipsis — overflow menu for tabs that do not fit. */
+  MoreVertical: EllipsisVertical,
   /** Lock — enterprise-gated actions (e.g. Request Waiver). */
   Lock,
 } as const;

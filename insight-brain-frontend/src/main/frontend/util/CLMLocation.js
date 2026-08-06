@@ -202,7 +202,7 @@ export function getLegalListUrl() {
 /**
  * Ana shared catalog list (CLM-41642 / CLM-42214). POST
  * `{ entityType, source: local|catalog, filters?, page?, pageSize?, searchAfter?, includeFacets? }`.
- * Gated by GLOBAL_SEARCH (404 when off).
+ * Gated by PREVIEW_NEXUS_ONE_UI (404 when off).
  */
 export function getSearchCatalogUrl() {
   return uriTemplate`/rest/search/catalog`;
@@ -214,7 +214,7 @@ export function getSearchCatalogUrl() {
  * Body: `{ entityType, filters?, page?, pageSize?, sort?, searchAfter?, includeFacets? }` where
  * `entityType` is one of {APPLICATION, VIOLATION, POLICY, WAIVER}. Pagination is cursor-based:
  * page 1 must omit `searchAfter`; page > 1 must carry a `searchAfter` cursor returned by the
- * prior response. Gated by GLOBAL_SEARCH (404 when off) and requires read on at least one context.
+ * prior response. Gated by PREVIEW_NEXUS_ONE_UI (404 when off) and requires read on at least one context.
  */
 export function getIndexQueryUrl() {
   return uriTemplate`/rest/search/index-query`;
@@ -789,19 +789,40 @@ export function getDashboardLegalObligationsUrl() {
   return uriTemplate`/rest/dashboard/legalObligations`;
 }
 
-// CLM-39549 / P1-F13: Preview global search.
-// Multi-entity typeahead — searches applications, components, vulnerabilities,
-// policies, organizations, and SBOM metadata. Backed by the Classic
-// /api/v2/search/advanced endpoint with Nexus-One-specific per-bucket
-// queries.
-export function getNoscGlobalSearchUrl(query, page, pageSize) {
+// Global Search typeahead. Backed by GET /rest/search/suggest.
+// `source` selects the tenant IQ index ('local', default) or the shared catalog ('catalog').
+export function getGlobalSearchSuggestUrl(query, source) {
   const params = toURIParams({
-    query,
-    page: page ?? 0,
-    pageSize: pageSize ?? 10,
-    allComponents: true,
+    q: query,
+    source: source ?? undefined,
   });
-  return uriTemplate`/api/v2/search/advanced?` + params;
+  return uriTemplate`/rest/search/suggest?` + params;
+}
+
+// Global Search full results. Backed by GET /rest/search/results.
+// `tab` is required (ALL | APPLICATION | COMPONENT | VULNERABILITY | VIOLATION | WAIVER).
+// `searchAfter` is the opaque deep-pagination cursor; omit it for shallow pages.
+export function getGlobalSearchResultsUrl({
+  q,
+  tab,
+  page,
+  pageSize,
+  searchAfter,
+  source,
+  includeFacets,
+  includeTabCounts,
+} = {}) {
+  const params = toURIParams({
+    q,
+    tab,
+    page: page ?? undefined,
+    pageSize: pageSize ?? undefined,
+    searchAfter: searchAfter ?? undefined,
+    source: source ?? undefined,
+    includeFacets: includeFacets ? true : undefined,
+    includeTabCounts: includeTabCounts ? true : undefined,
+  });
+  return uriTemplate`/rest/search/results?` + params;
 }
 
 export function getEnableUnauthenticatedPages() {

@@ -58,11 +58,11 @@ public class CatalogEndpointTest
   @Before
   public void setUp() {
     SystemConfigurationPropertyFeatureTestSupport.install();
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(true);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
     SystemConfigurationPropertyFeature.CATALOG_FEDERATION.setEnabled(true);
 
     SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
-    when(searchIndexClient.isGlobalSearchEnabled()).thenReturn(true);
+    when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
     when(searchIndexClient.buildAllowedContextIdsFilter(any())).thenReturn(null);
     when(searchIndexClient.wrapWithPermissionFilter(any(), any())).thenAnswer(inv -> inv.getArgument(0));
@@ -110,7 +110,7 @@ public class CatalogEndpointTest
 
   @Test
   public void flagOff_mapsTo404() {
-    SystemConfigurationPropertyFeature.GLOBAL_SEARCH.setEnabled(false);
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(false);
     assertMappedStatus(new CatalogRequest("COMPONENT", "local", Map.of(), 1, 25, null, null, false), 404);
   }
 

@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Pins the {@link SearchIndexClient} default methods that form the Global Search security backbone:
  * a minimal implementation (only the truly-abstract methods) must fail closed
- * ({@link SearchIndexClient#isGlobalSearchEnabled()} is {@code false}) and fail loud
+ * ({@link SearchIndexClient#isSearchPreviewEnabled()} is {@code false}) and fail loud
  * ({@code searchGlobal}, {@code backendId}, {@code checkGlobalSearchMode},
  * {@code getCurrentUserContextIdsWithReadPermission} all throw {@link UnsupportedOperationException})
  * so a future edit cannot silently flip a default to an unsafe value.
@@ -127,8 +127,8 @@ public class SearchIndexClientDefaultsTest
   private final SearchIndexClient client = new MinimalSearchIndexClient();
 
   @Test
-  public void isGlobalSearchEnabled_defaultsToFalse_failClosed() {
-    assertThat(client.isGlobalSearchEnabled()).isFalse();
+  public void isSearchPreviewEnabled_defaultsToFalse_failClosed() {
+    assertThat(client.isSearchPreviewEnabled()).isFalse();
   }
 
   @Test

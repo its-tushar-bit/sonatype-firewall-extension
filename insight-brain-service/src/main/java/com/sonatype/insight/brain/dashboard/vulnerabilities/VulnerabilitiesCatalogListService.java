@@ -22,6 +22,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.sonatype.guide.api.dto.ApiSearchResponse;
 import com.sonatype.guide.api.dto.VulnerabilityDocument;
+import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDocument;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableException;
@@ -159,6 +160,22 @@ final class VulnerabilitiesCatalogListService
     if (request != null && request.maxCvssScore != null) {
       params.put("maxCvss", String.valueOf(request.maxCvssScore));
     }
+    if (request != null && request.minEpssScore != null) {
+      params.put("minEpss", String.valueOf(request.minEpssScore));
+    }
+    if (request != null && request.maxEpssScore != null) {
+      params.put("maxEpss", String.valueOf(request.maxEpssScore));
+    }
+    if (request != null && request.knownExploited != null) {
+      params.put("exploitationKnown", String.valueOf(request.knownExploited));
+    }
+    if (request != null && request.malware != null) {
+      params.put("hasMalware", String.valueOf(request.malware));
+    }
+    putAllPreserveCase(params, "cwes", request == null ? null : request.cwes);
+    if (request != null && StringUtils.isNotBlank(request.publishedWindow)) {
+      params.put("publishedWindow", request.publishedWindow.trim().toLowerCase(Locale.ROOT));
+    }
     putAll(params, "affectedEcosystems", request == null ? null : request.ecosystems);
     return params;
   }
@@ -184,6 +201,22 @@ final class VulnerabilitiesCatalogListService
     }
   }
 
+  /** CWE ids keep original casing (e.g. {@code CWE-79}); only trim blanks. */
+  private static void putAllPreserveCase(
+      final Multimap<String, String> params,
+      final String key,
+      final Set<String> values)
+  {
+    if (values == null || values.isEmpty()) {
+      return;
+    }
+    for (String value : values) {
+      if (StringUtils.isNotBlank(value)) {
+        params.put(key, value.trim());
+      }
+    }
+  }
+
   private static VulnerabilitiesListFacetsDTO toFacets(
       final ApiSearchResponse<VulnerabilityDocument> searchResult,
       final long total)
@@ -194,15 +227,20 @@ final class VulnerabilitiesCatalogListService
       return facets;
     }
     Map<String, Map<String, Long>> aggregations = searchResult.aggregations();
-    facets.severities = copyAggregation(aggregations, "severities", "severity");
-    facets.ecosystems = copyAggregation(aggregations, "affectedEcosystems", "ecosystems");
+    facets.severities = copyAggregation(aggregations, "severities", "severity", true);
+    facets.ecosystems = copyAggregation(aggregations, "affectedEcosystems", "ecosystems", true);
+    Map<String, Long> cwes = copyAggregation(aggregations, "cwes", "cwe", false);
+    if (!cwes.isEmpty()) {
+      facets.cwes = cwes;
+    }
     return facets;
   }
 
   private static Map<String, Long> copyAggregation(
       final Map<String, Map<String, Long>> aggregations,
       final String primaryKey,
-      final String alternateKey)
+      final String alternateKey,
+      final boolean lowerCaseKeys)
   {
     Map<String, Long> source = aggregations.get(primaryKey);
     if (source == null) {
@@ -214,7 +252,7 @@ final class VulnerabilitiesCatalogListService
     Map<String, Long> copy = new LinkedHashMap<>();
     source.forEach((key, value) -> {
       if (key != null && value != null) {
-        copy.put(key.toLowerCase(Locale.ROOT), value);
+        copy.put(lowerCaseKeys ? key.toLowerCase(Locale.ROOT) : key, value);
       }
     });
     return copy;
@@ -232,8 +270,25 @@ final class VulnerabilitiesCatalogListService
     if (doc.affectedEcosystems() != null && !doc.affectedEcosystems().isEmpty()) {
       row.ecosystem = doc.affectedEcosystems().get(0);
     }
-    // V1 list cards omit KEV / malware / publishedDate (Kitchen Sink) so Catalog and My Scan
-    // Data share one index-backed card shape — no blank pills when HDS fields are absent.
+    // Catalog chrome is on GuideVulnerabilityDocument (HDS hit). Cast keeps us off the thin
+    // VulnerabilityDocument interface surface and avoids per-row detail fetches.
+    if (doc instanceof GuideVulnerabilityDocument guide) {
+      if (guide.kev() != null) {
+        row.knownExploited = guide.kev();
+      }
+      if (guide.isMalware() != null) {
+        row.malware = guide.isMalware();
+      }
+      if (guide.epss() != null) {
+        row.epssScore = guide.epss().floatValue();
+      }
+      if (guide.publishedAt() != null) {
+        row.publishedAt = guide.publishedAt().toString();
+      }
+      if (guide.cwes() != null && !guide.cwes().isEmpty()) {
+        row.cwes = List.copyOf(guide.cwes());
+      }
+    }
     return row;
   }
 

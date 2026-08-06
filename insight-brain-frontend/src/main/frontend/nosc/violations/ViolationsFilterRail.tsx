@@ -36,6 +36,7 @@ import {
   WAIVER_TYPE_AUTO,
   WAIVER_TYPE_MANUAL,
 } from 'MainRoot/nosc/violations/violationsListApi';
+import { normalizeRange } from 'MainRoot/nosc/util/normalizeRange';
 import './ViolationsFilterRail.scss';
 
 /** Collapsed facet rows before See more (keeps long org/app facet lists usable). */
@@ -428,11 +429,7 @@ function WaiverTypeSection({
  * against a future config change (e.g. a single thumb, where next[1] would be undefined).
  */
 function normalizeThreatRange(next: readonly number[]): ViolationThreatRange {
-  const clamp = (n: number): number =>
-    Math.min(VIOLATION_THREAT_MAX, Math.max(VIOLATION_THREAT_MIN, n ?? VIOLATION_THREAT_MIN));
-  const a = clamp(next[0]);
-  const b = clamp(next[1] ?? next[0]);
-  return [Math.min(a, b), Math.max(a, b)];
+  return normalizeRange(next, VIOLATION_THREAT_MIN, VIOLATION_THREAT_MAX);
 }
 
 function ThreatLevelSection({

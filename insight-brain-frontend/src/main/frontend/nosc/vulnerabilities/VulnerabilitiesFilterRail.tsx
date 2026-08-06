@@ -4,10 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useState } from 'react';
-import { Badge, Button, Checkbox, Flex, ScrollArea, Slider, Text, TextField } from '@radix-ui/themes';
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Flex,
+  RadioGroup,
+  ScrollArea,
+  Slider,
+  Text,
+  TextField,
+} from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import {
   ecosystemLabel,
+  formatCvssScore,
+  formatEpssScore,
   hasActiveVulnerabilityFilters,
   scopeLabel,
   SEVERITY_LABELS,
@@ -17,16 +29,26 @@ import type {
   VulnerabilitiesFilterState,
   VulnerabilitiesListFacets,
   VulnerabilityCvssRange,
+  VulnerabilityEpssRange,
   VulnerabilityFilterSetGroup,
+  VulnerabilityPublishedWindow,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
 import {
   VULNERABILITY_CVSS_MAX,
   VULNERABILITY_CVSS_MIN,
   VULNERABILITY_CVSS_STEP,
+  VULNERABILITY_EPSS_MAX,
+  VULNERABILITY_EPSS_MIN,
+  VULNERABILITY_EPSS_STEP,
+  VULNERABILITY_PUBLISHED_WINDOWS,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
 import type { VulnerabilitiesTab } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesRoute';
+import { normalizeRange } from 'MainRoot/nosc/util/normalizeRange';
 
 import './VulnerabilitiesFilterRail.scss';
+
+/** Radio sentinel for "no published window" (Radix RadioGroup needs a non-empty value). */
+const PUBLISHED_WINDOW_ANY = 'any';
 
 export interface VulnerabilitiesFilterRailProps {
   readonly tab: VulnerabilitiesTab;
@@ -34,6 +56,10 @@ export interface VulnerabilitiesFilterRailProps {
   readonly selected: VulnerabilitiesFilterState;
   readonly onToggle: (group: VulnerabilityFilterSetGroup, id: string) => void;
   readonly onCvssRangeChange: (range: VulnerabilityCvssRange) => void;
+  readonly onKnownExploitedChange: (value: boolean) => void;
+  readonly onMalwareChange: (value: boolean) => void;
+  readonly onEpssRangeChange: (range: VulnerabilityEpssRange) => void;
+  readonly onPublishedWindowChange: (value: '' | VulnerabilityPublishedWindow) => void;
   readonly onReset: () => void;
   readonly idPrefix?: string;
 }
@@ -199,13 +225,12 @@ function SearchableFilterSection({
 }
 
 function normalizeCvssRange(next: readonly number[]): VulnerabilityCvssRange {
-  const clamp = (n: number): number =>
-    Math.min(VULNERABILITY_CVSS_MAX, Math.max(VULNERABILITY_CVSS_MIN, n));
-  const a = clamp(next[0]);
-  // Slider may emit a single thumb value during intermediate updates.
-  const b = clamp(next.length > 1 ? next[1] : next[0]);
-  const round = (n: number): number => Math.round(n * 10) / 10;
-  return [round(Math.min(a, b)), round(Math.max(a, b))];
+  return normalizeRange(
+    next,
+    VULNERABILITY_CVSS_MIN,
+    VULNERABILITY_CVSS_MAX,
+    (n) => Math.round(n * 10) / 10,
+  );
 }
 
 function CvssRangeSection({
@@ -219,11 +244,14 @@ function CvssRangeSection({
 }): JSX.Element {
   const [liveRange, setLiveRange] = useState<[number, number]>([range[0], range[1]]);
   useEffect(() => {
-    setLiveRange([range[0], range[1]]);
-  }, [range]);
+    setLiveRange((current) => (
+      current[0] === range[0] && current[1] === range[1]
+        ? current
+        : [range[0], range[1]]
+    ));
+  }, [range[0], range[1]]);
 
   const legendId = `${testId}-legend`;
-  const fmt = (n: number): string => n.toFixed(1);
   return (
     <fieldset className="nosc-vulnerabilities-filter-group" data-testid={testId}>
       <legend id={legendId} className="nosc-vulnerabilities-filter-legend">
@@ -241,23 +269,87 @@ function CvssRangeSection({
       />
       <Flex justify="between" mt="2">
         <Text size="1" color="gray">
-          {fmt(VULNERABILITY_CVSS_MIN)}
+          {formatCvssScore(VULNERABILITY_CVSS_MIN)}
         </Text>
         <Text size="1" color="gray" data-testid={`${testId}-value`}>
-          {fmt(liveRange[0])} – {fmt(liveRange[1])}
+          {formatCvssScore(liveRange[0])} – {formatCvssScore(liveRange[1])}
         </Text>
         <Text size="1" color="gray">
-          {fmt(VULNERABILITY_CVSS_MAX)}
+          {formatCvssScore(VULNERABILITY_CVSS_MAX)}
         </Text>
       </Flex>
     </fieldset>
   );
 }
 
+function normalizeEpssRange(next: readonly number[]): VulnerabilityEpssRange {
+  return normalizeRange(
+    next,
+    VULNERABILITY_EPSS_MIN,
+    VULNERABILITY_EPSS_MAX,
+    (n) => Math.round(n * 100) / 100,
+  );
+}
+
+function EpssRangeSection({
+  range,
+  onEpssRangeChange,
+  testId,
+}: {
+  readonly range: VulnerabilityEpssRange;
+  readonly onEpssRangeChange: (range: VulnerabilityEpssRange) => void;
+  readonly testId: string;
+}): JSX.Element {
+  const [liveRange, setLiveRange] = useState<[number, number]>([range[0], range[1]]);
+  useEffect(() => {
+    setLiveRange((current) => (
+      current[0] === range[0] && current[1] === range[1]
+        ? current
+        : [range[0], range[1]]
+    ));
+  }, [range[0], range[1]]);
+
+  const legendId = `${testId}-legend`;
+  return (
+    <fieldset className="nosc-vulnerabilities-filter-group" data-testid={testId}>
+      <legend id={legendId} className="nosc-vulnerabilities-filter-legend">
+        EPSS Score
+      </legend>
+      <Slider
+        min={VULNERABILITY_EPSS_MIN}
+        max={VULNERABILITY_EPSS_MAX}
+        step={VULNERABILITY_EPSS_STEP}
+        value={liveRange}
+        onValueChange={(next) => setLiveRange(normalizeEpssRange(next))}
+        onValueCommit={(next) => onEpssRangeChange(normalizeEpssRange(next))}
+        data-testid={`${testId}-slider`}
+        aria-labelledby={legendId}
+      />
+      <Flex justify="between" mt="2">
+        <Text size="1" color="gray">
+          {formatEpssScore(VULNERABILITY_EPSS_MIN)}
+        </Text>
+        <Text size="1" color="gray" data-testid={`${testId}-value`}>
+          {formatEpssScore(liveRange[0])} – {formatEpssScore(liveRange[1])}
+        </Text>
+        <Text size="1" color="gray">
+          {formatEpssScore(VULNERABILITY_EPSS_MAX)}
+        </Text>
+      </Flex>
+    </fieldset>
+  );
+}
+
+const PUBLISHED_WINDOW_LABELS: Readonly<Record<VulnerabilityPublishedWindow, string>> = {
+  '30d': 'Last 30 days',
+  '90d': 'Last 90 days',
+  '1y': 'Last year',
+  '2y': 'Last 2 years',
+};
+
 /**
- * Interactive filter sidebar for Martha V1 Vulnerabilities (severity, CVSS, ecosystem, and the
- * organization / application / stage scope filters from CLM-43211).
- * KEV / malware / CWE / published / patch / policy remain deferred until index-backed.
+ * Interactive filter sidebar for Martha Vulnerabilities (severity, CVSS, ecosystem, estate scope on
+ * My Scan Data, and Catalog-only KEV / malware / EPSS / CWE / published when tab=catalog).
  */
 export default function VulnerabilitiesFilterRail({
   tab,
@@ -265,10 +357,15 @@ export default function VulnerabilitiesFilterRail({
   selected,
   onToggle,
   onCvssRangeChange,
+  onKnownExploitedChange,
+  onMalwareChange,
+  onEpssRangeChange,
+  onPublishedWindowChange,
   onReset,
   idPrefix = 'desktop',
 }: VulnerabilitiesFilterRailProps): JSX.Element {
   const showEstateScope = tab === 'myScanData';
+  const showCatalogRichness = tab === 'catalog';
   const severityOrder = Object.keys(SEVERITY_LABELS);
   const severityEntries = toEntries(
     facets?.severities,
@@ -278,6 +375,7 @@ export default function VulnerabilitiesFilterRail({
     severityOrder,
   );
   const ecosystemEntries = toEntries(facets?.ecosystems, selected.ecosystems, ecosystemLabel);
+  const cweEntries = toEntries(facets?.cwes, selected.cwes, (id) => id);
   const organizationEntries = toEntries(facets?.organizations, selected.organizations, (id) =>
     scopeLabel(facets?.organizationNames, id),
   );
@@ -287,7 +385,7 @@ export default function VulnerabilitiesFilterRail({
   const stageEntries = toEntries(facets?.stages, selected.stages, (id) =>
     scopeLabel(facets?.stageNames, id),
   );
-  const filtersActive = hasActiveVulnerabilityFilters(selected);
+  const filtersActive = hasActiveVulnerabilityFilters(selected, tab);
 
   return (
     <Flex
@@ -334,6 +432,113 @@ export default function VulnerabilitiesFilterRail({
         selected={selected.ecosystems}
         onToggle={onToggle}
       />
+
+      {showCatalogRichness && (
+        <fieldset
+          className="nosc-vulnerabilities-filter-group"
+          data-testid={`vulnerabilities-filter-catalog-flags-${idPrefix}`}
+        >
+          <legend
+            id={`vulnerabilities-filter-catalog-flags-legend-${idPrefix}`}
+            className="nosc-vulnerabilities-filter-legend"
+          >
+            Catalog signals
+          </legend>
+          <Flex
+            direction="column"
+            gap="2"
+            role="group"
+            aria-labelledby={`vulnerabilities-filter-catalog-flags-legend-${idPrefix}`}
+          >
+            <Text as="label" size="2" color="gray">
+              <Flex align="center" gap="2">
+                <Checkbox
+                  checked={selected.knownExploited}
+                  onCheckedChange={(value) => onKnownExploitedChange(value === true)}
+                  data-testid={`vulnerabilities-filter-kev-${idPrefix}`}
+                />
+                Known exploited (KEV)
+              </Flex>
+            </Text>
+            <Text as="label" size="2" color="gray">
+              <Flex align="center" gap="2">
+                <Checkbox
+                  checked={selected.malware}
+                  onCheckedChange={(value) => onMalwareChange(value === true)}
+                  data-testid={`vulnerabilities-filter-malware-${idPrefix}`}
+                />
+                Malware
+              </Flex>
+            </Text>
+          </Flex>
+        </fieldset>
+      )}
+
+      {showCatalogRichness && (
+        <EpssRangeSection
+          range={selected.epssRange}
+          onEpssRangeChange={onEpssRangeChange}
+          testId={`vulnerabilities-filter-epss-${idPrefix}`}
+        />
+      )}
+
+      {showCatalogRichness && (
+        <fieldset
+          className="nosc-vulnerabilities-filter-group"
+          data-testid={`vulnerabilities-filter-published-${idPrefix}`}
+        >
+          <legend
+            id={`vulnerabilities-filter-published-legend-${idPrefix}`}
+            className="nosc-vulnerabilities-filter-legend"
+          >
+            Published
+          </legend>
+          <RadioGroup.Root
+            value={selected.publishedWindow || PUBLISHED_WINDOW_ANY}
+            onValueChange={(next) =>
+              onPublishedWindowChange(
+                next === PUBLISHED_WINDOW_ANY ? '' : (next as VulnerabilityPublishedWindow),
+              )
+            }
+            aria-labelledby={`vulnerabilities-filter-published-legend-${idPrefix}`}
+            data-testid={`vulnerabilities-filter-published-radio-${idPrefix}`}
+          >
+            <Flex direction="column" gap="1">
+              <Text as="label" size="2" color="gray">
+                <Flex align="center" gap="2">
+                  <RadioGroup.Item
+                    value={PUBLISHED_WINDOW_ANY}
+                    data-testid={`vulnerabilities-filter-published-any-${idPrefix}`}
+                  />
+                  Any time
+                </Flex>
+              </Text>
+              {VULNERABILITY_PUBLISHED_WINDOWS.map((window) => (
+                <Text key={window} as="label" size="2" color="gray">
+                  <Flex align="center" gap="2">
+                    <RadioGroup.Item
+                      value={window}
+                      data-testid={`vulnerabilities-filter-published-${window}-${idPrefix}`}
+                    />
+                    {PUBLISHED_WINDOW_LABELS[window]}
+                  </Flex>
+                </Text>
+              ))}
+            </Flex>
+          </RadioGroup.Root>
+        </fieldset>
+      )}
+
+      {showCatalogRichness && (
+        <SearchableFilterSection
+          title="CWE"
+          testId={`vulnerabilities-filter-cwe-${idPrefix}`}
+          group="cwes"
+          entries={cweEntries}
+          selected={selected.cwes}
+          onToggle={onToggle}
+        />
+      )}
 
       {showEstateScope && (
         <SearchableFilterSection

@@ -68,17 +68,35 @@ public class VulnerabilitiesListRequestDTO
   /** Stage type ids (e.g. {@code build}, {@code release}). OR semantics (CLM-43211). */
   public Set<String> stageIds;
 
-  // --- Reserved until index/enrichment lands; non-null/non-empty values → 400 ---
-
+  /**
+   * Catalog-only: CISA KEV / known exploitation ({@code exploitationKnown} on HDS). My Scan Data
+   * rejects non-null values (estate index has no KEV field yet).
+   */
   public Boolean knownExploited;
 
+  /**
+   * Catalog-only: malware flag ({@code hasMalware} on HDS). My Scan Data rejects non-null values.
+   */
   public Boolean malware;
 
+  /** Inclusive EPSS lower bound in {@code [0.0, 1.0]}. Catalog-only; My Scan rejects non-null. */
+  public Float minEpssScore;
+
+  /** Inclusive EPSS upper bound in {@code [0.0, 1.0]}. Catalog-only; My Scan rejects non-null. */
+  public Float maxEpssScore;
+
+  /** Reserved — not supported on either tab yet. */
   public Boolean patchAvailable;
 
+  /** Catalog-only: CWE ids (OR). My Scan Data rejects non-empty values. */
   public Set<String> cwes;
 
+  /**
+   * Catalog-only relative publish window: {@code 30d}|{@code 90d}|{@code 1y}|{@code 2y}. My Scan
+   * Data rejects non-blank values.
+   */
   public String publishedWindow;
 
+  /** Reserved — not supported on either tab yet. */
   public Set<String> policyCompliance;
 }

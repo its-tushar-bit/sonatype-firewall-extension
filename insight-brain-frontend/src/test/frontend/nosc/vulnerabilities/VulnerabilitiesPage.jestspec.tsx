@@ -42,6 +42,10 @@ function renderPage(overrides: Partial<VulnerabilitiesPageProps> = {}) {
       filters={createDefaultVulnerabilitiesFilterState()}
       onFilterToggle={jest.fn()}
       onCvssRangeChange={jest.fn()}
+      onKnownExploitedChange={jest.fn()}
+      onMalwareChange={jest.fn()}
+      onEpssRangeChange={jest.fn()}
+      onPublishedWindowChange={jest.fn()}
       onFiltersReset={jest.fn()}
       totalCount={1}
       searchValue=""
@@ -83,6 +87,20 @@ describe('VulnerabilitiesPage', () => {
 
     await user.click(screen.getByTestId('vulnerabilities-tab-catalog'));
     expect(onTabChange).toHaveBeenCalledWith('catalog');
+  });
+
+  it('shows Catalog richness filters on catalog tab and hides them on My Scan Data', () => {
+    renderPage({ tab: 'catalog' });
+    expect(screen.getByTestId('vulnerabilities-filter-kev-desktop')).toBeInTheDocument();
+    expect(screen.getByTestId('vulnerabilities-filter-malware-desktop')).toBeInTheDocument();
+    expect(screen.getByTestId('vulnerabilities-filter-epss-desktop-slider')).toBeInTheDocument();
+    expect(screen.getByTestId('vulnerabilities-filter-published-desktop')).toBeInTheDocument();
+  });
+
+  it('hides Catalog richness filters on My Scan Data', () => {
+    renderPage({ tab: 'myScanData' });
+    expect(screen.queryByTestId('vulnerabilities-filter-kev-desktop')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('vulnerabilities-filter-epss-desktop-slider')).not.toBeInTheDocument();
   });
 
   it('renders scope sections with names and toggles by id (CLM-43211)', async () => {

@@ -28,6 +28,13 @@ public class VulnerabilitiesListFacetsDTO
   public Map<String, Long> ecosystems = new LinkedHashMap<>();
 
   /**
+   * Catalog: CWE id → count from HDS aggregations when present. Omitted (null) when the backend
+   * does not return a {@code cwes} aggregation so the rail can hide the section.
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Map<String, Long> cwes;
+
+  /**
    * Scope facets (CLM-43211): organization / application / stage id → distinct vulnerability count.
    * <p>
    * Unlike severity and ecosystem, these vary across the uncollapsed hits for one vulnerability — a

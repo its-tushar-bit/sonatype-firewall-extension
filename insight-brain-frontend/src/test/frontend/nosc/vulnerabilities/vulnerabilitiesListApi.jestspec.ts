@@ -110,14 +110,80 @@ describe('vulnerabilitiesListApi', () => {
     });
   });
 
-  it('treats scope selections as active filters', () => {
+  it('includes Catalog richness filters only on catalog tab', () => {
+    expect(
+      buildVulnerabilitiesListRequest({
+        tab: 'catalog',
+        page: 0,
+        filters: {
+          ...createDefaultVulnerabilitiesFilterState(),
+          knownExploited: true,
+          malware: true,
+          epssRange: [0.1, 0.9],
+          publishedWindow: '90d',
+          cwes: new Set(['CWE-79']),
+        },
+      }),
+    ).toEqual({
+      tab: 'catalog',
+      page: 0,
+      pageSize: VULNERABILITIES_PAGE_SIZE,
+      includeFacets: true,
+      orderBy: VULNERABILITIES_DEFAULT_ORDER_BY,
+      knownExploited: true,
+      malware: true,
+      minEpssScore: 0.1,
+      maxEpssScore: 0.9,
+      publishedWindow: '90d',
+      cwes: ['CWE-79'],
+    });
+
+    expect(
+      buildVulnerabilitiesListRequest({
+        tab: 'myScanData',
+        page: 0,
+        filters: {
+          ...createDefaultVulnerabilitiesFilterState(),
+          knownExploited: true,
+          malware: true,
+          cwes: new Set(['CWE-79']),
+        },
+      }),
+    ).toEqual({
+      tab: 'myScanData',
+      page: 0,
+      pageSize: VULNERABILITIES_PAGE_SIZE,
+      includeFacets: true,
+      orderBy: VULNERABILITIES_DEFAULT_ORDER_BY,
+    });
+  });
+
+  it('treats scope and Catalog richness as active only on their tabs', () => {
     expect(
       hasActiveVulnerabilityFilters({
         ...createDefaultVulnerabilitiesFilterState(),
         stages: new Set(['build']),
-      }),
+      }, 'myScanData'),
     ).toBe(true);
+    expect(
+      hasActiveVulnerabilityFilters({
+        ...createDefaultVulnerabilitiesFilterState(),
+        stages: new Set(['build']),
+      }, 'catalog'),
+    ).toBe(false);
     expect(hasActiveVulnerabilityFilters(createDefaultVulnerabilitiesFilterState())).toBe(false);
+    expect(
+      hasActiveVulnerabilityFilters({
+        ...createDefaultVulnerabilitiesFilterState(),
+        knownExploited: true,
+      }, 'myScanData'),
+    ).toBe(false);
+    expect(
+      hasActiveVulnerabilityFilters({
+        ...createDefaultVulnerabilitiesFilterState(),
+        knownExploited: true,
+      }, 'catalog'),
+    ).toBe(true);
   });
 
   it('labels scope ids by name and falls back to the id when unnamed', () => {

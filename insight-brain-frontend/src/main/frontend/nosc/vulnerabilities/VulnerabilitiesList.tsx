@@ -9,6 +9,7 @@ import VulnerabilitiesPage from 'MainRoot/nosc/vulnerabilities/VulnerabilitiesPa
 import { useVulnerabilitiesList } from 'MainRoot/nosc/vulnerabilities/useVulnerabilitiesList';
 import {
   createDefaultVulnerabilitiesFilterState,
+  DEFAULT_VULNERABILITY_EPSS_RANGE,
   mapVulnerabilitiesListResponse,
   VULNERABILITIES_PAGE_SIZE,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesListApi';
@@ -23,7 +24,9 @@ import type {
   VulnerabilitiesListFacets,
   VulnerabilitiesListOrderBy,
   VulnerabilityCvssRange,
+  VulnerabilityEpssRange,
   VulnerabilityFilterSetGroup,
+  VulnerabilityPublishedWindow,
   VulnerabilityRow,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
 import {
@@ -152,18 +155,34 @@ export default function VulnerabilitiesList(): JSX.Element {
     setTab(nextTab);
     setPage(1);
     setFacetCache(null);
-    // Estate scope (org/app/stage) is My Scan Data–only; Catalog ignores those keys.
-    // Clear them on switch so a Catalog view cannot look filtered when it is not.
-    const nextFilters =
-      nextTab === 'catalog'
-        && (filters.organizations.size > 0 || filters.applications.size > 0 || filters.stages.size > 0)
-        ? {
-            ...filters,
-            organizations: new Set<string>(),
-            applications: new Set<string>(),
-            stages: new Set<string>(),
-          }
-        : filters;
+    // Drop tab-private filters on switch so the inactive tab cannot look filtered.
+    let nextFilters = filters;
+    if (nextTab === 'catalog') {
+      if (filters.organizations.size > 0 || filters.applications.size > 0 || filters.stages.size > 0) {
+        nextFilters = {
+          ...filters,
+          organizations: new Set<string>(),
+          applications: new Set<string>(),
+          stages: new Set<string>(),
+        };
+      }
+    } else if (
+      filters.knownExploited ||
+      filters.malware ||
+      filters.publishedWindow ||
+      filters.cwes.size > 0 ||
+      filters.epssRange[0] !== DEFAULT_VULNERABILITY_EPSS_RANGE[0] ||
+      filters.epssRange[1] !== DEFAULT_VULNERABILITY_EPSS_RANGE[1]
+    ) {
+      nextFilters = {
+        ...filters,
+        knownExploited: false,
+        malware: false,
+        epssRange: DEFAULT_VULNERABILITY_EPSS_RANGE,
+        publishedWindow: '',
+        cwes: new Set<string>(),
+      };
+    }
     if (nextFilters !== filters) {
       setFilters(nextFilters);
     }
@@ -211,6 +230,14 @@ export default function VulnerabilitiesList(): JSX.Element {
     writeUrl({ tab, page: 0, search, orderBy, filters: next });
   };
 
+  const patchFilters = (patch: Partial<VulnerabilitiesFilterState>) => {
+    const next = { ...filters, ...patch };
+    setFilters(next);
+    setPage(1);
+    setFacetCache(null);
+    writeUrl({ tab, page: 0, search, orderBy, filters: next });
+  };
+
   const handleFiltersReset = () => {
     const next = createDefaultVulnerabilitiesFilterState();
     setFilters(next);
@@ -228,6 +255,12 @@ export default function VulnerabilitiesList(): JSX.Element {
       filters={filters}
       onFilterToggle={handleFilterToggle}
       onCvssRangeChange={handleCvssRangeChange}
+      onKnownExploitedChange={(value) => patchFilters({ knownExploited: value })}
+      onMalwareChange={(value) => patchFilters({ malware: value })}
+      onEpssRangeChange={(range: VulnerabilityEpssRange) => patchFilters({ epssRange: range })}
+      onPublishedWindowChange={(value: '' | VulnerabilityPublishedWindow) =>
+        patchFilters({ publishedWindow: value })
+      }
       onFiltersReset={handleFiltersReset}
       loading={status === 'loading'}
       error={error?.message ?? null}

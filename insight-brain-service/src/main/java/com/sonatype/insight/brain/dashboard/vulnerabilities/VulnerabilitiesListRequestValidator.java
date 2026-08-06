@@ -35,12 +35,18 @@ final class VulnerabilitiesListRequestValidator
 
   static final float CVSS_MAX = 10.0f;
 
+  static final float EPSS_MIN = 0.0f;
+
+  static final float EPSS_MAX = 1.0f;
+
   private static final Set<String> SUPPORTED_ORDER_BY = Set.of("cvssScore", "-cvssScore");
 
   private static final Set<String> SUPPORTED_TABS = Set.of(TAB_MY_SCAN_DATA, TAB_CATALOG);
 
   static final Set<String> SUPPORTED_SEVERITIES =
       Set.of("critical", "high", "medium", "low", "none");
+
+  static final Set<String> SUPPORTED_PUBLISHED_WINDOWS = Set.of("30d", "90d", "1y", "2y");
 
   private final Configuration configuration;
 
@@ -55,10 +61,14 @@ final class VulnerabilitiesListRequestValidator
     }
     validateTab(request.tab);
     validateOrderBy(request.orderBy);
-    rejectUnsupportedFilters(request);
+    String tab = normalizeTab(request.tab);
+    rejectUnsupportedFilters(request, tab);
     validateSeverities(request.severities);
     validateCvssRange(request.minCvssScore, request.maxCvssScore);
+    validateEpssRange(request.minEpssScore, request.maxEpssScore);
     validateEcosystems(request.ecosystems);
+    validateCwes(request.cwes);
+    validatePublishedWindow(request.publishedWindow);
     validateScopeIds(request.organizationIds, "organizationIds");
     validateScopeIds(request.applicationIds, "applicationIds");
     validateScopeIds(request.stageIds, "stageIds");
@@ -111,22 +121,29 @@ final class VulnerabilitiesListRequestValidator
     }
   }
 
-  private static void rejectUnsupportedFilters(final VulnerabilitiesListRequestDTO request) {
-    if (request.knownExploited != null) {
-      throw new BadRequestException("knownExploited filter is not yet supported on the vulnerabilities list.");
+  private static void rejectUnsupportedFilters(
+      final VulnerabilitiesListRequestDTO request,
+      final String tab)
+  {
+    boolean catalog = TAB_CATALOG.equals(tab);
+    if (!catalog && request.knownExploited != null) {
+      throw new BadRequestException(
+          "knownExploited filter is only supported on the catalog tab.");
     }
-    if (request.malware != null) {
-      throw new BadRequestException("malware filter is not yet supported on the vulnerabilities list.");
+    if (!catalog && request.malware != null) {
+      throw new BadRequestException("malware filter is only supported on the catalog tab.");
+    }
+    if (!catalog && (request.minEpssScore != null || request.maxEpssScore != null)) {
+      throw new BadRequestException("EPSS filters are only supported on the catalog tab.");
+    }
+    if (!catalog && request.cwes != null && !request.cwes.isEmpty()) {
+      throw new BadRequestException("cwes filter is only supported on the catalog tab.");
+    }
+    if (!catalog && StringUtils.isNotBlank(request.publishedWindow)) {
+      throw new BadRequestException("publishedWindow filter is only supported on the catalog tab.");
     }
     if (request.patchAvailable != null) {
       throw new BadRequestException("patchAvailable filter is not yet supported on the vulnerabilities list.");
-    }
-    if (request.cwes != null && !request.cwes.isEmpty()) {
-      throw new BadRequestException("cwes filter is not yet supported on the vulnerabilities list.");
-    }
-    if (StringUtils.isNotBlank(request.publishedWindow)) {
-      throw new BadRequestException(
-          "publishedWindow filter is not yet supported on the vulnerabilities list.");
     }
     if (request.policyCompliance != null && !request.policyCompliance.isEmpty()) {
       throw new BadRequestException(
@@ -161,11 +178,33 @@ final class VulnerabilitiesListRequestValidator
     }
   }
 
+  private static void validateEpssRange(final Float minEpssScore, final Float maxEpssScore) {
+    if (minEpssScore != null) {
+      requireInEpssDomain(minEpssScore, "minEpssScore");
+    }
+    if (maxEpssScore != null) {
+      requireInEpssDomain(maxEpssScore, "maxEpssScore");
+    }
+    if (minEpssScore != null && maxEpssScore != null && minEpssScore > maxEpssScore) {
+      throw new BadRequestException(
+          "Invalid EPSS range: minEpssScore (" + minEpssScore + ") is greater than maxEpssScore ("
+              + maxEpssScore + ").");
+    }
+  }
+
   private static void requireInCvssDomain(final float score, final String fieldName) {
     if (score < CVSS_MIN || score > CVSS_MAX) {
       throw new BadRequestException(
           "Invalid " + fieldName + ": " + score + ". Value must be between " + CVSS_MIN + " and "
               + CVSS_MAX + ".");
+    }
+  }
+
+  private static void requireInEpssDomain(final float score, final String fieldName) {
+    if (score < EPSS_MIN || score > EPSS_MAX) {
+      throw new BadRequestException(
+          "Invalid " + fieldName + ": " + score + ". Value must be between " + EPSS_MIN + " and "
+              + EPSS_MAX + ".");
     }
   }
 
@@ -177,6 +216,39 @@ final class VulnerabilitiesListRequestValidator
       if (StringUtils.isBlank(ecosystem)) {
         throw new BadRequestException("ecosystems must not contain blank values.");
       }
+    }
+  }
+
+  /**
+   * CWE ids are opaque facet keys from HDS (not necessarily {@code CWE-\d+}). Reject blanks only;
+   * non-blank values are forwarded as-is and URL-encoded by the HDS client. Cap set size with the
+   * same advanced-search clause budget used for scope ids so IQ fails with a clear 400 instead of
+   * forwarding an unbounded {@code cwes=} fan-out to HDS.
+   */
+  private void validateCwes(final Set<String> cwes) {
+    if (cwes == null || cwes.isEmpty()) {
+      return;
+    }
+    for (String cwe : cwes) {
+      if (StringUtils.isBlank(cwe)) {
+        throw new BadRequestException("cwes must not contain blank values.");
+      }
+    }
+    int maxClauseCount = configuration.getMaxAdvancedSearchClauseCount();
+    if (maxClauseCount > 0 && cwes.size() > maxClauseCount) {
+      throw new BadRequestException("cwes contains too many ids (max " + maxClauseCount + ").");
+    }
+  }
+
+  private static void validatePublishedWindow(final String publishedWindow) {
+    if (StringUtils.isBlank(publishedWindow)) {
+      return;
+    }
+    String normalized = publishedWindow.trim().toLowerCase(Locale.ROOT);
+    if (!SUPPORTED_PUBLISHED_WINDOWS.contains(normalized)) {
+      throw new BadRequestException(
+          "Invalid publishedWindow: " + publishedWindow
+              + ". Supported values are 30d, 90d, 1y, and 2y.");
     }
   }
 

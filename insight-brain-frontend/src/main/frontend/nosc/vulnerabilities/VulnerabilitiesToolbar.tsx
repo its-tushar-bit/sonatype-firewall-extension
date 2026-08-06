@@ -56,7 +56,7 @@ export default function VulnerabilitiesToolbar({
   const isCatalog = tab === 'catalog';
   const canExport = !isCatalog && totalCount > 0;
   const hasActiveFilters =
-    hasActiveVulnerabilityFilters(filters) || searchValue.trim().length > 0;
+    hasActiveVulnerabilityFilters(filters, tab) || searchValue.trim().length > 0;
   const csvState: CsvExportState = isCatalog
     ? 'catalog'
     : !canExport

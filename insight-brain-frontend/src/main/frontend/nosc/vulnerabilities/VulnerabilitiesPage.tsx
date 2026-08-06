@@ -17,7 +17,9 @@ import type {
   VulnerabilitiesListFacets,
   VulnerabilitiesListOrderBy,
   VulnerabilityCvssRange,
+  VulnerabilityEpssRange,
   VulnerabilityFilterSetGroup,
+  VulnerabilityPublishedWindow,
   VulnerabilityRow,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
 import type { VulnerabilitiesTab } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesRoute';
@@ -33,6 +35,10 @@ export interface VulnerabilitiesPageProps {
   readonly filters: VulnerabilitiesFilterState;
   readonly onFilterToggle: (group: VulnerabilityFilterSetGroup, id: string) => void;
   readonly onCvssRangeChange: (range: VulnerabilityCvssRange) => void;
+  readonly onKnownExploitedChange: (value: boolean) => void;
+  readonly onMalwareChange: (value: boolean) => void;
+  readonly onEpssRangeChange: (range: VulnerabilityEpssRange) => void;
+  readonly onPublishedWindowChange: (value: '' | VulnerabilityPublishedWindow) => void;
   readonly onFiltersReset: () => void;
   readonly loading?: boolean;
   readonly error?: string | null;
@@ -59,6 +65,10 @@ export default function VulnerabilitiesPage({
   filters,
   onFilterToggle,
   onCvssRangeChange,
+  onKnownExploitedChange,
+  onMalwareChange,
+  onEpssRangeChange,
+  onPublishedWindowChange,
   onFiltersReset,
   loading = false,
   error = null,
@@ -76,7 +86,7 @@ export default function VulnerabilitiesPage({
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const showPagination = (totalCount > pageSize || page > 1) && !error;
   const hasSearch = Boolean(searchValue);
-  const filtersActive = hasActiveVulnerabilityFilters(filters);
+  const filtersActive = hasActiveVulnerabilityFilters(filters, tab);
 
   const railProps = {
     tab,
@@ -84,6 +94,10 @@ export default function VulnerabilitiesPage({
     selected: filters,
     onToggle: onFilterToggle,
     onCvssRangeChange,
+    onKnownExploitedChange,
+    onMalwareChange,
+    onEpssRangeChange,
+    onPublishedWindowChange,
     onReset: onFiltersReset,
   };
 

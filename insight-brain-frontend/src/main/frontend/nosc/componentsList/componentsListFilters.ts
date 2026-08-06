@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import type { ComponentsFilterFacetEntry } from 'MainRoot/nosc/componentsList/componentListTypes';
+import { normalizeRange } from 'MainRoot/nosc/util/normalizeRange';
 
 /** Orgs/ecosystems show this many options before "See more" (Applications-pattern AC). */
 export const FACET_COLLAPSE_LIMIT = 8;
@@ -59,16 +60,7 @@ export function isDefaultComponentsThreatRange(range: ComponentsThreatRange): bo
 export function normalizeComponentsThreatRange(
   next: readonly number[],
 ): ComponentsThreatRange {
-  const clampThreat = (n: number): number => {
-    const safe = Number.isFinite(n) ? n : COMPONENTS_THREAT_MIN;
-    return Math.min(
-      COMPONENTS_THREAT_MAX,
-      Math.max(COMPONENTS_THREAT_MIN, safe),
-    );
-  };
-  const low = clampThreat(next[0]);
-  const high = clampThreat(next[1] ?? next[0]);
-  return [Math.min(low, high), Math.max(low, high)];
+  return normalizeRange(next, COMPONENTS_THREAT_MIN, COMPONENTS_THREAT_MAX);
 }
 
 export function hasActiveComponentsListFilters(filters: ComponentsListFilterState): boolean {

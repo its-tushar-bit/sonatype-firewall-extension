@@ -222,6 +222,80 @@ public class VulnerabilitiesListResourceTest
   }
 
   @Test
+  public void listVulnerabilities_catalogOnlyFiltersOnMyScanData_return400() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    VulnerabilitiesListRequestDTO malware = new VulnerabilitiesListRequestDTO();
+    malware.malware = true;
+    assertResponseStatus(400, post(malware));
+
+    VulnerabilitiesListRequestDTO published = new VulnerabilitiesListRequestDTO();
+    published.publishedWindow = "90d";
+    assertResponseStatus(400, post(published));
+
+    VulnerabilitiesListRequestDTO cwes = new VulnerabilitiesListRequestDTO();
+    cwes.cwes = java.util.Set.of("CWE-79");
+    assertResponseStatus(400, post(cwes));
+  }
+
+  @Test
+  public void listVulnerabilities_catalogKevFilter_isAccepted() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("VulnCatalogKevTribe");
+    Application app = tempEntity.newApplication("Catalog Kev App", "catalog-kev-app", org.getId());
+    seedComponentsReport(app, "catalogKevStubReport");
+    User reader = readerOn(org, "vuln-catalog-kev-reader");
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.tab = "catalog";
+    request.knownExploited = true;
+    VulnerabilitiesListResponseDTO body = post(request, reader).getBody(VulnerabilitiesListResponseDTO.class);
+
+    assertThat(body.source).isEqualTo(VulnerabilitiesListResponseDTO.SOURCE_CATALOG);
+  }
+
+  @Test
+  public void listVulnerabilities_catalogEpssMinGreaterThanMax_returns400() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.tab = "catalog";
+    request.minEpssScore = 0.9f;
+    request.maxEpssScore = 0.1f;
+
+    assertResponseStatus(400, post(request));
+  }
+
+  @Test
+  public void listVulnerabilities_catalogEpssOutsideDomain_returns400() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.tab = "catalog";
+    request.minEpssScore = -0.1f;
+
+    assertResponseStatus(400, post(request));
+  }
+
+  @Test
+  public void listVulnerabilities_catalogEpssMinOnly_isAccepted() throws Exception {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+
+    Organization org = tempEntity.newOrganization("VulnCatalogEpssTribe");
+    Application app = tempEntity.newApplication("Catalog Epss App", "catalog-epss-app", org.getId());
+    seedComponentsReport(app, "catalogEpssStubReport");
+    User reader = readerOn(org, "vuln-catalog-epss-reader");
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.tab = "catalog";
+    request.minEpssScore = 0.5f;
+    VulnerabilitiesListResponseDTO body = post(request, reader).getBody(VulnerabilitiesListResponseDTO.class);
+
+    assertThat(body.source).isEqualTo(VulnerabilitiesListResponseDTO.SOURCE_CATALOG);
+  }
+
+  @Test
   public void listVulnerabilities_invalidSeverity_returns400() throws Exception {
     SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
 

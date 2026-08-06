@@ -52,6 +52,11 @@ describe('vulnerabilitiesListQuery', () => {
       org: undefined,
       app: undefined,
       stage: undefined,
+      kev: undefined,
+      malware: undefined,
+      epss: undefined,
+      published: undefined,
+      cwe: undefined,
     });
 
     expect(
@@ -64,10 +69,12 @@ describe('vulnerabilitiesListQuery', () => {
           ...createDefaultVulnerabilitiesFilterState(),
           severities: new Set(['critical']),
           ecosystems: new Set(['maven']),
+          // Estate scope is My Scan only — ignored in the Catalog URL even if present in state.
           organizations: new Set(['org-1']),
           applications: new Set(['app-1']),
           stages: new Set(['build']),
           cvssRange: [7.5, 9.8],
+          knownExploited: true,
         },
       }),
     ).toEqual({
@@ -78,9 +85,14 @@ describe('vulnerabilitiesListQuery', () => {
       severity: 'critical',
       cvss: '7.5-9.8',
       ecosystem: 'maven',
-      org: 'org-1',
-      app: 'app-1',
-      stage: 'build',
+      org: undefined,
+      app: undefined,
+      stage: undefined,
+      kev: '1',
+      malware: undefined,
+      epss: undefined,
+      published: undefined,
+      cwe: undefined,
     });
   });
 
@@ -111,6 +123,43 @@ describe('vulnerabilitiesListQuery', () => {
     expect(JSON.stringify(cleaned)).toContain('critical');
     expect(JSON.stringify(cleaned)).not.toContain('bogus');
     expect(JSON.stringify(cleaned)).not.toContain('abc');
+  });
+
+  it('ignores Catalog-only URL tokens on My Scan Data (and estate tokens on Catalog)', () => {
+    const myScan = parseVulnerabilitiesListParams({
+      tab: 'myScanData',
+      kev: '1',
+      malware: 'true',
+      epss: '0.1-0.9',
+      published: '90d',
+      cwe: 'CWE-79',
+      org: 'org-1',
+    });
+    expect(myScan.filters.knownExploited).toBe(false);
+    expect(myScan.filters.malware).toBe(false);
+    expect(myScan.filters.epssRange).toEqual([0, 1]);
+    expect(myScan.filters.publishedWindow).toBe('');
+    expect(myScan.filters.cwes.size).toBe(0);
+    expect(Array.from(myScan.filters.organizations)).toEqual(['org-1']);
+
+    const catalog = parseVulnerabilitiesListParams({
+      tab: 'catalog',
+      kev: '1',
+      org: 'org-1',
+      app: 'app-1',
+      stage: 'build',
+    });
+    expect(catalog.filters.knownExploited).toBe(true);
+    expect(catalog.filters.organizations.size).toBe(0);
+    expect(catalog.filters.applications.size).toBe(0);
+    expect(catalog.filters.stages.size).toBe(0);
+
+    const rewritten = buildVulnerabilitiesListRouteParams(myScan);
+    expect(rewritten.kev).toBeUndefined();
+    expect(rewritten.malware).toBeUndefined();
+    expect(rewritten.epss).toBeUndefined();
+    expect(rewritten.published).toBeUndefined();
+    expect(rewritten.cwe).toBeUndefined();
   });
 
   it('round-trips ecosystem tokens that contain commas via percent-encoding', () => {

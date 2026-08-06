@@ -7,15 +7,22 @@ import type {
   VulnerabilitiesFilterState,
   VulnerabilitiesListOrderBy,
   VulnerabilityCvssRange,
+  VulnerabilityEpssRange,
+  VulnerabilityPublishedWindow,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
 import {
   VULNERABILITY_CVSS_MAX,
   VULNERABILITY_CVSS_MIN,
+  VULNERABILITY_EPSS_MAX,
+  VULNERABILITY_EPSS_MIN,
+  VULNERABILITY_PUBLISHED_WINDOWS,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
 import {
   createDefaultVulnerabilitiesFilterState,
   DEFAULT_VULNERABILITY_CVSS_RANGE,
+  DEFAULT_VULNERABILITY_EPSS_RANGE,
   isDefaultCvssRange,
+  isDefaultEpssRange,
   SEVERITY_LABELS,
   VULNERABILITIES_DEFAULT_ORDER_BY,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesListApi';
@@ -125,6 +132,42 @@ function serializeCvssRange(range: VulnerabilityCvssRange): string | undefined {
   return `${fmt(range[0])}-${fmt(range[1])}`;
 }
 
+function parseEpssRange(value: unknown): VulnerabilityEpssRange {
+  const raw = asString(value);
+  if (!raw) return DEFAULT_VULNERABILITY_EPSS_RANGE;
+  // EPSS values are in [0, 1] — no negative numbers — so splitting on '-' is unambiguous.
+  const parts = raw.split('-', 2);
+  if (parts.length !== 2) return DEFAULT_VULNERABILITY_EPSS_RANGE;
+  const min = parseDecimalToken(parts[0].trim());
+  const max = parseDecimalToken(parts[1].trim());
+  if (min === undefined || max === undefined) return DEFAULT_VULNERABILITY_EPSS_RANGE;
+  const clamp = (n: number): number =>
+    Math.min(VULNERABILITY_EPSS_MAX, Math.max(VULNERABILITY_EPSS_MIN, n));
+  const lo = clamp(min);
+  const hi = clamp(max);
+  return [Math.min(lo, hi), Math.max(lo, hi)];
+}
+
+function serializeEpssRange(range: VulnerabilityEpssRange): string | undefined {
+  if (isDefaultEpssRange(range)) return undefined;
+  // toFixed(2) always yields at least "0"; strip trailing zeros for compact URL tokens.
+  const fmt = (n: number): string => n.toFixed(2).replace(/\.?0+$/, '');
+  return `${fmt(range[0])}-${fmt(range[1])}`;
+}
+
+function parseBoolFlag(value: unknown): boolean {
+  const raw = asString(value)?.toLowerCase();
+  return raw === '1' || raw === 'true' || raw === 'yes';
+}
+
+function parsePublishedWindow(value: unknown): '' | VulnerabilityPublishedWindow {
+  const raw = asString(value)?.toLowerCase();
+  if (!raw) return '';
+  return (VULNERABILITY_PUBLISHED_WINDOWS as ReadonlyArray<string>).includes(raw)
+    ? (raw as VulnerabilityPublishedWindow)
+    : '';
+}
+
 function parsePageIndex(value: unknown): number {
   const pageParam = typeof value === 'string' ? Number.parseInt(value, 10) : 1;
   if (!Number.isFinite(pageParam) || pageParam <= 1) {
@@ -148,12 +191,22 @@ function serializeOrderBy(orderBy: VulnerabilitiesListOrderBy): string | undefin
   return ORDER_BY_TO_SORT_URL[orderBy];
 }
 
-/** Parse UI-Router params for the Martha Vulnerabilities list page. */
+/**
+ * Parse UI-Router params for the Martha Vulnerabilities list page.
+ *
+ * Tab-private tokens are ignored on the inactive tab so a deep link like
+ * `?tab=myScanData&kev=1` cannot hydrate Catalog-only filter state (or leave Reset enabled).
+ * Paired with {@link buildVulnerabilitiesListRouteParams}, the URL rewrite effect drops the
+ * stale tokens from the address bar.
+ */
 export function parseVulnerabilitiesListParams(
   params: Record<string, unknown>,
 ): VulnerabilitiesListQueryState {
+  const tab = parseTab(params.tab);
+  const catalogTab = tab === 'catalog';
+  const myScanTab = tab === 'myScanData';
   return {
-    tab: parseTab(params.tab),
+    tab,
     search: typeof params.q === 'string' ? params.q.trim() : '',
     page: parsePageIndex(params.page),
     orderBy: parseOrderBy(params.sort),
@@ -162,22 +215,32 @@ export function parseVulnerabilitiesListParams(
       severities: parseFilteredSet(params.severity, SUPPORTED_SEVERITIES),
       ecosystems: new Set(parseCsvParam(params.ecosystem).map((id) => id.toLowerCase())),
       // Scope ids are opaque internal ids matched verbatim by the index, so unlike the
-      // ecosystem/severity vocabularies they must not be case-folded.
-      organizations: new Set(parseCsvParam(params.org)),
-      applications: new Set(parseCsvParam(params.app)),
-      stages: new Set(parseCsvParam(params.stage)),
+      // ecosystem/severity vocabularies they must not be case-folded. My Scan Data only —
+      // Catalog/HDS has no org/app/stage dimension.
+      organizations: myScanTab ? new Set(parseCsvParam(params.org)) : new Set(),
+      applications: myScanTab ? new Set(parseCsvParam(params.app)) : new Set(),
+      stages: myScanTab ? new Set(parseCsvParam(params.stage)) : new Set(),
       cvssRange: parseCvssRange(params.cvss),
+      // Catalog-only richness — ignored on My Scan Data so stale URL tokens cannot affect UI.
+      knownExploited: catalogTab ? parseBoolFlag(params.kev) : false,
+      malware: catalogTab ? parseBoolFlag(params.malware) : false,
+      epssRange: catalogTab ? parseEpssRange(params.epss) : DEFAULT_VULNERABILITY_EPSS_RANGE,
+      publishedWindow: catalogTab ? parsePublishedWindow(params.published) : '',
+      cwes: catalogTab ? new Set(parseCsvParam(params.cwe)) : new Set(),
     },
   };
 }
 
 /**
  * Serialize list state to hash-query params. Defaults/empty values map to {@code undefined} so
- * UI-Router omits them from the URL.
+ * UI-Router omits them from the URL. Tab-private filters are only written for the active tab so
+ * the address bar cannot advertise Catalog tokens on My Scan Data (or estate scope on Catalog).
  */
 export function buildVulnerabilitiesListRouteParams(
   state: VulnerabilitiesListQueryState,
 ): Record<string, string | undefined> {
+  const catalogTab = state.tab === 'catalog';
+  const myScanTab = state.tab === 'myScanData';
   return {
     tab: state.tab === DEFAULT_VULNERABILITIES_TAB ? undefined : state.tab,
     q: state.search.trim() || undefined,
@@ -186,9 +249,14 @@ export function buildVulnerabilitiesListRouteParams(
     severity: serializeCsvParam(state.filters.severities),
     cvss: serializeCvssRange(state.filters.cvssRange),
     ecosystem: serializeCsvParam(state.filters.ecosystems),
-    org: serializeCsvParam(state.filters.organizations),
-    app: serializeCsvParam(state.filters.applications),
-    stage: serializeCsvParam(state.filters.stages),
+    org: myScanTab ? serializeCsvParam(state.filters.organizations) : undefined,
+    app: myScanTab ? serializeCsvParam(state.filters.applications) : undefined,
+    stage: myScanTab ? serializeCsvParam(state.filters.stages) : undefined,
+    kev: catalogTab && state.filters.knownExploited ? '1' : undefined,
+    malware: catalogTab && state.filters.malware ? '1' : undefined,
+    epss: catalogTab ? serializeEpssRange(state.filters.epssRange) : undefined,
+    published: catalogTab ? (state.filters.publishedWindow || undefined) : undefined,
+    cwe: catalogTab ? serializeCsvParam(state.filters.cwes) : undefined,
   };
 }
 
@@ -211,6 +279,11 @@ export function rawVulnerabilitiesListParamsSnapshot(
     org: asString(params.org),
     app: asString(params.app),
     stage: asString(params.stage),
+    kev: asString(params.kev),
+    malware: asString(params.malware),
+    epss: asString(params.epss),
+    published: asString(params.published),
+    cwe: asString(params.cwe),
   });
 }
 
@@ -233,6 +306,12 @@ export function vulnerabilitiesFiltersEqual(
     setsEqual(left.applications, right.applications) &&
     setsEqual(left.stages, right.stages) &&
     left.cvssRange[0] === right.cvssRange[0] &&
-    left.cvssRange[1] === right.cvssRange[1]
+    left.cvssRange[1] === right.cvssRange[1] &&
+    left.knownExploited === right.knownExploited &&
+    left.malware === right.malware &&
+    left.epssRange[0] === right.epssRange[0] &&
+    left.epssRange[1] === right.epssRange[1] &&
+    left.publishedWindow === right.publishedWindow &&
+    setsEqual(left.cwes, right.cwes)
   );
 }

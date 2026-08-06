@@ -90,6 +90,9 @@ public class VulnerabilitiesCatalogListServiceTest
     assertThat(body.vulnerabilities.get(0).vulnerabilityId).isEqualTo("CVE-2024-1234");
     assertThat(body.vulnerabilities.get(0).severity).isEqualTo("critical");
     assertThat(body.vulnerabilities.get(0).ecosystem).isEqualTo("maven");
+    assertThat(body.vulnerabilities.get(0).knownExploited).isTrue();
+    assertThat(body.vulnerabilities.get(0).malware).isFalse();
+    assertThat(body.vulnerabilities.get(0).publishedAt).isEqualTo("2024-01-15T00:00:00Z");
     assertThat(body.facets.severities).containsEntry("critical", 1L);
 
     @SuppressWarnings("unchecked")
@@ -104,6 +107,60 @@ public class VulnerabilitiesCatalogListServiceTest
     assertThat(params.get("affectedEcosystems")).containsExactly("maven");
     assertThat(params.get("minCvss")).containsExactly("7.0");
     assertThat(params.get("maxCvss")).containsExactly("10.0");
+  }
+
+  @Test
+  public void listCatalog_forwardsCatalogRichnessFiltersAndMapsCweFacet() {
+    GuideVulnerabilityDocument doc = new GuideVulnerabilityDocument(
+        "CVE-2024-9999",
+        List.of(),
+        "Richness",
+        8.0,
+        8.0,
+        List.of("CWE-79"),
+        List.of(),
+        List.of("npm"),
+        true,
+        true,
+        0.42,
+        "NVD",
+        Instant.parse("2024-06-01T00:00:00Z"),
+        null);
+    when(hdsClient.getWithMultimap(eq(GuideVulnerabilitySearchResponse.class),
+        eq("rest/search/vulnerabilities"), any()))
+            .thenReturn(new GuideVulnerabilitySearchResponse(
+                List.of(doc),
+                1L,
+                0,
+                25,
+                Map.of("cwes", Map.of("CWE-79", 1L))));
+
+    VulnerabilitiesListRequestDTO request = new VulnerabilitiesListRequestDTO();
+    request.tab = "catalog";
+    request.knownExploited = true;
+    request.malware = true;
+    request.minEpssScore = 0.1f;
+    request.maxEpssScore = 0.9f;
+    request.cwes = Set.of("CWE-79");
+    request.publishedWindow = "90d";
+
+    VulnerabilitiesListResponseDTO body = underTest.listCatalog(request, 0, 25, true);
+
+    assertThat(body.vulnerabilities.get(0).epssScore).isEqualTo(0.42f);
+    assertThat(body.vulnerabilities.get(0).cwes).containsExactly("CWE-79");
+    assertThat(body.facets.cwes).containsEntry("CWE-79", 1L);
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Multimap<String, String>> paramsCaptor = ArgumentCaptor.forClass(Multimap.class);
+    verify(hdsClient).getWithMultimap(eq(GuideVulnerabilitySearchResponse.class),
+        eq("rest/search/vulnerabilities"), paramsCaptor.capture());
+    Multimap<String, String> params = paramsCaptor.getValue();
+    assertThat(params.get("exploitationKnown")).containsExactly("true");
+    assertThat(params.get("hasMalware")).containsExactly("true");
+    assertThat(params.get("minEpss")).containsExactly("0.1");
+    assertThat(params.get("maxEpss")).containsExactly("0.9");
+    assertThat(params.get("cwes")).containsExactly("CWE-79");
+    assertThat(params.get("publishedWindow")).containsExactly("90d");
   }
 
   @Test

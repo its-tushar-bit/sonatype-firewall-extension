@@ -9,11 +9,14 @@ import type {
   VulnerabilitiesListOrderBy,
   VulnerabilitiesListResponse,
   VulnerabilityCvssRange,
+  VulnerabilityEpssRange,
   VulnerabilityRow,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
 import {
   VULNERABILITY_CVSS_MAX,
   VULNERABILITY_CVSS_MIN,
+  VULNERABILITY_EPSS_MAX,
+  VULNERABILITY_EPSS_MIN,
 } from 'MainRoot/nosc/vulnerabilities/vulnerabilityListTypes';
 import type { VulnerabilitiesTab } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesRoute';
 import { DEFAULT_VULNERABILITIES_TAB } from 'MainRoot/nosc/vulnerabilities/vulnerabilitiesRoute';
@@ -27,6 +30,11 @@ export const VULNERABILITIES_DEFAULT_ORDER_BY: VulnerabilitiesListOrderBy = '-cv
 export const DEFAULT_VULNERABILITY_CVSS_RANGE: VulnerabilityCvssRange = [
   VULNERABILITY_CVSS_MIN,
   VULNERABILITY_CVSS_MAX,
+];
+
+export const DEFAULT_VULNERABILITY_EPSS_RANGE: VulnerabilityEpssRange = [
+  VULNERABILITY_EPSS_MIN,
+  VULNERABILITY_EPSS_MAX,
 ];
 
 export const SEVERITY_LABELS: Readonly<Record<string, string>> = {
@@ -62,6 +70,11 @@ export function createDefaultVulnerabilitiesFilterState(): VulnerabilitiesFilter
     applications: new Set(),
     stages: new Set(),
     cvssRange: DEFAULT_VULNERABILITY_CVSS_RANGE,
+    knownExploited: false,
+    malware: false,
+    epssRange: DEFAULT_VULNERABILITY_EPSS_RANGE,
+    publishedWindow: '',
+    cwes: new Set(),
   };
 }
 
@@ -69,14 +82,38 @@ export function isDefaultCvssRange(range: VulnerabilityCvssRange): boolean {
   return range[0] === VULNERABILITY_CVSS_MIN && range[1] === VULNERABILITY_CVSS_MAX;
 }
 
-export function hasActiveVulnerabilityFilters(filters: VulnerabilitiesFilterState): boolean {
+export function isDefaultEpssRange(range: VulnerabilityEpssRange): boolean {
+  return range[0] === VULNERABILITY_EPSS_MIN && range[1] === VULNERABILITY_EPSS_MAX;
+}
+
+/**
+ * Whether Reset / "active filters" chrome should show. Tab-private filters only count on the
+ * tab that can apply them — Catalog richness on {@code catalog}, estate scope on
+ * {@code myScanData} — so a stale in-memory flag cannot keep Reset enabled after a tab switch
+ * or a cross-tab deep link (parse/build already strip those tokens from the URL).
+ */
+export function hasActiveVulnerabilityFilters(
+  filters: VulnerabilitiesFilterState,
+  tab: VulnerabilitiesTab = DEFAULT_VULNERABILITIES_TAB,
+): boolean {
+  const estateActive =
+    tab === 'myScanData' &&
+    (filters.organizations.size > 0 ||
+      filters.applications.size > 0 ||
+      filters.stages.size > 0);
+  const catalogActive =
+    tab === 'catalog' &&
+    (filters.knownExploited ||
+      filters.malware ||
+      !isDefaultEpssRange(filters.epssRange) ||
+      Boolean(filters.publishedWindow) ||
+      filters.cwes.size > 0);
   return (
     filters.severities.size > 0 ||
     filters.ecosystems.size > 0 ||
-    filters.organizations.size > 0 ||
-    filters.applications.size > 0 ||
-    filters.stages.size > 0 ||
-    !isDefaultCvssRange(filters.cvssRange)
+    !isDefaultCvssRange(filters.cvssRange) ||
+    estateActive ||
+    catalogActive
   );
 }
 
@@ -86,6 +123,41 @@ export function severityLabel(id: string): string {
 
 export function ecosystemLabel(id: string): string {
   return ECOSYSTEM_LABELS[id.toLowerCase()] ?? id;
+}
+
+/** Display formatting for CVSS scores on cards and filter value labels. */
+export function formatCvssScore(score: number): string {
+  return score.toFixed(1);
+}
+
+/** Display formatting for EPSS scores on cards and filter value labels. */
+export function formatEpssScore(score: number): string {
+  return score.toFixed(2);
+}
+
+/**
+ * Formats an ISO published timestamp for card chrome. Unparseable values render as an em dash
+ * so malformed HDS dates never surface raw on the card.
+ */
+export function formatPublishedAt(iso: string): string {
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return '—';
+  return new Date(ms).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/**
+ * Card CWE chrome: show up to {@code limit} ids, then a {@code +N} remainder so a long CWE list
+ * is not visually identical to one that ends exactly at the limit.
+ */
+export function formatCweList(cwes: ReadonlyArray<string>, limit = 3): string {
+  if (cwes.length === 0) return '';
+  const shown = cwes.slice(0, limit);
+  const remaining = cwes.length - shown.length;
+  return remaining > 0 ? `${shown.join(', ')} +${remaining}` : shown.join(', ');
 }
 
 /**
@@ -114,6 +186,12 @@ export type VulnerabilitiesListRequest = {
   readonly organizationIds?: ReadonlyArray<string>;
   readonly applicationIds?: ReadonlyArray<string>;
   readonly stageIds?: ReadonlyArray<string>;
+  readonly knownExploited?: boolean;
+  readonly malware?: boolean;
+  readonly minEpssScore?: number;
+  readonly maxEpssScore?: number;
+  readonly cwes?: ReadonlyArray<string>;
+  readonly publishedWindow?: string;
 };
 
 export function buildVulnerabilitiesListRequest(params: {
@@ -130,6 +208,7 @@ export function buildVulnerabilitiesListRequest(params: {
   const tab = params.tab ?? DEFAULT_VULNERABILITIES_TAB;
   // Estate scope is My Scan Data only — Catalog/HDS has no org/app/stage dimension.
   const includeEstateScope = tab === 'myScanData';
+  const includeCatalogRichness = tab === 'catalog';
   return {
     tab,
     page: params.page,
@@ -157,6 +236,20 @@ export function buildVulnerabilitiesListRequest(params: {
       : {}),
     ...(includeEstateScope && filters.stages.size > 0
       ? { stageIds: Array.from(filters.stages).sort() }
+      : {}),
+    ...(includeCatalogRichness && filters.knownExploited ? { knownExploited: true } : {}),
+    ...(includeCatalogRichness && filters.malware ? { malware: true } : {}),
+    ...(includeCatalogRichness && !isDefaultEpssRange(filters.epssRange)
+      ? {
+          minEpssScore: filters.epssRange[0],
+          maxEpssScore: filters.epssRange[1],
+        }
+      : {}),
+    ...(includeCatalogRichness && filters.cwes.size > 0
+      ? { cwes: Array.from(filters.cwes).sort() }
+      : {}),
+    ...(includeCatalogRichness && filters.publishedWindow
+      ? { publishedWindow: filters.publishedWindow }
       : {}),
   };
 }

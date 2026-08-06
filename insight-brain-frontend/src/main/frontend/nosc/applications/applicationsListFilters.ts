@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { ApplicationsListRequest } from 'MainRoot/nosc/applications/applicationsListApi';
+import { normalizeRange } from 'MainRoot/nosc/util/normalizeRange';
 
 /** Integer policy threat domain for the Applications filter slider (matches Violations). */
 export const APPLICATIONS_THREAT_MIN = 0;
@@ -53,16 +54,7 @@ export function isDefaultApplicationsThreatRange(range: ApplicationsThreatRange)
 export function normalizeApplicationsThreatRange(
   next: readonly number[],
 ): ApplicationsThreatRange {
-  const clampThreat = (n: number): number => {
-    const safe = Number.isFinite(n) ? n : APPLICATIONS_THREAT_MIN;
-    return Math.min(
-      APPLICATIONS_THREAT_MAX,
-      Math.max(APPLICATIONS_THREAT_MIN, safe),
-    );
-  };
-  const low = clampThreat(next[0]);
-  const high = clampThreat(next[1] ?? next[0]);
-  return [Math.min(low, high), Math.max(low, high)];
+  return normalizeRange(next, APPLICATIONS_THREAT_MIN, APPLICATIONS_THREAT_MAX);
 }
 
 export function hasActiveApplicationsListFilters(

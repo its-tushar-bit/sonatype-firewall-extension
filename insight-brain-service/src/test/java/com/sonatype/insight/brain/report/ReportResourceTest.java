@@ -13,11 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,8 +27,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
@@ -51,12 +47,10 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -73,19 +67,15 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -1090,59 +1080,6 @@ public class ReportResourceTest
     finally {
       SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(originalEnabled);
     }
-  }
-
-  @Test
-  public void testReevaluateReport_async_hostedScan_ignoresAsyncAndReturns200() throws Exception {
-    // Hosted scans re-evaluate synchronously regardless of async=true: reevaluatePolicy returns at the
-    // isHostedScan early-return (before the async branch), so the response is 200 OK with an empty body and no
-    // statusId. This guards that guard order against future reordering.
-    ProxyRepositoryComponentDAO proxyRepositoryComponentDAO = lookup(ProxyRepositoryComponentDAO.class);
-
-    String scanId = "ReportResourceTest_HostedScanId";
-    Repository repository = tempEntity.newRepository();
-    ProxyRepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId());
-    // isHostedScan(scanId, appId) requires the (appId, scanId) pair to be linked in
-    // policy_evaluation with a hosted trigger type — that's the CLM-41904 IDOR guard against a
-    // caller re-evaluating another app's hosted scanId. Seed the first-time hosted row here
-    // (as HostedComponentScanQueueConsumer would on a real first-time scan) and bind the
-    // proxy_repository_component to the scanId.
-    component.setScanId(scanId);
-    try (TransactionContext tx = proxyRepositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-      proxyRepositoryComponentDAO.update(tx, component);
-      tx.commit();
-    }
-    try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
-      tx.begin();
-      policyEvaluationDAO.insert(tx,
-          PolicyEvaluation.createForHostedComponent(app.getId(), Stage.ID_BUILD, scanId, false));
-      tx.commit();
-    }
-
-    // A real report file must exist for the scan so the synchronous hosted re-evaluation's saveOverlayFiles can
-    // read bom.json back out.
-    mockReport(scanId, "/ReportResourceTest/report");
-    createScanFile(app.getId(), scanId);
-    createReportFile(app.getId(), scanId, "/ReportResourceTest/report");
-
-    // The hosted re-evaluation calls the repository policy evaluator, which fetches component details from HDS.
-    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
-    hdsResult.components = new ArrayList<>();
-    ComponentEvaluationData hdsComponent = new ComponentEvaluationData();
-    hdsComponent.hash = component.getHash();
-    hdsComponent.matchState = MatchState.EXACT.getId();
-    hdsComponent.declaredLicenses = new HashSet<>();
-    hdsComponent.observedLicenses = new HashSet<>();
-    hdsResult.components.add(hdsComponent);
-    getHdsServer().respondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
-
-    // async=true must be ignored: a hosted scan returns 200 (not 202) with an empty body (no receipt/statusId).
-    HttpResponse response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
-        .query("async", "true")
-        .post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText()).isNullOrEmpty();
   }
 
   @Test

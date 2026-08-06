@@ -58,6 +58,21 @@ public class UserInterfaceLinksHelper
 
   public static final String REPO_RESULT_PATH = "repository/{repositoryId}/result";
 
+  public static final String HRC_LATEST_REPORT_PATH =
+      "hostedRepositoryComponent/{hrcId}/latestReport/{stageId}";
+
+  public static final String HRC_REPORT_PATH =
+      "hostedRepositoryComponent/{hrcId}/report/{scanId}";
+
+  public static final String HRC_EMBEDDABLE_REPORT_PATH =
+      "hostedRepositoryComponent/{hrcId}/report/{scanId}/embeddable";
+
+  public static final String HRC_PDF_PATH =
+      "hostedRepositoryComponent/{hrcId}/report/{scanId}/pdf";
+
+  public static final String HRC_PRIORITIES_PATH =
+      "/developer/priorities/hostedRepositoryComponent/{hrcId}/{scanId}";
+
   public static final String COMPONENT_SCAN_REPORT_PATH =
       "application/{applicationPublicId}/report/{scanId}/componentDetails/{componentScanHash}";
 
@@ -203,6 +218,23 @@ public class UserInterfaceLinksHelper
     return buildStableUrl(PDF_PATH, applicationPublicId, scanId);
   }
 
+  public static String getHostedRepositoryComponentLatestReportUrl(String hrcId, String stageId) {
+    return buildStableUrl(HRC_LATEST_REPORT_PATH, hrcId, stageId);
+  }
+
+  /** HRC-scoped sibling of {@link #getReportUrl(String, String)}, keyed on the HRC row UUID. */
+  public static String getHostedRepositoryComponentReportUrl(String hrcId, String scanId) {
+    return buildStableUrl(HRC_REPORT_PATH, hrcId, scanId);
+  }
+
+  public static String getHostedRepositoryComponentEmbeddableReportUrl(String hrcId, String scanId) {
+    return buildStableUrl(HRC_EMBEDDABLE_REPORT_PATH, hrcId, scanId);
+  }
+
+  public static String getHostedRepositoryComponentPdfUrl(String hrcId, String scanId) {
+    return buildStableUrl(HRC_PDF_PATH, hrcId, scanId);
+  }
+
   /**
    * Gets the relative URL to the stable hyperlink for the repository audit report for a given rm/repository
    *
@@ -256,6 +288,10 @@ public class UserInterfaceLinksHelper
    */
   public static String getPrioritiesUrl(String applicationPublicId, String scanId) {
     return buildStableUrl(PRIORITIES_PATH, applicationPublicId, scanId);
+  }
+
+  public static String getHostedRepositoryComponentPrioritiesUrl(String hrcId, String scanId) {
+    return buildStableUrl(HRC_PRIORITIES_PATH, hrcId, scanId);
   }
 
   public static String getIntegrationsPrioritiesUrl(String applicationPublicId, String scanId) {

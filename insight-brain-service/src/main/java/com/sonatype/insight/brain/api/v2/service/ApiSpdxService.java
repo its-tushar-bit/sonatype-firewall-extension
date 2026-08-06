@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.sbom.export.AbstractSpdxExporter;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -165,11 +166,19 @@ public class ApiSpdxService
       boolean generateCycloneDx,
       String spdxVersion)
   {
-    String validatedFormat = validateFormat(format);
-    validateSpdxVersion(spdxVersion, validatedFormat);
-
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    return getByScanId(application, scanId, validatedFormat, generateCycloneDx, spdxVersion);
+    return getByScanIdNoAuthz(application, scanId, format, generateCycloneDx, spdxVersion);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Response getByScanId(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String scanId,
+      final String format,
+      final boolean generateCycloneDx,
+      final String spdxVersion)
+  {
+    return getByScanIdNoAuthz(owner, scanId, format, generateCycloneDx, spdxVersion);
   }
 
   @Authorize(permission = Permission.READ)
@@ -180,53 +189,57 @@ public class ApiSpdxService
       boolean generateCycloneDx,
       String spdxVersion)
   {
+    Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
+    return getLatestForStageNoAuthz(application, stageId, format, generateCycloneDx, spdxVersion);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Response getLatestForStage(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String stageId,
+      final String format,
+      final boolean generateCycloneDx,
+      final String spdxVersion)
+  {
+    return getLatestForStageNoAuthz(owner, stageId, format, generateCycloneDx, spdxVersion);
+  }
+
+  /** Unannotated shared impl so the authz aspect fires only on the public entry point. */
+  private Response getByScanIdNoAuthz(
+      final Owner owner,
+      final String scanId,
+      final String format,
+      final boolean generateCycloneDx,
+      final String spdxVersion)
+  {
     String validatedFormat = validateFormat(format);
     validateSpdxVersion(spdxVersion, validatedFormat);
 
-    if (StageTypes.getById(stageId) == null) {
-      throw new BadRequestException("Invalid stage: " + stageId + ".");
-    }
-
-    Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), stageId);
-    if (evaluation == null) {
-      throw new NotFoundException("Unable to locate a policy evaluation for " + applicationId + " in stage " + stageId);
-    }
-
-    return getByScanId(application, evaluation.getScanId(), validatedFormat, generateCycloneDx, spdxVersion);
-  }
-
-  private Response getByScanId(
-      Application application,
-      String scanId,
-      String format,
-      boolean generateCycloneDx,
-      String spdxVersion)
-  {
     AuditData.get().setScanId(scanId);
 
     if (spdxVersion != null && spdxVersion.startsWith(Spdx3VersionHandler.SPEC_VERSION)) {
-      return generateSpdx3Response(application, scanId, generateCycloneDx);
+      return generateSpdx3Response(owner, scanId, generateCycloneDx);
     }
 
     try {
-      ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
+      String publicId = owner.getPublicId();
+      ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(owner, scanId, false, false, false);
 
-      String uri = getReportUrl(application.getPublicId(), scanId);
+      String uri = getReportUrl(owner, scanId);
 
       final SpdxDocument document = createDocument(spdxVersion, uri, data);
       final Map<String, SpdxPackage> purlElementMap = new HashMap<>();
 
       addPackages(data.components, document, purlElementMap, spdxVersion);
 
-      ApiDependencyTreeNodeDTO rootNodeDTO =
-          apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
+      ApiDependencyTreeNodeDTO rootNodeDTO = apiReportDataServiceV2.getDependencyTreeNoAuth(owner, scanId);
       if (rootNodeDTO != null) {
-        addRootPackage(rootNodeDTO, document, purlElementMap, application.getName(), scanId, spdxVersion);
+        String rootName = publicId != null ? owner.getName() : "hrc-" + owner.getId();
+        addRootPackage(rootNodeDTO, document, purlElementMap, rootName, scanId, spdxVersion);
         addDependencyRelationships(rootNodeDTO, document, purlElementMap, true);
       }
 
-      return generateResponse(document, application, scanId, format, generateCycloneDx);
+      return generateResponse(document, owner, scanId, validatedFormat, generateCycloneDx);
     }
     catch (RuntimeException e) {
       throw e;
@@ -236,14 +249,34 @@ public class ApiSpdxService
     }
   }
 
+  private Response getLatestForStageNoAuthz(
+      final Owner owner,
+      final String stageId,
+      final String format,
+      final boolean generateCycloneDx,
+      final String spdxVersion)
+  {
+    String validatedFormat = validateFormat(format);
+    validateSpdxVersion(spdxVersion, validatedFormat);
+    if (StageTypes.getById(stageId) == null) {
+      throw new BadRequestException("Invalid stage: " + stageId + ".");
+    }
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(owner.getId(), stageId);
+    if (evaluation == null) {
+      throw new NotFoundException("Unable to locate a scan for owner " + owner.getId() + " in stage " + stageId);
+    }
+    return getByScanIdNoAuthz(owner, evaluation.getScanId(), validatedFormat, generateCycloneDx, spdxVersion);
+  }
+
   private Response generateSpdx3Response(
-      Application application,
+      Owner owner,
       String scanId,
       boolean generateCycloneDx)
   {
     try {
-      ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
-      String documentUri = getReportUrl(application.getPublicId(), scanId);
+      String publicId = owner.getPublicId();
+      ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(owner, scanId, false, false, false);
+      String documentUri = getReportUrl(owner, scanId);
 
       List<ThirdPartyFileCoordinate> components = new ArrayList<>();
       List<ThirdPartyCoordinateSecurity> vulnerabilities = new ArrayList<>();
@@ -277,15 +310,16 @@ public class ApiSpdxService
         }
       }
 
-      String cdxFilename = generateCycloneDx ? createFileName(application, scanId, ".bom") + ".json" : null;
+      String cdxFilename = generateCycloneDx ? createFileName(owner, scanId, ".bom") + ".json" : null;
 
+      String rootName = publicId != null ? owner.getName() : "hrc-" + owner.getId();
       SpdxGenerationContext context = new SpdxGenerationContext(
           components,
           vulnerabilities,
           Map.of(),
           List.of(),
           List.of(),
-          application.getName(),
+          rootName,
           scanId,
           Spdx3VersionHandler.SPEC_VERSION,
           null,
@@ -295,15 +329,15 @@ public class ApiSpdxService
 
       byte[] jsonLd = spdx3VersionHandler.generate(context);
       String spdxContent = new String(jsonLd, StandardCharsets.UTF_8);
-      String spdxFilename = createFileName(application, scanId, ".spdx") + ".json";
+      String spdxFilename = createFileName(owner, scanId, ".spdx") + ".json";
 
       if (generateCycloneDx) {
         Response cdxResponse = apiCycloneDxService.getByScanId(
-            application, scanId, MediaType.APPLICATION_JSON, org.cyclonedx.Version.VERSION_16,
+            owner, scanId, MediaType.APPLICATION_JSON, org.cyclonedx.Version.VERSION_16,
             "file://" + spdxFilename);
         String cdxContent = (String) cdxResponse.getEntity();
 
-        String filename = createFileName(application, scanId, "") + ".tar.gz";
+        String filename = createFileName(owner, scanId, "") + ".tar.gz";
         File outputFile = createTarGzFromContent(spdxContent, spdxFilename, cdxContent, cdxFilename);
         return Response.ok(outputFile, MediaType.APPLICATION_OCTET_STREAM)
             .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename))
@@ -430,7 +464,7 @@ public class ApiSpdxService
     return spdxPackage;
   }
 
-  private String getReportUrl(String applicationPublicId, String scanId) {
+  private String getReportUrl(Owner owner, String scanId) {
     String iqBaseUrl = "";
     try {
       iqBaseUrl = baseUrl.get();
@@ -438,7 +472,11 @@ public class ApiSpdxService
     catch (IllegalStateException e) {
       log.warn("IQ Server base URL is not configured", e);
     }
-    return iqBaseUrl + UserInterfaceLinksHelper.getReportUrl(applicationPublicId, scanId);
+    String publicId = owner.getPublicId();
+    String relativeUrl = publicId != null
+        ? UserInterfaceLinksHelper.getReportUrl(publicId, scanId)
+        : UserInterfaceLinksHelper.getHostedRepositoryComponentReportUrl(owner.getId(), scanId);
+    return iqBaseUrl + relativeUrl;
   }
 
   private void addPackages(
@@ -739,14 +777,14 @@ public class ApiSpdxService
 
   private Response generateResponse(
       final SpdxDocument document,
-      final Application application,
+      final Owner owner,
       final String scanId,
       final String format,
       final boolean generateCycloneDx) throws Exception
   {
     MediaType type = "json".equals(format) ? MediaType.APPLICATION_JSON_TYPE : MediaType.APPLICATION_XML_TYPE;
-    String spdxFilename = createFileName(application, scanId, ".spdx") + "." + type.getSubtype();
-    String cdxFilename = createFileName(application, scanId, ".bom") + "." + type.getSubtype();
+    String spdxFilename = createFileName(owner, scanId, ".spdx") + "." + type.getSubtype();
+    String cdxFilename = createFileName(owner, scanId, ".bom") + "." + type.getSubtype();
 
     if (generateCycloneDx) {
       addCycloneDxExternalRef(document, cdxFilename);
@@ -764,10 +802,10 @@ public class ApiSpdxService
 
     if (generateCycloneDx) {
       Response response = apiCycloneDxService.getByScanId(
-          application, scanId, "application/" + format, Version.VERSION_16, "file://" + spdxFilename);
+          owner, scanId, "application/" + format, Version.VERSION_16, "file://" + spdxFilename);
       String cdxContent = (String) response.getEntity();
 
-      String filename = createFileName(application, scanId, "") + ".tar.gz";
+      String filename = createFileName(owner, scanId, "") + ".tar.gz";
       File outputFile = createTarGzFromContent(spdxContent, spdxFilename, cdxContent, cdxFilename);
       return Response.ok(outputFile, MediaType.APPLICATION_OCTET_STREAM)
           .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename))
@@ -827,10 +865,11 @@ public class ApiSpdxService
     }
   }
 
-  private String createFileName(Application application, String scanId, String suffix) {
-    String appId = application.getId();
-    String stageId = policyEvaluationDAO.getLastByOwnerIdAndScanId(appId, scanId).getStageTypeId();
-    return String.format("%s-%s-%s%s", application.getPublicId(), stageId, scanId, suffix);
+  private String createFileName(Owner owner, String scanId, String suffix) {
+    PolicyEvaluation eval = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
+    String stageId = eval != null ? eval.getStageTypeId() : "unknown";
+    String prefix = owner.getPublicId() != null ? owner.getPublicId() : "hrc-" + owner.getId();
+    return String.format("%s-%s-%s%s", prefix, stageId, scanId, suffix);
   }
 
   private String validateFormat(String format) {

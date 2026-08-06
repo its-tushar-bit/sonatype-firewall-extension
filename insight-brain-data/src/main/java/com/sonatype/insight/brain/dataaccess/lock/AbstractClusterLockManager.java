@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.lock;
 
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 
@@ -60,8 +59,8 @@ public abstract class AbstractClusterLockManager
   }
 
   @Override
-  public ClusterLock createForPdfGeneration(final Application application, final String scanId) {
-    return createClusterLock(ClusterLockId.forPdfGeneration(application.getId(), scanId));
+  public ClusterLock createForPdfGeneration(final Owner owner, final String scanId) {
+    return createClusterLock(ClusterLockId.forPdfGeneration(owner.getId(), scanId));
   }
 
   @Override

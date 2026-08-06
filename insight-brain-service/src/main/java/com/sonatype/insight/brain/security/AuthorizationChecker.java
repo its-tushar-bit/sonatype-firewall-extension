@@ -323,7 +323,7 @@ public class AuthorizationChecker
       case REPOSITORY_ID:
         return "Repository";
       case HOSTED_REPOSITORY_COMPONENT_ID:
-        return "Hosted repository component";
+        return "Hosted Repository Component";
       default:
         return key.name();
     }
@@ -339,6 +339,8 @@ public class AuthorizationChecker
         return "Repository Manager";
       case REPOSITORY:
         return "Repository";
+      case HOSTED_REPOSITORY_COMPONENT:
+        return "Hosted Repository Component";
       default:
         return type.name();
     }

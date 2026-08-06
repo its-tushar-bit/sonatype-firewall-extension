@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -42,7 +43,6 @@ import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecificati
 import com.sonatype.insight.brain.sbom.export.SbomExporterProvider;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.version.VersionService;
@@ -106,13 +106,29 @@ public class PdfGeneratorService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
       String scanId) throws IOException
   {
-    AuditData.get().setReportId(scanId);
-    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    ReportPdfEntity reportPdf = generateReport(app, scanId);
+    return printReportNoAuthz(applicationDAO.getByPublicIdNotNull(appPublicId), scanId);
+  }
 
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
+  @Authorize(permission = Permission.READ)
+  public Response printReport(@AuthzContext(AuthzContext.Key.OWNER) Owner owner, String scanId) throws IOException {
+    return printReportNoAuthz(owner, scanId);
+  }
+
+  /**
+   * Shared implementation used by both {@code printReport} public entry points. Unannotated so
+   * the compile-time authz aspect fires only on the outer public call — avoids double-firing
+   * when one public overload would otherwise delegate to another.
+   */
+  private Response printReportNoAuthz(Owner owner, String scanId) throws IOException {
+    AuditData.get().setReportId(scanId);
+    ReportPdfEntity reportPdf = generateReport(owner, scanId);
+
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
+    if (policyEvaluation == null) {
+      throw new NotFoundException("Policy evaluation not found for scan: " + scanId);
+    }
     String stageName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
-    String filename = app.getName() + "-" + stageName + "-" +
+    String filename = buildFilename(owner) + "-" + stageName + "-" +
         new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
     return buildPdfResponse(reportPdf, policyEvaluation.getTime(), filename);
   }
@@ -126,58 +142,61 @@ public class PdfGeneratorService
 
   @Authorize(permission = Permission.READ)
   public Response printSbomReport(
-      @AuthzContext(Key.APPLICATION) final Application application,
-      final String sbomVersion) throws IOException
+      @AuthzContext(AuthzContext.Key.OWNER) Owner owner,
+      String sbomVersion) throws IOException
   {
     ThirdPartySbomMetadata thirdPartySbomMetadata =
-        thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(application.getId(), sbomVersion);
+        thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(owner.getId(), sbomVersion);
     if (thirdPartySbomMetadata == null) {
+      String ownerLabel = owner.getPublicId() != null ? owner.getPublicId() : owner.getId();
       throw new NotFoundException(
-          String.format("SBOM version '%s' not found for application '%s'.", sbomVersion, application.getPublicId()));
+          String.format("SBOM version '%s' not found for owner '%s'.", sbomVersion, ownerLabel));
     }
     ThirdPartyScan thirdPartyScan =
         thirdPartyScanDAO.getByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
-    ReportPdfEntity sbomReportPdf = generateSbomReport(application, thirdPartyScan.getScanId(), sbomVersion);
+    ReportPdfEntity sbomReportPdf = generateSbomReport(owner, thirdPartyScan.getScanId(), sbomVersion);
 
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(), thirdPartyScan.getScanId());
-    String filename = application.getName() + "-" + sbomVersion + ".pdf";
-    return buildPdfResponse(sbomReportPdf, policyEvaluation.getTime(), filename);
+        policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), thirdPartyScan.getScanId());
+    Date reportTime = policyEvaluation != null ? policyEvaluation.getTime() : new Date();
+    String filename = buildFilename(owner) + "-" + sbomVersion + ".pdf";
+    return buildPdfResponse(sbomReportPdf, reportTime, filename);
   }
 
-  public ReportPdfEntity generateReport(Application app, String scanId) throws IOException {
+  public ReportPdfEntity generateReport(Owner owner, String scanId) throws IOException {
     PdfData pdfData = PdfData.createPdfData(
         getBaseUrl(),
         versionService.getShortVersion(),
-        apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId, false),
-        augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true)));
-    return generateReport(app, scanId, pdfData, false, Context.LIFECYCLE);
+        apiReportDataServiceV2.getPolicyViolationsDataNoAuth(owner, scanId, false),
+        augmentEmptyLicensesAsNotProvided(
+            apiReportDataServiceV2.getDataNoAuth(owner, scanId, true, false, false)));
+    return generateReport(owner, scanId, pdfData, false, Context.LIFECYCLE);
   }
 
-  public ReportPdfEntity generateSbomReport(Application app, String scanId, String sbomVersion) throws IOException {
-    ApiReportRawDataDTOV2 reportRawData =
-        augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true));
+  public ReportPdfEntity generateSbomReport(Owner owner, String scanId, String sbomVersion) throws IOException {
+    ApiReportRawDataDTOV2 reportRawData = augmentEmptyLicensesAsNotProvided(
+        apiReportDataServiceV2.getDataNoAuth(owner, scanId, true, false, false));
     ApiReportPolicyDataDTOV2 policyData;
     try {
-      policyData = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId, false);
+      policyData = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(owner, scanId, false);
     }
     catch (Exception e) {
-      log.warn("No policy violations data found for application {} and scanId {}", app.getPublicId(), scanId, e);
+      log.warn("No policy violations data found for owner {} and scanId {}", owner.getId(), scanId, e);
       policyData = new ApiReportPolicyDataDTOV2();
     }
     PdfData pdfData =
-        sbomExporterProvider.get(getSbomExportParams(app, sbomVersion, reportRawData, policyData)).exportPdf();
-    return generateReport(app, scanId, pdfData, true, Context.SBOM);
+        sbomExporterProvider.get(getSbomExportParams(owner, sbomVersion, reportRawData, policyData)).exportPdf();
+    return generateReport(owner, scanId, pdfData, true, Context.SBOM);
   }
 
   private SbomExportParams getSbomExportParams(
-      Application app,
+      Owner owner,
       String sbomVersion,
       final ApiReportRawDataDTOV2 reportRawData,
       final ApiReportPolicyDataDTOV2 policyData)
   {
     ThirdPartySbomMetadata sbomMetadata =
-        thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(app.getId(), sbomVersion);
+        thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(owner.getId(), sbomVersion);
     return SbomExportParams.newSbomExporterParams(sbomMetadata)
         .withReportRawData(reportRawData)
         .withPolicyData(policyData)
@@ -197,16 +216,16 @@ public class PdfGeneratorService
   }
 
   public ReportPdfEntity generateReport(
-      Application app,
+      Owner owner,
       String scanId,
       PdfData pdfData,
       boolean overwrite,
       Context productContext) throws IOException
   {
-    ReportPdfEntity reportPdf = reportDataStore.getReportPdf(app.getId(), scanId);
+    ReportPdfEntity reportPdf = reportDataStore.getReportPdf(owner.getId(), scanId);
 
     if (!overwrite) {
-      try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(app, scanId)) {
+      try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(owner, scanId)) {
         clusterLock.lock(LockType.SHARED);
         if (isGenerated(reportPdf)) {
           return reportPdf;
@@ -214,10 +233,10 @@ public class PdfGeneratorService
       }
     }
     // The pdf file has not been generated so try to generate it
-    try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(app, scanId)) {
+    try (ClusterLock clusterLock = clusterLockManager.createForPdfGeneration(owner, scanId)) {
       clusterLock.lock();
       if (overwrite) {
-        reportDataStore.deleteReportPdf(app.getId(), scanId);
+        reportDataStore.deleteReportPdf(owner.getId(), scanId);
 
       }
       generate(reportPdf, pdfData, productContext);
@@ -261,5 +280,9 @@ public class PdfGeneratorService
     catch (IllegalStateException e) {
       return null;
     }
+  }
+
+  private static String buildFilename(Owner owner) {
+    return owner instanceof Application ? owner.getName() : "hrc-" + owner.getId();
   }
 }

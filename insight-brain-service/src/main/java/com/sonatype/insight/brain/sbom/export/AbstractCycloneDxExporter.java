@@ -816,7 +816,7 @@ public abstract class AbstractCycloneDxExporter
       ThirdPartyScan tpScan = getThirdPartyScan();
       if (tpScan != null) {
         try {
-          data = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), tpScan.getScanId(), false);
+          data = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app, tpScan.getScanId(), false);
         }
         catch (Exception e) {
           log.debug("Failed to get policy violations data for application {} and scanId {}",

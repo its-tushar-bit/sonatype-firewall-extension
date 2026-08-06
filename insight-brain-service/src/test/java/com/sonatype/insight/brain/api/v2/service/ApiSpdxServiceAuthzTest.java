@@ -12,6 +12,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -80,5 +81,31 @@ public class ApiSpdxServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetLatestForStage_Unauthenticated() {
     service.getLatestForStage(app.getId(), BuildStageType.ID, "json", false, "2.3");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetByScanId_Hrc_Unauthenticated() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    service.getByScanId(hrc, scanId, "json", false, "2.3");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetByScanId_Hrc_Unauthorized() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    service.getByScanId(hrc, scanId, "json", false, "2.3");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetLatestForStage_Hrc_Unauthenticated() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    service.getLatestForStage(hrc, BuildStageType.ID, "json", false, "2.3");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetLatestForStage_Hrc_Unauthorized() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    service.getLatestForStage(hrc, BuildStageType.ID, "json", false, "2.3");
   }
 }

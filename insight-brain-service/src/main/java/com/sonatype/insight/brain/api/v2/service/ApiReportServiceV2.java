@@ -31,9 +31,11 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -139,13 +141,15 @@ public class ApiReportServiceV2
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiReportHistoryDTO getReportHistoryForApplication(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
-      String stage,
-      Integer limit)
+  public ApiReportHistoryDTO getReportHistoryForOwner(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String stage,
+      final Integer limit)
   {
-    Application application = applicationDAO.getByIdNotNull(applicationId);
+    return buildReportHistory(owner, stage, limit);
+  }
 
+  private ApiReportHistoryDTO buildReportHistory(final Owner owner, final String stage, final Integer limit) {
     if (stage != null && StageTypes.getById(stage) == null) {
       throw new BadRequestException("Invalid stage: " + stage + ".");
     }
@@ -153,9 +157,9 @@ public class ApiReportServiceV2
     int effectiveLimit = resolveHistoryLimit(limit);
 
     final ApiReportHistoryDTO apiReportHistoryDTO = new ApiReportHistoryDTO();
-    apiReportHistoryDTO.applicationId = applicationId;
+    apiReportHistoryDTO.applicationId = owner.getId();
     apiReportHistoryDTO.reports = new CopyOnWriteArrayList<>();
-    loadReportHistory(apiReportHistoryDTO, application, stage, effectiveLimit);
+    loadReportHistory(apiReportHistoryDTO, owner, stage, effectiveLimit);
     return apiReportHistoryDTO;
   }
 
@@ -189,23 +193,36 @@ public class ApiReportServiceV2
     return reports;
   }
 
-  private void populateReportDTO(ApiApplicationReportDTOV2 report, Application app, PolicyEvaluation eval) {
-    report.applicationId = app.getId();
+  private void populateReportDTO(ApiApplicationReportDTOV2 report, Owner owner, PolicyEvaluation eval) {
+    report.applicationId = owner.getId();
     report.evaluationDate = eval.getTime();
     report.stage = eval.getStageTypeId();
 
-    report.latestReportHtmlUrl = UserInterfaceLinksHelper.getLatestReportUrl(app.getPublicId(), report.stage);
-
-    report.reportPdfUrl = UserInterfaceLinksHelper.getPdfUrl(app.getPublicId(), eval.getScanId());
-    report.reportHtmlUrl = UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), eval.getScanId());
-    report.embeddableReportHtmlUrl = UserInterfaceLinksHelper.getEmbeddableReportUrl(app.getPublicId(),
-        eval.getScanId());
-    report.reportDataUrl = ApiReportDataResourceV2.getDataUrl(app.getPublicId(), eval.getScanId());
+    if (owner instanceof Application) {
+      String publicId = owner.getPublicId();
+      report.latestReportHtmlUrl = UserInterfaceLinksHelper.getLatestReportUrl(publicId, report.stage);
+      report.reportPdfUrl = UserInterfaceLinksHelper.getPdfUrl(publicId, eval.getScanId());
+      report.reportHtmlUrl = UserInterfaceLinksHelper.getReportUrl(publicId, eval.getScanId());
+      report.embeddableReportHtmlUrl = UserInterfaceLinksHelper.getEmbeddableReportUrl(publicId, eval.getScanId());
+      report.reportDataUrl = ApiReportDataResourceV2.getDataUrl(publicId, eval.getScanId());
+    }
+    else if (owner instanceof HostedRepositoryComponent) {
+      report.latestReportHtmlUrl =
+          UserInterfaceLinksHelper.getHostedRepositoryComponentLatestReportUrl(owner.getId(), report.stage);
+      report.reportPdfUrl =
+          UserInterfaceLinksHelper.getHostedRepositoryComponentPdfUrl(owner.getId(), eval.getScanId());
+      report.reportHtmlUrl =
+          UserInterfaceLinksHelper.getHostedRepositoryComponentReportUrl(owner.getId(), eval.getScanId());
+      report.embeddableReportHtmlUrl =
+          UserInterfaceLinksHelper.getHostedRepositoryComponentEmbeddableReportUrl(owner.getId(), eval.getScanId());
+      report.reportDataUrl =
+          ApiReportDataResourceV2.getHostedRepositoryComponentDataUrl(owner.getId(), eval.getScanId());
+    }
   }
 
   private void loadReportHistory(
       ApiReportHistoryDTO apiReportHistoryDTO,
-      Application application,
+      Owner owner,
       String stage,
       int maxResultsToReturn)
   {
@@ -224,7 +241,7 @@ public class ApiReportServiceV2
 
     List<CompletableFuture<Void>> futures = uniquePolicyEvaluations.stream()
         .map(policyEvaluation -> CompletableFuture.runAsync(
-            () -> addPolicyEvaluationResult(apiReportHistoryDTO, policyEvaluation, application),
+            () -> addPolicyEvaluationResult(apiReportHistoryDTO, policyEvaluation, owner),
             reportHistoryExecutors.get()))
         .toList();
 
@@ -236,11 +253,11 @@ public class ApiReportServiceV2
   private void addPolicyEvaluationResult(
       ApiReportHistoryDTO apiReportHistoryDTO,
       PolicyEvaluation policyEvaluation,
-      Application application)
+      Owner owner)
   {
     try {
       LifecycleReport applicationReport =
-          reportDataStore.getLifecycleReport(application, policyEvaluation.getScanId());
+          reportDataStore.getLifecycleReport(owner, policyEvaluation.getScanId());
       PolicyThreats policyThreats = JsonUtils.parse(
           Objects.requireNonNull(applicationReport.getEntry(POLICY_THREATS.getName())).buf,
           PolicyThreats.class);
@@ -253,15 +270,15 @@ public class ApiReportServiceV2
           scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false,
               summaryReportEntry),
           getScannerVersion(summaryReportEntry));
-      populateReportDTO(apiReportResultsDTO, application, policyEvaluation);
+      populateReportDTO(apiReportResultsDTO, owner, policyEvaluation);
       apiReportHistoryDTO.reports.add(apiReportResultsDTO);
     }
     catch (IOException | NullPointerException e) {
-      log.debug("Could not load violations from report file for application {} scan {}, report is not available",
+      log.debug("Could not load violations from report file for owner {} scan {}, report is not available",
           policyEvaluation.getOwnerId(), policyEvaluation.getScanId(), e);
     }
     catch (NotFoundException e) {
-      log.debug("Could not load violations from report file for application {} scan {}, report is not available.",
+      log.debug("Could not load violations from report file for owner {} scan {}, report is not available.",
           policyEvaluation.getOwnerId(), policyEvaluation.getScanId());
     }
   }

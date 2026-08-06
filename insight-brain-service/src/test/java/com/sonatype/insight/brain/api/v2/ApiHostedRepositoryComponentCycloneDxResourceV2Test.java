@@ -1,0 +1,163 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2;
+
+import java.util.List;
+
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2;
+import com.sonatype.insight.brain.dataaccess.repository.HostedRepositoryComponentDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
+
+import org.cyclonedx.Version;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class ApiHostedRepositoryComponentCycloneDxResourceV2Test
+{
+  private static final String HRC_ID = "hrc-1";
+
+  private static final String STAGE_ID = "build";
+
+  private static final String REPORT_ID = "report-1";
+
+  @Mock
+  private ApiCycloneDxServiceV2 apiCycloneDxService;
+
+  @Mock
+  private HostedRepositoryComponentDAO hostedRepositoryComponentDAO;
+
+  @InjectMocks
+  private ApiHostedRepositoryComponentCycloneDxResourceV2 resource;
+
+  private HostedRepositoryComponent hrc;
+
+  @Before
+  public void setUp() {
+    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
+    SecurityAspectControl.disableEnforcement();
+    hrc = new HostedRepositoryComponent("repo-1", "path/lib.jar", "hash-abc");
+    hrc.setId(HRC_ID);
+    when(hostedRepositoryComponentDAO.getByIdNotNull(HRC_ID)).thenReturn(hrc);
+  }
+
+  @After
+  public void tearDown() {
+    SecurityAspectControl.enableEnforcement();
+    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
+  }
+
+  @Test
+  public void getLatest_delegatesWithXmlAndVersion11() {
+    Response expected = mock(Response.class);
+    when(apiCycloneDxService.getLatest(hrc, STAGE_ID, MediaType.APPLICATION_XML, Version.VERSION_11))
+        .thenReturn(expected);
+
+    Response actual = resource.getLatest(HRC_ID, STAGE_ID);
+
+    assertThat(actual).isSameAs(expected);
+    verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
+    verify(apiCycloneDxService).getLatest(hrc, STAGE_ID, MediaType.APPLICATION_XML, Version.VERSION_11);
+  }
+
+  @Test
+  public void getLatestWithVersion_xmlHeader_delegatesWithXml() {
+    HttpHeaders headers = mock(HttpHeaders.class);
+    when(headers.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.APPLICATION_XML_TYPE));
+    Version version = ThirdPartyUtils.getCycloneDxSchemaVersion("1.3");
+    Response expected = mock(Response.class);
+    when(apiCycloneDxService.getLatest(hrc, STAGE_ID, MediaType.APPLICATION_XML, version)).thenReturn(expected);
+
+    Response actual = resource.getLatestWithVersion(HRC_ID, STAGE_ID, "1.3", headers);
+
+    assertThat(actual).isSameAs(expected);
+    verify(apiCycloneDxService).getLatest(hrc, STAGE_ID, MediaType.APPLICATION_XML, version);
+  }
+
+  @Test
+  public void getLatestWithVersion_jsonHeader_delegatesWithJson() {
+    HttpHeaders headers = mock(HttpHeaders.class);
+    when(headers.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.APPLICATION_JSON_TYPE));
+    Version version = ThirdPartyUtils.getCycloneDxSchemaVersion("1.4");
+    Response expected = mock(Response.class);
+    when(apiCycloneDxService.getLatest(hrc, STAGE_ID, MediaType.APPLICATION_JSON, version)).thenReturn(expected);
+
+    Response actual = resource.getLatestWithVersion(HRC_ID, STAGE_ID, "1.4", headers);
+
+    assertThat(actual).isSameAs(expected);
+    verify(apiCycloneDxService).getLatest(hrc, STAGE_ID, MediaType.APPLICATION_JSON, version);
+  }
+
+  @Test
+  public void getByReportId_delegatesWithXmlAndVersion11() {
+    Response expected = mock(Response.class);
+    when(apiCycloneDxService.getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_XML, Version.VERSION_11))
+        .thenReturn(expected);
+
+    Response actual = resource.getByReportId(HRC_ID, REPORT_ID);
+
+    assertThat(actual).isSameAs(expected);
+    verify(hostedRepositoryComponentDAO).getByIdNotNull(HRC_ID);
+    verify(apiCycloneDxService).getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_XML, Version.VERSION_11);
+  }
+
+  @Test
+  public void getByReportIdWithVersion_xmlHeader_delegatesWithXml() {
+    HttpHeaders headers = mock(HttpHeaders.class);
+    when(headers.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.APPLICATION_XML_TYPE));
+    Version version = ThirdPartyUtils.getCycloneDxSchemaVersion("1.2");
+    Response expected = mock(Response.class);
+    when(apiCycloneDxService.getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_XML, version)).thenReturn(expected);
+
+    Response actual = resource.getByReportIdWithVersion(HRC_ID, REPORT_ID, "1.2", headers);
+
+    assertThat(actual).isSameAs(expected);
+    verify(apiCycloneDxService).getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_XML, version);
+  }
+
+  @Test
+  public void getByReportIdWithVersion_jsonHeader_delegatesWithJson() {
+    HttpHeaders headers = mock(HttpHeaders.class);
+    when(headers.getAcceptableMediaTypes()).thenReturn(List.of(MediaType.APPLICATION_JSON_TYPE));
+    Version version = ThirdPartyUtils.getCycloneDxSchemaVersion("1.5");
+    Response expected = mock(Response.class);
+    when(apiCycloneDxService.getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_JSON, version)).thenReturn(expected);
+
+    Response actual = resource.getByReportIdWithVersion(HRC_ID, REPORT_ID, "1.5", headers);
+
+    assertThat(actual).isSameAs(expected);
+    verify(apiCycloneDxService).getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_JSON, version);
+  }
+
+  @Test
+  public void getByReportIdWithVersion_nullHeaders_defaultsToXml() {
+    Version version = ThirdPartyUtils.getCycloneDxSchemaVersion("1.6");
+    Response expected = mock(Response.class);
+    when(apiCycloneDxService.getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_XML, version)).thenReturn(expected);
+
+    Response actual = resource.getByReportIdWithVersion(HRC_ID, REPORT_ID, "1.6", null);
+
+    assertThat(actual).isSameAs(expected);
+    verify(apiCycloneDxService).getByScanId(hrc, REPORT_ID, MediaType.APPLICATION_XML, version);
+  }
+}

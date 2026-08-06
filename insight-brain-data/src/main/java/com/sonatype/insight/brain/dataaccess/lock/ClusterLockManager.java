@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.lock;
 
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 
@@ -32,7 +31,7 @@ public interface ClusterLockManager
 
   ClusterLock createForNewInstancePopulation();
 
-  ClusterLock createForPdfGeneration(Application application, String scanId);
+  ClusterLock createForPdfGeneration(Owner owner, String scanId);
 
   ClusterLock createForInactiveRepositoryViolationCleaner();
 

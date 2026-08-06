@@ -57,7 +57,7 @@ public class PdfGeneratorServiceAuthzTest
     grantReadPermission(app.getId());
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> pdfGeneratorService.printSbomReport(app.getPublicId(), "sbomVersion"))
-        .withMessage("SBOM version 'sbomVersion' not found for application '" + app.getPublicId() + "'.");
+        .withMessage("SBOM version 'sbomVersion' not found for owner '" + app.getPublicId() + "'.");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -76,6 +76,6 @@ public class PdfGeneratorServiceAuthzTest
     grantReadPermission(app.getId());
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> pdfGeneratorService.printSbomReport(app, "sbomVersion"))
-        .withMessage("SBOM version 'sbomVersion' not found for application '" + app.getPublicId() + "'.");
+        .withMessage("SBOM version 'sbomVersion' not found for owner '" + app.getPublicId() + "'.");
   }
 }

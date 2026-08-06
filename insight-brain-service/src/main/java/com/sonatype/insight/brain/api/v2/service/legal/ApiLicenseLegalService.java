@@ -1389,7 +1389,7 @@ public class ApiLicenseLegalService
                 .getLastByOwnerIds(Collections.singleton(application.getId()))
                 .stream()
                 .max(Comparator.comparing(PolicyEvaluation::getTime))
-                .map(policyEvaluation -> getLastRawApplicationReport(application.getPublicId(), policyEvaluation)));
+                .map(policyEvaluation -> getLastRawApplicationReport(application, policyEvaluation)));
   }
 
   @VisibleForTesting
@@ -1401,15 +1401,15 @@ public class ApiLicenseLegalService
                 Collections.singleton(stageId))
                 .stream()
                 .max(Comparator.comparing(PolicyEvaluation::getTime))
-                .map(policyEvaluation -> getLastRawApplicationReport(application.getPublicId(), policyEvaluation)));
+                .map(policyEvaluation -> getLastRawApplicationReport(application, policyEvaluation)));
   }
 
   private ApiReportRawDataDTOV2 getLastRawApplicationReport(
-      String applicationPublicId,
+      Application application,
       PolicyEvaluation lastPolicyEvaluation)
   {
     try {
-      return apiReportDataServiceV2.getDataNoAuth(applicationPublicId, lastPolicyEvaluation.getScanId());
+      return apiReportDataServiceV2.getDataNoAuth(application, lastPolicyEvaluation.getScanId());
     }
     catch (IOException e) {
       throw new UncheckedIOException(e.getMessage(), e);

@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -157,8 +158,7 @@ public class ApiCycloneDxServiceV2
       Version version)
   {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-
-    return getByScanId(application, scanId, acceptType, version);
+    return getByScanIdNoAuthz(application, scanId, acceptType, version, null);
   }
 
   @Authorize(permission = Permission.READ)
@@ -169,37 +169,72 @@ public class ApiCycloneDxServiceV2
       Version version)
   {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(application.getId(), stageId);
-    if (evaluation == null) {
-      throw new NotFoundException("Unable to locate a scan for " + applicationId + " in stage " + stageId);
-    }
-
-    return getByScanId(application, evaluation.getScanId(), acceptType, version);
+    return getLatestNoAuthz(application, stageId, acceptType, version);
   }
 
-  private Response getByScanId(Application application, String scanId, String acceptType, Version version) {
-    return getByScanId(application, scanId, acceptType, version, null);
+  @Authorize(permission = Permission.READ)
+  public Response getByScanId(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String scanId,
+      final String acceptType,
+      final Version version)
+  {
+    return getByScanIdNoAuthz(owner, scanId, acceptType, version, null);
   }
 
-  Response getByScanId(
-      Application application,
-      String scanId,
-      String acceptType,
-      Version version,
-      String linkedSpdxUrl)
+  @Authorize(permission = Permission.READ)
+  public Response getByScanId(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String scanId,
+      final String acceptType,
+      final Version version,
+      final String linkedSpdxUrl)
+  {
+    return getByScanIdNoAuthz(owner, scanId, acceptType, version, linkedSpdxUrl);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Response getLatest(
+      @AuthzContext(AuthzContext.Key.OWNER) final Owner owner,
+      final String stageId,
+      final String acceptType,
+      final Version version)
+  {
+    return getLatestNoAuthz(owner, stageId, acceptType, version);
+  }
+
+  /** Unannotated shared impl so the authz aspect fires only on the public entry point. */
+  private Response getByScanIdNoAuthz(
+      final Owner owner,
+      final String scanId,
+      final String acceptType,
+      final Version version,
+      final String linkedSpdxUrl)
   {
     AuditData.get().setReportId(scanId);
     if (MediaType.APPLICATION_JSON.equals(acceptType) && version.getVersion() < 1.2) {
       throw new NotAcceptableException("CycloneDX json schema does not support versions less than 1.2");
     }
-
     try {
-      Bom bom = buildBom(application, scanId, version, linkedSpdxUrl);
-      return generateResponse(version, application, acceptType, bom);
+      Bom bom = buildBom(owner, scanId, version, linkedSpdxUrl);
+      return generateResponse(version, owner, acceptType, bom);
     }
     catch (IOException | GeneratorException e) {
       throw new InternalServerException("An error occurred generating report", e);
     }
+  }
+
+  private Response getLatestNoAuthz(
+      final Owner owner,
+      final String stageId,
+      final String acceptType,
+      final Version version)
+  {
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(owner.getId(), stageId);
+    if (evaluation == null) {
+      throw new NotFoundException("Unable to locate a scan for " + owner.getId() + " in stage " + stageId);
+    }
+    return getByScanIdNoAuthz(owner, evaluation.getScanId(), acceptType, version, null);
   }
 
   /**
@@ -209,24 +244,28 @@ public class ApiCycloneDxServiceV2
    * an SBOM for CLI compliance scans without invoking the full HTTP response generator.
    */
   public Bom buildBom(
-      Application application,
+      Owner owner,
       String scanId,
       Version version,
       String linkedSpdxUrl) throws IOException
   {
     AuditData.get().setReportId(scanId);
-    ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
+    ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(owner, scanId);
 
     Bom bom = new Bom();
     bom.setSerialNumber(toUuid(scanId));
 
+    String publicId = owner.getPublicId();
+    String reportPath = publicId != null
+        ? UserInterfaceLinksHelper.getReportUrl(publicId, scanId)
+        : UserInterfaceLinksHelper.getHostedRepositoryComponentReportUrl(owner.getId(), scanId);
     String url;
     try {
-      url = baseUrl.get() + UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
+      url = baseUrl.get() + reportPath;
     }
     catch (Exception e) {
       log.debug("Failed to locate baseUrl", e);
-      url = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
+      url = reportPath;
     }
     bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
     if (linkedSpdxUrl != null) {
@@ -242,10 +281,9 @@ public class ApiCycloneDxServiceV2
 
     if (version.compareTo(Version.VERSION_12) >= 0) {
       PolicyEvaluation policyEvaluation =
-          policyEvaluationDAO.getLastByOwnerIdAndScanId(application.getId(), scanId);
-      ApiDependencyTreeNodeDTO dependenciesData =
-          apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
-      addMetadata(policyEvaluation, dependenciesData, bom, version, components, data);
+          policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
+      ApiDependencyTreeNodeDTO dependenciesData = apiReportDataServiceV2.getDependencyTreeNoAuth(owner, scanId);
+      addMetadata(policyEvaluation, dependenciesData, bom, version, components, data, owner);
       if (hasDependenciesData(components, dependenciesData)) {
         addDependencyTree(dependenciesData, bom, components);
       }
@@ -264,7 +302,7 @@ public class ApiCycloneDxServiceV2
 
   private Response generateResponse(
       final Version version,
-      final Application application,
+      final Owner owner,
       final String acceptType,
       final Bom bom) throws IOException, GeneratorException
   {
@@ -290,10 +328,13 @@ public class ApiCycloneDxServiceV2
       log.debug("The SBOM generated is not valid, list of errors [{}]",
           StringUtils.join(exceptions.stream().map(Throwable::getMessage).toArray(), ","));
     }
+    String filenameBase = owner.getPublicId() != null
+        ? owner.getPublicId() + "-bom"
+        : "hrc-" + owner.getId() + "-bom";
     return Response.ok(content, type)
         .header(HttpHeaders.CONTENT_DISPOSITION,
             HttpHeaderUtils.buildContentDispositionHeaderValue(
-                application.getPublicId() + "-bom." + type.getSubtype()))
+                filenameBase + "." + type.getSubtype()))
         .build();
   }
 
@@ -316,7 +357,8 @@ public class ApiCycloneDxServiceV2
       final Bom bom,
       final Version version,
       final Map<String, Map<String, String>> components,
-      final ApiReportRawDataDTOV2 data)
+      final ApiReportRawDataDTOV2 data,
+      final Owner owner)
   {
     if (policyEvaluation != null) {
       Metadata metadata = new Metadata();
@@ -335,7 +377,7 @@ public class ApiCycloneDxServiceV2
 
       metadata.setTimestamp(policyEvaluation.getTime());
       if (dependenciesData != null) {
-        String parentPurl = resolveParentPackageUrl(dependenciesData, policyEvaluation);
+        String parentPurl = resolveParentPackageUrl(dependenciesData, policyEvaluation, owner);
         if (parentPurl != null) {
           String parentBomRef = createNewBomRef();
           Component parentComponent = createComponent(parentPurl, Type.APPLICATION, parentBomRef);
@@ -350,14 +392,18 @@ public class ApiCycloneDxServiceV2
     }
   }
 
-  private String resolveParentPackageUrl(ApiDependencyTreeNodeDTO dependenciesData, PolicyEvaluation policyEvaluation) {
+  private String resolveParentPackageUrl(
+      ApiDependencyTreeNodeDTO dependenciesData,
+      PolicyEvaluation policyEvaluation,
+      Owner owner)
+  {
     if (StringUtils.isNotBlank(dependenciesData.getPackageUrl())) {
       return dependenciesData.getPackageUrl();
     }
-    else {
-      Application app = applicationHelper.getApplicationByIdNotNull(policyEvaluation.getOwnerId());
-      return buildFakeParentPackageUrl(dependenciesData, app.getName(), policyEvaluation.getScanId());
-    }
+    String ownerName = owner.getPublicId() != null
+        ? applicationHelper.getApplicationByIdNotNull(policyEvaluation.getOwnerId()).getName()
+        : "hrc-" + owner.getId();
+    return buildFakeParentPackageUrl(dependenciesData, ownerName, policyEvaluation.getScanId());
   }
 
   public static String buildFakeParentPackageUrl(

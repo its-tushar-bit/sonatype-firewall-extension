@@ -705,7 +705,7 @@ public class ApiSbomServiceTest
           assertThat(component.getPolicyViolationCount()).isEqualTo(1);
         });
 
-    verify(stubbedReportService, times(2)).processBrowseReport(anyString(), anyString(), anyString());
+    verify(stubbedReportService, times(2)).processBrowseReport(any(Application.class), anyString(), anyString());
   }
 
   @Test

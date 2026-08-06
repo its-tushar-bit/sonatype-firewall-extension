@@ -41,6 +41,8 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
@@ -311,7 +313,7 @@ public class ApiReportDataServiceV2Test
   @Test
   public void testGetDataNoAuth_cpeAndSwid() throws Exception {
     makeReport("report-5-thirdparty");
-    ApiReportRawDataDTOV2 reportRawData = reportDataService.getDataNoAuth(app.getPublicId(), scanId);
+    ApiReportRawDataDTOV2 reportRawData = reportDataService.getDataNoAuth(app, scanId);
     assertThat(reportRawData.components).isNotEmpty();
     ApiReportComponentDTOV2 component = reportRawData.components.get(0);
     assertThat(component.cpe).isNotNull();
@@ -328,7 +330,7 @@ public class ApiReportDataServiceV2Test
         "com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     licenseOverrideDAO.delete(licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), componentIdentifier));
 
-    ApiReportRawDataDTOV2 data = reportDataService.getDataNoAuth(app.getPublicId(), scanId, true);
+    ApiReportRawDataDTOV2 data = reportDataService.getDataNoAuth(app, scanId, true);
 
     assertThat(data).isNotNull();
     assertThat(data.components).hasSize(3);
@@ -344,7 +346,7 @@ public class ApiReportDataServiceV2Test
     licenseOverride.setComponentIdentifier(componentIdentifier);
     licenseOverrideDAO.insert(licenseOverride);
 
-    data = reportDataService.getDataNoAuth(app.getPublicId(), scanId, true);
+    data = reportDataService.getDataNoAuth(app, scanId, true);
 
     assertThat(data).isNotNull();
     assertThat(data.components).hasSize(3);
@@ -362,7 +364,7 @@ public class ApiReportDataServiceV2Test
         "com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     licenseOverrideDAO.delete(licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), componentIdentifier));
 
-    ApiReportRawDataDTOV2 data = reportDataService.getDataNoAuth(app.getPublicId(), scanId, false);
+    ApiReportRawDataDTOV2 data = reportDataService.getDataNoAuth(app, scanId, false);
 
     assertThat(data).isNotNull();
     assertThat(data.components).hasSize(3);
@@ -378,7 +380,7 @@ public class ApiReportDataServiceV2Test
     licenseOverride.setComponentIdentifier(componentIdentifier);
     licenseOverrideDAO.insert(licenseOverride);
 
-    data = reportDataService.getDataNoAuth(app.getPublicId(), scanId, false);
+    data = reportDataService.getDataNoAuth(app, scanId, false);
 
     assertThat(data).isNotNull();
     assertThat(data.components).hasSize(3);
@@ -516,7 +518,7 @@ public class ApiReportDataServiceV2Test
   public void testGetDataForPrioritization_matchesLegacyDataForPrioritiesFields() throws Exception {
     makeReport("report-1");
 
-    ApiReportRawDataDTOV2 legacy = reportDataService.getDataNoAuthWithDependencyData(app.getPublicId(), scanId);
+    ApiReportRawDataDTOV2 legacy = reportDataService.getDataNoAuthWithDependencyData(app, scanId);
     ApiReportRawDataDTOV2 optimized = reportDataService.getDataForPrioritization(app.getPublicId(), scanId);
 
     assertThat(optimized.components).hasSameSizeAs(legacy.components);
@@ -867,7 +869,7 @@ public class ApiReportDataServiceV2Test
 
   @Test(expected = NotFoundException.class)
   public void testGetDependencyTree_NotFound() throws Exception {
-    reportDataService.getDependencyTreeNoAuth(app.getPublicId(), "2304948571222");
+    reportDataService.getDependencyTreeNoAuth(app, "2304948571222");
   }
 
   @Test
@@ -875,7 +877,7 @@ public class ApiReportDataServiceV2Test
     makeReport("report-1");
     populateDependencies("report-1", "emptyDependencies.json");
 
-    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app, scanId);
     assertThat(response).isNotNull();
     assertThat(response.getChildren()).isNull();
   }
@@ -886,7 +888,7 @@ public class ApiReportDataServiceV2Test
     populateDependencies("java-report", "dependencies.json");
     populateBom("java-report", "bom.json");
 
-    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app, scanId);
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
     assertFalse(children.isEmpty());
@@ -900,7 +902,7 @@ public class ApiReportDataServiceV2Test
     populateDependencies("java-report", "dependenciesWithMultipleRemovals.json");
     populateBom("java-report", "bom.json");
 
-    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app, scanId);
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
     assertFalse(children.isEmpty());
@@ -914,7 +916,7 @@ public class ApiReportDataServiceV2Test
     populateDependencies("java-report-with-package-url", "dependencies.json");
     populateBom("java-report-with-package-url", "bom.json");
 
-    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app, scanId);
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
     assertFalse(children.isEmpty());
@@ -928,7 +930,7 @@ public class ApiReportDataServiceV2Test
     populateDependencies("innersource-report", "dependencies.json");
     populateBom("innersource-report", "bom.json");
 
-    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app, scanId);
     assertThat(response).isNotNull();
     assertThat(response.getComponentIdentifier()).isNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
@@ -962,7 +964,7 @@ public class ApiReportDataServiceV2Test
     populateDependencies("java-report-unknown-deps", "dependencies.json");
     populateBom("java-report-unknown-deps", "bom.json");
 
-    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app, scanId);
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
     assertFalse(children.isEmpty());
@@ -997,7 +999,7 @@ public class ApiReportDataServiceV2Test
   @Test
   public void testGetDependencyTree_noDependenciesFile() throws Exception {
     makeEmptyReport();
-    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app, scanId);
     assertThat(response).isNotNull();
     assertThat(response.getChildren()).isNull();
   }
@@ -1358,5 +1360,26 @@ public class ApiReportDataServiceV2Test
     ApiReportRawDataDTOV2 untaggedData =
         reportDataService.getRawData(untaggedApp.getPublicId(), untaggedScanId, true);
     assertThat(firstSecurityIssue(untaggedData).customData).isNull();
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetDataNoAuth_Hrc_NotFound() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    reportDataService.getDataNoAuth(hrc, "no-such-scan");
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetPolicyViolationsDataNoAuth_Hrc_NotFound() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    reportDataService.getPolicyViolationsDataNoAuth(hrc, "no-such-scan", false);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetDependencyTreeNoAuth_Hrc_NotFound() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    reportDataService.getDependencyTreeNoAuth(hrc, "no-such-scan");
   }
 }

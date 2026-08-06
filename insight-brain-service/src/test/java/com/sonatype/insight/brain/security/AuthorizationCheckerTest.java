@@ -640,7 +640,25 @@ public class AuthorizationCheckerTest
 
     assertThatThrownBy(() -> checker.isPermitted(userPrincipal, Permission.READ, ctx))
         .isInstanceOf(NotFoundException.class)
+        .hasMessageContaining("Hosted Repository Component")
         .hasMessageContaining("missing-hrc");
+  }
+
+  @Test
+  public void testIsPermitted_WithMissingHostedRepositoryComponentOwner_MessageMentionsHrcType() {
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    newMembershipMapping(user, Organization.ROOT_ORGANIZATION_ID, role.getId());
+
+    Map<Key, Object> ctx = new HashMap<>();
+    ctx.put(Key.TYPE, OwnerType.HOSTED_REPOSITORY_COMPONENT);
+    ctx.put(Key.ID, "missing-hrc-by-type");
+    UserPrincipal userPrincipal = newPrincipal(user);
+
+    assertThatThrownBy(() -> checker.isPermitted(userPrincipal, Permission.READ, ctx))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageContaining("Hosted Repository Component")
+        .hasMessageContaining("missing-hrc-by-type");
   }
 
   @Test

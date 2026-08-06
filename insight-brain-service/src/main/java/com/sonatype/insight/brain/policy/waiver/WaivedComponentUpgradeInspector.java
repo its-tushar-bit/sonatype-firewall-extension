@@ -6,12 +6,8 @@
 package com.sonatype.insight.brain.policy.waiver;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -25,18 +21,12 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
@@ -52,34 +42,20 @@ public class WaivedComponentUpgradeInspector
 
   private final Configuration configuration;
 
-  private final OrganizationDAO organizationDAO;
-
-  private final ApplicationDAO applicationDAO;
-
-  private final RepositoryDAO repositoryDAO;
-
   private final PolicyWaiverDAO policyWaiverDAO;
 
   private final PolicyDAO policyDAO;
 
   private final ApiComponentRemediationService apiComponentRemediationService;
 
-  private Map<String, Owner> ownersById;
-
   @Inject
   public WaivedComponentUpgradeInspector(
       Configuration configuration,
-      OrganizationDAO organizationDAO,
-      ApplicationDAO applicationDAO,
-      RepositoryDAO repositoryDAO,
       PolicyDAO policyDAO,
       PolicyWaiverDAO policyWaiverDAO,
       ApiComponentRemediationService apiComponentRemediationService)
   {
     this.configuration = configuration;
-    this.organizationDAO = organizationDAO;
-    this.applicationDAO = applicationDAO;
-    this.repositoryDAO = repositoryDAO;
     this.policyDAO = policyDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.apiComponentRemediationService = apiComponentRemediationService;
@@ -96,29 +72,18 @@ public class WaivedComponentUpgradeInspector
 
     long start = System.currentTimeMillis();
 
-    ownersById = getAllOwnersById();
-
-    // Query by policy to reduce memory load while doing less database hits than querying by owners
     policyDAO.getAll().forEach(this::inspectWaiversForPolicy);
 
     log.info("Completed Waived Component Upgrade Inspector in {} ms for tenant {}",
         System.currentTimeMillis() - start, TenantThreadLocal.getTenant());
   }
 
-  private Map<String, Owner> getAllOwnersById() {
-    Collector<Owner, ?, Map<String, Owner>> ownerCollector =
-        Collectors.toMap(Owner::getId, Function.identity(), (existing, replacement) -> existing);
-    Map<String, Owner> owners = new HashMap<>();
-
-    owners.putAll(applicationDAO.getAll().stream().collect(ownerCollector));
-    owners.putAll(organizationDAO.getAll().stream().collect(ownerCollector));
-    owners.putAll(repositoryDAO.getAll().stream().collect(ownerCollector));
-    owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON);
-    return owners;
-  }
-
   private void inspectWaiversForPolicy(final Policy policy) {
     List<PolicyWaiver> waiversForRemediationInspection = getWaiversForRemediationInspection(policy);
+    if (waiversForRemediationInspection.isEmpty()) {
+      return;
+    }
+
     for (PolicyWaiver waiver : waiversForRemediationInspection) {
       try {
         if (waiverContainsUpgradeableComponent(waiver)) {
@@ -155,11 +120,10 @@ public class WaivedComponentUpgradeInspector
   private boolean waiverContainsUpgradeableComponent(final PolicyWaiver waiver) {
     ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
     componentDTOV2.packageUrl = waiver.getAssociatedPackageUrl();
-    OwnerType waiverOwnerType = ownersById.get(waiver.getOwnerId()).getType();
 
     ApiComponentRemediationDTO suggestedRemediationForComponent =
-        apiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz(componentDTOV2, waiverOwnerType,
-            waiver.getOwnerId(), null, null, null, null, false);
+        apiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz(componentDTOV2, waiver.getOwnerId(),
+            null, null, null, null, false);
 
     return isRemediationAvailable(suggestedRemediationForComponent, waiver);
   }

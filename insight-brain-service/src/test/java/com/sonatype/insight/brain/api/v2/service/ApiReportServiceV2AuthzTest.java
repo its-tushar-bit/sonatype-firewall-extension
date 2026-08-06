@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -71,7 +72,7 @@ public class ApiReportServiceV2AuthzTest
   public void testGetReportHistoryForApplication_Authorized() {
     grantReadPermission(app.getId());
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(app, null, null);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(0);
@@ -79,12 +80,36 @@ public class ApiReportServiceV2AuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetReportHistoryForApplication_Unauthenticated() {
-    apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
+    apiReportServiceV2.getReportHistoryForOwner(app, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetReportHistoryForApplication_Unauthorized() {
     login();
-    apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
+    apiReportServiceV2.getReportHistoryForOwner(app, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetReportHistoryForOwner_Hrc_Unauthenticated() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    apiReportServiceV2.getReportHistoryForOwner(hrc, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetReportHistoryForOwner_Hrc_Unauthorized() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    apiReportServiceV2.getReportHistoryForOwner(hrc, null, null);
+  }
+
+  @Test
+  public void testGetReportHistoryForOwner_Hrc_Authorized() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    grantReadPermission(hrc.getId());
+
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(hrc, null, null);
+
+    assertThat(reports.applicationId).isEqualTo(hrc.getId());
+    assertThat(reports.reports).isEmpty();
   }
 }

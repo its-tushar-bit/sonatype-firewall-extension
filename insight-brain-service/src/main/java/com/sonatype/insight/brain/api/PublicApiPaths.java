@@ -65,6 +65,9 @@ public class PublicApiPaths
   public static final String REPORT_DATA_RESOURCE_PATH_V2 = API_VERSION_PATH_V2
       + "applications/{applicationPublicId}/reports";
 
+  public static final String HOSTED_REPOSITORY_COMPONENT_REPORT_DATA_RESOURCE_PATH_V2 =
+      "/" + API_VERSION_PATH_V2 + "hostedRepositoryComponent/{hrcId}/reports";
+
   public static final String APPLICATION_EVALUATION_PATH_V2 = API_VERSION_PATH_V2 + "evaluation/applications";
 
   public static final String THIRD_PARTY_SCAN_PATH = API_VERSION_PATH_V2 + "scan/applications";

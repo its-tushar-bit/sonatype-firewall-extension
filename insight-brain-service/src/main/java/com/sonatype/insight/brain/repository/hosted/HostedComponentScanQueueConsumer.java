@@ -1423,12 +1423,9 @@ public class HostedComponentScanQueueConsumer
    * Recoverable on the next CM sweep.
    * <p>
    * <b>CLM-42080:</b> public entry point takes primitives (not {@link HostedComponentScanQueue}
-   * / {@link ScanComponentInfo}) so the re-evaluation path in
-   * {@code ReportService#reevaluateHostedComponent} can share this exact drill-down and
-   * mirror logic with the initial-scan path. Before this refactor, re-eval only refreshed
-   * the outer's own violation, leaving mirrored inner-pathname rows at the threat_level they
-   * carried at initial-scan time. Re-eval callers pass {@code scanId} for both
-   * {@code jobLogId} and {@code scanId} — the split exists so the initial-scan path can pass
+   * / {@link ScanComponentInfo}) so callers can share this exact drill-down and mirror logic
+   * with the initial-scan path. Callers pass {@code scanId} for both {@code jobLogId} and
+   * {@code scanId} — the split exists so the initial-scan path can pass
    * {@code HostedComponentScanQueue.getId()} as {@code jobLogId} while carrying its own
    * distinct {@code scanId}.
    * <p>

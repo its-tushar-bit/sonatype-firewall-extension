@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportServiceV2;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -42,9 +43,12 @@ public class ApiReportResourceV2
 
   private final ApiReportServiceV2 reportService;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
-  public ApiReportResourceV2(final ApiReportServiceV2 searchService) {
+  public ApiReportResourceV2(final ApiReportServiceV2 searchService, final ApplicationDAO applicationDAO) {
     this.reportService = searchService;
+    this.applicationDAO = applicationDAO;
   }
 
   @GET
@@ -162,6 +166,6 @@ public class ApiReportResourceV2
           description = "Enter the exact no. of most recent reports to retrieve (maximum 100; larger values are " +
               "clamped).") @QueryParam("limit") Integer limit)
   {
-    return reportService.getReportHistoryForApplication(applicationId, stage, limit);
+    return reportService.getReportHistoryForOwner(applicationDAO.getByIdNotNull(applicationId), stage, limit);
   }
 }

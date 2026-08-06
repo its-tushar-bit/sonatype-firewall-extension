@@ -701,7 +701,7 @@ public class ReportServiceTest
     ReportService reportService = createReportService();
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReport(app.getId(), scanId))
-        .withMessageContaining("The report for application ID " + app.getId() + " and scan ID " + scanId
+        .withMessageContaining("The report for owner ID " + app.getId() + " and scan ID " + scanId
             + " does not exist. Usually this means the report was deemed obsolete according "
             + "to the data retention policies and hence purged to the trash.");
   }
@@ -737,7 +737,7 @@ public class ReportServiceTest
     ReportService reportService = createReportService();
 
     // Verify Response for scan 1
-    ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId1);
+    ReportMetadataDTO metadata = reportService.getReportMetadata(app, scanId1);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getApplication().getOrganization()).isNotNull();
@@ -754,7 +754,7 @@ public class ReportServiceTest
     assertThat(metadata.getBranchName()).isNull();
 
     // Verify Response for scan 2
-    metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
+    metadata = reportService.getReportMetadata(app, scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getApplication().getOrganization()).isNotNull();
@@ -773,7 +773,7 @@ public class ReportServiceTest
     // Verify response for monitoring/re-evaluation
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
         true /* isReevaluation */, true/* isForMonitoring */, new Date(System.currentTimeMillis() + 1));
-    metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
+    metadata = reportService.getReportMetadata(app, scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getApplication().getOrganization()).isNotNull();
@@ -791,7 +791,7 @@ public class ReportServiceTest
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), "12345678"))
+        .isThrownBy(() -> reportService.getReportMetadata(app, "12345678"))
         .withMessage("Could not find a report with ID 12345678");
   }
 
@@ -824,7 +824,7 @@ public class ReportServiceTest
     ReportService reportService = createReportService();
 
     // Verify Response for scan 1
-    ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId1);
+    ReportMetadataDTO metadata = reportService.getReportMetadata(app, scanId1);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getApplication().getOrganization()).isNotNull();
@@ -841,7 +841,7 @@ public class ReportServiceTest
     assertThat(metadata.getBranchName()).isNull();
 
     // Verify Response for scan 2
-    metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
+    metadata = reportService.getReportMetadata(app, scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getApplication().getOrganization()).isNotNull();
@@ -860,7 +860,7 @@ public class ReportServiceTest
     // Verify response for monitoring/re-evaluation
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
         true /* isReevaluation */, true/* isForMonitoring */, new Date(System.currentTimeMillis() + 1));
-    metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
+    metadata = reportService.getReportMetadata(app, scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getApplication().getOrganization()).isNotNull();
@@ -878,7 +878,7 @@ public class ReportServiceTest
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), "12345678"))
+        .isThrownBy(() -> reportService.getReportMetadata(app, "12345678"))
         .withMessage("Could not find a report with ID 12345678");
   }
 
@@ -888,8 +888,7 @@ public class ReportServiceTest
         app.getId(), scanId);
     ReportService reportService = createReportService();
 
-    String applicationPublicId = app.getPublicId();
-    assertThatThrownBy(() -> reportService.getReportMetadata(applicationPublicId, scanId))
+    assertThatThrownBy(() -> reportService.getReportMetadata(app, scanId))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Expanded Coverage (XC) is no longer supported. " +
             "We have incorporated support for all languages that were maintained in XC in Lifecycle");
@@ -901,7 +900,7 @@ public class ReportServiceTest
     ReportService reportService = createReportService();
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
 
-    ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId);
+    ReportMetadataDTO metadata = reportService.getReportMetadata(app, scanId);
     assertThat(metadata).isNotNull();
     assertThat(metadata.getApplication().getName()).isEqualTo("My Awesome Artifact");
     assertThat(metadata.getReportTitle()).isEqualTo("Report");
@@ -2058,5 +2057,53 @@ public class ReportServiceTest
       byte[] entityContents = inputStream.readAllBytes();
       return new String(entityContents, StandardCharsets.UTF_8);
     }
+  }
+
+  @Test
+  public void testGetReport_Hrc_NoReport_NoEvaluation_ThrowsNotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    ReportService reportService = createReportService();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.getReport(hrc, "no-such-scan"))
+        .withMessage("Could not find a report with ID no-such-scan");
+  }
+
+  @Test
+  public void testGetReport_Hrc_EvaluationExistsWithoutReport_ThrowsPurgedNotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    String hrcScanId = "hrc-scan-purged";
+    tempEntity.newPolicyEvaluation(hrc.getId(), BuildStageType.ID, hrcScanId);
+    ReportService reportService = createReportService();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.getReport(hrc, hrcScanId))
+        .withMessageContaining(hrc.getId())
+        .withMessageContaining(hrcScanId)
+        .withMessageContaining("does not exist");
+  }
+
+  @Test
+  public void testGetReportMetadata_Hrc_NoReport_ThrowsNotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    ReportService reportService = createReportService();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.getReportMetadata(hrc, "no-such-scan"))
+        .withMessage("Could not find a report with ID no-such-scan");
+  }
+
+  @Test
+  public void testProcessBrowseReport_Hrc_NoReport_ThrowsNotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    ReportService reportService = createReportService();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.processBrowseReport(hrc, "no-such-scan", "index.html"))
+        .withMessage("Could not find a report with ID no-such-scan");
   }
 }

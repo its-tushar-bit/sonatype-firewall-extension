@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.io.ByteArrayInputStream;
-import java.nio.file.FileAlreadyExistsException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -49,7 +48,6 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.innersource.InnerSourceCleanupPendingService;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -63,15 +61,12 @@ import com.sonatype.insight.brain.dataaccess.repository.ProxyRepositoryComponent
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
 import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -79,6 +74,7 @@ import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -329,7 +325,7 @@ public class ReportService
     applyChanges(owner, scanId, applicationReport, stageTypeId, cpeResultsTelemetry, repositoryMatcher, telemetrySender,
         telemetryUtils, configuration);
     thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport, cpeResultsTelemetry);
-    sendCpeResultMetricsTelemetry(owner.getId(), cpeResultsTelemetry);
+    sendCpeResultMetricsTelemetry(owner, cpeResultsTelemetry);
     return applicationReport;
   }
 
@@ -416,108 +412,16 @@ public class ReportService
     return proxyRepositoryComponentDAO.getByScanId(scanId) != null;
   }
 
-  public boolean isHostedScan(final String scanId, final String appId) {
-    // Cross-check that the (appId, scanId) pair is linked in policy_evaluation with a hosted
-    // trigger type. CLM-41693: both REPOSITORY_MANAGER (pre-v1.206) and HOSTED_REPOSITORY_SCANNING
-    // (v1.206+) are recognised as hosted.
-    PolicyEvaluation pe = policyEvaluationDAO.getLastByOwnerIdAndScanId(appId, scanId);
-    return pe != null && isHostedScanTriggerType(pe.getScanTriggerType());
-  }
-
   private static boolean isHostedScanTriggerType(final ScanTriggerType scanTriggerType) {
     return ScanTriggerType.HOSTED_REPOSITORY_SCANNING == scanTriggerType
         || ScanTriggerType.REPOSITORY_MANAGER == scanTriggerType;
   }
 
   /**
-   * Re-evaluate a hosted-repository component (Re-Evaluate button on the Application Report,
-   * hosted-scan branch of {@code ReportResource.reevaluatePolicy}). Runs synchronously on the
-   * caller's request thread — the JAX-RS resource ignores {@code async=true} for hosted scans.
-   * <p>
-   * <b>CLM-42080 locking model:</b> the mirror step runs <i>before</i> the outer
-   * {@code POLICY_EVALUATION} cluster lock is acquired. This avoids deadlock: the mirror's
-   * inner call to {@code ReportComponentService.fetchReportAndComponents} acquires the same
-   * lock key, and nesting it inside the outer lock would block forever on non-reentrant
-   * {@code pg_advisory_xact_lock} across pooled connections. The outer lock still wraps
-   * {@code evaluate -> saveOverlayFiles -> persist} (the CLM-41904 invariant). Concurrent
-   * re-evaluations of the same (application, scanId) serialize <i>separately</i>: the mirror
-   * step serializes on the inner lock inside {@code fetchReportAndComponents}, then the
-   * outer-write step serializes on the outer lock. The gap between the two acquisitions is
-   * unprotected but the state left there is idempotent-safe: if {@code evaluate} or
-   * {@code saveOverlayFiles} throws after the mirror committed inner-pathname rows in its
-   * own transaction, no {@code policy_evaluation} row is persisted, and the next Re-Evaluate
-   * attempt's mirror deletes-then-reinserts those rows.
-   * <p>
-   * <b>Latency contract:</b> the outer {@code RepositoryPolicyEvaluator.evaluate} plus (per
-   * CLM-42080) the drill-down {@code ScanPolicyEvaluator.evaluate} inside the mirror both run
-   * inline. For large archives (e.g. nuget nupkg with many framework-fanout DLLs, or a gem
-   * with a deep dependency graph) this can push the response into multi-second territory.
-   * Keep the worst-case comfortably under the deployment ALB / nginx idle timeout — CLM-38045
-   * was a real production incident from a synchronous long response timing out at the
-   * proxy layer.
-   */
-  public void reevaluateHostedComponent(final String appId, final String scanId) {
-    ProxyRepositoryComponent component = proxyRepositoryComponentDAO.getByScanId(scanId);
-    if (component == null) {
-      throw new NotFoundException("No hosted component found for scanId: " + scanId);
-    }
-    Repository repository = repositoryDAO.getById(component.getRepositoryId());
-    if (repository == null) {
-      throw new NotFoundException("Repository not found for component scanId: " + scanId);
-    }
-    Application application = applicationDAO.getByIdNotNull(appId);
-    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByOwnerIdAndScanId(appId, scanId);
-    String rawStage = lastEval != null ? lastEval.getStageTypeId() : null;
-    String stageTypeId = rawStage != null ? rawStage : ComplianceStageType.ID;
-    String format = component.getComponentIdentifier() != null
-        ? component.getComponentIdentifier().getFormat()
-        : repository.getFormat();
-    RepositoryComponentEvaluationDataRequestList request =
-        new RepositoryComponentEvaluationDataRequestList("INITIAL_SCAN");
-    if (component.getPathname() == null || component.getHash() == null) {
-      throw new NotFoundException("Component for scanId " + scanId + " is missing pathname or hash");
-    }
-    request.components.add(
-        new RepositoryComponentEvaluationDataRequest(format, component.getPathname(), component.getHash()));
-    // skipAutoWaivers is not forwarded — RepositoryPolicyEvaluator.evaluate does not support it.
-    // Callers passing skipAutoWaivers=true via ReportResource will have it silently ignored for hosted scans.
-    log.debug("reevaluateHostedComponent: skipAutoWaivers not supported for hosted scans, appId={} scanId={}", appId,
-        scanId);
-    // CLM-42080 followup: mirror runs OUTSIDE the outer POLICY_EVALUATION cluster lock —
-    // nesting it deadlocks on pg_advisory_xact_lock (non-reentrant across pooled connections).
-    try {
-      hostedComponentScanQueueConsumer.mirrorNestedComponentViolationsFromApplicationEvaluation(
-          scanId, repository.getId(), component.getPathname(), component.getHash(),
-          application, scanId, stageTypeId, null);
-    }
-    catch (Exception e) {
-      log.warn("reevaluateHostedComponent: nested-violation mirror step failed for appId={} scanId={}",
-          appId, scanId, e);
-    }
-
-    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
-      clusterLock.lock();
-      repositoryPolicyEvaluatorProvider.get().evaluate(repository, request, false, null, stageTypeId);
-      try {
-        saveOverlayFiles(appId, scanId);
-      }
-      catch (RuntimeException e) {
-        throw e;
-      }
-      catch (Exception e) {
-        throw new InternalServerErrorException("Failed to save overlay files for scanId=" + scanId, e);
-      }
-      persistHostedComponentReevaluation(appId, scanId, stageTypeId);
-    }
-  }
-
-  /**
    * Mirror nested-component violations, regenerate the Build Report overlays, and optionally
    * persist a {@code policy_evaluation} row. Called from the Continuous Monitoring flow
    * processor ({@code RepositoryContinuousMonitoringFlowProcessor}) after its outer evaluation
-   * pass. The manual Re-Evaluate path ({@link #reevaluateHostedComponent}) does <b>not</b> call
-   * this method — CLM-42080 requires the mirror step to run before its outer cluster lock is
-   * acquired, so that path inlines the equivalent work with the correct lock ordering.
+   * pass.
    * <p>
    * The mirror step failure is logged and swallowed — the outer's rows and any file that
    * {@link #saveOverlayFiles} can already regenerate are still valuable. The overlay-write
@@ -595,30 +499,20 @@ public class ReportService
 
   @Authorize(permission = Permission.READ)
   public ReportEntry processBrowseReport(
-      final @AuthzContext(Key.APPLICATION_ID) String appId,
-      String scanId,
-      String path)
+      @AuthzContext(Key.OWNER) final Owner owner,
+      final String scanId,
+      final String path)
   {
     final String name = toEntryName(path);
     auditBrowseReport(scanId, name);
-    LifecycleReport applicationReport = getReport(appId, scanId);
-    try {
-      if (!applicationReport.exists() && isHostedScan(scanId, appId)) {
-        applicationReport = reportDataStore.downloadReport(
-            applicationDAO.getByIdNotNull(appId), scanId, (sid, r, aid) -> {
-            });
-      }
-    }
-    catch (Exception e) {
-      log.debug("Could not download report for appId={} scanId={}: {}", appId, scanId, e.getMessage());
-    }
+    LifecycleReport report = getReportNoAuth(owner, scanId);
     ReportEntry reportEntry = null;
     try {
       if (SECURITY_JSON.getName().equals(name)) {
-        reportEntry = loadCombinedSecurityData(applicationReport);
+        reportEntry = loadCombinedSecurityData(report);
       }
       else {
-        reportEntry = applicationReport.getEntry(name);
+        reportEntry = report.getEntry(name);
       }
     }
     catch (final Exception e) {
@@ -672,7 +566,7 @@ public class ReportService
 
   @WithSpan
   public LifecycleReport getReport(final String appId, final String scanId) {
-    return getReport(applicationDAO.getByIdNotNull(appId), scanId);
+    return getReportNoAuth(applicationDAO.getByIdNotNull(appId), scanId);
   }
 
   /**
@@ -706,54 +600,26 @@ public class ReportService
     }
   }
 
-  public LifecycleReport getReport(final Application app, final String scanId) {
-    LifecycleReport applicationReport = reportDataStore.getLifecycleReport(app, scanId);
+  @WithSpan
+  public LifecycleReport getReport(final Owner owner, final String scanId) {
+    return getReportNoAuth(owner, scanId);
+  }
 
+  private LifecycleReport getReportNoAuth(final Owner owner, final String scanId) {
+    LifecycleReport report = reportDataStore.getLifecycleReport(owner, scanId);
     boolean exists;
     try {
-      exists = applicationReport.exists();
+      exists = report.exists();
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-
     if (exists) {
-      // Consumer pre-generates overlay files — if policythreats.json is still missing
-      // (e.g. consumer failed partway), regenerate it from DB without re-downloading the zip.
-      return applicationReport;
+      return report;
     }
-
-    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByOwnerIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
     if (lastEval != null) {
-      // Report zip missing — consumer failed before downloading it. Download now as recovery.
-      if (isHostedScan(scanId, app.getId())) {
-        try {
-          reportDataStore.downloadReport(app, scanId, (sid, r, aid) -> {
-          });
-        }
-        catch (FileAlreadyExistsException ignored) {
-          // concurrent recovery request already downloaded it
-        }
-        catch (Exception e) {
-          log.debug("HDS report unavailable for recovery scanId={}: {}", scanId, e.getMessage());
-        }
-        try {
-          saveOverlayFiles(app.getId(), scanId);
-        }
-        catch (Exception e) {
-          log.warn("Recovery: failed to save overlay files for scanId={}: {}", scanId, e.getMessage());
-        }
-        applicationReport = reportDataStore.getLifecycleReport(app, scanId);
-        try {
-          if (applicationReport.exists()) {
-            return applicationReport;
-          }
-        }
-        catch (IOException e) {
-          throw new UncheckedIOException(e);
-        }
-      }
-      throw new NotFoundException("The report for application ID " + app.getId() + " and scan ID " + scanId
+      throw new NotFoundException("The report for owner ID " + owner.getId() + " and scan ID " + scanId
           + " does not exist. Usually this means the report was deemed obsolete"
           + " according to the data retention policies and hence purged to the trash.");
     }
@@ -850,10 +716,43 @@ public class ReportService
 
   @Authorize(permission = Permission.READ)
   public ReportMetadataDTO getReportMetadata(
-      final @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      @AuthzContext(Key.OWNER) final Owner owner,
       final String scanId) throws IOException
   {
-    return getReportMetadataNoAuth(applicationPublicId, scanId);
+    return getReportMetadataNoAuth(owner, scanId);
+  }
+
+  public ReportMetadataDTO getReportMetadataNoAuth(final Owner owner, final String scanId) throws IOException {
+    if (owner.getType() == OwnerType.APPLICATION) {
+      return getReportMetadataNoAuth(owner.getPublicId(), scanId);
+    }
+    return buildOwnerMetadata(owner, scanId);
+  }
+
+  private ReportMetadataDTO buildOwnerMetadata(final Owner owner, final String scanId) throws IOException {
+    ReportMetadataDTO metadata = new ReportMetadataDTO();
+    LifecycleReport lifecycleReport = getReportNoAuth(owner, scanId);
+    lifecycleReport.getEntries(List.of(
+        DATA_JSON.getName(),
+        TEMPLATE_PROPERTIES.getName(),
+        SUMMARY_JSON.getName()));
+
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
+    if (evaluation == null) {
+      return metadata;
+    }
+    metadata.setReportTime(evaluation.getTime());
+    metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
+    metadata.setStageId(evaluation.getStageTypeId());
+    metadata.setCommitHash(evaluation.getCommitHash());
+    metadata.setInitiator(evaluation.getInitiator());
+    metadata.setScanTriggerType(evaluation.getScanTriggerType().getDisplayName());
+    metadata.setReevaluation(evaluation.isReevaluation());
+    metadata.setForMonitoring(evaluation.isForMonitoring());
+    metadata.setBranchName(evaluation.getBranchName());
+
+    setContainerScannerMode(lifecycleReport.getEntry(SUMMARY_JSON.getName()), metadata);
+    return metadata;
   }
 
   public ReportMetadataDTO getReportMetadataNoAuth(
@@ -865,26 +764,12 @@ public class ReportService
     ReportMetadataDTO metadata = new ReportMetadataDTO();
     metadata.setApplication(application);
 
-    LifecycleReport applicationReport = getReport(application, scanId);
+    LifecycleReport applicationReport = getReportNoAuth(application, scanId);
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         DATA_JSON.getName(),
         TEMPLATE_PROPERTIES.getName(),
         SUMMARY_JSON.getName()));
     ContainerNode<?> data = JsonUtils.parse(entries.get(DATA_JSON.getName()).buf);
-    if (data.path("policyComponentCount").isMissingNode() && isHostedScan(scanId, application.getId())) {
-      try {
-        saveOverlayFiles(application.getId(), scanId);
-      }
-      catch (Exception e) {
-        log.warn("Recovery: failed to save overlay files for scanId={}: {}", scanId, e.getMessage());
-      }
-      applicationReport = getReport(application, scanId);
-      entries = applicationReport.getEntries(List.of(
-          DATA_JSON.getName(),
-          TEMPLATE_PROPERTIES.getName(),
-          SUMMARY_JSON.getName()));
-      data = JsonUtils.parse(entries.get(DATA_JSON.getName()).buf);
-    }
     boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
     if (expandedCoverage) {
       throw new BadRequestException(
@@ -1045,7 +930,7 @@ public class ReportService
       final String scanId)
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    final LifecycleReport applicationReport = getReport(application, scanId);
+    final LifecycleReport applicationReport = getReportNoAuth(application, scanId);
 
     try {
       final ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS.getName());
@@ -1783,15 +1668,13 @@ public class ReportService
         removedCount);
   }
 
-  private void sendCpeResultMetricsTelemetry(
-      final String applicationId,
-      final CpeResultsTelemetry cpeResultsTelemetry)
-  {
-    if (cpeMatchingConfigurationService.isCpeDataMatchingEnabled(applicationId) &&
+  private void sendCpeResultMetricsTelemetry(final Owner owner, final CpeResultsTelemetry cpeResultsTelemetry) {
+    if (cpeMatchingConfigurationService.isCpeDataMatchingEnabled(owner.getId()) &&
         cpeResultsTelemetry.getCpeMatchedComponentCount() > 0)
     {
       TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.CPE_RESULTS_METRICS);
-      telemetryData.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+      telemetryData.put("application_id", HdsClientAnalytics.obfuscate(owner.getId()));
+      telemetryData.put("owner_type", owner.getType().toString());
       telemetryData.put(CpeResultsTelemetry.ATTRIBUTE_NAME, cpeResultsTelemetry);
       telemetrySender.send(telemetryData);
     }

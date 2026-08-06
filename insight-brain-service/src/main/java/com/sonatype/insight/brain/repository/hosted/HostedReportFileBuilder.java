@@ -32,8 +32,9 @@ import static com.sonatype.insight.brain.report.LifecycleReport.ReportFile.*;
 
 /**
  * Builds report overlay files (policythreats.json, data.json, summary.json) for hosted
- * repository components from DB state. Used both by the queue consumer (eager generation)
- * and by reevaluateHostedComponent (post-evaluation refresh).
+ * repository components from DB state. Used by the queue consumer (eager generation)
+ * and by the Continuous Monitoring flow's post-evaluation refresh
+ * ({@link com.sonatype.insight.brain.report.ReportService#refreshHostedComponentAfterEvaluation}).
  */
 public class HostedReportFileBuilder
 {

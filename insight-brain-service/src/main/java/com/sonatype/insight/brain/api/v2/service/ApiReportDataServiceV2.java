@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -145,8 +146,8 @@ public class ApiReportDataServiceV2
       String scanId,
       boolean includeCustomSecurityVulnerabilityData) throws IOException
   {
-    return getDataNoAuth(applicationPublicId, scanId, false, isDependencyDataInRestApiSupported(),
-        includeCustomSecurityVulnerabilityData);
+    return getDataNoAuth(appDAO.getByPublicIdNotNull(applicationPublicId), scanId, false,
+        isDependencyDataInRestApiSupported(), includeCustomSecurityVulnerabilityData);
   }
 
   /**
@@ -158,7 +159,8 @@ public class ApiReportDataServiceV2
       String scanId,
       boolean includeViolationTimes) throws IOException
   {
-    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId, includeViolationTimes, null, null);
+    return getPolicyViolationsDataNoAuth(appDAO.getByPublicIdNotNull(applicationPublicId), scanId,
+        includeViolationTimes, null, null);
   }
 
   @Authorize(permission = Permission.READ)
@@ -169,19 +171,20 @@ public class ApiReportDataServiceV2
       Integer page,
       Integer pageSize) throws IOException
   {
-    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId, includeViolationTimes, page, pageSize);
+    return getPolicyViolationsDataNoAuth(appDAO.getByPublicIdNotNull(applicationPublicId), scanId,
+        includeViolationTimes, page, pageSize);
   }
 
   public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(
-      String applicationPublicId,
+      Owner owner,
       String scanId,
       boolean includeViolationTimes) throws IOException
   {
-    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId, includeViolationTimes, null, null);
+    return getPolicyViolationsDataNoAuth(owner, scanId, includeViolationTimes, null, null);
   }
 
   public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(
-      String applicationPublicId,
+      Owner owner,
       String scanId,
       boolean includeViolationTimes,
       Integer page,
@@ -197,8 +200,7 @@ public class ApiReportDataServiceV2
       throw new BadRequestException("'pageSize' must be greater than 0.");
     }
 
-    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    LifecycleReport applicationReport = reportService.getReport(app.getId(), scanId);
+    LifecycleReport applicationReport = reportService.getReport(owner, scanId);
 
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         BOM_JSON.getName(),
@@ -215,16 +217,18 @@ public class ApiReportDataServiceV2
 
     PolicyThreats policyThreats = JsonUtils.parse(policyThreatsEntry.buf, PolicyThreats.class);
     if (policyThreats.version < 4) {
-      log.warn("Policy violation data is incomplete for application id {} and report id {}.", app.getId(), scanId);
+      log.warn("Policy violation data is incomplete for owner id {} and report id {}.", owner.getId(), scanId);
     }
 
     ApiReportPolicyDataDTOV2 data = new ApiReportPolicyDataDTOV2();
 
-    ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(applicationPublicId, scanId);
+    ReportMetadataDTO metadata = reportService.getReportMetadataNoAuth(owner, scanId);
     data.reportTime = metadata.getReportTime();
     data.reportTitle = metadata.getReportTitle();
     data.commitHash = metadata.getCommitHash();
-    data.application = getApplicationMetadata(metadata.getApplication());
+    if (metadata.getApplication() != null) {
+      data.application = getApplicationMetadata(metadata.getApplication());
+    }
     data.initiator = metadata.getInitiator();
     data.counts = getReportCounts(countsEntry.buf);
 
@@ -258,18 +262,16 @@ public class ApiReportDataServiceV2
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       final String scanId) throws IOException
   {
-    return new ApiDependencyTreeResponseDTO(getDependencyTreeNoAuth(applicationPublicId, scanId));
+    return new ApiDependencyTreeResponseDTO(
+        getDependencyTreeNoAuth(appDAO.getByPublicIdNotNull(applicationPublicId), scanId));
   }
 
   public ApiDependencyTreeNodeDTO getDependencyTreeNoAuth(
-      String applicationPublicId,
+      Owner owner,
       String scanId) throws IOException
   {
     ApiDependencyTreeNodeDTO dependencyTree = new ApiDependencyTreeNodeDTO();
-    Application application = appDAO.getByPublicIdNotNull(applicationPublicId);
-    String appId = application.getId();
-
-    LifecycleReport applicationReport = reportService.getReport(appId, scanId);
+    LifecycleReport applicationReport = reportService.getReport(owner, scanId);
     ReportEntry dependenciesEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
     if (dependenciesEntry != null) {
       JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
@@ -464,15 +466,15 @@ public class ApiReportDataServiceV2
     return dto;
   }
 
-  public ApiReportRawDataDTOV2 getDataNoAuth(String applicationPublicId, String scanId) throws IOException {
-    return getDataNoAuth(applicationPublicId, scanId, false);
+  public ApiReportRawDataDTOV2 getDataNoAuth(Owner owner, String scanId) throws IOException {
+    return getDataNoAuth(owner, scanId, false);
   }
 
   public ApiReportRawDataDTOV2 getDataNoAuthWithDependencyData(
-      final String applicationPublicId,
+      final Owner owner,
       final String scanId) throws IOException
   {
-    return getDataNoAuth(applicationPublicId, scanId, false, true, false);
+    return getDataNoAuth(owner, scanId, false, true, false);
   }
 
   /**
@@ -540,32 +542,31 @@ public class ApiReportDataServiceV2
   }
 
   public ApiReportRawDataDTOV2 getDataNoAuth(
-      final String applicationPublicId,
+      final Owner owner,
       final String scanId,
       final boolean useLicensesJsonOverriddenLicenses) throws IOException
   {
     final boolean doAddDependencyData = isDependencyDataInRestApiSupported();
-    return getDataNoAuth(applicationPublicId, scanId, useLicensesJsonOverriddenLicenses, doAddDependencyData, false);
+    return getDataNoAuth(owner, scanId, useLicensesJsonOverriddenLicenses, doAddDependencyData, false);
   }
 
   public ApiReportRawDataDTOV2 getDataNoAuth(
-      final String applicationPublicId,
+      final Owner owner,
       final String scanId,
       final boolean useLicensesJsonOverriddenLicenses,
       final boolean doAddDependencyData) throws IOException
   {
-    return getDataNoAuth(applicationPublicId, scanId, useLicensesJsonOverriddenLicenses, doAddDependencyData, false);
+    return getDataNoAuth(owner, scanId, useLicensesJsonOverriddenLicenses, doAddDependencyData, false);
   }
 
   public ApiReportRawDataDTOV2 getDataNoAuth(
-      final String applicationPublicId,
+      final Owner owner,
       final String scanId,
       final boolean useLicensesJsonOverriddenLicenses,
       final boolean doAddDependencyData,
       final boolean includeCustomSecurityVulnerabilityData) throws IOException
   {
-    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    LifecycleReport applicationReport = reportService.getReport(app.getId(), scanId);
+    LifecycleReport applicationReport = reportService.getReport(owner, scanId);
 
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         BOM_JSON.getName(),
@@ -586,7 +587,7 @@ public class ApiReportDataServiceV2
     }
 
     List<Component> components =
-        componentLoaderFactory.createComponentLoader(app)
+        componentLoaderFactory.createComponentLoader(owner)
             .getAll(licenseEntry.buf, useLicensesJsonOverriddenLicenses,
                 securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
 

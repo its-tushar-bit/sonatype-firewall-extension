@@ -1378,7 +1378,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(lastRawReportForApplication).isPresent()
         .get()
         .usingRecursiveComparison()
-        .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation3.getScanId()));
+        .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app, policyEvaluation3.getScanId()));
   }
 
   @Test
@@ -1407,7 +1407,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(lastRawReportForApplication).isPresent()
         .get()
         .usingRecursiveComparison()
-        .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation1.getScanId()));
+        .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app, policyEvaluation1.getScanId()));
 
     lastRawReportForApplication =
         apiLicenseLegalService.getLastRawApplicationReportByStageId(app.getPublicId(), ReleaseStageType.ID);
@@ -1415,7 +1415,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(lastRawReportForApplication).isPresent()
         .get()
         .usingRecursiveComparison()
-        .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation3.getScanId()));
+        .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app, policyEvaluation3.getScanId()));
   }
 
   @Test
@@ -1451,7 +1451,7 @@ public class ApiLicenseLegalServiceTest
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation);
     ApiReportRawDataDTOV2 rawReport =
-        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
+        apiReportDataServiceV2.getDataNoAuth(app, policyEvaluation.getScanId());
     apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null,
         false);
@@ -1464,7 +1464,7 @@ public class ApiLicenseLegalServiceTest
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation);
     ApiReportRawDataDTOV2 rawReport =
-        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
+        apiReportDataServiceV2.getDataNoAuth(app, policyEvaluation.getScanId());
     apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS,
         BuildStageType.ID, true);
@@ -1480,7 +1480,7 @@ public class ApiLicenseLegalServiceTest
     mockReport(policyEvaluation1);
     mockReport(policyEvaluation2);
     ApiReportRawDataDTOV2 rawReport =
-        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation2.getScanId());
+        apiReportDataServiceV2.getDataNoAuth(app, policyEvaluation2.getScanId());
     apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS,
         ReleaseStageType.ID, false);
@@ -3109,7 +3109,7 @@ public class ApiLicenseLegalServiceTest
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
     mockReport(policyEvaluation);
     ApiReportRawDataDTOV2 rawReport =
-        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
+        apiReportDataServiceV2.getDataNoAuth(app, policyEvaluation.getScanId());
     apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null,
         false);

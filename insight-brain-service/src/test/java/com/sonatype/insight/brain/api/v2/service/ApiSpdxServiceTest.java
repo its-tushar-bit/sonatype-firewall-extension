@@ -26,6 +26,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -771,5 +773,19 @@ public class ApiSpdxServiceTest
     {
       return (SpdxDocument) multiFormatStore.deSerialize(in, true);
     }
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetByScanId_Hrc_NotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    service.getByScanId(hrc, "no-such-scan", "json", false, "2.3");
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetLatestForStage_Hrc_NotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    service.getLatestForStage(hrc, BuildStageType.ID, "json", false, "2.3");
   }
 }

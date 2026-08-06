@@ -120,23 +120,29 @@ public class ScanUploader
     log.debug("Successfully uploaded scan id {} for stageType {}", receipt.getScanId(), stageTypeId);
     AuditData.get().setScanId(receipt.getScanId());
 
-    // TODO(CLM-42796): Application-only for now — HRC has no publicId and
-    // UserInterfaceLinksHelper has no HRC URL builder yet. Extend to report-bearing
-    // owners (HRC) once HRC report routes + link builders exist. Do NOT make this
-    // unconditional: report-less repository/enforcement uploads must still skip.
-    if (owner.getType() == OwnerType.APPLICATION) {
-      augmentScanReceipt(owner.getPublicId(), receipt, stageTypeId, thirdPartyScanContext);
+    if (owner.getType() == OwnerType.APPLICATION || owner.getType() == OwnerType.HOSTED_REPOSITORY_COMPONENT) {
+      augmentScanReceipt(owner, receipt, stageTypeId, thirdPartyScanContext);
     }
     return receipt;
   }
 
   void augmentScanReceipt(
-      String applicationPublicId,
+      Owner owner,
       ScanReceipt receipt,
       String stageTypeId,
       ThirdPartyScanContext thirdPartyScanContext)
   {
     // HDS knows nothing about where CLM Server stores reports, add this info to the receipt.
+    String scanId = receipt.getScanId();
+    if (owner.getType() == OwnerType.HOSTED_REPOSITORY_COMPONENT) {
+      receipt.setReportUrl(UserInterfaceLinksHelper.getHostedRepositoryComponentReportUrl(owner.getId(), scanId));
+      receipt.setPdfUrl(UserInterfaceLinksHelper.getHostedRepositoryComponentPdfUrl(owner.getId(), scanId));
+      receipt.setDataUrl(ApiReportDataResourceV2.getHostedRepositoryComponentDataUrl(owner.getId(), scanId));
+      receipt.setReportTimeoutInSeconds(configuration.getReportTimeoutInSeconds());
+      return;
+    }
+
+    String applicationPublicId = owner.getPublicId();
     if (StageTypes.COMPLIANCE.getId().equals(stageTypeId) && thirdPartyScanContext != null
         && thirdPartyScanContext.getApplicationVersion() != null)
     {
@@ -144,15 +150,14 @@ public class ScanUploader
     }
     else {
       String reportUrl = StageTypes.PROXY.getId().equals(stageTypeId)
-          ? UserInterfaceLinksHelper.getFirewallContainerImageEvaluationReportUrl(
-              applicationPublicId, receipt.getScanId())
-          : UserInterfaceLinksHelper.getReportUrl(applicationPublicId, receipt.getScanId());
+          ? UserInterfaceLinksHelper.getFirewallContainerImageEvaluationReportUrl(applicationPublicId, scanId)
+          : UserInterfaceLinksHelper.getReportUrl(applicationPublicId, scanId);
       receipt.setReportUrl(reportUrl);
-      receipt.setPdfUrl(UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, receipt.getScanId()));
-      receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
-      receipt.setPrioritiesUrl(UserInterfaceLinksHelper.getPrioritiesUrl(applicationPublicId, receipt.getScanId()));
+      receipt.setPdfUrl(UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, scanId));
+      receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, scanId));
+      receipt.setPrioritiesUrl(UserInterfaceLinksHelper.getPrioritiesUrl(applicationPublicId, scanId));
       receipt.setIntegrationsPrioritiesUrl(
-          UserInterfaceLinksHelper.getIntegrationsPrioritiesUrl(applicationPublicId, receipt.getScanId()));
+          UserInterfaceLinksHelper.getIntegrationsPrioritiesUrl(applicationPublicId, scanId));
       receipt.setReportTimeoutInSeconds(configuration.getReportTimeoutInSeconds());
     }
   }

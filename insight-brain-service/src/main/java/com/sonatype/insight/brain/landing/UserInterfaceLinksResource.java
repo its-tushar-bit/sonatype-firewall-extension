@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
+import com.sonatype.insight.brain.report.HostedRepositoryComponentReportResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -40,6 +41,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -314,6 +316,75 @@ public class UserInterfaceLinksResource
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.PRINT_PATH);
     return redirect(uriBuilder, applicationPublicId, scanId);
+  }
+
+  // ---- HRC ui/links handlers ----
+  //
+  // The HRC-side backend PDF handler is live, but the frontend Lifecycle Report UI states
+  // (hostedRepositoryComponentReport/*) haven't landed yet. Redirecting the HTML-shaped
+  // handlers to a non-existent frontend fragment would leave callers on a broken SPA state,
+  // so those return HTTP 404 until the frontend states ship. The PDF redirect is live
+  // because its target REST endpoint exists.
+
+  @GET
+  @Path(HRC_LATEST_REPORT_PATH)
+  public Response linkToHostedRepositoryComponentLatestReport(
+      @PathParam("hrcId") String hrcId,
+      @PathParam("stageId") String stageId)
+  {
+    // hrcId is the HRC's owner UUID; policy_evaluation is owner-scoped so the lookup works
+    // directly without resolving the HRC row itself. The 404 here fails fast before we would
+    // otherwise return a NOT_FOUND for a non-existent scan.
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndStageId(hrcId, stageId);
+    if (evaluation == null) {
+      throw new NotFoundException("The hosted-repository-component " + hrcId + " has no report at stage " + stageId);
+    }
+    return linkToHostedRepositoryComponentReport(hrcId, evaluation.getScanId());
+  }
+
+  @GET
+  @Path(HRC_REPORT_PATH)
+  public Response linkToHostedRepositoryComponentReport(
+      @PathParam("hrcId") String hrcId,
+      @PathParam("scanId") String scanId)
+  {
+    throw new WebApplicationException(
+        "Hosted-repository-component report UI is not yet available; frontend states ship separately.",
+        Response.Status.NOT_FOUND);
+  }
+
+  @GET
+  @Path(HRC_EMBEDDABLE_REPORT_PATH)
+  public Response linkToHostedRepositoryComponentEmbeddableReport(
+      @PathParam("hrcId") String hrcId,
+      @PathParam("scanId") String scanId)
+  {
+    throw new WebApplicationException(
+        "Hosted-repository-component embeddable report UI is not yet available; frontend states ship separately.",
+        Response.Status.NOT_FOUND);
+  }
+
+  @GET
+  @Path(HRC_PDF_PATH)
+  public Response linkToHostedRepositoryComponentPdf(
+      @PathParam("hrcId") String hrcId,
+      @PathParam("scanId") String scanId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(HostedRepositoryComponentReportResource.RESOURCE_PATH)
+        .path(HostedRepositoryComponentReportResource.PRINT_PATH);
+    return redirect(uriBuilder, hrcId, scanId);
+  }
+
+  @GET
+  @Path(HRC_PRIORITIES_PATH)
+  public Response linkToHostedRepositoryComponentPrioritiesReport(
+      @PathParam("hrcId") String hrcId,
+      @PathParam("scanId") String scanId)
+  {
+    throw new WebApplicationException(
+        "Hosted-repository-component priorities UI is not yet available; frontend states ship separately.",
+        Response.Status.NOT_FOUND);
   }
 
   @GET

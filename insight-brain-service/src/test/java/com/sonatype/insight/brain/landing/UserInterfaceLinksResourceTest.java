@@ -480,6 +480,43 @@ public class UserInterfaceLinksResourceTest
     assertRedirect(response, "assets/index.html#/firewall/repository/repo%20id/result");
   }
 
+  // The HTML-shaped HRC handlers intentionally 404 until the frontend Lifecycle Report SPA states land.
+
+  @Test
+  public void testLinkToHostedRepositoryComponentPdf_redirectsToHrcRestEndpoint() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.HRC_PDF_PATH, "hrc-id", "scan-id");
+    assertRedirect(response, "rest/report/hostedRepositoryComponent/hrc-id/scan-id/printReport");
+  }
+
+  @Test
+  public void testLinkToHostedRepositoryComponentLatestReport_noScan_returns404() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.HRC_LATEST_REPORT_PATH, "hrc-no-scan", "build");
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testLinkToHostedRepositoryComponentReport_returns404UntilFrontendStatesLand() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.HRC_REPORT_PATH, "hrc-id", "scan-id");
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testLinkToHostedRepositoryComponentEmbeddableReport_returns404UntilFrontendStatesLand() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.HRC_EMBEDDABLE_REPORT_PATH, "hrc-id", "scan-id");
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testLinkToHostedRepositoryComponentPrioritiesReport_returns404UntilFrontendStatesLand() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.HRC_PRIORITIES_PATH, "hrc-id", "scan-id");
+    assertResponseStatus(404, response);
+  }
+
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
       final Map<ByteArrayDataSource, Integer> responses) throws MessagingException, IOException
   {

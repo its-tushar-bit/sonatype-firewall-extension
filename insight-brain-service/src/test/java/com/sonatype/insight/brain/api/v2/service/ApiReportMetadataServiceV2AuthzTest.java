@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -23,7 +24,7 @@ public class ApiReportMetadataServiceV2AuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void getMetadata_Anon() throws Exception {
     // Expect: getMetadata to throw UnauthenticatedException when not logged in
-    metadataService.getMetadata(app.getPublicId(), "irrelevant-scan-id");
+    metadataService.getMetadata(app, "irrelevant-scan-id");
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -32,7 +33,7 @@ public class ApiReportMetadataServiceV2AuthzTest
     login();
 
     // Expect: getMetadata to throw UnauthorizedException
-    metadataService.getMetadata(app.getPublicId(), "irrelevant-scan-id");
+    metadataService.getMetadata(app, "irrelevant-scan-id");
   }
 
   @Test(expected = RuntimeException.class)
@@ -44,7 +45,7 @@ public class ApiReportMetadataServiceV2AuthzTest
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test-scan");
 
     // Expect: getMetadata to throw RuntimeException (scan not found - proves authz passed)
-    metadataService.getMetadata(app.getPublicId(), "non-existent-scan");
+    metadataService.getMetadata(app, "non-existent-scan");
   }
 
   @Test
@@ -57,6 +58,30 @@ public class ApiReportMetadataServiceV2AuthzTest
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
 
     // Expect: getMetadata returns successfully (no exception)
-    metadataService.getMetadata(app.getPublicId(), scanId);
+    metadataService.getMetadata(app, scanId);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void getMetadata_Hrc_Anon() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    metadataService.getMetadata(hrc, "irrelevant-scan-id");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void getMetadata_Hrc_Unauthorized() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    metadataService.getMetadata(hrc, "irrelevant-scan-id");
+  }
+
+  @Test
+  public void getMetadata_Hrc_AuthorizedScanExists() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    grantReadPermission(hrc.getId());
+
+    String scanId = "hrc-authorized-scan";
+    tempEntity.newPolicyEvaluation(hrc.getId(), BuildStageType.ID, scanId);
+
+    metadataService.getMetadata(hrc, scanId);
   }
 }

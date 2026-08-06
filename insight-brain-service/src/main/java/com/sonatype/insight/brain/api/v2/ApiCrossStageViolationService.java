@@ -280,6 +280,7 @@ public class ApiCrossStageViolationService
     dto.applicationPublicId = app.getPublicId();
     dto.applicationName = app.getName();
     dto.organizationName = org.getName();
+    dto.hrcId = null;
     dto.threatLevel = firstViolation.getThreatLevel();
     dto.policyId = firstViolation.getPolicyId();
     dto.policyName = firstViolation.getPolicyName();
@@ -341,12 +342,7 @@ public class ApiCrossStageViolationService
   {
     Repository repository = repositoryDAO.getById(violation.getRepositoryId());
     String repoPublicId = repository != null ? repository.getPublicId() : null;
-    // For archive-of-archives fan-out (CLM-40943) the evaluator persists inner-jar violations
-    // against synthetic inner pathnames like `outer.zip!/inner.jar`, but only ONE synthetic
-    // application is created — for the OUTER pathname. Resolve inner-pathname violations to
-    // the outer's synthetic app by stripping the "!/..." suffix before generating the
-    // publicId; outer-pathname violations and pre-fan-out single-component scans go through
-    // unchanged because they don't contain "!/" .
+    // Inner-archive violations resolve to the outer pathname's synthetic app (single "!/"-stripped publicId).
     String resolvedPathname = stripInnerArchiveSuffix(violation.getPathname());
     String appPublicId = ApplicationForHostedRepositoryComponentService
         .generatePublicId(repoPublicId, resolvedPathname);

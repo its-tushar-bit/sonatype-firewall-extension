@@ -17,9 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.sonatype.clm.dto.model.ci.config.ApiReportMetadataDto;
 import com.sonatype.clm.dto.model.ci.config.ApiReportMetadataResponseDto;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.Authorize;
@@ -31,40 +30,31 @@ public class ApiReportMetadataServiceV2
 {
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ApplicationDAO applicationDAO;
-
   @Inject
-  public ApiReportMetadataServiceV2(
-      PolicyEvaluationDAO policyEvaluationDAO,
-      ApplicationDAO applicationDAO)
-  {
+  public ApiReportMetadataServiceV2(PolicyEvaluationDAO policyEvaluationDAO) {
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.applicationDAO = applicationDAO;
   }
 
   @Authorize(permission = Permission.READ)
   public ApiReportMetadataResponseDto getMetadata(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      @AuthzContext(AuthzContext.Key.OWNER) Owner owner,
       String scanId)
   {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
-    PolicyEvaluation evaluation = policyEvaluationDAO.getByScanIdAndApplicationId(scanId, application.getId());
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByOwnerIdAndScanId(owner.getId(), scanId);
     if (evaluation == null) {
       throw new NotFoundException("Policy evaluation not found for scan: " + scanId);
     }
-
-    return buildResponse(evaluation, application);
+    return buildResponse(evaluation, owner);
   }
 
-  private ApiReportMetadataResponseDto buildResponse(PolicyEvaluation evaluation, Application application) {
+  private ApiReportMetadataResponseDto buildResponse(PolicyEvaluation evaluation, Owner owner) {
     ApiReportMetadataResponseDto response = new ApiReportMetadataResponseDto();
 
     // Build data object
     ApiReportMetadataDto data = new ApiReportMetadataDto();
     data.setScanId(evaluation.getScanId());
     data.setApplicationId(evaluation.getOwnerId());
-    data.setApplicationPublicId(application.getPublicId());
+    data.setApplicationPublicId(owner.getPublicId());
     data.setStage(evaluation.getStageTypeId());
     data.setScanDate(evaluation.getTime());
     data.setCommitHash(evaluation.getCommitHash());

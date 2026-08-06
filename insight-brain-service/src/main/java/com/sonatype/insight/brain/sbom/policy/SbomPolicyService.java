@@ -10,6 +10,7 @@ import java.util.List;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -43,15 +44,19 @@ public class SbomPolicyService
 
   private final ReportService reportService;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
   public SbomPolicyService(
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final ReportService reportService)
+      final ReportService reportService,
+      final ApplicationDAO applicationDAO)
   {
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.reportService = reportService;
+    this.applicationDAO = applicationDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -59,7 +64,7 @@ public class SbomPolicyService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion) throws IOException
   {
-    ReportEntry policyThreatsReportEntry = getPolicyViolationsReportEntry(applicationId, sbomVersion);
+    ReportEntry policyThreatsReportEntry = getPolicyViolationsReportEntryNoAuthz(applicationId, sbomVersion);
     return policyThreatsReportEntry != null ? JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class) : null;
   }
 
@@ -68,8 +73,18 @@ public class SbomPolicyService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion)
   {
+    return getPolicyViolationsReportEntryNoAuthz(applicationId, sbomVersion);
+  }
+
+  /**
+   * Shared implementation used by the public {@code getPolicyViolations*} entry points.
+   * Unannotated so the compile-time authz aspect fires only on the outer public call — avoids
+   * double-firing when one public overload would otherwise delegate to another.
+   */
+  private ReportEntry getPolicyViolationsReportEntryNoAuthz(String applicationId, String sbomVersion) {
     String scanId = getScanIdForPolicyViolation(applicationId, sbomVersion);
-    return reportService.processBrowseReport(applicationId, scanId, POLICY_THREATS.getName());
+    return reportService.processBrowseReport(applicationDAO.getByIdNotNull(applicationId), scanId,
+        POLICY_THREATS.getName());
   }
 
   @Authorize(permission = Permission.READ)
@@ -88,7 +103,7 @@ public class SbomPolicyService
 
     ReportEntry policyViolationsReportEntry = policyThreatsReportEntry != null
         ? policyThreatsReportEntry
-        : getPolicyViolationsReportEntry(applicationId, sbomVersion);
+        : getPolicyViolationsReportEntryNoAuthz(applicationId, sbomVersion);
 
     if (policyViolationsReportEntry == null) {
       return null;
@@ -123,7 +138,8 @@ public class SbomPolicyService
       ReportEntry bomReportEntry) throws IOException
   {
     if (bomReportEntry == null) {
-      bomReportEntry = reportService.processBrowseReport(applicationId, scanId, BOM_JSON.getName());
+      bomReportEntry = reportService.processBrowseReport(applicationDAO.getByIdNotNull(applicationId), scanId,
+          BOM_JSON.getName());
     }
     if (bomReportEntry == null) {
       return null;

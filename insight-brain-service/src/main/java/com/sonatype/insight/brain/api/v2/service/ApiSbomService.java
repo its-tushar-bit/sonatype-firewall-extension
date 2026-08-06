@@ -455,8 +455,9 @@ public class ApiSbomService
     ReportEntry bomReportEntry;
     if (thirdPartyScan != null) {
       String scanId = thirdPartyScan.getScanId();
-      policyThreatsReportEntry = reportService.processBrowseReport(applicationId, scanId, POLICY_THREATS.getName());
-      bomReportEntry = reportService.processBrowseReport(applicationId, scanId, BOM_JSON.getName());
+      Application app = applicationDAO.getByIdNotNull(applicationId);
+      policyThreatsReportEntry = reportService.processBrowseReport(app, scanId, POLICY_THREATS.getName());
+      bomReportEntry = reportService.processBrowseReport(app, scanId, BOM_JSON.getName());
     }
     else {
       policyThreatsReportEntry = null;

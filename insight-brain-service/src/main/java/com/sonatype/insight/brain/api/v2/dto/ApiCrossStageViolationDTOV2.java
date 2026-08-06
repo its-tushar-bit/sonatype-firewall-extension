@@ -19,11 +19,16 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class ApiCrossStageViolationDTOV2
     extends ApiPolicyViolationDTOV2
 {
+  @JsonInclude(Include.NON_NULL)
   public String applicationPublicId;
 
+  @JsonInclude(Include.NON_NULL)
   public String applicationName;
 
   public String organizationName;
+
+  @JsonInclude(Include.NON_NULL)
+  public String hrcId;
 
   public String hash;
 

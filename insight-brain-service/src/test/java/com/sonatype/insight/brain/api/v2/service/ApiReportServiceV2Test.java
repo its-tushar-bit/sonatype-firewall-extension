@@ -143,7 +143,7 @@ public class ApiReportServiceV2Test
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD), ScanTriggerType.REPOSITORY_MANAGER);
 
     // When fetching all reports for application
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(app, null, null);
 
     // Verify 3 reports with correct results are retrieved
     assertThat(reports.applicationId).isEqualTo(app.getId());
@@ -188,13 +188,13 @@ public class ApiReportServiceV2Test
     evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), "release", null);
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(app, "release", null);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(1);
     assertThat(reports.reports.get(0).stage).isEqualTo("release");
 
-    reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), "build", null);
+    reports = apiReportServiceV2.getReportHistoryForOwner(app, "build", null);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(2);
@@ -223,7 +223,7 @@ public class ApiReportServiceV2Test
     evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), "source", null);
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(app, "source", null);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).isEmpty();
@@ -250,7 +250,7 @@ public class ApiReportServiceV2Test
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
     evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, 2);
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(app, null, 2);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(2);
@@ -279,7 +279,7 @@ public class ApiReportServiceV2Test
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
     evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), "build", 1);
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(app, "build", 1);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(1);
@@ -293,7 +293,7 @@ public class ApiReportServiceV2Test
     grantReadPermission(app.getId());
     grantEvaluateApplicationPermission(app.getId());
 
-    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId(), "no-such-stage", null))
+    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForOwner(app, "no-such-stage", null))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("Invalid stage: no-such-stage.");
   }
@@ -304,7 +304,7 @@ public class ApiReportServiceV2Test
     grantReadPermission(app.getId());
     grantEvaluateApplicationPermission(app.getId());
 
-    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, 0))
+    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForOwner(app, null, 0))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("Limit must be positive integer.");
   }
@@ -347,7 +347,7 @@ public class ApiReportServiceV2Test
     legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(app, null, null);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(2);
@@ -362,7 +362,7 @@ public class ApiReportServiceV2Test
     grantReadPermission(application.getId());
 
     // When fetching all reports for application
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(application.getId(), null, null);
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForOwner(application, null, null);
 
     // Verify no reports are retrieved
     assertThat(reports.applicationId).isEqualTo(application.getId());
@@ -389,7 +389,7 @@ public class ApiReportServiceV2Test
 
     // executing when the reports were deleted
     ApiReportHistoryDTO apiReportHistoryDTO =
-        apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
+        apiReportServiceV2.getReportHistoryForOwner(app, null, null);
 
     // no exceptions were thrown
     assertThat(apiReportHistoryDTO).isNotNull();

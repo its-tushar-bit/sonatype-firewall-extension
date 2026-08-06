@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiBulkComponentRemedia
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -106,6 +107,8 @@ public class ApiComponentRemediationService
 
   private final ApplicationDAO applicationDAO;
 
+  private final OwnerDAO ownerDAO;
+
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   private final IdUtils idUtils;
@@ -119,6 +122,7 @@ public class ApiComponentRemediationService
       HdsClient hdsClient,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
       ApplicationDAO applicationDAO,
+      OwnerDAO ownerDAO,
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       IdUtils idUtils,
       ApiReportDataServiceV2 apiReportDataServiceV2)
@@ -129,6 +133,7 @@ public class ApiComponentRemediationService
     this.hdsClient = hdsClient;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.applicationDAO = applicationDAO;
+    this.ownerDAO = ownerDAO;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.idUtils = idUtils;
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
@@ -306,6 +311,27 @@ public class ApiComponentRemediationService
       throw new BadRequestException("Invalid stage ID: " + stageId + ".");
     }
     return stageId;
+  }
+
+  /**
+   * ownerId-only entry for callers that have already checked authorization; resolves the
+   * {@link OwnerType} via {@link OwnerDAO}. Returns null for an unknown ownerId.
+   */
+  public ApiComponentRemediationDTO getSuggestedRemediationForComponentNoAuthz(
+      ApiComponentDTOV2 componentDTO,
+      final String ownerId,
+      String stageId,
+      final String identificationSource,
+      final String scanId,
+      final Boolean includeParentRemediation,
+      final boolean stableVersionsOnly)
+  {
+    Owner owner = ownerDAO.getById(ownerId);
+    if (owner == null) {
+      return null;
+    }
+    return getSuggestedRemediationForComponentNoAuthz(componentDTO, owner.getType(), ownerId, stageId,
+        identificationSource, scanId, includeParentRemediation, stableVersionsOnly);
   }
 
   /**
@@ -496,8 +522,7 @@ public class ApiComponentRemediationService
 
       Application application = applicationDAO.getByIdNotNull(ownerId);
       try {
-        ApiDependencyTreeNodeDTO dependencyTree =
-            apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
+        ApiDependencyTreeNodeDTO dependencyTree = apiReportDataServiceV2.getDependencyTreeNoAuth(application, scanId);
         Set<ApiDependencyTreeNodeDTO> directParents =
             apiDependencyTreeSearcher.findAllDirectParents(dependencyTree, componentDTO.componentIdentifier);
         if (!directParents.isEmpty()) {

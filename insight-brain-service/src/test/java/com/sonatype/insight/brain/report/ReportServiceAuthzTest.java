@@ -11,6 +11,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.inject.Inject;
@@ -43,19 +44,19 @@ public class ReportServiceAuthzTest
         reportDataStore.getLifecycleReport(argThat(arg -> arg != null && arg.getId().equals(app.getId())),
             eq(scanId))).thenReturn(mock(LifecycleReport.class));
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), scanId))
+        .isThrownBy(() -> reportService.getReportMetadata(app, scanId))
         .withMessage("Could not find a report with ID 12345678");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetReportMetadata_Unauthenticated() throws Exception {
-    reportService.getReportMetadata(app.getPublicId(), "12345678");
+    reportService.getReportMetadata(app, "12345678");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetReportMetadata_Unauthorized() throws Exception {
     login();
-    reportService.getReportMetadata(app.getPublicId(), "12345678");
+    reportService.getReportMetadata(app, "12345678");
   }
 
   @Test
@@ -67,18 +68,71 @@ public class ReportServiceAuthzTest
             eq(scanId))).thenReturn(mock(LifecycleReport.class));
 
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> reportService.processBrowseReport(app.getId(), scanId, "path"))
+        .isThrownBy(() -> reportService.processBrowseReport(app, scanId, "path"))
         .withMessage("Could not find a report with ID 12345678");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testProcessBrowseReport_Unauthenticated() {
-    reportService.processBrowseReport(app.getId(), "unrealId", "path");
+    reportService.processBrowseReport(app, "unrealId", "path");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testProcessBrowseReport_Unauthorized() {
     login();
-    reportService.processBrowseReport(app.getId(), "unrealId", "path");
+    reportService.processBrowseReport(app, "unrealId", "path");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetReportMetadata_Hrc_Unauthenticated() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    reportService.getReportMetadata(hrc, "12345678");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetReportMetadata_Hrc_Unauthorized() throws Exception {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    reportService.getReportMetadata(hrc, "12345678");
+  }
+
+  @Test
+  public void testGetReportMetadata_Hrc_Authorized() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    grantReadPermission(hrc.getId());
+    String scanId = "12345678";
+    when(
+        reportDataStore.getLifecycleReport(argThat(arg -> arg != null && arg.getId().equals(hrc.getId())),
+            eq(scanId))).thenReturn(mock(LifecycleReport.class));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.getReportMetadata(hrc, scanId))
+        .withMessage("Could not find a report with ID 12345678");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testProcessBrowseReport_Hrc_Unauthenticated() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    reportService.processBrowseReport(hrc, "unrealId", "path");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testProcessBrowseReport_Hrc_Unauthorized() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    login();
+    reportService.processBrowseReport(hrc, "unrealId", "path");
+  }
+
+  @Test
+  public void testProcessBrowseReport_Hrc_Authorized() {
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    grantReadPermission(hrc.getId());
+    String scanId = "12345678";
+    when(
+        reportDataStore.getLifecycleReport(argThat(arg -> arg != null && arg.getId().equals(hrc.getId())),
+            eq(scanId))).thenReturn(mock(LifecycleReport.class));
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.processBrowseReport(hrc, scanId, "path"))
+        .withMessage("Could not find a report with ID 12345678");
   }
 }

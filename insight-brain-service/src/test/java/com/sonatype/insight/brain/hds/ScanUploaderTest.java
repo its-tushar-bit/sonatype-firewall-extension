@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,6 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -82,12 +85,42 @@ public class ScanUploaderTest
     lenient().when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(null);
   }
 
+  private static Owner applicationOwner(String publicId) {
+    Owner owner = mock(Owner.class);
+    lenient().when(owner.getType()).thenReturn(OwnerType.APPLICATION);
+    lenient().when(owner.getPublicId()).thenReturn(publicId);
+    return owner;
+  }
+
+  private static Owner hostedRepositoryComponentOwner(String id) {
+    Owner owner = mock(Owner.class);
+    when(owner.getType()).thenReturn(OwnerType.HOSTED_REPOSITORY_COMPONENT);
+    when(owner.getId()).thenReturn(id);
+    return owner;
+  }
+
+  @Test
+  public void testAugmentScanReceipt_hostedRepositoryComponent() {
+    when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(2100);
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan id");
+    scanUploader.augmentScanReceipt(hostedRepositoryComponentOwner("hrc id"), receipt, StageTypes.RELEASE.getId(),
+        thirdPartyScanContext);
+    assertThat(receipt.getReportUrl()).isEqualTo("ui/links/hostedRepositoryComponent/hrc%20id/report/scan%20id");
+    assertThat(receipt.getPdfUrl()).isEqualTo("ui/links/hostedRepositoryComponent/hrc%20id/report/scan%20id/pdf");
+    assertThat(receipt.getDataUrl()).isEqualTo("/api/v2/hostedRepositoryComponent/hrc%20id/reports/scan%20id/raw");
+    assertThat(receipt.getPrioritiesUrl()).isNull();
+    assertThat(receipt.getIntegrationsPrioritiesUrl()).isNull();
+    assertThat(receipt.getReportTimeoutInSeconds()).isEqualTo(2100);
+  }
+
   @Test
   public void testAugmentScanReceipt() {
     when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(2100);
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
-    scanUploader.augmentScanReceipt("app id", receipt, StageTypes.RELEASE.getId(), thirdPartyScanContext);
+    scanUploader.augmentScanReceipt(applicationOwner("app id"), receipt, StageTypes.RELEASE.getId(),
+        thirdPartyScanContext);
     assertThat(receipt.getReportUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id");
     assertThat(receipt.getPdfUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id/pdf");
     assertThat(receipt.getDataUrl()).isEqualTo("api/v2/applications/app%20id/reports/scan%20id/raw");
@@ -101,7 +134,8 @@ public class ScanUploaderTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
     when(thirdPartyScanContext.getApplicationVersion()).thenReturn("version");
-    scanUploader.augmentScanReceipt("app id", receipt, StageTypes.COMPLIANCE.getId(), thirdPartyScanContext);
+    scanUploader.augmentScanReceipt(applicationOwner("app id"), receipt, StageTypes.COMPLIANCE.getId(),
+        thirdPartyScanContext);
     assertThat(receipt.getReportUrl()).isEqualTo(
         "ui/links/sbomManager/management/view/application/app%20id/bom/version");
     assertThat(receipt.getPdfUrl()).isEqualTo(
@@ -118,7 +152,8 @@ public class ScanUploaderTest
     when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(2100);
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
-    scanUploader.augmentScanReceipt("app id", receipt, StageTypes.PROXY.getId(), thirdPartyScanContext);
+    scanUploader.augmentScanReceipt(applicationOwner("app id"), receipt, StageTypes.PROXY.getId(),
+        thirdPartyScanContext);
     assertThat(receipt.getReportUrl()).isEqualTo("ui/links/firewall/containerReport/app%20id/report/scan%20id");
     assertThat(receipt.getPdfUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id/pdf");
     assertThat(receipt.getDataUrl()).isEqualTo("api/v2/applications/app%20id/reports/scan%20id/raw");

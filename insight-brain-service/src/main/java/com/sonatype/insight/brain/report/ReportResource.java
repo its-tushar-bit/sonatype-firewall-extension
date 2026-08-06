@@ -241,7 +241,7 @@ public class ReportResource
       @PathParam("path") final String path,
       @Context final HttpServletRequest httpRequest)
   {
-    ReportEntry reportEntry = reportService.processBrowseReport(applicationDAO.getByPublicId(appPublicId).getId(),
+    ReportEntry reportEntry = reportService.processBrowseReport(applicationDAO.getByPublicIdNotNull(appPublicId),
         scanId, normalizeBrowsePath(path));
     if (reportEntry == null) {
       return Response.status(Status.NOT_FOUND).build();
@@ -351,7 +351,7 @@ public class ReportResource
       @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
-    return reportService.getReportMetadata(applicationPublicId, scanId);
+    return reportService.getReportMetadata(applicationDAO.getByPublicIdNotNull(applicationPublicId), scanId);
   }
 
   /**
@@ -390,12 +390,6 @@ public class ReportResource
     Organization organization = organizationDAO.getByIdNotNull(application.getOrganizationId());
 
     String clientUserAgent = HdsClient.getClientUserAgent(request);
-    if (reportService.isHostedScan(scanId, application.getId())) {
-      checkEvaluateComponentPermission(application);
-
-      reportService.reevaluateHostedComponent(application.getId(), scanId);
-      return Response.ok().build();
-    }
     boolean rmBacked = organization.getRelatedRepositoryId() != null;
     if (!rmBacked) {
       checkEvaluateApplicationPermission(application);
@@ -524,7 +518,7 @@ public class ReportResource
 
     ReportPdfEntity reportPdf = pdfGeneratorService.generateReport(app, scanId);
 
-    ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
+    ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(app, scanId);
     List<PolicyAlert> alerts = Arrays.asList(
         JsonUtils.parse(applicationReport.getEntry(POLICY_ALERTS.getName()).buf,
             PolicyAlert[].class));

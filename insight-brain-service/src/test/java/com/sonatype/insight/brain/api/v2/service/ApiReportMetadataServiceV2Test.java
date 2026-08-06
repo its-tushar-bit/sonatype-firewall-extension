@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -89,7 +91,7 @@ public class ApiReportMetadataServiceV2Test
         MetadataSource.GIT_AUTO_DETECTED, MetadataSource.ENVIRONMENT_VARIABLE, MetadataSource.ENVIRONMENT_VARIABLE);
 
     // When: get metadata
-    ApiReportMetadataResponseDto response = metadataService.getMetadata(app.getPublicId(), scanId);
+    ApiReportMetadataResponseDto response = metadataService.getMetadata(app, scanId);
 
     // Then: all fields populated
     assertThat(response).isNotNull();
@@ -120,7 +122,7 @@ public class ApiReportMetadataServiceV2Test
         null, null, null);
 
     // When: get metadata
-    ApiReportMetadataResponseDto response = metadataService.getMetadata(app.getPublicId(), scanId);
+    ApiReportMetadataResponseDto response = metadataService.getMetadata(app, scanId);
 
     // Then: null fields handled gracefully
     assertThat(response).isNotNull();
@@ -142,7 +144,7 @@ public class ApiReportMetadataServiceV2Test
         null, null, null);
 
     // When: get metadata
-    ApiReportMetadataResponseDto response = metadataService.getMetadata(app.getPublicId(), scanId);
+    ApiReportMetadataResponseDto response = metadataService.getMetadata(app, scanId);
 
     // Then: credentials masked
     assertThat(response.getData().getScmRepositoryUrl()).isEqualTo(expectedMaskedUrl);
@@ -160,7 +162,7 @@ public class ApiReportMetadataServiceV2Test
         null, null, null);
 
     // When: get metadata
-    ApiReportMetadataResponseDto response = metadataService.getMetadata(app.getPublicId(), scanId);
+    ApiReportMetadataResponseDto response = metadataService.getMetadata(app, scanId);
 
     // Then: token masked
     assertThat(response.getData().getScmRepositoryUrl()).isEqualTo(expectedMaskedUrl);
@@ -172,7 +174,7 @@ public class ApiReportMetadataServiceV2Test
     String nonExistentScanId = "non-existent-scan";
 
     // When/Then: throws NotFoundException with descriptive message
-    assertThatThrownBy(() -> metadataService.getMetadata(app.getPublicId(), nonExistentScanId))
+    assertThatThrownBy(() -> metadataService.getMetadata(app, nonExistentScanId))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Policy evaluation not found for scan: " + nonExistentScanId);
   }
@@ -184,7 +186,7 @@ public class ApiReportMetadataServiceV2Test
     String scanId = "some-scan";
 
     // When/Then: throws NotFoundException (application lookup fails first)
-    assertThatThrownBy(() -> metadataService.getMetadata(nonExistentAppId, scanId))
+    assertThatThrownBy(() -> metadataService.getMetadata(applicationDAO.getByPublicIdNotNull(nonExistentAppId), scanId))
         .isInstanceOf(NotFoundException.class);
   }
 
@@ -198,7 +200,7 @@ public class ApiReportMetadataServiceV2Test
         MetadataSource.ENVIRONMENT_VARIABLE, null, null);
 
     // When: get metadata
-    ApiReportMetadataResponseDto response = metadataService.getMetadata(app.getPublicId(), scanId);
+    ApiReportMetadataResponseDto response = metadataService.getMetadata(app, scanId);
 
     // Then: only non-null sources in map
     assertThat(response.getSource()).containsKey("commitHash");
@@ -219,9 +221,42 @@ public class ApiReportMetadataServiceV2Test
         null, null, null);
 
     // When: get metadata
-    ApiReportMetadataResponseDto response = metadataService.getMetadata(specificPublicId, scanId);
+    ApiReportMetadataResponseDto response = metadataService.getMetadata(specificApp, scanId);
 
     // Then: correct public ID returned
     assertThat(response.getData().getApplicationPublicId()).isEqualTo(specificPublicId);
+  }
+
+  @Test
+  public void getMetadata_Hrc_ReturnsFieldsWithHrcIdAsBothInternalAndPublicId() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    String scanId = "hrc-scan-id";
+    Date scanDate = new Date();
+
+    createEvaluationWithMetadata(hrc.getId(), scanId, scanDate,
+        "hrc-commit", "hrc-branch", null, null, null, null);
+
+    ApiReportMetadataResponseDto response = metadataService.getMetadata(hrc, scanId);
+
+    assertThat(response).isNotNull();
+    assertThat(response.getData().getScanId()).isEqualTo(scanId);
+    assertThat(response.getData().getApplicationId()).isEqualTo(hrc.getId());
+    assertThat(response.getData().getApplicationPublicId()).isEqualTo(hrc.getId());
+    assertThat(response.getData().getStage()).isEqualTo(BuildStageType.ID);
+    assertThat(response.getData().getScanDate()).isEqualTo(scanDate);
+    assertThat(response.getData().getCommitHash()).isEqualTo("hrc-commit");
+    assertThat(response.getData().getBranchName()).isEqualTo("hrc-branch");
+  }
+
+  @Test
+  public void getMetadata_Hrc_ThrowsNotFoundException_WhenScanNotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+    String scanId = "no-such-hrc-scan";
+
+    assertThatThrownBy(() -> metadataService.getMetadata(hrc, scanId))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Policy evaluation not found for scan: " + scanId);
   }
 }

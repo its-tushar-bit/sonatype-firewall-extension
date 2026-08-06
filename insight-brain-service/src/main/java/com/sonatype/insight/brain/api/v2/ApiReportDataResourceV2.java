@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.ci.config.ApiReportMetadataResponseDto;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -75,17 +76,21 @@ public class ApiReportDataResourceV2
 
   private final ApiReportMetadataServiceV2 metadataService;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
   public ApiReportDataResourceV2(
       final ApiReportDataServiceV2 reportDataService,
       final BaseUrl baseUrl,
       final ApiReportViolationsDiffService apiReportViolationsDiffService,
-      final ApiReportMetadataServiceV2 metadataService)
+      final ApiReportMetadataServiceV2 metadataService,
+      final ApplicationDAO applicationDAO)
   {
     this.reportDataService = reportDataService;
     this.baseUrl = baseUrl;
     this.apiReportViolationsDiffService = apiReportViolationsDiffService;
     this.metadataService = metadataService;
+    this.applicationDAO = applicationDAO;
   }
 
   /**
@@ -250,6 +255,15 @@ public class ApiReportDataResourceV2
         .toString();
   }
 
+  /** HRC-scoped sibling of {@link #getDataUrl(String, String)}, keyed on the HRC row UUID. */
+  public static String getHostedRepositoryComponentDataUrl(String hrcId, String scanId) {
+    return UriBuilder.fromPath(PublicApiPaths.HOSTED_REPOSITORY_COMPONENT_REPORT_DATA_RESOURCE_PATH_V2)
+        .path(ApiReportDataResourceV2.SCAN_PATH)
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH)
+        .build(hrcId, scanId)
+        .toString();
+  }
+
   @GET
   @Path(VIOLATION_DIFF_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -317,6 +331,6 @@ public class ApiReportDataResourceV2
       @Parameter(description = "Enter the scanId (reportId) of the application report.",
           required = true) @PathParam("scanId") String scanId)
   {
-    return metadataService.getMetadata(applicationPublicId, scanId);
+    return metadataService.getMetadata(applicationDAO.getByPublicIdNotNull(applicationPublicId), scanId);
   }
 }

@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -1385,5 +1387,34 @@ public class ApiCycloneDxServiceV2Test
     guideSource.setUrl("https://links.sonatype.com/products/clm/vulnerability/" + refId);
     ref.setSource(guideSource);
     return ref;
+  }
+
+  @Test
+  public void testGetByScanId_Hrc_NotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getByScanId(hrc, "no-such-scan",
+            MediaType.APPLICATION_XML, Version.VERSION_11));
+  }
+
+  @Test
+  public void testGetLatest_Hrc_NotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getLatest(hrc, BuildStageType.ID,
+            MediaType.APPLICATION_XML, Version.VERSION_11));
+  }
+
+  @Test
+  public void testBuildBom_Hrc_NotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.buildBom(hrc, "no-such-scan", Version.VERSION_11, null));
   }
 }

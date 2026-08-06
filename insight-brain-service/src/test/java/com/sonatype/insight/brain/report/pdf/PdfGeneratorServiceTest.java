@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
@@ -400,5 +402,32 @@ public class PdfGeneratorServiceTest
       }
     };
     testCallable_AllowConcurrentExecution(callable, answerConsumer);
+  }
+
+  @Test
+  public void testPrintReport_Hrc_NotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> pdfGeneratorService.printReport(hrc, "no-such-scan"));
+  }
+
+  @Test
+  public void testGenerateReport_Hrc_NotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> pdfGeneratorService.generateReport(hrc, "no-such-scan"));
+  }
+
+  @Test
+  public void testPrintSbomReport_Hrc_NoSbom_NotFound() {
+    Repository repository = tempEntity.newRepository();
+    HostedRepositoryComponent hrc = tempEntity.newHostedRepositoryComponent(repository);
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> pdfGeneratorService.printSbomReport(hrc, "1.0"));
   }
 }

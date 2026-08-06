@@ -24,6 +24,8 @@ export interface ViolationsBreakdown {
 export interface WaiversBreakdown {
   readonly existing: number;
   readonly requested: number;
+  /** Present when backend supports expiring-within-30d; omit on older servers. */
+  readonly expiring?: number;
 }
 
 /** Licensed dashboard stage count for the Applications metric (from StageTypeService). */

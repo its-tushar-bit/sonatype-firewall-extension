@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +112,12 @@ public class DashboardMetricsServiceTest
 
     tempEntity.newWaiver("hashExisting1", policy.getId(), app.getId());
     tempEntity.newWaiver("hashExisting2", policy.getId(), app.getId());
+    // Anchor inside the service window (upperBound - 14d) so the assertion stays tied to
+    // expiringCountUpperBound() rather than a bare wall-clock +7d assumption.
+    Date expiringSoon = Date.from(
+        DashboardMetricsService.expiringCountUpperBound().toInstant().minus(14, ChronoUnit.DAYS));
+    tempEntity.newWaiver("hashExpiring", policy.getId(), app.getId(), null, "expiring soon", new Date(),
+        expiringSoon);
 
     PolicyWaiverRequest requested = new PolicyWaiverRequest("hashRequested", policy.getId(), app.getId(), "pending");
     requested.setStatus(PolicyWaiverRequestStatus.REQUESTED);
@@ -129,10 +136,13 @@ public class DashboardMetricsServiceTest
 
     DashboardMetricsDTO metrics = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
 
-    assertThat(metrics.waivers.total).isEqualTo(3);
+    assertThat(metrics.waivers.total).isEqualTo(4);
     assertThat(metrics.waivers.source).isEqualTo("sql");
-    assertThat(metrics.waivers.breakdown).containsEntry("existing", 2L);
+    assertThat(metrics.waivers.breakdown).containsEntry("existing", 3L);
     assertThat(metrics.waivers.breakdown).containsEntry("requested", 1L);
+    assertThat(metrics.waivers.breakdown).containsEntry("expiring", 1L);
+    assertThat(metrics.waivers.total)
+        .isEqualTo(metrics.waivers.breakdown.get("existing") + metrics.waivers.breakdown.get("requested"));
   }
 
   @Test
@@ -265,6 +275,7 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.waivers.source).isEqualTo("sql");
     assertThat(metrics.waivers.breakdown).containsEntry("existing", 0L);
     assertThat(metrics.waivers.breakdown).containsEntry("requested", 0L);
+    assertThat(metrics.waivers.breakdown).containsEntry("expiring", 0L);
   }
 
   @Test
@@ -1023,6 +1034,7 @@ public class DashboardMetricsServiceTest
     assertThat(metrics.waivers.source).isEqualTo("sql");
     assertThat(metrics.waivers.breakdown).containsEntry("existing", 0L);
     assertThat(metrics.waivers.breakdown).containsEntry("requested", 0L);
+    assertThat(metrics.waivers.breakdown).containsEntry("expiring", 0L);
   }
 
   @Test

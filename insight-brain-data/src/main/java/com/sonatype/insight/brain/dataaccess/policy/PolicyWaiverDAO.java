@@ -38,6 +38,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import jakarta.annotation.Nullable;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
@@ -1021,6 +1022,56 @@ public class PolicyWaiverDAO
       var condition = POLICY_WAIVER.IS_FOR_CONTAINER_IMAGE_COMPONENT.eq(false)
           .and(POLICY_WAIVER.EXPIRY_TIME.isNull()
               .or(POLICY_WAIVER.EXPIRY_TIME.gt(new Date())));
+      if (accessibleOwnerIds != null) {
+        condition = condition.and(POLICY_WAIVER.OWNER_ID.in(accessibleOwnerIds));
+      }
+      return tx.dsl()
+          .selectCount()
+          .from(POLICY_WAIVER)
+          .where(condition)
+          .fetchOne(0, Long.class);
+    }
+  }
+
+  /**
+   * Counts active non-container waivers whose {@code expiry_time} is after {@code now}
+   * and on or before {@code upperBound}. Never-expiring ({@code expiry_time} null) and
+   * already-expired waivers are excluded. Container-image waivers
+   * ({@code IS_FOR_CONTAINER_IMAGE_COMPONENT=true}) are excluded, matching {@link #selectCount}.
+   * <p>
+   * {@code accessibleOwnerIds} is never {@code null} on the dashboard metrics path;
+   * {@code null} means unscoped (internal callers only). Owner sets are chunked via
+   * {@code getListWithSqlInClause} the same way as {@link #selectCount}.
+   */
+  public long selectExpiringCount(
+      @Nullable final Set<String> accessibleOwnerIds,
+      final Date now,
+      final Date upperBound)
+  {
+    if (accessibleOwnerIds != null && accessibleOwnerIds.isEmpty()) {
+      return 0L;
+    }
+    if (accessibleOwnerIds == null) {
+      return selectExpiringCountInternal(null, now, upperBound);
+    }
+    return getListWithSqlInClause(
+        accessibleOwnerIds,
+        chunk -> List.of(selectExpiringCountInternal(new HashSet<>(chunk), now, upperBound)))
+            .stream()
+            .mapToLong(Long::longValue)
+            .sum();
+  }
+
+  private long selectExpiringCountInternal(
+      @Nullable final Set<String> accessibleOwnerIds,
+      final Date now,
+      final Date upperBound)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      var condition = POLICY_WAIVER.IS_FOR_CONTAINER_IMAGE_COMPONENT.eq(false)
+          .and(POLICY_WAIVER.EXPIRY_TIME.isNotNull())
+          .and(POLICY_WAIVER.EXPIRY_TIME.gt(now))
+          .and(POLICY_WAIVER.EXPIRY_TIME.le(upperBound));
       if (accessibleOwnerIds != null) {
         condition = condition.and(POLICY_WAIVER.OWNER_ID.in(accessibleOwnerIds));
       }

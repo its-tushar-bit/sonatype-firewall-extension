@@ -150,7 +150,10 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
   });
 
   it('renders the Applications, Violations (+breakdown) and Waivers cards from the response', async () => {
-    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
+      ...FULL_BODY,
+      waivers: { total: 5, breakdown: { existing: 4, requested: 1, expiring: 2 }, source: 'sql' },
+    });
     renderGrid();
 
     await waitFor(() => expect(screen.getByTestId('metric-card-applications-value')).toHaveTextContent('42'));
@@ -164,10 +167,31 @@ describe('MetricCardGrid (CLM-40905 AT-F16: landing grid)', () => {
     expect(screen.getByTestId('metric-card-violations-sub-critical-value')).toHaveTextContent('2');
     expect(screen.getByTestId('metric-card-violations-sub-low-value')).toHaveTextContent('1');
 
-    // Waivers: total + existing/requested (stat rows, no severity dots).
+    // Waivers: total + existing/requested/expiring (stat rows, no severity dots).
     expect(screen.getByTestId('metric-card-waivers-value')).toHaveTextContent('5');
     expect(screen.getByTestId('metric-card-waivers-sub-existing-waivers-value')).toHaveTextContent('4');
     expect(screen.getByTestId('metric-card-waivers-sub-requested-waivers-value')).toHaveTextContent('1');
+    // slugLabel('Expiring (30d)') → 'expiring-(30d)' (parentheses preserved).
+    expect(screen.getByTestId('metric-card-waivers-sub-expiring-(30d)-value')).toHaveTextContent('2');
+  });
+
+  it('omits the waivers expiring row when breakdown.expiring is absent (older backend)', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, FULL_BODY);
+    renderGrid();
+
+    await waitFor(() => expect(screen.getByTestId('metric-card-waivers-value')).toHaveTextContent('5'));
+    expect(screen.queryByTestId('metric-card-waivers-sub-expiring-(30d)-value')).not.toBeInTheDocument();
+  });
+
+  it('shows 0 for waivers expiring when the key is present with value 0', async () => {
+    axiosMock.onPost(getDashboardMetricsUrl()).reply(200, {
+      ...FULL_BODY,
+      waivers: { total: 5, breakdown: { existing: 4, requested: 1, expiring: 0 }, source: 'sql' },
+    });
+    renderGrid();
+
+    await waitFor(() => expect(screen.getByTestId('metric-card-waivers-value')).toHaveTextContent('5'));
+    expect(screen.getByTestId('metric-card-waivers-sub-expiring-(30d)-value')).toHaveTextContent('0');
   });
 
   it('keeps mixed successful and unavailable cards visible without displaying a broader-scope number', () => {

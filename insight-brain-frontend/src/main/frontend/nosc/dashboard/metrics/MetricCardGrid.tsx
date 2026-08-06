@@ -181,12 +181,21 @@ function MetricCards({
               key={def.id}
               title={def.title}
               unavailableDimensions={unavailableDimensions}
+              railTone={def.railTone}
               testId={def.testId}
             />
           );
         }
         if (isCardMetricUnavailable(def.id, data)) {
-          return <MetricCard key={def.id} title={def.title} metricUnavailable testId={def.testId} />;
+          return (
+            <MetricCard
+              key={def.id}
+              title={def.title}
+              metricUnavailable
+              railTone={def.railTone}
+              testId={def.testId}
+            />
+          );
         }
         if (def.isAvailable(data)) {
           const view = def.select(data, selectContext);
@@ -198,13 +207,15 @@ function MetricCards({
               subMetrics={view.subMetrics}
               dualHero={view.dualHero}
               secondaryStat={view.secondaryStat}
+              secondaryStatPresentation={def.secondaryStatPresentation}
               href={view.href}
+              railTone={def.railTone}
               testId={def.testId}
             />
           );
         }
         if (heavyLoading && def.showWhileHeavyLoading) {
-          return <MetricCard key={def.id} title={def.title} loading testId={def.testId} />;
+          return <MetricCard key={def.id} title={def.title} loading railTone={def.railTone} testId={def.testId} />;
         }
         return null;
       })}
@@ -342,7 +353,7 @@ export function MetricCardGrid(): JSX.Element {
     content = (
       <GridShell>
         {METRIC_CARD_DEFINITIONS.filter((def) => def.showWhileLoading).map((def) => (
-          <MetricCard key={def.id} title={def.title} loading testId={def.testId} />
+          <MetricCard key={def.id} title={def.title} loading railTone={def.railTone} testId={def.testId} />
         ))}
       </GridShell>
     );

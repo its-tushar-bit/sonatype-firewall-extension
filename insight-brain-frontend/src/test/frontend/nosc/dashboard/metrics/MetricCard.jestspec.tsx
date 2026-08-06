@@ -140,4 +140,18 @@ describe('MetricCard (CLM-40905 AT-F16: reusable metric card)', () => {
     expect(screen.getByTestId('metric-card-applications-secondary-value')).toHaveTextContent('5');
     expect(screen.getByText('Stages')).toBeInTheDocument();
   });
+
+  it('renders applications secondary stages as a chip when presentation is chip', () => {
+    renderCard(
+      <MetricCard
+        title="Applications"
+        value={248}
+        secondaryStat={{ value: 6, label: 'Stages' }}
+        secondaryStatPresentation="chip"
+        railTone="apps"
+        testId="metric-card-applications"
+      />
+    );
+    expect(screen.getByTestId('metric-card-applications-stages-chip')).toHaveTextContent('6 Stages');
+  });
 });

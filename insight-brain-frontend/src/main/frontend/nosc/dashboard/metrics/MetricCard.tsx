@@ -20,6 +20,8 @@ import styles from './MetricCard.module.css';
 
 export type SubMetricTone = 'critical' | 'severe' | 'moderate' | 'low' | 'neutral';
 export type SubMetricVariant = 'severity' | 'stat';
+export type RailTone = 'apps' | 'legal' | 'orgs' | 'components' | 'violations' | 'vulnerabilities' | 'waivers';
+export type SecondaryStatPresentation = 'text' | 'chip';
 
 export interface SubMetric {
   readonly label: string;
@@ -44,6 +46,10 @@ export interface MetricCardProps {
   readonly subMetrics?: readonly SubMetric[];
   readonly dualHero?: readonly [DualHeroStat, DualHeroStat];
   readonly secondaryStat?: SecondaryStat;
+  /** How to present {@link secondaryStat}. Applications uses `chip`; other cards default to `text`. */
+  readonly secondaryStatPresentation?: SecondaryStatPresentation;
+  /** Domain rail tint for the card's left border. Purely decorative (chrome, not a status signal). */
+  readonly railTone?: RailTone;
   readonly href?: string;
   readonly loading?: boolean;
   readonly unavailableDimensions?: readonly UnsupportedMetricDimension[];
@@ -58,6 +64,16 @@ const TONE_TO_COLOR: Record<SubMetricTone, string> = {
   moderate: tokens.colors.severity.medium.css,
   low: tokens.colors.severity.low.css,
   neutral: tokens.colors.severity.none.css,
+};
+
+const RAIL_TONE_TO_CLASS: Record<RailTone, string> = {
+  apps: styles.railApps,
+  legal: styles.railLegal,
+  orgs: styles.railOrgs,
+  components: styles.railComponents,
+  violations: styles.railViolations,
+  vulnerabilities: styles.railVulnerabilities,
+  waivers: styles.railWaivers,
 };
 
 function slugLabel(label: string): string {
@@ -109,6 +125,17 @@ function StatSubMetricRow({ sub, testId }: { readonly sub: SubMetric; readonly t
   );
 }
 
+function StageChip({ secondaryStat, testId }: { readonly secondaryStat: SecondaryStat; readonly testId: string }): JSX.Element {
+  // Plain span (no nested Radix Text) so line-height/baseline from typography
+  // primitives cannot pull the pill off-center under the hero.
+  return (
+    <span className={styles.stageChip} data-testid={`${testId}-stages-chip`}>
+      <span data-testid={`${testId}-secondary-value`}>{secondaryStat.value.toLocaleString()}</span>
+      {` ${secondaryStat.label}`}
+    </span>
+  );
+}
+
 function DualHeroBody({
   dualHero,
   testId,
@@ -138,6 +165,8 @@ export function MetricCard({
   subMetrics,
   dualHero,
   secondaryStat,
+  secondaryStatPresentation = 'text',
+  railTone,
   href,
   loading = false,
   unavailableDimensions,
@@ -170,16 +199,19 @@ export function MetricCard({
   const details: ReactNode =
     loading || showUnavailable ? null : (
       <>
-        {secondaryStat && (
-          <Flex align="baseline" gap="2" className={styles.statRow} data-testid={`${testId}-secondary-stat`}>
-            <Text size="2" weight="bold" data-testid={`${testId}-secondary-value`}>
-              {secondaryStat.value.toLocaleString()}
-            </Text>
-            <Text size="2" color="gray">
-              {secondaryStat.label}
-            </Text>
-          </Flex>
-        )}
+        {secondaryStat &&
+          (secondaryStatPresentation === 'chip' ? (
+            <StageChip secondaryStat={secondaryStat} testId={testId} />
+          ) : (
+            <Flex align="baseline" gap="2" className={styles.statRow} data-testid={`${testId}-secondary-stat`}>
+              <Text size="2" weight="bold" data-testid={`${testId}-secondary-value`}>
+                {secondaryStat.value.toLocaleString()}
+              </Text>
+              <Text size="2" color="gray">
+                {secondaryStat.label}
+              </Text>
+            </Flex>
+          ))}
         {statSubMetrics.length > 0 && (
           <Flex direction="column" gap="1" className={styles.statStack} data-testid={`${testId}-stat-rows`}>
             {statSubMetrics.map((sub) => (
@@ -215,11 +247,13 @@ export function MetricCard({
     </Flex>
   );
 
+  const railClass = railTone ? RAIL_TONE_TO_CLASS[railTone] : '';
+
   return (
-    <Card data-testid={testId}>
+    <Card data-testid={testId} className={`${styles.cardShell} ${railClass}`.trim()}>
       <section aria-labelledby={headingId}>
         <Box p="4">
-          <Heading id={headingId} as="h2" {...tokens.typography.label} trim="start" mb="3">
+          <Heading id={headingId} as="h2" size="2" trim="start" mb="3" className={styles.titleMuted}>
             {title}
           </Heading>
           {interactiveBody}

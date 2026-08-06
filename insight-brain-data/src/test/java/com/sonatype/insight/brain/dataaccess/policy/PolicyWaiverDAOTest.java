@@ -1755,6 +1755,80 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void selectExpiringCount_countsOnlyActiveWaiversInWindow() {
+    Policy policy1 = tempEntity.newPolicy(organization);
+    Policy policy2 = tempEntity.newPolicy(organization);
+    Policy policy3 = tempEntity.newPolicy(organization);
+    Policy policy4 = tempEntity.newPolicy(organization);
+    Policy policy5 = tempEntity.newPolicy(organization);
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+
+    Date now = Date.from(Instant.parse("2026-08-05T12:00:00Z"));
+    Date upperBound = Date.from(
+        now.toInstant().truncatedTo(ChronoUnit.DAYS).plus(30, ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+
+    tempEntity.newWaiver(null, policy1.getId(), ownerId, null, comment, now, null);
+    tempEntity.newWaiver("exp7d", policy2.getId(), ownerId, null, comment, now,
+        Date.from(now.toInstant().plus(7, ChronoUnit.DAYS)));
+    tempEntity.newWaiver("exp60d", policy3.getId(), ownerId, null, comment, now,
+        Date.from(now.toInstant().plus(60, ChronoUnit.DAYS)));
+    tempEntity.newWaiver("expired", policy4.getId(), ownerId, null, comment, now,
+        Date.from(now.toInstant().minus(1, ChronoUnit.DAYS)));
+    PolicyWaiver containerComponent = tempEntity.newWaiver("container", policy5.getId(), ownerId, null, comment, now,
+        Date.from(now.toInstant().plus(7, ChronoUnit.DAYS)));
+    containerComponent.setForContainerImageComponent(true);
+    dao.update(containerComponent);
+
+    assertThat(dao.selectExpiringCount(Set.of(ownerId), now, upperBound)).isEqualTo(1L);
+  }
+
+  @Test
+  public void selectExpiringCount_emptyOwnerSet_returnsZero() {
+    Date now = Date.from(Instant.parse("2026-08-05T12:00:00Z"));
+    Date upperBound = Date.from(
+        now.toInstant().truncatedTo(ChronoUnit.DAYS).plus(30, ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+
+    assertThat(dao.selectExpiringCount(Set.of(), now, upperBound)).isZero();
+  }
+
+  @Test
+  public void selectExpiringCount_boundaryAtNowExcluded_upperBoundIncluded() {
+    Policy policyAtNow = tempEntity.newPolicy(organization);
+    Policy policyAtUpper = tempEntity.newPolicy(organization);
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+    Date now = Date.from(Instant.parse("2026-08-05T12:00:00Z"));
+    Date upperBound = Date.from(
+        now.toInstant().truncatedTo(ChronoUnit.DAYS).plus(30, ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+
+    // gt(now) excludes expiry exactly at now; le(upperBound) includes expiry exactly at upperBound
+    tempEntity.newWaiver("expExactNow", policyAtNow.getId(), ownerId, null, comment, now, now);
+    tempEntity.newWaiver("expExactUpper", policyAtUpper.getId(), ownerId, null, comment, now, upperBound);
+
+    assertThat(dao.selectExpiringCount(Set.of(ownerId), now, upperBound)).isEqualTo(1L);
+  }
+
+  @Test
+  public void selectExpiringCount_nullOwnerSet_countsUnscoped() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String ownerId = organization.getId();
+    Date now = Date.from(Instant.parse("2026-08-05T12:00:00Z"));
+    Date upperBound = Date.from(
+        now.toInstant().truncatedTo(ChronoUnit.DAYS).plus(30, ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+
+    tempEntity.newWaiver("expNullPath", policy.getId(), ownerId, null, "Just testing", now,
+        Date.from(now.toInstant().plus(7, ChronoUnit.DAYS)));
+
+    long scoped = dao.selectExpiringCount(Set.of(ownerId), now, upperBound);
+    long unscoped = dao.selectExpiringCount(null, now, upperBound);
+
+    assertThat(scoped).isEqualTo(1L);
+    // null owner set bypasses IN-clause chunking and counts all matching owners
+    assertThat(unscoped).isGreaterThanOrEqualTo(scoped);
+  }
+
+  @Test
   public void testGetAllContainerPolicyWaivers_paginationWithFiltering() {
     Application app1 = tempEntity.newApplication("app1", organization.getId());
     Application app2 = tempEntity.newApplication("app2", organization.getId());

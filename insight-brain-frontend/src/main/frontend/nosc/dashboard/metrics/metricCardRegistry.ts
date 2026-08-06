@@ -13,7 +13,7 @@ import {
   dashboardWaiversHref,
 } from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
 import type { DashboardMetricsResponse, MetricEntry } from './dashboardMetricsTypes';
-import type { DualHeroStat, SecondaryStat, SubMetric } from './MetricCard';
+import type { DualHeroStat, RailTone, SecondaryStat, SecondaryStatPresentation, SubMetric } from './MetricCard';
 
 /**
  * Card registry for the preview dashboard metric grid (CLM-40905).
@@ -51,6 +51,10 @@ export interface MetricCardDefinition {
    * Summary-only cards stay omitted when absent — they will not arrive on the heavy response.
    */
   readonly showWhileHeavyLoading: boolean;
+  /** Domain rail tint for the card's left border (chrome, not a status signal). */
+  readonly railTone?: RailTone;
+  /** How to present the card's secondary stat, if any. Defaults to `text` in {@link MetricCard}. */
+  readonly secondaryStatPresentation?: SecondaryStatPresentation;
   readonly isAvailable: (data: DashboardMetricsResponse) => boolean;
   readonly select: (
     data: DashboardMetricsResponse,
@@ -65,6 +69,8 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-applications',
     showWhileLoading: true,
     showWhileHeavyLoading: false,
+    railTone: 'apps',
+    secondaryStatPresentation: 'chip',
     isAvailable: (data) => isPresentMetric(data.applications),
     select: (data) => {
       const stages = data.applications?.breakdown?.stages;
@@ -81,6 +87,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-legal',
     showWhileLoading: false,
     showWhileHeavyLoading: true,
+    railTone: 'legal',
     isAvailable: (data) => isPresentMetric(data.legal),
     select: (data, context) => {
       const b = data.legal?.breakdown;
@@ -108,6 +115,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-orgs-and-policies',
     showWhileLoading: false,
     showWhileHeavyLoading: false,
+    railTone: 'orgs',
     isAvailable: (data) => isPresentMetric(data.organizations) && isPresentMetric(data.policies),
     select: (data) => ({
       dualHero: [
@@ -123,6 +131,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-components',
     showWhileLoading: false,
     showWhileHeavyLoading: true,
+    railTone: 'components',
     isAvailable: (data) => isPresentMetric(data.components),
     select: (data) => {
       const relatedViolations = data.violations?.total;
@@ -141,6 +150,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     // Heavy-tier aggregate — skeleton until the second POST lands.
     showWhileLoading: false,
     showWhileHeavyLoading: true,
+    railTone: 'violations',
     isAvailable: (data) => isPresentMetric(data.violations),
     select: (data) => {
       const b = data.violations?.breakdown;
@@ -165,6 +175,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-vulnerabilities',
     showWhileLoading: false,
     showWhileHeavyLoading: true,
+    railTone: 'vulnerabilities',
     isAvailable: (data) => isPresentMetric(data.vulnerabilities),
     select: (data) => {
       const b = data.vulnerabilities?.breakdown;
@@ -189,15 +200,24 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     testId: 'metric-card-waivers',
     showWhileLoading: true,
     showWhileHeavyLoading: false,
+    railTone: 'waivers',
     isAvailable: (data) => isPresentMetric(data.waivers),
     select: (data) => {
       const b = data.waivers?.breakdown;
-      const subMetrics: SubMetric[] | undefined = b
-        ? [
-            { label: 'Existing Waivers', value: b.existing, variant: 'stat' },
-            { label: 'Requested Waivers', value: b.requested, variant: 'stat' },
-          ]
-        : undefined;
+      let subMetrics: SubMetric[] | undefined;
+      if (b) {
+        subMetrics = [
+          { label: 'Existing Waivers', value: b.existing, variant: 'stat' },
+          { label: 'Requested Waivers', value: b.requested, variant: 'stat' },
+        ];
+        if (typeof b.expiring === 'number') {
+          subMetrics.push({
+            label: 'Expiring (30d)',
+            value: b.expiring,
+            variant: 'stat',
+          });
+        }
+      }
       return {
         value: data.waivers?.total ?? 0,
         subMetrics,

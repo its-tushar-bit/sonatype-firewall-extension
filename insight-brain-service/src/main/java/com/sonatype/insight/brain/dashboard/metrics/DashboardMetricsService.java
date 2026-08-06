@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.dashboard.metrics;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -342,16 +344,32 @@ public class DashboardMetricsService
       }
       return new MetricValueDTO(
           0L,
-          Map.of("existing", 0L, "requested", 0L),
+          Map.of("existing", 0L, "requested", 0L, "expiring", 0L),
           METRIC_SOURCE_SQL);
     }
     Set<String> accessibleOwnerIds = scope.ownerIds();
+    Date now = new Date();
+    Date upperBound = expiringCountUpperBound();
     long existingWaivers = policyWaiverDAO.selectCount(accessibleOwnerIds);
     long requestedWaivers = policyWaiverRequestDAO.selectCount(accessibleOwnerIds);
+    long expiringWaivers = policyWaiverDAO.selectExpiringCount(accessibleOwnerIds, now, upperBound);
     return new MetricValueDTO(
         existingWaivers + requestedWaivers,
-        Map.of("existing", existingWaivers, "requested", requestedWaivers),
+        Map.of(
+            "existing", existingWaivers,
+            "requested", requestedWaivers,
+            "expiring", expiringWaivers),
         METRIC_SOURCE_SQL);
+  }
+
+  /**
+   * Classic {@code IN_30_DAYS} upper bound: start of the current UTC day + 30 days + 1 day.
+   * Inclusive {@code le(upperBound)} so waivers expiring on the last calendar day of the
+   * window are counted; matches {@code PolicyWaiverService} expiration-date filtering.
+   */
+  static Date expiringCountUpperBound() {
+    return Date.from(
+        Instant.now().truncatedTo(ChronoUnit.DAYS).plus(30, ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
   }
 
   private static void logBenchmarkDuration(String metric, long startedAt) {

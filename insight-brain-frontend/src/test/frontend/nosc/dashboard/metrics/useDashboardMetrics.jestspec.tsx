@@ -12,7 +12,7 @@ const FAST_BODY = {
   applications: { total: 12, breakdown: null, source: 'index' },
   organizations: { total: 3, breakdown: null, source: 'index' },
   policies: { total: 2, breakdown: null, source: 'index' },
-  waivers: { total: 4, breakdown: { existing: 3, requested: 1 }, source: 'sql' },
+  waivers: { total: 4, breakdown: { existing: 3, requested: 1, expiring: 1 }, source: 'sql' },
   lastUpdatedAt: 1_700_000_000_000,
 };
 

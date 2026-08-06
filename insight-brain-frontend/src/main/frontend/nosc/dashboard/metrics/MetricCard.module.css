@@ -92,6 +92,80 @@
   box-shadow: inset 3px 0 0 0 var(--accent-9);
 }
 
+/* Domain-tinted left rail + hover lift shared by every metric card (Nexus One
+ * chrome pass). The rail color comes from a CSS variable set by a `.rail*`
+ * tone class below so the shell itself stays tone-agnostic. */
+.cardShell {
+  border-left: 4px solid var(--metric-rail, var(--accent-9));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cardShell {
+    transition: box-shadow 120ms ease, transform 120ms ease;
+  }
+
+  .cardShell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.railApps {
+  --metric-rail: var(--blue-9);
+}
+
+.railLegal {
+  --metric-rail: var(--teal-9);
+}
+
+.railOrgs {
+  --metric-rail: var(--indigo-9);
+}
+
+.railComponents {
+  --metric-rail: var(--orange-9);
+}
+
+.railViolations {
+  --metric-rail: var(--red-9);
+}
+
+.railVulnerabilities {
+  --metric-rail: var(--orange-9);
+}
+
+.railWaivers {
+  --metric-rail: var(--blue-9);
+}
+
+/* Muted card title — chrome pass moves titles off bold body-text weight so the
+ * hero number is the clear focal point of each card. */
+.titleMuted {
+  color: var(--gray-11);
+  font-weight: 500;
+}
+
+/* Applications' secondary stat ("N Stages") reads as a small pill rather than
+ * a plain stat row — no bars, no ratio pills, just a compact supplemental chip.
+ * Use the apps rail blue (not product accent red) so it reads as chrome, not
+ * a severity/error badge. */
+.stageChip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: var(--space-2);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  background: var(--blue-3);
+  color: var(--blue-11);
+  width: fit-content;
+  white-space: nowrap;
+}
+
 .quickLinkIcon {
   display: inline-flex;
   align-items: center;

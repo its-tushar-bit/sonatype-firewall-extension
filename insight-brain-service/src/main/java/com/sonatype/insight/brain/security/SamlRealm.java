@@ -6,10 +6,8 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import jakarta.inject.Inject;
@@ -31,7 +29,6 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.credential.AllowAllCredentialsMatcher;
 import org.apache.shiro.realm.AuthenticatingRealm;
-import org.keycloak.adapters.saml.SamlPrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,11 +56,15 @@ public class SamlRealm
 
   @Override
   protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-    SamlPrincipal samlPrincipal = ((SamlAuthenticationToken) token).getSamlPrincipal();
-    log.debug("Authenticated SAML principal {} with attributes {} and friendly attributes {}",
-        samlPrincipal.getName(), samlPrincipal.getAttributes(), getFriendlyAttributes(samlPrincipal));
+    SamlPrincipalAttributes samlPrincipal = ((SamlAuthenticationToken) token).getSamlPrincipal();
+    log.debug("Authenticated SAML principal {} with attributes {}",
+        samlPrincipal.getName(), samlPrincipal.getAllAttributes());
 
     SamlConfiguration samlConfiguration = samlConfigurationService.get();
+    if (samlConfiguration == null) {
+      // SAML was deconfigured between the filter resolving the registration and this realm running.
+      throw new AuthenticationException("SAML configuration is no longer available");
+    }
     String username =
         Optional.ofNullable(getFirstAttribute(samlPrincipal, samlConfiguration.getUsernameAttributeName()))
             .orElse(samlPrincipal.getName());
@@ -91,7 +92,7 @@ public class SamlRealm
         getName());
   }
 
-  private String getFirstAttribute(SamlPrincipal samlPrincipal, String attributeName) {
+  private String getFirstAttribute(SamlPrincipalAttributes samlPrincipal, String attributeName) {
     String attribute = samlPrincipal.getAttribute(attributeName);
     if (attribute != null) {
       return attribute;
@@ -99,18 +100,14 @@ public class SamlRealm
     return samlPrincipal.getFriendlyAttribute(attributeName);
   }
 
-  private List<String> getAllAttributes(SamlPrincipal samlPrincipal, String attributeName) {
+  private List<String> getAllAttributes(SamlPrincipalAttributes samlPrincipal, String attributeName) {
+    // Attributes keyed by formal Name and by FriendlyName are combined. Implementations must return
+    // disjoint values from these two accessors to avoid duplicates; SpringSamlPrincipal does so by
+    // folding FriendlyNames into the formal-name map and returning empty from getFriendlyAttributes.
     List<String> result = new ArrayList<>();
     result.addAll(samlPrincipal.getAttributes(attributeName));
     result.addAll(samlPrincipal.getFriendlyAttributes(attributeName));
     return result;
   }
 
-  private Map<String, List<String>> getFriendlyAttributes(SamlPrincipal samlPrincipal) {
-    Map<String, List<String>> friendlyAttributes = new HashMap<>();
-    for (String friendlyAttributeName : samlPrincipal.getFriendlyNames()) {
-      friendlyAttributes.put(friendlyAttributeName, samlPrincipal.getFriendlyAttributes(friendlyAttributeName));
-    }
-    return friendlyAttributes;
-  }
 }

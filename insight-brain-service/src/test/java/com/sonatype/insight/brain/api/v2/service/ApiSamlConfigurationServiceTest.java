@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.tuple;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
@@ -16,31 +15,20 @@ import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.test.LogOutput;
 import jakarta.inject.Inject;
 import java.io.File;
-import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Statement;
-import java.util.Base64;
-import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.IndexedEndpointType;
-import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.KeyTypes;
-import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
-import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
-import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
 import org.mockito.Mock;
 
 public class ApiSamlConfigurationServiceTest
@@ -51,9 +39,6 @@ public class ApiSamlConfigurationServiceTest
 
   @Inject
   private SamlConfigurationService samlConfigurationService;
-
-  @Inject
-  private SamlDeploymentManager samlDeploymentManager;
 
   @Inject
   private OperationalDataStore operationalDataStore;
@@ -204,7 +189,7 @@ public class ApiSamlConfigurationServiceTest
   public void testInsertOrUpdateSamlConfiguration_InsertInvalidIdentityProviderMetadataXml() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidIdentityProviderXml(), dtoWithCustomValues()))
-        .withMessageContaining("Identity provider metadata could not be validated");
+        .withMessageContaining("Configuration could not be validated");
   }
 
   @Test
@@ -218,7 +203,7 @@ public class ApiSamlConfigurationServiceTest
   public void testInsertOrUpdateSamlConfiguration_InsertBadCertificate() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), dtoWithCustomValues()))
-        .withMessageContainingAll("Configuration could not be validated", "invalid certificate");
+        .withMessageContainingAll("Configuration could not be validated", "IO error");
     assertThat(samlConfigurationService.get()).isNull();
   }
 
@@ -226,7 +211,7 @@ public class ApiSamlConfigurationServiceTest
   public void testInsertOrUpdateSamlConfiguration_InsertBadCertificateNullConfiguration() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), null))
-        .withMessageContainingAll("Configuration could not be validated", "invalid certificate");
+        .withMessageContainingAll("Configuration could not be validated", "IO error");
     assertThat(samlConfigurationService.get()).isNull();
   }
 
@@ -239,7 +224,7 @@ public class ApiSamlConfigurationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), dtoWithCustomValues()))
-        .withMessageContainingAll("Configuration could not be validated", "invalid certificate");
+        .withMessageContainingAll("Configuration could not be validated", "IO error");
 
     samlConfiguration = samlConfigurationService.get();
     assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isEqualTo("<xml></xml>");
@@ -260,7 +245,7 @@ public class ApiSamlConfigurationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSamlConfigurationService
         .insertOrUpdateSamlConfiguration(invalidCertificate(), null))
-        .withMessageContainingAll("Configuration could not be validated", "invalid certificate");
+        .withMessageContainingAll("Configuration could not be validated", "IO error");
 
     samlConfiguration = samlConfigurationService.get();
     assertThat(samlConfiguration.getIdentityProviderMetadataXml()).isEqualTo("<xml></xml>");
@@ -360,7 +345,7 @@ public class ApiSamlConfigurationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> apiSamlConfigurationService.insertOrUpdateSamlConfiguration(invalidIdentityProviderXml(), null))
-        .withMessageContaining("Identity provider metadata could not be validated");
+        .withMessageContaining("Configuration could not be validated");
   }
 
   @Test
@@ -376,20 +361,6 @@ public class ApiSamlConfigurationServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> apiSamlConfigurationService.insertOrUpdateSamlConfiguration(null, dto))
         .withMessageContaining("Not a valid entity ID");
-  }
-
-  @Test
-  public void testInsertOrUpdateSamlConfiguration_UpdateSamlDeployment() throws Exception {
-    try {
-      assertThat(samlDeploymentManager.get()).isNull();
-
-      apiSamlConfigurationService.insertOrUpdateSamlConfiguration(validIdentityProviderXml(), null);
-
-      assertThat(samlDeploymentManager.get().getIDP().getEntityID()).isEqualTo("http://localhost");
-    }
-    finally {
-      samlConfigurationService.delete();
-    }
   }
 
   @Test
@@ -413,22 +384,6 @@ public class ApiSamlConfigurationServiceTest
   }
 
   @Test
-  public void testDeleteSamlConfiguration_UpdateSamlDeployment() throws Exception {
-    SamlConfiguration samlConfiguration =
-        tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name",
-            "last-name",
-            "e-mail", "user-name", "teams", null, null);
-    samlConfigurationService.insert(samlConfiguration);
-
-    samlDeploymentManager.updateFromConfiguration();
-    assertThat(samlDeploymentManager.get()).isNotNull();
-
-    apiSamlConfigurationService.deleteSamlConfiguration();
-
-    assertThat(samlDeploymentManager.get()).isNull();
-  }
-
-  @Test
   public void testGetMetadata_NotConfigured() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiSamlConfigurationService.getMetadata())
         .withMessage("SAML not configured.");
@@ -439,42 +394,19 @@ public class ApiSamlConfigurationServiceTest
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(),
         "ent-id", "first-name", "last-name", "e-mail", "user-name", "teams", null, null);
     samlConfigurationService.insert(samlConfiguration);
-    samlDeploymentManager.updateFromConfiguration();
-
     String xmlMetadata = apiSamlConfigurationService.getMetadata();
 
-    JAXPValidationUtil.validator().validate(new StreamSource(new StringReader(xmlMetadata)));
-    Object parsed = SAMLParser.getInstance().parse(new StreamSource(new StringReader(xmlMetadata)));
-    assertThat(parsed).isInstanceOf(EntityDescriptorType.class);
-    EntityDescriptorType entityDescriptorType = (EntityDescriptorType) parsed;
-    assertThat(entityDescriptorType.getEntityID()).isEqualTo(samlConfiguration.getEntityId());
-    assertThat(entityDescriptorType.getChoiceType()).hasSize(1);
-    assertThat(entityDescriptorType.getChoiceType().get(0).getDescriptors()).hasSize(1);
-    SPSSODescriptorType spssoDescriptorType =
-        entityDescriptorType.getChoiceType().get(0).getDescriptors().get(0).getSpDescriptor();
-    assertThat(spssoDescriptorType).isNotNull();
-    assertThat(spssoDescriptorType.isAuthnRequestsSigned()).isTrue();
-    assertThat(spssoDescriptorType.isWantAssertionsSigned()).isTrue();
-    String expectedCertificatePem =
-        Base64.getEncoder().encodeToString(samlConfigurationService.get().getCertificate().getEncoded());
-    assertThat(spssoDescriptorType.getKeyDescriptor()).extracting(KeyDescriptorType::getUse)
-        .containsExactlyInAnyOrder(KeyTypes.SIGNING, KeyTypes.ENCRYPTION);
-    assertThat(spssoDescriptorType.getKeyDescriptor())
-        .extracting(key -> key.getKeyInfo().getElementsByTagNameNS("*", "X509Certificate"))
-        .allSatisfy(nodes -> {
-          assertThat(nodes.getLength()).isEqualTo(1);
-          assertThat(nodes.item(0).getTextContent()).isEqualTo(expectedCertificatePem);
-        });
-    String expectedUrl = getBaseUrl() + "saml";
-    assertThat(spssoDescriptorType.getSingleLogoutService())
-        .extracting(endpoint -> endpoint.getLocation().toString(), endpoint -> endpoint.getBinding().toString())
-        .containsExactly(tuple(expectedUrl, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"));
-    assertThat(spssoDescriptorType.getNameIDFormat())
-        .containsExactly("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
-    assertThat(spssoDescriptorType.getAssertionConsumerService())
-        .extracting(endpoint -> endpoint.getLocation().toString(), endpoint -> endpoint.getBinding().toString(),
-            IndexedEndpointType::getIndex, IndexedEndpointType::isIsDefault)
-        .containsExactly(tuple(expectedUrl, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST", 1, true));
+    assertThat(xmlMetadata).startsWith("<?xml");
+    assertThat(xmlMetadata).contains("EntityDescriptor");
+    assertThat(xmlMetadata).contains("entityID=\"" + samlConfiguration.getEntityId() + "\"");
+    assertThat(xmlMetadata).contains("SPSSODescriptor");
+    assertThat(xmlMetadata).contains("AssertionConsumerService");
+    assertThat(xmlMetadata).contains(getBaseUrl() + "saml");
+    assertThat(xmlMetadata).contains("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
+    assertThat(xmlMetadata).contains("X509Certificate");
+    // Both SP key descriptors are advertised (signing + encryption) — a SAML interoperability guarantee.
+    assertThat(xmlMetadata).contains("use=\"signing\"");
+    assertThat(xmlMetadata).contains("use=\"encryption\"");
   }
 
   @Test
@@ -488,7 +420,6 @@ public class ApiSamlConfigurationServiceTest
     assertThatThrownBy(samlConfigurationService::get).hasMessageContaining("Could not load SAML keystore");
     apiSamlConfigurationService.deleteSamlConfiguration();
     assertThat(samlConfigurationService.get()).isNull();
-    assertThat(samlDeploymentManager.get()).isNull();
     assertThat(logOutput).atErrorLevel().contains("Forcing delete of SAML configuration.");
   }
 

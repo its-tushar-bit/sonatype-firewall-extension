@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.apache.commons.io.FileUtils;
@@ -56,7 +55,6 @@ public class ApiSamlConfigurationResourceAuditTest
   @After
   public void cleanup() {
     samlConfigurationService.delete();
-    getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
   }
 
   @Test

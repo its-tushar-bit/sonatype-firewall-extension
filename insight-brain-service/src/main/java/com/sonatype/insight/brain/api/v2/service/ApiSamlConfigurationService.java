@@ -5,16 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Base64;
-import java.util.Collections;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.core.UriBuilder;
-import javax.xml.stream.XMLStreamWriter;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
@@ -24,25 +20,18 @@ import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
-import com.sonatype.insight.brain.security.SamlMetadataTool;
+import com.sonatype.insight.brain.security.SamlConfigurationCache;
+import com.sonatype.insight.brain.security.SamlConstants;
+import com.sonatype.insight.brain.security.SamlRelyingPartyRegistrationResolver;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.keycloak.adapters.saml.SamlDeployment;
-import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.KeyTypes;
-import org.keycloak.saml.SPMetadataDescriptor;
-import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
-import org.keycloak.saml.common.exceptions.ProcessingException;
-import org.keycloak.saml.common.util.StaxUtil;
-import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Element;
+import org.springframework.security.saml2.provider.service.metadata.OpenSaml5MetadataResolver;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 
 /**
  * @since 1.72
@@ -56,21 +45,23 @@ public class ApiSamlConfigurationService
 
   private final BaseUrl baseUrl;
 
-  private final SamlMetadataTool samlMetadataTool;
+  private final SamlRelyingPartyRegistrationResolver relyingPartyRegistrationResolver;
 
-  private final SamlDeploymentManager samlDeploymentManager;
+  private final SamlConfigurationCache samlConfigurationCache;
+
+  private final OpenSaml5MetadataResolver metadataResolver = new OpenSaml5MetadataResolver();
 
   @Inject
   public ApiSamlConfigurationService(
       SamlConfigurationService samlConfigurationService,
       BaseUrl baseUrl,
-      SamlMetadataTool samlMetadataTool,
-      SamlDeploymentManager samlDeploymentManager)
+      SamlRelyingPartyRegistrationResolver relyingPartyRegistrationResolver,
+      SamlConfigurationCache samlConfigurationCache)
   {
     this.samlConfigurationService = samlConfigurationService;
     this.baseUrl = baseUrl;
-    this.samlMetadataTool = samlMetadataTool;
-    this.samlDeploymentManager = samlDeploymentManager;
+    this.relyingPartyRegistrationResolver = relyingPartyRegistrationResolver;
+    this.samlConfigurationCache = samlConfigurationCache;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -102,7 +93,7 @@ public class ApiSamlConfigurationService
     // Updating the existing configurations xml only, meaning keep my configuration
     if (update && apiSamlConfigurationDTO == null) {
       validateAndSetIdentityProviderXml(identityProviderXml, persisted);
-      checkSamlDeploymentAndPersist(persisted);
+      validateAndPersist(persisted);
       return;
     }
 
@@ -128,15 +119,17 @@ public class ApiSamlConfigurationService
     if (update) {
       samlConfiguration.setId(persisted.getId());
     }
-    checkSamlDeploymentAndPersist(samlConfiguration);
+    validateAndPersist(samlConfiguration);
   }
 
-  private void checkSamlDeploymentAndPersist(SamlConfiguration samlConfiguration) {
+  private void validateAndPersist(SamlConfiguration samlConfiguration) {
     try {
-      samlDeploymentManager.parse(samlConfiguration);
+      relyingPartyRegistrationResolver.build(samlConfiguration, samlEndpointUrl());
     }
-    catch (IllegalArgumentException e) {
-      log.debug("Configuration could not be validated.", e);
+    catch (RuntimeException e) {
+      // Log at warn with the cause: build() can fail on bad admin input (returned as 400) but also on an
+      // unexpected server error, which would otherwise be masked as a user "could not be validated" error.
+      log.warn("SAML configuration could not be validated.", e);
       throw new BadRequestException("Configuration could not be validated: " + e.getMessage(), e);
     }
 
@@ -147,8 +140,8 @@ public class ApiSamlConfigurationService
       samlConfigurationService.insert(samlConfiguration);
     }
 
-    samlDeploymentManager.updateAllClusterNodesFromConfiguration();
     audit(samlConfiguration);
+    samlConfigurationCache.refreshAllClusterNodes();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -160,7 +153,7 @@ public class ApiSamlConfigurationService
     catch (Exception e) {
       log.error("Forcing delete of SAML configuration.", e);
       samlConfigurationService.delete();
-      samlDeploymentManager.updateAllClusterNodesFromConfiguration();
+      samlConfigurationCache.refreshAllClusterNodes();
       return;
     }
 
@@ -169,42 +162,19 @@ public class ApiSamlConfigurationService
     }
 
     samlConfigurationService.delete();
-    samlDeploymentManager.updateAllClusterNodesFromConfiguration();
     audit(samlConfiguration);
+    samlConfigurationCache.refreshAllClusterNodes();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public String getMetadata() {
-    SamlDeployment samlDeployment = samlDeploymentManager.get();
-    if (samlDeployment == null) {
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
+    if (samlConfiguration == null) {
       throw new NotFoundException("SAML not configured.");
     }
-    URI samlEndpointUrl = UriBuilder.fromUri(baseUrl.get()).path("saml").build();
-    try {
-      String certificatePem =
-          Base64.getEncoder().encodeToString(samlConfigurationService.get().getCertificate().getEncoded());
-      Element keyElement = SPMetadataDescriptor.buildKeyInfoElement(null, certificatePem);
-      KeyDescriptorType signingCert = SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.SIGNING);
-      KeyDescriptorType encryptionCert = SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.ENCRYPTION);
-      URI bindingUri = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
-      EntityDescriptorType spDescriptor = SPMetadataDescriptor.buildSPDescriptor(bindingUri,
-          bindingUri, samlEndpointUrl, samlEndpointUrl, samlDeployment.getIDP().getSingleSignOnService().signRequest(),
-          samlDeployment.getIDP().getSingleSignOnService().validateAssertionSignature(), true,
-          samlDeployment.getEntityID(), samlDeployment.getNameIDPolicyFormat(), //
-          Collections.singletonList(signingCert), Collections.singletonList(encryptionCert));
-      return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + spDescriptorAsString(spDescriptor);
-    }
-    catch (Exception e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  private String spDescriptorAsString(EntityDescriptorType spDescriptor) throws ProcessingException {
-    StringWriter sw = new StringWriter();
-    XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
-    SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
-    metadataWriter.writeEntityDescriptor(spDescriptor);
-    return sw.toString();
+    RelyingPartyRegistration registration =
+        relyingPartyRegistrationResolver.build(samlConfiguration, samlEndpointUrl());
+    return metadataResolver.resolve(registration);
   }
 
   private ApiSamlConfigurationResponseDTO convertToResponseDTO(SamlConfiguration samlConfiguration) {
@@ -226,13 +196,7 @@ public class ApiSamlConfigurationService
     if (StringUtils.isBlank(identityProviderXml)) {
       throw new BadRequestException("Identity Provider XML is required.");
     }
-    try {
-      samlMetadataTool.parseEntityDescriptor(identityProviderXml);
-      samlConfiguration.setIdentityProviderMetadataXml(identityProviderXml);
-    }
-    catch (Exception e) {
-      throw new BadRequestException("Identity provider metadata could not be validated: " + e.getMessage(), e);
-    }
+    samlConfiguration.setIdentityProviderMetadataXml(identityProviderXml);
   }
 
   private void overrideDefaultsWithProvided(
@@ -286,9 +250,16 @@ public class ApiSamlConfigurationService
         .toString();
   }
 
+  private String samlEndpointUrl() {
+    return UriBuilder.fromUri(baseUrl.get()).path(SamlConstants.SAML_REQUEST_PATH).build().toString();
+  }
+
   private void audit(SamlConfiguration samlConfiguration) {
-    String identityProviderMetadataXml = samlConfiguration.getIdentityProviderMetadataXml();
-    String identityProviderEntityId = samlMetadataTool.parseEntityDescriptor(identityProviderMetadataXml).getEntityID();
+    // Auditing reads only the IdP (asserting-party) entityId from the parsed metadata; the SP ACS location
+    // is irrelevant here, so it must not depend on the (possibly unconfigured) base URL.
+    RelyingPartyRegistration registration = relyingPartyRegistrationResolver
+        .build(samlConfiguration, "https://localhost" + SamlConstants.SAML_REQUEST_PATH);
+    String identityProviderEntityId = registration.getAssertingPartyMetadata().getEntityId();
     AuditData.get()
         .setData("identityProviderName", samlConfiguration.getIdentityProviderName())
         .setData("entityId", samlConfiguration.getEntityId())

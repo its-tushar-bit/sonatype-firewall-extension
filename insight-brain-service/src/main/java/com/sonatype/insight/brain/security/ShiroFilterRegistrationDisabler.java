@@ -65,7 +65,9 @@ public class ShiroFilterRegistrationDisabler
   }
 
   @Bean
-  public FilterRegistrationBean<SamlFilter> disableSamlFilter(SamlFilter filter) {
+  public FilterRegistrationBean<SpringSamlAuthenticatingFilter> disableSamlFilter(
+      SpringSamlAuthenticatingFilter filter)
+  {
     return disableAutoRegistration(filter);
   }
 

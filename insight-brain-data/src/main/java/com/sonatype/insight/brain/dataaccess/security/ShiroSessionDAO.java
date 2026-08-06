@@ -22,8 +22,6 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.session.mgt.eis.AbstractSessionDAO;
-import org.keycloak.adapters.saml.SamlSessionStore;
-import org.keycloak.adapters.saml.SamlSessionStore.CurrentAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,12 +135,6 @@ public class ShiroSessionDAO
   }
 
   private void cacheSession(Session session, PersistedUserSession persistedUserSession) {
-    // Do not cache a SAML user session as they log in/out to avoid infinite redirect loops in a multi-node setup
-    // see https://issues.sonatype.org/browse/CLM-23061 for more details
-    Object samlCurrentAction = session.getAttribute(SamlSessionStore.CURRENT_ACTION);
-    if (samlCurrentAction != null && samlCurrentAction != CurrentAction.NONE) {
-      return;
-    }
     SESSION_CACHE.get()
         .put(session.getId(), new SessionAndStoredJson((SimpleSession) session, persistedUserSession.getSessionJson()));
   }

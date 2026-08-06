@@ -57,8 +57,8 @@ public class JobClassNameTest
         "PersistedScanTicketCleaner");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.security.ClearRolePermissionCache",
         "ClearRolePermissionCache");
-    insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.security.SamlDeploymentManager",
-        "SamlDeployment");
+    insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.security.SamlConfigurationCache",
+        "SamlConfigurationCache");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger",
         "SuccessMetricsPurger");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.telemetry.ClusterTelemetryTask",

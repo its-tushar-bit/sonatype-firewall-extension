@@ -9,11 +9,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.empty;
@@ -27,12 +25,6 @@ public class LoginTest
     extends AbstractFunctionalTest
 {
   private final LoginModal loginModal = new LoginModal();
-
-  @Before
-  @After
-  public void clearSamlDeployment() {
-    testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
-  }
 
   @After
   public void clearCookies() {

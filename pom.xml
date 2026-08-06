@@ -52,10 +52,6 @@
     <!-- When updating shiro, check if it uses commons-beanutils >= 1.11.0.
          If yes, then remove the dependency management for commons-beanutils below. -->
     <shiro.version>2.2.0</shiro.version>
-    <!-- Also update the jboss/keycloak docker image version in the KeycloakServer java class.
-     keycloak 24.x migrated to jakarta (breaking change from javax).
-     keycloak 25.x has major breaking changes. -->
-    <keycloak.version>26.7.0</keycloak.version>
     <bc-fips.version>2.1.3</bc-fips.version>
     <bc-fips-util.version>2.1.7</bc-fips-util.version>
     <bcpkix-fips.version>2.1.12</bcpkix-fips.version>
@@ -181,8 +177,6 @@
     <module>insight-brain-playwright-test</module>
     <module>insight-brain-mtiq-playwright-tests</module>
     <module>insight-brain-api-regression-test</module>
-    <module>keycloak-server</module>
-    <module>vendored-keycloak-saml-servlet-filter-adapter</module>
     <module>gitlab-server</module>
     <module>docker-utils</module>
   </modules>
@@ -214,12 +208,6 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>hds-mock-server</artifactId>
-        <version>1.207.0-SNAPSHOT</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.brain</groupId>
-        <artifactId>keycloak-server</artifactId>
         <version>1.207.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
@@ -347,11 +335,6 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>nexus-mtiq-server</artifactId>
-        <version>1.207.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.brain</groupId>
-        <artifactId>vendored-keycloak-saml-servlet-filter-adapter</artifactId>
         <version>1.207.0-SNAPSHOT</version>
       </dependency>
       <dependency>
@@ -672,64 +655,6 @@
           <exclusion>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-core</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-saml-adapter-core</artifactId>
-        <version>${keycloak.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-crypto-default</artifactId>
-        <version>${keycloak.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-server-spi-private</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-saml-adapter-api-public</artifactId>
-        <version>${keycloak.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-adapter-spi</artifactId>
-        <version>${keycloak.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-common</artifactId>
-        <version>${keycloak.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-saml-core</artifactId>
-        <version>${keycloak.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>rt</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-core</artifactId>
-        <version>${keycloak.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-server-spi-private</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

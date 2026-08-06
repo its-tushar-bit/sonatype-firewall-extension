@@ -28,8 +28,6 @@ import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.junit.Before;
 import org.junit.Test;
-import org.keycloak.adapters.saml.SamlSessionStore;
-import org.keycloak.adapters.saml.SamlSessionStore.CurrentAction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -443,28 +441,12 @@ public class ShiroSessionDAOTest
 
   @Test
   public void testDoReadSession_Null() {
-    testDoReadSession(null, true);
+    testDoReadSession(true);
   }
 
-  @Test
-  public void testDoReadSession_SamlLoggingIn() {
-    testDoReadSession(CurrentAction.LOGGING_IN, false);
-  }
-
-  @Test
-  public void testDoReadSession_SamlLoggingOut() {
-    testDoReadSession(CurrentAction.LOGGING_OUT, false);
-  }
-
-  @Test
-  public void testDoReadSession_SamlNoAction() {
-    testDoReadSession(CurrentAction.NONE, true);
-  }
-
-  private void testDoReadSession(CurrentAction currentAction, boolean shouldStoreInCache) {
+  private void testDoReadSession(boolean shouldStoreInCache) {
     SimpleSession session = createSession();
     session.setId("id");
-    session.setAttribute(SamlSessionStore.CURRENT_ACTION, currentAction);
     PersistedUserSession persistedUserSession = new PersistedUserSession(session);
     persistedUserSessionDAO.insert(persistedUserSession);
 
@@ -476,25 +458,10 @@ public class ShiroSessionDAOTest
 
   @Test
   public void testUpdateSession_Null() {
-    testUpdate(null, true);
+    testUpdate(true);
   }
 
-  @Test
-  public void testUpdateSession_SamlLoggingIn() {
-    testUpdate(CurrentAction.LOGGING_IN, false);
-  }
-
-  @Test
-  public void testUpdateSession_SamlLoggingOut() {
-    testUpdate(CurrentAction.LOGGING_OUT, false);
-  }
-
-  @Test
-  public void testUpdateSession_SamlNoAction() {
-    testUpdate(CurrentAction.NONE, true);
-  }
-
-  private void testUpdate(CurrentAction currentAction, boolean shouldStoreInCache) {
+  private void testUpdate(boolean shouldStoreInCache) {
     SimpleSession session = createSession();
     session.setId("id");
     PersistedUserSession persistedUserSession = new PersistedUserSession(session);
@@ -504,7 +471,6 @@ public class ShiroSessionDAOTest
           .put(session.getId(), new SessionAndStoredJson(session, PersistedUserSession.simpleSessionToJson(session)));
     }
 
-    session.setAttribute(SamlSessionStore.CURRENT_ACTION, currentAction);
     shiroSessionDAO.update(session);
 
     assertThat(getSessionFromCache(session.getId()) != null).isEqualTo(shouldStoreInCache);

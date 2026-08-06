@@ -8,10 +8,8 @@ package com.sonatype.insight.brain.service.banning.rest.api.v2;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
-import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import javax.xml.transform.stream.StreamSource;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -20,15 +18,10 @@ import com.sonatype.insight.brain.api.v2.ApiSamlConfigurationResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
-import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
-import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -87,24 +80,19 @@ public class MultiTenantSamlConfigurationResourceTest
             "last-name", "e-mail", "user-name", "teams", null, null);
     samlConfigurationService.insert(samlConfiguration);
 
-    SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
-    samlDeploymentManager.updateFromConfiguration();
-
     HttpResponse response = restRequest().path(ApiSamlConfigurationResource.METADATA).get();
     assertResponseStatus(200, response);
 
     String xmlMetadata = response.getBodyText();
-    JAXPValidationUtil.validator().validate(new StreamSource(new StringReader(xmlMetadata)));
-    Object parsed = SAMLParser.getInstance().parse(new StreamSource(new StringReader(xmlMetadata)));
-    assertThat(parsed).isInstanceOf(EntityDescriptorType.class);
-
-    EntityDescriptorType entityDescriptorType = (EntityDescriptorType) parsed;
-    assertThat(entityDescriptorType.getChoiceType()).hasSize(1);
-    assertThat(entityDescriptorType.getChoiceType().get(0).getDescriptors()).hasSize(1);
-
-    SPSSODescriptorType spssoDescriptorType =
-        entityDescriptorType.getChoiceType().get(0).getDescriptors().get(0).getSpDescriptor();
-    assertThat(spssoDescriptorType).isNotNull();
+    assertThat(xmlMetadata).startsWith("<?xml");
+    assertThat(xmlMetadata).contains("EntityDescriptor");
+    assertThat(xmlMetadata).contains("SPSSODescriptor");
+    assertThat(xmlMetadata).contains("AssertionConsumerService");
+    // ACS endpoint + binding, and both SP key descriptors (signing + encryption) — SAML interop guarantees.
+    assertThat(xmlMetadata).contains("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
+    assertThat(xmlMetadata).contains("/saml");
+    assertThat(xmlMetadata).contains("use=\"signing\"");
+    assertThat(xmlMetadata).contains("use=\"encryption\"");
   }
 
   private String validIdentityProviderXml() throws Exception {

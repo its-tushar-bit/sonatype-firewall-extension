@@ -127,6 +127,13 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- SAML2 SP support (OpenSAML5). Note: this brings Spring Security core/web/crypto
+         transitively, but Apache Shiro remains the application's primary auth framework;
+         the SAML2 stack is used only for the SAML authentication engine (CLM-42790). -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-saml2-service-provider</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjweaver</artifactId>
@@ -446,13 +453,6 @@
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
-    <!-- javax.servlet-api needed for SAML filter that interfaces with vendored Keycloak adapter -->
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>3.1.0</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>jakarta.annotation</groupId>
       <artifactId>jakarta.annotation-api</artifactId>
@@ -626,11 +626,6 @@
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
       <classifier>jakarta</classifier>
-    </dependency>
-
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>vendored-keycloak-saml-servlet-filter-adapter</artifactId>
     </dependency>
 
     <dependency>

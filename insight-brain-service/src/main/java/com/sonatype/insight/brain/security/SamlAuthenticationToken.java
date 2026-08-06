@@ -8,19 +8,18 @@ package com.sonatype.insight.brain.security;
 import java.util.Objects;
 
 import org.apache.shiro.authc.AuthenticationToken;
-import org.keycloak.adapters.saml.SamlPrincipal;
 
 @SuppressWarnings("serial")
 public class SamlAuthenticationToken
     implements AuthenticationToken
 {
-  private final SamlPrincipal samlPrincipal;
+  private final SamlPrincipalAttributes samlPrincipal;
 
-  public SamlAuthenticationToken(SamlPrincipal samlPrincipal) {
+  public SamlAuthenticationToken(SamlPrincipalAttributes samlPrincipal) {
     this.samlPrincipal = Objects.requireNonNull(samlPrincipal);
   }
 
-  public SamlPrincipal getSamlPrincipal() {
+  public SamlPrincipalAttributes getSamlPrincipal() {
     return samlPrincipal;
   }
 

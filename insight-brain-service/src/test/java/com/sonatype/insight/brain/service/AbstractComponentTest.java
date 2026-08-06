@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.security.InternalRealm;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
@@ -562,10 +561,6 @@ public class AbstractComponentTest
     resetProductLicenseTestState();
     destroyStorageScopedSingletons();
 
-    SamlDeploymentManager samlDeploymentManager = lookupIfAvailable(SamlDeploymentManager.class);
-    if (samlDeploymentManager != null) {
-      samlDeploymentManager.deregister();
-    }
   }
 
   private void runCleanupStep(final String description, final Runnable cleanup) {

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata"
-  xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" entityID="test-entity-id">
-  <IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
-      Location="http://localhost:8080/saml" />
-  </IDPSSODescriptor>
-</EntityDescriptor>

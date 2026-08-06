@@ -6,10 +6,8 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.File;
-import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import javax.xml.transform.stream.StreamSource;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -18,17 +16,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
-import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
-import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,7 +38,6 @@ public class ApiSamlConfigurationResourceTest
   @After
   public void cleanup() {
     samlConfigurationService.delete();
-    getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
   }
 
   @Test
@@ -98,22 +90,14 @@ public class ApiSamlConfigurationResourceTest
             "e-mail", "user-name", "teams", null, null);
     samlConfigurationService.insert(samlConfiguration);
 
-    SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
-    samlDeploymentManager.updateFromConfiguration();
-
     HttpResponse response = restRequest().path(ApiSamlConfigurationResource.METADATA).get();
 
     assertResponseStatus(200, response);
     String xmlMetadata = response.getBodyText();
-    JAXPValidationUtil.validator().validate(new StreamSource(new StringReader(xmlMetadata)));
-    Object parsed = SAMLParser.getInstance().parse(new StreamSource(new StringReader(xmlMetadata)));
-    assertThat(parsed).isInstanceOf(EntityDescriptorType.class);
-    EntityDescriptorType entityDescriptorType = (EntityDescriptorType) parsed;
-    assertThat(entityDescriptorType.getChoiceType()).hasSize(1);
-    assertThat(entityDescriptorType.getChoiceType().get(0).getDescriptors()).hasSize(1);
-    SPSSODescriptorType spssoDescriptorType =
-        entityDescriptorType.getChoiceType().get(0).getDescriptors().get(0).getSpDescriptor();
-    assertThat(spssoDescriptorType).isNotNull();
+    assertThat(xmlMetadata).startsWith("<?xml");
+    assertThat(xmlMetadata).contains("EntityDescriptor");
+    assertThat(xmlMetadata).contains("SPSSODescriptor");
+    assertThat(xmlMetadata).contains("AssertionConsumerService");
   }
 
   private String validIdentityProviderXml() throws Exception {

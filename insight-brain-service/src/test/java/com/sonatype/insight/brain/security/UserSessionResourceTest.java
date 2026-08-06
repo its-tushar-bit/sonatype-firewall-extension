@@ -34,7 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserSessionResourceTest
     extends AbstractResourceTest
 {
-  public SamlDeploymentManager samlDeploymentManager;
 
   @Override
   protected HttpRequest restRequest() {
@@ -63,7 +62,6 @@ public class UserSessionResourceTest
 
   @Before
   public void before() {
-    samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
   }
 
   @Test
@@ -208,7 +206,6 @@ public class UserSessionResourceTest
     SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(auth0IdpXml(), null);
     samlConfigurationService.insert(samlConfiguration);
-    samlDeploymentManager.updateFromConfiguration();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
 
@@ -220,8 +217,6 @@ public class UserSessionResourceTest
 
   @Test
   public void testUrlDefaultsWhenAuth0LogoutSetButNoSamlConfig() throws Exception {
-    // Ensure the config is re-read
-    samlDeploymentManager.register();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
 

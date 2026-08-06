@@ -12,10 +12,8 @@ import com.sonatype.clm.testing.playwright.pages.LoginPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponentAssertions;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -32,12 +30,6 @@ public class LoginPlaywrightTest
   private static final String INVALID_PASSWORD = "user";
 
   private static final String INVALID_CREDENTIALS_MESSAGE = "Invalid credentials";
-
-  @Before
-  @After
-  public void clearSamlDeployment() {
-    testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
-  }
 
   @After
   public void clearCookies() {

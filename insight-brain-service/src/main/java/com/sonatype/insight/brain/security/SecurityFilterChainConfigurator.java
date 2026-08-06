@@ -53,7 +53,7 @@ public class SecurityFilterChainConfigurator
 
   private final MissingAuthenticationFilter missingAuthenticationFilter;
 
-  private final SamlFilter samlFilter;
+  private final SpringSamlAuthenticatingFilter springSamlFilter;
 
   private final InvalidRequestFilter invalidRequestFilter;
 
@@ -74,7 +74,7 @@ public class SecurityFilterChainConfigurator
       SecureCookiesFilter secureCookiesFilter,
       SessionExpirationCookieFilter sessionExpirationCookieFilter,
       MissingAuthenticationFilter missingAuthenticationFilter,
-      SamlFilter samlFilter,
+      SpringSamlAuthenticatingFilter springSamlFilter,
       InvalidRequestFilter invalidRequestFilter,
       JwtAuthenticationFilter jwtAuthenticationFilter,
       OidcLoginFilter oidcLoginFilter,
@@ -89,7 +89,7 @@ public class SecurityFilterChainConfigurator
     this.secureCookiesFilter = secureCookiesFilter;
     this.sessionExpirationCookieFilter = sessionExpirationCookieFilter;
     this.missingAuthenticationFilter = missingAuthenticationFilter;
-    this.samlFilter = samlFilter;
+    this.springSamlFilter = springSamlFilter;
     this.invalidRequestFilter = invalidRequestFilter;
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     this.oidcLoginFilter = oidcLoginFilter;
@@ -119,7 +119,7 @@ public class SecurityFilterChainConfigurator
     filterChainManager.addFilter("clientIPAddressFilter", clientIPAddressFilter);
     filterChainManager.addFilter("apiAccessControlFilter", apiAccessControlFilter);
     filterChainManager.addFilter("requireAuth", missingAuthenticationFilter);
-    filterChainManager.addFilter("saml", samlFilter);
+    filterChainManager.addFilter("saml", springSamlFilter);
     filterChainManager.addFilter("reverseProxy", reverseProxyAuthenticationFilter);
     filterChainManager.addFilter("secureCookies", secureCookiesFilter);
     filterChainManager.addFilter("sessionExpirationCookie", sessionExpirationCookieFilter);

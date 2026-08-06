@@ -71,7 +71,7 @@ In this mode the test server starts on fixed port 8072 (matching the dev server 
 - **Frontend (Legacy IQ UI)**: React 19, Redux Toolkit, UI Router, esbuild, SCSS
 - **Frontend (Guide SPA)**: React 19, React Router 7, `@guide/ui-core`, Radix UI Themes, TypeScript, CSS Modules
 - **Testing**: JUnit 4, Mockito, Selenium, Jest, React Testing Library
-- **Security**: Apache Shiro, Keycloak SAML
+- **Security**: Apache Shiro, Spring Security SAML2 (OpenSAML5)
 
 ### Key Configuration
 - Main config files: `config.yml` (Dropwizard YAML)
@@ -188,7 +188,7 @@ Based on analysis of 300 merged PRs, 15 reverts, 81 bug-fix PRs, and 100+ Jira b
 ### 4. Regressions
 - If the PR modifies **policy evaluation** or Drools rules: flag for extra scrutiny (historically high regression area across v195/v196 releases). CLM-38699: DependencyType condition with other conditions never matches
 - If the PR modifies **SBOM processing** (CycloneDX/SPDX): check for API backward compatibility (CLM-37982: DELETE SBOM API broke in v195). Verify non-standard license identifiers are handled gracefully — recurring failures on Artistic-dist (CLM-38792), SMAIL-GPL (CLM-38555), license URLs exceeding 200 chars (CLM-38729), and SPDX license expressions (CLM-38381)
-- If the PR modifies **authentication/authorization** (Shiro, Keycloak, GitHub App): verify all auth modes still work and inheritance logic doesn't bypass security checks. GitHub App auth is the #1 source of bugs: 29 PRs, 2 reverts, 13+ Jira bugs since Dec 2025
+- If the PR modifies **authentication/authorization** (Shiro, Spring Security SAML2, GitHub App): verify all auth modes still work and inheritance logic doesn't bypass security checks. GitHub App auth is the #1 source of bugs: 29 PRs, 2 reverts, 13+ Jira bugs since Dec 2025
 - If the PR modifies **OpenSearch queries**: flag for performance review
 - If the PR removes or changes `@Transactional` boundaries or OpenJPA entity relationships: flag potential data consistency issues. Entity manager lifecycle bugs cause "entity manager closed" exceptions when accessed across thread boundaries or in async callbacks (PR #15190)
 - If the PR changes **feature flag** logic (`SystemConfigurationPropertyFeature`): verify `enabledWhenAbsent` behavior is correct (CLM-38204). Incorrect feature gating silently disables functionality — CLM-38213 (Critical): container scanning returned no violations because feature was gated on license feature
@@ -231,7 +231,7 @@ GitHub App authentication is the highest-churn, highest-bug-rate area in the cod
 - **Static allocation**: avoid creating new collections per method invocation when a static final field suffices (PR #14899: `new HashSet<>(Set.of(...))` on every call → `private static final Set`)
 
 ### 9. Security
-- **Authentication bypass**: changes to Shiro configuration, Keycloak SAML, or GitHub App auth that might skip auth for protected endpoints
+- **Authentication bypass**: changes to Shiro configuration, Spring Security SAML2, or GitHub App auth that might skip auth for protected endpoints
 - **Authorization logic**: filter/permission bypasses (PR #15273: container waiver permission filtering fix). GitHub App auth inheritance must not bypass security checks at any level (PR #15297, CLM-38874)
 - **Feature-gated security scanning**: incorrect feature flag checks can silently disable security functionality. CLM-38213 (Critical): container scanning returned no policy violations because the feature was gated on a license feature the customer didn't have — scans should fail explicitly rather than silently return empty results
 - **Cookie security**: SameSite attributes, HttpOnly flags (CLM-31884)

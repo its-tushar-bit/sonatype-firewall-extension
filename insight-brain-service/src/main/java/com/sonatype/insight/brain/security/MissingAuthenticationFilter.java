@@ -26,7 +26,7 @@ import org.apache.shiro.web.filter.authc.AuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.security.SamlFilter.SAML_REQUEST_PATH;
+import static com.sonatype.insight.brain.security.SamlConstants.SAML_REQUEST_PATH;
 
 /**
  * Filter to be used at the end of the authentication chain to block access if the subject was not authenticated by any

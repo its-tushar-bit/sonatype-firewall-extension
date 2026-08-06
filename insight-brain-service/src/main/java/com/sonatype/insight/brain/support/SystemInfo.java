@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicensingModel;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.ApplicationLifecycle;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -99,8 +98,6 @@ public class SystemInfo
 
   private final CLMLicenseManager clmLicenseManager;
 
-  private final SamlDeploymentManager samlDeploymentManager;
-
   private final SamlConfigurationService samlConfigurationService;
 
   private final MailConfigurationDAO mailConfigurationDAO;
@@ -124,8 +121,7 @@ public class SystemInfo
       final ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       final Configuration configuration,
       final RelayRegistrationService relayRegistrationService,
-      final RelayPollerCounters relayPollerCounters,
-      SamlDeploymentManager samlDeploymentManager)
+      final RelayPollerCounters relayPollerCounters)
   {
     this.insightConfig = insightConfig;
     this.insightWork = insightWork;
@@ -137,7 +133,6 @@ public class SystemInfo
     this.configuration = configuration;
     this.relayRegistrationService = relayRegistrationService;
     this.relayPollerCounters = relayPollerCounters;
-    this.samlDeploymentManager = samlDeploymentManager;
   }
 
   static boolean isSensitiveKey(final String key) {
@@ -518,12 +513,18 @@ public class SystemInfo
     if (samlInfo.samlConfiguration == null) {
       return "null";
     }
-    Set<String> excluded = Sets.newHashSet("decryptionKey", "signingKeyPair", "signatureValidationKeyLocator");
+    // Allowlist of known-safe SamlConfiguration fields: any field not listed here (including future or
+    // sensitive ones such as private keys) is redacted by default, so a newly added secret cannot silently
+    // leak into support info.
+    Set<String> allowed = Sets.newHashSet("id", "identityProviderName", "identityProviderMetadataXml",
+        "entityId", "firstNameAttributeName", "lastNameAttributeName", "emailAttributeName",
+        "usernameAttributeName", "groupsAttributeName", "validateResponseSignature",
+        "validateAssertionSignature", "certificate");
     ExclusionStrategy exclusionStrategy = new ExclusionStrategy()
     {
       @Override
       public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        return excluded.stream().anyMatch(e -> e.equalsIgnoreCase(fieldAttributes.getName()));
+        return !allowed.contains(fieldAttributes.getName());
       }
 
       @Override
@@ -533,7 +534,7 @@ public class SystemInfo
     };
     try {
       String json =
-          new GsonBuilder().setExclusionStrategies(exclusionStrategy).create().toJson(samlDeploymentManager.get());
+          new GsonBuilder().setExclusionStrategies(exclusionStrategy).create().toJson(samlConfigurationService.get());
       samlInfo.samlDeployment = new ObjectMapper().readValue(json, new TypeReference<HashMap<String, Object>>()
       {
       });

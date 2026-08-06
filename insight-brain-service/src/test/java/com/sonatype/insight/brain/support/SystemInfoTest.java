@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicensingModel;
 import com.sonatype.insight.brain.relay.RelayPollerCounters;
 import com.sonatype.insight.brain.relay.RelayRegistrationService;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.ApplicationLifecycle;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -41,7 +40,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -67,8 +65,6 @@ public class SystemInfoTest
 
   private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
-  private SamlDeploymentManager samlDeploymentManager;
-
   private Configuration configuration;
 
   private RelayRegistrationService relayRegistrationService;
@@ -89,7 +85,6 @@ public class SystemInfoTest
     samlConfigurationService = mock(SamlConfigurationService.class);
     mailConfigurationDAO = mock(MailConfigurationDAO.class);
     proxyServerConfigurationDAO = mock(ProxyServerConfigurationDAO.class);
-    samlDeploymentManager = mock(SamlDeploymentManager.class);
     configuration = mock(Configuration.class);
     relayRegistrationService = mock(RelayRegistrationService.class);
     relayPollerCounters = new RelayPollerCounters();
@@ -104,8 +99,7 @@ public class SystemInfoTest
         proxyServerConfigurationDAO,
         configuration,
         relayRegistrationService,
-        relayPollerCounters,
-        samlDeploymentManager);
+        relayPollerCounters);
   }
 
   @After
@@ -243,7 +237,6 @@ public class SystemInfoTest
     when(samlConfigurationService.get()).thenReturn(null);
 
     assertThat(systemInfo.getSamlInfo()).isEqualTo("null");
-    Mockito.verifyNoInteractions(samlDeploymentManager);
   }
 
   @Test

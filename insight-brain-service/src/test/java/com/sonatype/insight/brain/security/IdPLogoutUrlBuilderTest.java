@@ -27,9 +27,6 @@ public class IdPLogoutUrlBuilderTest
     extends AbstractComponentTest
 {
   @Inject
-  public SamlDeploymentManager samlDeploymentManager;
-
-  @Inject
   private BaseUrl baseUrl;
 
   @Inject
@@ -48,7 +45,6 @@ public class IdPLogoutUrlBuilderTest
   @Test
   public void testBuildIdPLogoutUrl_shouldReturnAuth0LogoutFromSamlConfiguration() {
     samlConfigurationService.insert(tempEntity.newSamlConfiguration(auth0IdpXml(), null));
-    samlDeploymentManager.updateFromConfiguration();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
 
@@ -82,7 +78,6 @@ public class IdPLogoutUrlBuilderTest
 
     // Saml configuration
     samlConfigurationService.insert(tempEntity.newSamlConfiguration(auth0IdpXml(), null));
-    samlDeploymentManager.updateFromConfiguration();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
 
@@ -93,8 +88,6 @@ public class IdPLogoutUrlBuilderTest
 
   @Test
   public void testBuildIdPLogoutUrl_shouldReturnNullIfOssConfigurationIsNotSet() {
-    // Ensure the config is re-read
-    samlDeploymentManager.register();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
 
@@ -104,8 +97,6 @@ public class IdPLogoutUrlBuilderTest
 
   @Test
   public void testBuildIdPLogoutUrl_shouldReturnNullIfLogoutAuth0OnLogoutPropertyIsFalse() {
-    // Ensure the config is re-read
-    samlDeploymentManager.register();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "false");
 

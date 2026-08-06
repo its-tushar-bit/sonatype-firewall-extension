@@ -5,6 +5,7 @@
  */
 import { bundleIndexUrl, isNexusOneBundle } from 'MainRoot/util/urlUtil';
 import { embeddedHref } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
+import { NEXUS_ONE_LEGAL_PATH } from 'MainRoot/nosc/legal/legalRoute';
 
 function normalizePath(path) {
   const trimmed = (path ?? '').trim();
@@ -43,10 +44,18 @@ export function dashboardVulnerabilitiesHref() {
   return nexusOneEntityHref('/vulnerabilities');
 }
 
-// Legal V1 (CLM-43207): native NOUX LEGAL_VIOLATION triage at /legal.
-// Metric totals may not match list counts (card distinct vs list stage/LTG rows) — product-accepted.
-export function dashboardLegalHref() {
-  return nexusOneEntityHref('/legal');
+/**
+ * CLM-44467: Legal deep-dive is ALP-aware.
+ * With Advanced Legal Pack → Classic Obligations embed (same as LeftNav).
+ * Without ALP → native LEGAL_VIOLATION list at {@code /legal-risk} (Classic Obligations 402s).
+ *
+ * @param {boolean} [advancedLegalPack=false]
+ */
+export function dashboardLegalHref(advancedLegalPack = false) {
+  if (advancedLegalPack) {
+    return nexusOneEntityHref(embeddedHref('legal'));
+  }
+  return nexusOneEntityHref(NEXUS_ONE_LEGAL_PATH);
 }
 
 // Orgs & Policies embeds Classic management in-shell at #/orgs-and-policies

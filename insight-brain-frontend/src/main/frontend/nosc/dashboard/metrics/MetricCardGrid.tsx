@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Box, Button, Flex, Grid, Heading, Text } from '@radix-ui/themes';
 import { Card, tokens } from '@sonatype/nexus-one-components';
 import { DomainIcons } from 'MainRoot/nosc/icons';
@@ -13,6 +14,7 @@ import {
   dashboardEnterpriseReportingHref,
   dashboardSuccessMetricsHref,
 } from 'MainRoot/nosc/dashboard/dashboardBundleUrls';
+import { selectIsAdvancedLegalPackSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { MetricCard } from './MetricCard';
 import { METRIC_CARD_DEFINITIONS } from './metricCardRegistry';
 import { useDashboardActiveFilter } from './useDashboardActiveFilter';
@@ -166,6 +168,9 @@ function MetricCards({
   readonly data: DashboardMetricsResponse;
   readonly heavyLoading: boolean;
 }): JSX.Element {
+  const advancedLegalPack = useSelector(selectIsAdvancedLegalPackSupported);
+  const selectContext = { advancedLegalPack };
+
   return (
     <GridShell>
       {METRIC_CARD_DEFINITIONS.map((def) => {
@@ -184,7 +189,7 @@ function MetricCards({
           return <MetricCard key={def.id} title={def.title} metricUnavailable testId={def.testId} />;
         }
         if (def.isAvailable(data)) {
-          const view = def.select(data);
+          const view = def.select(data, selectContext);
           return (
             <MetricCard
               key={def.id}

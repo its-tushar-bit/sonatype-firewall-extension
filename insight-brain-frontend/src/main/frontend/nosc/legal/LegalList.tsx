@@ -40,11 +40,13 @@ import '@radix-ui/themes/styles.css';
 const EMPTY_ROWS: ReadonlyArray<ViolationRow> = [];
 
 /**
- * Nexus One Legal V1 — LEGAL_VIOLATION license-risk triage (CLM-43207).
+ * Nexus One Legal risk list — LEGAL_VIOLATION license-risk triage at {@code /legal-risk}
+ * (CLM-43207; demoted by CLM-44467).
  *
  * Same index type as the Dashboard Legal Obligations card ({@code LEGAL_VIOLATION}). Rows are
- * per-(stage × LTG) for triage; the card metric collapses those dimensions. LeftNav is ungated
- * (Lifecycle); Classic ALP dashboard remains at /legal/applicationsDashboard.
+ * per-(stage × LTG) for triage; the card metric collapses those dimensions. ALP LeftNav Legal
+ * opens Classic Obligations at {@code /legal}; this list is the Dashboard Legal deep-dive when
+ * Advanced Legal Pack is not licensed.
  */
 export default function LegalList(): JSX.Element {
   const advancedLegalPack = useSelector(selectIsAdvancedLegalPackSupported);

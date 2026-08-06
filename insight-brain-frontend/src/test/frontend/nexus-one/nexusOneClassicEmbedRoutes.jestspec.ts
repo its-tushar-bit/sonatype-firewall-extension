@@ -64,9 +64,9 @@ describe('nexusOneClassicEmbedRoutes', () => {
       if (!isNativeClassicEmbedSlug(slug)) {
         expect(state?.component).toBe(ComingSoonRoute);
       } else if (slug === 'legal') {
-        // Clean /legal is owned by nexusOneLegal (LEGAL_VIOLATION triage). Coming Soon entry redirects there.
+        // Clean /legal → Classic Legal Obligations (CLM-44467). Native triage is at /legal-risk.
         expect(state?.component).toBeUndefined();
-        expect(state?.redirectTo).toBe('nexusOneLegal');
+        expect(state?.redirectTo).toBe('legal.applicationsDashboard');
       } else if (slug === 'orgs-and-policies' || slug === 'policies') {
         // Orgs and Policies / Policies entries redirect into the embedded management tree.
         expect(state?.component).toBeUndefined();
@@ -109,14 +109,13 @@ describe('nexusOneClassicEmbedRoutes', () => {
     expect(router.stateRegistry.get(`${comingSoonStateName('repositories')}LegacyPath`)).toBeFalsy();
   });
 
-  it('redirects the Legal Coming Soon entry to nexusOneLegal (LEGAL_VIOLATION triage)', () => {
-    // Clean /legal is owned by Nexus One Legal V1 (CLM-43207). Classic ALP dashboard remains at
-    // legal.applicationsDashboard for deep links / review workflows.
+  it('redirects the Legal Coming Soon entry to Classic Legal Obligations', () => {
+    // Clean /legal is the Classic ALP entry (CLM-44467). Native LEGAL_VIOLATION triage is at /legal-risk.
     const state = router.stateRegistry.get(comingSoonStateName('legal'));
-    expect(state?.url).toBe(comingSoonHref('legal'));
+    expect(state?.url).toBe(embeddedHref('legal'));
     expect(state?.component).toBeUndefined();
-    expect(state?.redirectTo).toBe('nexusOneLegal');
-    expect(router.stateRegistry.get('nexusOneLegal')?.url).toContain('/legal');
+    expect(state?.redirectTo).toBe('legal.applicationsDashboard');
+    expect(router.stateRegistry.get('nexusOneLegal')?.url).toContain('/legal-risk');
   });
 
   it('registers Legal tab-switch states so in-page tab clicks resolve in-shell', () => {

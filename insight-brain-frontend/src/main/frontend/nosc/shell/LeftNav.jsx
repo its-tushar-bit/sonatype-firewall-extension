@@ -10,10 +10,6 @@ import { Box, Flex, IconButton, ScrollArea, Separator, Tooltip } from '@radix-ui
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { DomainIcons } from 'MainRoot/nosc/icons';
 import { embeddedHref } from 'MainRoot/nexus-one/nativeClassicEmbedSlugs';
-import {
-  LEGAL_APPLICATIONS_DASHBOARD_URL,
-  LEGAL_COMPONENTS_DASHBOARD_URL,
-} from 'MainRoot/legal/dashboard/legalDashboardRouteData';
 import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
 import { useLeftNavCollapsed } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 import {
@@ -22,6 +18,7 @@ import {
   TOP_NAV_HEIGHT_PX,
 } from 'MainRoot/nosc/shell/previewShellLayout';
 import {
+  selectIsAdvancedLegalPackSupported,
   selectIsApiPageSupported,
   selectIsDashboardSupported,
   selectIsHostedRepositoryEvaluationEnabled,
@@ -49,7 +46,8 @@ const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
 
 // Active hrefs are extra paths (beyond an entry's own href) that keep it highlighted in the rail when in-page navigation or a
 // redirect lands the user somewhere other than that href but still inside the entry's experience.
-const LEGAL_ACTIVE_HREFS = Object.freeze([LEGAL_APPLICATIONS_DASHBOARD_URL, LEGAL_COMPONENTS_DASHBOARD_URL, '/legal']);
+// Legal needs no activeHrefs: entry href `/legal` already prefix-matches Classic dashboard + deep links
+// via hrefMatches (startsWith(href + '/')).
 const REPORTING_ACTIVE_HREFS = Object.freeze(['/enterpriseReportingDashboard', '/reports/react2shell']);
 // '/management' is a prefix match (see hrefMatches) covering the whole embedded Orgs and Policies
 // tree (orgsAndPoliciesStates.ts). The entry redirects onto
@@ -85,13 +83,14 @@ const MANAGEMENT_ACTIVE_HREFS = Object.freeze(['/management']);
  *   Components           → /preview/components            (native; Components list)
  *   Hosted Repos         → /repositories                 (native embedded
  *                          Classic mount)
- *   Legal                → /legal                        (Nexus One Legal /
- *                          LEGAL_VIOLATION triage; Classic ALP at
- *                          /legal/applicationsDashboard. Every reachable deep link
- *                          also mounts in-shell — application details, component
- *                          overview, attribution reports, and the
- *                          copyright/notice/license-file/license-details
- *                          families — none of it exits to Classic)
+ *   Legal                → /legal                        (Classic Legal
+ *                          Obligations embed; redirects to
+ *                          /legal/applicationsDashboard. ALP-gated. Every
+ *                          reachable deep link also mounts in-shell —
+ *                          application details, component overview, attribution
+ *                          reports, and the copyright/notice/license-file/
+ *                          license-details families — none of it exits to Classic.
+ *                          Native LEGAL_VIOLATION triage remains at /legal-risk)
  *   Orgs & Policies      → /orgs-and-policies            (native embed; redirects
  *                          to the Classic root-org summary mounted in-shell.
  *                          Every reachable /management/* sub-route also mounts
@@ -246,6 +245,7 @@ function buildNavItems(flags) {
     isOrgsAndAppsEnabled,
     isIntegratedEnterpriseReportingSupported,
     isHostedRepositoryEvaluationEnabled,
+    isAdvancedLegalPackSupported,
   } = flags;
 
   const items = [];
@@ -283,16 +283,15 @@ function buildNavItems(flags) {
       href: '/repositories',
     });
   }
-  // Legal V1 license-risk list (CLM-43207) is available without Advanced Legal Pack — same
-  // Lifecycle gate as Applications / Violations. Classic ALP dashboard stays under
-  // /legal/applicationsDashboard (still highlighted via LEGAL_ACTIVE_HREFS).
-  if (isLicensed && isOrgsAndAppsEnabled) {
+  // CLM-44467: Legal rail points at Classic Legal Obligations (clean /legal →
+  // applicationsDashboard), ALP-gated like Classic's sidebar — not the native
+  // LEGAL_VIOLATION triage list at /legal-risk.
+  if (isLicensed && isAdvancedLegalPackSupported) {
     items.push({
       id: 'legal',
       label: 'Legal',
       Icon: DomainIcons.Legal,
-      href: '/legal',
-      activeHrefs: LEGAL_ACTIVE_HREFS,
+      href: embeddedHref('legal'),
     });
   }
   if (isLicensed) {
@@ -411,6 +410,7 @@ export default function LeftNav() {
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
   const isIntegratedEnterpriseReportingSupported = useSelector(selectIsIntegratedEnterpriseReportingSupported);
   const isHostedRepositoryEvaluationEnabled = useSelector(selectIsHostedRepositoryEvaluationEnabled);
+  const isAdvancedLegalPackSupported = useSelector(selectIsAdvancedLegalPackSupported);
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
   const isProductsLoading = useSelector(selectLoadingProducts);
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
@@ -445,6 +445,7 @@ export default function LeftNav() {
         isOrgsAndAppsEnabled,
         isIntegratedEnterpriseReportingSupported,
         isHostedRepositoryEvaluationEnabled,
+        isAdvancedLegalPackSupported,
       });
 
   return (

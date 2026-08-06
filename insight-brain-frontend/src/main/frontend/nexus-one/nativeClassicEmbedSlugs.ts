@@ -29,18 +29,18 @@ export type NativeClassicEmbedSlug = (typeof NATIVE_CLASSIC_EMBED_SLUGS)[number]
 /**
  * Embed slugs whose clean {@code /${slug}} path is already owned by another route.
  * Those embeds keep {@code /coming-soon/${slug}} as their primary Coming Soon URL.
- */
-/**
+ *
  * {@code repositories} — owned by {@code nexusOneRepositories}.
- * {@code legal} — owned by {@code nexusOneLegal} (LEGAL_VIOLATION license-risk triage, CLM-43207).
- * Classic ALP dashboard remains at {@code /legal/applicationsDashboard}.
  * {@code policies} — Classic href collides with {@code orgs-and-policies}; keep
  * {@code /coming-soon/policies} as the entry so reverse-map prefers {@code /orgs-and-policies}.
  * {@code waiver-requests} — redirects to {@code nexusOneWaivers} ({@code /waivers}).
+ *
+ * {@code legal} owns clean {@code /legal} again (CLM-44467) — Coming Soon entry redirects to
+ * Classic Legal Obligations ({@code legal.applicationsDashboard}). Native LEGAL_VIOLATION
+ * triage remains at {@code /legal-risk}.
  */
 const CLEAN_PATH_OWNED_ELSEWHERE_SLUGS = [
   'repositories',
-  'legal',
   'policies',
   'waiver-requests',
 ] as const satisfies readonly NativeClassicEmbedSlug[];

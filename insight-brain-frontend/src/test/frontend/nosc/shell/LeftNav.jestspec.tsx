@@ -109,7 +109,7 @@ describe('LeftNav', () => {
     expect(link.getAttribute('href')).not.toContain('coming-soon');
   });
 
-  it('shows Legal in LeftNav without Advanced Legal Pack (CLM-43207)', () => {
+  it('hides Legal in LeftNav without Advanced Legal Pack (CLM-44467)', () => {
     const state = {
       ...fullyLicensedState,
       productFeatures: {
@@ -121,9 +121,7 @@ describe('LeftNav', () => {
       },
     };
     renderLeftNav(state);
-    const link = screen.getByTestId('nosc-leftnav-legal');
-    expect(link).toBeInTheDocument();
-    expect(link.getAttribute('href')).toContain('#/legal');
+    expect(screen.queryByTestId('nosc-leftnav-legal')).not.toBeInTheDocument();
   });
 
   it('renders the Settings item pointing at the native /settings hub (not coming-soon)', () => {
@@ -337,12 +335,12 @@ describe('LeftNav', () => {
       expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
     });
 
-    it('keeps Legal highlighted on the Applications tab sub-route via activeHrefs', () => {
+    it('keeps Legal highlighted on the Applications tab sub-route via /legal prefix match', () => {
       renderLeftNav(fullyLicensedState, '#/legal/applicationsDashboard');
       expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
     });
 
-    it('keeps Legal highlighted on the Components tab sub-route via activeHrefs', () => {
+    it('keeps Legal highlighted on the Components tab sub-route via /legal prefix match', () => {
       renderLeftNav(fullyLicensedState, '#/legal/componentsDashboard');
       expect(screen.getByRole('link', { name: 'Legal' })).toHaveAttribute('aria-current', 'page');
     });

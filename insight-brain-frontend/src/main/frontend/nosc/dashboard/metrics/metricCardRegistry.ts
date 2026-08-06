@@ -35,6 +35,11 @@ export interface MetricCardSelection {
   readonly href?: string;
 }
 
+/** Runtime context for card selection (license gates that affect deep-dive hrefs). */
+export interface MetricCardSelectContext {
+  readonly advancedLegalPack: boolean;
+}
+
 export interface MetricCardDefinition {
   readonly id: string;
   readonly title: string;
@@ -47,7 +52,10 @@ export interface MetricCardDefinition {
    */
   readonly showWhileHeavyLoading: boolean;
   readonly isAvailable: (data: DashboardMetricsResponse) => boolean;
-  readonly select: (data: DashboardMetricsResponse) => MetricCardSelection;
+  readonly select: (
+    data: DashboardMetricsResponse,
+    context: MetricCardSelectContext,
+  ) => MetricCardSelection;
 }
 
 export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
@@ -74,7 +82,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
     showWhileLoading: false,
     showWhileHeavyLoading: true,
     isAvailable: (data) => isPresentMetric(data.legal),
-    select: (data) => {
+    select: (data, context) => {
       const b = data.legal?.breakdown;
       const dualHero: readonly [DualHeroStat, DualHeroStat] | undefined = b
         ? [
@@ -90,7 +98,7 @@ export const METRIC_CARD_DEFINITIONS: readonly MetricCardDefinition[] = [
         // fall back to the headline total so the card never renders a bare "0".
         value: dualHero ? undefined : data.legal?.total ?? 0,
         dualHero,
-        href: dashboardLegalHref(),
+        href: dashboardLegalHref(context.advancedLegalPack),
       };
     },
   },

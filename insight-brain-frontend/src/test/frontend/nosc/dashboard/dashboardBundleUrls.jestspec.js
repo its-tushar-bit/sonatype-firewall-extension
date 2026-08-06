@@ -28,8 +28,15 @@ describe('dashboardBundleUrls deep dives (CLM-43206)', () => {
     );
   });
 
-  it('dashboardLegalHref targets Nexus One Legal V1 triage', () => {
-    expect(dashboardLegalHref()).toBe('http://localhost/assets/nexus-one/index.html#/legal');
+  it('dashboardLegalHref targets Classic Obligations when ALP is licensed', () => {
+    expect(dashboardLegalHref(true)).toBe('http://localhost/assets/nexus-one/index.html#/legal');
+  });
+
+  it('dashboardLegalHref targets native /legal-risk without ALP', () => {
+    expect(dashboardLegalHref(false)).toBe(
+      'http://localhost/assets/nexus-one/index.html#/legal-risk',
+    );
+    expect(dashboardLegalHref()).toBe('http://localhost/assets/nexus-one/index.html#/legal-risk');
   });
 
   it('dashboardVulnerabilitiesHref uses the native NOUX vulnerabilities list', () => {

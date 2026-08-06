@@ -332,13 +332,13 @@ router.stateRegistry.register({
   data: { title: 'Nexus One — Violations' },
 } as ReactStateDeclaration);
 
-// Nexus One Legal V1 — LEGAL_VIOLATION license-risk triage at /legal (CLM-43207).
-// Owns the clean path; Classic ALP dashboard remains at legal.applicationsDashboard.
+// LEGAL_VIOLATION license-risk triage demoted to /legal-risk (CLM-44467).
+// Clean /legal is again the Classic Legal Obligations embed entry.
 router.stateRegistry.register({
   name: NEXUS_ONE_LEGAL_STATE_NAME,
   url: NEXUS_ONE_LEGAL_URL,
   component: PreviewLegalList,
-  data: { title: 'Nexus One — Legal' },
+  data: { title: 'Nexus One — Legal risk' },
 } as ReactStateDeclaration);
 
 // Martha V1 Vulnerabilities list, wired to POST /rest/dashboard/vulnerabilities/list.
@@ -485,9 +485,10 @@ const NATIVE_CLASSIC_COMPONENTS: Partial<Record<ComingSoonModuleSlug, React.Comp
 type ClassicEmbedRedirect = string | { readonly state: string; readonly params: Record<string, string> };
 
 const NATIVE_CLASSIC_EMBED_REDIRECTS: Partial<Record<ComingSoonModuleSlug, ClassicEmbedRedirect>> = {
-  // LeftNav / deep-dive target /legal (nexusOneLegal LEGAL_VIOLATION triage). Stale /coming-soon/legal
-  // bookmarks redirect there; Classic ALP dashboard stays at legal.applicationsDashboard. CLM-43207.
-  legal: NEXUS_ONE_LEGAL_STATE_NAME,
+  // LeftNav / deep-dive target /legal → Classic Legal Obligations (CLM-44467), same pattern as
+  // Orgs & Policies. Stale /coming-soon/legal bookmarks follow. Native LEGAL_VIOLATION triage is
+  // at /legal-risk.
+  legal: 'legal.applicationsDashboard',
   // LeftNav targets /repositories (nexusOneRepositories); the /coming-soon/repositories entry
   // redirects to that canonical route so stale Coming Soon bookmarks land on the highlighted,
   // feature-gated page instead of a parallel mount. CLM-42184.

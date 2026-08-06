@@ -228,8 +228,8 @@ export function legalFindingHref(
     return applicationDetailHref(publicId);
   }
   // Last-resort self-link when hash/scan/publicId are missing from the index hit.
-  // Prefer a stable Legal list URL over a broken / empty href so the card remains clickable.
-  return '#/legal';
+  // Prefer a stable Legal risk-list URL over a broken / empty href so the card remains clickable.
+  return '#/legal-risk';
 }
 
 export function legalFindingHrefFromViolationRow(

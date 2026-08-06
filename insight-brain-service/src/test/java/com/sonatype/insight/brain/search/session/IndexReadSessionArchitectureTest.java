@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.search.indexquery.IndexQueryAppsViolationsTest
 import com.sonatype.insight.brain.search.indexquery.IndexQueryEndpointTest;
 import com.sonatype.insight.brain.search.lucene.LegacyViolationStateNegativeControlE2ETest;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexReadSession;
+import com.sonatype.insight.brain.search.lucene.LuceneRbacFilterQueryBuilderTest;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearcherManagerHolder;
 import com.sonatype.insight.brain.search.lucene.PointsConfigNegativeControlE2ETest;
@@ -57,6 +58,10 @@ public class IndexReadSessionArchitectureTest
         .areNotAssignableTo(PointsConfigNegativeControlE2ETest.class)
         .and()
         .areNotAssignableTo(LegacyViolationStateNegativeControlE2ETest.class)
+        .and()
+        // Unit-level fixture that builds a throwaway in-memory index to assert RBAC filter-query
+        // shape (CLM-33964); not a production read path.
+        .areNotAssignableTo(LuceneRbacFilterQueryBuilderTest.class)
         .should()
         .callMethod(DirectoryReader.class, "open", Directory.class)
         .because("new read paths must acquire through the shared session/searcher-manager lifecycle");

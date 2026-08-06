@@ -1,0 +1,1 @@
+import{r as s,i as u}from"./shared-LR3nET6j.js";(async function(){var n;const t=location.pathname.match(/^\/artifact\/([^/]+)\/([^/]+)(?:\/([^/]+))?/);if(!t)return;const[,r,c,o]=t,a=`pkg:maven/${r}/${c}@${o||"latest"}`,e=await s(a);if(!e)return;const i=((n=document.querySelector("h1"))==null?void 0:n.parentElement)||document.querySelector("main")||document.body;u(i,e)})();

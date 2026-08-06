@@ -1,0 +1,97 @@
+{
+  "manifest_version": 3,
+  "name": "Sonatype Firewall",
+  "version": "0.1.0",
+  "description": "See Sonatype Firewall verdicts on npm, PyPI, and Maven before you install.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "options_page": "src/options/index.html",
+  "background": {
+    "service_worker": "service-worker-loader.js",
+    "type": "module"
+  },
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.npmjs.com/*",
+    "https://pypi.org/*",
+    "https://central.sonatype.com/*",
+    "https://search.maven.org/*",
+    "http://localhost:8765/*"
+  ],
+  "content_scripts": [
+    {
+      "js": [
+        "assets/npm.ts-loader-CG4cd0zX.js"
+      ],
+      "matches": [
+        "https://www.npmjs.com/package/*"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "js": [
+        "assets/pypi.ts-loader-ZEnf9wvz.js"
+      ],
+      "matches": [
+        "https://pypi.org/project/*"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "js": [
+        "assets/maven.ts-loader--2IHejYq.js"
+      ],
+      "matches": [
+        "https://central.sonatype.com/artifact/*",
+        "https://search.maven.org/artifact/*"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "https://www.npmjs.com/*"
+      ],
+      "resources": [
+        "assets/shared-LR3nET6j.js",
+        "assets/npm.ts-DdDTwkK7.js"
+      ],
+      "use_dynamic_url": false
+    },
+    {
+      "matches": [
+        "https://pypi.org/*"
+      ],
+      "resources": [
+        "assets/shared-LR3nET6j.js",
+        "assets/pypi.ts-Do8I-uY-.js"
+      ],
+      "use_dynamic_url": false
+    },
+    {
+      "matches": [
+        "https://central.sonatype.com/*",
+        "https://search.maven.org/*"
+      ],
+      "resources": [
+        "assets/shared-LR3nET6j.js",
+        "assets/maven.ts-bWdSqCyD.js"
+      ],
+      "use_dynamic_url": false
+    }
+  ]
+}

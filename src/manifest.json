@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Sonatype Firewall",
+  "version": "0.1.0",
+  "description": "See Sonatype Firewall verdicts on npm, PyPI, and Maven before you install.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "options_page": "src/options/index.html",
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://www.npmjs.com/*",
+    "https://pypi.org/*",
+    "https://central.sonatype.com/*",
+    "https://search.maven.org/*",
+    "http://localhost:8765/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.npmjs.com/package/*"],
+      "js": ["src/content/npm.ts"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://pypi.org/project/*"],
+      "js": ["src/content/pypi.ts"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://central.sonatype.com/artifact/*",
+        "https://search.maven.org/artifact/*"
+      ],
+      "js": ["src/content/maven.ts"],
+      "run_at": "document_idle"
+    }
+  ]
+}

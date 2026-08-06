@@ -9,4 +9,8 @@ describe('nexusOneToClassicUrl', () => {
   it('maps Nexus One dashboard to Classic dashboard root', () => {
     expect(nexusOneToClassicUrl('/dashboard')).toBe('/dashboard/violations');
   });
+
+  it('maps the standalone Waivers page to the Classic waivers dashboard (CLM-43505)', () => {
+    expect(nexusOneToClassicUrl('/waivers')).toBe('/dashboard/waivers');
+  });
 });

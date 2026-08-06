@@ -14,6 +14,7 @@ const PILLS_SCROLL_DISTANCE = 200;
 
 const NavPills = ({ list, root }) => {
   const ref = useRef(null);
+  const scrollRootRef = useRef(null);
 
   const [leftArrowVisible, setLeftArrowVisible] = useState(false);
   const [rightArrowVisible, setRightArrowVisible] = useState(false);
@@ -124,6 +125,32 @@ const NavPills = ({ list, root }) => {
     };
   }, [scrollNavs]);
 
+  // Give the scroll container enough trailing space that even the last (possibly short)
+  // section can scroll to the top and into the active-pill highlight zone. Sized to the
+  // container's own visible height and kept in sync on resize. CLM-43505.
+  const updateTrailingSpace = useCallback(() => {
+    const scrollRoot = scrollRootRef.current;
+    if (!scrollRoot) {
+      return;
+    }
+    const next = `${scrollRoot.clientHeight}px`;
+    if (scrollRoot.style.paddingBottom !== next) {
+      scrollRoot.style.paddingBottom = next;
+    }
+  }, []);
+
+  useEffect(() => {
+    scrollRootRef.current = document.querySelector(root);
+    updateTrailingSpace();
+
+    return () => {
+      if (scrollRootRef.current) {
+        scrollRootRef.current.style.paddingBottom = '';
+      }
+    };
+  }, [root, updateTrailingSpace]);
+
+  useResizeObserver(scrollRootRef, updateTrailingSpace);
   useResizeObserver(ref, updateArrowVisibility);
 
   return (

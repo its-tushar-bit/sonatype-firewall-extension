@@ -67,6 +67,10 @@ const NEXUS_ONE_TO_CLASSIC: ReadonlyArray<readonly [string, string]> = [
   // Native Waivers tab (nexusOneDashboard.waivers at /dashboard/waivers) toggles to the Classic
   // Waivers tab. Must precede /dashboard so it isn't swallowed by that prefix into Violations.
   ['/dashboard/waivers', '/dashboard/waivers'],
+  // Standalone NOUX Waivers page (nexusOneWaivers at /waivers) toggles to the Classic
+  // Waivers dashboard tab. Placed AFTER /dashboard/waivers so toNexusOneEquivalent's
+  // first-match on classic '/dashboard/waivers' still resolves to '/dashboard/waivers'. CLM-43505.
+  ['/waivers', '/dashboard/waivers'],
   ['/dashboard', '/dashboard/violations'],
   ['/applications', '/dashboard/applications'],
   ['/components', '/dashboard/components'],
@@ -320,9 +324,10 @@ function toNexusOneSubtree(path: string): string | null {
 export function toNexusOneEquivalent(classicPath: string): string {
   const path = stripHashPrefix(classicPath);
   if (path === '' || path === '/') return NEXUS_ONE_DEFAULT_PATH;
-  if (path === '/previewUiSettings') return '/ui-settings';
-  if (isSharedPath(path)) return '/ui-settings';
-  if (path === '/dashboard') return NEXUS_ONE_DEFAULT_PATH;
+  const bare = stripQuerySuffix(path);
+  if (bare === '/previewUiSettings') return '/ui-settings';
+  if (isSharedPath(bare)) return '/ui-settings';
+  if (bare === '/dashboard') return NEXUS_ONE_DEFAULT_PATH;
 
   const detail = findDetailPageClassicToNexusOne(path);
   if (detail) return detail;
@@ -330,10 +335,10 @@ export function toNexusOneEquivalent(classicPath: string): string {
   const subtree = toNexusOneSubtree(path);
   if (subtree) return subtree;
 
-  const exact = NEXUS_ONE_TO_CLASSIC.find(([, classic]) => classic === path);
+  const exact = NEXUS_ONE_TO_CLASSIC.find(([, classic]) => classic === bare);
   if (exact) return exact[0];
 
-  const prefix = CLASSIC_PREFIX_TO_NEXUS_ONE.find(([cp]) => path === cp || path.startsWith(cp));
+  const prefix = CLASSIC_PREFIX_TO_NEXUS_ONE.find(([cp]) => bare === cp || bare.startsWith(cp));
   if (prefix) return prefix[1];
 
   return NEXUS_ONE_DEFAULT_PATH;
@@ -345,9 +350,10 @@ export const toPreviewEquivalent = toNexusOneEquivalent;
 export function toClassicEquivalent(nexusOnePath: string): string {
   const path = stripHashPrefix(nexusOnePath);
   if (path === '' || path === '/') return CLASSIC_DEFAULT_PATH;
-  if (path === '/ui-settings') return '/previewUiSettings';
-  if (isSharedPath(path)) return path;
-  if (isClassicPath(path)) return CLASSIC_DEFAULT_PATH;
+  const bare = stripQuerySuffix(path);
+  if (bare === '/ui-settings') return '/previewUiSettings';
+  if (isSharedPath(bare)) return path;
+  if (isClassicPath(bare)) return CLASSIC_DEFAULT_PATH;
 
   const detail = findDetailPageNexusOneToClassic(path);
   if (detail) return detail;
@@ -355,7 +361,7 @@ export function toClassicEquivalent(nexusOnePath: string): string {
   const subtree = toClassicSubtree(path);
   if (subtree) return subtree;
 
-  const entry = NEXUS_ONE_TO_CLASSIC.find(([nexus]) => path === nexus || path.startsWith(nexus + '/'));
+  const entry = NEXUS_ONE_TO_CLASSIC.find(([nexus]) => bare === nexus || bare.startsWith(nexus + '/'));
   if (entry) return entry[1];
 
   return CLASSIC_DEFAULT_PATH;

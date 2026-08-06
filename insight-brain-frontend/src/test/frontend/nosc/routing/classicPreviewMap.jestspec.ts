@@ -571,6 +571,29 @@ describe('classicPreviewMap', () => {
     });
   });
 
+  describe('waivers standalone page (CLM-43505)', () => {
+    it('maps the standalone Nexus One /waivers page to the Classic waivers dashboard', () => {
+      expect(toClassicEquivalent('/waivers')).toBe('/dashboard/waivers');
+    });
+
+    it('maps /waivers with applied filters to the Classic waivers dashboard', () => {
+      expect(toClassicEquivalent('/waivers?q=log4j&threat=CRITICAL&page=2')).toBe('/dashboard/waivers');
+    });
+
+    it('leaves the /dashboard/waivers reverse mapping unchanged', () => {
+      // Preserves CLM-43501: the dashboard Waivers sub-tab still round-trips to itself.
+      expect(toNexusOneEquivalent('/dashboard/waivers')).toBe('/dashboard/waivers');
+      expect(toClassicEquivalent('/dashboard/waivers')).toBe('/dashboard/waivers');
+    });
+
+    it('still preserves the query tail for subtree paths', () => {
+      // Regression guard: query-tolerance must not strip query from subtree mappings.
+      expect(toNexusOneEquivalent('/hostedRepos/mgr-123/repo-456/components?repositoryPublicId=my-repo')).toBe(
+        '/repositories/mgr-123/repo-456/components?repositoryPublicId=my-repo'
+      );
+    });
+  });
+
   describe('round-trip stability for known mappings', () => {
     // For pages that have Classic AND Preview equivalents, going one way and
     // back should land on a Classic URL that maps back to the same Preview URL.

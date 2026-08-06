@@ -51,4 +51,18 @@ describe('NavPills', () => {
     expect(screen.queryAllByText('Section 5 Pill').length).toBe(0);
     expect(screen.getByText('Section 6 Pill')).toBeVisible();
   });
+
+  it('sizes the scroll container trailing space to its own visible height (CLM-43505)', () => {
+    const scrollRoot = document.createElement('div');
+    scrollRoot.id = 'nav-scroll-root';
+    Object.defineProperty(scrollRoot, 'clientHeight', { configurable: true, value: 640 });
+    document.body.appendChild(scrollRoot);
+
+    try {
+      render(<NavPills list={exampleNavList} root="#nav-scroll-root" />);
+      expect(scrollRoot.style.paddingBottom).toBe('640px');
+    } finally {
+      document.body.removeChild(scrollRoot);
+    }
+  });
 });

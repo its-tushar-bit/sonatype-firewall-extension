@@ -484,7 +484,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
    * Provides test-specific beans for the Spring-based test context.
    */
   @TestConfiguration
-  static class MtiqTestConfiguration
+  public static class MtiqTestConfiguration
   {
 
     @Bean
@@ -546,7 +546,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   }
 
   @TestConfiguration
-  static class MtiqTestConfigurationWithTestEncryptionKeyStore
+  public static class MtiqTestConfigurationWithTestEncryptionKeyStore
       extends MtiqTestConfiguration
   {
     @Bean

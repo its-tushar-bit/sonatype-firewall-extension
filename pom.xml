@@ -170,6 +170,14 @@
     <module>insight-brain-tenancy</module>
     <module>nexus-iq-server</module>
     <module>nexus-mtiq-server</module>
+    <module>insight-brain-variant-test-support</module>
+    <module>insight-brain-variant-test-h2</module>
+    <module>insight-brain-variant-test-component-h2</module>
+    <module>insight-brain-variant-test-pg</module>
+    <module>insight-brain-variant-test-component-pg</module>
+    <module>insight-brain-variant-test-mtiq</module>
+    <module>insight-brain-variant-test-legacy</module>
+    <module>insight-brain-variant-test-fips</module>
     <module>nexus-iq-diagnostics</module>
     <module>insight-brain-functional-test-common</module>
     <module>insight-brain-playwright-test</module>

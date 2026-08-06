@@ -1,0 +1,284 @@
+<!--
+
+    Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sonatype.insight.brain</groupId>
+    <artifactId>insight-brain</artifactId>
+    <version>1.207.0-SNAPSHOT</version>
+    <!-- Required when this folder is opened alone so Maven / Java LS resolve the reactor and dependencyManagement. -->
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>insight-brain-variant-test-legacy</artifactId>
+
+  <description>
+    Legacy full-server integration tests. These tests extend AbstractResourceTest /
+    AbstractBrainServiceIntegrationTest / AbstractAuditTest / AbstractResourceAuthzTest and each boots
+    its own TestCLMServer per class (they cannot use the reused-server variant pattern of
+    insight-brain-variant-test-h2 / -pg). Isolated here so insight-brain-service's own test run is
+    boot-free and these boot-heavy tests can run as a parallelizable CI lane. Run with:
+    mvn verify -pl insight-brain-variant-test-legacy -Dskip-functional-test
+  </description>
+
+  <properties>
+    <clm.skip>true</clm.skip>
+  </properties>
+
+  <build>
+    <plugins>
+      <!-- Tests run under Failsafe (integration-test/verify), mirroring nexus-mtiq-server. -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <skip>false</skip>
+          <includes>
+            <include>**/*Test.*</include>
+            <include>**/*IT.*</include>
+          </includes>
+          <!--
+            These two classes are exact duplicates of the reused-server variant tests
+            (insight-brain-variant-test-h2: IqH2ApiSamlConfigurationResourceTest /
+            IqH2ApiSamlConfigurationResourceAuditTest, full @Test-method parity). They are kept ONLY
+            because the FIPS tests subclass them (per-JVM BouncyCastle FIPS provider — not expressible
+            in the reused-server model). Exclude their standalone (non-FIPS) run so it does not re-boot
+            a server to duplicate coverage the variant module already provides; the FIPS subclasses
+            (…FIPSTest) still run and execute the inherited scenarios under FIPS.
+          -->
+          <excludes>
+            <exclude>**/ApiSamlConfigurationResourceTest.*</exclude>
+            <exclude>**/ApiSamlConfigurationResourceAuditTest.*</exclude>
+          </excludes>
+          <trimStackTrace>false</trimStackTrace>
+          <!--
+            These legacy tests each boot their own TestCLMServer per class, so reuseForks MUST be false:
+            each test class runs in a fresh JVM, avoiding the DatabaseContainerRule single-fixture-per-JVM
+            constraint and the reused-server cache-key restrictions. This trades ~9s/class boot cost for
+            per-class isolation, which is required (and intentional) for this legacy set.
+          -->
+          <reuseForks>false</reuseForks>
+          <!--
+            forkCount=4 runs 4 test classes concurrently, each in its own fresh JVM (reuseForks stays false).
+            Measured on a 16-core / 128 GB host (post-dedup, 33 classes / 305 tests / 75 boots): fork4=248s,
+            all green. Pre-dedup scaling on the full 46-class set was forkCount 1=887s, 2=588s, 4=343s.
+            This is safe because each fork is a separate JVM (no shared static state), TestCLMServer picks a
+            free port per JVM (PortAllocator.nextFreePort), and each fork gets its own work dir via
+            test.forkId=#${surefire.forkNumber}. Wall is floored near ~125s by the single slowest class
+            (PolicyMonitorTest), so going beyond ~4 yields diminishing returns and more CPU contention.
+            Each fork uses -Xmx3072M; on a resource-constrained CI agent prefer a core-relative value such as
+            <forkCount>0.5C</forkCount> to avoid heap/CPU thrash. See docs/legacy-test-time-investigation.md.
+          -->
+          <forkCount>4</forkCount>
+          <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+          <forkedProcessExitTimeoutInSeconds>30</forkedProcessExitTimeoutInSeconds>
+          <shutdown>kill</shutdown>
+          <!--
+            Inline add-opens (Spring Boot 4 on JDK 25 needs these) plus a byte-buddy agent for Mockito.
+            No @{argLine}: this module is excluded from JaCoCo coverage.
+          -->
+          <argLine>
+            --add-opens=java.base/java.lang=ALL-UNNAMED
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/java.security=ALL-UNNAMED
+            --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+            --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+            --add-opens=java.base/sun.security.util=ALL-UNNAMED
+            --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+            --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+            -Xmx3072M
+            -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=${project.build.directory}/
+          </argLine>
+          <systemPropertyVariables>
+            <!-- Used by the test IQ server to set a per-fork work directory. -->
+            <test.forkId>#${surefire.forkNumber}</test.forkId>
+            <!--
+              The MTIQ bean graph eagerly builds an AWS SecretsManager client; it needs a region to
+              construct (it is never actually called by the ui/links endpoints). CI provides
+              AWS_REGION; this shim provides one for local runs.
+            -->
+            <aws.region>us-east-1</aws.region>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- No artifacts to deploy: this module only runs tests. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <!-- JUnit 5 (Jupiter) engine + Vintage engine on the JUnit Platform, mirroring nexus-mtiq-server. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- @ParameterizedTest/@MethodSource support. -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Shared variant-test machinery (AbstractSpikeServerExtension, SpikeRestClient, SpikeSupport). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-variant-test-support</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- IQ app under test + its test fixtures (TestCLMServer, DatabaseContainerRule, factories, ...). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- DB/data/common test fixtures (DatabaseRuleAnnotations, H2DiskDatabaseFixture, ...). -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+      <type>test-jar</type>
+    </dependency>
+
+    <!-- SpringTestExecutionContext lives here. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+    </dependency>
+
+    <!-- TenantTestHelper (used by SamlDeploymentManagerTest multi-tenant scenarios) lives in tenancy test-jar. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Embedded Postgres for @PostgresTest AbstractComponentTest Spring-context tests (EvaluationQueueProducerPostgresTest). -->
+    <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- HDS mock the launcher wires up. -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>hds-mock-server</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Byte Buddy agent for Mockito (referenced by the failsafe -javaagent). -->
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy-agent</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- ApacheDS runtime for EmbeddedLdapServer (LDAP-backed auth tests: UserToken/ApiUserToken). -->
+    <dependency>
+      <groupId>org.apache.directory.server</groupId>
+      <artifactId>apacheds-core-integ</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- WireMock for tests that stub external HTTP (e.g. ApiSourceControlResourceTest rate-limit probes). -->
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock-jre8-standalone</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- FIPS tests toggle env vars (e.g. ApiSamlConfigurationResource*FIPSTest, SamlAuthcFIPSTest). -->
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      Legacy javax.xml.bind (JAXB 2.x) runtime impl. The Crowd client and CrowdMockServerRule marshal via
+      javax.xml.bind.JAXBContext, whose ContextFinder needs a javax-namespace provider. The module otherwise
+      only resolves the jakarta-namespace impl (glassfish jaxb-runtime 4.x), leaving javax JAXB with no
+      provider (JAXBContext.newInstance returns null -> NPE). Mirrors insight-brain-service's runtime dep.
+    -->
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.3.9</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

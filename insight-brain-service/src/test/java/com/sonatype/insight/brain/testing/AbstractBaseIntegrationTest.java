@@ -625,7 +625,7 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   @TestConfiguration
-  static class BaseIntegrationTestConfigurationWithTestEncryptionKeyStore
+  public static class BaseIntegrationTestConfigurationWithTestEncryptionKeyStore
       extends BaseIntegrationTestConfiguration
   {
     @Bean

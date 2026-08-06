@@ -249,7 +249,7 @@ private void runUnitTestPartitions() {
 /** Run a single unit/integration partition. jacoco:report is deferred to runJacocoReport(). */
 private void runUnitTestPartition(String stageName, String regex) {
   echo "Running partition: ${stageName} (regex ${regex})"
-  String args = "-pl '!nexus-mtiq-server,!insight-brain-frontend,!insight-brain-playwright-test,!insight-brain-java-functional-test'"
+  String args = "-pl '!nexus-mtiq-server,!insight-brain-frontend,!insight-brain-playwright-test'"
   args += " -Dtest=%regex[${regex}]"
   args += " -Dit.test=%regex[${regex}]"
   args += " -DexcludedGroups=SlowTest"
@@ -296,7 +296,7 @@ private void runFrontendTests() {
  */
 private void runJacocoReport() {
   echo 'Aggregating JaCoCo coverage across all partitions'
-  String args = "-pl '!insight-brain-java-functional-test,!insight-brain-playwright-test'"
+  String args = "-pl '!insight-brain-playwright-test'"
   args += ' --no-transfer-progress'
   args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
   args += ' jacoco:report'
@@ -316,7 +316,6 @@ private String buildOptions() {
   def opts = []
 
   def excludedModules = [
-      'insight-brain-java-functional-test',
       'insight-brain-playwright-test'
   ]
   opts << "-pl '${excludedModules.collect { "!${it}" }.join(',')}'"

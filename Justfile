@@ -45,13 +45,13 @@ style:
 format:
     {{mvn}} spotless:apply
 
-# Run all functional tests with Docker
+# Run all Playwright UI tests with Docker
 func-test:
-    {{mvn}} test-compile failsafe:integration-test failsafe:verify -Pdocker-functional-tests -Dapi.version=1.44 -pl insight-brain-java-functional-test
+    {{mvn}} verify -pl insight-brain-playwright-test
 
-# Run specific functional test (usage: just func-test-specific TestClassName#testMethodName)
+# Run specific Playwright UI test (usage: just func-test-specific TestClassName#testMethodName)
 func-test-specific TEST:
-    {{mvn}} test-compile failsafe:integration-test failsafe:verify -Pdocker-functional-tests -Dapi.version=1.44 -pl insight-brain-java-functional-test -Dit.test={{TEST}}
+    {{mvn}} verify -pl insight-brain-playwright-test -Dit.test={{TEST}}
 
 # Run a particular integration test in insight-brain-service
 it name:

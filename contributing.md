@@ -118,17 +118,6 @@ Time to cross your t's and dot the i's - let's get your code in product:
 * Contact this week's reviewers and ask for their attention (see readme.md for the rotating github usernames).
 * Got a Jira issue? Link it! We love to link back to stories in Jira, it helps us keep track of contributions.
 
-Our visual testing tool (Applitools) has a caveat that the pull request must exist before it can associate the test
-results with the changes. As a result, here's a recommended workflow for changes that include UI components:
-
-1. Open your pull request as a Draft first.
-2. Run our [CI build](https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/).
-3. Take a gander at 
- [our documentation](https://docs.sonatype.com/pages/viewpage.action?spaceKey=INSIGHT&title=Automated+Visual+Testing+with+Applitools)
- on how to work with Applitools. Reach out in Slack at `#iq-lorage` for help.
-4. Once you see all 3 github checks passing (jenkins, applitools, and applitools mergeability), convert the draft to an
- open pull request.
-
 ### Don't
 
 * Wait for Team Insight to review, +1, or merge your work. We may not be the best people to review. We prefer that the

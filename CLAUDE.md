@@ -41,10 +41,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 To iterate on frontend changes without a full rebuild, use the esbuild dev server mode:
 
 1. Start the dev server from `insight-brain-frontend/`: `yarn start` (serves on port 8070, proxies API calls to port 8072)
-2. Run any functional test with `-Dfunctional-test-webpack-dev-server=true` (from `insight-brain-java-functional-test/`)
+2. Run any functional test with `-Dfunctional-test-webpack-dev-server=true` (from `insight-brain-playwright-test/`)
 
 ```bash
-cd insight-brain-java-functional-test
+cd insight-brain-playwright-test
 mvn verify -Dit.test=SomeTest#someMethod -Dfunctional-test-webpack-dev-server=true
 ```
 

@@ -69,7 +69,7 @@ pipeline {
             javaVersion: 'OpenJDK 25',
             mavenVersion: 'Maven 3.9.x',
             useEventSpy: false,
-            mavenOptions: "-Dquick -DskipTests -Dskip-functional-test -Dpmd.skip=true -Dcheckstyle.skip=true -Dclm.skip=false -pl !insight-brain-functional-test-common,!insight-brain-java-functional-test,!nexus-mtiq-functional-test,!keycloak-server,!gitlab-server,!docker-utils,!hds-mock-server,!insight-brain-test --threads 4"
+            mavenOptions: "-Dquick -DskipTests -Dskip-functional-test -Dpmd.skip=true -Dcheckstyle.skip=true -Dclm.skip=false -pl !insight-brain-functional-test-common,!nexus-mtiq-functional-test,!keycloak-server,!gitlab-server,!docker-utils,!hds-mock-server,!insight-brain-test --threads 4"
           )
           withSonatypeDockerRegistry() {
             withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {

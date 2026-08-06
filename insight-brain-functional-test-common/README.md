@@ -7,4 +7,4 @@
 -->
 # Functional tests common resources
 
-Common resources used in IQ functional tests (`insight-brain-java-functional-test` module).
+Common resources used by the IQ Playwright UI test modules (`insight-brain-playwright-test` and `insight-brain-mtiq-playwright-tests`).

@@ -100,7 +100,7 @@ that is closed after the test is complete. This does not affect the default shar
 - If you want the fully IQ integration test framework with a running IQ test server:
     - For regular single-tenant tests in `insight-brain-service` use `AbstractBrainServiceIntegrationTest`
     - For multi-tenant tests in `nexus-mtiq-server` use `AbstractMultiTenantBaseIntegrationTest`
-- For java functional tests in `insight-brain-java-functional-test` use AbstractFunctionalTest
+- For end-to-end UI tests in `insight-brain-playwright-test` use `AbstractIqUiTest`
 
 #### Postgres Specifics
 

@@ -189,7 +189,7 @@
       <artifactId>embedded-postgres</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- Align with insight-brain-java-functional-test: Guice scans insight-brain-service *-tests.jar (OpenSearch, LocalStack, etc.). -->
+    <!-- Required because Guice scans insight-brain-service *-tests.jar (OpenSearch, LocalStack, etc.). -->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers-postgresql</artifactId>

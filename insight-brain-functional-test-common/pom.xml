@@ -53,10 +53,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>com.applitools</groupId>
-      <artifactId>eyes-selenium-java5</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-api</artifactId>
     </dependency>

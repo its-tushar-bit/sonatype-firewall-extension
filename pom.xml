@@ -99,8 +99,7 @@
     <netty-version>4.2.16.Final</netty-version>
 
     <!--
-      Properties for functional test docker container used by insight-brain-java-functional-test
-      and insight-brain-functional-test
+      Properties for the functional test docker container used by the Playwright test modules
     -->
     <docker.image.registry></docker.image.registry>
 
@@ -173,7 +172,6 @@
     <module>nexus-mtiq-server</module>
     <module>nexus-iq-diagnostics</module>
     <module>insight-brain-functional-test-common</module>
-    <module>insight-brain-java-functional-test</module>
     <module>insight-brain-playwright-test</module>
     <module>insight-brain-mtiq-playwright-tests</module>
     <module>insight-brain-api-regression-test</module>
@@ -1120,11 +1118,6 @@
         <groupId>org.seleniumhq.selenium</groupId>
         <artifactId>selenium-safari-driver</artifactId>
         <version>${selenium.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.applitools</groupId>
-        <artifactId>eyes-selenium-java5</artifactId>
-        <version>5.84.14</version>
       </dependency>
       <dependency>
         <!--

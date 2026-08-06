@@ -195,8 +195,8 @@ void configureBranchJob() {
       booleanParam(name: 'skipFrontend', defaultValue: false, description: 'Skip: Frontend Tests (Jest)')
       ]
 
-  // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for
-  // applitools. Therefore in order to support this workflow we need to mirror folder defined parameters here otherwise
+  // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach.
+  // Therefore in order to support this workflow we need to mirror folder defined parameters here otherwise
   // they are erased completely from the release configuration.
   // See https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/release/
   if (projName.contains('insight/insight-brain/release')) {

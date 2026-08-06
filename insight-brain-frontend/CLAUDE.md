@@ -73,14 +73,14 @@ yarn start                     # Main bundle only (faster)
 To iterate on frontend changes without rebuilding `insight-brain-service`, you can run functional tests against the dev server:
 
 1. Start the dev server: `yarn start` (serves on port 8070, proxies `/rest`, `/api`, `/ui`, `/policy-assets`, `/saml` to `localhost:8072`)
-2. Run a functional test with `-Dfunctional-test-webpack-dev-server=true` from `insight-brain-java-functional-test/`
+2. Run a functional test with `-Dfunctional-test-webpack-dev-server=true` from `insight-brain-playwright-test/`
 
 ```bash
-cd insight-brain-java-functional-test
+cd insight-brain-playwright-test
 mvn verify -Dit.test=SomeTest#someMethod -Dfunctional-test-webpack-dev-server=true
 ```
 
-The test server starts on fixed port 8072 and the browser is pointed at the dev server on port 8070, so frontend changes are reflected instantly without any Java rebuild. Works with both local Chrome (`-Drun-functional-tests=local`) and the default Docker Selenium container.
+The test server starts on fixed port 8072 and the browser is pointed at the dev server on port 8070, so frontend changes are reflected instantly without any Java rebuild.
 
 ### Testing
 
@@ -634,7 +634,7 @@ Always check **React Shared Components Library** before building custom componen
 Frontend changes typically require updates to multiple test layers:
 
 - **Unit/Integration Tests**: Jest and Jasmine tests in this directory (`src/test/frontend/`)
-- **Java Functional Tests**: Located mostly in `insight-brain-java-functional-test/` directory
+- **Java Functional Tests**: Playwright UI tests in `insight-brain-playwright-test/` (and `insight-brain-mtiq-playwright-tests/` for MTIQ)
   - **When to update**: Any UI changes, new features, or modified user workflows
   - **Coverage**: End-to-end scenarios, cross-browser testing, API integration
   - **Important**: These tests are outside this frontend directory but are critical for validating frontend changes in production-like environments
@@ -705,7 +705,7 @@ import type { NavigationAdapter } from '@guide/ui-core';
 
 - **insight-brain-service**: Backend REST API and business logic
 - **insight-brain-data**: Database entities and data access
-- **insight-brain-java-functional-test**: End-to-end testing
+- **insight-brain-playwright-test**: End-to-end Playwright UI testing
 - **@sonatype/react-shared-components**: UI component library
 
 ## Important Files

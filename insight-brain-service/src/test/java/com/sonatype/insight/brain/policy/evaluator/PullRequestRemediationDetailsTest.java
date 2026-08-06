@@ -425,6 +425,40 @@ public class PullRequestRemediationDetailsTest
         .startsWith("## :shield: Automated pull request: Sonatype Lifecycle found 1 Policy Violation\n");
   }
 
+  @Test
+  public void testSecurityVulnerabilityReport_trimmedWhenOverDescriptionBudget() throws IOException {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
+
+    List<PolicyNotification> policyNotifications = new ArrayList<>();
+    for (int i = 0; i < 12; i++) {
+      PolicyNotification notification =
+          new PolicyNotification(new PolicyFact("policy-" + i, "Security-High-" + i, 8), new Notifications());
+      ComponentFact componentFact = new ComponentFact(componentIdentifier, "dummy-hash");
+      ConstraintFact constraintFact = new ConstraintFact("constraint-" + i, "High risk CVSS score", "OR");
+      constraintFact.addConditionFact(createSecuritySeverityConditionFact("CVE-2016-100003" + i, ">= 7", "8.1"));
+      componentFact.addConstraintFact(constraintFact);
+      notification.getPolicyFact().addComponentFact(componentFact);
+      policyNotifications.add(notification);
+    }
+
+    System.setProperty("insight.scm.pullRequest.maxDescriptionChars.github", "1500");
+    try {
+      PullRequestRemediationDetails details =
+          new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "next-no-violations", null, "pullRequest",
+              policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB,
+              TEST_SCM_URL, organizationDAO, FULL_DATA);
+
+      String contents = details.getContents();
+
+      assertThat(contents.length()).isLessThanOrEqualTo(1500);
+      assertThat(contents).contains("more policy violation(s).");
+      assertThat(contents).contains("Some policy violations were omitted");
+    }
+    finally {
+      System.clearProperty("insight.scm.pullRequest.maxDescriptionChars.github");
+    }
+  }
+
   /**
    * A complex set of policy violations covering multiple components and policies. Intended as a superset of possible
    * scenarios we could encounter when synthesizing these into a simple aggregated display.

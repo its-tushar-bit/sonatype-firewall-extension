@@ -1090,6 +1090,57 @@ public class PullRequestFeedbackDetailsTest
     assertRenderedOutput(contents, getClass(), "PullRequestFeedback_Cleared_noEmbeddedHtml_LimitedComponents.md");
   }
 
+  @Test
+  public void testPullRequestFeedback_Github_truncatedWhenOverBudget() throws Exception {
+    setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report-large",
+        false);
+    githubGitRepositoryInfo = getGitRepositoryInfo();
+
+    System.setProperty("insight.scm.pullRequest.maxCommentChars.github", "20000");
+    try {
+      PullRequestFeedbackDetails details =
+          new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+              diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+              lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService,
+              FULL_DATA);
+
+      Optional<String> contents = details.renderTemplateAndGetContents();
+
+      assertThat(contents).isNotEmpty();
+      assertThat(contents.get().length()).isLessThanOrEqualTo(20000);
+      assertThat(contents.get()).contains("more component(s) with violations.");
+      assertThat(contents.get()).contains("Some components were omitted to keep this comment within the size limit.");
+    }
+    finally {
+      System.clearProperty("insight.scm.pullRequest.maxCommentChars.github");
+    }
+  }
+
+  @Test
+  public void testPullRequestFeedback_Github_hardTruncatedWhenBudgetBelowBoilerplate() throws Exception {
+    setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report-large",
+        false);
+    githubGitRepositoryInfo = getGitRepositoryInfo();
+
+    System.setProperty("insight.scm.pullRequest.maxCommentChars.github", "300");
+    try {
+      PullRequestFeedbackDetails details =
+          new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+              diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
+              lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService,
+              FULL_DATA);
+
+      Optional<String> contents = details.renderTemplateAndGetContents();
+
+      assertThat(contents).isNotEmpty();
+      assertThat(contents.get().length()).isLessThanOrEqualTo(300);
+      assertThat(contents.get()).contains("View the full report");
+    }
+    finally {
+      System.clearProperty("insight.scm.pullRequest.maxCommentChars.github");
+    }
+  }
+
   private PolicyViolation createClearedPolicyViolation() {
     PolicyViolation existingViolation = diff.getAppeared().get(0);
     PolicyViolation policyViolation = new PolicyViolation();

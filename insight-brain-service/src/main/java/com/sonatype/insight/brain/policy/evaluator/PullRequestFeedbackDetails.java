@@ -18,6 +18,9 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
+import com.sonatype.insight.brain.git.PullRequestSizeLimit;
+import com.sonatype.insight.brain.git.PullRequestSizeLimit.CappedFit;
+import com.sonatype.insight.brain.git.PullRequestSizeLimit.Notice;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
@@ -206,15 +209,67 @@ public class PullRequestFeedbackDetails
 
     final boolean hasNoViolationsInPR = CollectionUtils.isEmpty(diff.getAppeared());
 
-    // Get a map containing all model values to be used in the template
-    final Map<String, Object> modelMap =
-        getModelMap(
-            newComponentFeedbackList,
-            fixedComponentFeedbackList,
-            gitRepositoryInfo.provider,
-            iqBaseUrl,
-            hasNoViolationsInPR);
+    return renderWithinBudget(newComponentFeedbackList, fixedComponentFeedbackList, hasNoViolationsInPR);
+  }
 
+  private String renderWithinBudget(
+      final List<Map<String, Object>> newComponentFeedbackList,
+      final List<Map<String, Object>> fixedComponentFeedbackList,
+      final boolean hasNoViolationsInPR) throws IOException
+  {
+    final int budget = PullRequestSizeLimit.maxCommentChars(gitRepositoryInfo.provider);
+    final int startCap =
+        gitRepositoryInfo.provider == BITBUCKET ? MAX_BITBUCKET_DESCRIPTION_COMPONENTS : Integer.MAX_VALUE;
+
+    final String initial =
+        renderWithCaps(newComponentFeedbackList, fixedComponentFeedbackList, hasNoViolationsInPR, startCap, startCap);
+    if (initial.length() <= budget) {
+      return initial;
+    }
+
+    log.info(
+        "PR feedback comment for application '{}' pull request {} is {} chars, exceeding the {} char {} limit; "
+            + "trimming components",
+        app.getId(), pullRequestNumber, initial.length(), budget, gitRepositoryInfo.provider);
+
+    // Prioritise actionable new violations over informational fixed components: trim the fixed list first.
+    final Optional<String> trimmed = PullRequestSizeLimit.largestFitWithNotice(budget,
+        PullRequestSizeLimit.footer(Notice.COMPONENTS_OMITTED, feedbackReportUrl()),
+        List.of(
+            new CappedFit(Math.min(startCap, fixedComponentFeedbackList.size()),
+                cap -> renderWithCaps(newComponentFeedbackList, fixedComponentFeedbackList, hasNoViolationsInPR,
+                    startCap, cap)),
+            new CappedFit(Math.min(startCap, newComponentFeedbackList.size()),
+                cap -> renderWithCaps(newComponentFeedbackList, fixedComponentFeedbackList, hasNoViolationsInPR, cap,
+                    0))));
+    if (trimmed.isPresent()) {
+      return trimmed.get();
+    }
+
+    log.warn(
+        "PR feedback comment for application '{}' pull request {} exceeds the {} char {} limit even with no "
+            + "components; hard-truncating",
+        app.getId(), pullRequestNumber, budget, gitRepositoryInfo.provider);
+    final String minimal =
+        renderWithCaps(newComponentFeedbackList, fixedComponentFeedbackList, hasNoViolationsInPR, 0, 0);
+    return PullRequestSizeLimit.truncate(minimal, budget,
+        PullRequestSizeLimit.footer(Notice.COMMENT_TRUNCATED, feedbackReportUrl()));
+  }
+
+  private String feedbackReportUrl() {
+    return UserInterfaceLinksHelper.getPrCommentingReportUrl(iqBaseUrl, app.getPublicId(),
+        featureBranchEvaluation.getScanId());
+  }
+
+  private String renderWithCaps(
+      final List<Map<String, Object>> newComponentFeedbackList,
+      final List<Map<String, Object>> fixedComponentFeedbackList,
+      final boolean hasNoViolationsInPR,
+      final int maxComponents,
+      final int maxFixedComponents) throws IOException
+  {
+    final Map<String, Object> modelMap = getModelMap(newComponentFeedbackList, fixedComponentFeedbackList,
+        gitRepositoryInfo.provider, iqBaseUrl, hasNoViolationsInPR, maxComponents, maxFixedComponents);
     return TemplateUtils.render(getPolicyTemplate(), modelMap);
   }
 
@@ -463,25 +518,25 @@ public class PullRequestFeedbackDetails
       final List<Map<String, Object>> fixedComponentFeedbackList,
       final SourceControlProvider provider,
       final String baseUrl,
-      final boolean hasNoViolationsInPR)
+      final boolean hasNoViolationsInPR,
+      final int maxComponents,
+      final int maxFixedComponents)
   {
     return ImmutableMap.<String, Object>builder()
         .put("applicationName", app.getName())
         .put("organizationName", getOrganizationName(app))
         .put("componentList", newComponentFeedbackList)
-        .put("maxComponents", provider == BITBUCKET ? MAX_BITBUCKET_DESCRIPTION_COMPONENTS : Integer.MAX_VALUE)
-        .put("maxFixedComponents", provider == BITBUCKET ? MAX_BITBUCKET_DESCRIPTION_COMPONENTS : Integer.MAX_VALUE)
+        .put("maxComponents", maxComponents)
+        .put("maxFixedComponents", maxFixedComponents)
         .put("date", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(featureBranchEvaluation.getTime()))
         .put("featureBranchStage", StringUtils.capitalize(featureBranchEvaluation.getStageTypeId()))
         .put("baseBranchStage", StringUtils.capitalize(baseBranchEvaluation.getStageTypeId()))
         .put("baseFeatureBranchURL", baseUrl +
             UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()))
-        .put("detailedFeatureBranchReportUrl", baseUrl +
-            UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()) +
-            "?source=pr-commenting")
-        .put("detailedBaseBranchReportUrl", baseUrl +
-            UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), baseBranchEvaluation.getScanId()) +
-            "?source=pr-commenting")
+        .put("detailedFeatureBranchReportUrl", feedbackReportUrl())
+        .put("detailedBaseBranchReportUrl",
+            UserInterfaceLinksHelper.getPrCommentingReportUrl(baseUrl, app.getPublicId(),
+                baseBranchEvaluation.getScanId()))
         .put("featureBranchPrioritiesUrl", UrlUtils.appendUrlPaths(baseUrl,
             UserInterfaceLinksHelper.getPrioritiesUrl(app.getPublicId(), featureBranchEvaluation.getScanId())))
         .put("shouldIncludePrioritiesReport", shouldIncludePrioritiesReport())

@@ -178,6 +178,14 @@ public class UserInterfaceLinksHelper
   }
 
   /**
+   * Gets the absolute URL to the HTML report of the given application and scan, tagged as originating from PR
+   * commenting.
+   */
+  public static String getPrCommentingReportUrl(String baseUrl, String applicationPublicId, String scanId) {
+    return baseUrl + getReportUrl(applicationPublicId, scanId) + "?source=pr-commenting";
+  }
+
+  /**
    * Gets the relative URL to the stable hyperlink for the embeddable HTML report of the given application and scan.
    *
    * @since 1.16

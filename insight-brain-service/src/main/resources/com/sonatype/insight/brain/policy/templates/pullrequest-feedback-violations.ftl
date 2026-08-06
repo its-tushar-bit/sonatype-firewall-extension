@@ -4,6 +4,7 @@
 ### :thinking: Sonatype Lifecycle found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if>:<#lt>
 
 <#list componentList as component>
+<#if (component?index < maxComponents)>
 <details>
   <#assign threatImage="${threatImageArray[component.highestThreatLevel]}">
   <summary title="Threat Level: ${component.highestThreatLevel} of 10"><#t>
@@ -50,7 +51,13 @@ https://sonatype.atlassian.net/browse/SDEV-154
 </#if>
 </details>
 
+</#if>
 </#list>
+<#if (componentList?size > maxComponents)>
+
+**...and ${componentList?size - maxComponents} more component(s) with violations.**
+
+</#if>
 <#else>
   ### :smiley: All Clear! Sonatype Lifecycle didn't find any policy violations introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if><#lt>
   <#if hasNoViolationsInPR>
@@ -63,6 +70,7 @@ https://sonatype.atlassian.net/browse/SDEV-154
   ### :sunglasses: Sonatype Lifecycle determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:<#lt>
 
 <#list fixedComponentList as component>
+<#if (component?index < maxFixedComponents)>
 <#assign threatImage="${threatImageArray[component.highestThreatLevel]}">
 <details>
   <summary title="Threat Level: ${component.highestThreatLevel} of 10"><#t>
@@ -85,7 +93,13 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
 
 </details>
 
+</#if>
 </#list>
+<#if (fixedComponentList?size > maxFixedComponents)>
+
+**...and ${fixedComponentList?size - maxFixedComponents} more fixed component(s).**
+
+</#if>
 </#if>
 ----
 ### Sonatype Lifecycle Report Detail

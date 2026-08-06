@@ -320,4 +320,43 @@ public class PullRequestFeedbackMarkupServiceTest
     // then: markup is generated
     assertRenderedOutput(contents, this.getClass(), expectedRenderedOutputFilename);
   }
+
+  @Test
+  public void testCreateLineMarkup_truncatedWhenOverBudget() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("TEST_APP_PUBLIC_ID", "TEST APP", "TEST ORG");
+
+    final Condition condition = new Condition(MatchStateConditionType.ID, "is", "exact");
+    final ConditionFact conditionFact = ComponentPolicyEvaluator.createConditionFact(condition,
+        new MatchFact(ComponentFactory.forGav("G", "A", "V", MatchState.EXACT), null, null, Collections.emptyList()));
+    final ConstraintFact constraintFact = new ConstraintFact("constraint1", "Constraint 1", "OR");
+    constraintFact.addConditionFact(conditionFact);
+    PolicyEvaluation evaluation = new PolicyEvaluation();
+    evaluation.setOwnerId(app.getId());
+    evaluation.setScanId("myScanId");
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policy1", "Policy 1", 1,
+        PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
+        Collections.singletonList(constraintFact), "filename");
+    policyViolation.setId("pv1");
+
+    System.setProperty("insight.scm.pullRequest.maxCommentChars.github", "300");
+    try {
+      Optional<String> contents = pullRequestFeedbackMarkupService.createLineMarkup(
+          Collections.singletonList(policyViolation),
+          "Test Component",
+          new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
+          Optional.empty(),
+          GITHUB,
+          DEFAULT_SCM_URL,
+          app.getId(),
+          "myScanId",
+          false);
+
+      assertThat(contents).isNotEmpty();
+      assertThat(contents.get().length()).isLessThanOrEqualTo(300);
+      assertThat(contents.get()).contains("View the full report");
+    }
+    finally {
+      System.clearProperty("insight.scm.pullRequest.maxCommentChars.github");
+    }
+  }
 }

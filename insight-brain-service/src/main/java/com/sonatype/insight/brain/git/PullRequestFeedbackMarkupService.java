@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioriti
 import com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactory;
 import com.sonatype.insight.brain.git.render.ComponentFeedbackMDRenderer;
 import com.sonatype.insight.brain.git.render.model.ComponentFeedbackContext;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -114,6 +115,7 @@ public class PullRequestFeedbackMarkupService
     boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(applicationId);
     final boolean supportsHtml = provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl);
     // Refer to https://sonatype.atlassian.net/browse/SDEV-365 for why we need the `supportsHtml` condition
+    final Optional<String> markup;
     if (supportsHtml &&
         (provider == GITHUB || provider == GITLAB))
     {
@@ -126,7 +128,7 @@ public class PullRequestFeedbackMarkupService
           iqBaseUrl.getConfigured(),
           scmImprovementsEnabled ? codeSuggestion : Optional.empty(),
           reducedSecurityData);
-      return ComponentFeedbackMDRenderer.render(context);
+      markup = ComponentFeedbackMDRenderer.render(context);
     }
     else {
       PullRequestLineFeedback details =
@@ -142,7 +144,13 @@ public class PullRequestFeedbackMarkupService
               scmImprovementsEnabled,
               organizationDAO,
               reducedSecurityData);
-      return details.renderTemplateAndGetContents(provider);
+      markup = details.renderTemplateAndGetContents(provider);
     }
+
+    final int budget = PullRequestSizeLimit.maxCommentChars(provider);
+    final String footer = PullRequestSizeLimit.footer(PullRequestSizeLimit.Notice.COMMENT_TRUNCATED,
+        UserInterfaceLinksHelper.getPrCommentingReportUrl(iqBaseUrl.getConfigured(), applicationPublicId,
+            featureBranchScanId));
+    return markup.map(m -> PullRequestSizeLimit.truncate(m, budget, footer));
   }
 }

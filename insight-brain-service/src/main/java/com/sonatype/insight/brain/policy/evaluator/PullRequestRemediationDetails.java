@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -19,6 +20,9 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.git.PullRequestSizeLimit;
+import com.sonatype.insight.brain.git.PullRequestSizeLimit.CappedFit;
+import com.sonatype.insight.brain.git.PullRequestSizeLimit.Notice;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -351,7 +355,52 @@ public class PullRequestRemediationDetails
     if (displayNameOrUsername != null) {
       builder.put("displayNameOrUsername", displayNameOrUsername);
     }
-    return TemplateUtils.render(getPolicyTemplate(provider, scmBaseUrl), builder.build());
+    final Map<String, Object> baseModel = builder.build();
+    final Template template = getPolicyTemplate(provider, scmBaseUrl);
+
+    return fitToDescriptionBudget(template, baseModel, threatList.size(), provider,
+        (String) baseModel.get("detailedReportUrl"));
+  }
+
+  private String fitToDescriptionBudget(
+      final Template template,
+      final Map<String, Object> baseModel,
+      final int threatCount,
+      final SourceControlProvider provider,
+      final String reportUrl) throws IOException
+  {
+    final int budget = PullRequestSizeLimit.maxDescriptionChars(provider);
+
+    final String initial = renderThreats(template, baseModel, Integer.MAX_VALUE);
+    if (initial.length() <= budget) {
+      return initial;
+    }
+
+    log.info("Remediation PR description for application '{}' is {} chars, exceeding the {} char {} limit; "
+        + "trimming policy violations", app.getId(), initial.length(), budget, provider);
+
+    final Optional<String> trimmed = PullRequestSizeLimit.largestFitWithNotice(budget,
+        PullRequestSizeLimit.footer(Notice.VIOLATIONS_OMITTED, reportUrl),
+        List.of(new CappedFit(threatCount, cap -> renderThreats(template, baseModel, cap))));
+    if (trimmed.isPresent()) {
+      return trimmed.get();
+    }
+
+    log.warn("Remediation PR description for application '{}' exceeds the {} char {} limit even with no violations; "
+        + "hard-truncating", app.getId(), budget, provider);
+    final String minimal = renderThreats(template, baseModel, 0);
+    return PullRequestSizeLimit.truncate(minimal, budget, PullRequestSizeLimit.footer(Notice.DESCRIPTION_TRUNCATED,
+        reportUrl));
+  }
+
+  private String renderThreats(
+      final Template template,
+      final Map<String, Object> baseModel,
+      final int maxThreats) throws IOException
+  {
+    final Map<String, Object> model =
+        ImmutableMap.<String, Object>builder().putAll(baseModel).put("maxThreats", maxThreats).build();
+    return TemplateUtils.render(template, model);
   }
 
   /**

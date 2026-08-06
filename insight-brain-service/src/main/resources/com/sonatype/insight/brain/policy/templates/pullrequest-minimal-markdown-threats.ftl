@@ -59,11 +59,18 @@ Current version: ${initialVersionDisplay}
 | Threat (of 10) | Policy | Violation Details
 | --- | --- | ---
 <#list threatList as threat>
+<#if (threat?index < maxThreats)>
 | ${threat.threat} | ${threat.policy} | <#list threat.constraints as constraint><#t>
   **${constraint.constraintName}:** <#list constraint.conditions as condition>${condition?replace("*", "\\*")}. </#list><#t>
 </#list>
 
+</#if>
 </#list>
+<#if (threatList?size > maxThreats)>
+
+...and ${threatList?size - maxThreats} more policy violation(s).
+
+</#if>
 </#if>
 
 ### Sonatype Lifecycle Scan Detail

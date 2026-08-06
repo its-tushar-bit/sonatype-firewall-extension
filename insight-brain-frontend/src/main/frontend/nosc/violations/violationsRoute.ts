@@ -18,3 +18,24 @@ export const NEXUS_ONE_VIOLATIONS_STATE_NAME = 'nexusOneViolations';
 
 export const NEXUS_ONE_VIOLATIONS_URL =
   '/violations?q&page&state&category&stage&org&app&threat&waiver&appCategory';
+
+/**
+ * All list query params are {@code dynamic} so the container's URL round-trip (search / filters / page
+ * persisted via {@code stateService.go(..., { location: 'replace' })}) updates params in place instead
+ * of triggering a UI-Router transition. Without this, every filter click re-instantiates the routed
+ * component — the whole page (and its refetch) tears down and rebuilds, which reads as a flash and fires
+ * a duplicate list request. Params still reach the container via {@code useCurrentStateAndParams}, so
+ * bookmarks and back/forward keep working.
+ */
+export const NEXUS_ONE_VIOLATIONS_PARAMS = {
+  q: { dynamic: true },
+  page: { dynamic: true },
+  state: { dynamic: true },
+  category: { dynamic: true },
+  stage: { dynamic: true },
+  org: { dynamic: true },
+  app: { dynamic: true },
+  threat: { dynamic: true },
+  waiver: { dynamic: true },
+  appCategory: { dynamic: true },
+} as const;

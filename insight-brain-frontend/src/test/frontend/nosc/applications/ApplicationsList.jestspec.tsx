@@ -130,19 +130,22 @@ describe('ApplicationsList (CLM-42224)', () => {
   it('hydrates list state from deep-linked route params on the first fetch', async () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
 
-    renderNexusOneRoute(
-      <ApplicationsList />,
-      'nexusOneApplications',
-      { q: 'apple', sort: 'oldest', page: '2', stage: 'build' },
-    );
+    renderNexusOneRoute(<ApplicationsList />, 'nexusOneApplications', {
+      q: 'apple',
+      sort: 'oldest',
+      page: '2',
+      stage: 'build',
+    });
 
     await waitFor(() => {
       const hydrated = axiosMock.history.post.find((request) => {
         const body = JSON.parse(String(request.data));
-        return body.search === 'apple'
-          && body.orderBy === 'lastEvaluationTime'
-          && body.page === 1
-          && body.stageIds?.includes('build');
+        return (
+          body.search === 'apple' &&
+          body.orderBy === 'lastEvaluationTime' &&
+          body.page === 1 &&
+          body.stageIds?.includes('build')
+        );
       });
       expect(hydrated).toBeDefined();
     });
@@ -152,18 +155,14 @@ describe('ApplicationsList (CLM-42224)', () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     const goSpy = jest.spyOn(router.stateService, 'go');
 
-    renderNexusOneRoute(
-      <ApplicationsList />,
-      'nexusOneApplications',
-      { threat: 'Bogus,Critical' },
-    );
+    renderNexusOneRoute(<ApplicationsList />, 'nexusOneApplications', { threat: 'Bogus,Critical' });
 
     await waitFor(() => {
       expect(goSpy).toHaveBeenCalledWith(
         'nexusOneApplications',
         // Legacy bucket tokens are not valid min-max ranges; hydrate drops them.
         expect.objectContaining({ threat: undefined }),
-        expect.objectContaining({ notify: false, location: 'replace' }),
+        expect.objectContaining({ notify: false, location: 'replace' })
       );
     });
 
@@ -191,11 +190,7 @@ describe('ApplicationsList (CLM-42224)', () => {
   it('updates the list request when search is submitted from a deep-linked view', async () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
 
-    renderNexusOneRoute(
-      <ApplicationsList />,
-      'nexusOneApplications',
-      { q: 'apple' },
-    );
+    renderNexusOneRoute(<ApplicationsList />, 'nexusOneApplications', { q: 'apple' });
 
     await waitFor(() => {
       expect(screen.getByTestId('applications-toolbar-search')).toBeInTheDocument();
@@ -213,7 +208,7 @@ describe('ApplicationsList (CLM-42224)', () => {
         expect.objectContaining({
           search: 'banana',
           page: 0,
-        }),
+        })
       );
     });
   });
@@ -229,16 +224,34 @@ describe('ApplicationsList (CLM-42224)', () => {
     expect(screen.getByTestId('applications-page-content')).toBeInTheDocument();
   });
 
-  it('renders filter rail sections with facet labels derived from list rows', async () => {
+  it('exposes the filter rail on small screens via the mobile drawer trigger', async () => {
     axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
     renderList();
     await waitFor(() => {
-      expect(screen.getByTestId('applications-filter-stages')).toBeInTheDocument();
+      expect(screen.getByTestId('preview-applications-page')).toBeInTheDocument();
     });
-    const filterRail = screen.getByTestId('applications-filter-rail');
-    expect(filterRail).toHaveTextContent('Develop');
+    // The skeleton renders the mobile trigger when both renderFilterRail and
+    // renderMobileFilterDrawer are supplied.
+    const trigger = screen.getByTestId('applications-filters-mobile-trigger');
+    expect(trigger).toBeInTheDocument();
+    // Opening the drawer mounts a second rail instance under the prefixed testid namespace,
+    // so it does not collide with the desktop rail's ids.
+    await userEvent.click(trigger);
+    expect(await screen.findByTestId('applications-filter-mobile-applications-filter-rail')).toBeInTheDocument();
+  });
+
+  it('renders filter rail sections with facet labels derived from list rows', async () => {
+    axiosMock.onPost(listUrl).reply(200, API_LIST_RESPONSE);
+    renderList();
+    const filterRail = await screen.findByTestId('applications-filter-rail');
+    // The facet sections keep a stable shape while facets load, so the fieldsets exist before
+    // the first response resolves — wait on the row labels themselves, not the containers.
+    await waitFor(() => {
+      expect(filterRail).toHaveTextContent('Develop');
+    });
     expect(filterRail).toHaveTextContent('Java-team');
     expect(filterRail).toHaveTextContent('Apple - Java');
+    expect(screen.getByTestId('applications-filter-stages')).toBeInTheDocument();
     expect(screen.getByTestId('applications-filter-threat-level')).toBeInTheDocument();
   });
 
@@ -260,13 +273,13 @@ describe('ApplicationsList (CLM-42224)', () => {
         expect.objectContaining({
           stageIds: ['build'],
           page: 0,
-        }),
+        })
       );
     });
 
     expect(screen.getByTestId('applications-toolbar-csv')).toHaveAttribute(
       'title',
-      'CSV export caveat: sorted by total risk (not evaluation time); stage filter uses Classic matching and may differ from this list',
+      'CSV export caveat: sorted by total risk (not evaluation time); stage filter uses Classic matching and may differ from this list'
     );
   });
 
@@ -294,7 +307,7 @@ describe('ApplicationsList (CLM-42224)', () => {
           pageSize: 50,
           includeFacets: true,
           orderBy: '-lastEvaluationTime',
-        }),
+        })
       );
       expect(body.stageIds).toBeUndefined();
     });
@@ -312,7 +325,7 @@ describe('ApplicationsList (CLM-42224)', () => {
     expect(screen.getByTestId('applications-toolbar-csv')).toBeEnabled();
     expect(screen.getByTestId('applications-toolbar-export-form')).toHaveAttribute(
       'action',
-      expect.stringContaining('/rest/dashboard/export/applicationRisks'),
+      expect.stringContaining('/rest/dashboard/export/applicationRisks')
     );
   });
 
@@ -334,13 +347,13 @@ describe('ApplicationsList (CLM-42224)', () => {
           search: 'apple',
           page: 0,
           orderBy: '-lastEvaluationTime',
-        }),
+        })
       );
     });
 
     expect(screen.getByTestId('applications-toolbar-csv')).toHaveAttribute(
       'title',
-      'CSV export caveat: sorted by total risk (not evaluation time); search term is not included',
+      'CSV export caveat: sorted by total risk (not evaluation time); search term is not included'
     );
   });
 
@@ -390,16 +403,12 @@ describe('ApplicationsList (CLM-42224)', () => {
     expect(pageMain.style.left).toBe('256px');
 
     await act(async () => {
-      window.dispatchEvent(
-        new CustomEvent('nosc.leftnav.collapsed.change', { detail: { collapsed: true } }),
-      );
+      window.dispatchEvent(new CustomEvent('nosc.leftnav.collapsed.change', { detail: { collapsed: true } }));
     });
     expect(pageMain.style.left).toBe('64px');
 
     await act(async () => {
-      window.dispatchEvent(
-        new CustomEvent('nosc.leftnav.collapsed.change', { detail: { collapsed: false } }),
-      );
+      window.dispatchEvent(new CustomEvent('nosc.leftnav.collapsed.change', { detail: { collapsed: false } }));
     });
     expect(pageMain.style.left).toBe('256px');
   });
@@ -436,7 +445,7 @@ describe('ApplicationsPage async states', () => {
         loading
         {...pageProps}
       />,
-      'nexusOneApplications',
+      'nexusOneApplications'
     );
     expect(screen.getByTestId('applications-list-loading')).toBeInTheDocument();
   });
@@ -451,7 +460,7 @@ describe('ApplicationsPage async states', () => {
         onRetry={onRetry}
         {...pageProps}
       />,
-      'nexusOneApplications',
+      'nexusOneApplications'
     );
     expect(screen.getByTestId('applications-list-error')).toBeInTheDocument();
     const retryButton = await screen.findByRole('button', { name: /retry/i });
@@ -466,10 +475,10 @@ describe('ApplicationsPage async states', () => {
         facets={{ ...MOCK_APPLICATIONS_FILTER_FACETS, totalApplications: 0 }}
         {...pageProps}
       />,
-      'nexusOneApplications',
+      'nexusOneApplications'
     );
     expect(screen.getByTestId('applications-list-empty')).toBeInTheDocument();
-    expect(screen.getByText('No applications in scope')).toBeInTheDocument();
+    expect(screen.getByText('No applications to display.')).toBeInTheDocument();
   });
 
   it('renders pagination when total exceeds page size', () => {
@@ -484,9 +493,9 @@ describe('ApplicationsPage async states', () => {
         {...filterProps}
         {...toolbarProps}
       />,
-      'nexusOneApplications',
+      'nexusOneApplications'
     );
-    expect(screen.getByTestId('applications-list-pagination')).toBeInTheDocument();
+    expect(screen.getByTestId('applications-pagination')).toBeInTheDocument();
     expect(screen.getByText(/showing 1–50 of 120/i)).toBeInTheDocument();
   });
 
@@ -502,9 +511,9 @@ describe('ApplicationsPage async states', () => {
         {...filterProps}
         {...toolbarProps}
       />,
-      'nexusOneApplications',
+      'nexusOneApplications'
     );
-    expect(screen.getByTestId('applications-list-pagination')).toBeInTheDocument();
+    expect(screen.getByTestId('applications-pagination')).toBeInTheDocument();
   });
 
   it('shows pagination on page 1 when hasNextPage is true but total is within page size', () => {
@@ -520,9 +529,9 @@ describe('ApplicationsPage async states', () => {
         {...filterProps}
         {...toolbarProps}
       />,
-      'nexusOneApplications',
+      'nexusOneApplications'
     );
-    expect(screen.getByTestId('applications-list-pagination')).toBeInTheDocument();
+    expect(screen.getByTestId('applications-pagination')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next page' })).not.toBeDisabled();
   });
 
@@ -539,7 +548,7 @@ describe('ApplicationsPage async states', () => {
         onRetry={jest.fn()}
         {...pageProps}
       />,
-      'nexusOneApplications',
+      'nexusOneApplications'
     );
     expect(screen.getByTestId('applications-list-not-ready')).toBeInTheDocument();
     expect(screen.queryByTestId('applications-list-loading')).not.toBeInTheDocument();

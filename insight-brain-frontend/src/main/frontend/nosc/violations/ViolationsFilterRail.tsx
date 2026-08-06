@@ -141,6 +141,48 @@ function toEntries(
     .sort((a, b) => a.label.localeCompare(b.label));
 }
 
+/**
+ * Per-section "‹ Clear" link, matching the Vulnerabilities filter rail. Shown once the group has a
+ * selection; clears only that group by toggling off each selected id (no dedicated clear handler needed).
+ */
+function SectionClearLink({
+  testId,
+  group,
+  selected,
+  onToggle,
+}: {
+  readonly testId: string;
+  readonly group: ViolationFilterSetGroup;
+  readonly selected: ReadonlySet<string>;
+  readonly onToggle: (group: ViolationFilterSetGroup, id: string) => void;
+}): JSX.Element | null {
+  if (selected.size === 0) return null;
+  return (
+    // A real <button> (not a click-only <div>) so it is focusable and activates with
+    // Enter/Space for keyboard and screen-reader users (WCAG 2.1.1).
+    <button
+      type="button"
+      onClick={() => selected.forEach((id) => onToggle(group, id))}
+      data-testid={`${testId}-clear`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 'var(--space-2)',
+        marginBottom: 'var(--space-2)',
+        padding: 0,
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+      }}
+    >
+      <ActionIcons.ChevronLeft size={14} color="var(--blue-11)" />
+      <Text size="2" color="blue" style={{ fontWeight: 500 }}>
+        Clear
+      </Text>
+    </button>
+  );
+}
+
 function CheckboxFilterSection({
   title,
   testId,
@@ -163,6 +205,7 @@ function CheckboxFilterSection({
   return (
     <fieldset className="nosc-violations-filter-group" data-testid={testId}>
       <legend className="nosc-violations-filter-legend">{title}</legend>
+      <SectionClearLink testId={testId} group={group} selected={selected} onToggle={onToggle} />
       {/* Same height cap as the searchable sections so a growable facet (e.g. Stages) scrolls within
           the rail instead of stretching it; short lists (State/Policy Type) never trigger the scroll. */}
       <ScrollArea type="auto" scrollbars="vertical" className="nosc-violations-filter-scroll">
@@ -278,6 +321,7 @@ function SearchableFilterSection({
   return (
     <fieldset className="nosc-violations-filter-group" data-testid={testId}>
       <legend className="nosc-violations-filter-legend">{title}</legend>
+      <SectionClearLink testId={testId} group={group} selected={selected} onToggle={onToggle} />
       <TextField.Root
         size="1"
         placeholder="Search..."

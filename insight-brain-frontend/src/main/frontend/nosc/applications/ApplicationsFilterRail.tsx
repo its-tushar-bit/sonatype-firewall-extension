@@ -4,16 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useState } from 'react';
-import {
-  Badge,
-  Box,
-  Button,
-  Checkbox,
-  Flex,
-  Slider,
-  Text,
-  TextField,
-} from '@radix-ui/themes';
+import { Badge, Box, Button, Checkbox, Flex, Slider, Text, TextField } from '@radix-ui/themes';
 import { ActionIcons, NavIcons } from 'MainRoot/nosc/icons';
 import { ApplicationsFilterFacetCounts } from 'MainRoot/nosc/applications/applicationListTypes';
 import {
@@ -35,12 +26,15 @@ export interface ApplicationsFilterRailProps {
   readonly facets: ApplicationsFilterFacetCounts;
   readonly filters: ApplicationsListFilterState;
   readonly hasActiveFilters: boolean;
-  readonly onToggleFilter: (
-    field: ApplicationsListFilterSetField,
-    id: string,
-  ) => void;
+  readonly onToggleFilter: (field: ApplicationsListFilterSetField, id: string) => void;
   readonly onThreatRangeChange: (range: ApplicationsThreatRange) => void;
   readonly onResetFilters: () => void;
+  /**
+   * Disambiguates data-testids and DOM ids when the rail is rendered twice (desktop rail +
+   * mobile drawer). Defaults to the desktop instance (no prefix), so existing testids are
+   * unchanged.
+   */
+  readonly idPrefix?: string;
 }
 
 type FacetEntry = {
@@ -70,13 +64,7 @@ function FilterOption({
         </span>
         <span className="nosc-applications-filter-option__label">{label}</span>
         {count > 0 && (
-          <Badge
-            className="nosc-applications-filter-option__count"
-            size="1"
-            color="gray"
-            variant="soft"
-            radius="full"
-          >
+          <Badge className="nosc-applications-filter-option__count" size="1" color="gray" variant="soft" radius="full">
             {count}
           </Badge>
         )}
@@ -88,25 +76,20 @@ function FilterOption({
 function ThreatLevelSection({
   range,
   onThreatRangeChange,
+  testId,
 }: {
   readonly range: ApplicationsThreatRange;
   readonly onThreatRangeChange: (range: ApplicationsThreatRange) => void;
+  readonly testId: string;
 }): JSX.Element {
   const [liveRange, setLiveRange] = useState<[number, number]>([range[0], range[1]]);
   useEffect(() => {
-    setLiveRange((current) => (
-      current[0] === range[0] && current[1] === range[1]
-        ? current
-        : [range[0], range[1]]
-    ));
+    setLiveRange((current) => (current[0] === range[0] && current[1] === range[1] ? current : [range[0], range[1]]));
   }, [range[0], range[1]]);
 
-  const legendId = 'applications-filter-threat-level-legend';
+  const legendId = `${testId}-legend`;
   return (
-    <fieldset
-      className="nosc-applications-filter-group"
-      data-testid="applications-filter-threat-level"
-    >
+    <fieldset className="nosc-applications-filter-group" data-testid={testId}>
       <legend id={legendId} className="nosc-applications-filter-legend">
         Policy Threat Level
       </legend>
@@ -117,14 +100,14 @@ function ThreatLevelSection({
         value={liveRange}
         onValueChange={(next) => setLiveRange([...normalizeApplicationsThreatRange(next)])}
         onValueCommit={(next) => onThreatRangeChange(normalizeApplicationsThreatRange(next))}
-        data-testid="applications-filter-threat-level-slider"
+        data-testid={`${testId}-slider`}
         aria-labelledby={legendId}
       />
       <Flex justify="between" mt="2">
         <Text size="1" color="gray">
           {APPLICATIONS_THREAT_MIN}
         </Text>
-        <Text size="1" color="gray" data-testid="applications-filter-threat-level-value">
+        <Text size="1" color="gray" data-testid={`${testId}-value`}>
           {liveRange[0]} – {liveRange[1]}
         </Text>
         <Text size="1" color="gray">
@@ -176,7 +159,7 @@ function CheckboxFilterSection({
 function collapseFacetEntries(
   entries: ReadonlyArray<FacetEntry>,
   selected: ReadonlySet<string>,
-  limit: number,
+  limit: number
 ): ReadonlyArray<FacetEntry> {
   if (entries.length <= limit) return entries;
   const selectedEntries = entries.filter((entry) => selected.has(entry.id));
@@ -208,9 +191,7 @@ function SearchableFilterSection({
 
   const trimmed = query.trim().toLowerCase();
   const filtered = trimmed
-    ? entries.filter(
-        (entry) => entry.label.toLowerCase().includes(trimmed) || selected.has(entry.id),
-      )
+    ? entries.filter((entry) => entry.label.toLowerCase().includes(trimmed) || selected.has(entry.id))
     : entries;
 
   const searching = trimmed.length > 0;
@@ -218,8 +199,8 @@ function SearchableFilterSection({
   const visible = searching
     ? filtered.slice(0, FACET_SEARCH_RESULT_LIMIT)
     : expanded
-      ? filtered
-      : collapseFacetEntries(filtered, selected, FACET_COLLAPSE_LIMIT);
+    ? filtered
+    : collapseFacetEntries(filtered, selected, FACET_COLLAPSE_LIMIT);
   const canToggleCollapse = !searching && filtered.length > FACET_COLLAPSE_LIMIT;
 
   return (
@@ -292,9 +273,13 @@ export default function ApplicationsFilterRail({
   onToggleFilter,
   onThreatRangeChange,
   onResetFilters,
+  idPrefix,
 }: ApplicationsFilterRailProps): JSX.Element {
+  // Prefix every data-testid / DOM id so a second instance (mobile drawer) doesn't collide
+  // with the desktop rail. Empty by default → the desktop instance keeps its original ids.
+  const prefix = idPrefix ? `${idPrefix}-` : '';
   return (
-    <Box asChild className="nosc-applications-filter-rail" data-testid="applications-filter-rail">
+    <Box asChild className="nosc-applications-filter-rail" data-testid={`${prefix}applications-filter-rail`}>
       <aside aria-label="Application filters">
         <Flex align="center" justify="start" mb="4">
           <Button
@@ -303,7 +288,7 @@ export default function ApplicationsFilterRail({
             size="2"
             disabled={!hasActiveFilters}
             onClick={onResetFilters}
-            data-testid="applications-filter-reset"
+            data-testid={`${prefix}applications-filter-reset`}
           >
             <ActionIcons.Refresh size={12} />
             Reset filters
@@ -314,11 +299,12 @@ export default function ApplicationsFilterRail({
           <ThreatLevelSection
             range={filters.threatRange}
             onThreatRangeChange={onThreatRangeChange}
+            testId={`${prefix}applications-filter-threat-level`}
           />
 
           <CheckboxFilterSection
             title="Policy Type"
-            testId="applications-filter-policy-types"
+            testId={`${prefix}applications-filter-policy-types`}
             field="policyTypes"
             entries={facets.policyTypes}
             selected={filters.policyTypes}
@@ -327,7 +313,7 @@ export default function ApplicationsFilterRail({
 
           <CheckboxFilterSection
             title="Violation State"
-            testId="applications-filter-violation-states"
+            testId={`${prefix}applications-filter-violation-states`}
             field="violationStates"
             entries={facets.violationStates}
             selected={filters.violationStates}
@@ -336,7 +322,7 @@ export default function ApplicationsFilterRail({
 
           <CheckboxFilterSection
             title="Stages"
-            testId="applications-filter-stages"
+            testId={`${prefix}applications-filter-stages`}
             field="stageIds"
             entries={facets.stages}
             selected={filters.stageIds}
@@ -345,7 +331,7 @@ export default function ApplicationsFilterRail({
 
           <SearchableFilterSection
             title="Organizations"
-            testId="applications-filter-organizations"
+            testId={`${prefix}applications-filter-organizations`}
             field="organizationIds"
             entries={facets.organizations}
             selected={filters.organizationIds}
@@ -354,7 +340,7 @@ export default function ApplicationsFilterRail({
 
           <SearchableFilterSection
             title="Applications"
-            testId="applications-filter-applications"
+            testId={`${prefix}applications-filter-applications`}
             field="applicationIds"
             entries={facets.applications}
             selected={filters.applicationIds}

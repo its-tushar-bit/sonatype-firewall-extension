@@ -131,6 +131,7 @@ import PreviewVulnerabilitiesList from 'MainRoot/nosc/vulnerabilities/Vulnerabil
 import {
   NEXUS_ONE_VIOLATIONS_STATE_NAME,
   NEXUS_ONE_VIOLATIONS_URL,
+  NEXUS_ONE_VIOLATIONS_PARAMS,
 } from 'MainRoot/nosc/violations/violationsRoute';
 import {
   NEXUS_ONE_LEGAL_STATE_NAME,
@@ -328,6 +329,9 @@ router.stateRegistry.register({
 router.stateRegistry.register({
   name: NEXUS_ONE_VIOLATIONS_STATE_NAME,
   url: NEXUS_ONE_VIOLATIONS_URL,
+  // Dynamic query params so filter/search/page writes update the URL in place instead of triggering a
+  // transition that remounts the page (the "flash" + duplicate fetch). See violationsRoute.ts.
+  params: NEXUS_ONE_VIOLATIONS_PARAMS,
   component: PreviewViolationsList,
   data: { title: 'Nexus One — Violations' },
 } as ReactStateDeclaration);

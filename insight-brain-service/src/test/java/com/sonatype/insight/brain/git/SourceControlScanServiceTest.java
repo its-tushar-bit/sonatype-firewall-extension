@@ -51,6 +51,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.zeroturnaround.exec.InvalidExitValueException;
@@ -63,6 +64,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -493,5 +495,37 @@ public class SourceControlScanServiceTest
 
   private void verifySshServiceInvoked() {
     verify(sourceControlSshService, times(1)).verifySshUrlAndUpdateIfNeeded(APP_ID);
+  }
+
+  // CLM-34834: SSH URL recovery must run before createGitApi, and createGitApi must receive the
+  // refreshed GitRepositoryInfo (with the freshly persisted SSH URL) rather than the stale one.
+  @Test
+  public void testOnSourceControlScan_sshReEnabled_populatesSshUrlBeforeCreatingGitApi() throws Exception {
+    sourceControlEvent.setBranchName("branch");
+    sourceControlEvent.setStatusId("statusId");
+    sourceControlEvent.setApplicationId(APP_ID);
+    sourceControlEvent.setStageTypeId(Stage.ID_DEVELOP);
+    sourceControlEvent.setUserAgent("userAgent");
+    sourceControlEvent.setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_API);
+
+    GitRepositoryInfo staleGitRepositoryInfo = mock(GitRepositoryInfo.class);
+    GitRepositoryInfo refreshedGitRepositoryInfo = mock(GitRepositoryInfo.class);
+
+    // first call returns the stale info (SSH URL empty), second call after the SSH recovery returns the refreshed info.
+    doReturn(staleGitRepositoryInfo, refreshedGitRepositoryInfo).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(APP_ID);
+    when(mockGitApiFactory.createGitApi(refreshedGitRepositoryInfo)).thenReturn(mockGitApi);
+
+    scanResult = new ScanResult();
+    scanResult.setScanEntity(mock(ScanEntity.class));
+    when(scanner.scan(any(List.class), eq(APP_ID), eq(proprietaryConfig), any(ScanConfiguration.class),
+        any(ScanMetadata.class))).thenReturn(scanResult);
+
+    service.onSourceControlScan(sourceControlEvent);
+
+    InOrder inOrder = inOrder(sourceControlSshService, mockGitApiFactory);
+    inOrder.verify(sourceControlSshService).verifySshUrlAndUpdateIfNeeded(APP_ID);
+    inOrder.verify(mockGitApiFactory).createGitApi(refreshedGitRepositoryInfo);
+    verify(mockGitApiFactory, never()).createGitApi(staleGitRepositoryInfo);
   }
 }

@@ -211,10 +211,22 @@ public class SourceControlScanService
       String branchName,
       String commitHash) throws GitException
   {
+    // verifySshUrlAndUpdateIfNeeded persists a newly fetched SSH URL to the database but does not
+    // mutate the in-memory GitRepositoryInfo, so re-fetch it before createGitApi so createGitApi
+    // sees the freshly populated SSH URL.
+    sourceControlSshService.verifySshUrlAndUpdateIfNeeded(application.getId());
+    GitRepositoryInfo refreshedGitRepositoryInfo =
+        sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
+    if (refreshedGitRepositoryInfo != null) {
+      gitRepositoryInfo = refreshedGitRepositoryInfo;
+    }
+    else {
+      log.warn("GitRepositoryInfo not found after SSH URL update for application '{}'; using stale info",
+          application.getId());
+    }
+
     final GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
     final File repositoryDirectory = sourceControlUtils.getCheckoutDirectory(application);
-
-    sourceControlSshService.verifySshUrlAndUpdateIfNeeded(application.getId());
 
     try {
       return new RepositorySyncExecutor().execute(

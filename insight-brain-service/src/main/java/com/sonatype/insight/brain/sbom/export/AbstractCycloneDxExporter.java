@@ -486,6 +486,7 @@ public abstract class AbstractCycloneDxExporter
     if (licenseChoice == null) {
       licenseChoice = new LicenseChoice();
       bomComponent.setLicenses(licenseChoice);
+      return licenseChoice;
     }
     else if (licenseChoice.getExpression() != null &&
         StringUtils.isNotEmpty(licenseChoice.getExpression().getValue()))

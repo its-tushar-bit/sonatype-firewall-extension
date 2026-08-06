@@ -750,6 +750,18 @@
       </dependency>
 
       <!--
+       Pin json-schema-validator to 2.0.4 so it matches the version cyclonedx-core-java 13.0.0
+       was built and tested against. Without this, the MCP SDK's mcp-json-jackson2 pulls in 2.0.0
+       transitively; cyclonedx-core-java's CycloneDxSchema.getJsonSchema builds a SchemaRegistry
+       in a way that works with 2.0.4 but throws IllegalArgumentException on 2.0.0.
+       -->
+      <dependency>
+        <groupId>com.networknt</groupId>
+        <artifactId>json-schema-validator</artifactId>
+        <version>2.0.4</version>
+      </dependency>
+
+      <!--
        Override log4j-api pinned by spring-boot-dependencies (2.25.4) to mitigate
        CVE-2026-49844; keep log4j-to-slf4j (Spring Boot's logging bridge) in lockstep.
        Drop these once Spring Boot's BOM catches up to ${log4j.version}.

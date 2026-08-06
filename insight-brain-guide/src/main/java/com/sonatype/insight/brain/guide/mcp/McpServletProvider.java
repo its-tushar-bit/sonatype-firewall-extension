@@ -342,7 +342,8 @@ public class McpServletProvider
     }
   }
 
-  private static JsonSchema toolSchema() {
+  @VisibleForTesting
+  static JsonSchema toolSchema() {
     return new JsonSchema(
         "object",
         Map.of(

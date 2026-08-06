@@ -26,8 +26,11 @@ import com.sonatype.insight.brain.guide.telemetry.GuideChannelContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.modelcontextprotocol.common.McpTransportContext;
+import io.modelcontextprotocol.json.schema.JsonSchemaValidator;
+import io.modelcontextprotocol.json.schema.jackson2.DefaultJsonSchemaValidator;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
+import io.modelcontextprotocol.spec.McpSchema.JsonSchema;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import org.junit.After;
 import org.junit.Before;
@@ -495,6 +498,63 @@ public class McpServletProviderTest
     assertThatThrownBy(uninitializedProvider::getServlet)
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("initialize()");
+  }
+
+  // The next two tests exercise the tool input schema against MCP's real JSON schema validator
+  // (DefaultJsonSchemaValidator from mcp-json-jackson2). This is the same validator the MCP SDK
+  // dispatches to at runtime when the noOpJsonSchemaValidator workaround is removed. Locks in
+  // that our advertised inputSchema is a well-formed JSON Schema and that valid/invalid arguments
+  // are treated as expected — closing the concern raised on PR #16664.
+
+  @Test
+  public void toolSchema_acceptsValidPackageUrlsArgument() {
+    JsonSchemaValidator validator = new DefaultJsonSchemaValidator();
+    Map<String, Object> schemaMap = toolSchemaAsMap();
+
+    JsonSchemaValidator.ValidationResponse response = validator.validate(
+        schemaMap, Map.of("packageUrls", List.of(PURL)));
+
+    assertThat(response.valid()).isTrue();
+    assertThat(response.errorMessage()).isNull();
+  }
+
+  @Test
+  public void toolSchema_rejectsPackageUrlsWithWrongType() {
+    JsonSchemaValidator validator = new DefaultJsonSchemaValidator();
+    Map<String, Object> schemaMap = toolSchemaAsMap();
+
+    // packageUrls declared as an array of strings; passing a plain string must fail schema validation.
+    JsonSchemaValidator.ValidationResponse response = validator.validate(
+        schemaMap, Map.of("packageUrls", PURL));
+
+    assertThat(response.valid()).isFalse();
+    assertThat(response.errorMessage()).isNotBlank();
+  }
+
+  @Test
+  public void toolSchema_rejectsMissingRequiredPackageUrls() {
+    JsonSchemaValidator validator = new DefaultJsonSchemaValidator();
+    Map<String, Object> schemaMap = toolSchemaAsMap();
+
+    // packageUrls is declared required; an empty arguments object must fail schema validation.
+    JsonSchemaValidator.ValidationResponse response = validator.validate(schemaMap, Map.of());
+
+    assertThat(response.valid()).isFalse();
+    assertThat(response.errorMessage()).isNotBlank();
+  }
+
+  /**
+   * Flattens the McpSchema.JsonSchema record into the Map form DefaultJsonSchemaValidator expects.
+   */
+  private static Map<String, Object> toolSchemaAsMap() {
+    JsonSchema schema = McpServletProvider.toolSchema();
+    Map<String, Object> flat = new HashMap<>();
+    flat.put("type", schema.type());
+    flat.put("properties", schema.properties());
+    if (schema.required() != null) {
+      flat.put("required", schema.required());
+    }
+    return flat;
   }
 
   private static JsonNode parseResult(CallToolResult result) throws Exception {

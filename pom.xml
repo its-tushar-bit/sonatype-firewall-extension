@@ -139,7 +139,7 @@
      locate each extracted JDK on disk. Bump all three together when updating the JDK.
      -->
     <jdks-maven-plugin.jdk-dir-version>jdk-25.0.3+9</jdks-maven-plugin.jdk-dir-version>
-    <gitlab4j-api.version>6.2.0</gitlab4j-api.version>
+    <gitlab4j-api.version>6.3.0</gitlab4j-api.version>
     <micrometer.version>1.17.0</micrometer.version>
     <spring-boot.version>4.0.7</spring-boot.version>
     <!-- Pinned via spring-framework-bom import in dependencyManagement; see comment there. -->

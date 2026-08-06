@@ -120,18 +120,18 @@
                 <artifactItem>
                   <groupId>org.bouncycastle</groupId>
                   <artifactId>bc-fips</artifactId>
-                  <version>2.1.0</version>
+                  <version>${bc-fips.version}</version>
                   <type>jar</type>
                   <outputDirectory>${fips.lib.dir}</outputDirectory>
-                  <destFileName>bc-fips-2.1.0.jar</destFileName>
+                  <destFileName>bc-fips-${bc-fips.version}.jar</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.bouncycastle</groupId>
                   <artifactId>bcpkix-fips</artifactId>
-                  <version>2.1.9</version>
+                  <version>${bcpkix-fips.version}</version>
                   <type>jar</type>
                   <outputDirectory>${fips.lib.dir}</outputDirectory>
-                  <destFileName>bcpkix-fips-2.1.9.jar</destFileName>
+                  <destFileName>bcpkix-fips-${bcpkix-fips.version}.jar</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.bouncycastle</groupId>

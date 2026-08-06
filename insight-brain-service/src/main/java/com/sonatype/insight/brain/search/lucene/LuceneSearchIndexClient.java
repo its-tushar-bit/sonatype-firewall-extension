@@ -394,7 +394,7 @@ public class LuceneSearchIndexClient
     return new Sort(withKey);
   }
 
-  private static FieldDoc decodeFieldDocAfter(final List<String> searchAfter, final Sort sort) {
+  static FieldDoc decodeFieldDocAfter(final List<String> searchAfter, final Sort sort) {
     SortField[] sortFields = sort.getSort();
     if (searchAfter.size() != sortFields.length) {
       throw new BadRequestException("Invalid searchAfter tuple for Global Search sort.");

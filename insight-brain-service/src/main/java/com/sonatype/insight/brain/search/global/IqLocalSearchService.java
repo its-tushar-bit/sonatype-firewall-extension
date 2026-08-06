@@ -450,6 +450,11 @@ public class IqLocalSearchService
    */
   private static final int NUMERIC_INT_MISSING_LAST = Integer.MIN_VALUE;
 
+  /**
+   * Missing-value sentinel for an ASCENDING sort over an {@code IntPoint}-backed field: absent
+   * values compare as the largest possible {@code int} so they sort LAST, matching
+   * {@link #NUMERIC_ASC_MISSING_LAST} at {@link SortField.Type#INT} width.
+   */
   private static final int NUMERIC_INT_ASC_MISSING_LAST = Integer.MAX_VALUE;
 
   /**

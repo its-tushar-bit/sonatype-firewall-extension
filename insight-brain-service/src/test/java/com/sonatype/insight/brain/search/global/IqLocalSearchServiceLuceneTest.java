@@ -44,6 +44,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.FieldDoc;
@@ -62,6 +63,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import com.sonatype.insight.brain.search.global.fieldmap.FieldMap;
+import com.sonatype.insight.brain.search.lucene.LuceneIndexingContext;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.util.NumericUtils;
+import org.mockito.Mockito;
 
 /**
  * Lucene-backed unit test for the IQ-local query path: stands up a real in-memory Lucene index,
@@ -146,7 +157,7 @@ public class IqLocalSearchServiceLuceneTest
     reader = DirectoryReader.open(directory);
     searcher = new IndexSearcher(reader);
     service = new IqLocalSearchService(searchIndexClient,
-        com.sonatype.insight.brain.search.global.fieldmap.FieldMap.defaultMap());
+        FieldMap.defaultMap());
 
     when(searchIndexClient.isSearchPreviewEnabled()).thenReturn(true);
     when(searchIndexClient.getCurrentUserContextIdsWithReadPermission()).thenReturn(Set.of());
@@ -446,8 +457,8 @@ public class IqLocalSearchServiceLuceneTest
       try (IndexReader localReader = DirectoryReader.open(dir)) {
         IndexSearcher localSearcher = new IndexSearcher(localReader);
         Sort byThreat = IqLocalSearchService.sortFor(Tab.VIOLATION, "threat");
-        Query allViolations = new org.apache.lucene.search.TermQuery(
-            new org.apache.lucene.index.Term(FieldIdentifier.ITEM_TYPE.label,
+        Query allViolations = new TermQuery(
+            new Term(FieldIdentifier.ITEM_TYPE.label,
                 ItemType.POLICY_VIOLATION.name().toLowerCase()));
         TopDocs top = localSearcher.search(allViolations, 10, byThreat);
         List<String> order = new ArrayList<>();
@@ -486,13 +497,13 @@ public class IqLocalSearchServiceLuceneTest
         IndexSearcher localSearcher = new IndexSearcher(localReader);
         Sort byThreat = IqLocalSearchService.sortFor(Tab.VIOLATION, "threat");
         // Match BOTH item types the VIOLATION tab spans, so the sort sees the real mixed shape.
-        Query allViolations = new org.apache.lucene.search.BooleanQuery.Builder()
-            .add(new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+        Query allViolations = new BooleanQuery.Builder()
+            .add(new TermQuery(new Term(
                 FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_VIOLATION.name().toLowerCase())),
-                org.apache.lucene.search.BooleanClause.Occur.SHOULD)
-            .add(new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+                BooleanClause.Occur.SHOULD)
+            .add(new TermQuery(new Term(
                 FieldIdentifier.ITEM_TYPE.label, ItemType.LEGAL_VIOLATION.name().toLowerCase())),
-                org.apache.lucene.search.BooleanClause.Occur.SHOULD)
+                BooleanClause.Occur.SHOULD)
             .build();
 
         TopDocs top = localSearcher.search(allViolations, 10, byThreat);
@@ -511,12 +522,12 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   @Test
-  public void numericSortCursor_roundTripsThroughSortValueType_notCustom() {
+  public void everyAllowlistedNumericSort_reportsAnEncodableNumericTypeNotCustom() {
     // A SortedNumericSortField reports getType() == CUSTOM (it comparator-wraps the numeric type), so
     // a cursor codec keyed off getType() rejects every numeric sort with "Unsupported SortField.Type in
     // searchAfter: CUSTOM" and page 2 of a threat-sorted list 400s. The tuple slots must be keyed off
-    // getNumericType() instead. Assert the numeric type is a concrete, encodable type for each
-    // allowlisted numeric sort.
+    // getNumericType() instead. This asserts the type each sort reports; the encode/decode round-trip
+    // through that type is exercised in LuceneSearchIndexClientSearchAfterEncodeTest.
     for (Tab tab : Tab.values()) {
       for (String sortKey : GlobalSearchSortAllowlist.allowedFor(tab)) {
         Sort sort = IqLocalSearchService.sortFor(tab, sortKey);
@@ -546,9 +557,15 @@ public class IqLocalSearchServiceLuceneTest
    * point field's width, so this fails for ANY numeric sort key that drifts out of width agreement
    * — not only the fields enumerated in the targeted tests. A value must be present, since an absent
    * field yields no {@code PointValues} and the mismatch would stay invisible.
+   *
+   * <p>
+   * The point width per field is read out of a {@code DocumentBuilder}-built document
+   * ({@link #pointClassesByLabel()}), so the write side is the single source of truth: no label list
+   * here restates which fields are {@code IntPoint} vs {@code LongPoint}.
    */
   @Test
   public void everyAllowlistedNumericSort_executesAgainstAProductionShapedIndex() throws Exception {
+    Map<String, Class<?>> pointClasses = pointClassesByLabel();
     for (Tab tab : Tab.values()) {
       for (String sortKey : GlobalSearchSortAllowlist.allowedFor(tab)) {
         FieldIdentifier f = IqLocalSearchService.sortableIndexFieldFor(tab, sortKey);
@@ -559,28 +576,73 @@ public class IqLocalSearchServiceLuceneTest
         if (sort == null || !(sort.getSort()[0] instanceof SortedNumericSortField)) {
           continue;
         }
-        assertNumericSortExecutes(tab, sortKey, f, sort);
+        Class<?> pointClass = pointClasses.get(f.label);
+        assertThat(pointClass)
+            .as("numeric sort '%s' on tab %s sorts %s, but DocumentBuilder writes no point field for it, "
+                + "so the sort's comparator width is unverifiable", sortKey, tab, f.label)
+            .isNotNull();
+        assertNumericSortExecutes(tab, sortKey, f, sort, pointClass);
       }
     }
+  }
+
+  /**
+   * Every point field {@code DocumentBuilder} writes, mapped to its point class, by building one
+   * document with every numeric setter populated. Derives "which fields are {@code IntPoint}" from the
+   * write side, so a new {@code IntPoint} field that is sortable but missing from the production INT
+   * allowlist fails {@link #everyAllowlistedNumericSort_executesAgainstAProductionShapedIndex} on the
+   * points byte-width check rather than slipping past a stale label list.
+   */
+  private static Map<String, Class<?>> pointClassesByLabel() {
+    Document written = new DocumentBuilder(ItemType.POLICY_VIOLATION)
+        .setPolicyThreatLevel(5)
+        .setPolicyViolationThreatLevel(5)
+        .setComponentLicenseThreatLevel(5)
+        .setPolicyWaiverThreatLevel(5)
+        .setComponentMaxPolicyThreatLevel(5)
+        .setApplicationMaxPolicyThreatLevel(5)
+        .setApplicationViolationStateSortOrdinal(0)
+        .setVulnerabilitySeverity(5.5f)
+        .setPolicyWaiverCreatedAtEpochMs(5000L)
+        .setPolicyWaiverExpiresAtEpochMs(5000L)
+        .setApplicationLastEvaluationTimeEpochMs(5000L)
+        .setVulnerabilityFirstSeenEpochMs(5000L)
+        .build();
+    Map<String, Class<?>> byLabel = new HashMap<>();
+    for (IndexableField field : written.getFields()) {
+      if (field instanceof IntPoint || field instanceof LongPoint
+          || field instanceof FloatPoint)
+      {
+        byLabel.put(field.name(), field.getClass());
+      }
+    }
+    // Guards the setter list above: a newly added numeric point field left uncalled here would make the
+    // width check silently skip it, so pin the count of point fields this document is expected to carry.
+    assertThat(byLabel)
+        .as("DocumentBuilder point fields covered by this document; add the new numeric setter above "
+            + "when DocumentBuilder gains an IntPoint/LongPoint/FloatPoint field")
+        .hasSize(12);
+    return byLabel;
   }
 
   private static void assertNumericSortExecutes(
       final Tab tab,
       final String sortKey,
       final FieldIdentifier f,
-      final Sort sort) throws Exception
+      final Sort sort,
+      final Class<?> pointClass) throws Exception
   {
     try (Directory dir = new ByteBuffersDirectory()) {
       try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
         Document doc = new Document();
-        if (INT_POINT_LABELS.contains(f.label)) {
+        if (IntPoint.class.equals(pointClass)) {
           doc.add(new IntPoint(f.label, 5));
           doc.add(new SortedNumericDocValuesField(f.label, 5));
         }
-        else if (FLOAT_POINT_LABELS.contains(f.label)) {
-          doc.add(new org.apache.lucene.document.FloatPoint(f.label, 5.5f));
+        else if (FloatPoint.class.equals(pointClass)) {
+          doc.add(new FloatPoint(f.label, 5.5f));
           doc.add(new SortedNumericDocValuesField(
-              f.label, org.apache.lucene.util.NumericUtils.floatToSortableInt(5.5f)));
+              f.label, NumericUtils.floatToSortableInt(5.5f)));
         }
         else {
           doc.add(new LongPoint(f.label, 5000L));
@@ -592,24 +654,13 @@ public class IqLocalSearchServiceLuceneTest
       try (IndexReader localReader = DirectoryReader.open(dir)) {
         IndexSearcher localSearcher = new IndexSearcher(localReader);
         // Throws IllegalArgumentException when the sort width and the point width disagree.
-        assertThat(localSearcher.search(new org.apache.lucene.search.MatchAllDocsQuery(), 10, sort).scoreDocs)
-            .as("sort '%s' on tab %s (field %s) must execute against a real index", sortKey, tab, f.label)
+        assertThat(localSearcher.search(new MatchAllDocsQuery(), 10, sort).scoreDocs)
+            .as("sort '%s' on tab %s (field %s, written as %s) must execute against a real index",
+                sortKey, tab, f.label, pointClass.getSimpleName())
             .hasSize(1);
       }
     }
   }
-
-  /** Labels DocumentBuilder writes as a 4-byte {@code IntPoint}. */
-  private static final Set<String> INT_POINT_LABELS = Set.of(
-      FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
-      FieldIdentifier.APPLICATION_MAX_POLICY_THREAT_LEVEL.label,
-      FieldIdentifier.POLICY_WAIVER_THREAT_LEVEL.label,
-      FieldIdentifier.COMPONENT_MAX_POLICY_THREAT_LEVEL.label,
-      FieldIdentifier.APPLICATION_VIOLATION_STATE_SORT_ORDINAL.label);
-
-  /** Labels DocumentBuilder writes as a 4-byte {@code FloatPoint}. */
-  private static final Set<String> FLOAT_POINT_LABELS = Set.of(
-      FieldIdentifier.VULNERABILITY_SEVERITY.label);
 
   @Test
   public void search_appliesNumericCreatedSort_descending_forWaiver() throws Exception {
@@ -623,8 +674,8 @@ public class IqLocalSearchServiceLuceneTest
       try (IndexReader localReader = DirectoryReader.open(dir)) {
         IndexSearcher localSearcher = new IndexSearcher(localReader);
         Sort byCreated = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_CREATED);
-        Query allWaivers = new org.apache.lucene.search.TermQuery(
-            new org.apache.lucene.index.Term(FieldIdentifier.ITEM_TYPE.label,
+        Query allWaivers = new TermQuery(
+            new Term(FieldIdentifier.ITEM_TYPE.label,
                 ItemType.POLICY_WAIVER.name().toLowerCase()));
         TopDocs top = localSearcher.search(allWaivers, 10, byCreated);
         List<String> order = new ArrayList<>();
@@ -653,7 +704,7 @@ public class IqLocalSearchServiceLuceneTest
       try (IndexReader localReader = DirectoryReader.open(dir)) {
         IndexSearcher localSearcher = new IndexSearcher(localReader);
         Sort byThreat = IqLocalSearchService.sortFor(Tab.APPLICATION, "policyThreatLevel");
-        Query allApps = new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+        Query allApps = new TermQuery(new Term(
             FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name().toLowerCase()));
         TopDocs top = localSearcher.search(allApps, 10, byThreat);
         List<String> order = new ArrayList<>();
@@ -702,7 +753,7 @@ public class IqLocalSearchServiceLuceneTest
       try (IndexReader localReader = DirectoryReader.open(dir)) {
         IndexSearcher localSearcher = new IndexSearcher(localReader);
         Sort byState = IqLocalSearchService.sortFor(Tab.APPLICATION, "violationState");
-        Query allApps = new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+        Query allApps = new TermQuery(new Term(
             FieldIdentifier.ITEM_TYPE.label, ItemType.APPLICATION.name().toLowerCase()));
         TopDocs top = localSearcher.search(allApps, 10, byState);
         List<String> order = new ArrayList<>();
@@ -740,7 +791,7 @@ public class IqLocalSearchServiceLuceneTest
   }
 
   private static Query allWaiversQuery() {
-    return new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+    return new TermQuery(new Term(
         FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name().toLowerCase()));
   }
 
@@ -772,15 +823,15 @@ public class IqLocalSearchServiceLuceneTest
     // sort twins for BOTH POLICY_WAIVER and POLICY_WAIVER_REQUEST docs (not just query-side fixtures).
     Directory dir = new ByteBuffersDirectory();
     try (IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(new LowerCaseKeywordAnalyzer()))) {
-      com.sonatype.insight.brain.search.lucene.LuceneIndexingContext ctx =
-          new com.sonatype.insight.brain.search.lucene.LuceneIndexingContext(null, writer, null);
-      Document waiver = new com.sonatype.insight.brain.search.lucene.DocumentBuilder(ItemType.POLICY_WAIVER)
+      LuceneIndexingContext ctx =
+          new LuceneIndexingContext(null, writer, null);
+      Document waiver = new DocumentBuilder(ItemType.POLICY_WAIVER)
           .setPolicyWaiverId("w1")
           .setPolicyWaiverThreatLevel(7)
           .setPolicyWaiverExpiresAtEpochMs(5000L)
           .build();
       Document request =
-          new com.sonatype.insight.brain.search.lucene.DocumentBuilder(ItemType.POLICY_WAIVER_REQUEST)
+          new DocumentBuilder(ItemType.POLICY_WAIVER_REQUEST)
               .setPolicyWaiverId("r1")
               .setPolicyWaiverThreatLevel(3)
               .setPolicyWaiverExpiresAtEpochMs(2000L)
@@ -791,13 +842,13 @@ public class IqLocalSearchServiceLuceneTest
     try (IndexReader localReader = DirectoryReader.open(dir)) {
       IndexSearcher localSearcher = new IndexSearcher(localReader);
       // Expiration ascending across both item types: request (2000) before waiver (5000).
-      Query bothTypes = new org.apache.lucene.search.BooleanQuery.Builder()
-          .add(new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+      Query bothTypes = new BooleanQuery.Builder()
+          .add(new TermQuery(new Term(
               FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER.name().toLowerCase())),
-              org.apache.lucene.search.BooleanClause.Occur.SHOULD)
-          .add(new org.apache.lucene.search.TermQuery(new org.apache.lucene.index.Term(
+              BooleanClause.Occur.SHOULD)
+          .add(new TermQuery(new Term(
               FieldIdentifier.ITEM_TYPE.label, ItemType.POLICY_WAIVER_REQUEST.name().toLowerCase())),
-              org.apache.lucene.search.BooleanClause.Occur.SHOULD)
+              BooleanClause.Occur.SHOULD)
           .build();
       Sort byExpiration = IqLocalSearchService.sortFor(Tab.WAIVER, GlobalSearchSortAllowlist.WAIVER_EXPIRATION);
       TopDocs top = localSearcher.search(bothTypes, 10, byExpiration);
@@ -826,8 +877,8 @@ public class IqLocalSearchServiceLuceneTest
       try (IndexReader localReader = DirectoryReader.open(dir)) {
         IndexSearcher localSearcher = new IndexSearcher(localReader);
         Sort byThreat = IqLocalSearchService.sortFor(Tab.VIOLATION, "threat");
-        Query allViolations = new org.apache.lucene.search.TermQuery(
-            new org.apache.lucene.index.Term(FieldIdentifier.ITEM_TYPE.label,
+        Query allViolations = new TermQuery(
+            new Term(FieldIdentifier.ITEM_TYPE.label,
                 ItemType.POLICY_VIOLATION.name().toLowerCase()));
 
         TopDocs page1 = localSearcher.search(allViolations, 1, byThreat);
@@ -901,7 +952,7 @@ public class IqLocalSearchServiceLuceneTest
     row.itemType = ItemType.APPLICATION.name();
     row.applicationPublicId = "acme-prod";
     // doReturn avoids invoking the setUp thenAnswer stub (which would run runRealSearch(null)).
-    org.mockito.Mockito.doReturn(new GlobalSearchResult(List.of(row), 1, List.of(), true, "secondary"))
+    Mockito.doReturn(new GlobalSearchResult(List.of(row), 1, List.of(), true, "secondary"))
         .when(searchIndexClient)
         .searchGlobal(any());
 
@@ -930,8 +981,8 @@ public class IqLocalSearchServiceLuceneTest
     // (whose field sort is flag-gated off) by driving runRealSearch directly with a STRING field
     // Sort on APPLICATION_NAME, for which the fixture indexes doc-values. Three application docs
     // sort by name as: "Acme Dev", "Acme Prod", "Acme West App", "Widget Inventory".
-    Query allApps = new org.apache.lucene.search.TermQuery(
-        new org.apache.lucene.index.Term(FieldIdentifier.ITEM_TYPE.label,
+    Query allApps = new TermQuery(
+        new Term(FieldIdentifier.ITEM_TYPE.label,
             ItemType.APPLICATION.name().toLowerCase()));
     Sort byName = new Sort(new SortField(FieldIdentifier.APPLICATION_NAME.label, SortField.Type.STRING));
 
@@ -989,7 +1040,7 @@ public class IqLocalSearchServiceLuceneTest
 
   /**
    * Build the {@link FieldDoc} anchor for {@link IndexSearcher#searchAfter} from a request's
-   * field {@link org.apache.lucene.search.Sort} and its {@code searchAfter} sort-values. Returns
+   * field {@link Sort} and its {@code searchAfter} sort-values. Returns
    * {@code null} for the first page (no cursor) or when the request has no field sort — the
    * relevance path cannot be anchored by string sort-values alone. Only STRING sort fields are
    * supported, which is all this fixture indexes doc-values for.

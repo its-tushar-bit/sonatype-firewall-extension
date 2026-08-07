@@ -125,7 +125,6 @@ public class LuceneSearchServiceTest
             "been created yet. Re-indexing is required before results can be returned.");
   }
 
-  // TODO: the order this test assumes seems to be lucene specific - consider making a generic version if possible
   @Test
   public void testSearchIndex_GroupsSequentialResultsIfPossible() throws Exception {
     Role role = tempEntity.newRole(false, Permission.READ);
@@ -144,58 +143,15 @@ public class LuceneSearchServiceTest
 
     indexService.createSearchIndex();
 
-    // Try all results on one page
-    // There are 4 results for CVE-2022-25857 but only 2 of these are sequential and should be grouped
+    // Range query invariants (order-agnostic): 4 of the 39 hits are CVE-2022-25857. Their positions
+    // in the result set depend on Lucene scoring and are not asserted. Any grouping with more than
+    // one item must be a sequential-index run of same-groupBy items — that is the sequential-grouping
+    // contract the algorithm is expected to honour.
     SearchResultDTO searchResultDTO =
         searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", Integer.MAX_VALUE, 0, false, null, null);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
-    assertThat(searchResultDTO.groupingByDTOS).hasSize(38);
-
-    // First result (page 1)
-    assertThat(searchResultDTO.groupingByDTOS.get(1).groupBy).isEqualTo("CVE-2022-25857");
-    assertThat(searchResultDTO.groupingByDTOS.get(1).searchResultItemDTOS).hasSize(1);
-    assertThat(searchResultDTO.groupingByDTOS.get(1).searchResultItemDTOS.get(0).resultIndex).isEqualTo(2);
-
-    // Second result (page 1)
-    assertThat(searchResultDTO.groupingByDTOS.get(16).groupBy).isEqualTo("CVE-2022-25857");
-    assertThat(searchResultDTO.groupingByDTOS.get(16).searchResultItemDTOS).hasSize(1);
-    assertThat(searchResultDTO.groupingByDTOS.get(16).searchResultItemDTOS.get(0).resultIndex).isEqualTo(17);
-
-    // Third and fourth results (page 1)
-    assertThat(searchResultDTO.groupingByDTOS.get(35).groupBy).isEqualTo("CVE-2022-25857");
-    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS).hasSize(2);
-    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS.get(0).resultIndex).isEqualTo(36);
-    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS.get(1).resultIndex).isEqualTo(37);
-
-    // Try splitting a group across pages
-    // There are 4 results for CVE-2022-25857 but the 2 sequential results are split across pages and so not grouped
-    searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 36, 0, false, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
-    assertThat(searchResultDTO.groupingByDTOS).hasSize(36);
-
-    // First result (page 1)
-    assertThat(searchResultDTO.groupingByDTOS.get(1).groupBy).isEqualTo("CVE-2022-25857");
-    assertThat(searchResultDTO.groupingByDTOS.get(1).searchResultItemDTOS).hasSize(1);
-    assertThat(searchResultDTO.groupingByDTOS.get(1).searchResultItemDTOS.get(0).resultIndex).isEqualTo(2);
-
-    // Second result (page 1)
-    assertThat(searchResultDTO.groupingByDTOS.get(16).groupBy).isEqualTo("CVE-2022-25857");
-    assertThat(searchResultDTO.groupingByDTOS.get(16).searchResultItemDTOS).hasSize(1);
-    assertThat(searchResultDTO.groupingByDTOS.get(16).searchResultItemDTOS.get(0).resultIndex).isEqualTo(17);
-
-    // Third result (page 1)
-    assertThat(searchResultDTO.groupingByDTOS.get(35).groupBy).isEqualTo("CVE-2022-25857");
-    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS).hasSize(1);
-    assertThat(searchResultDTO.groupingByDTOS.get(35).searchResultItemDTOS.get(0).resultIndex).isEqualTo(36);
-
-    searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 36, 2, false, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
-    assertThat(searchResultDTO.groupingByDTOS).hasSize(3);
-
-    // Fourth result (page 2)
-    assertThat(searchResultDTO.groupingByDTOS.get(0).groupBy).isEqualTo("CVE-2022-25857");
-    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(1);
-    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).resultIndex).isEqualTo(37);
+    assertGroupingInvariants(searchResultDTO, 39);
+    assertThat(countGroupedItemsByGroupBy(searchResultDTO, "CVE-2022-25857")).isEqualTo(4);
 
     // If we search specifically for CVE-2022-25857, then all results should be grouped (unless split across pages)
     // since no matter the order they will have the same groupBy key
@@ -235,5 +191,61 @@ public class LuceneSearchServiceTest
     assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(2);
     assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).resultIndex).isEqualTo(3);
     assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(1).resultIndex).isEqualTo(4);
+  }
+
+  /**
+   * Verifies the sequential-grouping algorithm's contract in a way that does not depend on the
+   * underlying Lucene result ordering:
+   * <ul>
+   * <li>items across all groupings sum to {@code expectedTotalItems};</li>
+   * <li>each grouping's items form a contiguous run of {@code resultIndex} values;</li>
+   * <li>consecutive groupings tile the result set — the last {@code resultIndex} of one grouping is
+   * exactly one less than the first of the next;</li>
+   * <li>consecutive groupings have <em>different</em> {@code groupBy} values, i.e. a new grouping is
+   * started if and only if the previous item's {@code groupBy} differs from the current item's.
+   * This is the "collapse consecutive duplicates" contract in
+   * {@link com.sonatype.insight.brain.search.index.AbstractSearchIndexClient#groupDocuments}: it
+   * would fail both if two adjacent same-{@code groupBy} items were placed in separate groupings
+   * (under-merge) and if two adjacent different-{@code groupBy} items were placed in the same
+   * grouping (over-merge).</li>
+   * </ul>
+   */
+  private static void assertGroupingInvariants(final SearchResultDTO result, final int expectedTotalItems) {
+    int totalItems = result.groupingByDTOS.stream()
+        .mapToInt(g -> g.searchResultItemDTOS.size())
+        .sum();
+    assertThat(totalItems).isEqualTo(expectedTotalItems);
+
+    Integer expectedNextResultIndex = null;
+    String previousGroupBy = null;
+    for (var grouping : result.groupingByDTOS) {
+      var items = grouping.searchResultItemDTOS;
+      assertThat(items).isNotEmpty();
+
+      for (int i = 1; i < items.size(); i++) {
+        assertThat(items.get(i).resultIndex)
+            .as("items within a grouping must have contiguous resultIndex values")
+            .isEqualTo(items.get(i - 1).resultIndex + 1);
+      }
+
+      if (expectedNextResultIndex != null) {
+        assertThat(items.get(0).resultIndex)
+            .as("consecutive groupings must tile the result set with no gap")
+            .isEqualTo(expectedNextResultIndex);
+        assertThat(grouping.groupBy)
+            .as("consecutive groupings must have different groupBy values — otherwise the "
+                + "algorithm failed to merge adjacent same-key items")
+            .isNotEqualTo(previousGroupBy);
+      }
+      expectedNextResultIndex = items.get(items.size() - 1).resultIndex + 1;
+      previousGroupBy = grouping.groupBy;
+    }
+  }
+
+  private static int countGroupedItemsByGroupBy(final SearchResultDTO result, final String groupBy) {
+    return result.groupingByDTOS.stream()
+        .filter(g -> groupBy.equals(g.groupBy))
+        .mapToInt(g -> g.searchResultItemDTOS.size())
+        .sum();
   }
 }

@@ -38,6 +38,7 @@ describe('orgsAndPoliciesEmbed.scss', () => {
       '../navPills/navPills',
       'tiles',
       '../react/iqSidebarNav/iqSidebarNav',
+      '../react/accessTile/accessTile',
       'policy-editor',
       '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal',
       '../innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurations',

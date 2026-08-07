@@ -24,6 +24,9 @@
 // content` in the #iq-content.nx-page-content grid. Without it the page auto-places below the
 // sidebar instead of beside it.
 @use '../react/iqSidebarNav/iqSidebarNav';
+// Access tile member-list layout (Owner Summary / repository summary). Classic loads this
+// via scss.scss; without it the embed renders unstyled `.iq-access-*` member rows.
+@use '../react/accessTile/accessTile';
 // Styles #policy-editor, #proprietary-config-editor, #policy-edit-actions/-notifications and the
 // owner-summary tile actions. It also zeroes the policy form's padding because that form wraps the
 // scrollspy anchors - the same nav-pill/scrollspy concern `tiles` handles for the owner summary.

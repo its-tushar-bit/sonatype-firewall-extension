@@ -5,13 +5,17 @@
  */
 package com.sonatype.insight.brain.search.catalog;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -34,6 +38,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.RowFacetValues;
 import com.sonatype.insight.brain.search.catalog.CatalogLocalRequestBuilder.LocalQuery;
 import com.sonatype.insight.brain.search.catalog.CatalogResponse.CatalogFacetBucket;
+import com.sonatype.insight.brain.search.export.CsvExportLimits;
 import com.sonatype.insight.brain.search.global.GlobalSearchCursor;
 import com.sonatype.insight.brain.search.global.GlobalSearchSortAllowlist;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService;
@@ -545,6 +550,155 @@ public class CatalogService
         facets,
         next == null ? null : next.encode(),
         warnings);
+  }
+
+  /**
+   * Lazily streams EVERY local (My Scan Data) row matching the request, for the CSV export. Same
+   * filters, same sort, same RBAC scoping, same row mapping and same per-page enrichment as
+   * {@link #searchLocal} — only pagination differs: the export follows the internal
+   * {@code searchAfter} cursor across the whole result set instead of returning one page.
+   *
+   * <p>
+   * LOCAL source only. The CATALOG (Guide/HDS) leg is offset-paginated over a remote store with no
+   * cursor and a hard page ceiling, so it cannot be walked safely from here; callers must reject a
+   * catalog-source export before reaching this method.
+   *
+   * <p>
+   * The per-page aggregation enrichment ({@code affectedApps}/{@code affectedComponents}, and the
+   * component severity counts) is applied to each export page exactly as it is to a list page: a small
+   * constant number of GROUPED index reads per page, never one query per row. So the export costs the
+   * same per-row aggregation work as paging through the list by hand, with no N+1.
+   */
+  public Iterator<CatalogRow> streamLocalForExport(
+      final CatalogEntityType entityType,
+      final CatalogRequest request)
+  {
+    final LocalQuery local = CatalogLocalRequestBuilder.build(entityType, request.getFilters());
+    return new LocalExportRowIterator(entityType, local.q(), request.getSort());
+  }
+
+  /**
+   * Pull-based iterator over the whole local result set, one {@link CsvExportLimits#PAGE_SIZE} page at
+   * a time, following the {@code searchAfter} sort values between pages and enriching each page in
+   * place before yielding its rows.
+   *
+   * <p>
+   * Terminates on either an empty {@code nextSearchAfter} or a short page, so a backend that keeps
+   * handing back a cursor for an empty tail cannot spin; the writer's row cap bounds it again.
+   */
+  private final class LocalExportRowIterator
+      implements Iterator<CatalogRow>
+  {
+    private final CatalogEntityType entityType;
+
+    private final String query;
+
+    private final String requestedSort;
+
+    private final Deque<CatalogRow> buffered = new ArrayDeque<>();
+
+    private List<String> searchAfter = List.of();
+
+    /**
+     * The backend that served the previous page, pinned into the next page's cursor so a reindex or a
+     * Hybrid failover between pages is rejected instead of replaying stale sort values against a changed
+     * index. Null before the first page.
+     */
+    private String servingBackendId;
+
+    private boolean exhausted;
+
+    private LocalExportRowIterator(
+        final CatalogEntityType entityType,
+        final String query,
+        final String requestedSort)
+    {
+      this.entityType = entityType;
+      this.query = query;
+      this.requestedSort = requestedSort;
+    }
+
+    @Override
+    public boolean hasNext() {
+      // A page can be entirely dropped rows, so keep fetching until a row buffers or the walk ends.
+      while (buffered.isEmpty() && !exhausted) {
+        fetchNextPage();
+      }
+      return !buffered.isEmpty();
+    }
+
+    @Override
+    public CatalogRow next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      return buffered.removeFirst();
+    }
+
+    private void fetchNextPage() {
+      final Tab tab = entityType.tab();
+      final SearchInputs inputs = new SearchInputs(
+          query, tab, entityType.localItemTypes(), CsvExportLimits.PAGE_SIZE, requestedSort, encodedSearchAfter(tab));
+      final IqLocalSearchResponse result;
+      try {
+        result = iqLocalSearchService.search(inputs);
+      }
+      catch (InvalidLicenseException e) {
+        // Same mapping as the list path: a Lifecycle-only endpoint on an SBOM-Manager-only tenant.
+        throw new NotFoundException("Not Found");
+      }
+      catch (IllegalArgumentException e) {
+        throw new BadRequestException(e.getMessage());
+      }
+      // Pin subsequent cursors to the backend that actually served this page. A generation change between
+      // pages (reindex, Hybrid failover) then fails cursor validation on the next fetch rather than
+      // silently skipping or duplicating rows into a wrong CSV returned at HTTP 200.
+      servingBackendId = result.servingBackendId();
+      final List<CatalogRow> pageRows = new ArrayList<>(result.rows().size());
+      int dropped = 0;
+      for (IqLocalRow tagged : result.rows()) {
+        final CatalogRow row = entityType == CatalogEntityType.COMPONENT
+            ? CatalogRowMapper.localComponent(tagged.row())
+            : CatalogRowMapper.localVulnerability(tagged.row());
+        if (row != null) {
+          pageRows.add(row);
+        }
+        else {
+          dropped++;
+        }
+      }
+      logDroppedRows(entityType, dropped);
+      // Identical enrichment to the list path, so an exported row carries the same computed columns the
+      // page shows. Mutates pageRows in place, which is why it must be a mutable ArrayList.
+      enrichLocalCounts(entityType, pageRows);
+      if (entityType == CatalogEntityType.COMPONENT) {
+        enrichComponentSeverityCounts(pageRows);
+      }
+      buffered.addAll(pageRows);
+      final List<String> next = result.nextSearchAfter();
+      if (next == null || next.isEmpty() || result.rows().size() < CsvExportLimits.PAGE_SIZE) {
+        exhausted = true;
+      }
+      else {
+        searchAfter = next;
+      }
+    }
+
+    /**
+     * Encodes the raw sort values into the cursor form {@link IqLocalSearchService#search} expects,
+     * minted against the sort key the service actually validated (not the raw request sort) so the
+     * generation token matches, AND pinned to the backend that served the previous page so an index
+     * generation change mid-walk is rejected rather than mis-paginated. {@code null} on the first page.
+     */
+    private String encodedSearchAfter(final Tab tab) {
+      if (searchAfter.isEmpty()) {
+        return null;
+      }
+      final String validatedSort = GlobalSearchSortAllowlist.requireAllowed(tab, requestedSort);
+      final GlobalSearchCursor cursor = iqLocalSearchService.mintNextCursor(
+          tab, validatedSort, CsvExportLimits.PAGE_SIZE, searchAfter, servingBackendId);
+      return cursor == null ? null : cursor.encode();
+    }
   }
 
   /**

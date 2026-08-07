@@ -7,10 +7,14 @@ package com.sonatype.insight.brain.search.indexquery;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 
@@ -32,6 +36,7 @@ import com.sonatype.insight.brain.search.global.IqLocalSearchService.IqLocalRow;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService.IqLocalSearchResponse;
 import com.sonatype.insight.brain.search.global.IqLocalSearchService.SearchInputs;
 import com.sonatype.insight.brain.search.global.Tab;
+import com.sonatype.insight.brain.search.export.CsvExportLimits;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryFilterCompiler.CompiledQuery;
@@ -478,6 +483,151 @@ public class IndexQueryService
       return q;
     }
     return compiled.q();
+  }
+
+  /**
+   * Lazily streams EVERY row matching the request, for the CSV export. Same filters, same sort, same
+   * RBAC scoping, same row mapping as {@link #query} — only pagination differs: the export walks the
+   * whole result set by following the internal {@code searchAfter} cursor instead of returning one page.
+   *
+   * <p>
+   * The query is compiled ONCE here, through the same
+   * {@link IndexQueryFilterCompiler#compileWithClauses} call {@link #query} uses, so the export can
+   * never diverge from what the page shows. The caller's {@code page}/{@code pageSize}/
+   * {@code searchAfter} are ignored (an export is inherently unpaginated); the sort IS honoured and
+   * validated by the same {@link #validateSort}, so the exported row order matches the page's.
+   *
+   * <p>
+   * The returned iterator is lazy and holds at most one index page at a time, so a 100k-row export
+   * never materialises the full result set. Rows the mapper rejects (incomplete index data) are
+   * skipped, mirroring {@link #query}'s drop behaviour; the drop metric is recorded per page.
+   */
+  public Iterator<IndexQueryRow> streamForExport(
+      final IndexQueryType queryType,
+      final IndexQueryRequest request)
+  {
+    final Clock requestClock = Clock.fixed(clock.instant(), clock.getZone());
+    final CompiledQuery compiled =
+        IndexQueryFilterCompiler.compileWithClauses(queryType, request.getFilters(), requestClock);
+    final Tab tab = tabFor(queryType);
+    final String sortKey = validateSort(queryType, tab, request.getSort());
+    return new ExportRowIterator(queryType, compiled.q(), tab, sortKey);
+  }
+
+  /**
+   * Pull-based iterator over the whole result set, fetching one {@link CsvExportLimits#PAGE_SIZE} page
+   * at a time and following the {@code searchAfter} sort values between pages.
+   *
+   * <p>
+   * The walk terminates on either of two independent conditions — an empty {@code nextSearchAfter}, or
+   * a page shorter than the requested size — so a backend that keeps handing back a cursor for an
+   * empty tail cannot spin. The writer's row cap bounds it a third time.
+   */
+  private final class ExportRowIterator
+      implements Iterator<IndexQueryRow>
+  {
+    private final IndexQueryType queryType;
+
+    private final String query;
+
+    private final Tab tab;
+
+    private final String sortKey;
+
+    private final Deque<IndexQueryRow> buffered = new ArrayDeque<>();
+
+    private List<String> searchAfter = List.of();
+
+    /**
+     * The backend that served the previous page, pinned into the next page's cursor so a reindex or a
+     * Hybrid failover between pages is rejected instead of replaying stale sort values against a changed
+     * index. Null before the first page.
+     */
+    private String servingBackendId;
+
+    private boolean exhausted;
+
+    private ExportRowIterator(
+        final IndexQueryType queryType,
+        final String query,
+        final Tab tab,
+        final String sortKey)
+    {
+      this.queryType = queryType;
+      this.query = query;
+      this.tab = tab;
+      this.sortKey = sortKey;
+    }
+
+    @Override
+    public boolean hasNext() {
+      // A page can be entirely dropped rows, so keep fetching until a row buffers or the walk ends.
+      while (buffered.isEmpty() && !exhausted) {
+        fetchNextPage();
+      }
+      return !buffered.isEmpty();
+    }
+
+    @Override
+    public IndexQueryRow next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      return buffered.removeFirst();
+    }
+
+    private void fetchNextPage() {
+      final SearchInputs inputs = new SearchInputs(
+          query, tab, queryType.itemTypes(), CsvExportLimits.PAGE_SIZE, sortKey, encodedSearchAfter());
+      final IqLocalSearchResponse result = iqLocalSearchService.search(inputs);
+      // Pin subsequent cursors to the backend that actually served this page. A generation change between
+      // pages (reindex, Hybrid failover) then fails cursor validation on the next fetch rather than
+      // silently skipping or duplicating rows into a wrong CSV returned at HTTP 200.
+      servingBackendId = result.servingBackendId();
+      final List<IndexQueryRow> pageRows = new ArrayList<>(result.rows().size());
+      int dropped = 0;
+      for (IqLocalRow tagged : result.rows()) {
+        final IndexQueryRow row = IndexQueryRowMapper.toRow(queryType, tagged.row());
+        if (row != null) {
+          pageRows.add(row);
+        }
+        else {
+          dropped++;
+        }
+      }
+      if (dropped > 0) {
+        log.warn("Omitted {} {} result(s) missing the identifying field from the CSV export", dropped, queryType);
+        recordDropped(queryType, dropped);
+      }
+      // Identical enrichment to the list path, so an exported POLICY row carries the same Waiver Count the
+      // page shows instead of an empty cell. Mutates pageRows in place, hence the mutable list above.
+      if (queryType == IndexQueryType.POLICY) {
+        enrichPolicyWaiverCounts(pageRows);
+      }
+      buffered.addAll(pageRows);
+      final List<String> next = result.nextSearchAfter();
+      if (next == null || next.isEmpty() || result.rows().size() < CsvExportLimits.PAGE_SIZE) {
+        exhausted = true;
+      }
+      else {
+        searchAfter = next;
+      }
+    }
+
+    /**
+     * Encodes the raw sort values into the cursor form {@link IqLocalSearchService#search} expects. The
+     * token is minted for the same tab/sort/pageSize this walk uses AND pinned to the backend that served
+     * the previous page, so an index generation change mid-walk is rejected rather than mis-paginated.
+     * Returns {@code null} on the first page (no cursor).
+     */
+    private String encodedSearchAfter() {
+      if (searchAfter.isEmpty()) {
+        return null;
+      }
+      final GlobalSearchCursor cursor = iqLocalSearchService.mintNextCursor(
+          tab, sortKey, CsvExportLimits.PAGE_SIZE, searchAfter, servingBackendId);
+      return cursor == null ? null : cursor.encode();
+    }
   }
 
   /**

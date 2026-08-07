@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.search.session;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.global.IqLocalSearchServiceLuceneTest;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClientPermissionFilterTest;
+import com.sonatype.insight.brain.search.catalog.CatalogCsvExportEndpointTest;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryAppsViolationsTest;
+import com.sonatype.insight.brain.search.indexquery.IndexQueryCsvExportEndpointTest;
 import com.sonatype.insight.brain.search.indexquery.IndexQueryEndpointTest;
 import com.sonatype.insight.brain.search.lucene.LegacyViolationStateNegativeControlE2ETest;
 import com.sonatype.insight.brain.search.lucene.LuceneIndexReadSession;
@@ -53,6 +55,11 @@ public class IndexReadSessionArchitectureTest
         .areNotAssignableTo(IndexQueryEndpointTest.class)
         .and()
         .areNotAssignableTo(IndexQueryAppsViolationsTest.class)
+        .and()
+        // CSV list-export E2E harnesses; same in-memory fixture-index pattern as the endpoint tests above.
+        .areNotAssignableTo(IndexQueryCsvExportEndpointTest.class)
+        .and()
+        .areNotAssignableTo(CatalogCsvExportEndpointTest.class)
         .and()
         // Isolated in-memory negative-control E2E harnesses that build their own throwaway index.
         .areNotAssignableTo(PointsConfigNegativeControlE2ETest.class)

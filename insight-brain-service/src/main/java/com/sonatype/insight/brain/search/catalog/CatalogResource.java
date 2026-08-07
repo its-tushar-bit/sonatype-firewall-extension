@@ -5,11 +5,15 @@
  */
 package com.sonatype.insight.brain.search.catalog;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import com.codahale.metrics.annotation.Timed;
+import com.sonatype.insight.brain.api.CsvMediaType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.search.export.CatalogCsvColumns;
+import com.sonatype.insight.brain.search.export.CsvStreamingResponse;
 import com.sonatype.insight.brain.search.global.SearchSource;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
@@ -25,6 +29,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 @Named
 @Singleton
@@ -35,6 +40,13 @@ import jakarta.ws.rs.core.MediaType;
 public class CatalogResource
 {
   public static final String RESOURCE_PATH = "rest/search/catalog";
+
+  /** Sub-path of {@link #RESOURCE_PATH} serving the streaming CSV export of the My-Scan-Data list. */
+  public static final String EXPORT_CSV_PATH = "export/csv";
+
+  /** 400 message when a CSV export is requested for the catalog (Guide/HDS) source. */
+  static final String CATALOG_SOURCE_NOT_EXPORTABLE =
+      "CSV export is available for the My Scan Data source only";
 
   private final CatalogService catalogService;
 
@@ -75,6 +87,40 @@ public class CatalogResource
     final CatalogEntityType entityType = parseEntityType(request.getEntityType());
     final SearchSource source = parseSource(request.getSource());
     return catalogService.search(entityType, source, request);
+  }
+
+  /**
+   * Streaming CSV of the SAME My-Scan-Data list the {@code POST} above returns: identical filters,
+   * sort, RBAC scoping, row mapping and per-page enrichment, minus pagination (the whole filtered
+   * result set is written, up to the documented row cap).
+   *
+   * <p>
+   * LOCAL source only. A {@code source=catalog} export is rejected with 400 rather than silently
+   * exporting local rows under a catalog-looking request: the catalog leg reads a remote Guide/HDS
+   * store that is offset-paginated with a hard page ceiling and no cursor, so it cannot be walked to
+   * completion from here. Rejecting is the honest answer; falling through to local data would be a
+   * wrong answer that looks right.
+   *
+   * <p>
+   * Gates run in the same order as the list endpoint (flag, then body, then RBAC), so an export cannot
+   * be reachable in a state where the list is not.
+   */
+  @POST
+  @Path(EXPORT_CSV_PATH)
+  @Produces(CsvMediaType.TEXT_CSV)
+  public Response exportCsv(final CatalogRequest request) {
+    verifyPreviewUiEnabled();
+    if (request == null) {
+      throw new BadRequestException("request body must not be empty");
+    }
+    verifyReadOnAnyContext();
+    final CatalogEntityType entityType = parseEntityType(request.getEntityType());
+    if (parseSource(request.getSource()) == SearchSource.CATALOG) {
+      throw new BadRequestException(CATALOG_SOURCE_NOT_EXPORTABLE);
+    }
+    final Iterator<CatalogRow> rows = catalogService.streamLocalForExport(entityType, request);
+    return CsvStreamingResponse.build(
+        CatalogCsvColumns.fileNamePrefix(entityType), CatalogCsvColumns.forLocalType(entityType), rows);
   }
 
   private static CatalogEntityType parseEntityType(final String raw) {

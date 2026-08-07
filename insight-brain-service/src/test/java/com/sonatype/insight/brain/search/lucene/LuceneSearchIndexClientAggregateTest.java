@@ -12,10 +12,12 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
@@ -31,6 +33,7 @@ import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.MetricAggregationResult;
+import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -666,5 +669,46 @@ public class LuceneSearchIndexClientAggregateTest
             FieldIdentifier.VULNERABILITY_SEVERITY.label,
             inverted))
         .withMessageContaining("inverted");
+  }
+
+  /**
+   * Pins sequential {@code groupDocuments} behavior with a controlled document order (CLM-29232).
+   * Non-adjacent same keys must not merge; adjacent same keys must.
+   */
+  @Test
+  public void groupDocuments_mergesOnlySequentialSameGroupByKeys() {
+    List<Document> docs = List.of(
+        new DocumentBuilder(ItemType.SECURITY_VULNERABILITY).setVulnerabilityId("CVE-A").build(),
+        new DocumentBuilder(ItemType.SECURITY_VULNERABILITY).setVulnerabilityId("CVE-A").build(),
+        new DocumentBuilder(ItemType.SECURITY_VULNERABILITY).setVulnerabilityId("CVE-B").build(),
+        new DocumentBuilder(ItemType.SECURITY_VULNERABILITY).setVulnerabilityId("CVE-A").build());
+    Iterator<Document> iterator = docs.iterator();
+    Supplier<Document> supplier = () -> iterator.hasNext() ? iterator.next() : null;
+
+    SearchResultDTO result = new SearchResultDTO();
+    Map<String, String> groupFields =
+        Map.of(ItemType.SECURITY_VULNERABILITY.name(), FieldIdentifier.VULNERABILITY_ID.label);
+
+    ReflectionTestUtils.invokeMethod(
+        luceneSearchIndexClient,
+        "groupDocuments",
+        1,
+        25,
+        supplier,
+        result,
+        groupFields);
+
+    assertThat(result.groupingByDTOS).hasSize(3);
+    assertThat(result.groupingByDTOS.get(0).groupBy).isEqualTo("CVE-A");
+    assertThat(result.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(2);
+    assertThat(result.groupingByDTOS.get(0).searchResultItemDTOS)
+        .extracting(item -> item.resultIndex)
+        .containsExactly(1, 2);
+    assertThat(result.groupingByDTOS.get(1).groupBy).isEqualTo("CVE-B");
+    assertThat(result.groupingByDTOS.get(1).searchResultItemDTOS).hasSize(1);
+    assertThat(result.groupingByDTOS.get(1).searchResultItemDTOS.get(0).resultIndex).isEqualTo(3);
+    assertThat(result.groupingByDTOS.get(2).groupBy).isEqualTo("CVE-A");
+    assertThat(result.groupingByDTOS.get(2).searchResultItemDTOS).hasSize(1);
+    assertThat(result.groupingByDTOS.get(2).searchResultItemDTOS.get(0).resultIndex).isEqualTo(4);
   }
 }

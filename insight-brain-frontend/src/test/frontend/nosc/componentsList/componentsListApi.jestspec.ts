@@ -93,6 +93,72 @@ describe('componentsListApi (catalog)', () => {
     expect(mapped.nextSearchAfter).toBe('cursor-2');
   });
 
+  it('maps Guide catalog byFormat aggregations into Ecosystems facets (CLM-44657)', () => {
+    const mapped = mapComponentsCatalogResponse({
+      source: 'catalog',
+      catalogAvailable: true,
+      page: 1,
+      pageSize: 50,
+      totalEstimate: 100,
+      rows: [
+        {
+          id: 'pkg:npm/left-pad@1.3.0',
+          title: 'left-pad',
+          subtitle: '1.3.0',
+          source: 'catalog',
+          fields: { ecosystem: 'npm' },
+        },
+      ],
+      facets: {
+        byFormat: [
+          { value: 'maven', count: 819831 },
+          { value: 'npm', count: 1200 },
+        ],
+        byLicense: [{ value: 'MIT', count: 50 }],
+      },
+    });
+
+    expect(mapped.facets.ecosystems).toEqual([
+      { id: 'maven', label: 'maven', count: 819831 },
+      { id: 'npm', label: 'npm', count: 1200 },
+    ]);
+    // Federated Catalog never surfaces org facets (My Scan owns estate filters).
+    expect(mapped.facets.organizations).toEqual([]);
+  });
+
+  it('prefers byFormat over ecosystem when both are present', () => {
+    const mapped = mapComponentsCatalogResponse({
+      source: 'catalog',
+      catalogAvailable: true,
+      page: 1,
+      pageSize: 50,
+      totalEstimate: 5,
+      rows: [],
+      facets: {
+        byFormat: [{ value: 'maven', count: 10 }],
+        ecosystem: [{ value: 'npm', count: 5 }],
+      },
+    });
+    expect(mapped.facets.ecosystems).toEqual([{ id: 'maven', label: 'maven', count: 10 }]);
+  });
+
+  it('ignores byOrganization on federated Catalog even when Guide returns it', () => {
+    const mapped = mapComponentsCatalogResponse({
+      source: 'catalog',
+      catalogAvailable: true,
+      page: 1,
+      pageSize: 50,
+      totalEstimate: 5,
+      rows: [],
+      facets: {
+        byFormat: [{ value: 'npm', count: 3 }],
+        byOrganization: [{ value: 'some-guide-org', count: 9 }],
+      },
+    });
+    expect(mapped.facets.ecosystems).toEqual([{ id: 'npm', label: 'npm', count: 3 }]);
+    expect(mapped.facets.organizations).toEqual([]);
+  });
+
   it('drops rows without an id', () => {
     expect(mapCatalogComponentRow({ title: 'orphan' })).toBeNull();
   });

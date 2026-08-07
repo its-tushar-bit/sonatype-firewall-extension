@@ -144,16 +144,43 @@ function facetEntriesFromBuckets(
     .sort((left, right) => left.label.localeCompare(right.label));
 }
 
+/**
+ * Pick facet buckets for a UI group. Guide/HDS catalog aggregations use {@code by*} keys
+ * (e.g. {@code byFormat}); the IQ-local catalog source uses field names ({@code ecosystem}).
+ * Prefer Guide keys when present so Catalog Ecosystems is not empty under federation.
+ */
+function facetBuckets(
+  facets: Readonly<Record<string, ReadonlyArray<ApiCatalogFacetBucket>>> | null | undefined,
+  ...keys: string[]
+): ReadonlyArray<ApiCatalogFacetBucket> | undefined {
+  if (!facets) {
+    return undefined;
+  }
+  for (const key of keys) {
+    const buckets = facets[key];
+    if (buckets?.length) {
+      return buckets;
+    }
+  }
+  return undefined;
+}
+
 export function mapCatalogFacets(
   response: ComponentsCatalogApiResponse,
   totalComponents: number,
+  source: 'local' | 'catalog',
 ): ComponentsFilterFacetCounts {
   const facets = response.facets ?? {};
+  // Federated Sonatype Catalog is not estate-scoped. Org/app/stage filters belong to My Scan
+  // Data only — never surface Guide `byOrganization` (or similar) as Catalog org facets.
+  const federatedCatalog = source === 'catalog';
   return {
     totalComponents,
-    organizations: facetEntriesFromBuckets(facets.organization),
-    ecosystems: facetEntriesFromBuckets(facets.ecosystem),
-    // Application and stage are estate dimensions the Sonatype Catalog source does not carry.
+    organizations: federatedCatalog
+      ? []
+      : facetEntriesFromBuckets(facetBuckets(facets, 'organization', 'byOrganization')),
+    // Prefer Guide `byFormat` over local `ecosystem` when both are present.
+    ecosystems: facetEntriesFromBuckets(facetBuckets(facets, 'byFormat', 'ecosystem')),
     applications: [],
     stages: [],
   };
@@ -201,7 +228,7 @@ export function mapComponentsCatalogResponse(response: ComponentsCatalogApiRespo
 
   return {
     components,
-    facets: mapCatalogFacets(response, total),
+    facets: mapCatalogFacets(response, total, source),
     total,
     exactTotalEstimate,
     page: apiPage - 1,

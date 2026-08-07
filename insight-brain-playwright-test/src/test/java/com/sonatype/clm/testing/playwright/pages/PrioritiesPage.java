@@ -150,17 +150,13 @@ public class PrioritiesPage
   }
 
   /**
-   * Column header inside the priorities NxTable.
-   * {@code
-   *
-  <th>} elements have implicit role {@code columnheader} per ARIA, but
-   * {@code getByRole(COLUMNHEADER)} does not resolve reliably inside an RSC NxTable scope
-   * (same workaround as {@code FirewallRegressionPage#autoUnquarantineComponentHeader}) —
-   * filtered by role {@code CELL} + exact accessible name instead.
+   * Column header inside the priorities NxTable. Header cells (th elements) have implicit ARIA role
+   * "columnheader". Playwright 1.62+ strictly differentiates CELL (td) from COLUMNHEADER (th), so
+   * the previous {@code AriaRole.CELL} workaround no longer matches header cells.
    */
   public Locator columnHeaderByText(String label) {
     return container().locator("thead")
-        .getByRole(AriaRole.CELL,
+        .getByRole(AriaRole.COLUMNHEADER,
             new Locator.GetByRoleOptions().setName(label).setExact(true));
   }
 

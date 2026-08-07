@@ -96,7 +96,7 @@ public class TransitiveViolationsPlaywrightTest
 
     tvPage.waiveButton().click();
     assertThat(tvPage.waivePopover()).isVisible();
-    tvPage.waivePopoverCloseButton().click();
+    tvPage.waivePopoverCancelButton().click();
     tvPage.waivePopover()
         .waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN));
 

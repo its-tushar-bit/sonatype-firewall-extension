@@ -103,12 +103,20 @@ public class TransitiveViolationsPage
     return byRole(AriaRole.DIALOG).getByRole(AriaRole.BUTTON, DELETE_WAIVER_BUTTON_OPTS);
   }
 
+  /**
+   * Icon-only close button in the request-waiver popover header. Playwright 1.62 no longer resolves
+   * the accessible name of icon-only buttons from the {@code title} attribute via
+   * {@code getByRole(BUTTON, name)}, so we target the stable element ID instead.
+   *
+   * TODO(a11y): if {@code IqPopoverHeader} adds an {@code aria-label} to its close button,
+   * switch back to {@code getByRole(BUTTON, "Close")} and remove the ID coupling.
+   */
   public Locator requestWaiverPopoverCloseButton() {
-    return requestWaiverPopover().getByRole(AriaRole.BUTTON, CommonButtonOptions.CLOSE_BUTTON_OPTS);
+    return requestWaiverPopover().locator("#request-waive-transitive-violations-popover-toggle");
   }
 
-  public Locator waivePopoverCloseButton() {
-    return waivePopover().getByRole(AriaRole.BUTTON, CommonButtonOptions.CLOSE_BUTTON_OPTS);
+  public Locator waivePopoverCancelButton() {
+    return waivePopover().getByRole(AriaRole.BUTTON, CommonButtonOptions.CANCEL_BUTTON_OPTS);
   }
 
   public Locator loadingSpinner() {

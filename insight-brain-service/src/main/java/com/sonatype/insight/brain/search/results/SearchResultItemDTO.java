@@ -75,6 +75,21 @@ public class SearchResultItemDTO
   /** Multi-valued category names denormalized onto APPLICATION and violation docs. */
   public List<String> applicationCategoryNames;
 
+  /** Stage ids with an active violation, denormalized onto APPLICATION docs. Seeds the stages facet. */
+  public List<String> applicationViolationStages;
+
+  /** Policy threat categories among the app's active violations, denormalized onto APPLICATION docs. */
+  public List<String> applicationViolationPolicyTypes;
+
+  /** Violation states among the app's unfixed violations, denormalized onto APPLICATION docs. */
+  public List<String> applicationViolationStates;
+
+  /** Policy threat categories among a component's violations, denormalized onto NON_VULNERABLE_COMPONENT docs. */
+  public List<String> componentViolationPolicyTypes;
+
+  /** Violation states among a component's violations, denormalized onto NON_VULNERABLE_COMPONENT docs. */
+  public List<String> componentViolationStates;
+
   /** Epoch-millis of the application's latest evaluation; null when never evaluated. */
   public Long applicationLastEvaluationTimeEpochMs;
 
@@ -220,6 +235,15 @@ public class SearchResultItemDTO
     applicationCategoryId = document.get(FieldIdentifier.APPLICATION_CATEGORY_ID.label);
     applicationCategoryName = document.get(FieldIdentifier.APPLICATION_CATEGORY_NAME.label);
     applicationCategoryNames = valuesOrNull(document.getValues(FieldIdentifier.APPLICATION_CATEGORY_NAME.label));
+    applicationViolationStages = valuesOrNull(document.getValues(FieldIdentifier.APPLICATION_VIOLATION_STAGE.label));
+    applicationViolationPolicyTypes =
+        valuesOrNull(document.getValues(FieldIdentifier.APPLICATION_VIOLATION_POLICY_TYPE.label));
+    applicationViolationStates =
+        valuesOrNull(document.getValues(FieldIdentifier.APPLICATION_VIOLATION_STATE.label));
+    componentViolationPolicyTypes =
+        valuesOrNull(document.getValues(FieldIdentifier.COMPONENT_VIOLATION_POLICY_TYPE.label));
+    componentViolationStates =
+        valuesOrNull(document.getValues(FieldIdentifier.COMPONENT_VIOLATION_STATE.label));
     applicationLastEvaluationTimeEpochMs =
         parseLongOrNull(document.get(FieldIdentifier.APPLICATION_LAST_EVALUATION_TIME_EPOCH_MS.label));
     applicationStageSeverityCounts =

@@ -9,7 +9,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sonatype.insight.brain.search.RowFacetValues;
 import com.sonatype.insight.brain.search.global.FilterValidationException;
 import com.sonatype.insight.brain.search.global.GlobalSearchCursor;
 import com.sonatype.insight.brain.search.global.GlobalSearchSortAllowlist;
@@ -58,26 +58,38 @@ public class IndexQueryService
    * filter (which matches organizationName/applicationName). Bucketing by id instead would emit a value
    * the name-matching filter can never resolve.
    * <p>
-   * The fixed-vocabulary facets (states, waiverType) are ordered FIRST: they are a tiny, always-relevant
-   * set (four cheap counts total) and must never be starved by the dynamic per-page facets under the
-   * shared per-request count budget (see {@link #MAX_FACET_COUNT_QUERIES}).
+   * Facets are ordered cheapest-and-most-bounded FIRST, high-cardinality name facets LAST, within every
+   * entity type. Buckets are counted in this order against one shared per-request budget (see
+   * {@link #MAX_FACET_COUNT_QUERIES}), so this ordering is what guarantees the small always-relevant rail
+   * sections — the fixed-vocabulary facets (states, waiverType, status, auto) and the bounded
+   * stage/policyType/violationState/scope/threatLevel sets — are never starved by the per-page
+   * organization/application/policy name facets, which can each saturate the per-field bucket cap on a
+   * diverse page. An empty bounded facet therefore means "no matching values", never "ran out of budget".
    * <p>
-   * APPLICATION has no stages facet/filter: an application doc is not stage-scoped (policyEvaluationStage
-   * is written only on violation/vuln docs), so a stages facet on APPLICATION would always be empty.
+   * The APPLICATION stages/policyTypes/violationStates facets bucket by the denormalized
+   * applicationViolationStage/PolicyType/State keyword sets written on each application doc (the raw
+   * indexed tokens: stage id, lowercased threat category, lowercased state), so a bucket value
+   * round-trips through the matching filter on the same field.
    */
   private static final Map<IndexQueryType, List<Facet>> FACET_FIELDS = Map.of(
+      // Bounded stages/policyTypes/violationStates first, high-cardinality org/app/category names last:
+      // buckets are counted in this order against the one shared budget, so a page diverse enough to
+      // saturate the name facets would otherwise return the bounded rail sections empty.
       IndexQueryType.APPLICATION, List.of(
+          Facet.value("stages", "stages", "applicationViolationStage"),
+          Facet.value("policyTypes", "policyTypes", "applicationViolationPolicyType"),
+          Facet.value("violationStates", "violationStates", "applicationViolationState"),
           Facet.value("organizations", "organizationName", "organizationName"),
           Facet.value("applications", "applicationName", "applicationName"),
           Facet.value("applicationCategories", "applicationCategories", "applicationCategoryName")),
       IndexQueryType.VIOLATION, List.of(
           Facet.states("states"),
           Facet.waiverTypes("waiverType"),
+          Facet.value("stages", "stage", "policyEvaluationStage"),
+          Facet.value("policyTypes", "policyType", "policyViolationThreatCategory"),
           Facet.value("organizations", "organizationName", "organizationName"),
           Facet.value("applications", "applicationName", "applicationName"),
-          Facet.value("applicationCategories", "applicationCategories", "applicationCategoryName"),
-          Facet.value("stages", "stage", "policyEvaluationStage"),
-          Facet.value("policyTypes", "policyType", "policyViolationThreatCategory")),
+          Facet.value("applicationCategories", "applicationCategories", "applicationCategoryName")),
       IndexQueryType.POLICY, List.of(
           Facet.value("policyTypes", "policyType", "policyThreatCategory"),
           Facet.value("organizations", "organizationName", "organizationName")),
@@ -103,13 +115,14 @@ public class IndexQueryService
           // policyType buckets by the denormalized policyWaiverPolicyType keyword (SECURITY/LICENSE/
           // QUALITY/OTHER), seeded from each row's policyType field. Present on both waiver and request docs.
           Facet.value("policyType", "policyType", "policyWaiverPolicyType"),
+          // policy buckets by the indexed policyWaiverPolicyName, seeded from each row's policyName
+          // field, so a bucket round-trips through the policy filter (which matches policyWaiverPolicyName).
+          Facet.value("policy", "policyName", "policyWaiverPolicyName"),
           Facet.value("organizationName", "organizationName", "organizationName"),
-          // applicationName is written on app-scoped waivers via setOwner(application); org-scoped
-          // waivers carry no applicationName and simply do not seed this facet.
-          Facet.value("applicationName", "applicationName", "applicationName"),
-          // policyName is the display name on IndexQueryRow (from policyWaiverPolicyName). Whole-corpus
-          // counts still query the indexed policyWaiverPolicyName keyword.
-          Facet.value("policyName", "policyName", "policyWaiverPolicyName")));
+          // applications buckets by the indexed applicationName, written on app-scoped waivers via
+          // setOwner(application); org-scoped waivers carry no applicationName and simply do not seed
+          // this facet. The key matches the applications filter so a bucket round-trips as a filter.
+          Facet.value("applications", "applicationName", "applicationName")));
 
   /**
    * Cap on distinct values counted per facet field. Facet values come from the current page's rows, so
@@ -125,13 +138,21 @@ public class IndexQueryService
    * the budget is exhausted the remaining buckets are omitted and a truncation warning is added — so
    * truncation is never silent.
    * <p>
-   * Sized to admit a realistic worst-case page across all entity types without truncating while still
-   * guarding against a pathological one, and kept below the sum of the per-field caps
+   * Sized to admit a realistic worst-case page across all entity types while still guarding against a
+   * pathological one, and kept below the sum of the per-field caps
    * ({@value #MAX_FACET_BUCKETS_PER_FIELD} x the facet count per entity type) so it is a live guard
    * rather than an unreachable ceiling. The densest WAIVER page — fixed status (4) + auto/manual (2) +
-   * threatLevel (~11) + scope (≤3) + policyType (≤4) + organizationName / applicationName / policyName
-   * (up to {@value #MAX_FACET_BUCKETS_PER_FIELD} each) ≈ 84 counts — fits under this budget. Fixed
-   * facets are listed first in {@link #FACET_FIELDS} so any future truncation still prefers them.
+   * threatLevel (~11) + scope (≤3) + policyType (≤4) + organizationName / applications / policy
+   * (up to {@value #MAX_FACET_BUCKETS_PER_FIELD} each) ≈ 84 counts — fits under this budget. Because
+   * facets are processed in {@link #FACET_FIELDS} order (bounded facets first), any truncation is
+   * deterministic and is surfaced as a warning rather than being silent.
+   * <p>
+   * A pathological page can still exceed the budget: APPLICATION has six per-page facets, so all six
+   * saturating the per-field cap would want {@value #MAX_FACET_BUCKETS_PER_FIELD} x 6 = 120 counts. That
+   * is deliberate — the budget is a live guard, not an unreachable ceiling. Real pages stay well under it
+   * because stages/policyTypes/violationStates are small vocabularies, and because those bounded facets
+   * are counted first only the trailing organization/application/category name buckets are ever cut,
+   * always with the truncation warning naming the affected facet keys.
    * Fan-out stays O(1) in estate size (bounded Lucene {@code count()}s, not N-per-app).
    */
   static final int MAX_FACET_COUNT_QUERIES = 90;
@@ -149,9 +170,18 @@ public class IndexQueryService
   /** Row field carrying the number of manual waivers referencing a POLICY row's policy id. */
   static final String WAIVER_COUNT_FIELD = "waiverCount";
 
-  /** Warning emitted when the per-request facet-count budget truncates the returned buckets. */
+  /**
+   * Warning emitted when the per-request facet-count budget truncates the returned buckets. The affected
+   * facet keys are appended by {@link #facetCountsTruncatedWarning(List)} so a client can tell a
+   * truncated-empty facet from a legitimately-empty one.
+   */
   static final String FACET_COUNTS_TRUNCATED =
       "some facet counts were omitted to stay within the per-request query budget";
+
+  /** Truncation warning naming the facet keys whose buckets were omitted or cut short. */
+  static String facetCountsTruncatedWarning(final List<String> truncatedFacetKeys) {
+    return FACET_COUNTS_TRUNCATED + ": " + String.join(", ", truncatedFacetKeys);
+  }
 
   private final IqLocalSearchService iqLocalSearchService;
 
@@ -579,55 +609,48 @@ public class IndexQueryService
     final Map<String, List<IndexQueryFacetBucket>> out = new LinkedHashMap<>();
     // Bound total count() fan-out per request: each bucket is one RBAC-scoped index query, and the
     // p95 < 300ms target cannot absorb dozens of them under concurrency. Facets and values are
-    // processed in their FACET_FIELDS order (fixed facets first) so truncation is deterministic and
-    // the always-relevant fixed facets are never starved by the dynamic per-page facets.
+    // processed in their FACET_FIELDS order (bounded facets first, high-cardinality name facets last)
+    // so truncation is deterministic and the always-relevant bounded facets are never starved by the
+    // dynamic per-page name facets.
     final int[] budget = {MAX_FACET_COUNT_QUERIES};
     final boolean[] truncated = {false};
+    final List<String> truncatedFacetKeys = new ArrayList<>();
     for (Facet facet : facetFields) {
+      // Per-facet flag: every facet whose buckets were cut short is named, not just the first one to
+      // exhaust the budget. A shared flag would stay set and mask each subsequent starved facet.
+      final boolean[] facetTruncated = {false};
       final List<IndexQueryFacetBucket> buckets = switch (facet.mode()) {
-        case VALUE -> valueBuckets(facet, baseQuery, rows, budget, truncated);
-        case NUMERIC -> numericBuckets(facet, baseQuery, rows, budget, truncated);
-        case STATES -> fixedBuckets(fixedFacetBaseQuery, budget, truncated, stateClauses());
-        case WAIVER_TYPES -> fixedBuckets(fixedFacetBaseQuery, budget, truncated, waiverTypeClauses());
+        case VALUE -> valueBuckets(facet, baseQuery, rows, budget, facetTruncated);
+        case NUMERIC -> numericBuckets(facet, baseQuery, rows, budget, facetTruncated);
+        case STATES -> fixedBuckets(fixedFacetBaseQuery, budget, facetTruncated, stateClauses());
+        case WAIVER_TYPES -> fixedBuckets(fixedFacetBaseQuery, budget, facetTruncated, waiverTypeClauses());
         // The auto/manual toggle reports true/false counts over the whole corpus regardless of a
         // manual-only view (from an explicit includeAutoWaivers:false), so it counts
         // against a base that drops the policyWaiverAuto:"false" restriction. Otherwise the base would
         // carry it and the "true" bucket would always count 0.
         case AUTO_WAIVER_TOGGLE -> autoWaiverToggleBuckets(
-            facet, baseMetricQueryWithoutAutoRestriction(queryType, compiled), budget, truncated);
+            facet, baseMetricQueryWithoutAutoRestriction(queryType, compiled), budget, facetTruncated);
         // Status counts over the whole corpus regardless of the user's own expiry/auto selection, so
         // the base drops both the expiry range clause and the manual-only auto restriction.
         case WAIVER_STATUS -> fixedBuckets(
-            baseMetricQueryForStatus(queryType, compiled), budget, truncated, statusClauses(requestClock));
+            baseMetricQueryForStatus(queryType, compiled), budget, facetTruncated, statusClauses(requestClock));
       };
       out.put(facet.key(), buckets);
+      if (facetTruncated[0]) {
+        truncated[0] = true;
+        truncatedFacetKeys.add(facet.key());
+      }
     }
     if (truncated[0]) {
-      warnings.add(FACET_COUNTS_TRUNCATED);
+      warnings.add(facetCountsTruncatedWarning(truncatedFacetKeys));
     }
     return out;
   }
 
   /** Distinct string values of a (possibly multi-valued) page row-field, capped per field. */
-  private static Set<String> distinctRowValues(final String rowField, final List<IndexQueryRow> rows) {
-    final Set<String> values = new LinkedHashSet<>();
-    for (IndexQueryRow row : rows) {
-      final Object value = row.getFields().get(rowField);
-      if (value == null) {
-        continue;
-      }
-      if (value instanceof Iterable<?> many) {
-        for (Object element : many) {
-          if (element != null && values.size() < MAX_FACET_BUCKETS_PER_FIELD) {
-            values.add(String.valueOf(element));
-          }
-        }
-      }
-      else if (values.size() < MAX_FACET_BUCKETS_PER_FIELD) {
-        values.add(String.valueOf(value));
-      }
-    }
-    return values;
+  private static Set<String> distinctRowValues(final List<IndexQueryRow> rows, final String rowField) {
+    return RowFacetValues.distinctRowValues(
+        rows, rowField, IndexQueryRow::getFields, MAX_FACET_BUCKETS_PER_FIELD);
   }
 
   private List<IndexQueryFacetBucket> valueBuckets(
@@ -637,7 +660,7 @@ public class IndexQueryService
       final int[] budget,
       final boolean[] truncated)
   {
-    final Set<String> values = distinctRowValues(facet.valueRowField(), rows);
+    final Set<String> values = distinctRowValues(rows, facet.valueRowField());
     final List<IndexQueryFacetBucket> buckets = new ArrayList<>(values.size());
     for (String value : values) {
       if (budget[0] <= 0) {
@@ -663,7 +686,7 @@ public class IndexQueryService
       final int[] budget,
       final boolean[] truncated)
   {
-    final Set<String> values = distinctRowValues(facet.valueRowField(), rows);
+    final Set<String> values = distinctRowValues(rows, facet.valueRowField());
     final List<IndexQueryFacetBucket> buckets = new ArrayList<>(values.size());
     for (String value : values) {
       if (budget[0] <= 0) {

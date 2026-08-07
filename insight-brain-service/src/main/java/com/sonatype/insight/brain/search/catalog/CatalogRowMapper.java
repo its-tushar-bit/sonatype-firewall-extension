@@ -48,6 +48,10 @@ public final class CatalogRowMapper
 
   static final String LOCAL_FIELD_COMPONENT_NAME = "componentName";
 
+  static final String LOCAL_FIELD_POLICY_TYPES = "policyTypes";
+
+  static final String LOCAL_FIELD_VIOLATION_STATES = "violationStates";
+
   /**
    * Vulnerability row id field, shared with {@link CatalogService}'s affected-app/component
    * aggregation so a rename cannot silently zero out the counts (the count query keys off this
@@ -148,6 +152,12 @@ public final class CatalogRowMapper
         // applicationName seeds the apps facet. A component doc is per-app-per-stage, so this is the
         // owning app of the dedup-winning doc; the facet's whole-corpus distinct count is app-complete.
         .field(LOCAL_FIELD_APPLICATION, d.applicationName)
+        // Denormalized component violation aggregates seed the policyTypes/violationStates facets. Each
+        // value is the raw indexed token (lowercased threat category, lowercased state) so a facet
+        // bucket round-trips through the matching filter on the same field. A component recurs once per
+        // (app, stage), so the facet count is a distinct-componentHash count (see LOCAL_FACET_FIELDS).
+        .field(LOCAL_FIELD_POLICY_TYPES, d.componentViolationPolicyTypes)
+        .field(LOCAL_FIELD_VIOLATION_STATES, d.componentViolationStates)
         // No href: the IQ component detail route requires an application/report context, so there is
         // no context-free deep link. The frontend routes on the componentHash id.
         .build();

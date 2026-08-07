@@ -175,11 +175,17 @@ public class IndexQueryAppsViolationsTest
   }
 
   @Test
-  public void applicationFacets_bucketOrgAppByName_andHaveNoStagesFacet() {
+  public void applicationFacets_bucketOrgAppByName_andExposeDenormalizedViolationFacets() {
     IndexQueryResponse resp = resource.query(new IndexQueryRequest(
         "APPLICATION", Map.of(), 1, 25, null, null, true));
-    // APPLICATION docs are not stage-scoped, so there is no stages facet/filter for APPLICATION.
-    assertThat(resp.facets()).containsOnlyKeys("organizations", "applications", "applicationCategories");
+    // stages/policyTypes/violationStates bucket by the denormalized applicationViolationStage/
+    // PolicyType/State keyword sets already written on each application doc, so they are served
+    // from the existing index with no reindex.
+    assertThat(resp.facets()).containsOnlyKeys(
+        "organizations", "applications", "applicationCategories", "stages", "policyTypes", "violationStates");
+    // The stage buckets are the raw indexed stage ids, so a bucket value round-trips as a filter.
+    assertThat(resp.facets().get("stages")).extracting(
+        IndexQueryResponse.IndexQueryFacetBucket::value).contains("build", "release", "develop");
     // Org/app facets bucket by the display name, so the emitted value round-trips back through the
     // organizations/applications filter (which matches organizationName/applicationName).
     assertThat(resp.facets().get("organizations")).anySatisfy(b -> {

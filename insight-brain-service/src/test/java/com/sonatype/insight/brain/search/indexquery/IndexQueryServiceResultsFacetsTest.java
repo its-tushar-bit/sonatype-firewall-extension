@@ -87,8 +87,10 @@ public class IndexQueryServiceResultsFacetsTest
         service.facetsForResults(Tab.APPLICATION, "app", new ArrayList<>());
 
     assertThat(facets).isNotNull();
-    // FACET_FIELDS[APPLICATION] = organizations, applications, applicationCategories.
-    assertThat(facets.keySet()).containsExactly("organizations", "applications", "applicationCategories");
+    // FACET_FIELDS[APPLICATION] = stages, policyTypes, violationStates, organizations, applications,
+    // applicationCategories.
+    assertThat(facets.keySet()).containsExactly("stages", "policyTypes", "violationStates", "organizations",
+        "applications", "applicationCategories");
   }
 
   @Test
@@ -100,11 +102,11 @@ public class IndexQueryServiceResultsFacetsTest
         service.facetsForResults(Tab.VIOLATION, "log4j", new ArrayList<>());
 
     assertThat(facets).isNotNull();
-    // FACET_FIELDS[VIOLATION]: states, waiverType, organizations, applications, applicationCategories,
-    // stages, policyTypes.
+    // FACET_FIELDS[VIOLATION]: states, waiverType, stages, policyTypes, organizations, applications,
+    // applicationCategories.
     assertThat(facets.keySet())
-        .containsExactly("states", "waiverType", "organizations", "applications", "applicationCategories",
-            "stages", "policyTypes");
+        .containsExactly("states", "waiverType", "stages", "policyTypes", "organizations", "applications",
+            "applicationCategories");
     assertThat(facets.get("states")).extracting(IndexQueryFacetBucket::value)
         .containsExactlyInAnyOrder("OPEN", "WAIVED");
   }
@@ -121,8 +123,8 @@ public class IndexQueryServiceResultsFacetsTest
     // Every facet in FACET_FIELDS[WAIVER] is emitted, in declaration order, including ones whose bucket
     // list is empty for this query.
     assertThat(facets.keySet()).containsExactly(
-        "status", "auto", "threatLevel", "scope", "policyType", "organizationName", "applicationName",
-        "policyName");
+        "status", "auto", "threatLevel", "scope", "policyType", "policy", "organizationName",
+        "applications");
   }
 
   @Test
@@ -226,7 +228,7 @@ public class IndexQueryServiceResultsFacetsTest
     assertThat(facets.get("scope")).extracting(IndexQueryFacetBucket::value).containsExactly("application");
     assertThat(facets.get("policyType")).extracting(IndexQueryFacetBucket::value).containsExactly("SECURITY");
     assertThat(facets.get("organizationName")).extracting(IndexQueryFacetBucket::value).containsExactly("Acme");
-    assertThat(facets.get("policyName")).extracting(IndexQueryFacetBucket::value).containsExactly("Some Policy");
+    assertThat(facets.get("policy")).extracting(IndexQueryFacetBucket::value).containsExactly("Some Policy");
     assertThat(facets.get("threatLevel")).isNotEmpty();
     // Counts stay whole-corpus: they come from count() queries, not from the seed rows.
     assertThat(facets.get("scope")).extracting(IndexQueryFacetBucket::count).containsExactly(4L);

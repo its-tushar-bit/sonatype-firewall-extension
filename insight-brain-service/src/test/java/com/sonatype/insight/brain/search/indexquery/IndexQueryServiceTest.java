@@ -300,12 +300,86 @@ public class IndexQueryServiceTest
     IndexQueryResponse resp = service.query(IndexQueryType.VIOLATION, req);
 
     verify(searchIndexClient, org.mockito.Mockito.atMost(IndexQueryService.MAX_FACET_COUNT_QUERIES)).count(any());
-    assertThat(resp.warnings()).contains(IndexQueryService.FACET_COUNTS_TRUNCATED);
+    // The warning names the facets whose buckets were cut short, so a truncated-empty facet is
+    // distinguishable from a legitimately-empty one.
+    assertThat(resp.warnings())
+        .anySatisfy(w -> assertThat(w).startsWith(IndexQueryService.FACET_COUNTS_TRUNCATED + ": "));
     // The bounded, always-wanted fixed facets are computed first, so they are never truncated away.
     assertThat(resp.facets().get("states")).extracting(IndexQueryResponse.IndexQueryFacetBucket::value)
         .containsExactlyInAnyOrder("OPEN", "WAIVED");
     assertThat(resp.facets().get("waiverType")).extracting(IndexQueryResponse.IndexQueryFacetBucket::value)
         .containsExactlyInAnyOrder("AUTO", "MANUAL");
+  }
+
+  @Test
+  public void query_truncationWarning_namesTheTruncatedFacetKeys() {
+    // The truncation warning names the facets whose buckets were omitted so a client can tell which
+    // rail sections are incomplete. Only facets that actually ran out of budget are named; the fixed
+    // facets processed first are complete and must not appear.
+    List<SearchResultItemDTO> page = new java.util.ArrayList<>();
+    for (int i = 0; i < 20; i++) {
+      SearchResultItemDTO d = new SearchResultItemDTO();
+      d.itemType = "POLICY_VIOLATION";
+      d.policyViolationId = "pv-" + i;
+      d.applicationName = "App " + i;
+      d.applicationId = "app-" + i + "-id";
+      d.organizationName = "Org " + i;
+      d.organizationId = "org-" + i;
+      d.applicationCategoryNames = List.of("Cat " + i);
+      d.policyEvaluationStage = "stage-" + i;
+      d.policyViolationThreatCategory = "cat-" + i;
+      d.policyViolationWaiverStatus = "Active";
+      page.add(d);
+    }
+    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(page, page.size(), List.of()));
+    when(searchIndexClient.count(any())).thenReturn(1L);
+
+    IndexQueryRequest req = new IndexQueryRequest("VIOLATION", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.VIOLATION, req);
+
+    String warning = resp.warnings()
+        .stream()
+        .filter(w -> w.startsWith(IndexQueryService.FACET_COUNTS_TRUNCATED))
+        .findFirst()
+        .orElseThrow();
+    // At least one dynamic facet is named after the colon...
+    assertThat(warning).matches(java.util.regex.Pattern.quote(IndexQueryService.FACET_COUNTS_TRUNCATED) + ": \\S.*");
+    // ...and the fixed facets, which are complete, are not named as truncated.
+    String namedKeys = warning.substring(IndexQueryService.FACET_COUNTS_TRUNCATED.length() + 2);
+    assertThat(namedKeys.split(", ")).doesNotContain("states", "waiverType");
+  }
+
+  @Test
+  public void query_truncationWarning_namesEveryStarvedFacet_notJustTheFirst() {
+    // Once the budget is gone, EVERY later facet comes back short, so the warning must name all of them.
+    // Naming only the first would leave the rest indistinguishable from legitimately-empty facets.
+    List<SearchResultItemDTO> page = new java.util.ArrayList<>();
+    for (int i = 0; i < 20; i++) {
+      SearchResultItemDTO d = appDto("app-" + i, "App " + i, "Org " + i);
+      d.applicationCategoryNames = List.of("Cat " + i);
+      d.applicationViolationStages = List.of("stage-" + i);
+      d.applicationViolationPolicyTypes = List.of("ptype-" + i);
+      d.applicationViolationStates = List.of("state-" + i);
+      page.add(d);
+    }
+    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(page, page.size(), List.of()));
+    when(searchIndexClient.count(any())).thenReturn(1L);
+
+    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
+
+    String warning = resp.warnings()
+        .stream()
+        .filter(w -> w.startsWith(IndexQueryService.FACET_COUNTS_TRUNCATED))
+        .findFirst()
+        .orElseThrow();
+    // Budget 90, per-field cap 20: stages/policyTypes/violationStates/organizations complete (80 counts),
+    // leaving 10 -- so applications is cut short at 10 buckets and applicationCategories gets none. BOTH
+    // must be named; naming only the first starved facet would silently omit applicationCategories.
+    final String namedKeys = warning.substring(IndexQueryService.FACET_COUNTS_TRUNCATED.length() + 2);
+    assertThat(namedKeys.split(", ")).containsExactlyInAnyOrder("applications", "applicationCategories");
+    // The complete facets are not named, so an empty one of those means "no matching values".
+    assertThat(namedKeys).doesNotContain("stages").doesNotContain("policyTypes").doesNotContain("organizations");
   }
 
   @Test
@@ -370,6 +444,153 @@ public class IndexQueryServiceTest
     SearchResultItemDTO d = waiverDto(id, "APPLICATION", 5, false);
     d.policyWaiverScope = scope;
     return d;
+  }
+
+  @Test
+  public void query_applicationStagesFacet_bucketsByDenormalizedStageIds_wholeCorpusCounts() {
+    // Two apps whose denormalized applicationViolationStage sets union to {build, stage-release}; each
+    // bucket counts the whole RBAC-scoped corpus on the applicationViolationStage field (round-trips
+    // through the stages filter, which matches the same field on the raw stage id).
+    SearchResultItemDTO a = appDto("acme-1", "App One", "Acme");
+    a.applicationViolationStages = List.of("build", "stage-release");
+    SearchResultItemDTO b = appDto("acme-2", "App Two", "Acme");
+    b.applicationViolationStages = List.of("build");
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(a, b), 2, List.of()));
+    when(searchIndexClient.count(contains("applicationViolationStage:\"build\""))).thenReturn(11L);
+    when(searchIndexClient.count(contains("applicationViolationStage:\"stage-release\""))).thenReturn(3L);
+
+    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
+
+    Map<String, Long> stages = resp.facets()
+        .get("stages")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(stages).containsEntry("build", 11L).containsEntry("stage-release", 3L);
+  }
+
+  @Test
+  public void query_applicationDiversePage_keepsBoundedFacets_andOnlyTruncatesNameFacets() {
+    // A maximally-diverse APPLICATION page: 20 distinct orgs + 20 app names + 20 categories, which alone
+    // want 60 of the 90-count budget, plus 20 distinct stage/policyType/state values each. The bounded
+    // stages/policyTypes/violationStates facets are counted FIRST so they survive; ordering them after the
+    // name facets would return them EMPTY, silently removing those sections from the left nav.
+    List<SearchResultItemDTO> page = new java.util.ArrayList<>();
+    for (int i = 0; i < 20; i++) {
+      SearchResultItemDTO d = appDto("app-" + i, "App " + i, "Org " + i);
+      d.applicationCategoryNames = List.of("Cat " + i);
+      d.applicationViolationStages = List.of("stage-" + i);
+      d.applicationViolationPolicyTypes = List.of("ptype-" + i);
+      d.applicationViolationStates = List.of("state-" + i);
+      page.add(d);
+    }
+    when(searchIndexClient.searchGlobal(any())).thenReturn(new GlobalSearchResult(page, page.size(), List.of()));
+    when(searchIndexClient.count(any())).thenReturn(1L);
+
+    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
+
+    // All three bounded facets are complete at the per-field cap rather than starved to empty.
+    assertThat(resp.facets().get("stages")).hasSize(IndexQueryService.MAX_FACET_BUCKETS_PER_FIELD);
+    assertThat(resp.facets().get("policyTypes")).hasSize(IndexQueryService.MAX_FACET_BUCKETS_PER_FIELD);
+    assertThat(resp.facets().get("violationStates")).hasSize(IndexQueryService.MAX_FACET_BUCKETS_PER_FIELD);
+    // Fan-out stays within the budget and the truncation warning names only trailing name facets.
+    verify(searchIndexClient, org.mockito.Mockito.atMost(IndexQueryService.MAX_FACET_COUNT_QUERIES)).count(any());
+    String warning = resp.warnings()
+        .stream()
+        .filter(w -> w.startsWith(IndexQueryService.FACET_COUNTS_TRUNCATED))
+        .findFirst()
+        .orElseThrow();
+    assertThat(warning).doesNotContain("stages").doesNotContain("policyTypes").doesNotContain("violationStates");
+  }
+
+  @Test
+  public void query_applicationPolicyTypesFacet_bucketsByDenormalizedPolicyTypes_wholeCorpusCounts() {
+    SearchResultItemDTO a = appDto("acme-1", "App One", "Acme");
+    a.applicationViolationPolicyTypes = List.of("security", "license");
+    SearchResultItemDTO b = appDto("acme-2", "App Two", "Acme");
+    b.applicationViolationPolicyTypes = List.of("security");
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(a, b), 2, List.of()));
+    when(searchIndexClient.count(contains("applicationViolationPolicyType:\"security\""))).thenReturn(8L);
+    when(searchIndexClient.count(contains("applicationViolationPolicyType:\"license\""))).thenReturn(2L);
+
+    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
+
+    Map<String, Long> policyTypes = resp.facets()
+        .get("policyTypes")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(policyTypes).containsEntry("security", 8L).containsEntry("license", 2L);
+  }
+
+  @Test
+  public void query_applicationViolationStatesFacet_bucketsByDenormalizedStates_wholeCorpusCounts() {
+    SearchResultItemDTO a = appDto("acme-1", "App One", "Acme");
+    a.applicationViolationStates = List.of("open", "waived");
+    SearchResultItemDTO b = appDto("acme-2", "App Two", "Acme");
+    b.applicationViolationStates = List.of("open");
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(a, b), 2, List.of()));
+    when(searchIndexClient.count(contains("applicationViolationState:\"open\""))).thenReturn(14L);
+    when(searchIndexClient.count(contains("applicationViolationState:\"waived\""))).thenReturn(5L);
+
+    IndexQueryRequest req = new IndexQueryRequest("APPLICATION", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.APPLICATION, req);
+
+    Map<String, Long> states = resp.facets()
+        .get("violationStates")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(states).containsEntry("open", 14L).containsEntry("waived", 5L);
+  }
+
+  @Test
+  public void query_waiverPolicyFacet_bucketsByPolicyName_wholeCorpusCounts() {
+    // Buckets seed from the policyName row field and count the whole corpus on policyWaiverPolicyName,
+    // round-tripping through the policy filter (which matches the same field).
+    SearchResultItemDTO a = waiverDto("w-1", "Security-High", "App One", "Acme");
+    SearchResultItemDTO b = waiverDto("w-2", "Security-High", "App Two", "Acme");
+    SearchResultItemDTO c = waiverDto("w-3", "License-Copyleft", "App Three", "Acme");
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(a, b, c), 3, List.of()));
+    when(searchIndexClient.count(contains("policyWaiverPolicyName:\"Security-High\""))).thenReturn(17L);
+    when(searchIndexClient.count(contains("policyWaiverPolicyName:\"License-Copyleft\""))).thenReturn(6L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
+
+    Map<String, Long> policy = resp.facets()
+        .get("policy")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(policy).containsEntry("Security-High", 17L).containsEntry("License-Copyleft", 6L);
+  }
+
+  @Test
+  public void query_waiverApplicationsFacet_bucketsByApplicationName_wholeCorpusCounts() {
+    SearchResultItemDTO a = waiverDto("w-1", "Security-High", "Checkout", "Acme");
+    SearchResultItemDTO b = waiverDto("w-2", "Security-High", "Billing", "Acme");
+    when(searchIndexClient.searchGlobal(any()))
+        .thenReturn(new GlobalSearchResult(List.of(a, b), 2, List.of()));
+    when(searchIndexClient.count(contains("applicationName:\"Checkout\""))).thenReturn(9L);
+    when(searchIndexClient.count(contains("applicationName:\"Billing\""))).thenReturn(4L);
+
+    IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
+    IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
+
+    Map<String, Long> apps = resp.facets()
+        .get("applications")
+        .stream()
+        .collect(java.util.stream.Collectors.toMap(
+            IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
+    assertThat(apps).containsEntry("Checkout", 9L).containsEntry("Billing", 4L);
   }
 
   @Test
@@ -448,13 +669,15 @@ public class IndexQueryServiceTest
     IndexQueryRequest req = new IndexQueryRequest("WAIVER", Map.of(), 1, 25, null, null, true);
     IndexQueryResponse resp = service.query(IndexQueryType.WAIVER, req);
 
+    // The facet keys mirror the WAIVER filter keys in IndexQueryFilterSchema (applications, policy) so
+    // a bucket value round-trips straight back as a filter value.
     Map<String, Long> apps = resp.facets()
-        .get("applicationName")
+        .get("applications")
         .stream()
         .collect(java.util.stream.Collectors.toMap(
             IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));
     Map<String, Long> policies = resp.facets()
-        .get("policyName")
+        .get("policy")
         .stream()
         .collect(java.util.stream.Collectors.toMap(
             IndexQueryResponse.IndexQueryFacetBucket::value, IndexQueryResponse.IndexQueryFacetBucket::count));

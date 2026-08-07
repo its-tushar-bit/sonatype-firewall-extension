@@ -226,8 +226,8 @@ export function mapWaiversFacets(
       policyTypeFacetLabel,
     ),
     organizations: facetEntriesFromBuckets(facets.organizationName),
-    applications: facetEntriesFromBuckets(facets.applicationName),
-    policies: facetEntriesFromBuckets(facets.policyName),
+    applications: facetEntriesFromBuckets(facets.applications),
+    policies: facetEntriesFromBuckets(facets.policy),
   };
 }
 

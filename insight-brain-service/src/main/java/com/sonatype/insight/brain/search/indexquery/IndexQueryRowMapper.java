@@ -53,6 +53,12 @@ public final class IndexQueryRowMapper
         .field("applicationPublicId", d.applicationPublicId)
         .field("applicationId", d.applicationId)
         .field("applicationCategories", d.applicationCategoryNames)
+        // Denormalized violation aggregates seed the stages/policyTypes/violationStates facets. Each
+        // value is the raw indexed token (stage id, lowercased threat category, lowercased state) so a
+        // facet bucket round-trips through the matching filter on the same field.
+        .field("stages", d.applicationViolationStages)
+        .field("policyTypes", d.applicationViolationPolicyTypes)
+        .field("violationStates", d.applicationViolationStates)
         .field("maxPolicyThreatLevel", d.policyThreatLevel)
         .field("lastEvaluationTimeEpochMs", d.applicationLastEvaluationTimeEpochMs)
         .field("stageSeverityBreakdown", breakdown == null ? null : breakdown.stages())

@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.search.RowFacetValues;
 import com.sonatype.insight.brain.search.catalog.CatalogLocalRequestBuilder.LocalQuery;
 import com.sonatype.insight.brain.search.catalog.CatalogResponse.CatalogFacetBucket;
 import com.sonatype.insight.brain.search.global.GlobalSearchCursor;
@@ -126,6 +127,12 @@ public class CatalogService
    * Local facet spec: each entry maps a catalog row-field (whose page values seed the bucket list)
    * to the IQ-local index field the whole-corpus count queries. Kept ordered so the returned facet
    * map is stable.
+   * <p>
+   * Within each entity type the small bounded-vocabulary facets are ordered FIRST and the
+   * high-cardinality name facets (organization / application) LAST. Buckets are counted in this order
+   * against one shared per-request budget ({@link #MAX_FACET_COUNT_QUERIES}), so a page diverse enough
+   * to saturate the name facets would otherwise leave the bounded facets with no budget and return them
+   * empty — indistinguishable from "no matching values" in the left nav.
    */
   private static final Map<CatalogEntityType, List<LocalFacet>> LOCAL_FACET_FIELDS = Map.of(
       CatalogEntityType.COMPONENT,
@@ -135,6 +142,15 @@ public class CatalogService
       // facet: component docs carry no threat/severity field (a known deferred data gap), so it is
       // omitted rather than fabricated from an absent field.
       List.of(
+          // policyTypes/violationStates bucket by the denormalized componentViolationPolicyType/State
+          // keyword sets. A component recurs once per (app, stage), so each bucket count is distinct
+          // componentHash — the number of distinct components with a matching violation, not raw
+          // per-(app, stage) docs — consistent with the apps facet below. Both are small fixed
+          // vocabularies, so they are counted first and cannot be starved by the name facets.
+          LocalFacet.distinct(
+              CatalogRowMapper.LOCAL_FIELD_POLICY_TYPES, "componentViolationPolicyType", FIELD_COMPONENT_HASH),
+          LocalFacet.distinct(
+              CatalogRowMapper.LOCAL_FIELD_VIOLATION_STATES, "componentViolationState", FIELD_COMPONENT_HASH),
           LocalFacet.value(CatalogRowMapper.LOCAL_FIELD_ECOSYSTEM, "componentFormat"),
           // organizationName is rewritten to parentOrganizationName by the metric layer, so the count
           // includes the org and its descendants (consistent with the organizations filter clause).
@@ -616,20 +632,13 @@ public class CatalogService
     final Map<String, List<CatalogFacetBucket>> out = new LinkedHashMap<>();
     // Bound total count() fan-out per request: each bucket is one RBAC-scoped index query, and the
     // p95 < 300ms target cannot absorb dozens of them under concurrency. Fields and values are
-    // processed in their existing stable order so truncation is deterministic.
+    // processed in LOCAL_FACET_FIELDS order (bounded facets first, high-cardinality name facets last)
+    // so truncation is deterministic and only ever cuts the trailing name facets.
     int budget = MAX_FACET_COUNT_QUERIES;
     boolean truncated = false;
+    final List<String> truncatedFacetKeys = new ArrayList<>();
     for (LocalFacet facet : facetFields) {
-      final Set<String> values = new LinkedHashSet<>();
-      for (CatalogRow row : rows) {
-        if (values.size() >= MAX_FACET_BUCKETS_PER_FIELD) {
-          break;
-        }
-        final Object value = row.getFields().get(facet.rowField());
-        if (value != null) {
-          values.add(String.valueOf(value));
-        }
-      }
+      final Set<String> values = distinctRowValues(rows, facet.rowField());
       final List<CatalogFacetBucket> buckets = new ArrayList<>(values.size());
       for (String value : values) {
         if (budget <= 0) {
@@ -641,6 +650,12 @@ public class CatalogService
         budget--;
       }
       out.put(facet.rowField(), buckets);
+      // Fewer buckets than discovered values means this facet ran out of budget. Setting the shared flag
+      // here as well keeps the warning and the named keys from depending on the inner loop having fired.
+      if (buckets.size() < values.size()) {
+        truncated = true;
+        truncatedFacetKeys.add(facet.rowField());
+      }
     }
     // The severity-band facet is not seeded from page values: its buckets are the five fixed CVSS bands.
     // It is computed in a SINGLE aggregation pass (one aggregateCountByFloatField call over all bands,
@@ -656,12 +671,22 @@ public class CatalogService
       }
       else {
         truncated = true;
+        truncatedFacetKeys.add(SEVERITY_FACET_KEY);
       }
     }
     if (truncated) {
-      warnings.add(CatalogWarnings.FACET_COUNTS_TRUNCATED);
+      warnings.add(CatalogWarnings.facetCountsTruncatedWarning(truncatedFacetKeys));
     }
     return out;
+  }
+
+  /**
+   * Distinct string values of a (possibly multi-valued) page row-field, capped per field. A
+   * multi-valued field (e.g. the denormalized componentViolationPolicyType/State sets) contributes
+   * each element as its own bucket value rather than the list's toString.
+   */
+  private static Set<String> distinctRowValues(final List<CatalogRow> rows, final String rowField) {
+    return RowFacetValues.distinctRowValues(rows, rowField, CatalogRow::getFields, MAX_FACET_BUCKETS_PER_FIELD);
   }
 
   /**
@@ -894,6 +919,11 @@ public class CatalogService
 
     public static final String FACET_COUNTS_TRUNCATED =
         "some facet counts were omitted to stay within the per-request query budget";
+
+    /** Truncation warning naming the facet keys whose buckets were omitted or cut short. */
+    public static String facetCountsTruncatedWarning(final List<String> truncatedFacetKeys) {
+      return FACET_COUNTS_TRUNCATED + ": " + String.join(", ", truncatedFacetKeys);
+    }
 
     public static final String STAGES_EXCLUDE_SBOM_VULNS =
         "the stages filter excludes SBOM-sourced vulnerabilities, which are not scoped to a policy evaluation stage";

@@ -1341,6 +1341,115 @@ public class CatalogServiceTest
   }
 
   @Test
+  public void localSource_component_policyTypesFacet_countsDistinctComponents_wholeCorpus() {
+    // The denormalized componentViolationPolicyType set seeds the policyTypes facet. A component recurs
+    // once per (app, stage), so each bucket counts DISTINCT componentHash, not raw per-stage docs, and
+    // the bucket value round-trips through the policyTypes filter (matching componentViolationPolicyType).
+    SearchResultItemDTO a = new SearchResultItemDTO();
+    a.itemType = "NON_VULNERABLE_COMPONENT";
+    a.componentName = "react";
+    a.componentHash = "hash-react";
+    a.componentViolationPolicyTypes = List.of("security", "license");
+    SearchResultItemDTO b = new SearchResultItemDTO();
+    b.itemType = "NON_VULNERABLE_COMPONENT";
+    b.componentName = "lodash";
+    b.componentHash = "hash-lodash";
+    b.componentViolationPolicyTypes = List.of("security");
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(a, b), 2, List.of()));
+    when(searchIndexClient.countDistinct(
+        contains("componentViolationPolicyType:\"security\""), eq(List.of("componentHash")))).thenReturn(13L);
+    when(searchIndexClient.countDistinct(
+        contains("componentViolationPolicyType:\"license\""), eq(List.of("componentHash")))).thenReturn(4L);
+
+    CatalogRequest req = new CatalogRequest("COMPONENT", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsKey("policyTypes");
+    Map<String, Long> policyTypes = response.facets()
+        .get("policyTypes")
+        .stream()
+        .collect(Collectors.toMap(
+            CatalogResponse.CatalogFacetBucket::value, CatalogResponse.CatalogFacetBucket::count));
+    assertThat(policyTypes).containsEntry("security", 13L).containsEntry("license", 4L);
+    verify(searchIndexClient, atLeastOnce())
+        .countDistinct(contains("itemType:non_vulnerable_component"), eq(List.of("componentHash")));
+  }
+
+  @Test
+  public void localSource_component_violationStatesFacet_countsDistinctComponents_wholeCorpus() {
+    SearchResultItemDTO a = new SearchResultItemDTO();
+    a.itemType = "NON_VULNERABLE_COMPONENT";
+    a.componentName = "react";
+    a.componentHash = "hash-react";
+    a.componentViolationStates = List.of("open", "waived");
+    SearchResultItemDTO b = new SearchResultItemDTO();
+    b.itemType = "NON_VULNERABLE_COMPONENT";
+    b.componentName = "lodash";
+    b.componentHash = "hash-lodash";
+    b.componentViolationStates = List.of("open");
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(List.of(a, b), 2, List.of()));
+    when(searchIndexClient.countDistinct(
+        contains("componentViolationState:\"open\""), eq(List.of("componentHash")))).thenReturn(21L);
+    when(searchIndexClient.countDistinct(
+        contains("componentViolationState:\"waived\""), eq(List.of("componentHash")))).thenReturn(6L);
+
+    CatalogRequest req = new CatalogRequest("COMPONENT", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    assertThat(response.facets()).containsKey("violationStates");
+    Map<String, Long> states = response.facets()
+        .get("violationStates")
+        .stream()
+        .collect(Collectors.toMap(
+            CatalogResponse.CatalogFacetBucket::value, CatalogResponse.CatalogFacetBucket::count));
+    assertThat(states).containsEntry("open", 21L).containsEntry("waived", 6L);
+  }
+
+  @Test
+  public void localSource_component_diversePage_keepsBoundedFacets_andOnlyTruncatesNameFacets() {
+    // A maximally-diverse COMPONENT page: 20 distinct ecosystems + 20 orgs + 20 app names, which alone
+    // want 60 counts against a 40-count budget. The bounded policyTypes/violationStates facets are
+    // counted FIRST, so they survive intact; only the trailing high-cardinality name facets are cut, and
+    // the truncation warning names them. Ordering these bounded facets last would return them EMPTY,
+    // silently removing the policy-type and violation-state sections from the left nav.
+    List<SearchResultItemDTO> page = new ArrayList<>();
+    for (int i = 0; i < 20; i++) {
+      SearchResultItemDTO d = new SearchResultItemDTO();
+      d.itemType = "NON_VULNERABLE_COMPONENT";
+      d.componentName = "comp-" + i;
+      d.componentHash = "hash-" + i;
+      d.organizationName = "Org " + i;
+      d.applicationName = "App " + i;
+      d.componentIdentifier = new ApiComponentIdentifierDTOV2();
+      d.componentIdentifier.setFormat("fmt-" + i);
+      d.componentViolationPolicyTypes = List.of("security", "license");
+      d.componentViolationStates = List.of("open", "waived");
+      page.add(d);
+    }
+    when(searchIndexClient.searchGlobal(any(GlobalSearchRequest.class)))
+        .thenReturn(new GlobalSearchResult(page, page.size(), List.of()));
+    when(searchIndexClient.countDistinct(any(), any())).thenReturn(1L);
+
+    CatalogRequest req = new CatalogRequest("COMPONENT", "local", Map.of(), 1, 25, null, null, true);
+    CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
+
+    // The bounded facets are complete: every distinct value on the page has a bucket.
+    assertThat(response.facets().get("policyTypes")).extracting(CatalogResponse.CatalogFacetBucket::value)
+        .containsExactlyInAnyOrder("security", "license");
+    assertThat(response.facets().get("violationStates")).extracting(CatalogResponse.CatalogFacetBucket::value)
+        .containsExactlyInAnyOrder("open", "waived");
+    // The budget was exhausted by the name facets, and the warning names them rather than the bounded ones.
+    String warning = response.warnings()
+        .stream()
+        .filter(w -> w.startsWith(CatalogService.CatalogWarnings.FACET_COUNTS_TRUNCATED))
+        .findFirst()
+        .orElseThrow();
+    assertThat(warning).doesNotContain("policyTypes").doesNotContain("violationStates");
+  }
+
+  @Test
   public void localSource_component_hasNoSeveritiesFacet() {
     // Component docs carry no threat/severity field (a deferred data gap), so a severities facet is
     // omitted rather than fabricated. Only ecosystem/organization/application facets are present.
@@ -1356,7 +1465,8 @@ public class CatalogServiceTest
     CatalogRequest req = new CatalogRequest("COMPONENT", "local", Map.of(), 1, 25, null, null, true);
     CatalogResponse response = service.search(CatalogEntityType.COMPONENT, SearchSource.LOCAL, req);
 
-    assertThat(response.facets()).containsOnlyKeys("ecosystem", "organization", "application");
+    assertThat(response.facets())
+        .containsOnlyKeys("ecosystem", "organization", "application", "policyTypes", "violationStates");
     assertThat(response.facets()).doesNotContainKeys("severities", "severity");
   }
 

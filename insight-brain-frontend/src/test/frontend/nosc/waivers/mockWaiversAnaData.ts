@@ -82,8 +82,8 @@ export const MOCK_WAIVERS_INDEX_QUERY_RESPONSE: WaiversIndexQueryResponse = {
       { value: 'Java Team', count: 1 },
       { value: 'Platform', count: 1 },
     ],
-    applicationName: [{ value: 'Apple - Java', count: 1 }],
-    policyName: [{ value: 'Critical CVSS 9+', count: 1 }],
+    applications: [{ value: 'Apple - Java', count: 1 }],
+    policy: [{ value: 'Critical CVSS 9+', count: 1 }],
     scope: [
       { value: 'application', count: 1 },
       { value: 'organization', count: 1 },

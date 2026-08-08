@@ -40,6 +40,8 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -1537,5 +1539,69 @@ public class PolicyResourceTest
     }
     policy.addConstraint(constraint);
     policyDAO.insert(policy);
+  }
+
+  // ---------------- FIRE-665: VRM-child repository policy CRUD guard ----------------
+
+  private Repository newRepositoryUnderVrm() {
+    RepositoryManager virtualManager = new RepositoryManager("virtualManagerInstance-" + System.nanoTime());
+    virtualManager.setManagerType(ManagerType.VIRTUAL);
+    virtualManager.setName("vrm-policy-guard");
+    lookup(RepositoryManagerDAO.class).insert(virtualManager);
+    return tempEntity.newRepository(virtualManager);
+  }
+
+  private static final String VRM_CHILD_GUARD_MESSAGE =
+      "Policies for a proxy repository under a Virtual Repository Manager are inherited from its"
+          + " Virtual Repository Manager and cannot be modified at the repository level.";
+
+  @Test
+  public void testAddPolicy_RejectedOnVrmChildRepository_FIRE_665() throws Exception {
+    Repository proxyUnderVrm = newRepositoryUnderVrm();
+
+    Policy policy = new Policy();
+    policy.setName("policy-under-vrm-child");
+
+    HttpResponse response = restRequest(OwnerType.REPOSITORY, proxyUnderVrm.getId()).body(policy).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo(VRM_CHILD_GUARD_MESSAGE);
+    verify(telemetrySender, never()).send(org.mockito.ArgumentMatchers.<TelemetryData>any());
+  }
+
+  @Test
+  public void testUpdatePolicy_RejectedOnVrmChildRepository_FIRE_665() throws Exception {
+    Repository proxyUnderVrm = newRepositoryUnderVrm();
+    Policy policy = tempEntity.newPolicy(proxyUnderVrm);
+
+    HttpResponse response = restRequest(OwnerType.REPOSITORY, proxyUnderVrm.getId()).body(policy).put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo(VRM_CHILD_GUARD_MESSAGE);
+  }
+
+  @Test
+  public void testUpdatePolicyNotifications_RejectedOnVrmChildRepository_FIRE_665() throws Exception {
+    Repository proxyUnderVrm = newRepositoryUnderVrm();
+    Policy policy = tempEntity.newPolicy(proxyUnderVrm);
+
+    HttpResponse response =
+        restRequest(OwnerType.REPOSITORY, proxyUnderVrm.getId()).path(NOTIFICATIONS_PATH).body(policy).put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo(VRM_CHILD_GUARD_MESSAGE);
+  }
+
+  @Test
+  public void testDeletePolicy_RejectedOnVrmChildRepository_FIRE_665() throws Exception {
+    Repository proxyUnderVrm = newRepositoryUnderVrm();
+    Policy policy = tempEntity.newPolicy(proxyUnderVrm);
+
+    HttpResponse response =
+        restRequest(OwnerType.REPOSITORY, proxyUnderVrm.getId()).path(policy.getId()).delete();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo(VRM_CHILD_GUARD_MESSAGE);
+    assertThat(policyDAO.getById(policy.getId())).isNotNull();
   }
 }

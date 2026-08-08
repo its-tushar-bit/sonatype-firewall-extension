@@ -35,7 +35,10 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
+import com.sonatype.insight.brain.model.repository.ManagerType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -775,5 +778,59 @@ public class PolicyDAOTest
     assertThat(searchIndexChanges).hasSize(1);
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.POLICY);
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(policy.getId());
+  }
+
+  // ------------------ FIRE-665 Layer b (BDD X-2): DAO invariant on VRM child repos ------------------
+
+  private Repository newRepositoryUnderVrm() {
+    RepositoryManager virtual = new RepositoryManager("virtualManagerInstance-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName("vrm-dao-invariant");
+    daoFactory.createRepositoryManagerDAO().insert(virtual);
+    return tempEntity.newRepository(virtual);
+  }
+
+  @Test
+  public void testInsert_RejectsPolicyOnVrmChildRepository_FIRE_665() {
+    Repository proxyUnderVrm = newRepositoryUnderVrm();
+
+    assertThatThrownBy(() -> tempEntity.newPolicy(proxyUnderVrm.getId(), "policy-under-vrm-child"))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining(
+            "Policies cannot be attached to a proxy repository owned by a Virtual Repository Manager");
+  }
+
+  @Test
+  public void testInsert_AllowsPolicyOnVirtualRepositoryManagerItself_FIRE_665() {
+    RepositoryManager virtual = new RepositoryManager("virtualManagerInstance-" + System.nanoTime());
+    virtual.setManagerType(ManagerType.VIRTUAL);
+    virtual.setName("vrm-manager-level-policy");
+    daoFactory.createRepositoryManagerDAO().insert(virtual);
+
+    Policy policy = tempEntity.newPolicy(virtual.getId(), "vrm-manager-policy");
+
+    assertThat(policyDAO.getById(policy.getId())).isNotNull();
+  }
+
+  @Test
+  public void testInsert_AllowsPolicyOnTraditionalRepository_FIRE_665() {
+    // Traditional repository = the fixture provided by AbstractDbDAOTest (via tempEntity.newRepositoryManager).
+    Policy policy = tempEntity.newPolicy(repository.getId(), "traditional-repo-policy");
+
+    assertThat(policyDAO.getById(policy.getId())).isNotNull();
+  }
+
+  @Test
+  public void testUpdate_RejectsPolicyOnVrmChildRepository_FIRE_665() {
+    Repository proxyUnderVrm = newRepositoryUnderVrm();
+
+    // Seed a policy at the VRM manager level (allowed), then reassign it to the VRM child (blocked).
+    Policy policy = tempEntity.newPolicy(proxyUnderVrm.getParentOwnerId(), "seed-policy");
+    policy.setOwnerId(proxyUnderVrm.getId());
+
+    assertThatThrownBy(() -> policyDAO.update(policy))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining(
+            "Policies cannot be attached to a proxy repository owned by a Virtual Repository Manager");
   }
 }

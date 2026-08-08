@@ -7,6 +7,7 @@ import React from 'react';
 import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
 
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as ownerSideNavSelectors from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { getActionStageUrl, getApplicablePolicies } from 'MainRoot/util/CLMLocation';
@@ -1013,6 +1014,80 @@ describe('PoliciesTile', () => {
       renderComponent(preloadedState);
       await screen.findByRole('button', { name: 'Preview Add a Policy' });
       expect(screen.getByText('Preview Add a Policy')).toBeVisible();
+    });
+  });
+
+  describe('Virtual Repository Manager scoping (FIRE-665)', () => {
+    beforeAll(() => {
+      ownerName = repositoryByOwnerPayload.ownerName;
+      ownerId = repositoryByOwnerPayload.ownerId;
+      ownerType = repositoryByOwnerPayload.ownerType;
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.repository',
+            url: '/repository/{repositoryId}',
+            data: { title: 'Repository Management', viewportSized: true },
+          },
+          currentParams: { repositoryId: ownerId },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: firewallSupported,
+            enforcement: enforcementSupported,
+            'custom-policies': true,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: { id: ownerId, name: ownerName },
+          },
+          stages: { action: { loading: false, error: null, stageTypes: null } },
+        },
+      };
+    });
+
+    beforeEach(() => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: repositoryByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+    });
+
+    it('hides Add a Policy button and shows the inheritance info banner for a proxy under a VRM', async () => {
+      jest.spyOn(ownerSideNavSelectors, 'selectShowRepositoryConfiguration').mockReturnValue(true);
+      jest.spyOn(ownerSideNavSelectors, 'selectIsVirtualRepositoryManager').mockReturnValue(false);
+
+      renderComponent(preloadedState);
+
+      expect(await screen.findByText('Policies')).toBeVisible();
+      expect(
+        screen.getByText(
+          'Policies for a proxy repository are inherited from its Virtual Repository Manager and cannot be edited here.'
+        )
+      ).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Add a Policy' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Preview Add a Policy' })).not.toBeInTheDocument();
+    });
+
+    it('shows Add a Policy button and the VRM-level info banner on a Virtual Repository Manager', async () => {
+      jest.spyOn(ownerSideNavSelectors, 'selectShowRepositoryConfiguration').mockReturnValue(false);
+      jest.spyOn(ownerSideNavSelectors, 'selectIsVirtualRepositoryManager').mockReturnValue(true);
+
+      renderComponent(preloadedState);
+
+      expect(await screen.findByText('Policies')).toBeVisible();
+      expect(
+        screen.getByText('Policies applied to this Virtual Repository Manager govern all proxy repositories below.')
+      ).toBeVisible();
+      const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
+      expect(addButton).toBeVisible();
+      expect(addButton).toBeEnabled();
+      fireEvent.click(addButton);
+      expect(goToCreatePolicySpy).toHaveBeenCalled();
     });
   });
 });

@@ -15,12 +15,17 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyValidator;
+import com.sonatype.insight.brain.model.repository.ManagerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -36,15 +41,46 @@ public class PolicyDAO
 
   private final PolicyValidator policyValidator;
 
+  private final RepositoryDAO repositoryDAO;
+
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   @Inject
   public PolicyDAO(
       final PolicyInternalDAO policyInternalDAO,
       final OwnerDAO ownerDAO,
-      final PolicyValidator policyValidator)
+      final PolicyValidator policyValidator,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
   {
     this.policyInternalDAO = policyInternalDAO;
     this.ownerDAO = ownerDAO;
     this.policyValidator = policyValidator;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
+  }
+
+  /**
+   * FIRE-665 Layer b (BDD X-2): DAO-level trip point that rejects any internal caller attempting
+   * to attach a policy to a proxy repository owned by a Virtual Repository Manager. Policies for
+   * such repositories are inherited from the parent VRM and must never be set at the repository
+   * level. Throws {@link IllegalStateException} so an offending caller fails loudly in tests, not
+   * silently in production.
+   */
+  private void requireNotVrmChildRepository(TransactionContext tx, String ownerId) {
+    if (ownerId == null) {
+      return;
+    }
+    Repository repository = repositoryDAO.getById(tx, ownerId);
+    if (repository == null || repository.getRepositoryManagerId() == null) {
+      return;
+    }
+    RepositoryManager manager = repositoryManagerDAO.getById(tx, repository.getRepositoryManagerId());
+    if (manager != null && manager.getManagerType() == ManagerType.VIRTUAL) {
+      throw new IllegalStateException(
+          "Policies cannot be attached to a proxy repository owned by a Virtual Repository Manager. "
+              + "Attach the policy to the Virtual Repository Manager instead. (ownerId=" + ownerId + ")");
+    }
   }
 
   public Policy getById(String id) {
@@ -112,6 +148,7 @@ public class PolicyDAO
 
   public int insert(TransactionContext tx, Policy policy) {
     String ownerId = policy.getOwnerId();
+    requireNotVrmChildRepository(tx, ownerId);
 
     ValidationResult validationResult = policyValidator.validate(tx, policy, ownerId);
     if (validationResult != null && !validationResult.isValid()) {
@@ -161,6 +198,7 @@ public class PolicyDAO
 
   private void update(TransactionContext tx, Policy policy, boolean validate) {
     String ownerId = policy.getOwnerId();
+    requireNotVrmChildRepository(tx, ownerId);
 
     if (validate) {
       ValidationResult validationResult = policyValidator.validate(tx, policy, ownerId);

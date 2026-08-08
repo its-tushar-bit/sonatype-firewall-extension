@@ -313,11 +313,13 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
               <div className="nx-truncate-ellipsis">{repositoryData.format}</div>
             </NxOverflowTooltip>
           </NxTable.Cell>
-          <NxTable.Cell className="iq-repositories-configuration-table-repository-type">
-            <NxOverflowTooltip>
-              <div className="nx-truncate-ellipsis">{repositoryData.repositoryType}</div>
-            </NxOverflowTooltip>
-          </NxTable.Cell>
+          {!isProxyRepositoriesView && (
+            <NxTable.Cell className="iq-repositories-configuration-table-repository-type">
+              <NxOverflowTooltip>
+                <div className="nx-truncate-ellipsis">{repositoryData.repositoryType}</div>
+              </NxOverflowTooltip>
+            </NxTable.Cell>
+          )}
           <NxTable.Cell>
             <NxOverflowTooltip>
               <div className="nx-truncate-ellipsis">{getEnablement(repositoryData)}</div>
@@ -462,11 +464,6 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
         )}
       </NxTile.Header>
       <NxTile.Content>
-        {isVirtualRepositoryManagerView && (
-          <NxP className="iq-repositories-configuration-table__policies-caption">
-            Policies applied to this Virtual Repository Manager govern all proxy repositories below.
-          </NxP>
-        )}
         <NxTable
           id="iq-repositories-configuration-table"
           className={isProxyRepositoriesView ? 'iq-repositories-configuration-table--with-pccs' : undefined}
@@ -493,16 +490,18 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
                   <span className="nx-truncate-ellipsis">Format</span>
                 </NxOverflowTooltip>
               </NxTable.Cell>
-              <NxTable.Cell
-                id="repository-type-column-header"
-                isSortable
-                sortDir={showHighlight('repositoryType')}
-                onClick={() => sortRepositories('repositoryType')}
-              >
-                <NxOverflowTooltip>
-                  <span className="nx-truncate-ellipsis">Type</span>
-                </NxOverflowTooltip>
-              </NxTable.Cell>
+              {!isProxyRepositoriesView && (
+                <NxTable.Cell
+                  id="repository-type-column-header"
+                  isSortable
+                  sortDir={showHighlight('repositoryType')}
+                  onClick={() => sortRepositories('repositoryType')}
+                >
+                  <NxOverflowTooltip>
+                    <span className="nx-truncate-ellipsis">Type</span>
+                  </NxOverflowTooltip>
+                </NxTable.Cell>
+              )}
               <NxTable.Cell id="repository-enablement-column-header">
                 <NxOverflowTooltip>
                   <span className="nx-truncate-ellipsis">Enablement</span>
@@ -543,7 +542,6 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
               <NxTable.Cell />
               <NxTable.Cell />
               <NxTable.Cell />
-              {isProxyRepositoriesView && <NxTable.Cell />}
             </NxTable.Row>
           </NxTable.Head>
           {isRepositoryManager

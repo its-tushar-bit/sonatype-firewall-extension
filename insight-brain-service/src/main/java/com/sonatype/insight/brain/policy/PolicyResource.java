@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -304,6 +305,28 @@ public class PolicyResource
     return result;
   }
 
+  /**
+   * FIRE-665: policies on a proxy repository owned by a Virtual Repository Manager are inherited
+   * from the parent VRM and root organization; they cannot be added, updated, or deleted at the
+   * repository level. This guard rejects such requests at the API layer so UI-only guards cannot
+   * be bypassed.
+   */
+  private void requireNotVrmChildRepository(OwnerType ownerType, String internalOwnerId) {
+    if (ownerType != OwnerType.REPOSITORY || internalOwnerId == null) {
+      return;
+    }
+    Repository repository = repositoryDAO.getById(internalOwnerId);
+    if (repository == null || repository.getRepositoryManagerId() == null) {
+      return;
+    }
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
+    if (repositoryManager != null && repositoryManager.getManagerType() == ManagerType.VIRTUAL) {
+      throw new BadRequestException(
+          "Policies for a proxy repository under a Virtual Repository Manager are inherited from its"
+              + " Virtual Repository Manager and cannot be modified at the repository level.");
+    }
+  }
+
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -318,6 +341,7 @@ public class PolicyResource
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
 
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    requireNotVrmChildRepository(ownerType, internalOwnerId);
     policy.setOwnerId(internalOwnerId);
     policyDAO.insert(policy);
     AuditData.get().setPolicyWithDetails(policy);
@@ -339,6 +363,7 @@ public class PolicyResource
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
 
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    requireNotVrmChildRepository(ownerType, internalOwnerId);
 
     if (!internalOwnerId.equals(policyDAO.getByIdNotNull(policy.getId()).getOwnerId())) {
       throw new NotFoundException("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerId);
@@ -370,6 +395,7 @@ public class PolicyResource
 
     Policy originalPolicy = policyDAO.getById(policy.getId());
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    requireNotVrmChildRepository(ownerType, internalOwnerId);
 
     if (originalPolicy == null || !internalOwnerId.equals(originalPolicy.getOwnerId())) {
       throw new NotFoundException("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerId);
@@ -408,6 +434,7 @@ public class PolicyResource
     Policy policy = policyDAO.getByIdNotNull(policyId);
     auditData.setPolicy(policy);
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    requireNotVrmChildRepository(ownerType, internalOwnerId);
 
     boolean actionsOverridesUpdateNeeded = jsonNode != null && jsonNode.has("actions");
     boolean notificationsOverridesUpdateNeeded = jsonNode != null && jsonNode.has("notifications");
@@ -477,6 +504,7 @@ public class PolicyResource
     log.debug("Received request to delete {} policy for ownerId {}, policyId {}", ownerType, ownerId, policyId);
 
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    requireNotVrmChildRepository(ownerType, internalOwnerId);
 
     Policy policy = policyDAO.getByIdNotNull(policyId);
     if (!internalOwnerId.equals(policy.getOwnerId())) {

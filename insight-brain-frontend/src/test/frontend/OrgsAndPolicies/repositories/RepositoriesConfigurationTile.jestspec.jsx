@@ -805,13 +805,6 @@ describe('RepositoriesConfigurationTile', () => {
       expect(screen.getByRole('heading', { name: 'Add Proxy Repository' })).toBeVisible();
     });
 
-    it('renders the "Policies applied to this VRM" caption above the table', () => {
-      renderVrmTile();
-      expect(
-        screen.getByText('Policies applied to this Virtual Repository Manager govern all proxy repositories below.')
-      ).toBeVisible();
-    });
-
     it('renders the PCCS column header and applies the --with-pccs class to the table', () => {
       const { container } = renderVrmTile();
       expect(screen.getByText('PCCS')).toBeVisible();

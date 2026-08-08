@@ -692,7 +692,8 @@ public class TestDAOFactory
             webhookNotificationValidator);
     PolicyValidator policyValidator = new PolicyValidator(constraintValidator, notificationsValidator);
 
-    return new PolicyDAO(policyInternalDAO, ownerDAO, policyValidator);
+    return new PolicyDAO(policyInternalDAO, ownerDAO, policyValidator, createRepositoryDAO(),
+        createRepositoryManagerDAO());
   }
 
   @Override

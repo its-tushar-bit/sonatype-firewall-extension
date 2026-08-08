@@ -21,6 +21,8 @@ describe('firewallIqProxySlice', () => {
         virtualRepositoryManagersLoadError: null,
         creatingProxyRepository: false,
         createProxyRepositoryError: null,
+        updatingProxyRepository: false,
+        updateProxyRepositoryError: null,
       });
     });
   });

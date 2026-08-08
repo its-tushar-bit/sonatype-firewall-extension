@@ -13,6 +13,7 @@ import {
   NxTile,
   NxButton,
   NxFontAwesomeIcon,
+  NxInfoAlert,
   NxLoadWrapper,
   NxList,
   NxTableContainer,
@@ -22,7 +23,10 @@ import { always, compose, propEq, reject, when, complement, isNil } from 'ramda'
 
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectShowRepositoryConfiguration } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import {
+  selectIsVirtualRepositoryManager,
+  selectShowRepositoryConfiguration,
+} from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import {
   selectPoliciesByOwner,
   selectPolicyTileLoading,
@@ -56,6 +60,7 @@ export default function PoliciesTile() {
   const entityId = useSelector(selectEntityId);
   const collapsibleSorting = useSelector(selectPolicyTileSortingCollapsible);
   const isProxyUnderVirtualManager = useSelector(selectShowRepositoryConfiguration);
+  const isVirtualRepositoryManager = useSelector(selectIsVirtualRepositoryManager);
 
   const doLoad = () => dispatch(actions.loadPolicyTile());
 
@@ -82,23 +87,10 @@ export default function PoliciesTile() {
             </NxTile.HeaderTitle>
           </NxTile.Headings>
           <NxTile.HeaderActions>
-            {isSbomManager ? null : (
-              <NxTooltip
-                title={
-                  isProxyUnderVirtualManager
-                    ? 'Policies for a proxy repository are inherited from its Virtual Repository Manager and cannot be edited here.'
-                    : !hasCustomPolicies
-                    ? 'Enterprise Feature'
-                    : ''
-                }
-              >
+            {isSbomManager || isProxyUnderVirtualManager ? null : (
+              <NxTooltip title={!hasCustomPolicies ? 'Enterprise Feature' : ''}>
                 <span>
-                  <NxButton
-                    variant="tertiary"
-                    id="add-policy-button"
-                    onClick={goToCreatePolicy}
-                    disabled={isProxyUnderVirtualManager}
-                  >
+                  <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
                     <NxFontAwesomeIcon icon={!hasCustomPolicies ? faLock : faPlus} />
                     <span>{!hasCustomPolicies ? 'Preview Add a Policy' : 'Add a Policy'}</span>
                   </NxButton>
@@ -108,6 +100,17 @@ export default function PoliciesTile() {
           </NxTile.HeaderActions>
         </NxTile.Header>
         <NxTile.Content className={stagesNumber}>
+          {isProxyUnderVirtualManager && (
+            <NxInfoAlert>
+              Policies for a proxy repository are inherited from its Virtual Repository Manager and cannot be edited
+              here.
+            </NxInfoAlert>
+          )}
+          {isVirtualRepositoryManager && (
+            <NxInfoAlert>
+              Policies applied to this Virtual Repository Manager govern all proxy repositories below.
+            </NxInfoAlert>
+          )}
           <NxTile.Subsection>
             {isNoPoliciesDefined ? (
               <NxList emptyMessage="No local policies defined" />

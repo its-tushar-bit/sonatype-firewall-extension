@@ -37,6 +37,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationReq
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryContainerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualProxyRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualProxyRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
@@ -82,6 +84,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityD
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityEpssScoreConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.repository.ProtocolVersion;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
@@ -2527,42 +2530,66 @@ public class ApiFirewallServiceTest
     return dto;
   }
 
-  @Test
-  public void testAddRepository() throws Exception {
-    setBaseUrl("http://localhost:8070/");
+  // ---------- FIRE-664 addVirtualProxyRepository tests ----------
 
+  private void enableRedirectorConfigPlane() {
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(true);
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(true);
+  }
+
+  private void disableRedirectorConfigPlane() {
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(false);
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(false);
+  }
+
+  private RepositoryManager newVrm() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     repositoryManager.setManagerType(ManagerType.VIRTUAL);
     repositoryManagerDAO.update(repositoryManager);
+    return repositoryManager;
+  }
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "test-repo";
-    apiRepositoryDTO.format = "maven2";
-    apiRepositoryDTO.upstreamUrl = "https://repo1.maven.org/maven2/";
+  private ApiVirtualProxyRepositoryDTO minimalProxyDto(String publicId, String format, String upstreamUrl) {
+    ApiVirtualProxyRepositoryDTO dto = new ApiVirtualProxyRepositoryDTO();
+    dto.publicId = publicId;
+    dto.format = format;
+    dto.upstreamUrl = upstreamUrl;
+    return dto;
+  }
 
-    ApiRepositoryDTO result = apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO);
+  @Test
+  public void testAddVirtualProxyRepository_HappyPathReturnsDtoWithProxyUrl() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "https://repo1.maven.org/maven2/");
 
-    // Assert the repository data in the response
-    assertThat(result.repositoryId).isNotNull();
-    assertThat(result.publicId).isEqualTo("test-repo");
-    assertThat(result.format).isEqualTo("maven2");
-    assertThat(result.type).isEqualTo("proxy");
-    // upstreamUrl is intentionally not echoed on the write response — it's owned by the
-    // virtual_repository_config satellite and only surfaces on the Firewall-Enterprise-scoped
-    // read endpoint (Stories 3.2 / 3.4a). The field is @JsonInclude(NON_NULL), so a null
-    // in-memory value is suppressed on the wire.
-    assertThat(result.upstreamUrl).isNull();
-    assertThat(result.proxyUrl).isEqualTo(
-        "http://localhost:8070/api/v2/proxy/" + repositoryManager.getInstanceId() + "/test-repo");
+      ApiVirtualProxyRepositoryDTO result = apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto);
 
-    // Assert the repository data in the db
-    Repository storedRepository = repositoryDAO.getById(result.repositoryId);
-    assertThat(storedRepository.getPublicId()).isEqualTo("test-repo");
-    assertThat(storedRepository.getFormat()).isEqualTo("maven2");
-    assertThat(storedRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
-    assertThat(storedRepository.getRepositoryManagerId()).isEqualTo(repositoryManager.getId());
-    assertThat(virtualRepositoryConfigDAO.getByRepositoryId(result.repositoryId).getUpstreamUrl())
-        .isEqualTo("https://repo1.maven.org/maven2/");
+      assertThat(result.repositoryId).isNotNull();
+      assertThat(result.publicId).isEqualTo("test-repo");
+      assertThat(result.format).isEqualTo("maven2");
+      assertThat(result.upstreamUrl).isEqualTo("https://repo1.maven.org/maven2/");
+      assertThat(result.proxyUrl).isEqualTo(
+          "http://localhost:8070/api/v2/firewall/enterprise/" + vrm.getInstanceId() + "/" + result.publicId + "/"
+              + result.format);
+
+      Repository stored = repositoryDAO.getById(result.repositoryId);
+      assertThat(stored.getPublicId()).isEqualTo("test-repo");
+      assertThat(stored.getFormat()).isEqualTo("maven2");
+      assertThat(stored.getRepositoryType()).isEqualTo(RepositoryType.proxy);
+      assertThat(stored.getRepositoryManagerId()).isEqualTo(vrm.getId());
+      assertThat(virtualRepositoryConfigDAO.getByRepositoryId(stored.getId()).getUpstreamUrl())
+          .isEqualTo("https://repo1.maven.org/maven2/");
+      // Server-owned policy flags — never client-settable via the lean DTO (FIRE-664 §7.1.1 layer 1).
+      assertThat(stored.isAuditEnabled()).isTrue();
+      assertThat(stored.isQuarantineEnabled()).isTrue();
+      assertThat(stored.isNamespaceConfusionProtectionEnabled()).isFalse();
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
   }
 
   // The satellite-failure atomicity contract of addRepository is pinned by
@@ -2570,152 +2597,459 @@ public class ApiFirewallServiceTest
   // insert that fails inside the same transaction and asserts no orphan repository row remains.
 
   @Test
-  public void testAddRepository_CannotSpecifyRepositoryId() throws Exception {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    repositoryManager.setManagerType(ManagerType.VIRTUAL);
-    repositoryManagerDAO.update(repositoryManager);
+  public void testAddVirtualProxyRepository_ReturnsNotFoundWhenBothFlagsOff() {
+    disableRedirectorConfigPlane();
+    RepositoryManager vrm = newVrm();
+    ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "https://repo1.maven.org/maven2/");
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.repositoryId = "some-existing-id";
-    apiRepositoryDTO.publicId = "test-repo";
-    apiRepositoryDTO.format = "maven2";
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> {
-          apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO);
-        })
-        .withMessageContaining("The repository ID must be null.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+        .withMessageContaining("Feature not supported");
   }
 
   @Test
-  public void testAddRepository_MissingPublicId() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    repositoryManager.setManagerType(ManagerType.VIRTUAL);
-    repositoryManagerDAO.update(repositoryManager);
+  public void testAddVirtualProxyRepository_ReturnsNotFoundWhenSubFlagOff() {
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(true);
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "https://repo1.maven.org/maven2/");
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.format = "maven2";
-    apiRepositoryDTO.upstreamUrl = "https://repo1.maven.org/maven2/";
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO))
-        .withMessage("Repository public ID is required.");
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("Feature not supported");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(false);
+    }
   }
 
   @Test
-  public void testAddRepository_MissingFormat() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    repositoryManager.setManagerType(ManagerType.VIRTUAL);
-    repositoryManagerDAO.update(repositoryManager);
+  public void testAddVirtualProxyRepository_TraditionalManagerReturns404() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager traditional = tempEntity.newRepositoryManager();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "https://repo1.maven.org/maven2/");
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "test-repo";
-    apiRepositoryDTO.upstreamUrl = "https://repo1.maven.org/maven2/";
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO))
-        .withMessage("Repository format is required.");
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(traditional.getId(), dto))
+          .withMessageContaining("Virtual repository manager not found");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
   }
 
   @Test
-  public void testAddRepository_MissingUpstreamUrl() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    repositoryManager.setManagerType(ManagerType.VIRTUAL);
-    repositoryManagerDAO.update(repositoryManager);
+  public void testAddVirtualProxyRepository_CannotSpecifyRepositoryId() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "https://repo1.maven.org/maven2/");
+      dto.repositoryId = "some-existing-id";
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "test-repo";
-    apiRepositoryDTO.format = "maven2";
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO))
-        .withMessage("Repository upstream URL is required.");
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("The repository ID must be null.");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
   }
 
   @Test
-  public void testAddRepository_UnsupportedFormat() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    repositoryManager.setManagerType(ManagerType.VIRTUAL);
-    repositoryManagerDAO.update(repositoryManager);
+  public void testAddVirtualProxyRepository_MissingPublicId() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto(null, "maven2", "https://repo1.maven.org/maven2/");
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "test-repo";
-    apiRepositoryDTO.format = "unsupported-format";
-    apiRepositoryDTO.upstreamUrl = "https://example.com/repo/";
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO))
-        .withMessage("Repository format not supported.");
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessage("Repository public ID is required.");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
   }
 
   @Test
-  public void testAddRepository_InvalidUpstreamUrl() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    repositoryManager.setManagerType(ManagerType.VIRTUAL);
-    repositoryManagerDAO.update(repositoryManager);
+  public void testAddVirtualProxyRepository_InvalidPublicIdCharacters() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("bad name!", "maven2", "https://repo1.maven.org/maven2/");
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "invalid-url-repo";
-    apiRepositoryDTO.format = "maven2";
-    // Passes the service-layer validateUpstreamUrl (public host, http scheme, resolves off
-    // internal address ranges) but fails VirtualRepositoryConfigDAO.validateUrl's embedded-
-    // credentials check inside the transaction — the pair we need to exercise the rollback
-    // contract on the sibling repository insert.
-    apiRepositoryDTO.upstreamUrl = "http://user:pass@example.com/repo/";
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO));
-
-    assertThat(repositoryDAO.getByRepositoryManagerIdAndPublicId(repositoryManager.getId(), "invalid-url-repo"))
-        .isNull();
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining(
+              "Repository public ID must contain only letters, digits, dots, underscores, or hyphens");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
   }
 
   @Test
-  public void testValidateUpstreamUrl_RejectsNonHttpScheme() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("file:///etc/passwd"))
-        .withMessageContaining("http or https");
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("ftp://example.com/"))
-        .withMessageContaining("http or https");
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("jar:http://example.com/x.jar!/"))
-        .withMessageContaining("http or https");
+  public void testAddVirtualProxyRepository_MissingFormat() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", null, "https://repo1.maven.org/maven2/");
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessage("Repository format is required.");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
   }
 
   @Test
-  public void testValidateUpstreamUrl_RejectsInternalAddresses() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("http://127.0.0.1/"))
-        .withMessageContaining("internal or restricted");
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("http://169.254.169.254/latest/meta-data/"))
-        .withMessageContaining("internal or restricted");
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("http://192.168.1.1/"))
-        .withMessageContaining("internal or restricted");
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("http://10.0.0.1/"))
-        .withMessageContaining("internal or restricted");
+  public void testAddVirtualProxyRepository_MissingUpstreamUrl() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", null);
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessage("Repository upstream URL is required.");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
   }
 
   @Test
-  public void testValidateUpstreamUrl_AcceptsPublicHttps() {
-    ApiFirewallService.validateUpstreamUrl("https://repo1.maven.org/maven2/");
-    ApiFirewallService.validateUpstreamUrl("http://example.com/");
+  public void testAddVirtualProxyRepository_UnsupportedFormat() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto =
+          minimalProxyDto("test-repo", "unsupported-format", "https://example.com/repo/");
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessage("Repository format not supported.");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
   }
 
   @Test
-  public void testAddRepository_NoFirewallFeature() {
+  public void testAddVirtualProxyRepository_InvalidUpstreamUrl() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "not-a-valid-url");
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto));
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  // ---------- FIRE-664 per-ecosystem PCCS matrix (§6.3, ADR-R17) ----------
+
+  @Test
+  public void testAddVirtualProxyRepository_PccsRejectedForMaven() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "https://repo1.maven.org/maven2/");
+      dto.pccsEnabled = Boolean.TRUE;
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("Enable PCCS is not supported for format 'maven2'");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_PccsRejectedForNuget() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "nuget", "https://api.nuget.org/v3/");
+      dto.pccsEnabled = Boolean.FALSE;
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("Enable PCCS is not supported for format 'nuget'");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_PccsAcceptedForNpm() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "npm", "https://registry.npmjs.org/");
+      dto.pccsEnabled = Boolean.TRUE;
+
+      ApiVirtualProxyRepositoryDTO result = apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto);
+      assertThat(result.pccsEnabled).isTrue();
+      Repository stored = repositoryDAO.getById(result.repositoryId);
+      assertThat(stored.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_PypiAcceptsPccsWithPackageHostUrl() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "pypi", "https://pypi.org/simple/");
+      dto.pccsEnabled = Boolean.FALSE;
+      dto.packageHostUrl = "https://hosted.example.com/pypi/";
+
+      ApiVirtualProxyRepositoryDTO result = apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto);
+      assertThat(result.pccsEnabled).isFalse();
+      assertThat(result.packageHostUrl).isEqualTo("https://hosted.example.com/pypi/");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_PypiRejectsInternalPackageHostUrl() {
+    // §7.1 R-1: packageHostUrl is admin-writable and the server may proxy to it; it must go
+    // through the same SSRF guard as upstreamUrl. Loopback / link-local / site-local /
+    // metadata addresses are rejected with the same generic error copy.
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "pypi", "https://pypi.org/simple/");
+      dto.packageHostUrl = "http://169.254.169.254/latest/meta-data/";
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("internal or restricted");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_PypiRejectsLoopbackPackageHostUrl() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "pypi", "https://pypi.org/simple/");
+      dto.packageHostUrl = "http://127.0.0.1:8080/internal";
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("internal or restricted");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_PypiRequiresPackageHostUrl() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "pypi", "https://pypi.org/simple/");
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("Package host URL is required for PyPI proxy repositories");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_NonPypiRejectsPackageHostUrl() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "npm", "https://registry.npmjs.org/");
+      dto.packageHostUrl = "https://hosted.example.com/npm/";
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("Package host URL is not supported for format 'npm'");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_NugetDefaultsProtocolVersionToV3() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "nuget", "https://api.nuget.org/v3/");
+
+      ApiVirtualProxyRepositoryDTO result = apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto);
+      assertThat(result.protocolVersion).isEqualTo("v3");
+      assertThat(virtualRepositoryConfigDAO.getByRepositoryId(result.repositoryId).getProtocolVersion())
+          .isEqualTo(ProtocolVersion.V3);
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_NugetAcceptsV2ProtocolVersion() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "nuget", "https://www.nuget.org/api/v2/");
+      dto.protocolVersion = "v2";
+
+      ApiVirtualProxyRepositoryDTO result = apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto);
+      assertThat(result.protocolVersion).isEqualTo("v2");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_NugetRejectsUnknownProtocolVersion() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "nuget", "https://api.nuget.org/v3/");
+      dto.protocolVersion = "v99";
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("NuGet protocol version must be 'v2' or 'v3'");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_NonNugetRejectsProtocolVersion() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "https://repo1.maven.org/maven2/");
+      dto.protocolVersion = "v3";
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), dto))
+          .withMessageContaining("Protocol version is not supported for format 'maven2'");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_DuplicatePublicIdReturns400() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO first = minimalProxyDto("dup-repo", "maven2", "https://repo1.maven.org/maven2/");
+      apiFirewallService.addVirtualProxyRepository(vrm.getId(), first);
+
+      ApiVirtualProxyRepositoryDTO second = minimalProxyDto("dup-repo", "maven2", "https://repo1.maven.org/maven2/");
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.addVirtualProxyRepository(vrm.getId(), second))
+          .withMessageContaining("already a repository with public ID 'dup-repo'");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  // ---------- FIRE-664 getVirtualProxyRepositories tests ----------
+
+  @Test
+  public void testGetVirtualProxyRepositories_ReturnsListWithProxyUrls() {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      apiFirewallService.addVirtualProxyRepository(vrm.getId(),
+          minimalProxyDto("first", "maven2", "https://repo1.maven.org/maven2/"));
+      apiFirewallService.addVirtualProxyRepository(vrm.getId(),
+          minimalProxyDto("second", "npm", "https://registry.npmjs.org/"));
+
+      ApiVirtualProxyRepositoryListDTO result = apiFirewallService.getVirtualProxyRepositories(vrm.getId());
+
+      assertThat(result.repositories).extracting(r -> r.publicId).containsExactlyInAnyOrder("first", "second");
+      assertThat(result.repositories).allSatisfy(r -> assertThat(r.proxyUrl).isEqualTo(
+          "http://localhost:8070/api/v2/firewall/enterprise/" + vrm.getInstanceId() + "/" + r.publicId + "/"
+              + r.format));
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testGetVirtualProxyRepositories_EmptyVrmReturnsEmptyList() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryListDTO result = apiFirewallService.getVirtualProxyRepositories(vrm.getId());
+      assertThat(result.repositories).isEmpty();
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testGetVirtualProxyRepositories_TraditionalManagerReturns404() {
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager traditional = tempEntity.newRepositoryManager();
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> apiFirewallService.getVirtualProxyRepositories(traditional.getId()))
+          .withMessageContaining("Virtual repository manager not found");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testGetVirtualProxyRepositories_ReturnsNotFoundWhenBothFlagsOff() {
+    disableRedirectorConfigPlane();
+    RepositoryManager vrm = newVrm();
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiFirewallService.getVirtualProxyRepositories(vrm.getId()))
+        .withMessageContaining("Feature not supported");
+  }
+
+  @Test
+  public void testAddVirtualProxyRepository_NoFirewallFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "test-repo";
-    apiRepositoryDTO.format = "maven2";
+    ApiVirtualProxyRepositoryDTO dto = minimalProxyDto("test-repo", "maven2", "https://repo1.maven.org/maven2/");
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO);
+      apiFirewallService.addVirtualProxyRepository(repositoryManager.getId(), dto);
     });
   }
 
@@ -3041,4 +3375,208 @@ public class ApiFirewallServiceTest
       }
     }
   }
+
+  // ---------- FIRE-664 updateVirtualProxyRepository tests ----------
+
+  @Test
+  public void testUpdateVirtualProxyRepository_HappyPathUpdatesMutableFields() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO created = apiFirewallService.addVirtualProxyRepository(vrm.getId(),
+          minimalProxyDto("upd-npm", "npm", "https://registry.npmjs.org"));
+      created.pccsEnabled = Boolean.FALSE;
+
+      ApiVirtualProxyRepositoryDTO update = new ApiVirtualProxyRepositoryDTO();
+      update.upstreamUrl = "https://mirror.npmjs.org";
+      update.pccsEnabled = Boolean.TRUE;
+
+      ApiVirtualProxyRepositoryDTO result =
+          apiFirewallService.updateVirtualProxyRepository(vrm.getId(), created.repositoryId, update);
+
+      assertThat(result.repositoryId).isEqualTo(created.repositoryId);
+      assertThat(result.upstreamUrl).isEqualTo("https://mirror.npmjs.org");
+      assertThat(result.pccsEnabled).isTrue();
+      // Immutable fields survive round-trip.
+      assertThat(result.publicId).isEqualTo("upd-npm");
+      assertThat(result.format).isEqualTo("npm");
+
+      Repository stored = repositoryDAO.getById(created.repositoryId);
+      assertThat(virtualRepositoryConfigDAO.getByRepositoryId(stored.getId()).getUpstreamUrl())
+          .isEqualTo("https://mirror.npmjs.org");
+      assertThat(stored.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+      assertThat(stored.getPublicId()).isEqualTo("upd-npm");
+      assertThat(stored.getFormat()).isEqualTo("npm");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testUpdateVirtualProxyRepository_RejectsPublicIdChange() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO created = apiFirewallService.addVirtualProxyRepository(vrm.getId(),
+          minimalProxyDto("upd-immut", "maven2", "https://repo1.maven.org/maven2/"));
+
+      ApiVirtualProxyRepositoryDTO update = new ApiVirtualProxyRepositoryDTO();
+      update.publicId = "renamed";
+      update.upstreamUrl = "https://repo1.maven.org/maven2/";
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.updateVirtualProxyRepository(vrm.getId(), created.repositoryId, update))
+          .withMessageContaining("public ID cannot be changed");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testUpdateVirtualProxyRepository_RejectsFormatChange() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO created = apiFirewallService.addVirtualProxyRepository(vrm.getId(),
+          minimalProxyDto("upd-fmt", "maven2", "https://repo1.maven.org/maven2/"));
+
+      ApiVirtualProxyRepositoryDTO update = new ApiVirtualProxyRepositoryDTO();
+      update.format = "npm";
+      update.upstreamUrl = "https://repo1.maven.org/maven2/";
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> apiFirewallService.updateVirtualProxyRepository(vrm.getId(), created.repositoryId, update))
+          .withMessageContaining("format cannot be changed");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testUpdateVirtualProxyRepository_ReturnsNotFoundWhenRepoBelongsToDifferentManager() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrmA = newVrm();
+      RepositoryManager vrmB = newVrm();
+      ApiVirtualProxyRepositoryDTO underA = apiFirewallService.addVirtualProxyRepository(vrmA.getId(),
+          minimalProxyDto("owned-by-a", "maven2", "https://repo1.maven.org/maven2/"));
+
+      ApiVirtualProxyRepositoryDTO update = new ApiVirtualProxyRepositoryDTO();
+      update.upstreamUrl = "https://repo1.maven.org/maven2/";
+
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> apiFirewallService.updateVirtualProxyRepository(vrmB.getId(), underA.repositoryId, update))
+          .withMessageContaining("Proxy repository not found under this Virtual Repository Manager");
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testUpdateVirtualProxyRepository_ReturnsNotFoundWhenSubFlagOff() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    ApiVirtualProxyRepositoryDTO created;
+    RepositoryManager vrm;
+    try {
+      vrm = newVrm();
+      created = apiFirewallService.addVirtualProxyRepository(vrm.getId(),
+          minimalProxyDto("upd-flag", "maven2", "https://repo1.maven.org/maven2/"));
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(true);
+    try {
+      ApiVirtualProxyRepositoryDTO update = new ApiVirtualProxyRepositoryDTO();
+      update.upstreamUrl = "https://mirror.maven.org/maven2/";
+
+      final String vrmId = vrm.getId();
+      final String repoId = created.repositoryId;
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> apiFirewallService.updateVirtualProxyRepository(vrmId, repoId, update))
+          .withMessageContaining("Feature not supported");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(false);
+    }
+  }
+
+  // ---------- FIRE-664 deleteVirtualProxyRepository tests ----------
+
+  @Test
+  public void testDeleteVirtualProxyRepository_HappyPathRemovesRow() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrm = newVrm();
+      ApiVirtualProxyRepositoryDTO created = apiFirewallService.addVirtualProxyRepository(vrm.getId(),
+          minimalProxyDto("del-me", "maven2", "https://repo1.maven.org/maven2/"));
+
+      apiFirewallService.deleteVirtualProxyRepository(vrm.getId(), created.repositoryId);
+
+      assertThat(repositoryDAO.getById(created.repositoryId)).isNull();
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testDeleteVirtualProxyRepository_ReturnsNotFoundWhenRepoBelongsToDifferentManager() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    try {
+      RepositoryManager vrmA = newVrm();
+      RepositoryManager vrmB = newVrm();
+      ApiVirtualProxyRepositoryDTO underA = apiFirewallService.addVirtualProxyRepository(vrmA.getId(),
+          minimalProxyDto("delete-wrong-parent", "maven2", "https://repo1.maven.org/maven2/"));
+
+      final String vrmBId = vrmB.getId();
+      final String repoId = underA.repositoryId;
+      assertThatExceptionOfType(NotFoundException.class)
+          .isThrownBy(() -> apiFirewallService.deleteVirtualProxyRepository(vrmBId, repoId))
+          .withMessageContaining("Proxy repository not found under this Virtual Repository Manager");
+
+      // Verify the row was not deleted from the correct owner either.
+      assertThat(repositoryDAO.getById(underA.repositoryId)).isNotNull();
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+  }
+
+  @Test
+  public void testDeleteVirtualProxyRepository_ReturnsNotFoundWhenBothFlagsOff() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+    enableRedirectorConfigPlane();
+    ApiVirtualProxyRepositoryDTO created;
+    RepositoryManager vrm;
+    try {
+      vrm = newVrm();
+      created = apiFirewallService.addVirtualProxyRepository(vrm.getId(),
+          minimalProxyDto("del-flag-off", "maven2", "https://repo1.maven.org/maven2/"));
+    }
+    finally {
+      disableRedirectorConfigPlane();
+    }
+
+    final String vrmId = vrm.getId();
+    final String repoId = created.repositoryId;
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiFirewallService.deleteVirtualProxyRepository(vrmId, repoId))
+        .withMessageContaining("Feature not supported");
+
+    // Row survives when the endpoint refuses to run.
+    assertThat(repositoryDAO.getById(created.repositoryId)).isNotNull();
+  }
+
 }

@@ -243,7 +243,14 @@ public class RepositoryService
    */
   @Authorize(permission = Permission.READ)
   public RepositoryDTO getRepositoryById(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
-    RepositoryDTO repositoryDTO = convertRepositories(List.of(repositoryDAO.getByIdNotNull(repositoryId))).get(0);
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    // Legacy /rest/repositories/{id} must not surface VRM child rows while the redirector
+    // config-plane feature is disabled — the UI has no way to render them and admins would see
+    // orphaned entries. Hide with 404 to mirror the "resource does not exist" contract.
+    if (isVrmChildRepository(repository) && !SystemConfigurationPropertyFeature.isRedirectorConfigPlaneEnabled()) {
+      throw new NotFoundException("Repository not found.");
+    }
+    RepositoryDTO repositoryDTO = convertRepositories(List.of(repository)).get(0);
     Date evaluationTime = proxyRepositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repositoryId);
     if (evaluationTime != null) {
       repositoryDTO.oldestEvalTimestamp = evaluationTime.getTime();
@@ -288,6 +295,18 @@ public class RepositoryService
   @Authorize(permission = Permission.WRITE)
   public void deleteRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    // Direct deletion of a VRM child through the legacy path is refused. The child's sanctioned
+    // removal path is the VRM-scoped DELETE endpoint (or a parent-VRM cascade); this guard names
+    // the parent so the caller knows where to look.
+    RepositoryManager parent = repository.getRepositoryManagerId() != null
+        ? repositoryManagerDAO.getById(repository.getRepositoryManagerId())
+        : null;
+    if (parent != null && parent.getManagerType() == ManagerType.VIRTUAL) {
+      throw new BadRequestException(String.format(
+          "This proxy repository cannot be deleted while it is used by Virtual Repository Manager '%s'."
+              + " Remove the reference first.",
+          parent.getName()));
+    }
     if (repository.getRelatedOrganizationId() != null) {
       try {
         organizationService.deleteOrganizationNoAuthz(repository.getRelatedOrganizationId());
@@ -337,8 +356,15 @@ public class RepositoryService
     return repositories;
   }
 
-  public static String buildProxyUrl(String baseUrl, String repositoryManagerInstanceId, String repositoryPublicId) {
-    return baseUrl + "api/v2/proxy/" + repositoryManagerInstanceId + "/" + repositoryPublicId;
+  public static String buildProxyUrl(
+      String baseUrl,
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      String format)
+  {
+    // Redirector runtime path — clients append the artifact path to this base URL.
+    return baseUrl + "api/v2/firewall/enterprise/" + repositoryManagerInstanceId + "/" + repositoryPublicId
+        + "/" + format;
   }
 
   private List<RepositoryDTO> convertRepositories(List<Repository> repositories) {
@@ -364,8 +390,8 @@ public class RepositoryService
       repositoryDTO.managerInstanceId = repositoryManager.getInstanceId();
       repositoryDTO.managerName = repositoryManager.getName();
       if (repositoryManager.getManagerType() == ManagerType.VIRTUAL) {
-        repositoryDTO.proxyUrl =
-            buildProxyUrl(baseUrlValue, repositoryManager.getInstanceId(), repository.getPublicId());
+        repositoryDTO.proxyUrl = buildProxyUrl(baseUrlValue, repositoryManager.getInstanceId(),
+            repository.getPublicId(), repository.getFormat());
       }
 
       repositoryDTOs.add(repositoryDTO);
@@ -920,7 +946,22 @@ public class RepositoryService
    * to a single JOIN in {@link RepositoryDAO#isVrmChildRepository(String)}.
    */
   public boolean isVrmChildRepository(String repositoryId) {
-    return repositoryDAO.isVrmChildRepository(repositoryId);
+    if (repositoryId == null) {
+      return false;
+    }
+    return isVrmChildRepository(repositoryDAO.getById(repositoryId));
+  }
+
+  /**
+   * Overload of {@link #isVrmChildRepository(String)} that avoids a redundant repository lookup
+   * when the caller already has a resolved {@link Repository}.
+   */
+  public boolean isVrmChildRepository(Repository repository) {
+    if (repository == null || repository.getRepositoryManagerId() == null) {
+      return false;
+    }
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
+    return repositoryManager != null && repositoryManager.getManagerType() == ManagerType.VIRTUAL;
   }
 
   ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatternsByOwner(

@@ -552,6 +552,17 @@ public enum SystemConfigurationPropertyFeature
    */
   SLO_VIOLATION_FEED(SystemConfigurationProperty.SLO_VIOLATION_FEED_ENABLED, false);
 
+  /**
+   * True when the redirector config-plane surface is fully enabled — both the master
+   * {@link #IQ_FIREWALL_ENTERPRISE_ENABLED} and the sub {@link #IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED}
+   * flags on. Either off ⇒ new VRM / proxy-repository endpoints return 404, and the legacy
+   * repository by-id endpoint hides VRM child rows. Callers throughout the redirector code path
+   * use this single check instead of duplicating the composite condition.
+   */
+  public static boolean isRedirectorConfigPlaneEnabled() {
+    return IQ_FIREWALL_ENTERPRISE_ENABLED.isEnabled() && IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.isEnabled();
+  }
+
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 
   public static final String NXIQ_ENABLE_SSO_ONLY_ENV_VAR = "NXIQ_ENABLE_SSO_ONLY";

@@ -45,8 +45,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryContainerDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualProxyRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualProxyRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiVirtualRepositoryManagerListDTO;
@@ -138,6 +139,8 @@ public class ApiFirewallResource
   static final String REPOSITORY_CONTAINER_PATH = "repositoryContainer";
 
   static final String ADD_REPOSITORY_PATH = REPOSITORY_MANAGER_PATH + "/" + REPOSITORIES_PATH;
+
+  static final String VIRTUAL_PROXY_REPOSITORY_PATH = ADD_REPOSITORY_PATH + "/" + REPOSITORY_ID_PATH;
 
   static final String CONNECTION_VERIFY_PATH = "connection/verify";
 
@@ -510,29 +513,120 @@ public class ApiFirewallResource
     return apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
   }
 
+  @GET
+  @Path(ADD_REPOSITORY_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @HasFeature(SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED)
+  @Operation(
+      description = "Use this method to list the proxy repositories configured under a virtual repository manager." +
+          "\n" +
+          "\n" +
+          "Permissions required: View IQ Elements",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the list of proxy repositories.",
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "404",
+            description = "The virtual repository manager feature is not enabled, or the manager does not exist.")
+      })
+  public ApiVirtualProxyRepositoryListDTO getVirtualProxyRepositories(
+      @Parameter(
+          description = "Enter the repository manager ID.") @PathParam("repositoryManagerId") String repositoryManagerId)
+  {
+    requireRedirectorUiEnabled();
+    return apiFirewallService.getVirtualProxyRepositories(repositoryManagerId);
+  }
+
   @POST
   @Path(ADD_REPOSITORY_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_REPOSITORY)
-  @Hidden
-  @HasFeature(SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED)
-  @Operation(description = "Use this method to add a new repository to a virtual repository manager." +
+  @HasFeature(SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED)
+  @Operation(description = "Use this method to add a new proxy repository to a virtual repository manager." +
       "\n" +
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
         @ApiResponse(responseCode = "200",
-            description = "The response contains the details of the new repository.",
-            useReturnTypeSchema = true)
+            description = "The response contains the details of the new proxy repository.",
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "400",
+            description = "The request body is invalid (duplicate public ID, unsupported format, "
+                + "restricted upstream URL, or a field set for a format that does not support it)."),
+        @ApiResponse(responseCode = "404",
+            description = "The virtual repository manager feature is not enabled, or the manager does not exist.")
       })
-  public ApiRepositoryDTO addRepository(
+  public ApiVirtualProxyRepositoryDTO addVirtualProxyRepository(
       @Parameter(
           description = "Enter the repository manager ID.") @PathParam("repositoryManagerId") String repositoryManagerId,
-      @RequestBody(description = "Enter values for the new repository.",
-          required = true, useParameterTypeSchema = true) ApiRepositoryDTO apiRepositoryDTO)
+      @RequestBody(description = "Enter values for the new proxy repository.",
+          required = true, useParameterTypeSchema = true) ApiVirtualProxyRepositoryDTO dto)
   {
-    return apiFirewallService.addRepository(repositoryManagerId, apiRepositoryDTO);
+    requireRedirectorUiEnabled();
+    return apiFirewallService.addVirtualProxyRepository(repositoryManagerId, dto);
+  }
+
+  @PUT
+  @Path(VIRTUAL_PROXY_REPOSITORY_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @HasFeature(SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED)
+  @Operation(
+      description = "Use this method to update the mutable fields of a proxy repository owned by a virtual repository manager. "
+          + "Only upstream URL, PCCS enablement (npm / PyPI), and package host URL (PyPI) are editable — "
+          + "name, format, and protocol version are fixed at creation." +
+          "\n" +
+          "\n" +
+          "Permissions required: Edit IQ Elements",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the updated proxy repository details.",
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "400",
+            description = "The request body is invalid, or attempts to change an immutable field."),
+        @ApiResponse(responseCode = "404",
+            description = "The virtual repository manager feature is not enabled, the manager does not exist, "
+                + "or the repository is not owned by the given manager.")
+      })
+  public ApiVirtualProxyRepositoryDTO updateVirtualProxyRepository(
+      @Parameter(
+          description = "Enter the repository manager ID.") @PathParam("repositoryManagerId") String repositoryManagerId,
+      @Parameter(
+          description = "Enter the proxy repository ID.") @PathParam("repositoryId") String repositoryId,
+      @RequestBody(description = "Enter the mutable fields for the proxy repository.",
+          required = true, useParameterTypeSchema = true) ApiVirtualProxyRepositoryDTO dto)
+  {
+    requireRedirectorUiEnabled();
+    return apiFirewallService.updateVirtualProxyRepository(repositoryManagerId, repositoryId, dto);
+  }
+
+  @DELETE
+  @Path(VIRTUAL_PROXY_REPOSITORY_PATH)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @HasFeature(SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED)
+  @Operation(description = "Use this method to delete a proxy repository owned by a virtual repository manager. "
+      + "This is the sanctioned removal path for a VRM child — the legacy /rest/repositories/{id} endpoint "
+      + "refuses to delete VRM children." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+        @ApiResponse(responseCode = "204",
+            description = "The proxy repository has been deleted."),
+        @ApiResponse(responseCode = "404",
+            description = "The virtual repository manager feature is not enabled, the manager does not exist, "
+                + "or the repository is not owned by the given manager.")
+      })
+  public void deleteVirtualProxyRepository(
+      @Parameter(
+          description = "Enter the repository manager ID.") @PathParam("repositoryManagerId") String repositoryManagerId,
+      @Parameter(
+          description = "Enter the proxy repository ID.") @PathParam("repositoryId") String repositoryId)
+  {
+    requireRedirectorUiEnabled();
+    apiFirewallService.deleteVirtualProxyRepository(repositoryManagerId, repositoryId);
   }
 
   @GET

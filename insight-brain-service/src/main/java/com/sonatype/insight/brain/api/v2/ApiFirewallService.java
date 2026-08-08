@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -49,6 +50,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualProxyRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualProxyRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiVirtualRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiVirtualRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsAdapter;
@@ -82,6 +85,7 @@ import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.ProxyRepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.ProtocolVersion;
 import com.sonatype.insight.brain.model.repository.VirtualRepositoryConfig;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.ProxyRepositoryComponent;
@@ -171,6 +175,26 @@ public class ApiFirewallService
   private static final Set<String> PROXY_FORMATS = Set.of("maven2", "npm", "pypi", "nuget");
 
   private static final Set<String> ALLOWED_UPSTREAM_SCHEMES = Set.of("http", "https");
+
+  /**
+   * Formats that support Policy-Compliant Component Selection. Sending {@code pccsEnabled} for any
+   * other format is a 400 (ADR-R17 / §7.1 R-2).
+   */
+  private static final Set<String> PCCS_AWARE_FORMATS = Set.of("npm", "pypi");
+
+  /**
+   * Protocol versions accepted for NuGet proxy repositories. Typed on the {@link ProtocolVersion}
+   * enum so the IDE catches typos and refactors, and NuGet-scoped so a future enum value added
+   * for another ecosystem can't slip through this check.
+   */
+  private static final Set<ProtocolVersion> NUGET_PROTOCOL_VERSIONS =
+      Set.of(ProtocolVersion.V2, ProtocolVersion.V3);
+
+  /**
+   * Public-ID regex mirrored on the frontend (§4.4). Enforced server-side to guarantee the
+   * client-side check cannot be bypassed by a direct API caller.
+   */
+  private static final Pattern PUBLIC_ID_PATTERN = Pattern.compile("[A-Za-z0-9._-]+");
 
   @Inject
   public ApiFirewallService(
@@ -759,71 +783,367 @@ public class ApiFirewallService
     AuditData.get().setRepositoryManager(repoManager);
   }
 
+  /**
+   * Creates a new proxy repository under a Virtual Repository Manager. Both the master and
+   * redirector-UI feature flags must be enabled; either off ⇒ 404.
+   *
+   * <p>
+   * The lean {@link ApiVirtualProxyRepositoryDTO} carries no policy fields — the audit /
+   * quarantine / namespace-confusion flags are set server-side and cannot be overridden by the
+   * client (§7.1.1 policy-scope guard, layer 1).
+   */
   @Authorize(permission = Permission.WRITE)
-  public ApiRepositoryDTO addRepository(
+  public ApiVirtualProxyRepositoryDTO addVirtualProxyRepository(
       @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId,
-      ApiRepositoryDTO apiRepositoryDTO)
+      ApiVirtualProxyRepositoryDTO dto)
   {
     productLicense.validateFeature(LicensedFeature.FIREWALL);
+    requireRedirectorConfigPlaneEnabled();
     RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
     if (repositoryManager.getManagerType() != ManagerType.VIRTUAL) {
-      throw new BadRequestException("Repository Manager type must be virtual.");
+      throw new NotFoundException("Virtual repository manager not found.");
     }
 
-    if (apiRepositoryDTO.repositoryId != null) {
-      throw new BadRequestException("The repository ID must be null.");
+    validateVirtualProxyRepositoryRequest(dto);
+
+    if ("nuget".equals(dto.format) && Strings.isNullOrEmpty(dto.protocolVersion)) {
+      dto.protocolVersion = ProtocolVersion.V3.name().toLowerCase();
     }
 
-    if (Strings.isNullOrEmpty(apiRepositoryDTO.publicId)) {
-      throw new BadRequestException("Repository public ID is required.");
-    }
-
-    if (Strings.isNullOrEmpty(apiRepositoryDTO.format)) {
-      throw new BadRequestException("Repository format is required.");
-    }
-
-    if (!PROXY_FORMATS.contains(apiRepositoryDTO.format)) {
-      throw new BadRequestException("Repository format not supported.");
-    }
-
-    if (Strings.isNullOrEmpty(apiRepositoryDTO.upstreamUrl)) {
-      throw new BadRequestException("Repository upstream URL is required.");
-    }
-
-    // Persistence-time SSRF guard on the upstream URL. FIRE-664 will replace this with an
-    // outbound-boundary check that pins the resolved connection (defeats DNS rebinding);
-    // until then this write-time check is the only barrier against loopback / link-local /
-    // RFC1918 / cloud-metadata addresses reaching the outbound path. Removing it before
-    // FIRE-664 lands would strictly weaken a live endpoint.
-    validateUpstreamUrl(apiRepositoryDTO.upstreamUrl);
-
-    Repository repository = ApiRepositoryDTO.toRepository(apiRepositoryDTO);
+    Repository repository = ApiVirtualProxyRepositoryDTO.toRepository(dto);
     repository.setRepositoryManagerId(repositoryManagerId);
     repository.setRepositoryType(RepositoryType.proxy);
     repository.setQuarantineEnabled(true);
     repository.setAuditEnabled(true);
+    repository.setNamespaceConfusionProtectionEnabled(false);
 
-    VirtualRepositoryConfig config = new VirtualRepositoryConfig();
-    config.setUpstreamUrl(apiRepositoryDTO.upstreamUrl);
-
-    // Repository row and its satellite config are a 1:1 pair — commit them atomically so a
-    // satellite-insert failure cannot leave the repository row orphaned (no upstreamUrl on
-    // subsequent reads, no easy cleanup).
+    // Repository row + its satellite config are a 1:1 pair — commit atomically so a satellite
+    // failure (SSRF reject on upstreamUrl / packageHostUrl, unique-key violation) cannot leave
+    // the repository row orphaned.
+    VirtualRepositoryConfig config;
     try (TransactionContext tx = repositoryDAO.createTransactionContext()) {
       tx.begin();
-      // repository.getId() is populated by AbstractDAO.insert before the DB write, so the
-      // satellite can reference it here.
-      repositoryDAO.insert(tx, repository);
-      config.setRepositoryId(repository.getId());
+      try {
+        repositoryDAO.insert(tx, repository);
+      }
+      catch (InvalidRepositoryException e) {
+        // Preserve 400 semantics for duplicate publicId; frontend recognises this shape
+        // (see FIRE-663 add-VRM modal 409 pattern).
+        throw new BadRequestException(e.getMessage(), e);
+      }
+      config = ApiVirtualProxyRepositoryDTO.toVirtualRepositoryConfig(dto, repository.getId());
       virtualRepositoryConfigDAO.insert(tx, config);
       tx.commit();
     }
 
     AuditData.get().setRepository(repository);
 
-    ApiRepositoryDTO result = ApiRepositoryDTO.fromRepository(repository);
-    result.proxyUrl = buildProxyUrl(baseUrl.get(), repositoryManager.getInstanceId(), repository.getPublicId());
-    return result;
+    String proxyUrl = buildProxyUrl(baseUrl.get(), repositoryManager.getInstanceId(),
+        repository.getPublicId(), repository.getFormat());
+    return ApiVirtualProxyRepositoryDTO.fromRepository(repository, config, proxyUrl);
+  }
+
+  /**
+   * Lists proxy repositories for a Virtual Repository Manager. Both feature flags gated; either
+   * off ⇒ 404. Returns 404 when the target manager is not a VRM.
+   */
+  public ApiVirtualProxyRepositoryListDTO getVirtualProxyRepositories(String repositoryManagerId) {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    requireRedirectorConfigPlaneEnabled();
+    checkReadPermission(RepositoryContainer.SINGLETON);
+
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
+    if (repositoryManager.getManagerType() != ManagerType.VIRTUAL) {
+      throw new NotFoundException("Virtual repository manager not found.");
+    }
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManagerId);
+    String baseUrlValue = baseUrl.get();
+    String instanceId = repositoryManager.getInstanceId();
+
+    // Batch-load satellite configs to avoid N+1.
+    Set<String> repositoryIds = repositories.stream().map(Repository::getId).collect(Collectors.toSet());
+    Map<String, VirtualRepositoryConfig> configByRepositoryId =
+        virtualRepositoryConfigDAO.getByRepositoryIds(repositoryIds)
+            .stream()
+            .collect(Collectors.toMap(VirtualRepositoryConfig::getRepositoryId, c -> c));
+
+    List<ApiVirtualProxyRepositoryDTO> dtos = repositories.stream()
+        .map(r -> ApiVirtualProxyRepositoryDTO.fromRepository(
+            r,
+            configByRepositoryId.get(r.getId()),
+            buildProxyUrl(baseUrlValue, instanceId, r.getPublicId(), r.getFormat())))
+        .collect(Collectors.toList());
+
+    return new ApiVirtualProxyRepositoryListDTO(dtos);
+  }
+
+  /**
+   * Updates the mutable fields of a proxy repository owned by a Virtual Repository Manager.
+   * Both feature flags gated; either off ⇒ 404.
+   *
+   * <p>
+   * Mutable fields: {@code upstreamUrl} (SSRF-validated at the persistence boundary),
+   * {@code pccsEnabled} (npm / pypi only), and {@code packageHostUrl} (PyPI only,
+   * SSRF-validated). Any attempt to change {@code publicId}, {@code format}, or
+   * {@code protocolVersion} is rejected with 400 — the "These fields cannot be edited after
+   * creation" contract shown on the edit tile.
+   */
+  @Authorize(permission = Permission.WRITE)
+  public ApiVirtualProxyRepositoryDTO updateVirtualProxyRepository(
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId,
+      String repositoryId,
+      ApiVirtualProxyRepositoryDTO dto)
+  {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    requireRedirectorConfigPlaneEnabled();
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
+    if (repositoryManager.getManagerType() != ManagerType.VIRTUAL) {
+      throw new NotFoundException("Virtual repository manager not found.");
+    }
+
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    if (!repositoryManagerId.equals(repository.getRepositoryManagerId())) {
+      // Do not leak child-of-different-parent through a distinct 4xx code.
+      throw new NotFoundException("Proxy repository not found under this Virtual Repository Manager.");
+    }
+
+    VirtualRepositoryConfig existingConfig = virtualRepositoryConfigDAO.getByRepositoryId(repository.getId());
+    validateVirtualProxyRepositoryUpdateRequest(dto, repository, existingConfig);
+    validateUpdateFormatSpecificFields(dto, repository);
+
+    if (PCCS_AWARE_FORMATS.contains(repository.getFormat()) && dto.pccsEnabled != null) {
+      repository.setPolicyCompliantComponentSelectionEnabled(dto.pccsEnabled);
+    }
+
+    // Repository + satellite are a 1:1 pair — commit atomically. SSRF rejections raised by
+    // VirtualRepositoryConfigDAO.validateUrl on the satellite update roll back the repository
+    // update in the same tx.
+    VirtualRepositoryConfig updatedConfig;
+    try (TransactionContext tx = repositoryDAO.createTransactionContext()) {
+      tx.begin();
+      try {
+        repositoryDAO.update(tx, repository);
+      }
+      catch (InvalidRepositoryException e) {
+        throw new BadRequestException(e.getMessage(), e);
+      }
+      updatedConfig = upsertVirtualRepositoryConfig(tx, repository, existingConfig, dto);
+      tx.commit();
+    }
+
+    AuditData.get().setRepository(repository);
+
+    String proxyUrl = buildProxyUrl(baseUrl.get(), repositoryManager.getInstanceId(),
+        repository.getPublicId(), repository.getFormat());
+    return ApiVirtualProxyRepositoryDTO.fromRepository(repository, updatedConfig, proxyUrl);
+  }
+
+  /**
+   * Writes the mutable satellite fields on update — {@code upstreamUrl} always, and PyPI-only
+   * {@code packageHostUrl}. NuGet's {@code protocolVersion} is immutable (already enforced by
+   * {@link #validateVirtualProxyRepositoryUpdateRequest}), so we preserve the existing value.
+   * Every VRM proxy has a satellite row (created on POST), so the branch that recreates one
+   * is defensive only.
+   */
+  private VirtualRepositoryConfig upsertVirtualRepositoryConfig(
+      TransactionContext tx,
+      Repository repository,
+      VirtualRepositoryConfig existingConfig,
+      ApiVirtualProxyRepositoryDTO dto)
+  {
+    VirtualRepositoryConfig target = existingConfig != null
+        ? existingConfig
+        : new VirtualRepositoryConfig(repository.getId());
+    target.setUpstreamUrl(dto.upstreamUrl);
+    if ("pypi".equals(repository.getFormat())) {
+      target.setPackageHostUrl(dto.packageHostUrl);
+    }
+    if (existingConfig != null) {
+      virtualRepositoryConfigDAO.update(tx, target);
+    }
+    else {
+      virtualRepositoryConfigDAO.insert(tx, target);
+    }
+    return target;
+  }
+
+  /**
+   * Deletes a proxy repository owned by a Virtual Repository Manager. VRM-scoped path —
+   * legitimately bypasses the legacy /rest/repositories/{id} guard because this IS the sanctioned
+   * removal path for VRM children (§5.7). Both feature flags gated; either off ⇒ 404.
+   */
+  @Authorize(permission = Permission.WRITE)
+  public void deleteVirtualProxyRepository(
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId,
+      String repositoryId)
+  {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    requireRedirectorConfigPlaneEnabled();
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
+    if (repositoryManager.getManagerType() != ManagerType.VIRTUAL) {
+      throw new NotFoundException("Virtual repository manager not found.");
+    }
+
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    if (!repositoryManagerId.equals(repository.getRepositoryManagerId())) {
+      throw new NotFoundException("Proxy repository not found under this Virtual Repository Manager.");
+    }
+
+    // mainRepositoryService.delete(Repository) skips the VRM-child guard applied to the legacy
+    // /rest/repositories/{id} path in RepositoryService.deleteRepository — this VRM-scoped API is
+    // the sanctioned removal path for a VRM child. The satellite row is removed by the schema
+    // FK's ON DELETE CASCADE (see schema_incremental_0479.sql).
+    mainRepositoryService.delete(repository);
+    AuditData.get().setRepository(repository);
+  }
+
+  private static void validateVirtualProxyRepositoryRequest(ApiVirtualProxyRepositoryDTO dto) {
+    if (dto.repositoryId != null) {
+      throw new BadRequestException("The repository ID must be null.");
+    }
+    if (Strings.isNullOrEmpty(dto.publicId)) {
+      throw new BadRequestException("Repository public ID is required.");
+    }
+    if (!PUBLIC_ID_PATTERN.matcher(dto.publicId).matches()) {
+      throw new BadRequestException(
+          "Repository public ID must contain only letters, digits, dots, underscores, or hyphens.");
+    }
+    if (Strings.isNullOrEmpty(dto.format)) {
+      throw new BadRequestException("Repository format is required.");
+    }
+    if (!PROXY_FORMATS.contains(dto.format)) {
+      throw new BadRequestException("Repository format not supported.");
+    }
+    if (Strings.isNullOrEmpty(dto.upstreamUrl)) {
+      throw new BadRequestException("Repository upstream URL is required.");
+    }
+    validateFormatSpecificFields(dto);
+  }
+
+  /**
+   * Per-ecosystem × PCCS matrix (§6.3) and per-format field visibility (§4.4).
+   *
+   * <ul>
+   * <li>{@code pccsEnabled}: accepted for {@code npm} / {@code pypi}; rejected for
+   * {@code maven2} / {@code nuget} (ADR-R17).</li>
+   * <li>{@code protocolVersion}: NuGet-only. Values {@code v2} / {@code v3}. Server fills
+   * {@code v3} on omission (handled by the caller).</li>
+   * <li>{@code packageHostUrl}: required for {@code pypi}; rejected for any other format.</li>
+   * </ul>
+   */
+  private static void validateFormatSpecificFields(ApiVirtualProxyRepositoryDTO dto) {
+    if (dto.pccsEnabled != null && !PCCS_AWARE_FORMATS.contains(dto.format)) {
+      throw new BadRequestException(
+          String.format("Enable PCCS is not supported for format '%s'.", dto.format));
+    }
+    if ("nuget".equals(dto.format)) {
+      if (dto.protocolVersion != null) {
+        ProtocolVersion parsed = tryParseProtocolVersion(dto.protocolVersion);
+        if (parsed == null || !NUGET_PROTOCOL_VERSIONS.contains(parsed)) {
+          throw new BadRequestException("NuGet protocol version must be 'v2' or 'v3'.");
+        }
+      }
+    }
+    else if (!Strings.isNullOrEmpty(dto.protocolVersion)) {
+      throw new BadRequestException(
+          String.format("Protocol version is not supported for format '%s'.", dto.format));
+    }
+    if ("pypi".equals(dto.format)) {
+      if (Strings.isNullOrEmpty(dto.packageHostUrl)) {
+        throw new BadRequestException("Package host URL is required for PyPI proxy repositories.");
+      }
+    }
+    else if (!Strings.isNullOrEmpty(dto.packageHostUrl)) {
+      throw new BadRequestException(
+          String.format("Package host URL is not supported for format '%s'.", dto.format));
+    }
+  }
+
+  /**
+   * Enforces immutable-field parity on PUT — {@code publicId}, {@code format}, and
+   * {@code protocolVersion} may not change after creation. If the client sends any of them, they
+   * must exactly match the stored value; sending them as null / empty is accepted (the client
+   * simply hasn't echoed the read-only field back).
+   */
+  private static void validateVirtualProxyRepositoryUpdateRequest(
+      ApiVirtualProxyRepositoryDTO dto,
+      Repository existing,
+      VirtualRepositoryConfig existingConfig)
+  {
+    if (dto.repositoryId != null && !dto.repositoryId.equals(existing.getId())) {
+      throw new BadRequestException("Repository ID in the payload does not match the target repository.");
+    }
+    if (!Strings.isNullOrEmpty(dto.publicId) && !dto.publicId.equals(existing.getPublicId())) {
+      throw new BadRequestException("Repository public ID cannot be changed after creation.");
+    }
+    if (!Strings.isNullOrEmpty(dto.format) && !dto.format.equals(existing.getFormat())) {
+      throw new BadRequestException("Repository format cannot be changed after creation.");
+    }
+    // ProtocolVersion is enum-typed on the satellite; compare on lowercased name so the check
+    // matches the wire form ("v2" / "v3") the DTO carries.
+    String existingProtocolVersion = existingConfig != null && existingConfig.getProtocolVersion() != null
+        ? existingConfig.getProtocolVersion().name().toLowerCase()
+        : null;
+    if (!Strings.isNullOrEmpty(dto.protocolVersion)
+        && !dto.protocolVersion.equalsIgnoreCase(existingProtocolVersion))
+    {
+      throw new BadRequestException("Protocol version cannot be changed after creation.");
+    }
+    if (Strings.isNullOrEmpty(dto.upstreamUrl)) {
+      throw new BadRequestException("Repository upstream URL is required.");
+    }
+  }
+
+  /**
+   * PUT counterpart to {@link #validateFormatSpecificFields}. The stored {@code format} is the
+   * source of truth (already validated on POST) — this only checks that the mutable fields make
+   * sense for it.
+   */
+  private static void validateUpdateFormatSpecificFields(
+      ApiVirtualProxyRepositoryDTO dto,
+      Repository existing)
+  {
+    String format = existing.getFormat();
+    if (dto.pccsEnabled != null && !PCCS_AWARE_FORMATS.contains(format)) {
+      throw new BadRequestException(
+          String.format("Enable PCCS is not supported for format '%s'.", format));
+    }
+    if ("pypi".equals(format)) {
+      if (Strings.isNullOrEmpty(dto.packageHostUrl)) {
+        throw new BadRequestException("Package host URL is required for PyPI proxy repositories.");
+      }
+    }
+    else if (!Strings.isNullOrEmpty(dto.packageHostUrl)) {
+      throw new BadRequestException(
+          String.format("Package host URL is not supported for format '%s'.", format));
+    }
+  }
+
+  /**
+   * Wire-form ({@code v2} / {@code v3}) → {@link ProtocolVersion} enum check. Case-insensitive.
+   * Returns {@code null} on a value that has no matching enum constant so callers can raise a 400
+   * with a message derived from the enum's own values instead of a duplicated static set.
+   */
+  private static ProtocolVersion tryParseProtocolVersion(String value) {
+    if (Strings.isNullOrEmpty(value)) {
+      return null;
+    }
+    try {
+      return ProtocolVersion.valueOf(value.toUpperCase());
+    }
+    catch (IllegalArgumentException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Enforces both feature flags on redirector-UI endpoints. Either off ⇒ 404 (§4.4.1).
+   */
+  private static void requireRedirectorConfigPlaneEnabled() {
+    if (!SystemConfigurationPropertyFeature.isRedirectorConfigPlaneEnabled()) {
+      throw new NotFoundException("Feature not supported.");
+    }
   }
 
   public ApiRepositoryManagerDTO addRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {

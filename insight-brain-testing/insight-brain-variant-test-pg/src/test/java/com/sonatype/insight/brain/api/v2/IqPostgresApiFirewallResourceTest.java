@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRes
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList.ApiRepositoryComponentEvaluationResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryContainerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualProxyRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
@@ -1057,16 +1058,18 @@ class IqPostgresApiFirewallResourceTest
   }
 
   @Test
-  public void testAddRepository_WhenIqProxyDisabled_Returns404() throws Exception {
+  public void testAddVirtualProxyRepository_WhenRedirectorConfigPlaneDisabled_Returns404() throws Exception {
+    // Default test config has both IQ_FIREWALL_ENTERPRISE_ENABLED and
+    // IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED off; either off ⇒ 404 (§4.4.1).
     RepositoryManager repositoryManager = ctx.tempEntity().newRepositoryManager();
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "testPublicId";
-    apiRepositoryDTO.format = "npm";
+    ApiVirtualProxyRepositoryDTO dto = new ApiVirtualProxyRepositoryDTO();
+    dto.publicId = "testPublicId";
+    dto.format = "npm";
 
     HttpResponse response = ctx.restRequest()
         .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.ADD_REPOSITORY_PATH)
         .parameter(repositoryManager.getId())
-        .body(apiRepositoryDTO)
+        .body(dto)
         .post();
 
     ctx.assertResponseStatus(404, response);

@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +80,26 @@ public class VirtualRepositoryConfigDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryId(tx, repositoryId);
     }
+  }
+
+  /**
+   * Batched fetch of satellite configs by repository ID. Empty input returns an empty list.
+   * Absent repository IDs simply do not appear in the result — a VRM-owned repository whose
+   * DTO carries no ecosystem-specific values (e.g. maven2, npm) never gets a satellite row,
+   * so callers must tolerate the gap.
+   */
+  public List<VirtualRepositoryConfig> getByRepositoryIds(final Collection<String> repositoryIds) {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return getListWithSqlInClause(repositoryIds, partition -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .selectFrom(VIRTUAL_REPOSITORY_CONFIG)
+            .where(VIRTUAL_REPOSITORY_CONFIG.REPOSITORY_ID.in(partition))
+            .fetch(this::toEntity);
+      }
+    });
   }
 
   @Override

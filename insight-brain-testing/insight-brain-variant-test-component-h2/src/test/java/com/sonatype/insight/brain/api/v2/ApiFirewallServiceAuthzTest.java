@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigD
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiVirtualProxyRepositoryDTO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
@@ -328,18 +330,26 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test
-  public void testAddRepository_Authorized() {
+  public void testAddVirtualProxyRepository_Authorized() {
     setBaseUrl("http://localhost:8070/");
     repositoryManager.setManagerType(ManagerType.VIRTUAL);
     repositoryManagerDAO.update(repositoryManager);
     grantWritePermission(repositoryManager.getId());
 
-    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
-    apiRepositoryDTO.publicId = "test-repo";
-    apiRepositoryDTO.format = "maven2";
-    apiRepositoryDTO.upstreamUrl = "https://repo1.maven.org/maven2/";
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(true);
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(true);
+    try {
+      ApiVirtualProxyRepositoryDTO dto = new ApiVirtualProxyRepositoryDTO();
+      dto.publicId = "test-repo";
+      dto.format = "maven2";
+      dto.upstreamUrl = "https://repo1.maven.org/maven2/";
 
-    apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO);
+      apiFirewallService.addVirtualProxyRepository(repositoryManager.getId(), dto);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(false);
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(false);
+    }
   }
 
   @Test
@@ -353,6 +363,33 @@ public class ApiFirewallServiceAuthzTest
   public void testAddRepository_Unauthenticated() {
     assertThrows(UnauthenticatedException.class,
         () -> apiFirewallService.addRepository(repositoryManager.getId(), new ApiRepositoryDTO()));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddVirtualProxyRepository_Unauthorized() {
+    login();
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(true);
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(true);
+    try {
+      apiFirewallService.addVirtualProxyRepository(repositoryManager.getId(), new ApiVirtualProxyRepositoryDTO());
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(false);
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(false);
+    }
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddVirtualProxyRepository_Unauthenticated() {
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(true);
+    SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(true);
+    try {
+      apiFirewallService.addVirtualProxyRepository(repositoryManager.getId(), new ApiVirtualProxyRepositoryDTO());
+    }
+    finally {
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_ENABLED.setEnabled(false);
+      SystemConfigurationPropertyFeature.IQ_FIREWALL_ENTERPRISE_REDIRECT_UI_ENABLED.setEnabled(false);
+    }
   }
 
   private void configureRepositories() {

@@ -615,7 +615,8 @@ public class RepositoryServiceTest
     assertThat(actual.repository.getPublicId()).isEqualTo(repository.getPublicId());
     assertThat(actual.oldestEvalTimestamp).isEqualTo(proxyRepositoryComponent.getLastEvaluationTime().getTime());
     assertThat(actual.proxyUrl)
-        .isEqualTo("http://localhost/api/v2/proxy/" + actual.managerInstanceId + "/" + repository.getPublicId());
+        .isEqualTo("http://localhost/api/v2/firewall/enterprise/" + actual.managerInstanceId + "/"
+            + repository.getPublicId() + "/" + repository.getFormat());
   }
 
   @Test
@@ -1676,6 +1677,6 @@ public class RepositoryServiceTest
   @Test
   public void testIsVrmChildRepository_FalseForUnknownRepository() {
     assertThat(repositoryService.isVrmChildRepository("does-not-exist")).isFalse();
-    assertThat(repositoryService.isVrmChildRepository(null)).isFalse();
+    assertThat(repositoryService.isVrmChildRepository((String) null)).isFalse();
   }
 }

@@ -19,6 +19,8 @@ describe('firewallIqProxySlice', () => {
         virtualRepositoryManagers: [],
         loadingVirtualRepositoryManagers: false,
         virtualRepositoryManagersLoadError: null,
+        creatingProxyRepository: false,
+        createProxyRepositoryError: null,
       });
     });
   });
@@ -237,6 +239,56 @@ describe('firewallIqProxySlice', () => {
 
     it('exposes fetchVirtualRepositoryManagers via actions', () => {
       expect(actions.fetchVirtualRepositoryManagers).toBeInstanceOf(Function);
+    });
+  });
+
+  describe('firewallIqProxy/createProxyRepository (FIRE-665)', () => {
+    it('/pending sets creating true and clears prior error', () => {
+      const state = { ...initialState, createProxyRepositoryError: 'previous error' };
+
+      const newState = reducer(state, { type: 'firewallIqProxy/createProxyRepository/pending' });
+
+      expect(newState.creatingProxyRepository).toBe(true);
+      expect(newState.createProxyRepositoryError).toBeNull();
+    });
+
+    it('/fulfilled clears creating flag', () => {
+      const state = { ...initialState, creatingProxyRepository: true };
+
+      const newState = reducer(state, { type: 'firewallIqProxy/createProxyRepository/fulfilled' });
+
+      expect(newState.creatingProxyRepository).toBe(false);
+    });
+
+    it('/rejected formats the type-scoped duplicate-name error on 409', () => {
+      const state = { ...initialState, creatingProxyRepository: true };
+      const payload = { response: { status: 409, data: 'anything' } };
+      const meta = { arg: { managerId: 'v1', dto: { publicId: 'maven-central' } } };
+
+      const newState = reducer(state, { type: 'firewallIqProxy/createProxyRepository/rejected', payload, meta });
+
+      expect(newState.creatingProxyRepository).toBe(false);
+      expect(newState.createProxyRepositoryError).toBe(
+        `A proxy repository named 'maven-central' already exists in this Virtual Repository Manager.`
+      );
+    });
+
+    it('/rejected falls back to backend message for non-409 failures', () => {
+      const state = { ...initialState, creatingProxyRepository: true };
+      const payload = { response: { data: 'Upstream URL is not reachable.' } };
+      const meta = { arg: { managerId: 'v1', dto: { publicId: 'maven-central' } } };
+
+      const newState = reducer(state, { type: 'firewallIqProxy/createProxyRepository/rejected', payload, meta });
+
+      expect(newState.createProxyRepositoryError).toBe('Upstream URL is not reachable.');
+    });
+
+    it('clearCreateProxyRepositoryError resets the error to null', () => {
+      const state = { ...initialState, createProxyRepositoryError: 'x' };
+
+      const newState = reducer(state, actions.clearCreateProxyRepositoryError());
+
+      expect(newState.createProxyRepositoryError).toBeNull();
     });
   });
 });

@@ -16,6 +16,7 @@ import {
   getRepositoryInfoUrl,
   getRepositoryListUrl,
   getRepositoryManagerUrl,
+  getVirtualProxyRepositoryUrl,
 } from 'MainRoot/util/CLMLocation';
 import { pathSet, propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { Messages } from 'MainRoot/util/CommonServices';
@@ -264,8 +265,16 @@ const deleteRepository = createAsyncThunk(
   `${REDUCER_NAME}/deleteRepository`,
   (_, { getState, rejectWithValue, dispatch }) => {
     const { id: deletedRepositoryId } = selectDeleteModalInfo(getState());
+    const owner = selectSelectedOwner(getState());
+    // VRM-owned proxies are removed through the VRM-scoped API (FIRE-664 §5.7). The legacy
+    // /rest/repositories/{id} endpoint refuses to delete children of a virtual repository
+    // manager and steers callers here.
+    const deleteUrl =
+      owner?.managerType === 'virtual'
+        ? getVirtualProxyRepositoryUrl(owner.id, deletedRepositoryId)
+        : getRepositoryInfoUrl(deletedRepositoryId);
     return axios
-      .delete(getRepositoryInfoUrl(deletedRepositoryId))
+      .delete(deleteUrl)
       .then(() => {
         setTimeout(() => {
           const isRepositoryManager = selectIsRepositoryManager(getState());

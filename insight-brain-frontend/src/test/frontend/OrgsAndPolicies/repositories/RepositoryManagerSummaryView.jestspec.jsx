@@ -15,8 +15,6 @@ import {
   getRepositoryListUrl,
   getPermissionContextTestUrl,
   getAccessPageRolesUrl,
-  getOwnerListUrl,
-  getAddRepositoryUrl,
 } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actionStagesPayload } from 'TestRoot/OrgsAndPolicies/ownerSummary/policiesTile/policiesTileTestData';
@@ -25,8 +23,6 @@ import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/reposit
 import * as repositoriesSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import * as ownerSideNavSelectors from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
-import * as ownerSummarySelectors from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 
 const ownerType = 'repository_manager';
 const ownerId = 'c47da5d840b84eda8585381de5ebb189';
@@ -295,57 +291,6 @@ describe('RepositoryManagerSummaryView', () => {
     const accessTile = await screen.findByTestId('repositories_access');
 
     expect(accessTile).toBeVisible();
-  });
-
-  describe('IQ Proxy Repo tile', () => {
-    it('does not render IQ Proxy tile for non-virtual repository manager', async () => {
-      jest.spyOn(ownerSideNavSelectors, 'selectIsVirtualRepositoryManager').mockReturnValue(false);
-      renderComponent(preloadedState);
-
-      await screen.findByTestId('repositories_access');
-
-      expect(screen.queryByText('IQ Proxy Repo')).not.toBeInTheDocument();
-    });
-
-    it('renders IQ Proxy tile for virtual repository manager with view permission', async () => {
-      jest.spyOn(ownerSideNavSelectors, 'selectIsVirtualRepositoryManager').mockReturnValue(true);
-      jest.spyOn(ownerSummarySelectors, 'selectHasViewIqPermission').mockReturnValue(true);
-      jest.spyOn(ownerSummarySelectors, 'selectHasEditIqPermission').mockReturnValue(true);
-      jest.spyOn(routerSelectors, 'selectRepositoryManagerId').mockReturnValue(ownerId);
-      axiosMock.onGet(getOwnerListUrl()).reply(200, { topParentOrganizationId: 'ROOT_ORGANIZATION_ID', ownersMap: {} });
-      axiosMock.onPost(getAddRepositoryUrl(ownerId)).reply(201, {});
-      renderComponent({
-        ...preloadedState,
-        firewallIqProxy: { saving: false, saveError: null, saveErrorId: 0 },
-      });
-
-      const tile = await screen.findByTestId('iq-proxy-repo-tile');
-      expect(within(tile).getByRole('heading', { name: 'IQ proxy' })).toBeVisible();
-      expect(within(tile).getByPlaceholderText('Repository name')).toBeInTheDocument();
-      expect(within(tile).getByPlaceholderText('Upstream repository URL')).toBeInTheDocument();
-      expect(within(tile).getByRole('button', { name: 'Save' })).toBeInTheDocument();
-    });
-
-    it('does not render IQ Proxy tile for virtual repository manager without view permission', async () => {
-      jest.spyOn(ownerSideNavSelectors, 'selectIsVirtualRepositoryManager').mockReturnValue(true);
-      jest.spyOn(ownerSummarySelectors, 'selectHasViewIqPermission').mockReturnValue(false);
-      renderComponent(preloadedState);
-
-      await screen.findByTestId('repositories_access');
-
-      expect(screen.queryByTestId('iq-proxy-repo-tile')).not.toBeInTheDocument();
-    });
-
-    it('does not render IQ Proxy tile for virtual repository manager without write permission', async () => {
-      jest.spyOn(ownerSideNavSelectors, 'selectIsVirtualRepositoryManager').mockReturnValue(true);
-      jest.spyOn(ownerSummarySelectors, 'selectHasViewIqPermission').mockReturnValue(true);
-      jest.spyOn(ownerSummarySelectors, 'selectHasEditIqPermission').mockReturnValue(false);
-      renderComponent(preloadedState);
-
-      await screen.findByTestId('repositories_access');
-
-      expect(screen.queryByTestId('iq-proxy-repo-tile')).not.toBeInTheDocument();
-    });
   });
 
   describe('RepositoriesConfigurationTile showHostedRepoLink prop wiring', () => {

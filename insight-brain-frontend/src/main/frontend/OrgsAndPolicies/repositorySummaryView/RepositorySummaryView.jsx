@@ -8,23 +8,32 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   NxPageTitle,
   NxH1,
+  NxH2,
   NxH3,
+  NxTile,
   NxFontAwesomeIcon,
   NxLoadWrapper,
   NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
-import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import {
+  selectLoading,
+  selectLoadError,
+  selectHasEditIqPermission,
+  selectHasViewIqPermission,
+} from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import {
   selectSelectedOwner,
   selectLoadError as selectLoadSelectedOwnerError,
   selectEntityId,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectShowRepositoryConfiguration } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 import NamespaceConfusionProtectionTile from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/NamespaceConfusionProtectionTile';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
+import ProxyRepositoryConfigurationTile from 'MainRoot/firewall/iqProxy/ProxyRepositoryConfigurationTile';
 import RepositorySummaryPills from './RepositorySummaryPills';
 
 export default function RepositorySummaryView() {
@@ -34,7 +43,12 @@ export default function RepositorySummaryView() {
   const loadSelectedOwnerError = useSelector(selectLoadSelectedOwnerError);
   const repositoryId = useSelector(selectEntityId);
   const repository = useSelector(selectSelectedOwner);
+  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+  const hasViewIqPermission = useSelector(selectHasViewIqPermission);
+  const canViewOrEditIq = hasViewIqPermission || hasEditIqPermission;
+  const isProxyConfigEligible = useSelector(selectShowRepositoryConfiguration);
   const isHostedRepository = repository.repositoryType === 'hosted';
+  const showProxyRepositoryTile = canViewOrEditIq && isProxyConfigEligible;
 
   const loadOwnerSummary = () => dispatch(actions.loadOwnerSummary());
 
@@ -69,6 +83,20 @@ export default function RepositorySummaryView() {
           id="repositories-summary-sections"
         >
           <div id="scrollable-content">
+            {showProxyRepositoryTile && (
+              <NxTile id="proxy-repository-pill-configuration" data-testid="proxy-repository-tile">
+                <NxTile.Header>
+                  <NxTile.Headings>
+                    <NxTile.HeaderTitle>
+                      <NxH2>Proxy Repository</NxH2>
+                    </NxTile.HeaderTitle>
+                  </NxTile.Headings>
+                </NxTile.Header>
+                <NxTile.Content>
+                  <ProxyRepositoryConfigurationTile canEdit={hasEditIqPermission} />
+                </NxTile.Content>
+              </NxTile>
+            )}
             {!isHostedRepository && <PoliciesTile />}
             {isHostedRepository && (
               <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository_${repository.publicId}`} />

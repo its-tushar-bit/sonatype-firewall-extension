@@ -22,6 +22,7 @@ import { always, compose, propEq, reject, when, complement, isNil } from 'ramda'
 
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectShowRepositoryConfiguration } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import {
   selectPoliciesByOwner,
   selectPolicyTileLoading,
@@ -54,6 +55,7 @@ export default function PoliciesTile() {
   const loadError = useSelector(selectPolicyTileLoadError);
   const entityId = useSelector(selectEntityId);
   const collapsibleSorting = useSelector(selectPolicyTileSortingCollapsible);
+  const isProxyUnderVirtualManager = useSelector(selectShowRepositoryConfiguration);
 
   const doLoad = () => dispatch(actions.loadPolicyTile());
 
@@ -81,11 +83,26 @@ export default function PoliciesTile() {
           </NxTile.Headings>
           <NxTile.HeaderActions>
             {isSbomManager ? null : (
-              <NxTooltip title={!hasCustomPolicies ? 'Enterprise Feature' : ''}>
-                <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
-                  <NxFontAwesomeIcon icon={!hasCustomPolicies ? faLock : faPlus} />
-                  <span>{!hasCustomPolicies ? 'Preview Add a Policy' : 'Add a Policy'}</span>
-                </NxButton>
+              <NxTooltip
+                title={
+                  isProxyUnderVirtualManager
+                    ? 'Policies for a proxy repository are inherited from its Virtual Repository Manager and cannot be edited here.'
+                    : !hasCustomPolicies
+                    ? 'Enterprise Feature'
+                    : ''
+                }
+              >
+                <span>
+                  <NxButton
+                    variant="tertiary"
+                    id="add-policy-button"
+                    onClick={goToCreatePolicy}
+                    disabled={isProxyUnderVirtualManager}
+                  >
+                    <NxFontAwesomeIcon icon={!hasCustomPolicies ? faLock : faPlus} />
+                    <span>{!hasCustomPolicies ? 'Preview Add a Policy' : 'Add a Policy'}</span>
+                  </NxButton>
+                </span>
               </NxTooltip>
             )}
           </NxTile.HeaderActions>
@@ -103,6 +120,7 @@ export default function PoliciesTile() {
                   isFirewallSupported={isFirewallSupported}
                   isEnforcementSupported={isEnforcementSupported}
                   collapsibleSorting={collapsibleSorting}
+                  isNavigationDisabled={isProxyUnderVirtualManager}
                 />
               </NxTableContainer>
             )}

@@ -4,21 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import NavPills from 'MainRoot/navPills/NavPills';
-
-const proxyNavList = [
-  {
-    label: 'Policies',
-    target: 'owner-pill-policy',
-    isDisplayed: true,
-  },
-  {
-    label: 'Access',
-    target: 'access-tile-pill-access',
-    isDisplayed: true,
-  },
-];
+import { selectShowRepositoryConfiguration } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 const hostedNavList = [
   {
@@ -34,6 +23,29 @@ const hostedNavList = [
 ];
 
 export default function RepositorySummaryPills({ isHosted = false }) {
+  const showRepositoryConfiguration = useSelector(selectShowRepositoryConfiguration);
+
+  const proxyNavList = useMemo(
+    () => [
+      {
+        label: 'Proxy Repository',
+        target: 'proxy-repository-pill-configuration',
+        isDisplayed: showRepositoryConfiguration,
+      },
+      {
+        label: 'Policies',
+        target: 'owner-pill-policy',
+        isDisplayed: true,
+      },
+      {
+        label: 'Access',
+        target: 'access-tile-pill-access',
+        isDisplayed: true,
+      },
+    ],
+    [showRepositoryConfiguration]
+  );
+
   const navList = isHosted ? hostedNavList : proxyNavList;
   return <NavPills list={navList} root="#repositories-summary-sections" />;
 }

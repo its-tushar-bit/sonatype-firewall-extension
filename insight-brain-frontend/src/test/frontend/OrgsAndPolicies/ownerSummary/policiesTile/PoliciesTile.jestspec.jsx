@@ -759,7 +759,7 @@ describe('PoliciesTile', () => {
             productFeatures: {
               firewall: firewallSupported,
               enforcement: enforcementSupported,
-            'custom-policies': true,
+              'custom-policies': true,
             },
           },
           orgsAndPolicies: {
@@ -836,7 +836,7 @@ describe('PoliciesTile', () => {
             productFeatures: {
               firewall: firewallSupported,
               enforcement: enforcementSupported,
-            'custom-policies': true,
+              'custom-policies': true,
             },
           },
           orgsAndPolicies: {

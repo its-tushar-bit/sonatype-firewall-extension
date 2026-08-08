@@ -154,6 +154,33 @@ export const selectIsVirtualRepositoryManager = createSelector(
   (ownersMap, selectedOwnerId) => ownersMap?.[selectedOwnerId]?.managerType === 'virtual'
 );
 
+/**
+ * True when the currently-selected owner is a non-hosted repository whose ancestor manager
+ * is a Virtual Repository Manager. Used to gate the "Proxy Repository" pill/tile on the
+ * repository summary page.
+ */
+export const selectShowRepositoryConfiguration = createSelector(
+  selectOwnersMap,
+  selectSelectedOwnerId,
+  (ownersMap, selectedOwnerId) => {
+    if (!ownersMap || !selectedOwnerId) return false;
+    const repo = ownersMap[selectedOwnerId];
+    if (!repo || repo.repositoryType === 'hosted') return false;
+    const visited = new Set();
+    let cursor = repo.parentId;
+    while (cursor && !visited.has(cursor)) {
+      visited.add(cursor);
+      const node = ownersMap[cursor];
+      if (!node) return false;
+      if (node.managerType) {
+        return node.managerType === 'virtual';
+      }
+      cursor = node.parentId;
+    }
+    return false;
+  }
+);
+
 export const selectIsOrganizationTopOfHierarchyForUser = createSelector(
   selectOwnersMap,
   selectDisplayedOrganization,

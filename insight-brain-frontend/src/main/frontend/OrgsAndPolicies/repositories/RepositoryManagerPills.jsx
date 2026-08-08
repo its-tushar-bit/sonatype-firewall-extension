@@ -7,18 +7,16 @@ import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import NavPills from 'MainRoot/navPills/NavPills';
 import { selectIsVirtualRepositoryManager } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
-import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function RepositoryManagerPills() {
   const isVirtualRepositoryManager = useSelector(selectIsVirtualRepositoryManager);
-  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isFirewall = useSelector(selectIsFirewall);
 
   const navList = useMemo(
     () => [
       {
-        label: 'Configuration',
+        label: isVirtualRepositoryManager ? 'Proxy Repositories' : 'Configuration',
         target: 'repositories-pill-configuration',
         isDisplayed: true,
       },
@@ -42,13 +40,8 @@ export default function RepositoryManagerPills() {
         target: 'access-tile-pill-access',
         isDisplayed: true,
       },
-      {
-        label: 'IQ Proxy',
-        target: 'iq-proxy-repo-pill-configuration',
-        isDisplayed: isVirtualRepositoryManager && hasEditIqPermission,
-      },
     ],
-    [isFirewall, isVirtualRepositoryManager, hasEditIqPermission]
+    [isFirewall, isVirtualRepositoryManager]
   );
 
   return <NavPills list={navList} root="#repositories-summary-sections" />;

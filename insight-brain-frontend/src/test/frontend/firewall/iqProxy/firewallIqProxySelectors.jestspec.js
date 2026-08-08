@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  selectCreateProxyRepositoryError,
+  selectCreatingProxyRepository,
   selectFirewallIqProxy,
-  selectSaving,
   selectSaveError,
+  selectSaving,
 } from 'MainRoot/firewall/iqProxy/firewallIqProxySelectors';
 
 describe('firewallIqProxySelectors', () => {
@@ -43,6 +45,23 @@ describe('firewallIqProxySelectors', () => {
       expect(selectSaveError({ firewallIqProxy: { ...mockState.firewallIqProxy, saveError: errorMsg } })).toBe(
         errorMsg
       );
+    });
+  });
+
+  describe('proxy-repository create selectors (FIRE-665)', () => {
+    const proxyState = {
+      firewallIqProxy: {
+        creatingProxyRepository: true,
+        createProxyRepositoryError: 'create-err',
+      },
+    };
+
+    it('selectCreatingProxyRepository returns creating flag', () => {
+      expect(selectCreatingProxyRepository(proxyState)).toBe(true);
+    });
+
+    it('selectCreateProxyRepositoryError returns error', () => {
+      expect(selectCreateProxyRepositoryError(proxyState)).toBe('create-err');
     });
   });
 });

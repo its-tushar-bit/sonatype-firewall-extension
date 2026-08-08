@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import {
   NxStatefulForm,
@@ -24,6 +24,9 @@ import {
   NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { faCopy, faPen, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
+import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import AddProxyRepositoryModal from 'MainRoot/firewall/iqProxy/AddProxyRepositoryModal';
+import { isPccsEligible } from 'MainRoot/firewall/iqProxy/proxyRepositoryFormats';
 import { actions, VIEW_TYPES } from './repositoriesConfigurationSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -49,7 +52,11 @@ import {
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsRepositoryManager, selectPrevStateIsRepositorySection } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsRepositoryManager,
+  selectIsVirtualRepositoryContainer,
+  selectPrevStateIsRepositorySection,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink = false }) => {
   const dispatch = useDispatch();
@@ -90,6 +97,17 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const owner = useSelector(selectSelectedOwner);
   const prevStateIsRepositorySection = useSelector(selectPrevStateIsRepositorySection);
+  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+
+  const [isAddProxyModalOpen, setIsAddProxyModalOpen] = useState(false);
+
+  const isVirtualRepositoryContainerView = useSelector(selectIsVirtualRepositoryContainer);
+  // True when viewing a single Virtual Repository Manager's detail page.
+  const isVirtualRepositoryManagerView = isRepositoryManager && owner?.managerType === 'virtual';
+  // Applies whenever the tile is presenting proxy repositories owned by a Virtual Repository
+  // Manager — either a single VRM's detail page or the top-level Virtual Repository Managers
+  // container view (which lists every VRM's proxy repos).
+  const isProxyRepositoriesView = isVirtualRepositoryManagerView || isVirtualRepositoryContainerView;
 
   const uiRouterState = useRouterState();
 
@@ -166,6 +184,13 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
       dispatch(actions.resetViewFilters(currentViewTypeRef.current));
     }
   }, [prevStateIsRepositorySection]);
+
+  const onCloseAddProxyModal = (created) => {
+    setIsAddProxyModalOpen(false);
+    if (created) {
+      loadRepositoriesByManagerId();
+    }
+  };
 
   const deleteModal = (
     <NxModal
@@ -298,6 +323,15 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
               <div className="nx-truncate-ellipsis">{getEnablement(repositoryData)}</div>
             </NxOverflowTooltip>
           </NxTable.Cell>
+          {isProxyRepositoriesView && (
+            <NxTable.Cell>
+              <span
+                className={`iq-repositories-configuration-table__pccs-badge ${getPccsBadge(repositoryData).className}`}
+              >
+                {getPccsBadge(repositoryData).label}
+              </span>
+            </NxTable.Cell>
+          )}
           <NxTable.Cell>
             <div className="nx-btn-bar">
               <NxButton
@@ -404,15 +438,39 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
     );
   };
 
+  const tileTitle = isProxyRepositoriesView ? 'Proxy Repositories' : 'Configuration';
+
   return (
     <NxTile id="repositories-pill-configuration" data-testid="repositories_configuration">
       <NxTile.Header>
-        <NxTile.HeaderTitle>
-          <NxH2>Configuration</NxH2>
-        </NxTile.HeaderTitle>
+        <NxTile.Headings>
+          <NxTile.HeaderTitle>
+            <NxH2>{tileTitle}</NxH2>
+          </NxTile.HeaderTitle>
+        </NxTile.Headings>
+        {isVirtualRepositoryManagerView && hasEditIqPermission && (
+          <NxTile.HeaderActions>
+            <NxButton
+              variant="tertiary"
+              type="button"
+              onClick={() => setIsAddProxyModalOpen(true)}
+              data-testid="add-proxy-repository-button"
+            >
+              + Add Proxy Repository
+            </NxButton>
+          </NxTile.HeaderActions>
+        )}
       </NxTile.Header>
       <NxTile.Content>
-        <NxTable id="iq-repositories-configuration-table">
+        {isVirtualRepositoryManagerView && (
+          <NxP className="iq-repositories-configuration-table__policies-caption">
+            Policies applied to this Virtual Repository Manager govern all proxy repositories below.
+          </NxP>
+        )}
+        <NxTable
+          id="iq-repositories-configuration-table"
+          className={isProxyRepositoriesView ? 'iq-repositories-configuration-table--with-pccs' : undefined}
+        >
           <NxTable.Head>
             <NxTable.Row>
               <NxTable.Cell
@@ -450,6 +508,13 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
                   <span className="nx-truncate-ellipsis">Enablement</span>
                 </NxOverflowTooltip>
               </NxTable.Cell>
+              {isProxyRepositoriesView && (
+                <NxTable.Cell id="repository-pccs-column-header">
+                  <NxOverflowTooltip>
+                    <span className="nx-truncate-ellipsis">PCCS</span>
+                  </NxOverflowTooltip>
+                </NxTable.Cell>
+              )}
               <NxTable.Cell />
               <NxTable.Cell />
             </NxTable.Row>
@@ -478,6 +543,7 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
               <NxTable.Cell />
               <NxTable.Cell />
               <NxTable.Cell />
+              {isProxyRepositoriesView && <NxTable.Cell />}
             </NxTable.Row>
           </NxTable.Head>
           {isRepositoryManager
@@ -487,6 +553,7 @@ const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink
         {showDeleteModal && deleteModal}
         {showEditRepositoryManagerNameModal && editRepositoryManagerNameModal}
       </NxTile.Content>
+      {isAddProxyModalOpen && <AddProxyRepositoryModal managerId={owner?.id} onClose={onCloseAddProxyModal} />}
     </NxTile>
   );
 };
@@ -495,5 +562,15 @@ RepositoriesConfigurationTile.propTypes = {
   virtualOnly: PropTypes.bool,
   showHostedRepoLink: PropTypes.bool,
 };
+
+function getPccsBadge(repository) {
+  if (!isPccsEligible(repository?.format)) {
+    return { label: 'N/A', className: 'iq-repositories-configuration-table__pccs-badge--na' };
+  }
+  const pccsEnabled = repository?.policyCompliantComponentSelectionEnabled ?? repository?.pccsEnabled;
+  return pccsEnabled
+    ? { label: 'On', className: 'iq-repositories-configuration-table__pccs-badge--on' }
+    : { label: 'Off', className: 'iq-repositories-configuration-table__pccs-badge--off' };
+}
 
 export default RepositoriesConfigurationTile;

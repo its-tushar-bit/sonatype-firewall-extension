@@ -6,15 +6,16 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import NavPills from 'MainRoot/navPills/NavPills';
-import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsFirewall, selectIsVirtualRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function RepositoriesPills() {
   const isFirewall = useSelector(selectIsFirewall);
+  const isVirtualRepositoryContainer = useSelector(selectIsVirtualRepositoryContainer);
 
   const navList = useMemo(
     () => [
       {
-        label: 'Configuration',
+        label: isVirtualRepositoryContainer ? 'Proxy Repositories' : 'Configuration',
         target: 'repositories-pill-configuration',
         isDisplayed: true,
       },
@@ -39,7 +40,7 @@ export default function RepositoriesPills() {
         isDisplayed: true,
       },
     ],
-    [isFirewall]
+    [isFirewall, isVirtualRepositoryContainer]
   );
 
   return <NavPills list={navList} root="#repositories-summary-sections" />;

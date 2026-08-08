@@ -22,3 +22,13 @@ export const selectVirtualRepositoryManagersLoadError = createSelector(
   selectFirewallIqProxy,
   prop('virtualRepositoryManagersLoadError')
 );
+export const selectCreatingProxyRepository = createSelector(selectFirewallIqProxy, prop('creatingProxyRepository'));
+export const selectCreateProxyRepositoryError = createSelector(
+  selectFirewallIqProxy,
+  prop('createProxyRepositoryError')
+);
+export const selectUpdatingProxyRepository = createSelector(selectFirewallIqProxy, prop('updatingProxyRepository'));
+export const selectUpdateProxyRepositoryError = createSelector(
+  selectFirewallIqProxy,
+  prop('updateProxyRepositoryError')
+);

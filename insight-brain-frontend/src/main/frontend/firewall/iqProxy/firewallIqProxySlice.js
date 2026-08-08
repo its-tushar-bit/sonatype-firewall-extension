@@ -7,7 +7,11 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { always } from 'ramda';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
-import { getAddRepositoryUrl, getVirtualRepositoryManagersUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getAddRepositoryUrl,
+  getVirtualProxyRepositoryUrl,
+  getVirtualRepositoryManagersUrl,
+} from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'firewallIqProxy';
@@ -21,6 +25,10 @@ export const initialState = {
   virtualRepositoryManagers: [],
   loadingVirtualRepositoryManagers: false,
   virtualRepositoryManagersLoadError: null,
+  creatingProxyRepository: false,
+  createProxyRepositoryError: null,
+  updatingProxyRepository: false,
+  updateProxyRepositoryError: null,
 };
 
 const saveRepositoryRequested = (state) => {
@@ -77,6 +85,44 @@ const fetchVirtualRepositoryManagersFailed = (state, { payload }) => {
     Messages.getHttpErrorMessage(payload) || 'An error occurred while loading virtual repository managers.';
 };
 
+const createProxyRepositoryRequested = (state) => {
+  state.creatingProxyRepository = true;
+  state.createProxyRepositoryError = null;
+};
+
+const createProxyRepositoryFulfilled = (state) => {
+  state.creatingProxyRepository = false;
+};
+
+const createProxyRepositoryFailed = (state, { payload, meta }) => {
+  state.creatingProxyRepository = false;
+  const status = payload?.response?.status;
+  const submittedName = meta?.arg?.dto?.publicId;
+  const backendMessage = Messages.getHttpErrorMessage(payload);
+  const isDuplicateName =
+    status === 409 || (typeof backendMessage === 'string' && /already exists/i.test(backendMessage));
+  if (isDuplicateName && submittedName) {
+    state.createProxyRepositoryError = `A proxy repository named '${submittedName}' already exists in this Virtual Repository Manager.`;
+    return;
+  }
+  state.createProxyRepositoryError = backendMessage || 'An error occurred while creating the proxy repository.';
+};
+
+const updateProxyRepositoryRequested = (state) => {
+  state.updatingProxyRepository = true;
+  state.updateProxyRepositoryError = null;
+};
+
+const updateProxyRepositoryFulfilled = (state) => {
+  state.updatingProxyRepository = false;
+};
+
+const updateProxyRepositoryFailed = (state, { payload }) => {
+  state.updatingProxyRepository = false;
+  state.updateProxyRepositoryError =
+    Messages.getHttpErrorMessage(payload) || 'An error occurred while updating the proxy repository.';
+};
+
 export const saveRepository = createAsyncThunk(
   `${REDUCER_NAME}/saveRepository`,
   ({ repositoryManagerId, name, repoFormat, upstreamUrl }, { rejectWithValue }) =>
@@ -104,6 +150,24 @@ export const fetchVirtualRepositoryManagers = createAsyncThunk(
       .catch(rejectWithValue)
 );
 
+export const createProxyRepository = createAsyncThunk(
+  `${REDUCER_NAME}/createProxyRepository`,
+  ({ managerId, dto }, { rejectWithValue }) =>
+    axios
+      .post(getAddRepositoryUrl(managerId), dto)
+      .then(({ data }) => data)
+      .catch(rejectWithValue)
+);
+
+export const updateProxyRepository = createAsyncThunk(
+  `${REDUCER_NAME}/updateProxyRepository`,
+  ({ managerId, repositoryId, dto }, { rejectWithValue }) =>
+    axios
+      .put(getVirtualProxyRepositoryUrl(managerId, repositoryId), dto)
+      .then(({ data }) => data)
+      .catch(rejectWithValue)
+);
+
 const firewallIqProxySlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -111,6 +175,12 @@ const firewallIqProxySlice = createSlice({
     reset: always(initialState),
     clearCreateManagerError: (state) => {
       state.createManagerError = null;
+    },
+    clearCreateProxyRepositoryError: (state) => {
+      state.createProxyRepositoryError = null;
+    },
+    clearUpdateProxyRepositoryError: (state) => {
+      state.updateProxyRepositoryError = null;
     },
   },
   extraReducers: {
@@ -123,6 +193,12 @@ const firewallIqProxySlice = createSlice({
     [fetchVirtualRepositoryManagers.pending]: fetchVirtualRepositoryManagersRequested,
     [fetchVirtualRepositoryManagers.fulfilled]: fetchVirtualRepositoryManagersFulfilled,
     [fetchVirtualRepositoryManagers.rejected]: fetchVirtualRepositoryManagersFailed,
+    [createProxyRepository.pending]: createProxyRepositoryRequested,
+    [createProxyRepository.fulfilled]: createProxyRepositoryFulfilled,
+    [createProxyRepository.rejected]: createProxyRepositoryFailed,
+    [updateProxyRepository.pending]: updateProxyRepositoryRequested,
+    [updateProxyRepository.fulfilled]: updateProxyRepositoryFulfilled,
+    [updateProxyRepository.rejected]: updateProxyRepositoryFailed,
   },
 });
 
@@ -131,6 +207,8 @@ export const actions = {
   saveRepository,
   createVirtualRepositoryManager,
   fetchVirtualRepositoryManagers,
+  createProxyRepository,
+  updateProxyRepository,
 };
 
 export default firewallIqProxySlice.reducer;

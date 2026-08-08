@@ -1884,6 +1884,9 @@ export const getVirtualRepositoryManagersUrl = () => `/api/v2/firewall/virtualMa
 export const getAddRepositoryUrl = (repositoryManagerId) =>
   uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}/repositories`;
 
+export const getVirtualProxyRepositoryUrl = (repositoryManagerId, repositoryId) =>
+  uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}/repositories/${repositoryId}`;
+
 export const getRepositoryContainer = () => uriTemplate`/api/v2/firewall/repositoryContainer`;
 
 export const getConfigureRepositoriesUrl = (repositoryManagerId) =>

@@ -4,10 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter, render, screen, act } from 'TestRoot/SpecUtil';
 import * as repositoriesSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import * as ownerSideNavSelectors from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
-import { actions as repositoriesActions, VIEW_TYPES } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
+import * as ownerSummarySelectors from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import {
+  actions as repositoriesActions,
+  VIEW_TYPES,
+} from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesConfigurationTile';
 import { getRepositoriesUrl, getRepositoryInfoUrl, getRepositoryListUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent, within } from '@testing-library/react';
@@ -33,7 +38,7 @@ describe('RepositoriesConfigurationTile', () => {
       oldestEvalTimestamp: null,
       managerInstanceId: 'managerInstanceIdA',
       managerName: 'managerNameA',
-      proxyUrl: 'http://localhost/api/v2/proxy/managerInstanceIdA/repositoryNameA',
+      proxyUrl: 'http://localhost/api/v2/firewall/enterprise/managerInstanceIdA/repositoryNameA/maven',
       repository: {
         id: 'repositoryA',
         repositoryManagerId: 'repositoryManagerIdA',
@@ -47,7 +52,7 @@ describe('RepositoriesConfigurationTile', () => {
     {
       oldestEvalTimestamp: null,
       managerInstanceId: 'managerInstanceIdB',
-      proxyUrl: 'http://localhost/api/v2/proxy/managerInstanceIdB/repositoryNameB',
+      proxyUrl: 'http://localhost/api/v2/firewall/enterprise/managerInstanceIdB/repositoryNameB/npm',
       repository: {
         id: 'repositoryB',
         repositoryManagerId: 'repositoryManagerIdB',
@@ -66,7 +71,7 @@ describe('RepositoriesConfigurationTile', () => {
       oldestEvalTimestamp: null,
       managerInstanceId: 'managerInstanceId',
       managerName: 'managerName',
-      proxyUrl: 'http://localhost/api/v2/proxy/managerInstanceId/repositoryName',
+      proxyUrl: 'http://localhost/api/v2/firewall/enterprise/managerInstanceId/repositoryName/maven',
       repository: {
         id: 'repository',
         repositoryManagerId: 'repositoryManagerId',
@@ -379,7 +384,7 @@ describe('RepositoriesConfigurationTile', () => {
         fireEvent.click(copyButtons[0]);
 
         expect(clipboardWriteText).toHaveBeenCalledWith(
-          'http://localhost/api/v2/proxy/managerInstanceIdA/repositoryNameA'
+          'http://localhost/api/v2/firewall/enterprise/managerInstanceIdA/repositoryNameA/maven'
         );
       });
     });
@@ -558,40 +563,6 @@ describe('RepositoriesConfigurationTile', () => {
         expect(copyButtons.length).toBe(1);
         expect(copyButtons[0]).toHaveClass('iq-copy-url-button--hidden');
       });
-
-      it('copy button is visible for virtual manager with a proxy repo', () => {
-        jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
-          id: 'virtualManagerId',
-          instanceId: 'managerInstanceId',
-          name: 'Virtual Manager',
-          managerType: 'virtual',
-        });
-
-        renderComponent();
-        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
-
-        expect(copyButtons[0]).not.toHaveClass('iq-copy-url-button--hidden');
-      });
-
-      it('copies the correct proxy URL to the clipboard at manager level', () => {
-        const clipboardWriteText = jest.fn().mockResolvedValue(undefined);
-        Object.assign(navigator, { clipboard: { writeText: clipboardWriteText } });
-
-        jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
-          id: 'virtualManagerId',
-          instanceId: 'managerInstanceId',
-          name: 'Virtual Manager',
-          managerType: 'virtual',
-        });
-
-        renderComponent();
-        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
-        fireEvent.click(copyButtons[0]);
-
-        expect(clipboardWriteText).toHaveBeenCalledWith(
-          'http://localhost/api/v2/proxy/managerInstanceId/repositoryName'
-        );
-      });
     });
   });
 
@@ -713,9 +684,7 @@ describe('RepositoriesConfigurationTile', () => {
       it('resets CONTAINER filter on cold deep-link even when owner loads async (ownerJustLoaded does not suppress non-repo entry)', () => {
         // prevStateIsRepositorySection is false (arriving from outside repo section)
         // Owner is initially undefined (async load) — ownerJustLoaded must NOT suppress the reset
-        const ownerSpy = jest
-          .spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner')
-          .mockReturnValue(undefined);
+        const ownerSpy = jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue(undefined);
         const { store } = renderComponent();
         resetViewFiltersSpy.mockClear();
 
@@ -746,9 +715,7 @@ describe('RepositoriesConfigurationTile', () => {
 
       it('does not reset filter when owner resolves from undefined to defined (async data load, not navigation)', () => {
         jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(true);
-        const ownerSpy = jest
-          .spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner')
-          .mockReturnValue(undefined);
+        const ownerSpy = jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue(undefined);
         const { store } = renderComponent();
         resetViewFiltersSpy.mockClear();
 
@@ -774,14 +741,16 @@ describe('RepositoriesConfigurationTile', () => {
         ['firewall.containerRepositoryResults', 'docker container repo results'],
         ['hostedRepoComponents', 'hosted repo components'],
       ])('does not reset filter when returning from %s (%s)', (prevRouteName) => {
-        jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(
-          prevRouteName.includes('repository_container') ||
-            prevRouteName.includes('repository_manager') ||
-            prevRouteName.includes('management.view.repository') ||
-            prevRouteName.includes('firewall.repository-report') ||
-            prevRouteName.includes('firewall.containerRepositoryResults') ||
-            prevRouteName.includes('hostedRepoComponents')
-        );
+        jest
+          .spyOn(routerSelectors, 'selectPrevStateIsRepositorySection')
+          .mockReturnValue(
+            prevRouteName.includes('repository_container') ||
+              prevRouteName.includes('repository_manager') ||
+              prevRouteName.includes('management.view.repository') ||
+              prevRouteName.includes('firewall.repository-report') ||
+              prevRouteName.includes('firewall.containerRepositoryResults') ||
+              prevRouteName.includes('hostedRepoComponents')
+          );
         renderComponent();
         resetViewFiltersSpy.mockClear();
 
@@ -790,6 +759,102 @@ describe('RepositoriesConfigurationTile', () => {
 
         expect(resetViewFiltersSpy).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('when the selected owner is a virtual repository manager (FIRE-665)', () => {
+    const VRM_ID = 'vrm-1';
+
+    beforeEach(() => {
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectIncludesManagementView').mockReturnValue(false);
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+        id: VRM_ID,
+        name: 'my-vrm',
+        managerType: 'virtual',
+        type: 'repository_manager',
+      });
+    });
+
+    const renderVrmTile = ({ canEdit = true } = {}) => {
+      jest.spyOn(ownerSummarySelectors, 'selectHasEditIqPermission').mockReturnValue(canEdit);
+      return render(<RepositoriesConfigurationTile />);
+    };
+
+    it('renders the tile title as "Proxy Repositories" instead of "Configuration"', () => {
+      renderVrmTile();
+      expect(screen.getByRole('heading', { name: 'Proxy Repositories' })).toBeVisible();
+      expect(screen.queryByRole('heading', { name: 'Configuration' })).toBeNull();
+    });
+
+    it('renders the "+ Add Proxy Repository" header button when the user has edit permission', () => {
+      renderVrmTile({ canEdit: true });
+      expect(screen.getByRole('button', { name: '+ Add Proxy Repository' })).toBeVisible();
+    });
+
+    it('does not render the Add button when the user lacks edit permission', () => {
+      renderVrmTile({ canEdit: false });
+      expect(screen.queryByRole('button', { name: /Add Proxy Repository/i })).toBeNull();
+    });
+
+    it('opens the AddProxyRepositoryModal when the header Add button is clicked', async () => {
+      const user = userEvent.setup();
+      renderVrmTile({ canEdit: true });
+      await user.click(screen.getByRole('button', { name: '+ Add Proxy Repository' }));
+      expect(screen.getByRole('heading', { name: 'Add Proxy Repository' })).toBeVisible();
+    });
+
+    it('renders the "Policies applied to this VRM" caption above the table', () => {
+      renderVrmTile();
+      expect(
+        screen.getByText('Policies applied to this Virtual Repository Manager govern all proxy repositories below.')
+      ).toBeVisible();
+    });
+
+    it('renders the PCCS column header and applies the --with-pccs class to the table', () => {
+      const { container } = renderVrmTile();
+      expect(screen.getByText('PCCS')).toBeVisible();
+      const table = container.querySelector('#iq-repositories-configuration-table');
+      expect(table.classList.contains('iq-repositories-configuration-table--with-pccs')).toBe(true);
+    });
+  });
+
+  describe('when the current route is the Virtual Repository Managers container (FIRE-665)', () => {
+    beforeEach(() => {
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(false);
+      jest.spyOn(routerSelectors, 'selectIsVirtualRepositoryContainer').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectIncludesManagementView').mockReturnValue(false);
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+        id: 'virtual-container',
+        name: 'Virtual Repository Managers',
+        type: 'repository_container',
+      });
+    });
+
+    const renderContainerTile = () => render(<RepositoriesConfigurationTile virtualOnly />);
+
+    it('renders the tile title as "Proxy Repositories"', () => {
+      renderContainerTile();
+      expect(screen.getByRole('heading', { name: 'Proxy Repositories' })).toBeVisible();
+    });
+
+    it('renders the PCCS column header on the container listing', () => {
+      renderContainerTile();
+      expect(screen.getByText('PCCS')).toBeVisible();
+    });
+
+    it('does not render the info caption on the container listing', () => {
+      renderContainerTile();
+      expect(
+        screen.queryByText('Policies applied to this Virtual Repository Manager govern all proxy repositories below.')
+      ).toBeNull();
+    });
+
+    it('does not render the "+ Add Proxy Repository" button on the container listing', () => {
+      renderContainerTile();
+      expect(screen.queryByRole('button', { name: /Add Proxy Repository/i })).toBeNull();
     });
   });
 });

@@ -17,6 +17,28 @@
     min-content
     min-content;
 
+  &.iq-repositories-configuration-table--with-pccs {
+    // FIRE-665: adds the PCCS badge column between Enablement and the action icons.
+    grid-template-columns:
+      minmax(180px, 1.5fr)
+      minmax(48px, max-content)
+      minmax(48px, max-content)
+      minmax(48px, max-content)
+      minmax(48px, max-content)
+      min-content
+      min-content;
+
+    // Collapsible manager-name rows span 6 columns (Repository → PCCS); the last column keeps
+    // the row-level edit pen. Empty-state meta cells span all 7 columns.
+    .iq-collapsible-row__header {
+      grid-column: 1 / 7;
+    }
+
+    .nx-cell--meta-info {
+      grid-column: 1 / -1;
+    }
+  }
+
   tbody,
   thead,
   tr {
@@ -145,5 +167,37 @@
         height: auto;
       }
     }
+  }
+}
+
+
+// FIRE-665 — informational caption above the Proxy Repositories table
+.iq-repositories-configuration-table__policies-caption {
+  color: var(--nx-color-text-subsection);
+  font-style: italic;
+  margin-bottom: var(--nx-spacing-4x);
+}
+
+// FIRE-665 — PCCS badge in the Proxy Repositories view of the Configuration tile
+.iq-repositories-configuration-table__pccs-badge {
+  border-radius: 12px;
+  display: inline-block;
+  font-size: var(--nx-font-size-xs);
+  font-weight: 600;
+  padding: 2px 8px;
+
+  &--on {
+    background-color: var(--nx-swatch-green-90);
+    color: var(--nx-swatch-green-20);
+  }
+
+  &--off {
+    background-color: var(--nx-swatch-grey-90);
+    color: var(--nx-swatch-grey-20);
+  }
+
+  &--na {
+    background-color: var(--nx-swatch-grey-95);
+    color: var(--nx-swatch-grey-30);
   }
 }

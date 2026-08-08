@@ -40,7 +40,7 @@ describe('FirewallProxyConfigurationPage', () => {
     axiosMock.onPost(getAddRepositoryUrl(MANAGER_ID)).reply(201, {
       repositoryId: 'generated-repo-id',
       publicId: 'my-repo',
-      proxyUrl: `http://localhost/api/v2/proxy/${MANAGER_INSTANCE_ID}/my-repo`,
+      proxyUrl: `http://localhost/api/v2/firewall/enterprise/${MANAGER_INSTANCE_ID}/my-repo/npm`,
     });
   });
 
@@ -174,7 +174,7 @@ describe('FirewallProxyConfigurationPage', () => {
         expect(screen.getByText('Repository Created')).toBeInTheDocument();
       });
 
-      expect(screen.getByText(`http://localhost/api/v2/proxy/${MANAGER_INSTANCE_ID}/my-repo`)).toBeInTheDocument();
+      expect(screen.getByText(`http://localhost/api/v2/firewall/enterprise/${MANAGER_INSTANCE_ID}/my-repo/npm`)).toBeInTheDocument();
     });
 
     it('clears form fields after successful save', async () => {
@@ -259,7 +259,7 @@ describe('FirewallProxyConfigurationPage', () => {
       await user.click(screen.getByRole('button', { name: 'Copy URL' }));
 
       await waitFor(() => {
-        expect(writeText).toHaveBeenCalledWith(`http://localhost/api/v2/proxy/${MANAGER_INSTANCE_ID}/my-repo`);
+        expect(writeText).toHaveBeenCalledWith(`http://localhost/api/v2/firewall/enterprise/${MANAGER_INSTANCE_ID}/my-repo/npm`);
         expect(screen.getByRole('button', { name: 'Copied!' })).toBeInTheDocument();
       });
     });

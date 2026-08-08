@@ -15,8 +15,10 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO.ComponentOrganizationUsageRow;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO.ComponentOwnerUsageRow;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO.ComponentReportUsageRow;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO.PagedOrganizationsByHash;
 import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO.PagedOwnersByHash;
+import com.sonatype.insight.brain.dataaccess.OwnerComponentDAO.PagedReportsByHashAndOwner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -37,6 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
@@ -94,6 +97,136 @@ public class ComponentUsageServiceTest
     assertThatThrownBy(() -> service.listOrganizations(new ComponentUsageRequestDTO()))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("componentHash");
+  }
+
+  @Test
+  public void listReports_rejectsBlankApplicationId() {
+    ComponentUsageReportsRequestDTO request = new ComponentUsageReportsRequestDTO();
+    request.componentHash = "hash1";
+    request.applicationId = " ";
+
+    assertThatThrownBy(() -> service.listReports(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("applicationId");
+  }
+
+  @Test
+  public void listReports_rejectsHashLongerThanOwnerComponentColumn() {
+    ComponentUsageReportsRequestDTO request = reportsRequest(
+        "a".repeat(ComponentUsageService.MAX_COMPONENT_HASH_LENGTH + 1), "app-1");
+
+    assertThatThrownBy(() -> service.listReports(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("maximum length of " + ComponentUsageService.MAX_COMPONENT_HASH_LENGTH);
+  }
+
+  @Test
+  public void listReports_rejectsOversizedPage() {
+    ComponentUsageReportsRequestDTO request = reportsRequest("hash1", "app-1");
+    request.pageSize = 101;
+
+    assertThatThrownBy(() -> service.listReports(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("page size");
+  }
+
+  @Test
+  public void listReports_failClosedWhenAppIsNotReadable() {
+    when(readableContextAuthzCache.resolveReadableContexts(principal)).thenReturn(Optional.of(Map.of(
+        "app-2", OwnerType.APPLICATION)));
+
+    ComponentUsageReportsRequestDTO request = reportsRequest("hash1", "app-1");
+
+    ComponentUsageReportsResponseDTO response = service.listReports(request);
+
+    assertThat(response.total).isZero();
+    assertThat(response.reports).isEmpty();
+    assertThat(response.page).isZero();
+    assertThat(response.pageSize).isEqualTo(ComponentUsageService.DEFAULT_PAGE_SIZE);
+    assertThat(response.hasNextPage).isFalse();
+    assertThat(response.applicationId).isEqualTo("app-1");
+    assertThat(response.applicationPublicId).isNull();
+    verify(ownerComponentDAO, never()).findReportsByHashAndOwnerPaged(any(), any(), anyInt(), anyInt());
+    verify(applicationService, never()).getAppsByIds(any(), any(), any());
+  }
+
+  @Test
+  public void listReports_unrestricted_usesApplicationIdWithoutOwnerScopeCheck() {
+    when(readableContextAuthzCache.resolveReadableContexts(principal)).thenReturn(Optional.empty());
+    when(ownerComponentDAO.findReportsByHashAndOwnerPaged(eq("hash1"), eq("app-1"), eq(0), eq(25)))
+        .thenReturn(new PagedReportsByHashAndOwner(1L, List.of(
+            new ComponentReportUsageRow("report-1", "build", new Date(1_700_000_000_000L)))));
+    when(applicationService.getAppsByIds(isNull(), eq(Set.of("app-1")), isNull()))
+        .thenReturn(List.of(application("app-1", "org-1")));
+
+    ComponentUsageReportsResponseDTO response = service.listReports(reportsRequest("hash1", "app-1"));
+
+    assertThat(response.total).isEqualTo(1L);
+    assertThat(response.reports).hasSize(1);
+    assertThat(response.applicationId).isEqualTo("app-1");
+    assertThat(response.applicationPublicId).isEqualTo("public-1");
+    verify(ownerComponentDAO).findReportsByHashAndOwnerPaged("hash1", "app-1", 0, 25);
+  }
+
+  @Test
+  public void listReports_returnsPagedRows_whenAppReadable() {
+    when(readableContextAuthzCache.resolveReadableContexts(principal)).thenReturn(Optional.of(Map.of(
+        "app-1", OwnerType.APPLICATION)));
+    when(ownerComponentDAO.findReportsByHashAndOwnerPaged(eq("hash1"), eq("app-1"), eq(25), eq(25)))
+        .thenReturn(new PagedReportsByHashAndOwner(40L, List.of(
+            new ComponentReportUsageRow("report-1", "build", new Date(1_700_000_000_000L)))));
+    when(applicationService.getAppsByIds(isNull(), eq(Set.of("app-1")), isNull()))
+        .thenReturn(List.of(application("app-1", "org-1")));
+
+    ComponentUsageReportsRequestDTO request = reportsRequest("hash1", "app-1");
+    request.page = 1;
+
+    ComponentUsageReportsResponseDTO response = service.listReports(request);
+
+    assertThat(response.total).isEqualTo(40L);
+    assertThat(response.page).isEqualTo(1);
+    assertThat(response.pageSize).isEqualTo(ComponentUsageService.DEFAULT_PAGE_SIZE);
+    // offset 25 + 1 row < 40 → another page remains
+    assertThat(response.hasNextPage).isTrue();
+    assertThat(response.applicationPublicId).isEqualTo("public-1");
+    assertThat(response.reports).hasSize(1);
+    assertThat(response.reports.get(0).reportId).isEqualTo("report-1");
+    assertThat(response.reports.get(0).stageTypeId).isEqualTo("build");
+    assertThat(response.reports.get(0).evaluationTime).isEqualTo(1_700_000_000_000L);
+    verify(applicationService, never()).getApplications();
+  }
+
+  @Test
+  public void listReports_hasNextPage_whenPartialFirstPage() {
+    when(readableContextAuthzCache.resolveReadableContexts(principal)).thenReturn(Optional.of(Map.of(
+        "app-1", OwnerType.APPLICATION)));
+    when(ownerComponentDAO.findReportsByHashAndOwnerPaged(eq("hash1"), eq("app-1"), eq(0), eq(1)))
+        .thenReturn(new PagedReportsByHashAndOwner(3L, List.of(
+            new ComponentReportUsageRow("report-1", "build", new Date(1_700_000_000_000L)))));
+    when(applicationService.getAppsByIds(isNull(), eq(Set.of("app-1")), isNull()))
+        .thenReturn(List.of(application("app-1", "org-1")));
+
+    ComponentUsageReportsRequestDTO request = reportsRequest("hash1", "app-1");
+    request.page = 0;
+    request.pageSize = 1;
+
+    ComponentUsageReportsResponseDTO response = service.listReports(request);
+
+    assertThat(response.total).isEqualTo(3L);
+    assertThat(response.page).isZero();
+    assertThat(response.pageSize).isEqualTo(1);
+    assertThat(response.hasNextPage).isTrue();
+    assertThat(response.reports).hasSize(1);
+  }
+
+  @Test
+  public void listReports_rejectsApplicationIdLongerThanColumn() {
+    ComponentUsageReportsRequestDTO request = reportsRequest(
+        "hash1", "a".repeat(ComponentUsageService.MAX_APPLICATION_ID_LENGTH + 1));
+
+    assertThatThrownBy(() -> service.listReports(request))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("maximum length of " + ComponentUsageService.MAX_APPLICATION_ID_LENGTH);
   }
 
   @Test
@@ -287,5 +420,12 @@ public class ComponentUsageServiceTest
     org.setId(id);
     org.setName(name);
     return org;
+  }
+
+  private static ComponentUsageReportsRequestDTO reportsRequest(final String hash, final String applicationId) {
+    ComponentUsageReportsRequestDTO request = new ComponentUsageReportsRequestDTO();
+    request.componentHash = hash;
+    request.applicationId = applicationId;
+    return request;
   }
 }

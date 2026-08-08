@@ -1189,4 +1189,54 @@ public class OwnerComponentDAOTest
     assertThat(scoped.rows()).extracting(OwnerComponentDAO.ComponentOrganizationUsageRow::organizationId)
         .containsExactly(organization.getId());
   }
+
+  @Test
+  public void findReportsByHashAndOwnerPaged_returnsLatestNonBlankReportsByStage() {
+    String hash = ("u4" + TemporaryEntity.uuid()).substring(0, 20);
+    String otherHash = ("u5" + TemporaryEntity.uuid()).substring(0, 20);
+
+    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
+    tempEntity.newApplicationComponent(application.getId(), ReleaseStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
+    tempEntity.newApplicationComponent(application.getId(), DevelopStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
+    tempEntity.newApplicationComponent(application.getId(), SourceStageType.ID, otherHash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "build-old", new Date(1_000L));
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "build-new", new Date(2_000L));
+    tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "release-new", new Date(3_000L));
+    tempEntity.newPolicyEvaluation(application.getId(), DevelopStageType.ID, " ", new Date(4_000L));
+    tempEntity.newPolicyEvaluation(application.getId(), SourceStageType.ID, "other-hash", new Date(5_000L));
+
+    OwnerComponentDAO.PagedReportsByHashAndOwner firstPage =
+        dao.findReportsByHashAndOwnerPaged(hash, application.getId(), 0, 1);
+    assertThat(firstPage.total()).isEqualTo(2L);
+    assertThat(firstPage.rows()).hasSize(1);
+    assertThat(firstPage.rows().get(0).reportId()).isEqualTo("release-new");
+    assertThat(firstPage.rows().get(0).stageTypeId()).isEqualTo(ReleaseStageType.ID);
+    assertThat(firstPage.rows().get(0).evaluationTime().getTime()).isEqualTo(3_000L);
+
+    OwnerComponentDAO.PagedReportsByHashAndOwner secondPage =
+        dao.findReportsByHashAndOwnerPaged(hash, application.getId(), 1, 1);
+    assertThat(secondPage.total()).isEqualTo(2L);
+    assertThat(secondPage.rows()).hasSize(1);
+    assertThat(secondPage.rows().get(0).reportId()).isEqualTo("build-new");
+    assertThat(secondPage.rows().get(0).stageTypeId()).isEqualTo(BuildStageType.ID);
+    assertThat(secondPage.rows().get(0).evaluationTime().getTime()).isEqualTo(2_000L);
+  }
+
+  @Test
+  public void findReportsByHashAndOwnerPaged_blankHashOrOwnerReturnsEmpty() {
+    OwnerComponentDAO.PagedReportsByHashAndOwner blankHash =
+        dao.findReportsByHashAndOwnerPaged(" ", application.getId(), 0, 25);
+    assertThat(blankHash.total()).isEqualTo(0L);
+    assertThat(blankHash.rows()).isEmpty();
+
+    OwnerComponentDAO.PagedReportsByHashAndOwner blankOwner =
+        dao.findReportsByHashAndOwnerPaged("abc123", " ", 0, 25);
+    assertThat(blankOwner.total()).isEqualTo(0L);
+    assertThat(blankOwner.rows()).isEmpty();
+  }
 }

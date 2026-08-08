@@ -38,6 +38,8 @@ public class ComponentUsageResource
 
   public static final String COMPONENTS_USAGE_ORGANIZATIONS_PATH = "components/usage/organizations";
 
+  public static final String COMPONENTS_USAGE_REPORTS_PATH = "components/usage/reports";
+
   private final ComponentUsageService service;
 
   @Inject
@@ -63,5 +65,15 @@ public class ComponentUsageResource
   @Audited(AuditEvent.VIEW_DASHBOARD_COMPONENT_DETAILS)
   public ComponentUsageOrganizationsResponseDTO listOrganizations(final ComponentUsageRequestDTO request) {
     return service.listOrganizations(request);
+  }
+
+  @POST
+  @Path(COMPONENTS_USAGE_REPORTS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @ExceptionMetered(name = "getComponentUsageReportsExceptionMeter")
+  @Audited(AuditEvent.VIEW_DASHBOARD_COMPONENT_DETAILS)
+  public ComponentUsageReportsResponseDTO listReports(final ComponentUsageReportsRequestDTO request) {
+    return service.listReports(request);
   }
 }

@@ -36,8 +36,10 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LastPolicyEvaluation.LAST_POLICY_EVALUATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerComponent.OWNER_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentObligation.COMPONENT_OBLIGATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyEvaluation.POLICY_EVALUATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolation.POLICY_VIOLATION;
 
 /**
@@ -615,6 +617,13 @@ public class OwnerComponentDAO
   }
 
   /**
+   * Latest policy evaluation report for an application stage that contains a component hash.
+   */
+  public record ComponentReportUsageRow(String reportId, String stageTypeId, Date evaluationTime)
+  {
+  }
+
+  /**
    * Count + page of distinct applications for a hash in one transaction (one RBAC temp table).
    * Inner-joins {@code application} so orphan {@code owner_component} rows never inflate total/pages.
    * <ul>
@@ -631,6 +640,13 @@ public class OwnerComponentDAO
    * Count + page of distinct organizations for a hash in one transaction (one RBAC temp table).
    */
   public record PagedOrganizationsByHash(long total, List<ComponentOrganizationUsageRow> rows)
+  {
+  }
+
+  /**
+   * Count + page of latest report rows for one application and component hash.
+   */
+  public record PagedReportsByHashAndOwner(long total, List<ComponentReportUsageRow> rows)
   {
   }
 
@@ -799,6 +815,61 @@ public class OwnerComponentDAO
                 r.get(lastSeen));
           });
       return new PagedOrganizationsByHash(total, rows);
+    }
+  }
+
+  /**
+   * Paged latest report ids per application stage for a component hash.
+   * Does not join {@code application}: the caller supplies a single owner id after RBAC validation,
+   * so this is a targeted application lookup rather than a bulk estate scan.
+   */
+  public PagedReportsByHashAndOwner findReportsByHashAndOwnerPaged(
+      final String hash,
+      final String ownerId,
+      final int offset,
+      final int limit)
+  {
+    if (StringUtils.isBlank(hash) || StringUtils.isBlank(ownerId) || limit < 1) {
+      return new PagedReportsByHashAndOwner(0L, List.of());
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      Condition where = OWNER_COMPONENT.HASH.eq(hash)
+          .and(OWNER_COMPONENT.OWNER_ID.eq(ownerId))
+          .and(POLICY_EVALUATION.SCAN_ID.isNotNull())
+          .and(DSL.trim(POLICY_EVALUATION.SCAN_ID).ne(""));
+
+      Long count = tx.dsl()
+          .select(DSL.countDistinct(OWNER_COMPONENT.STAGE_TYPE_ID))
+          .from(OWNER_COMPONENT)
+          .join(LAST_POLICY_EVALUATION)
+          .on(LAST_POLICY_EVALUATION.OWNER_ID.eq(OWNER_COMPONENT.OWNER_ID))
+          .and(LAST_POLICY_EVALUATION.STAGE_TYPE_ID.eq(OWNER_COMPONENT.STAGE_TYPE_ID))
+          .join(POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+          .where(where)
+          .fetchOne(0, Long.class);
+      long total = count == null ? 0L : count;
+
+      List<ComponentReportUsageRow> rows = tx.dsl()
+          .selectDistinct(
+              POLICY_EVALUATION.SCAN_ID,
+              OWNER_COMPONENT.STAGE_TYPE_ID,
+              POLICY_EVALUATION.TIME)
+          .from(OWNER_COMPONENT)
+          .join(LAST_POLICY_EVALUATION)
+          .on(LAST_POLICY_EVALUATION.OWNER_ID.eq(OWNER_COMPONENT.OWNER_ID))
+          .and(LAST_POLICY_EVALUATION.STAGE_TYPE_ID.eq(OWNER_COMPONENT.STAGE_TYPE_ID))
+          .join(POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+          .where(where)
+          .orderBy(POLICY_EVALUATION.TIME.desc().nullsLast(), OWNER_COMPONENT.STAGE_TYPE_ID.asc())
+          .limit(limit)
+          .offset(offset)
+          .fetch(r -> new ComponentReportUsageRow(
+              r.get(POLICY_EVALUATION.SCAN_ID),
+              r.get(OWNER_COMPONENT.STAGE_TYPE_ID),
+              r.get(POLICY_EVALUATION.TIME)));
+      return new PagedReportsByHashAndOwner(total, rows);
     }
   }
 

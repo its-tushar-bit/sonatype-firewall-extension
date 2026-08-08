@@ -178,6 +178,14 @@ export function getComponentUsageOrganizationsUrl() {
   return uriTemplate`/rest/dashboard/components/usage/organizations`;
 }
 
+/**
+ * Estate component report usage for the selected application (CLM-44658). POST
+ * `{ componentHash, applicationId, page, pageSize }`.
+ */
+export function getComponentUsageReportsUrl() {
+  return uriTemplate`/rest/dashboard/components/usage/reports`;
+}
+
 export function getNewestRisksExportUrl() {
   return uriTemplate`/rest/dashboard/export/newestRisks`;
 }

@@ -4,14 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  buildComponentUsageReportsRequest,
   buildComponentUsageRequest,
   COMPONENT_USAGE_PAGE_SIZE,
   fetchComponentUsageApplications,
   fetchComponentUsageOrganizations,
+  fetchComponentUsageReports,
 } from 'MainRoot/nosc/components/detail/estate/estateComponentUsageApi';
 import {
   getComponentUsageApplicationsUrl,
   getComponentUsageOrganizationsUrl,
+  getComponentUsageReportsUrl,
 } from 'MainRoot/util/CLMLocation';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
@@ -39,6 +42,16 @@ describe('estateComponentUsageApi', () => {
       pageSize: 25,
     });
     expect(buildComponentUsageRequest('abc', 1).pageSize).toBe(COMPONENT_USAGE_PAGE_SIZE);
+  });
+
+  it('builds a 0-based reports request scoped to the selected application', () => {
+    expect(buildComponentUsageReportsRequest('abc', 'app-1', 0, 25)).toEqual({
+      componentHash: 'abc',
+      applicationId: 'app-1',
+      page: 0,
+      pageSize: 25,
+    });
+    expect(buildComponentUsageReportsRequest('abc', 'app-1', 1).pageSize).toBe(COMPONENT_USAGE_PAGE_SIZE);
   });
 
   it('POSTs applications usage and normalizes the response', async () => {
@@ -84,5 +97,29 @@ describe('estateComponentUsageApi', () => {
     const result = await fetchComponentUsageOrganizations('deadbeef', 0);
     expect(result.organizations[0].organizationName).toBe('Engineering');
     expect(result.organizations[0].applicationCount).toBe(3);
+  });
+
+  it('POSTs reports usage only for the selected application and normalizes the response', async () => {
+    axiosMock.onPost(getComponentUsageReportsUrl()).reply(200, {
+      reports: [{ reportId: 'report-1', stageTypeId: 'build', evaluationTime: 1_700_000_000_000 }],
+      total: 1,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+
+    const result = await fetchComponentUsageReports('deadbeef', 'app-1', 0);
+    expect(result.reports).toHaveLength(1);
+    expect(result.reports[0].reportId).toBe('report-1');
+    expect(result.total).toBe(1);
+
+    const history = axiosMock.history.post;
+    expect(history).toHaveLength(1);
+    expect(JSON.parse(history[0].data)).toEqual({
+      componentHash: 'deadbeef',
+      applicationId: 'app-1',
+      page: 0,
+      pageSize: COMPONENT_USAGE_PAGE_SIZE,
+    });
   });
 });

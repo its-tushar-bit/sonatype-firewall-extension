@@ -7,7 +7,14 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { renderNexusOneEstateComponentDetail } from 'TestRoot/nosc/components/detail/estate/renderNexusOneEstateComponentDetail';
-import { getApiV2ComponentDetailsUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getApiV2ComponentDetailsUrl,
+  getApplicationReportDeepLinkUrl,
+  getComponentUsageApplicationsUrl,
+  getComponentUsageOrganizationsUrl,
+  getComponentUsageReportsUrl,
+  getViolationsListUrl,
+} from 'MainRoot/util/CLMLocation';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
 
 const COMPONENT_HASH = 'deadbeefcafebabe';
@@ -55,18 +62,14 @@ describe('EstateComponentDetail', () => {
 
     renderNexusOneEstateComponentDetail(COMPONENT_HASH);
 
-    expect(await screen.findByTestId('nosc-estate-component-header')).toHaveTextContent(
-      'log4j-core 2.14.1',
-    );
+    expect(await screen.findByTestId('nosc-estate-component-header')).toHaveTextContent('log4j-core 2.14.1');
 
     const tabList = screen.getByTestId('nosc-estate-component-tabs');
     expect(within(tabList).getByTestId('nosc-estate-component-tab-overview')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-legal')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-violations')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-applications')).toBeInTheDocument();
-    expect(
-      within(tabList).getByTestId('nosc-estate-component-tab-organizations'),
-    ).toBeInTheDocument();
+    expect(within(tabList).getByTestId('nosc-estate-component-tab-organizations')).toBeInTheDocument();
 
     expect(within(tabList).queryByText('Security Events')).not.toBeInTheDocument();
     expect(within(tabList).queryByText('Labels')).not.toBeInTheDocument();
@@ -79,20 +82,18 @@ describe('EstateComponentDetail', () => {
     renderNexusOneEstateComponentDetail(COMPONENT_HASH);
 
     expect(await screen.findByTestId('nosc-estate-component-overview')).toBeInTheDocument();
-    expect(screen.getByText(/Package URL:/)).toHaveTextContent(
-      'pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1',
-    );
+    expect(screen.getByText(/Package URL:/)).toHaveTextContent('pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1');
     expect(screen.getByTestId('nosc-estate-component-overview-violations-link')).toHaveAttribute(
       'href',
-      `#/components/${COMPONENT_HASH}/violations`,
+      `#/components/${COMPONENT_HASH}/violations`
     );
     expect(screen.getByTestId('nosc-estate-component-overview-applications-link')).toHaveAttribute(
       'href',
-      `#/components/${COMPONENT_HASH}/applications`,
+      `#/components/${COMPONENT_HASH}/applications`
     );
     expect(screen.getByTestId('nosc-estate-component-overview-organizations-link')).toHaveAttribute(
       'href',
-      `#/components/${COMPONENT_HASH}/organizations`,
+      `#/components/${COMPONENT_HASH}/organizations`
     );
   });
 
@@ -112,12 +113,12 @@ describe('EstateComponentDetail', () => {
 
     renderNexusOneEstateComponentDetail(COMPONENT_HASH);
 
-    expect(
-      await screen.findByTestId('nosc-estate-component-overview-security-overflow'),
-    ).toHaveTextContent('…and 2 more');
+    expect(await screen.findByTestId('nosc-estate-component-overview-security-overflow')).toHaveTextContent(
+      '…and 2 more'
+    );
     expect(screen.getByTestId('nosc-estate-component-overview-security-overflow-link')).toHaveAttribute(
       'href',
-      `#/components/${COMPONENT_HASH}/violations`,
+      `#/components/${COMPONENT_HASH}/violations`
     );
   });
 
@@ -135,10 +136,149 @@ describe('EstateComponentDetail', () => {
     await userEvent.click(screen.getByTestId('nosc-estate-component-header-retry'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('nosc-estate-component-header')).toHaveTextContent(
-        'log4j-core 2.14.1',
-      );
+      expect(screen.getByTestId('nosc-estate-component-header')).toHaveTextContent('log4j-core 2.14.1');
     });
+  });
+
+  it('keeps blast-radius counts and App to Report switcher available when HDS fails', async () => {
+    axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(500);
+    axiosMock.onPost(getComponentUsageApplicationsUrl()).reply((config) => {
+      const body = JSON.parse(config.data as string);
+      return [
+        200,
+        {
+          applications: [
+            {
+              applicationPublicId: 'missing-id',
+              applicationName: 'Missing ID',
+              organizationName: 'Engineering',
+            },
+            {
+              applicationId: 'app-1',
+              applicationPublicId: 'webgoat',
+              applicationName: 'WebGoat',
+              organizationName: 'Engineering',
+            },
+          ],
+          total: 3,
+          page: body.page,
+          pageSize: body.pageSize,
+          hasNextPage: false,
+        },
+      ];
+    });
+    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
+      organizations: [],
+      total: 3,
+      page: 0,
+      pageSize: 1,
+      hasNextPage: false,
+    });
+    axiosMock.onPost(getViolationsListUrl()).reply(200, {
+      violations: [],
+      total: 5,
+      page: 0,
+      pageSize: 1,
+      hasNextPage: false,
+    });
+    axiosMock.onPost(getComponentUsageReportsUrl()).reply(200, {
+      reports: [{ reportId: 'report-1', stageTypeId: 'build', evaluationTime: 1_700_000_000_000 }],
+      total: 1,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+
+    renderNexusOneEstateComponentDetail(COMPONENT_HASH);
+
+    expect(await screen.findByTestId('nosc-estate-component-header-error')).toBeInTheDocument();
+    expect(await screen.findByTestId('nosc-estate-component-blast-radius-applications')).toHaveTextContent('3 Apps');
+    expect(screen.getByTestId('nosc-estate-component-blast-radius-organizations')).toHaveTextContent('3 Organizations');
+    expect(screen.getByTestId('nosc-estate-component-blast-radius-violations')).toHaveTextContent('5 Violations');
+
+    await waitFor(() => {
+      const applicationRequests = axiosMock.history.post.filter(
+        (request) => request.url === getComponentUsageApplicationsUrl()
+      );
+      expect(applicationRequests).toHaveLength(1);
+      expect(JSON.parse(applicationRequests[0].data as string)).toMatchObject({
+        componentHash: COMPONENT_HASH,
+        page: 0,
+        pageSize: 25,
+      });
+      expect(
+        axiosMock.history.post
+          .filter((request) => request.url === getComponentUsageOrganizationsUrl())
+          .some((request) => JSON.parse(request.data as string).pageSize === 1)
+      ).toBe(true);
+      expect(
+        axiosMock.history.post
+          .filter((request) => request.url === getViolationsListUrl())
+          .some((request) => JSON.parse(request.data as string).pageSize === 1)
+      ).toBe(true);
+    });
+    expect(screen.getByText('Showing the first 2 of 3 applications.')).toBeInTheDocument();
+    expect(axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl())).toHaveLength(0);
+
+    await userEvent.selectOptions(await screen.findByLabelText('Application'), 'app-1');
+
+    await waitFor(() => {
+      expect(axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl())).toHaveLength(1);
+    });
+    expect(
+      JSON.parse(
+        axiosMock.history.post.find((request) => request.url === getComponentUsageReportsUrl())?.data as string
+      )
+    ).toMatchObject({ componentHash: COMPONENT_HASH, applicationId: 'app-1' });
+
+    await userEvent.selectOptions(await screen.findByLabelText('Report'), 'report-1');
+    expect(await screen.findByTestId('nosc-estate-component-path-switcher-report-link')).toHaveAttribute(
+      'href',
+      getApplicationReportDeepLinkUrl('webgoat', 'report-1')
+    );
+  });
+
+  it('shows an error when reports fail to load after selecting an application', async () => {
+    axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(200, HDS_RESPONSE);
+    axiosMock.onPost(getComponentUsageApplicationsUrl()).reply(200, {
+      applications: [
+        {
+          applicationId: 'app-1',
+          applicationPublicId: 'webgoat',
+          applicationName: 'WebGoat',
+          organizationName: 'Engineering',
+        },
+      ],
+      total: 1,
+      page: 0,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+    axiosMock.onPost(getComponentUsageOrganizationsUrl()).reply(200, {
+      organizations: [],
+      total: 0,
+      page: 0,
+      pageSize: 1,
+      hasNextPage: false,
+    });
+    axiosMock.onPost(getViolationsListUrl()).reply(200, {
+      violations: [],
+      total: 0,
+      page: 0,
+      pageSize: 1,
+      hasNextPage: false,
+    });
+    axiosMock.onPost(getComponentUsageReportsUrl()).reply(500);
+
+    renderNexusOneEstateComponentDetail(COMPONENT_HASH);
+
+    const applicationSelect = await screen.findByLabelText('Application');
+    await waitFor(() => expect(applicationSelect).not.toBeDisabled());
+
+    await userEvent.selectOptions(applicationSelect, 'app-1');
+
+    expect(await screen.findByText('Reports could not be loaded for this application.')).toBeInTheDocument();
+    expect(axiosMock.history.post.filter((request) => request.url === getComponentUsageReportsUrl())).toHaveLength(1);
   });
 
   it('navigates to Legal tab via the tab strip', async () => {
@@ -153,8 +293,6 @@ describe('EstateComponentDetail', () => {
       expect(router.globals.$current.name).toBe('nexusOneEstateComponentDetail.legal');
     });
     expect(await screen.findByTestId('nosc-estate-component-legal')).toBeInTheDocument();
-    expect(screen.getByTestId('nosc-estate-component-legal-declared')).toHaveTextContent(
-      'Apache 2.0',
-    );
+    expect(screen.getByTestId('nosc-estate-component-legal-declared')).toHaveTextContent('Apache 2.0');
   });
 });

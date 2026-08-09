@@ -45,6 +45,7 @@ const ESTATE_COMPONENT_TABS = [
     label: 'Vulnerabilities',
     testId: 'nosc-estate-component-tab-vulnerabilities',
   },
+  { value: 'versions', label: 'Versions', testId: 'nosc-estate-component-tab-versions' },
   { value: 'violations', label: 'Policy Violations', testId: 'nosc-estate-component-tab-violations' },
   { value: 'applications', label: 'Applications', testId: 'nosc-estate-component-tab-applications' },
   {

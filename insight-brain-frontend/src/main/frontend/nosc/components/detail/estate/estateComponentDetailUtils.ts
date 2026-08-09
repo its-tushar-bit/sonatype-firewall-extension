@@ -11,6 +11,7 @@ export const ESTATE_COMPONENT_TAB_IDS: readonly EstateComponentTab[] = [
   'overview',
   'legal',
   'vulnerabilities',
+  'versions',
   'violations',
   'applications',
   'organizations',

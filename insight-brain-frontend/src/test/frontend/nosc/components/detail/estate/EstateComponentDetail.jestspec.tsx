@@ -9,6 +9,7 @@ import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { renderNexusOneEstateComponentDetail } from 'TestRoot/nosc/components/detail/estate/renderNexusOneEstateComponentDetail';
 import {
   getApiV2ComponentDetailsUrl,
+  getApiV2ComponentVersionsUrl,
   getApplicationReportDeepLinkUrl,
   getComponentUsageApplicationsUrl,
   getComponentUsageOrganizationsUrl,
@@ -17,6 +18,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
 import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
+import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 
 const COMPONENT_HASH = 'deadbeefcafebabe';
 
@@ -28,7 +30,10 @@ const HDS_RESPONSE = {
         hash: COMPONENT_HASH,
         displayName: 'log4j-core 2.14.1',
         packageUrl: 'pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1',
-        componentIdentifier: { format: 'maven' },
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: { groupId: 'org.apache.logging.log4j', artifactId: 'log4j-core', version: '2.14.1' },
+        },
       },
       licenseData: {
         status: 'Open',
@@ -48,6 +53,7 @@ describe('EstateComponentDetail', () => {
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
     _setBaseUrlForTesting('http://localhost');
+    installRadixJsdomShims();
   });
 
   afterAll(() => {
@@ -69,6 +75,7 @@ describe('EstateComponentDetail', () => {
     expect(within(tabList).getByTestId('nosc-estate-component-tab-overview')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-legal')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-vulnerabilities')).toBeInTheDocument();
+    expect(within(tabList).getByTestId('nosc-estate-component-tab-versions')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-violations')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-applications')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-organizations')).toBeInTheDocument();
@@ -319,5 +326,137 @@ describe('EstateComponentDetail', () => {
       'href',
       vulnerabilityDetailHref({ vulnId: 'CVE-2021-44228', componentHash: COMPONENT_HASH })
     );
+  });
+
+  it('loads catalog versions without resolving every version through component details', async () => {
+    axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(200, HDS_RESPONSE);
+    axiosMock.onPost(getApiV2ComponentVersionsUrl()).reply(200, ['2.14.1', '2.15.0', '2.16.0']);
+
+    const { router } = renderNexusOneEstateComponentDetail(COMPONENT_HASH);
+    await screen.findByTestId('nosc-estate-component-overview');
+
+    await userEvent.click(screen.getByTestId('nosc-estate-component-tab-versions'));
+
+    await waitFor(() => {
+      expect(router.globals.$current.name).toBe('nexusOneEstateComponentDetail.versions');
+    });
+    expect(await screen.findByTestId('nosc-estate-component-versions-table')).toBeInTheDocument();
+    expect(screen.getAllByText('Catalog only')).toHaveLength(3);
+    expect(screen.getByRole('button', { name: 'Check estate availability for 2.15.0' })).toBeInTheDocument();
+    expect(axiosMock.history.post.filter((request) => request.url === getApiV2ComponentDetailsUrl())).toHaveLength(1);
+  });
+
+  it('resolves one selected version and navigates when HDS returns a hash', async () => {
+    axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply((config) => {
+      const body = JSON.parse(config.data as string);
+      if (body.components?.[0]?.hash === COMPONENT_HASH) {
+        return [200, HDS_RESPONSE];
+      }
+      if (body.components?.[0]?.hash === 'sibling-hash-1') {
+        return [
+          200,
+          {
+            componentDetails: [
+              {
+                component: {
+                  hash: 'sibling-hash-1',
+                  displayName: 'log4j-core 2.15.0',
+                  packageUrl: 'pkg:maven/org.apache.logging.log4j/log4j-core@2.15.0',
+                  componentIdentifier: {
+                    format: 'maven',
+                    coordinates: { groupId: 'org.apache.logging.log4j', artifactId: 'log4j-core', version: '2.15.0' },
+                  },
+                },
+              },
+            ],
+          },
+        ];
+      }
+      return [
+        200,
+        {
+          componentDetails: [
+            {
+              component: {
+                hash: 'sibling-hash-1',
+                packageUrl: 'pkg:maven/org.apache.logging.log4j/log4j-core@2.15.0',
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: { groupId: 'org.apache.logging.log4j', artifactId: 'log4j-core', version: '2.15.0' },
+                },
+              },
+            },
+          ],
+        },
+      ];
+    });
+    axiosMock.onPost(getApiV2ComponentVersionsUrl()).reply(200, ['2.14.1', '2.15.0', '2.16.0']);
+
+    const { router } = renderNexusOneEstateComponentDetail(COMPONENT_HASH);
+    await screen.findByTestId('nosc-estate-component-overview');
+
+    await userEvent.click(screen.getByTestId('nosc-estate-component-tab-versions'));
+
+    await waitFor(() => {
+      expect(router.globals.$current.name).toBe('nexusOneEstateComponentDetail.versions');
+    });
+    expect(await screen.findByTestId('nosc-estate-component-versions-table')).toBeInTheDocument();
+    expect(axiosMock.history.post.filter((request) => request.url === getApiV2ComponentDetailsUrl())).toHaveLength(1);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Check estate availability for 2.15.0' }));
+
+    await waitFor(() => {
+      expect(
+        axiosMock.history.post.filter((request) => request.url === getApiV2ComponentDetailsUrl()).length
+      ).toBeGreaterThanOrEqual(2);
+    });
+    await waitFor(() => {
+      expect(router.globals.params.componentHash).toBe('sibling-hash-1');
+      expect(router.globals.$current.name).toBe('nexusOneEstateComponentDetail.overview');
+    });
+    const detailsRequests = axiosMock.history.post.filter((request) => request.url === getApiV2ComponentDetailsUrl());
+    expect(JSON.parse(detailsRequests[1].data as string)).toEqual({
+      components: [{ packageUrl: 'pkg:maven/org.apache.logging.log4j/log4j-core@2.15.0' }],
+    });
+  });
+
+  it('keeps a catalog-only row unavailable when single-version resolve returns no hash', async () => {
+    axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply((config) => {
+      const body = JSON.parse(config.data as string);
+      if (body.components?.[0]?.hash === COMPONENT_HASH) {
+        return [200, HDS_RESPONSE];
+      }
+      return [
+        200,
+        {
+          componentDetails: [
+            {
+              component: {
+                packageUrl: 'pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0',
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: { groupId: 'org.apache.logging.log4j', artifactId: 'log4j-core', version: '2.16.0' },
+                },
+              },
+            },
+          ],
+        },
+      ];
+    });
+    axiosMock.onPost(getApiV2ComponentVersionsUrl()).reply(200, ['2.16.0']);
+
+    const { router } = renderNexusOneEstateComponentDetail(COMPONENT_HASH, 'versions');
+    expect(await screen.findByTestId('nosc-estate-component-versions-table')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Check estate availability for 2.16.0' }));
+
+    await waitFor(() => {
+      expect(axiosMock.history.post.filter((request) => request.url === getApiV2ComponentDetailsUrl())).toHaveLength(2);
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Estate component unavailable for 2.16.0' })).toBeDisabled();
+    });
+    expect(screen.getByText('No estate component found for this version.')).toBeInTheDocument();
+    expect(router.globals.params.componentHash).toBe(COMPONENT_HASH);
   });
 });

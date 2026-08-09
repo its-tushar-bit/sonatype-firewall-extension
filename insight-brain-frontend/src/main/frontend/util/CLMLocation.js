@@ -163,6 +163,14 @@ export function getApiV2ComponentDetailsUrl() {
 }
 
 /**
+ * Public API component versions (HDS-backed). POST body accepts a packageUrl or componentIdentifier.
+ * Used by estate Component Detail Version Explorer (CLM-44661).
+ */
+export function getApiV2ComponentVersionsUrl() {
+  return uriTemplate`/api/v2/components/versions`;
+}
+
+/**
  * Estate component where-used applications (CLM-43959). POST
  * `{ componentHash, page, pageSize }`.
  */

@@ -13,6 +13,7 @@ export type EstateComponentTab =
   | 'overview'
   | 'legal'
   | 'vulnerabilities'
+  | 'versions'
   | 'violations'
   | 'applications'
   | 'organizations';

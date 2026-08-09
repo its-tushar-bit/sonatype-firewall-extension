@@ -60,9 +60,6 @@ public class HostedComponentScanQueue
   @Column(name = "retry_count", nullable = false)
   private int retryCount = 0;
 
-  @Column(name = "purl", length = 2000)
-  private String purl;
-
   @Column(name = "policy_evaluation_stage", length = 50)
   private String policyEvaluationStage;
 
@@ -202,7 +199,6 @@ public class HostedComponentScanQueue
         .add("errorMessage='" + errorMessage + "'")
         .add("repositoryId='" + repositoryId + "'")
         .add("retryCount=" + retryCount)
-        .add("purl='" + purl + "'")
         .add("policyEvaluationStage='" + policyEvaluationStage + "'")
         .toString();
   }

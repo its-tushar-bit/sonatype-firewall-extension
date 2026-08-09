@@ -15,7 +15,7 @@ import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import type { EstateComponentTab } from 'MainRoot/nosc/components/detail/estateComponentDetailHref';
 import { NEXUS_ONE_COMPONENTS_STATE_NAME } from 'MainRoot/nosc/componentsList/componentsRoute';
 import { EstateComponentDetailShellProvider } from './estateComponentDetailContext';
-import type { EstateComponentHdsStatus } from './estateComponentDetailContext';
+import type { EstateComponentBlastRadiusCounts, EstateComponentHdsStatus } from './estateComponentDetailContext';
 import { fetchEstateComponentDetails } from './estateComponentDetailsApi';
 import type { EstateComponentDetails } from './estateComponentDetailsApi';
 import { EstateComponentPathSwitcher } from './EstateComponentPathSwitcher';
@@ -40,6 +40,11 @@ const HEADER_COUNT_PAGE_SIZE = 1;
 const ESTATE_COMPONENT_TABS = [
   { value: 'overview', label: 'Overview', testId: 'nosc-estate-component-tab-overview' },
   { value: 'legal', label: 'Legal', testId: 'nosc-estate-component-tab-legal' },
+  {
+    value: 'vulnerabilities',
+    label: 'Vulnerabilities',
+    testId: 'nosc-estate-component-tab-vulnerabilities',
+  },
   { value: 'violations', label: 'Policy Violations', testId: 'nosc-estate-component-tab-violations' },
   { value: 'applications', label: 'Applications', testId: 'nosc-estate-component-tab-applications' },
   {
@@ -52,12 +57,6 @@ const ESTATE_COMPONENT_TABS = [
 function paramAsString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
-
-type BlastRadiusCounts = {
-  readonly applications?: number;
-  readonly organizations?: number;
-  readonly violations?: number;
-};
 
 type ApplicationsUsageState = {
   readonly applications: ReadonlyArray<ComponentUsageApplicationRow>;
@@ -72,7 +71,7 @@ function formatCount(value: number | undefined, singular: string, plural: string
   return `${value} ${value === 1 ? singular : plural}`;
 }
 
-function EstateComponentBlastRadiusCounts({ counts }: { readonly counts: BlastRadiusCounts }): ReactElement {
+function BlastRadiusCountBadges({ counts }: { readonly counts: EstateComponentBlastRadiusCounts }): ReactElement {
   return (
     <Flex gap="2" wrap="wrap" data-testid="nosc-estate-component-blast-radius-counts">
       <Badge size="2" color="gray" variant="soft" data-testid="nosc-estate-component-blast-radius-applications">
@@ -115,7 +114,7 @@ export default function EstateComponentDetail(): ReactElement {
 
   const [hdsStatus, setHdsStatus] = useState<EstateComponentHdsStatus>('loading');
   const [details, setDetails] = useState<EstateComponentDetails | null>(null);
-  const [blastRadiusCounts, setBlastRadiusCounts] = useState<BlastRadiusCounts>({});
+  const [blastRadiusCounts, setBlastRadiusCounts] = useState<EstateComponentBlastRadiusCounts>({});
   const [applicationsUsage, setApplicationsUsage] = useState<ApplicationsUsageState>({
     applications: [],
     total: 0,
@@ -215,9 +214,10 @@ export default function EstateComponentDetail(): ReactElement {
       hdsStatus,
       details,
       displayName,
+      blastRadiusCounts,
       retryHds: startHdsLoad,
     }),
-    [componentHash, details, displayName, hdsStatus, startHdsLoad]
+    [blastRadiusCounts, componentHash, details, displayName, hdsStatus, startHdsLoad]
   );
 
   const breadcrumb = useMemo(
@@ -279,7 +279,7 @@ export default function EstateComponentDetail(): ReactElement {
             </Flex>
           </Flex>
         )}
-        <EstateComponentBlastRadiusCounts counts={blastRadiusCounts} />
+        <BlastRadiusCountBadges counts={blastRadiusCounts} />
         <EstateComponentPathSwitcher componentHash={componentHash} applicationsUsage={applicationsUsage} />
       </Flex>
     ),

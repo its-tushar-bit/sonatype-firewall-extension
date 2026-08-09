@@ -16,6 +16,7 @@ import {
   getViolationsListUrl,
 } from 'MainRoot/util/CLMLocation';
 import { _setBaseUrlForTesting, setBaseUrl } from 'MainRoot/util/urlUtil';
+import { vulnerabilityDetailHref } from 'MainRoot/nosc/vulnerabilities/detail/vulnerabilityDetailHref';
 
 const COMPONENT_HASH = 'deadbeefcafebabe';
 
@@ -67,6 +68,7 @@ describe('EstateComponentDetail', () => {
     const tabList = screen.getByTestId('nosc-estate-component-tabs');
     expect(within(tabList).getByTestId('nosc-estate-component-tab-overview')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-legal')).toBeInTheDocument();
+    expect(within(tabList).getByTestId('nosc-estate-component-tab-vulnerabilities')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-violations')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-applications')).toBeInTheDocument();
     expect(within(tabList).getByTestId('nosc-estate-component-tab-organizations')).toBeInTheDocument();
@@ -95,9 +97,10 @@ describe('EstateComponentDetail', () => {
       'href',
       `#/components/${COMPONENT_HASH}/organizations`
     );
+    expect(screen.queryByTestId('nosc-estate-component-overview-vulnerabilities-link')).not.toBeInTheDocument();
   });
 
-  it('shows a Policy Violations overflow hint when security issues exceed the Overview preview', async () => {
+  it('shows a Vulnerabilities overflow hint when security issues exceed the Overview preview', async () => {
     const manyIssues = Array.from({ length: 7 }, (_, i) => ({
       reference: `CVE-2021-000${i}`,
       severity: 5,
@@ -118,7 +121,11 @@ describe('EstateComponentDetail', () => {
     );
     expect(screen.getByTestId('nosc-estate-component-overview-security-overflow-link')).toHaveAttribute(
       'href',
-      `#/components/${COMPONENT_HASH}/violations`
+      `#/components/${COMPONENT_HASH}/vulnerabilities`
+    );
+    expect(screen.getByTestId('nosc-estate-component-overview-vulnerabilities-link')).toHaveAttribute(
+      'href',
+      `#/components/${COMPONENT_HASH}/vulnerabilities`
     );
   });
 
@@ -294,5 +301,23 @@ describe('EstateComponentDetail', () => {
     });
     expect(await screen.findByTestId('nosc-estate-component-legal')).toBeInTheDocument();
     expect(screen.getByTestId('nosc-estate-component-legal-declared')).toHaveTextContent('Apache 2.0');
+  });
+
+  it('navigates to Vulnerabilities tab via the tab strip', async () => {
+    axiosMock.onPost(getApiV2ComponentDetailsUrl()).reply(200, HDS_RESPONSE);
+
+    const { router } = renderNexusOneEstateComponentDetail(COMPONENT_HASH);
+    await screen.findByTestId('nosc-estate-component-overview');
+
+    await userEvent.click(screen.getByTestId('nosc-estate-component-tab-vulnerabilities'));
+
+    await waitFor(() => {
+      expect(router.globals.$current.name).toBe('nexusOneEstateComponentDetail.vulnerabilities');
+    });
+    expect(await screen.findByTestId('nosc-estate-component-vulnerabilities')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'CVE-2021-44228' })).toHaveAttribute(
+      'href',
+      vulnerabilityDetailHref({ vulnId: 'CVE-2021-44228', componentHash: COMPONENT_HASH })
+    );
   });
 });

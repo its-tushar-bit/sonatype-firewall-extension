@@ -10,6 +10,7 @@ export const NEXUS_ONE_ESTATE_COMPONENT_DETAIL_PARENT_STATE = 'nexusOneEstateCom
 export const ESTATE_COMPONENT_TAB_IDS: readonly EstateComponentTab[] = [
   'overview',
   'legal',
+  'vulnerabilities',
   'violations',
   'applications',
   'organizations',
@@ -20,9 +21,7 @@ const TAB_SET = new Set<string>(ESTATE_COMPONENT_TAB_IDS);
 const DEFAULT_TAB: EstateComponentTab = 'overview';
 
 /** Derive the active tab from a UI-Router child state name. */
-export function tabFromEstateComponentDetailStateName(
-  stateName: string | undefined,
-): EstateComponentTab {
+export function tabFromEstateComponentDetailStateName(stateName: string | undefined): EstateComponentTab {
   if (!stateName?.startsWith(`${NEXUS_ONE_ESTATE_COMPONENT_DETAIL_PARENT_STATE}.`)) {
     return DEFAULT_TAB;
   }

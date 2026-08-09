@@ -5,6 +5,7 @@
  */
 import { EstateComponentOverviewTab } from './EstateComponentOverviewTab';
 import { EstateComponentLegalTab } from './EstateComponentLegalTab';
+import { EstateComponentVulnerabilitiesTab } from './EstateComponentVulnerabilitiesTab';
 import { EstateComponentViolationsTab } from './EstateComponentViolationsTab';
 import { EstateComponentApplicationsTab } from './EstateComponentApplicationsTab';
 import { EstateComponentOrganizationsTab } from './EstateComponentOrganizationsTab';
@@ -17,6 +18,11 @@ export function EstateComponentOverviewRoute(): JSX.Element {
 /** UI-Router child route: Legal tab. */
 export function EstateComponentLegalRoute(): JSX.Element {
   return <EstateComponentLegalTab />;
+}
+
+/** UI-Router child route: Vulnerabilities tab. */
+export function EstateComponentVulnerabilitiesRoute(): JSX.Element {
+  return <EstateComponentVulnerabilitiesTab />;
 }
 
 /** UI-Router child route: Policy Violations tab. */

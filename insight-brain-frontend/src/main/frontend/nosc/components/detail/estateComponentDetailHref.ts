@@ -12,14 +12,12 @@
 export type EstateComponentTab =
   | 'overview'
   | 'legal'
+  | 'vulnerabilities'
   | 'violations'
   | 'applications'
   | 'organizations';
 
-export function estateComponentDetailHref(
-  componentHash: string,
-  tab: EstateComponentTab = 'overview',
-): string {
+export function estateComponentDetailHref(componentHash: string, tab: EstateComponentTab = 'overview'): string {
   const encoded = encodeURIComponent(componentHash);
   if (tab === 'overview') {
     return `#/components/${encoded}`;

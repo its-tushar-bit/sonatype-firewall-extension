@@ -3,21 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 import type { EstateComponentDetails } from './estateComponentDetailsApi';
 
 export type EstateComponentHdsStatus = 'loading' | 'ready' | 'error' | 'empty';
+
+export type EstateComponentBlastRadiusCounts = {
+  readonly applications?: number;
+  readonly organizations?: number;
+  readonly violations?: number;
+};
 
 export interface EstateComponentDetailShellContextValue {
   readonly componentHash: string;
   readonly hdsStatus: EstateComponentHdsStatus;
   readonly details: EstateComponentDetails | null;
   readonly displayName: string;
+  readonly blastRadiusCounts: EstateComponentBlastRadiusCounts;
   readonly retryHds: () => void;
 }
 
-const EstateComponentDetailShellContext =
-  createContext<EstateComponentDetailShellContextValue | null>(null);
+const EstateComponentDetailShellContext = createContext<EstateComponentDetailShellContextValue | null>(null);
 
 export function EstateComponentDetailShellProvider({
   value,
@@ -27,9 +34,7 @@ export function EstateComponentDetailShellProvider({
   readonly children: ReactNode;
 }): JSX.Element {
   return (
-    <EstateComponentDetailShellContext.Provider value={value}>
-      {children}
-    </EstateComponentDetailShellContext.Provider>
+    <EstateComponentDetailShellContext.Provider value={value}>{children}</EstateComponentDetailShellContext.Provider>
   );
 }
 

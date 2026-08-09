@@ -10,6 +10,7 @@ import {
   EstateComponentLegalRoute,
   EstateComponentOrganizationsRoute,
   EstateComponentOverviewRoute,
+  EstateComponentVulnerabilitiesRoute,
   EstateComponentViolationsRoute,
 } from 'MainRoot/nosc/components/detail/estate/estateComponentTabRoutes';
 import {
@@ -45,6 +46,12 @@ export function nexusOneEstateComponentDetailStates(): ReactStateDeclaration[] {
       name: estateComponentDetailStateNameForTab('legal'),
       url: '/legal',
       component: EstateComponentLegalRoute,
+      data: { title: ESTATE_COMPONENT_DETAIL_TITLE },
+    },
+    {
+      name: estateComponentDetailStateNameForTab('vulnerabilities'),
+      url: '/vulnerabilities',
+      component: EstateComponentVulnerabilitiesRoute,
       data: { title: ESTATE_COMPONENT_DETAIL_TITLE },
     },
     {

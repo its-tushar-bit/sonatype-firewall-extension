@@ -3,12 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  UIRouterReact,
-  memoryLocationPlugin,
-  servicesPlugin,
-} from '@uirouter/react';
+import { UIRouterReact, memoryLocationPlugin, servicesPlugin } from '@uirouter/react';
 import { nexusOneEstateComponentDetailStates } from 'MainRoot/nexus-one/nexusOneEstateComponentDetailStates';
+import { tabFromEstateComponentDetailStateName } from 'MainRoot/nosc/components/detail/estate/estateComponentDetailUtils';
 import { NEXUS_ONE_COMPONENTS_STATE_NAME } from 'MainRoot/nosc/componentsList/componentsRoute';
 
 function createRouter(): UIRouterReact {
@@ -34,7 +31,7 @@ describe('nexusOneEstateComponentDetailStates', () => {
     expect(
       router.stateService.href('nexusOneEstateComponentDetail.overview', {
         componentHash: 'deadbeef',
-      }),
+      })
     ).toBe('#/components/deadbeef');
   });
 
@@ -47,16 +44,30 @@ describe('nexusOneEstateComponentDetailStates', () => {
     expect(
       router.stateService.href('nexusOneEstateComponentDetail.violations', {
         componentHash: 'abc123',
-      }),
+      })
     ).toBe('#/components/abc123/violations');
+  });
+
+  it('lands on the vulnerabilities tab child with the expected URL', async () => {
+    const router = createRouter();
+    await router.stateService.go('nexusOneEstateComponentDetail.vulnerabilities', {
+      componentHash: 'abc123',
+    });
+    expect(router.globals.$current.name).toBe('nexusOneEstateComponentDetail.vulnerabilities');
+    expect(
+      router.stateService.href('nexusOneEstateComponentDetail.vulnerabilities', {
+        componentHash: 'abc123',
+      })
+    ).toBe('#/components/abc123/vulnerabilities');
+    expect(tabFromEstateComponentDetailStateName('nexusOneEstateComponentDetail.vulnerabilities')).toBe(
+      'vulnerabilities'
+    );
   });
 
   it('keeps the components list URL distinct from estate detail', async () => {
     const router = createRouter();
     await router.stateService.go(NEXUS_ONE_COMPONENTS_STATE_NAME, { source: 'local' });
     expect(router.globals.$current.name).toBe(NEXUS_ONE_COMPONENTS_STATE_NAME);
-    expect(router.stateService.href(NEXUS_ONE_COMPONENTS_STATE_NAME, { source: 'local' })).toContain(
-      '#/components',
-    );
+    expect(router.stateService.href(NEXUS_ONE_COMPONENTS_STATE_NAME, { source: 'local' })).toContain('#/components');
   });
 });

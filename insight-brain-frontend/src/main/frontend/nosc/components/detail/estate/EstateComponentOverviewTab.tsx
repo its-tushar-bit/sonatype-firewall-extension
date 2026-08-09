@@ -8,11 +8,11 @@ import { estateComponentDetailHref } from 'MainRoot/nosc/components/detail/estat
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { useEstateComponentDetailShellContext } from './estateComponentDetailContext';
 
-/** Overview preview only — full list lives on the Policy Violations tab. */
+/** Overview preview only — full list lives on the Vulnerabilities tab. */
 const SECURITY_ISSUES_PREVIEW_LIMIT = 5;
 
 function licenseSummaryLabel(
-  licenses: ReadonlyArray<{ licenseId?: string; licenseName?: string }> | undefined,
+  licenses: ReadonlyArray<{ licenseId?: string; licenseName?: string }> | undefined
 ): string {
   if (!licenses?.length) {
     return '—';
@@ -23,8 +23,15 @@ function licenseSummaryLabel(
     .join(', ');
 }
 
+function countLabel(value: number | undefined, singular: string, plural: string): string {
+  if (typeof value !== 'number') {
+    return '—';
+  }
+  return `${value} ${value === 1 ? singular : plural}`;
+}
+
 export function EstateComponentOverviewTab(): JSX.Element {
-  const { componentHash, hdsStatus, details, retryHds } = useEstateComponentDetailShellContext();
+  const { componentHash, hdsStatus, details, blastRadiusCounts, retryHds } = useEstateComponentDetailShellContext();
 
   if (hdsStatus === 'loading') {
     return <LoadingSkeleton height={180} data-testid="nosc-estate-component-overview-loading" />;
@@ -32,13 +39,7 @@ export function EstateComponentOverviewTab(): JSX.Element {
 
   if (hdsStatus === 'error') {
     return (
-      <Flex
-        direction="column"
-        gap="3"
-        align="start"
-        mt="4"
-        data-testid="nosc-estate-component-overview-error"
-      >
+      <Flex direction="column" gap="3" align="start" mt="4" data-testid="nosc-estate-component-overview-error">
         <Text size="2" color="red">
           Component details are temporarily unavailable. Other tabs still work.
         </Text>
@@ -78,8 +79,7 @@ export function EstateComponentOverviewTab(): JSX.Element {
           <Text size="2">Package URL: {details.packageUrl || '—'}</Text>
           <Text size="2">Format: {details.format || '—'}</Text>
           <Text size="2">
-            Hash:{' '}
-            <Text style={{ fontFamily: 'var(--code-font-family)' }}>{details.hash || componentHash}</Text>
+            Hash: <Text style={{ fontFamily: 'var(--code-font-family)' }}>{details.hash || componentHash}</Text>
           </Text>
           {details.matchState && <Text size="2">Match state: {details.matchState}</Text>}
         </Flex>
@@ -98,7 +98,26 @@ export function EstateComponentOverviewTab(): JSX.Element {
       <Card>
         <Flex direction="column" gap="3" p="4">
           <Text size="3" weight="medium">
-            Security summary
+            Estate reach
+          </Text>
+          <Flex gap="4" wrap="wrap">
+            <Text size="2" data-testid="nosc-estate-component-overview-applications-count">
+              Applications: {countLabel(blastRadiusCounts.applications, 'application', 'applications')}
+            </Text>
+            <Text size="2" data-testid="nosc-estate-component-overview-organizations-count">
+              Organizations: {countLabel(blastRadiusCounts.organizations, 'organization', 'organizations')}
+            </Text>
+            <Text size="2" data-testid="nosc-estate-component-overview-violations-count">
+              Policy violations: {countLabel(blastRadiusCounts.violations, 'violation', 'violations')}
+            </Text>
+          </Flex>
+        </Flex>
+      </Card>
+
+      <Card>
+        <Flex direction="column" gap="3" p="4">
+          <Text size="3" weight="medium">
+            Vulnerability summary
           </Text>
           {securityIssues.length === 0 ? (
             <Text size="2" color="gray">
@@ -113,16 +132,25 @@ export function EstateComponentOverviewTab(): JSX.Element {
                 </Text>
               ))}
               {overflowCount > 0 && (
-                <Text size="2" color="gray" data-testid="nosc-estate-component-overview-security-overflow">
-                  …and {overflowCount} more — see{' '}
+                <>
+                  <Text size="2" color="gray" data-testid="nosc-estate-component-overview-security-overflow">
+                    …and {overflowCount} more — see{' '}
+                    <RadixLink
+                      size="2"
+                      href={estateComponentDetailHref(componentHash, 'vulnerabilities')}
+                      data-testid="nosc-estate-component-overview-security-overflow-link"
+                    >
+                      Vulnerabilities
+                    </RadixLink>
+                  </Text>
                   <RadixLink
                     size="2"
-                    href={estateComponentDetailHref(componentHash, 'violations')}
-                    data-testid="nosc-estate-component-overview-security-overflow-link"
+                    href={estateComponentDetailHref(componentHash, 'vulnerabilities')}
+                    data-testid="nosc-estate-component-overview-vulnerabilities-link"
                   >
-                    Policy Violations
+                    View all vulnerabilities →
                   </RadixLink>
-                </Text>
+                </>
               )}
             </>
           )}

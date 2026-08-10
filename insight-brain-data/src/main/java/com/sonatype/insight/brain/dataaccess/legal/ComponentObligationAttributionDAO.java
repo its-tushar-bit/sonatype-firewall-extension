@@ -69,6 +69,16 @@ public class ComponentObligationAttributionDAO
         .fetch(super::toEntity);
   }
 
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(COMPONENT_OBLIGATION_ATTRIBUTION)
+        .where(COMPONENT_OBLIGATION_ATTRIBUTION.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
+  }
+
   public List<ComponentObligationAttribution> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);

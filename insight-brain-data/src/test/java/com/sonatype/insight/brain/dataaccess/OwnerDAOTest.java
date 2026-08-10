@@ -11,9 +11,16 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
+import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -21,6 +28,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
+import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
@@ -29,6 +40,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -60,6 +73,18 @@ public class OwnerDAOTest
 
   private OwnerDAO ownerDAO;
 
+  private VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO;
+
+  private VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO;
+
+  private ComponentCopyrightDAO componentCopyrightDAO;
+
+  private CopyrightOverrideDAO copyrightOverrideDAO;
+
+  private ComponentLegalFileDAO componentLegalFileDAO;
+
+  private LegalFileOverrideDAO legalFileOverrideDAO;
+
   @Before
   @Override
   public void setup() {
@@ -72,6 +97,12 @@ public class OwnerDAOTest
     organizationDAO = daoFactory.createOrganizationDAO();
     repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
     callFlowAnalysisConfigDAO = daoFactory.createCallFlowAnalysisConfigDAO();
+    vulnerabilityCustomRemediationDAO = daoFactory.createVulnerabilityCustomRemediationDAO();
+    vulnerabilityCustomRemediationTagDAO = daoFactory.createVulnerabilityCustomRemediationTagDAO();
+    componentCopyrightDAO = daoFactory.createComponentCopyrightDAO();
+    copyrightOverrideDAO = daoFactory.createCopyrightOverrideDAO();
+    componentLegalFileDAO = daoFactory.createComponentLegalFileDAO();
+    legalFileOverrideDAO = daoFactory.createLegalFileOverrideDAO();
   }
 
   @Test
@@ -428,6 +459,54 @@ public class OwnerDAOTest
       tx.commit();
       callFlowAnalysisConfigs = callFlowAnalysisConfigDAO.getByOwnerId(owner.getId());
       assertThat(callFlowAnalysisConfigs).isNull();
+    }
+  }
+
+  @Test
+  public void testCascadeDelete_VulnerabilityCustomRemediationWithTag() {
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      Owner owner = ownerDAO.getById(organization.getId());
+      Tag tag = tempEntity.newTag(organization.getId());
+      VulnerabilityCustomRemediation remediation = tempEntity.newVulnerabilityCustomRemediation(owner.getId());
+      tempEntity.newVulnerabilityCustomRemediationTag(tag.getId(), remediation.getId());
+      tx.begin();
+      ownerDAO.cascadeDelete(tx, owner);
+      tx.commit();
+      assertThat(vulnerabilityCustomRemediationDAO.getByOwnerId(owner.getId())).isEmpty();
+      assertThat(vulnerabilityCustomRemediationTagDAO.getByCustomFieldId(tx, remediation.getId())).isEmpty();
+    }
+  }
+
+  @Test
+  public void testCascadeDelete_ComponentCopyrightWithOverride() {
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      Owner owner = ownerDAO.getById(organization.getId());
+      ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "1.0");
+      ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(ci, owner.getId(), "legal-hash");
+      tempEntity.newCopyrightOverride("original-hash", "hash", "content", ComponentLegalPartStatus.ENABLED,
+          componentCopyright.getId());
+      tx.begin();
+      ownerDAO.cascadeDelete(tx, owner);
+      tx.commit();
+      assertThat(componentCopyrightDAO.getByOwnerId(owner.getId())).isEmpty();
+      assertThat(copyrightOverrideDAO.getByComponentCopyrightId(tx, componentCopyright.getId())).isEmpty();
+    }
+  }
+
+  @Test
+  public void testCascadeDelete_ComponentLegalFileWithOverride() {
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      Owner owner = ownerDAO.getById(organization.getId());
+      ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "1.0");
+      ComponentLegalFile componentLegalFile =
+          tempEntity.newComponentLegalFile(ci, owner.getId(), LegalFileType.NOTICE, "legal-hash");
+      tempEntity.newLegalFileOverride("original-hash", "hash", "content", ComponentLegalPartStatus.ENABLED,
+          componentLegalFile.getId());
+      tx.begin();
+      ownerDAO.cascadeDelete(tx, owner);
+      tx.commit();
+      assertThat(componentLegalFileDAO.getByOwnerId(owner.getId())).isEmpty();
+      assertThat(legalFileOverrideDAO.getByComponentLegalFileId(tx, componentLegalFile.getId())).isEmpty();
     }
   }
 

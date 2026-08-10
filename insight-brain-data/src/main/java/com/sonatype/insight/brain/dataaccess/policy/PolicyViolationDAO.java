@@ -98,6 +98,16 @@ public class PolicyViolationDAO
         .execute();
   }
 
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
+  }
+
   @Override
   public List<PolicyViolation> getAll(TransactionContext tx) {
     return tx.dsl().selectFrom(POLICY_VIOLATION).fetchInto(PolicyViolation.class);

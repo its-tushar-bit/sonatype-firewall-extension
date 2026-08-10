@@ -57,17 +57,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerImpl;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
-import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
-import com.sonatype.insight.brain.model.legal.ComponentCopyright;
-import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
-import com.sonatype.insight.brain.model.legal.ComponentObligation;
-import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.repository.HostedRepositoryComponent;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -76,12 +66,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -1132,149 +1116,89 @@ public class OwnerDAO
    * <p>
    * <b>Note:</b> This method is called from cascade delete operations in {@code ApplicationDAO},
    * {@code OrganizationDAO}, {@code RepositoryDAO}, and {@code RepositoryManagerDAO}. All these
-   * callers pass their transaction context to ensure the entire cascade operation is atomic.
+   * callers pass their transaction context to ensure the entire cascade operation is atomic. Delegates to
+   * {@link #cascadeDeleteByOwnerIds(TransactionContext, Collection)} with a single-element owner ID.
    * </p>
    *
    * @param tx the transaction context that all operations will participate in
    * @param owner the owner whose associated entities should be deleted
    */
   public void cascadeDelete(TransactionContext tx, Owner owner) {
-    // Cascade to policy waivers
+    cascadeDeleteByOwnerIds(tx, Collections.singleton(owner.getId()));
+  }
+
+  /**
+   * Deletes all entities associated with the given owner IDs, using chunked, set-based SQL. This is the single
+   * implementation backing both {@link #cascadeDelete(TransactionContext, Owner)} (a single-element owner ID) and
+   * the {@code HostedRepositoryComponent} repository-cascade-delete path ({@code RepositoryDAO} /
+   * {@code HostedRepositoryComponentDAO}), where a repository may own thousands of HRC rows and a per-HRC cascade
+   * (including a full {@code policyDAO.getAll(tx)} scan per HRC) would be O(N x M).
+   * <p>
+   * None of these owner-keyed satellite tables reference each other via foreign key — each is only scoped by
+   * {@code owner_id} — so the order in which they are cleared below is not significant.
+   * </p>
+   *
+   * @param tx the transaction context that all operations will participate in
+   * @param ownerIds the owner IDs whose associated entities should be deleted
+   */
+  public void cascadeDeleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (isEmpty(ownerIds)) {
+      return;
+    }
+
+    // PolicyWaiver/PolicyWaiverRequest are search-indexed, so deleteBatch (fetch, then batch-delete with per-entity
+    // search-index cleanup) is used instead of a raw owner_id IN (...) delete; this loads all matching rows for the
+    // given owner IDs into memory, which is fine at today's scale but worth revisiting if HRC-scoped waivers become
+    // common once a writer for hosted_repository_component lands.
     PolicyWaiverDAO policyWaiverDAO = policyWaiverDAOProvider.get();
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, owner.getId());
-    for (PolicyWaiver policyWaiver : policyWaivers) {
-      policyWaiverDAO.delete(tx, policyWaiver);
-    }
+    policyWaiverDAO.deleteBatch(tx, policyWaiverDAO.getByOwnerIds(tx, ownerIds));
 
-    // Cascade to license overrides
-    LicenseOverrideDAO licenseOverrideDAO = licenseOverrideDAOProvider.get();
-    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(tx, owner.getId());
-    for (LicenseOverride licenseOverride : licenseOverrides) {
-      licenseOverrideDAO.delete(tx, licenseOverride);
-    }
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = policyWaiverRequestDAOProvider.get();
+    policyWaiverRequestDAO.deleteBatch(tx, policyWaiverRequestDAO.getByOwnerIds(tx, ownerIds));
 
-    // Cascade to security vulnerability overrides
-    List<SecurityVulnerabilityOverride> securityVulnerabilityOverrides = securityVulnerabilityOverrideDAO.getByOwnerId(
-        tx, owner.getId());
-    for (SecurityVulnerabilityOverride securityVulnerabilityOverride : securityVulnerabilityOverrides) {
-      securityVulnerabilityOverrideDAO.delete(tx, securityVulnerabilityOverride);
-    }
+    licenseOverrideDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    securityVulnerabilityOverrideDAO.deleteByOwnerIds(tx, ownerIds);
+    dataRetentionPolicyDAO.deleteByOwnerIds(tx, ownerIds);
+    policyMonitoringDAO.deleteByOwnerIds(tx, ownerIds);
+    componentCopyrightDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    componentLegalFileDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    componentObligationDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    componentObligationAttributionDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    vulnerabilityGroupDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    vulnerabilityCustomRemediationDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    vulnerabilityCustomCweDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    vulnerabilityCustomCvssVectorDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    vulnerabilityCustomCvssSeverityDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    callFlowAnalysisConfigDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
 
-    // Cascade to policy overrides
+    removePolicyOverridesForOwners(tx, new HashSet<>(ownerIds));
+
+    policyEvaluationDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    policyViolationDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+    ownerComponentDAOProvider.get().deleteByOwnerIds(tx, ownerIds);
+  }
+
+  /**
+   * Removes policy action/notification overrides referencing any of the given owner IDs, in a single pass over all
+   * policies per invocation (one {@code policyDAO.getAll(tx)} call for this whole batch of owner IDs) rather than
+   * one pass per owner. Since the caller invokes this once per chunk, a repository with N HRCs across multiple
+   * chunks issues one {@code policyDAO.getAll(tx)} call per chunk (i.e. {@code ceil(N / chunkSize)} calls total),
+   * not one call per HRC.
+   */
+  private void removePolicyOverridesForOwners(TransactionContext tx, Set<String> ownerIds) {
     PolicyDAO policyDAO = policyDAOProvider.get();
     for (Policy policy : policyDAO.getAll(tx)) {
       boolean updated = false;
-      if (policy.getPolicyActionsOverrides() != null && policy.getPolicyActionsOverrides().containsKey(owner.getId())) {
-        policy.getPolicyActionsOverrides().remove(owner.getId());
-        updated = true;
+      if (policy.getPolicyActionsOverrides() != null) {
+        updated |= policy.getPolicyActionsOverrides().keySet().removeAll(ownerIds);
       }
-      if (policy.getPolicyNotificationsOverrides() != null &&
-          policy.getPolicyNotificationsOverrides().containsKey(owner.getId()))
-      {
-        policy.getPolicyNotificationsOverrides().remove(owner.getId());
-        updated = true;
+      if (policy.getPolicyNotificationsOverrides() != null) {
+        updated |= policy.getPolicyNotificationsOverrides().keySet().removeAll(ownerIds);
       }
       if (updated) {
         policyDAO.update(tx, policy);
       }
     }
-
-    // Cascade to policy waiver requests
-    PolicyWaiverRequestDAO policyWaiverRequestDAO = policyWaiverRequestDAOProvider.get();
-    List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByOwnerId(tx, owner.getId());
-    for (PolicyWaiverRequest policyWaiverRequest : policyWaiverRequests) {
-      policyWaiverRequestDAO.delete(tx, policyWaiverRequest);
-    }
-
-    // Cascade to data retention policies
-    for (DataRetentionPolicy dataRetentionPolicy : dataRetentionPolicyDAO.getByOwnerId(tx, owner.getId()).values()) {
-      dataRetentionPolicyDAO.delete(tx, dataRetentionPolicy);
-    }
-
-    // Cascade to policy monitoring
-    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(tx, owner.getId());
-    if (isNotEmpty(policyMonitorings)) {
-      for (PolicyMonitoring policyMonitoring : policyMonitorings) {
-        policyMonitoringDAO.delete(tx, policyMonitoring);
-      }
-    }
-
-    // Cascade to component copyrights
-    ComponentCopyrightDAO componentCopyrightDAO = componentCopyrightDAOProvider.get();
-    for (ComponentCopyright componentCopyright : componentCopyrightDAO.getByOwnerId(tx, owner.getId())) {
-      componentCopyrightDAO.delete(tx, componentCopyright);
-    }
-
-    // Cascade to component legal files
-    ComponentLegalFileDAO componentLegalFileDAO = componentLegalFileDAOProvider.get();
-    for (ComponentLegalFile componentLegalFile : componentLegalFileDAO.getByOwnerId(tx, owner.getId())) {
-      componentLegalFileDAO.delete(tx, componentLegalFile);
-    }
-
-    // Cascade to component obligations
-    ComponentObligationDAO componentObligationDAO = componentObligationDAOProvider.get();
-    for (ComponentObligation componentObligation : componentObligationDAO.getByOwnerId(tx, owner.getId())) {
-      componentObligationDAO.delete(tx, componentObligation);
-    }
-
-    // Cascade to component obligation attributions
-    ComponentObligationAttributionDAO componentObligationAttributionDAO =
-        componentObligationAttributionDAOProvider.get();
-    for (ComponentObligationAttribution componentObligationAttribution : componentObligationAttributionDAO
-        .getByOwnerId(tx, owner.getId()))
-    {
-      componentObligationAttributionDAO.delete(tx, componentObligationAttribution);
-    }
-
-    // Cascade to vulnerability groups
-    VulnerabilityGroupDAO vulnerabilityGroupDAO = vulnerabilityGroupDAOProvider.get();
-    for (VulnerabilityGroup vulnerabilityGroup : vulnerabilityGroupDAO.getByOwnerId(tx, owner.getId())) {
-      vulnerabilityGroupDAO.delete(tx, vulnerabilityGroup);
-    }
-
-    // Cascade to vulnerability custom remediation
-    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
-        vulnerabilityCustomRemediationDAOProvider.get();
-    for (VulnerabilityCustomRemediation vulnerabilityCustomRemediation : vulnerabilityCustomRemediationDAO
-        .getByOwnerId(tx, owner.getId()))
-    {
-      vulnerabilityCustomRemediationDAO.delete(tx, vulnerabilityCustomRemediation);
-    }
-
-    // Cascade to vulnerability custom CWE
-    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = vulnerabilityCustomCweDAOProvider.get();
-    for (VulnerabilityCustomCwe vulnerabilityCustomCwe : vulnerabilityCustomCweDAO.getByOwnerId(tx, owner.getId())) {
-      vulnerabilityCustomCweDAO.delete(tx, vulnerabilityCustomCwe);
-    }
-
-    // Cascade to vulnerability custom CVSS vector data
-    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssDAO = vulnerabilityCustomCvssVectorDAOProvider.get();
-    for (VulnerabilityCustomCvssVector vulnerabilityCustomCvss : vulnerabilityCustomCvssDAO.getByOwnerId(tx,
-        owner.getId()))
-    {
-      vulnerabilityCustomCvssDAO.delete(tx, vulnerabilityCustomCvss);
-    }
-
-    // Cascade to vulnerability custom CVSS severity data
-    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
-        vulnerabilityCustomCvssSeverityDAOProvider.get();
-    for (VulnerabilityCustomCvssSeverity vulnerabilityCustomCvssSeverity : vulnerabilityCustomCvssSeverityDAO
-        .getByOwnerId(tx,
-            owner.getId()))
-    {
-      vulnerabilityCustomCvssSeverityDAO.delete(tx, vulnerabilityCustomCvssSeverity);
-    }
-
-    // Cascade to call flow config
-    CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO = callFlowAnalysisConfigDAOProvider.get();
-    CallFlowAnalysisConfig callFlowAnalysisConfig = callFlowAnalysisConfigDAO.getByOwnerId(tx, owner.getId());
-    if (callFlowAnalysisConfig != null) {
-      callFlowAnalysisConfigDAO.delete(tx, callFlowAnalysisConfig);
-    }
-
-    policyEvaluationDAOProvider.get().deleteByOwnerId(tx, owner.getId());
-    policyViolationDAOProvider.get().deleteByOwnerId(tx, owner.getId());
-    ownerComponentDAOProvider.get().deleteByOwnerId(tx, owner.getId());
   }
 
   /**

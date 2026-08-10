@@ -73,6 +73,16 @@ public class CopyrightOverrideDAO
     }
   }
 
+  public void deleteByComponentCopyrightIds(TransactionContext tx, Collection<String> componentCopyrightIds) {
+    if (CollectionUtils.isEmpty(componentCopyrightIds)) {
+      return;
+    }
+    getListWithSqlInClause(componentCopyrightIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(COPYRIGHT_OVERRIDE)
+        .where(COPYRIGHT_OVERRIDE.COMPONENT_COPYRIGHT_ID.in(idChunk))
+        .execute()), getDataStore());
+  }
+
   public List<CopyrightOverride> getByOwnerIdAndComponentIdentifier(
       TransactionContext tx,
       String ownerId,

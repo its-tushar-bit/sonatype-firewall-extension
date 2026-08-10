@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,16 @@ public class PolicyMonitoringDAO
         .selectFrom(POLICY_MONITORING)
         .where(POLICY_MONITORING.OWNER_ID.eq(ownerId))
         .fetchInto(PolicyMonitoring.class);
+  }
+
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(POLICY_MONITORING)
+        .where(POLICY_MONITORING.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
   }
 
   public List<PolicyMonitoring> getByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {

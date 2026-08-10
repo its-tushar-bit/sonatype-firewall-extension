@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.legal;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentLegalFile.COMPONENT_LEGAL_FILE;
@@ -57,6 +59,24 @@ public class ComponentLegalFileDAO
         .selectFrom(COMPONENT_LEGAL_FILE)
         .where(COMPONENT_LEGAL_FILE.OWNER_ID.eq(ownerId))
         .fetch(this::toEntity);
+  }
+
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    List<String> componentLegalFileIds = getListWithSqlInClause(ownerIds, idChunk -> tx.dsl()
+        .select(COMPONENT_LEGAL_FILE.COMPONENT_LEGAL_FILE_ID)
+        .from(COMPONENT_LEGAL_FILE)
+        .where(COMPONENT_LEGAL_FILE.OWNER_ID.in(idChunk))
+        .fetch(COMPONENT_LEGAL_FILE.COMPONENT_LEGAL_FILE_ID), getDataStore());
+
+    legalFileOverrideDAOProvider.get().deleteByComponentLegalFileIds(tx, componentLegalFileIds);
+
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(COMPONENT_LEGAL_FILE)
+        .where(COMPONENT_LEGAL_FILE.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
   }
 
   public List<ComponentLegalFile> getByOwnerId(String ownerId) {

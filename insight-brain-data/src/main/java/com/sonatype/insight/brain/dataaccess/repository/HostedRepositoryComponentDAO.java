@@ -35,6 +35,12 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedReposit
 public class HostedRepositoryComponentDAO
     extends AbstractOperationalSqlDAO<HostedRepositoryComponent>
 {
+  /**
+   * Page size for {@link #deleteByRepositoryId(TransactionContext, String)}. Bounds both the size of the IN clause
+   * used to batch-delete owned rows and the number of HRC rows materialized into heap per iteration.
+   */
+  private static final int DELETE_CHUNK_SIZE = 500;
+
   private final Provider<OwnerDAO> ownerDAOProvider;
 
   @Inject
@@ -96,5 +102,33 @@ public class HostedRepositoryComponentDAO
   public void delete(TransactionContext tx, HostedRepositoryComponent entity) {
     ownerDAOProvider.get().cascadeDelete(tx, entity);
     super.delete(tx, entity);
+  }
+
+  /**
+   * Deletes all hosted_repository_component rows for the given repository, along with their owned scan-based rows,
+   * using chunked set-based SQL instead of a per-row delete loop.
+   * <p>
+   * HRC IDs are paged in fixed-size batches (no {@code OFFSET} — each batch is deleted before the next page is
+   * fetched, so there is no offset drift) to avoid materializing a repository's entire HRC list into heap.
+   * </p>
+   *
+   * @param tx the transaction context that all operations will participate in
+   * @param repositoryId the repository whose HRC rows should be deleted
+   */
+  public void deleteByRepositoryId(TransactionContext tx, String repositoryId) {
+    List<String> ids;
+    while (!(ids = tx.dsl()
+        .select(HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID)
+        .from(HOSTED_REPOSITORY_COMPONENT)
+        .where(HOSTED_REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .limit(DELETE_CHUNK_SIZE)
+        .fetch(HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID)).isEmpty())
+    {
+      ownerDAOProvider.get().cascadeDeleteByOwnerIds(tx, ids);
+      tx.dsl()
+          .deleteFrom(HOSTED_REPOSITORY_COMPONENT)
+          .where(HOSTED_REPOSITORY_COMPONENT.HOSTED_REPOSITORY_COMPONENT_ID.in(ids))
+          .execute();
+    }
   }
 }

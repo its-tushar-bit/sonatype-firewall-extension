@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.util.Collection;
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
@@ -14,6 +17,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.CallFlowAnalysisConfig.CALL_FLOW_ANALYSIS_CONFIG;
@@ -61,6 +65,16 @@ public class CallFlowAnalysisConfigDAO
         .selectFrom(CALL_FLOW_ANALYSIS_CONFIG)
         .where(CALL_FLOW_ANALYSIS_CONFIG.OWNER_ID.eq(ownerId))
         .fetchOne());
+  }
+
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(CALL_FLOW_ANALYSIS_CONFIG)
+        .where(CALL_FLOW_ANALYSIS_CONFIG.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
   }
 
   @Override

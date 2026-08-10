@@ -90,6 +90,16 @@ public class LegalFileOverrideDAO
     }
   }
 
+  public void deleteByComponentLegalFileIds(TransactionContext tx, Collection<String> componentLegalFileIds) {
+    if (CollectionUtils.isEmpty(componentLegalFileIds)) {
+      return;
+    }
+    getListWithSqlInClause(componentLegalFileIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(LEGAL_FILE_OVERRIDE)
+        .where(LEGAL_FILE_OVERRIDE.COMPONENT_LEGAL_FILE_ID.in(idChunk))
+        .execute()), getDataStore());
+  }
+
   public List<LegalFileOverride> getByOwnerIdAndComponentIdentifierAndType(
       TransactionContext tx,
       String ownerId,

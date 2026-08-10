@@ -16,6 +16,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseOverride.LICENSE_OVERRIDE;
@@ -50,6 +51,16 @@ public class LicenseOverrideLicenseInternalDAO
             .selectFrom(LICENSE_OVERRIDE_LICENSE)
             .where(LICENSE_OVERRIDE_LICENSE.LICENSE_OVERRIDE_ID.in(chunk))
             .fetch(this::toEntity));
+  }
+
+  public void deleteByLicenseOverrideIds(TransactionContext tx, Collection<String> licenseOverrideIds) {
+    if (CollectionUtils.isEmpty(licenseOverrideIds)) {
+      return;
+    }
+    getListWithSqlInClause(licenseOverrideIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(LICENSE_OVERRIDE_LICENSE)
+        .where(LICENSE_OVERRIDE_LICENSE.LICENSE_OVERRIDE_ID.in(idChunk))
+        .execute()), getDataStore());
   }
 
   List<LicenseOverrideLicenseInternal> getByOwnerId(TransactionContext tx, String ownerId) {

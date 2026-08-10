@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -183,6 +184,30 @@ public class LicenseOverrideInternalDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
     }
+  }
+
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(LICENSE_OVERRIDE)
+        .where(LICENSE_OVERRIDE.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
+  }
+
+  /**
+   * Batch-fetches license_override IDs for the given owner IDs, chunked over IN-clause statements.
+   */
+  public List<String> getIdsByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return List.of();
+    }
+    return getListWithSqlInClause(ownerIds, idChunk -> tx.dsl()
+        .select(LICENSE_OVERRIDE.LICENSE_OVERRIDE_ID)
+        .from(LICENSE_OVERRIDE)
+        .where(LICENSE_OVERRIDE.OWNER_ID.in(idChunk))
+        .fetch(LICENSE_OVERRIDE.LICENSE_OVERRIDE_ID));
   }
 
   public int getCountByOwnerId(TransactionContext tx, String ownerId) {

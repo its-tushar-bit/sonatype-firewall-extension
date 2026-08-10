@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -19,6 +20,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.DataRetentionPolicy.DATA_RETENTION_POLICY;
@@ -92,6 +94,16 @@ public class DataRetentionPolicyDAO
           .limit(1)
           .fetchOne());
     }
+  }
+
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(DATA_RETENTION_POLICY)
+        .where(DATA_RETENTION_POLICY.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
   }
 
   public DataRetentionPolicy getByOwnerIdAndContextId(final String ownerId, final String contextId) {

@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
@@ -214,6 +215,31 @@ public class RepositoryDAOTest
     dao.delete(hostedRepo);
 
     assertThat(hostedRepositoryComponentDAO.getById(hrc.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToHostedRepositoryComponents_atChunkBoundary() {
+    // HostedRepositoryComponentDAO.deleteByRepositoryId pages HRCs in chunks of 500; exercise both an
+    // exact-multiple count and a count one over the boundary to catch off-by-one errors in the chunking loop.
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository hostedRepo = tempEntity.newRepository(repoManager, "hostedRepoWithManyHrcs",
+        RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
+
+    List<HostedRepositoryComponent> hrcs = new ArrayList<>();
+    for (int i = 0; i < 501; i++) {
+      hrcs.add(new HostedRepositoryComponent(hostedRepo.getId(), "path/boundary-" + i + ".jar", "hash-" + i));
+    }
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      hostedRepositoryComponentDAO.insertBatch(tx, hrcs, false);
+      tx.commit();
+    }
+
+    dao.delete(hostedRepo);
+
+    try (TransactionContext tx = hostedRepositoryComponentDAO.createTransactionContext()) {
+      assertThat(hostedRepositoryComponentDAO.getByRepositoryId(tx, hostedRepo.getId())).isEmpty();
+    }
   }
 
   @Test

@@ -459,6 +459,16 @@ public class PolicyEvaluationDAO
         .execute();
   }
 
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(POLICY_EVALUATION)
+        .where(POLICY_EVALUATION.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
+  }
+
   public List<PolicyEvaluation> getPrimaryNonMonitoringByOwnerIdAndStageId(String ownerId, String stageId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()

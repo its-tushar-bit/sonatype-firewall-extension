@@ -148,6 +148,16 @@ public class OwnerComponentDAO
         .execute();
   }
 
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(OWNER_COMPONENT)
+        .where(OWNER_COMPONENT.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
+  }
+
   public OwnerComponent getByOwnerIdAndStageTypeIdAndHash(String ownerId, String stageTypeId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()

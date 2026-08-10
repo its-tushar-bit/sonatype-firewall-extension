@@ -18,6 +18,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Owner;
@@ -220,6 +222,15 @@ public class LicenseOverrideDAO
     try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
       return licenseOverrideInternalDAO.getCountByOwnerId(tx, ownerId);
     }
+  }
+
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    List<String> licenseOverrideIds = licenseOverrideInternalDAO.getIdsByOwnerIds(tx, ownerIds);
+    licenseOverrideLicenseInternalDAO.deleteByLicenseOverrideIds(tx, licenseOverrideIds);
+    licenseOverrideInternalDAO.deleteByOwnerIds(tx, ownerIds);
   }
 
   public int insert(TransactionContext tx, LicenseOverride entity) {

@@ -35,10 +35,11 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import jakarta.annotation.Nullable;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
@@ -586,6 +587,21 @@ public class PolicyWaiverDAO
         .selectFrom(POLICY_WAIVER)
         .where(POLICY_WAIVER.OWNER_ID.eq(ownerId))
         .fetch(this::toEntity);
+  }
+
+  /**
+   * Batch-fetches policy waivers for the given owner IDs in chunked IN-clause queries, instead of one SELECT per
+   * owner. Intended for use with {@link #deleteBatch(TransactionContext, List)} to batch-delete waivers for many
+   * owners at once.
+   */
+  public List<PolicyWaiver> getByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return List.of();
+    }
+    return getListWithSqlInClause(ownerIds, idChunk -> tx.dsl()
+        .selectFrom(POLICY_WAIVER)
+        .where(POLICY_WAIVER.OWNER_ID.in(idChunk))
+        .fetch(this::toEntity));
   }
 
   public List<PolicyWaiver> getActiveByOwnerId(TransactionContext tx, String ownerId) {

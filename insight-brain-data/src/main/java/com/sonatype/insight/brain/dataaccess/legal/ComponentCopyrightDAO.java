@@ -65,6 +65,24 @@ public class ComponentCopyrightDAO
         .fetchInto(ComponentCopyright.class);
   }
 
+  public void deleteByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return;
+    }
+    List<String> componentCopyrightIds = getListWithSqlInClause(ownerIds, idChunk -> tx.dsl()
+        .select(COMPONENT_COPYRIGHT.COMPONENT_COPYRIGHT_ID)
+        .from(COMPONENT_COPYRIGHT)
+        .where(COMPONENT_COPYRIGHT.OWNER_ID.in(idChunk))
+        .fetch(COMPONENT_COPYRIGHT.COMPONENT_COPYRIGHT_ID), getDataStore());
+
+    copyrightOverrideDAOProvider.get().deleteByComponentCopyrightIds(tx, componentCopyrightIds);
+
+    getListWithSqlInClause(ownerIds, idChunk -> List.of(tx.dsl()
+        .deleteFrom(COMPONENT_COPYRIGHT)
+        .where(COMPONENT_COPYRIGHT.OWNER_ID.in(idChunk))
+        .execute()), getDataStore());
+  }
+
   public List<ComponentCopyright> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);

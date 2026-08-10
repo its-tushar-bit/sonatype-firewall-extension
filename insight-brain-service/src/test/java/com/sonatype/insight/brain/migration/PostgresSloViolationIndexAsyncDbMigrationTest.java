@@ -84,10 +84,9 @@ public class PostgresSloViolationIndexAsyncDbMigrationTest
         Statement stmt = conn.createStatement())
     {
       conn.setAutoCommit(true);
-      String table = underTest.resolveBaseTable(conn, schema, "policy_violation");
       stmt.execute(
           "CREATE INDEX CONCURRENTLY IF NOT EXISTS policy_violation_app_stage_updated_idx "
-              + "ON " + schema + "." + table + " "
+              + "ON " + schema + ".policy_violation "
               + "(owner_id, stage_type_id, "
               + "GREATEST(COALESCE(open_time, TIMESTAMP '1970-01-01 00:00:00'), "
               + "COALESCE(waive_time, TIMESTAMP '1970-01-01 00:00:00'), "

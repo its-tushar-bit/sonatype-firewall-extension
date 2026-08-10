@@ -57,12 +57,11 @@ public class SloViolationIndexAsyncDbMigration
       conn.setAutoCommit(true);
       dropInvalidIndexConcurrentlyIfPresent(conn, schema, "policy_violation_app_stage_updated_idx");
 
-      String table = resolveBaseTable(conn, schema, "policy_violation");
       try (Statement stmt = conn.createStatement()) {
         log.info("Creating policy_violation_app_stage_updated_idx CONCURRENTLY for schema: {}", schema);
         stmt.execute(
             "CREATE INDEX CONCURRENTLY IF NOT EXISTS policy_violation_app_stage_updated_idx "
-                + "ON " + schema + "." + table + " "
+                + "ON " + schema + ".policy_violation "
                 + "(owner_id, stage_type_id, "
                 + "GREATEST(COALESCE(open_time, TIMESTAMP '1970-01-01 00:00:00'), "
                 + "COALESCE(waive_time, TIMESTAMP '1970-01-01 00:00:00'), "

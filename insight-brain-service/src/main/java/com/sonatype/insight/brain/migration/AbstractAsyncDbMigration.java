@@ -124,33 +124,6 @@ public abstract class AbstractAsyncDbMigration
     }
   }
 
-  /**
-   * Resolves the real base table for {@code policy_violation}. During the compat-view window (release N),
-   * {@code policy_violation} is a view over {@code policy_violation_t} and cannot be indexed; the index must
-   * target {@code policy_violation_t}. On fresh installs and after the view is collapsed (release N+1),
-   * {@code policy_violation_t} does not exist and the real table is {@code policy_violation}.
-   *
-   * @param tableName the unqualified base table name (trusted, hardcoded literal)
-   */
-  protected String resolveBaseTable(
-      final Connection conn,
-      final String schema,
-      final String tableName) throws SQLException
-  {
-    String temporaryTable = tableName + "_t";
-    try (PreparedStatement ps = conn.prepareStatement(
-        "SELECT 1 FROM pg_class c "
-            + "JOIN pg_namespace n ON n.oid = c.relnamespace "
-            + "WHERE c.relname = ? AND n.nspname = ? AND c.relkind = 'r'"))
-    {
-      ps.setString(1, temporaryTable);
-      ps.setString(2, schema);
-      try (ResultSet rs = ps.executeQuery()) {
-        return rs.next() ? temporaryTable : tableName;
-      }
-    }
-  }
-
   @Override
   public int compareTo(final AbstractAsyncDbMigration o) {
     return COMPARATOR.compare(this, o);
